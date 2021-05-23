@@ -1,29 +1,29 @@
 class Modifications {
-  private _key: string;
   private _campaignId: string;
   private _variationGroupId: string;
   private _variationId: string;
   private _isReference: boolean;
-  private _value: Object;
+  private _type: string;
+  private _values: Object;
 
   constructor(
-    key: string,
+    type: string,
     campaignId: string,
     variationGroupId: string,
     variationId: string,
     isReference: boolean,
-    value: Object
+    values: Object
   ) {
-    this._key = key;
+    this._type = type;
     this._campaignId = campaignId;
     this._variationGroupId = variationGroupId;
     this._variationId = variationId;
     this._isReference = isReference;
-    this._value = value;
+    this._values = values;
   }
 
-  public getKey(): string {
-    return this._key;
+  public getType(): string {
+    return this._type;
   }
 
   public getCampaignId(): string {
@@ -42,9 +42,7 @@ class Modifications {
     return this._isReference;
   }
 
-  public getValue(): Object {
-    return this._value;
+  public getValues(): Object {
+    return this._values;
   }
-
-  public static;
 }

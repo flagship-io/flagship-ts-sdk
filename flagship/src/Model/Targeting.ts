@@ -9,7 +9,7 @@ class Targeting {
     this.operator = operator;
   }
 
-  public static parse(jsonObject: JSON): Targeting {
+  /*   public static parse(jsonObject: JSON): Targeting {
     try {
       let key: string = jsonObject["key"];
       let value: Object = jsonObject["Object"];
@@ -19,7 +19,7 @@ class Targeting {
       console.log(error);
       return null;
     }
-  }
+  } */
 
   public isTargetingValid(context: Map<String, Object>): boolean {
     let contextValue: Object = context;
@@ -32,7 +32,7 @@ class Targeting {
       return true;
     else if (contextValue == null) return false;
     else
-      return ITargetingComp.compareObjects(
+      return ETargetingComp.compareObjects(
         contextValue,
         this.value,
         comparator
