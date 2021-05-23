@@ -11,7 +11,7 @@ enum ETargetingCompCase {
   ENDS_WITH = "ENDS_WITH",
 }
 
-class ETargetingComp implements ITargetingComp {
+class ETargetingComp implements ETargetingComp {
   public static get(name: string): ETargetingCompCase {
     for (let e in Object.keys(ETargetingCompCase)) {
       if (e === name) {
