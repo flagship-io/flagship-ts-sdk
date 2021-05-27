@@ -1,4 +1,6 @@
-abstract class ITargetingComp {
+import { ETargetingCompCase } from "./ETargetingComp";
+
+export abstract class ITargetingComp {
   static compareObjects(
     contextValue: Object,
     flagshipValue: Object,

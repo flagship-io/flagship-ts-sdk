@@ -1,4 +1,4 @@
-enum ETargetingCompCase {
+export enum ETargetingCompCase {
   EQUALS = "EQUALS",
   NOT_EQUALS = "NOT_EQUALS",
   CONTAINS = "CONTAINS",
@@ -11,7 +11,7 @@ enum ETargetingCompCase {
   ENDS_WITH = "ENDS_WITH",
 }
 
-class ETargetingComp implements ETargetingComp {
+export class ETargetingComp implements ETargetingComp {
   public static get(name: string): ETargetingCompCase {
     for (let e in Object.keys(ETargetingCompCase)) {
       if (e === name) {

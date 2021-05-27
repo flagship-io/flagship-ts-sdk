@@ -1,6 +1,12 @@
 import { BASE_API_URL, URL_CAMPAIGNS } from "../Enum/FlagshipConstant";
+import { FlagshipConfig } from "../Main/FlagshipConfig";
+import { Campaign } from "../Model/Campaign";
+import { OnStatusChangedListener } from "../Main/Flagship";
+import { DecisionManager } from "./DecisionManager";
+import { Flagship } from "../Main/Flagship";
+import { Status } from "../Main/Flagship";
 
-class ApiManager extends DecisionManager {
+export class ApiManager extends DecisionManager {
   public constructor(config: FlagshipConfig) {
     super(config);
   }

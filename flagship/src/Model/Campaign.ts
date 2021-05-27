@@ -1,4 +1,8 @@
-class Campaign {
+import { VariationGroup } from "./VariationGroup";
+import { Modification } from "./Modification";
+import { Variation } from "./Variation";
+
+export class Campaign {
   private _id: string;
   private _variationGroups: Map<string, VariationGroup>;
   private _selectedVariationGroupId: string = null;

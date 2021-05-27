@@ -1,4 +1,4 @@
-enum Mode {
+export enum Mode {
   /**
    * Flagship SDK mode decision api
    */
@@ -8,7 +8,7 @@ enum Mode {
    */
   BUCKETING,
 }
-class FlagshipMode {
+export class FlagshipMode {
   static readonly DECISION_API: Mode = Mode.DECISION_API;
 
   static isFlagshipMode(value: Mode): boolean {

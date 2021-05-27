@@ -1,4 +1,10 @@
-abstract class DecisionManager implements IDecisionManager {
+import { FlagshipConfig } from "../Main/FlagshipConfig";
+import { IDecisionManager } from "../decision/IDecisionManager";
+import { Campaign } from "../Model/Campaign";
+import { Modification } from "../Model/Modification";
+import { OnStatusChangedListener } from "../Main/Flagship";
+
+export abstract class DecisionManager implements IDecisionManager {
   protected _config: FlagshipConfig;
   private _panic: boolean = false;
   protected _onStatusChangedListener = null;

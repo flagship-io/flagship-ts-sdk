@@ -1,4 +1,7 @@
-class VariationGroup {
+import { Variation } from "./Variation";
+import { TargetingGroups } from "./TargetingGroups";
+
+export class VariationGroup {
   private _campaignId: string;
   private _variationGroupId: string;
   private _variations: Map<string, Variation>;

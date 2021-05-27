@@ -1,4 +1,4 @@
-class Modification {
+export class Modification {
   private _key: string;
   private _campaignId: string;
   private _variationGroupId: string;

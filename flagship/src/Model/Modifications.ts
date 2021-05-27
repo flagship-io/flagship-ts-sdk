@@ -1,4 +1,4 @@
-class Modifications {
+export class Modifications {
   private _campaignId: string;
   private _variationGroupId: string;
   private _variationId: string;

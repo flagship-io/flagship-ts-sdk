@@ -1,4 +1,6 @@
-class TargetingList {
+import { Targeting } from "./Targeting";
+
+export class TargetingList {
   private _targetingList: Array<Targeting>;
 
   constructor(targetingList: Array<Targeting>) {

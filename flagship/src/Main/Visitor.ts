@@ -1,4 +1,9 @@
-class Visitor {
+import { Modification } from "../Model/Modification";
+import { DecisionManager } from "../decision/DecisionManager";
+import { FlagshipConfig } from "./FlagshipConfig";
+import { Campaign } from "../Model/Campaign";
+
+export class Visitor {
   private _visitorId: string;
   private _context: Map<string, Object>;
   private _modifications: Map<string, Modification>;

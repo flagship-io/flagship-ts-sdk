@@ -1,4 +1,7 @@
-enum Status {
+import { FlagshipConfig } from "./FlagshipConfig";
+import { DecisionManager } from "../decision/DecisionManager";
+
+export enum Status {
   /**
    * Flagship SDK has not been started or initialized successfully.
    */
@@ -9,11 +12,11 @@ enum Status {
   READY,
 }
 
-interface OnStatusChangedListener {
+export interface OnStatusChangedListener {
   onStatusChanged(newStatus: Status): void;
 }
 
-class Flagship {
+export class Flagship {
   private static _instance: Flagship = null;
   private _config: FlagshipConfig = null;
   private _status: Status = Status.NOT_READY;

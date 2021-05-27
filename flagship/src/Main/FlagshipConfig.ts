@@ -1,4 +1,8 @@
-class FlagshipConfig {
+import { FlagshipMode } from "../Enum/FlagshipMode";
+import { OnStatusChangedListener } from "./Flagship";
+import { Mode } from "../Enum/FlagshipMode";
+
+export class FlagshipConfig {
   private _envId: string = null;
   private _apiKey: string = null;
   private _flagshipMode: FlagshipMode = FlagshipMode.DECISION_API;

@@ -1,4 +1,7 @@
-class Targeting {
+import { ETargetingComp } from "../utils/ETargetingComp";
+import { ETargetingCompCase } from "../utils/ETargetingComp";
+
+export class Targeting {
   key: string;
   value: Object;
   operator: string;
