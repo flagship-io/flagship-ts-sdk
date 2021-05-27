@@ -12,7 +12,10 @@ export class FlagshipConfig {
   private _trackingManager = null;
   private _onStatusChangedListener: OnStatusChangedListener = null;
 
-  constructor(envId: string, apiKey: string) {
+  constructor(envId?: string, apiKey?: string) {
+    if (!envId && !apiKey) {
+      return;
+    }
     this._envId = envId;
     this._apiKey = apiKey;
   }

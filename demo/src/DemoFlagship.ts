@@ -1,11 +1,11 @@
-class DemoFlagship{
-    Flagship.start("bkk4s7gcmjcg07fke9dg", "Q6FDmj6F188nh75lhEato2MwoyXDS7y34VrAL4Aa",
-                new FlagshipConfig()
-                        .withLogLevel(LogManager.Level.ALL)
-                        .withFlagshipMode(Flagship.Mode.BUCKETING)
-                        .withBucketingPollingIntervals(20, TimeUnit.SECONDS)
-                        .withStatusChangeListener(newStatus -> {
-                            flagshipReadyLatch.countDown();
-                        })
-        );
-}
+import { Flagship } from "../../flagship/src/Main/Flagship";
+import { Mode } from "../../flagship/src/Enum/FlagshipMode";
+import { FlagshipConfig } from "../../flagship/src/Main/FlagshipConfig";
+
+const flagship = Flagship.start(
+  "c0n48jn5thv01k0ijmo0",
+  "BsIK86oh7c12c9G7ce4Wm1yBlWeaMf3t1S0xyYzI",
+  new FlagshipConfig().withFlagshipMode(Mode.DECISION_API)
+);
+
+console.log(flagship);
