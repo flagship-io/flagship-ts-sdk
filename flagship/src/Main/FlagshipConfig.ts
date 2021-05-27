@@ -6,6 +6,7 @@ class FlagshipConfig {
   private _logManager = null;
   private _decisionManager = null;
   private _trackingManager = null;
+  private _onStatusChangedListener: OnStatusChangedListener = null;
 
   constructor(envId: string, apiKey: string) {
     this._envId = envId;
@@ -39,6 +40,17 @@ class FlagshipConfig {
       this._flagshipMode = FlagshipMode;
       return this;
     }
+  }
+
+  public withStatusChangeListener(listener: OnStatusChangedListener) {
+    if (listener != null) {
+      this._onStatusChangedListener = listener;
+    }
+    return this;
+  }
+
+  public getOnStatusChangedListener() {
+    return this._onStatusChangedListener;
   }
 
   public getTimeOut(): number {
