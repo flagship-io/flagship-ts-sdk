@@ -35,5 +35,6 @@ export class TargetingGroups {
       });
       return false;
     }
+    return false;
   }
 }

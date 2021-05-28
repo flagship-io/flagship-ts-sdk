@@ -42,11 +42,11 @@ export class VariationGroup {
     return this._selectedVariationId;
   }
 
-  public getSelectVariation(): Variation {
+  public getSelectVariation(): Variation | undefined {
     if (this._selectedVariationId != null && this._variations != null) {
       return this._variations.get(this._selectedVariationId);
     }
-    return null;
+    return undefined;
   }
 
   public selectVariation(visitorId: string): void {

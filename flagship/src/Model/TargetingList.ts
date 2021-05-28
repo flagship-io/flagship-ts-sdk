@@ -36,5 +36,6 @@ export class TargetingList {
       });
       return true;
     }
+    return false;
   }
 }

@@ -5,7 +5,7 @@ import { Variation } from "./Variation.ts";
 export class Campaign {
   private _id: string;
   private _variationGroups: Map<string, VariationGroup>;
-  private _selectedVariationGroupId: string = null;
+  private _selectedVariationGroupId: string;
 
   constructor(
     id: string,
@@ -26,8 +26,8 @@ export class Campaign {
   }
 
   public selectVariation(visitorId: string): void {
-    for (let [k, v] of Object.entries(this._variationGroups)) {
-      let variationGroup: VariationGroup = v;
+    for (const [k, v] of Object.entries(this._variationGroups)) {
+      const variationGroup: VariationGroup = v;
       variationGroup.selectVariation(visitorId);
     }
   }
@@ -35,8 +35,8 @@ export class Campaign {
   public selectedVariationGroupFromTargeting(
     context: Map<string, Object>
   ): boolean {
-    for (let [k, v] of Object.entries(this._variationGroups)) {
-      let variationGroup: VariationGroup = v;
+    for (const [k, v] of Object.entries(this._variationGroups)) {
+      const variationGroup: VariationGroup = v;
       if (variationGroup.isTargetingValid(context)) {
         this._selectedVariationGroupId = variationGroup.getVariationGroupId();
         return true;
@@ -45,19 +45,23 @@ export class Campaign {
     return false;
   }
 
-  public getSelectedVariationGroup(): VariationGroup {
+  public getSelectedVariationGroup(): VariationGroup | undefined {
     if (this._selectedVariationGroupId != null && this._variationGroups != null)
       return this._variationGroups.get(this._selectedVariationGroupId);
-    return null;
+    return undefined;
   }
 
   public getModifications(): Map<string, Modification> {
-    let modifications: Map<string, Modification>;
-    let selectVariationGroup: VariationGroup = this.getSelectedVariationGroup();
+    let modifications: Map<string, Modification> = new Map<
+      string,
+      Modification
+    >();
+    let selectVariationGroup: VariationGroup | undefined =
+      this.getSelectedVariationGroup();
     if (selectVariationGroup != null) {
-      let selectedVariation: Variation =
+      let selectedVariation: Variation | undefined =
         selectVariationGroup.getSelectVariation();
-      if (selectedVariation != null) {
+      if (selectedVariation != undefined) {
         Array.prototype.push.apply(
           modifications,
           selectedVariation.getModifications().getValues()
@@ -67,7 +71,7 @@ export class Campaign {
     return modifications;
   }
 
-  public toString(): String {
+  public toString(): string {
     return (
       "Campaign{" +
       "id='" +

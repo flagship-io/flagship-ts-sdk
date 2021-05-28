@@ -86,6 +86,9 @@ export class ETargetingComp implements ETargetingComp {
 
       case ETargetingCompCase.LOWER_THAN_OR_EQUALS:
         return contextValue <= flagshipValue;
+
+      default:
+        return false;
     }
   }
 
@@ -166,6 +169,9 @@ export class ETargetingComp implements ETargetingComp {
             return false;
         }
         return true;
+
+      default:
+        return false;
     }
   }
 }
