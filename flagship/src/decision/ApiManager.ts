@@ -19,44 +19,42 @@ export class ApiManager extends DecisionManager {
       onStatusChangedListener.onStatusChanged(Status.READY);
   } */
 
-  public getCampaigns(
+  public async getCampaigns(
     visitorId: string,
     context: Map<string, Object>
-  ): Array<Campaign> {
-    let campaigns: Array<Campaign> = [];
+  ): Promise<Array<Campaign>> {
+    let campaigns: Array<Campaign> = new Array<Campaign>();
     //let headers = new Map<>
-    window
-      .fetch(BASE_API_URL + "c0n48jn5thv01k0ijmo0" + URL_CAMPAIGNS, {
-        method: "POST",
-        headers: {
-          "x-api-key": "BsIK86oh7c12c9G7ce4Wm1yBlWeaMf3t1S0xyYzI",
-          "x-sdk-client": "Deno",
-          "x-sdk-version": "2.0.0",
-        },
-        body: JSON.stringify({
-          visitorId: visitorId,
-          trigger_hit: false,
-          context: context,
-        }),
-      })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data != null) {
-          let newCampaigns: Array<Campaign> = data?.campaigns;
-          if (newCampaigns != null) {
-            campaigns.concat(newCampaigns);
-            campaigns = [...campaigns, ...newCampaigns];
-          }
+    try {
+      const data = await (
+        await fetch(BASE_API_URL + "c0n48jn5thv01k0ijmo0" + URL_CAMPAIGNS, {
+          method: "POST",
+          headers: {
+            "x-api-key": "BsIK86oh7c12c9G7ce4Wm1yBlWeaMf3t1S0xyYzI",
+            "x-sdk-client": "Typescript",
+            "x-sdk-version": "2.0.0",
+          },
+          body: JSON.stringify({
+            visitorId: visitorId,
+            trigger_hit: false,
+            context: context,
+          }),
+        })
+      ).json();
+
+      if (data != null) {
+        const newCampaigns: Array<Campaign> = data.campaigns;
+        if (newCampaigns != null) {
+          campaigns.concat(newCampaigns);
+          campaigns = [...campaigns, ...newCampaigns];
         }
-        console.log(data);
-        console.log(BASE_API_URL + "c0n48jn5thv01k0ijmo0" + URL_CAMPAIGNS);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+      }
 
-    //let newCampaigns: Array<Campaign> = await response.json();
+      //let newCampaigns: Array<Campaign> = await response.json();
 
-    return campaigns;
+      return campaigns;
+    } catch (e) {
+      return campaigns;
+    }
   }
 }
