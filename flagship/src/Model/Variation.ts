@@ -1,4 +1,4 @@
-import { Modifications } from "./Modifications";
+import { Modifications } from "./Modifications.ts";
 
 export class Variation {
   private _campaignId: string;

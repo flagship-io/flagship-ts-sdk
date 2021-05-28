@@ -1,11 +1,11 @@
-import { FlagshipConfig } from "../Main/FlagshipConfig";
-import { IDecisionManager } from "../decision/IDecisionManager";
-import { Campaign } from "../Model/Campaign";
-import { Modification } from "../Model/Modification";
-import { OnStatusChangedListener } from "../Main/Flagship";
+import { FlagshipConfig } from "../Main/FlagshipConfig.ts";
+import { IDecisionManager } from "../decision/IDecisionManager.ts";
+import { Campaign } from "../Model/Campaign.ts";
+import { Modification } from "../Model/Modification.ts";
+import { OnStatusChangedListener } from "../Main/FlagshipConfig.ts";
 
 export abstract class DecisionManager implements IDecisionManager {
-  protected _config: FlagshipConfig;
+  public _config: FlagshipConfig;
   private _panic: boolean = false;
   protected _onStatusChangedListener = null;
 

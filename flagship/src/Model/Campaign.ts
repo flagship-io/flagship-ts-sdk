@@ -1,6 +1,6 @@
-import { VariationGroup } from "./VariationGroup";
-import { Modification } from "./Modification";
-import { Variation } from "./Variation";
+import { VariationGroup } from "./VariationGroup.ts";
+import { Modification } from "./Modification.ts";
+import { Variation } from "./Variation.ts";
 
 export class Campaign {
   private _id: string;

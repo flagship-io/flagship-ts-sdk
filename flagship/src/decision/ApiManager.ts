@@ -1,13 +1,13 @@
-import { BASE_API_URL, URL_CAMPAIGNS } from "../Enum/FlagshipConstant";
-import { FlagshipConfig } from "../Main/FlagshipConfig";
-import { Campaign } from "../Model/Campaign";
-import { OnStatusChangedListener } from "../Main/Flagship";
-import { DecisionManager } from "./DecisionManager";
-import { Flagship } from "../Main/Flagship";
-import { Status } from "../Main/Flagship";
+import { BASE_API_URL, URL_CAMPAIGNS } from "../Enum/FlagshipConstant.ts";
+import { FlagshipConfig } from "../Main/FlagshipConfig.ts";
+import { Campaign } from "../Model/Campaign.ts";
+import { OnStatusChangedListener } from "../Main/FlagshipConfig.ts";
+import { DecisionManager } from "./DecisionManager.ts";
+import { Flagship } from "../Main/Flagship.ts";
+import { Status } from "../Main/Flagship.ts";
 
 export class ApiManager extends DecisionManager {
-  public constructor(config: FlagshipConfig) {
+  constructor(config: FlagshipConfig) {
     super(config);
   }
 
@@ -26,10 +26,10 @@ export class ApiManager extends DecisionManager {
     let campaigns: Array<Campaign>;
     //let headers = new Map<>
     window
-      .fetch(BASE_API_URL + this._config.getEnvId() + URL_CAMPAIGNS, {
+      .fetch(BASE_API_URL + "c0n48jn5thv01k0ijmo0" + URL_CAMPAIGNS, {
         method: "POST",
         headers: {
-          "x-api-key": this._config.getApiKey(),
+          "x-api-key": "BsIK86oh7c12c9G7ce4Wm1yBlWeaMf3t1S0xyYzI",
           "x-sdk-client": "Typescript",
           "x-sdk-version": "2.0.0",
         },

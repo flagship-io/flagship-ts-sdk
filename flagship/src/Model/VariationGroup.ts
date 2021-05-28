@@ -1,5 +1,5 @@
-import { Variation } from "./Variation";
-import { TargetingGroups } from "./TargetingGroups";
+import { Variation } from "./Variation.ts";
+import { TargetingGroups } from "./TargetingGroups.ts";
 
 export class VariationGroup {
   private _campaignId: string;

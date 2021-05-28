@@ -1,5 +1,5 @@
-import { ETargetingComp } from "../utils/ETargetingComp";
-import { ETargetingCompCase } from "../utils/ETargetingComp";
+import { ETargetingComp } from "../utils/ETargetingComp.ts";
+import { ETargetingCompCase } from "../utils/ETargetingComp.ts";
 
 export class Targeting {
   key: string;

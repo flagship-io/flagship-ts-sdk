@@ -1,16 +1,21 @@
-import { FlagshipMode } from "../Enum/FlagshipMode";
-import { OnStatusChangedListener } from "./Flagship";
-import { Mode } from "../Enum/FlagshipMode";
+import { FlagshipMode } from "../Enum/FlagshipMode.ts";
+import { Status } from "./Flagship.ts";
+import { Mode } from "../Enum/FlagshipMode.ts";
+import { IDecisionManager } from "../decision/IDecisionManager.ts";
+
+export interface OnStatusChangedListener {
+  onStatusChanged?(newStatus: Status): void;
+}
 
 export class FlagshipConfig {
-  private _envId: string = null;
-  private _apiKey: string = null;
+  private _envId: string;
+  private _apiKey: string;
   private _flagshipMode: FlagshipMode = FlagshipMode.DECISION_API;
   private _timeOut: number = 2000;
-  private _logManager = null;
-  private _decisionManager = null;
-  private _trackingManager = null;
-  private _onStatusChangedListener: OnStatusChangedListener = null;
+  private _logManager;
+  private _decisionManager: IDecisionManager;
+  private _trackingManager;
+  private _onStatusChangedListener: OnStatusChangedListener;
 
   constructor(envId?: string, apiKey?: string) {
     if (!envId && !apiKey) {

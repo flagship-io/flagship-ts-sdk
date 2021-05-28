@@ -1,4 +1,4 @@
-import { TargetingList } from "./TargetingList";
+import { TargetingList } from "./TargetingList.ts";
 
 export class TargetingGroups {
   private _targetingGroups: Array<TargetingList>;

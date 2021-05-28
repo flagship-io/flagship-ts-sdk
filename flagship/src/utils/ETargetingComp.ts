@@ -13,12 +13,8 @@ export enum ETargetingCompCase {
 
 export class ETargetingComp implements ETargetingComp {
   public static get(name: string): ETargetingCompCase {
-    for (let e in Object.keys(ETargetingCompCase)) {
-      if (e === name) {
-        return ETargetingCompCase[e];
-      }
-    }
-    return null;
+    let targetingKey = name as keyof typeof ETargetingCompCase;
+    return ETargetingCompCase[targetingKey];
   }
 
   public static compareObjects(

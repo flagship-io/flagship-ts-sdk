@@ -1,7 +1,7 @@
-import { Modification } from "../Model/Modification";
-import { DecisionManager } from "../decision/DecisionManager";
-import { FlagshipConfig } from "./FlagshipConfig";
-import { Campaign } from "../Model/Campaign";
+import { Modification } from "../Model/Modification.ts";
+import { DecisionManager } from "../decision/DecisionManager.ts";
+import { FlagshipConfig } from "./FlagshipConfig.ts";
+import { Campaign } from "../Model/Campaign.ts";
 
 export class Visitor {
   private _visitorId: string;
@@ -9,7 +9,7 @@ export class Visitor {
   private _modifications: Map<string, Modification>;
   private _decisionManager: DecisionManager;
 
-  protected constructor(
+  constructor(
     config: FlagshipConfig,
     decisionManager: DecisionManager,
     visitorId: string,

@@ -1,4 +1,4 @@
-import { ETargetingCompCase } from "./ETargetingComp";
+import { ETargetingCompCase } from "./ETargetingComp.ts";
 
 export abstract class ITargetingComp {
   static compareObjects(

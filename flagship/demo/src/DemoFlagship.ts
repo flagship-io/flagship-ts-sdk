@@ -1,7 +1,7 @@
-import { Flagship } from "../../flagship/src/Main/Flagship";
-import { Visitor } from "../../flagship/src/Main/Visitor";
-import { Mode } from "../../flagship/src/Enum/FlagshipMode";
-import { FlagshipConfig } from "../../flagship/src/Main/FlagshipConfig";
+import { Flagship } from "../../src/Main/Flagship.ts";
+import { Visitor } from "../../src/Main/Visitor.ts";
+import { Mode } from "../../src/Enum/FlagshipMode.ts";
+import { FlagshipConfig } from "../../src/Main/FlagshipConfig.ts";
 
 Flagship.start(
   "c0n48jn5thv01k0ijmo0",

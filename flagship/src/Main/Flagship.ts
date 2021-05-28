@@ -1,5 +1,7 @@
-import { FlagshipConfig } from "./FlagshipConfig";
-import { DecisionManager } from "../decision/DecisionManager";
+import { FlagshipConfig } from "./FlagshipConfig.ts";
+import { DecisionManager } from "../decision/DecisionManager.ts";
+import { ApiManager } from "../decision/ApiManager.ts";
+import { Visitor } from "./Visitor.ts";
 
 export enum Status {
   /**
@@ -10,10 +12,6 @@ export enum Status {
    * Flagship SDK is ready to use.
    */
   READY,
-}
-
-export interface OnStatusChangedListener {
-  onStatusChanged(newStatus: Status): void;
 }
 
 export class Flagship {
@@ -41,7 +39,7 @@ export class Flagship {
   public static start(
     envId: string,
     apiKey: string,
-    config: FlagshipConfig = null
+    config: FlagshipConfig
   ): void {
     this.getInstance().setStatus(Status.NOT_READY);
     if (envId != null && apiKey != null) {
@@ -57,8 +55,10 @@ export class Flagship {
       }
 
       this.getInstance().setConfig(config);
-      if (this.isReady()) {
-      }
+      let decisionManager: DecisionManager = new ApiManager(config);
+
+      this.getInstance().setDecisionManager(decisionManager);
+      console.log("API WORKED");
     } else {
       console.log("envId null && apiKey null");
     }
@@ -99,5 +99,17 @@ export class Flagship {
 
   protected static getDecisionManager(): DecisionManager {
     return this.getInstance()._decisionManager;
+  }
+
+  public static newVisitor(
+    visitorId: string,
+    context: Map<string, Object>
+  ): Visitor {
+    return new Visitor(
+      this.getConfig(),
+      this.getDecisionManager(),
+      visitorId,
+      context
+    );
   }
 }

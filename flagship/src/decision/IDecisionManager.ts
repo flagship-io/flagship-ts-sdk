@@ -1,5 +1,5 @@
-import { Campaign } from "../Model/Campaign";
-import { Modification } from "../Model/Modification";
+import { Campaign } from "../Model/Campaign.ts";
+import { Modification } from "../Model/Modification.ts";
 
 export interface IDecisionManager {
   getCampaigns(
