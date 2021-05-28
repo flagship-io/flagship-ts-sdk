@@ -15,8 +15,12 @@ export class ApiManager extends DecisionManager {
     onStatusChangedListener: OnStatusChangedListener
   ): void {
     super.setOnStatusChangedListener(onStatusChangedListener);
-    if (Flagship.getStatus() != Status.READY)
-      onStatusChangedListener.onStatusChanged(Status.READY);
+    if (
+      Flagship.getStatus() != Status.READY &&
+      onStatusChangedListener !== undefined &&
+      onStatusChangedListener.onStatusChanged !== undefined
+    )
+      onStatusChangedListener!.onStatusChanged(Status.READY);
   }
 
   public async getCampaigns(
