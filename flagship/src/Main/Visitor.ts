@@ -17,6 +17,8 @@ export class Visitor {
   ) {
     this._decisionManager = decisionManager;
     this._visitorId = visitorId;
+    this._context = new Map<string, Object>();
+    this._modifications = new Map<string, Modification>();
     this.updateContext(context);
   }
 

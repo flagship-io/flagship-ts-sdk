@@ -2,6 +2,7 @@ import { FlagshipConfig } from "./FlagshipConfig.ts";
 import { DecisionManager } from "../decision/DecisionManager.ts";
 import { ApiManager } from "../decision/ApiManager.ts";
 import { Visitor } from "./Visitor.ts";
+import { FlagshipContext } from "./FlagshipContext.ts";
 
 export enum Status {
   /**
@@ -15,10 +16,10 @@ export enum Status {
 }
 
 export class Flagship {
-  private static _instance: Flagship = null;
-  private _config: FlagshipConfig = null;
+  private static _instance?: Flagship = undefined;
+  private _config?: FlagshipContext = undefined;
   private _status: Status = Status.NOT_READY;
-  private _decisionManager: DecisionManager = null;
+  private _decisionManager?: DecisionManager = undefined;
 
   protected static getInstance(): Flagship {
     if (!this._instance) {
@@ -27,13 +28,14 @@ export class Flagship {
     return this._instance;
   }
 
-  private static isReady(): Boolean {
-    return (this._instance! =
-      null &&
+  private static isReady(): boolean {
+    return (
+      this._instance != null &&
       this._instance._config != null &&
       this._instance._config.getEnvId() != null &&
       this._instance._config.getApiKey() != null &&
-      this._instance._config.getFlagshipMode() != null);
+      this._instance._config.getFlagshipMode() != null
+    );
   }
 
   public static start(
@@ -43,21 +45,12 @@ export class Flagship {
   ): void {
     this.getInstance().setStatus(Status.NOT_READY);
     if (envId != null && apiKey != null) {
-      if (config == null) {
-        config = new FlagshipConfig(envId, apiKey);
+      let context = config as FlagshipContext;
+      if (context == null) {
+        context = new FlagshipContext(envId, apiKey);
       }
-      config.withEnvId(envId);
-      config.withApiKey(apiKey);
-      this.getInstance().setConfig(config);
-
-      if (config.getEnvId == null || config.getApiKey == null) {
-        console.log("envId & apikey not found");
-      }
-
-      this.getInstance().setConfig(config);
-      let decisionManager: DecisionManager = new ApiManager(config);
-
-      this.getInstance().setDecisionManager(decisionManager);
+      this.getInstance().setConfig(context);
+      this.getInstance().setDecisionManager(new ApiManager(config));
       console.log("API WORKED");
     } else {
       console.log("envId null && apiKey null");
@@ -73,9 +66,10 @@ export class Flagship {
       this._status = status;
       if (
         this._config != null &&
-        this._config.getOnStatusChangedListener() != null
+        this._config.getOnStatusChangedListener() != undefined &&
+        this._config.getOnStatusChangedListener()?.onStatusChanged != undefined
       ) {
-        this._config.getOnStatusChangedListener().onStatusChanged(status);
+        this._config.getOnStatusChangedListener()!.onStatusChanged!(status);
       }
       if (this._status === Status.READY) {
         console.log("status ready");
@@ -83,12 +77,12 @@ export class Flagship {
     }
   }
 
-  public static getConfig(): FlagshipConfig {
+  public static getConfig(): FlagshipConfig | undefined {
     return this.getInstance()._config;
   }
 
-  protected setConfig(config: FlagshipConfig): void {
-    if (this._config != null) {
+  protected setConfig(config: FlagshipContext): void {
+    if (this._config != undefined) {
       this._config = config;
     }
   }
@@ -97,7 +91,7 @@ export class Flagship {
     this._decisionManager = decisionManager;
   }
 
-  protected static getDecisionManager(): DecisionManager {
+  protected static getDecisionManager(): DecisionManager | undefined {
     return this.getInstance()._decisionManager;
   }
 
@@ -106,8 +100,8 @@ export class Flagship {
     context: Map<string, Object>
   ): Visitor {
     return new Visitor(
-      this.getConfig(),
-      this.getDecisionManager(),
+      this.getConfig()!,
+      this.getDecisionManager()!,
       visitorId,
       context
     );
