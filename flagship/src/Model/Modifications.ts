@@ -1,10 +1,12 @@
+import { Modification } from "./Modification.ts";
+
 export class Modifications {
   private _campaignId: string;
   private _variationGroupId: string;
   private _variationId: string;
   private _isReference: boolean;
   private _type: string;
-  private _values: Object;
+  private _values: Map<string, Modification>;
 
   constructor(
     type: string,
@@ -12,7 +14,7 @@ export class Modifications {
     variationGroupId: string,
     variationId: string,
     isReference: boolean,
-    values: Object
+    values: Map<string, Modification>
   ) {
     this._type = type;
     this._campaignId = campaignId;
@@ -42,7 +44,7 @@ export class Modifications {
     return this._isReference;
   }
 
-  public getValues(): Object {
+  public getValues(): Map<string, Modification> {
     return this._values;
   }
 }

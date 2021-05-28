@@ -14,4 +14,3 @@ let visitor: Visitor = Flagship.newVisitor("toto", new Map<string, Object>());
 console.log(visitor);
 
 visitor.synchronizeModifications();
-console.log(visitor);

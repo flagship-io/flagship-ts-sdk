@@ -56,16 +56,13 @@ export class Campaign {
       string,
       Modification
     >();
-    let selectVariationGroup: VariationGroup | undefined =
+    const selectVariationGroup: VariationGroup | undefined =
       this.getSelectedVariationGroup();
     if (selectVariationGroup != null) {
-      let selectedVariation: Variation | undefined =
+      const selectedVariation: Variation | undefined =
         selectVariationGroup.getSelectVariation();
       if (selectedVariation != undefined) {
-        Array.prototype.push.apply(
-          modifications,
-          selectedVariation.getModifications().getValues()
-        );
+        modifications = selectedVariation.getModifications().getValues();
       }
     }
     return modifications;

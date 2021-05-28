@@ -11,7 +11,7 @@ export class ApiManager extends DecisionManager {
     super(config);
   }
 
-  public setOnStatusChangedListener(
+  /*   public setOnStatusChangedListener(
     onStatusChangedListener: OnStatusChangedListener
   ): void {
     super.setOnStatusChangedListener(onStatusChangedListener);
@@ -21,7 +21,7 @@ export class ApiManager extends DecisionManager {
       onStatusChangedListener.onStatusChanged !== undefined
     )
       onStatusChangedListener!.onStatusChanged(Status.READY);
-  }
+  }*/
 
   public async getCampaigns(
     visitorId: string,
