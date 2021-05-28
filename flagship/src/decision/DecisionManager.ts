@@ -28,7 +28,7 @@ export abstract class DecisionManager implements IDecisionManager {
   abstract getCampaigns(
     visitorId: string,
     context: Map<string, Object>
-  ): Array<Campaign>;
+  ): Promise<Array<Campaign>>;
 
   public isPanic(): boolean {
     return this._panic;
