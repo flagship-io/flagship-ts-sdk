@@ -1,9 +1,4 @@
-import { Status } from "./Flagship.ts";
 import { FlagshipConfig } from "./FlagshipConfig.ts";
-
-export interface OnStatusChangedListener {
-  onStatusChanged?(newStatus: Status): void;
-}
 
 export class FlagshipContext extends FlagshipConfig {
   private _envId: string;
