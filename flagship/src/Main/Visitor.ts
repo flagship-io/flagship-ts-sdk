@@ -43,15 +43,16 @@ export class Visitor {
     }
   }
 
-  public synchronizeModifications(): Visitor {
+  public async synchronizeModifications(): Promise<Visitor> {
     try {
-      let campaigns: Array<Campaign> = this._decisionManager.getCampaigns(
-        this._visitorId,
-        this._context
-      );
+      const campaigns: Array<Campaign> =
+        await this._decisionManager.getCampaigns(
+          this._visitorId,
+          this._context
+        );
       this._modifications.clear();
       if (!this._decisionManager.isPanic()) {
-        let modifications: Map<string, Modification> =
+        const modifications: Map<string, Modification> =
           this._decisionManager.getModifications(campaigns);
         if (modifications != null) {
           this._modifications = modifications;

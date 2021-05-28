@@ -54,10 +54,9 @@ export class ApiManager extends DecisionManager {
         }
       }
 
-      //let newCampaigns: Array<Campaign> = await response.json();
-
       return campaigns;
     } catch (e) {
+      console.log("Error when calling Decision API: ", e);
       return campaigns;
     }
   }
