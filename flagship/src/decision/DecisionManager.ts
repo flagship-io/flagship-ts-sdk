@@ -16,10 +16,13 @@ export abstract class DecisionManager implements IDecisionManager {
   public getModifications(
     campaigns: Array<Campaign>
   ): Map<string, Modification> {
-    let modifications: Map<string, Modification>;
+    let modifications: Map<string, Modification> = new Map<
+      string,
+      Modification
+    >();
     if (campaigns != null) {
       campaigns.forEach((campaign) => {
-        Array.prototype.push.apply(modifications, campaign.getModifications());
+        modifications = campaign.getModifications();
       });
     }
     return modifications;
@@ -34,9 +37,9 @@ export abstract class DecisionManager implements IDecisionManager {
     return this._panic;
   }
 
-  public setOnStatusChangedListener(
+  /*   public setOnStatusChangedListener(
     onStatusChangedListener: OnStatusChangedListener
   ) {
     this._onStatusChangedListener = onStatusChangedListener;
-  }
+  } */
 }

@@ -11,26 +11,26 @@ export class ApiManager extends DecisionManager {
     super(config);
   }
 
-  public setOnStatusChangedListener(
+  /*   public setOnStatusChangedListener(
     onStatusChangedListener: OnStatusChangedListener
   ): void {
     super.setOnStatusChangedListener(onStatusChangedListener);
     if (Flagship.getStatus() != Status.READY)
       onStatusChangedListener.onStatusChanged(Status.READY);
-  }
+  } */
 
   public getCampaigns(
     visitorId: string,
     context: Map<string, Object>
   ): Array<Campaign> {
-    let campaigns: Array<Campaign>;
+    let campaigns: Array<Campaign> = [];
     //let headers = new Map<>
     window
       .fetch(BASE_API_URL + "c0n48jn5thv01k0ijmo0" + URL_CAMPAIGNS, {
         method: "POST",
         headers: {
           "x-api-key": "BsIK86oh7c12c9G7ce4Wm1yBlWeaMf3t1S0xyYzI",
-          "x-sdk-client": "Typescript",
+          "x-sdk-client": "Deno",
           "x-sdk-version": "2.0.0",
         },
         body: JSON.stringify({
@@ -48,6 +48,11 @@ export class ApiManager extends DecisionManager {
             campaigns = [...campaigns, ...newCampaigns];
           }
         }
+        console.log(data);
+        console.log(BASE_API_URL + "c0n48jn5thv01k0ijmo0" + URL_CAMPAIGNS);
+      })
+      .catch((err) => {
+        console.log(err);
       });
 
     //let newCampaigns: Array<Campaign> = await response.json();

@@ -7,9 +7,9 @@ export const SDK_LANGUAGE: string = "TypeScript";
 /**
  * Decision api base url
  */
-export const BASE_API_URL: string = "https://decision.flagship.io/v2";
+export const BASE_API_URL: string = "https://decision.flagship.io/v2/";
 export const HIT_API_URL: string = "https://ariane.abtasty.com";
-export const URL_CAMPAIGNS: string = "campaigns";
+export const URL_CAMPAIGNS: string = "/campaigns";
 export const URL_ACTIVATE_MODIFICATION: string = "activate";
 
 export const EXPOSE_ALL_KEYS: string = "exposeAllKeys";
