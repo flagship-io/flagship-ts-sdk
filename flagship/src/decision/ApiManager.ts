@@ -5,6 +5,11 @@ import { OnStatusChangedListener } from "../Main/FlagshipConfig.ts";
 import { DecisionManager } from "./DecisionManager.ts";
 import { Flagship } from "../Main/Flagship.ts";
 import { Status } from "../Main/Flagship.ts";
+import { CampaignDTO } from "./api/models.ts";
+import { VariationGroup } from "../Model/VariationGroup.ts";
+import { TargetingGroups } from "../Model/TargetingGroups.ts";
+import { Variation } from "../Model/Variation.ts";
+import { Modifications } from "../Model/Modifications.ts";
 
 export class ApiManager extends DecisionManager {
   constructor(config: FlagshipConfig) {
@@ -47,10 +52,9 @@ export class ApiManager extends DecisionManager {
       ).json();
 
       if (data != null) {
-        const newCampaigns: Array<Campaign> = data.campaigns;
+        const newCampaigns: Array<CampaignDTO> = data.campaigns;
         if (newCampaigns != null) {
-          campaigns.concat(newCampaigns);
-          campaigns = [...campaigns, ...newCampaigns];
+          campaigns = campaigns.concat(newCampaigns.map((c) => c as Campaign));
         }
       }
 
