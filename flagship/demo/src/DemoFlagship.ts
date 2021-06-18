@@ -9,9 +9,13 @@ Flagship.start(
   new FlagshipConfig().withFlagshipMode(Mode.DECISION_API)
 );
 
-let visitor: Visitor = Flagship.newVisitor("toto", new Map<string, Object>());
+(async () => {
+  const visitor: Visitor = Flagship.newVisitor(
+    "toto",
+    new Map<string, unknown>()
+  );
 
-console.log(visitor);
+  await visitor.synchronizeModifications();
 
-visitor.synchronizeModifications();
-console.log(visitor);
+  console.log(visitor);
+})();

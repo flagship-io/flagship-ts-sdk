@@ -10,7 +10,7 @@ export class FlagshipConfig {
   protected _flagshipMode: Mode = Mode.DECISION_API;
   protected _timeOut = 2000;
   protected _logManager: any;
-  protected _decisionManager?: IDecisionManager = undefined;
+
   protected _trackingManager: any;
   protected _onStatusChangedListener?: OnStatusChangedListener = undefined;
 
@@ -23,10 +23,6 @@ export class FlagshipConfig {
   public withFlagshipMode(flagshipMode: Mode): FlagshipConfig {
     this._flagshipMode = flagshipMode;
     return this;
-  }
-
-  public get decisionManager(): IDecisionManager | undefined {
-    return this._decisionManager;
   }
 
   public withStatusChangeListener(listener: OnStatusChangedListener) {

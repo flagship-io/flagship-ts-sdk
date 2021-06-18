@@ -1,14 +1,18 @@
+import { ApiManager } from "../decision/ApiManager.ts";
+import { IDecisionManager } from "../decision/IDecisionManager.ts";
 import { FlagshipConfig } from "./FlagshipConfig.ts";
 
 export class FlagshipContext {
   private _envId: string;
   private _apiKey: string;
   private _config: FlagshipConfig;
+  protected _decisionManager?: IDecisionManager = undefined;
 
   constructor(envId: string, apiKey: string, config: FlagshipConfig) {
     this._envId = envId;
     this._apiKey = apiKey;
     this._config = config;
+    this._decisionManager = new ApiManager(this);
   }
 
   public getEnvId(): string {
@@ -17,6 +21,10 @@ export class FlagshipContext {
 
   public get config(): FlagshipConfig {
     return this._config;
+  }
+
+  public get decisionManager(): IDecisionManager | undefined {
+    return this._decisionManager;
   }
 
   public getApiKey(): string {

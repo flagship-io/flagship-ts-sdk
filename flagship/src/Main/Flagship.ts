@@ -49,7 +49,6 @@ export class Flagship {
     if (envId != null && apiKey != null) {
       const context = new FlagshipContext(envId, apiKey, config);
       this.getInstance().setContext(context);
-      this.getInstance().setDecisionManager(new ApiManager(context));
       console.log("API WORKED");
     } else {
       console.log("envId null && apiKey null");
@@ -80,28 +79,19 @@ export class Flagship {
   }
 
   protected setContext(context: FlagshipContext): void {
-    if (this._context != undefined) {
+    if (context != undefined) {
       this._context = context;
     }
-  }
-
-  protected setDecisionManager(decisionManager: DecisionManager): void {
-    this._decisionManager = decisionManager;
-  }
-
-  protected static getDecisionManager(): DecisionManager | undefined {
-    return this.getInstance()._decisionManager;
   }
 
   public static newVisitor(
     visitorId: string,
     context: Map<string, unknown>
   ): Visitor {
-    return new Visitor(
-      this.getConfig()!,
-      this.getDecisionManager()!,
-      visitorId,
-      context
-    );
+    const fsContext = this.getInstance()._context;
+    if (fsContext !== undefined) {
+      return new Visitor(visitorId, context, fsContext);
+    }
+    throw new Error("Config is empty");
   }
 }
