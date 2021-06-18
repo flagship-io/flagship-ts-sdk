@@ -17,9 +17,13 @@ export enum Status {
 
 export class Flagship {
   private static _instance?: Flagship = undefined;
-  private _config?: FlagshipContext = undefined;
+  private _context?: FlagshipContext = undefined;
   private _status: Status = Status.NOT_READY;
   private _decisionManager?: DecisionManager = undefined;
+
+  private get _config(): FlagshipConfig | undefined {
+    return this._context?.config;
+  }
 
   protected static getInstance(): Flagship {
     if (!this._instance) {
@@ -30,11 +34,9 @@ export class Flagship {
 
   private static isReady(): boolean {
     return (
-      this._instance != null &&
-      this._instance._config != null &&
-      this._instance._config.getEnvId() != null &&
-      this._instance._config.getApiKey() != null &&
-      this._instance._config.getFlagshipMode() != null
+      this._instance?._context?.getEnvId() != null &&
+      this._instance._context.getApiKey() != null &&
+      this._instance._config?.getFlagshipMode() != null
     );
   }
 
@@ -45,12 +47,9 @@ export class Flagship {
   ): void {
     this.getInstance().setStatus(Status.NOT_READY);
     if (envId != null && apiKey != null) {
-      let context = config as FlagshipContext;
-      if (context == null) {
-        context = new FlagshipContext(envId, apiKey);
-      }
-      this.getInstance().setConfig(context);
-      this.getInstance().setDecisionManager(new ApiManager(config));
+      const context = new FlagshipContext(envId, apiKey, config);
+      this.getInstance().setContext(context);
+      this.getInstance().setDecisionManager(new ApiManager(context));
       console.log("API WORKED");
     } else {
       console.log("envId null && apiKey null");
@@ -62,18 +61,17 @@ export class Flagship {
   }
 
   protected setStatus(status: Status): void {
-    if (this._status != status) {
-      this._status = status;
-      if (
-        this._config != null &&
-        this._config.getOnStatusChangedListener() != undefined &&
-        this._config.getOnStatusChangedListener()?.onStatusChanged != undefined
-      ) {
-        this._config.getOnStatusChangedListener()!.onStatusChanged!(status);
-      }
-      if (this._status === Status.READY) {
-        console.log("status ready");
-      }
+    // return early pattern
+    if (this._status === status) return;
+    this._status = status;
+    if (
+      this._config?.getOnStatusChangedListener() != undefined &&
+      this._config.getOnStatusChangedListener()?.onStatusChanged != undefined
+    ) {
+      this._config.getOnStatusChangedListener()!.onStatusChanged!(status);
+    }
+    if (this._status === Status.READY) {
+      console.log("status ready");
     }
   }
 
@@ -81,9 +79,9 @@ export class Flagship {
     return this.getInstance()._config;
   }
 
-  protected setConfig(config: FlagshipContext): void {
-    if (this._config != undefined) {
-      this._config = config;
+  protected setContext(context: FlagshipContext): void {
+    if (this._context != undefined) {
+      this._context = context;
     }
   }
 
@@ -97,7 +95,7 @@ export class Flagship {
 
   public static newVisitor(
     visitorId: string,
-    context: Map<string, Object>
+    context: Map<string, unknown>
   ): Visitor {
     return new Visitor(
       this.getConfig()!,

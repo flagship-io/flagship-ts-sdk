@@ -12,7 +12,7 @@ Flagship.start(
 (async () => {
   const visitor: Visitor = Flagship.newVisitor(
     "toto",
-    new Map<string, Object>()
+    new Map<string, unknown>()
   );
 
   await visitor.synchronizeModifications();

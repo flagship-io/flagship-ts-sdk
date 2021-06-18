@@ -1,28 +1,28 @@
 import { Modification } from "../Model/Modification.ts";
 import { DecisionManager } from "../decision/DecisionManager.ts";
 import { FlagshipConfig } from "./FlagshipConfig.ts";
+import { FlagshipContext } from "./FlagshipContext.ts";
 import { Campaign } from "../Model/Campaign.ts";
 
 export class Visitor {
   private _visitorId: string;
-  private _context: Map<string, Object>;
+  private _context: Map<string, unknown>;
   private _modifications: Map<string, Modification>;
-  private _decisionManager: DecisionManager;
+  private _config: FlagshipConfig;
 
   constructor(
-    config: FlagshipConfig,
-    decisionManager: DecisionManager,
     visitorId: string,
-    context: Map<string, Object>
+    context: Map<string, unknown>,
+    config: FlagshipConfig
   ) {
-    this._decisionManager = decisionManager;
     this._visitorId = visitorId;
-    this._context = new Map<string, Object>();
+    this._context = new Map<string, unknown>();
     this._modifications = new Map<string, Modification>();
     this.updateContext(context);
+    this._config = config;
   }
 
-  public updateContext(context: Map<string, Object>): void {
+  public updateContext(context: Map<string, unknown>): void {
     if (context != null) {
       for (let [k, v] of Object.entries(context)) {
         this.updateContextKeyValue(k, v);
@@ -31,7 +31,7 @@ export class Visitor {
   }
 
   public updateContextKeyValue<Type>(key: string, value: Type): void {
-    if (!this._decisionManager.isPanic()) {
+    if (!this._config.decisionManager?.isPanic) {
       if (
         key != null &&
         (value instanceof String ||

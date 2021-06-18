@@ -1,17 +1,22 @@
 import { FlagshipConfig } from "./FlagshipConfig.ts";
 
-export class FlagshipContext extends FlagshipConfig {
+export class FlagshipContext {
   private _envId: string;
   private _apiKey: string;
+  private _config: FlagshipConfig;
 
-  constructor(envId: string, apiKey: string) {
-    super();
+  constructor(envId: string, apiKey: string, config: FlagshipConfig) {
     this._envId = envId;
     this._apiKey = apiKey;
+    this._config = config;
   }
 
   public getEnvId(): string {
     return this._envId;
+  }
+
+  public get config(): FlagshipConfig {
+    return this._config;
   }
 
   public getApiKey(): string {
@@ -28,7 +33,7 @@ export class FlagshipContext extends FlagshipConfig {
       this._apiKey +
       "'" +
       ", mode=" +
-      this._flagshipMode +
+      this.config.getFlagshipMode() +
       "}"
     );
   }

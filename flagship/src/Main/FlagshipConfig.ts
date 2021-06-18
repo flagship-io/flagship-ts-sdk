@@ -25,6 +25,10 @@ export class FlagshipConfig {
     return this;
   }
 
+  public get decisionManager(): IDecisionManager | undefined {
+    return this._decisionManager;
+  }
+
   public withStatusChangeListener(listener: OnStatusChangedListener) {
     if (listener != null) {
       this._onStatusChangedListener = listener;

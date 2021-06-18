@@ -4,7 +4,7 @@ export class Modification {
   private _variationGroupId: string;
   private _variationId: string;
   private _isReference: boolean;
-  private _value: Object;
+  private _value: unknown;
 
   constructor(
     key: string,
@@ -12,7 +12,7 @@ export class Modification {
     variationGroupId: string,
     variationId: string,
     isReference: boolean,
-    value: Object
+    value: unknown
   ) {
     this._key = key;
     this._campaignId = campaignId;
@@ -42,7 +42,7 @@ export class Modification {
     return this._isReference;
   }
 
-  public getValue(): Object {
+  public getValue(): unknown {
     return this._value;
   }
 }

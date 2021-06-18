@@ -1,16 +1,16 @@
-import { FlagshipConfig } from "../Main/FlagshipConfig.ts";
+import { FlagshipContext } from "../Main/FlagshipContext.ts";
 import { IDecisionManager } from "../decision/IDecisionManager.ts";
 import { Campaign } from "../Model/Campaign.ts";
 import { Modification } from "../Model/Modification.ts";
 import { OnStatusChangedListener } from "../Main/FlagshipConfig.ts";
 
 export abstract class DecisionManager implements IDecisionManager {
-  public _config: FlagshipConfig;
+  public _context: FlagshipContext;
   private _panic: boolean = false;
   protected _onStatusChangedListener = null;
 
-  constructor(config: FlagshipConfig) {
-    this._config = config;
+  constructor(context: FlagshipContext) {
+    this._context = context;
   }
 
   public getModifications(
@@ -30,7 +30,7 @@ export abstract class DecisionManager implements IDecisionManager {
 
   abstract getCampaigns(
     visitorId: string,
-    context: Map<string, Object>
+    context: Map<string, unknown>
   ): Promise<Array<Campaign>>;
 
   public isPanic(): boolean {
