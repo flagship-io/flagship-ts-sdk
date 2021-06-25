@@ -17,24 +17,11 @@ export class ApiManager extends DecisionManager {
     super(context);
   }
 
-  /*   public setOnStatusChangedListener(
-    onStatusChangedListener: OnStatusChangedListener
-  ): void {
-    super.setOnStatusChangedListener(onStatusChangedListener);
-    if (
-      Flagship.getStatus() != Status.READY &&
-      onStatusChangedListener !== undefined &&
-      onStatusChangedListener.onStatusChanged !== undefined
-    )
-      onStatusChangedListener!.onStatusChanged(Status.READY);
-  }*/
-
-  public async getCampaigns(
+  async getCampaignsModifications(
     visitorId: string,
     context: Map<string, unknown>
-  ): Promise<Array<Campaign>> {
-    let campaigns: Array<Campaign> = new Array<Campaign>();
-    //let headers = new Map<>
+  ): Promise<Map<string, Modification>> {
+    const modifMap: Map<string, Modification> = new Map<string, Modification>();
     try {
       const data = await (
         await fetch(BASE_API_URL + this._context.getEnvId() + URL_CAMPAIGNS, {
@@ -54,73 +41,27 @@ export class ApiManager extends DecisionManager {
 
       if (data != null) {
         const newCampaigns: Array<CampaignDTO> = data.campaigns;
-        if (newCampaigns != null) {
-          campaigns = campaigns.concat(
-            newCampaigns.map((c) => {
-              const modifValue: Map<string, Modification> = new Map<
-                string,
-                Modification
-              >();
-              for (const [k, v] of Object.entries(
-                c.variation.modifications.value
-              )) {
-                modifValue.set(
+        newCampaigns.forEach((campaign) => {
+          Object.entries(campaign.variation.modifications.value).forEach(
+            ([k, v]) => {
+              modifMap.set(
+                k,
+                new Modification(
                   k,
-                  new Modification(
-                    k,
-                    c.id,
-                    c.variationGroupId,
-                    c.variation.id,
-                    c.variation.reference,
-                    v
-                  )
-                );
-              }
-
-              return new Campaign(
-                c.id,
-                new Map<string, VariationGroup>([
-                  [
-                    c.variationGroupId,
-                    new VariationGroup(
-                      c.id,
-                      c.variationGroupId,
-                      new Map<string, Variation>([
-                        [
-                          c.variation.id,
-                          new Variation(
-                            c.id,
-                            c.variationGroupId,
-                            c.variation.id,
-                            c.variation.reference,
-                            new Modifications(
-                              c.variation.modifications.type,
-                              c.id,
-                              c.variationGroupId,
-                              c.variation.id,
-                              c.variation.reference,
-                              modifValue
-                            ),
-                            100
-                          ),
-                        ],
-                      ]),
-                      new TargetingGroups([]),
-                      c.variation.id
-                    ),
-                  ],
-                ]),
-                c.variationGroupId
+                  campaign.id,
+                  campaign.variationGroupId,
+                  campaign.variation.id,
+                  campaign.variation.reference,
+                  v
+                )
               );
-            })
+            }
           );
-        }
+        });
       }
-
-      return campaigns;
     } catch (e) {
       console.log("Error when calling Decision API: ", e);
-      return campaigns;
     }
+    return modifMap;
   }
 }

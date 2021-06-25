@@ -28,10 +28,10 @@ export abstract class DecisionManager implements IDecisionManager {
     return modifications;
   }
 
-  abstract getCampaigns(
+  abstract getCampaignsModifications(
     visitorId: string,
     context: Map<string, unknown>
-  ): Promise<Array<Campaign>>;
+  ): Promise<Map<string, Modification>>;
 
   public isPanic(): boolean {
     return this._panic;

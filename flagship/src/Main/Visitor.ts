@@ -1,9 +1,5 @@
 import { Modification } from "../Model/Modification.ts";
-import { DecisionManager } from "../decision/DecisionManager.ts";
-import { FlagshipConfig } from "./FlagshipConfig.ts";
 import { FlagshipContext } from "./FlagshipContext.ts";
-import { Campaign } from "../Model/Campaign.ts";
-
 export class Visitor {
   private _visitorId: string;
   private _context: Map<string, unknown>;
@@ -24,7 +20,7 @@ export class Visitor {
 
   public updateContext(context: Map<string, unknown>): void {
     if (context != null) {
-      for (let [k, v] of Object.entries(context)) {
+      for (const [k, v] of Object.entries(context)) {
         this.updateContextKeyValue(k, v);
       }
     }
