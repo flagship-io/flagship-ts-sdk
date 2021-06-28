@@ -1,4 +1,4 @@
-export enum Mode {
+export enum DecisionMode {
   /**
    * Flagship SDK mode decision api
    */

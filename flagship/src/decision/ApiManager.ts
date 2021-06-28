@@ -1,33 +1,30 @@
-import { BASE_API_URL, URL_CAMPAIGNS } from "../Enum/FlagshipConstant.ts";
-import { FlagshipContext } from "../Main/FlagshipContext.ts";
-import { Campaign } from "../Model/Campaign.ts";
-import { OnStatusChangedListener } from "../Main/FlagshipConfig.ts";
-import { DecisionManager } from "./DecisionManager.ts";
-import { Flagship } from "../Main/Flagship.ts";
-import { Status } from "../Main/Flagship.ts";
-import { CampaignDTO } from "./api/models.ts";
-import { VariationGroup } from "../Model/VariationGroup.ts";
-import { TargetingGroups } from "../Model/TargetingGroups.ts";
-import { Variation } from "../Model/Variation.ts";
-import { Modifications } from "../Model/Modifications.ts";
-import { Modification } from "../Model/Modification.ts";
+import { BASE_API_URL, URL_CAMPAIGNS } from "../Enum/FlagshipConstant";
+import { Campaign } from "../Model/Campaign";
+import { OnStatusChangedListener } from "../Main/FlagshipConfig";
+import { DecisionManager } from "./DecisionManager";
+import { Flagship } from "../Main/Flagship";
+import { CampaignDTO } from "./api/models";
+import { VariationGroup } from "../Model/VariationGroup";
+import { TargetingGroups } from "../Model/TargetingGroups";
+import { Variation } from "../Model/Variation";
+import { Modifications } from "../Model/Modifications";
+import { Modification } from "../Model/Modification";
+import {FlagshipStatus} from "../Enum/FlagshipStatus";
+import {FlagshipConfig} from "../config/FlagshipConfig";
 
 export class ApiManager extends DecisionManager {
-  constructor(context: FlagshipContext) {
-    super(context);
-  }
 
   async getCampaignsModifications(
     visitorId: string,
-    context: Map<string, unknown>
+    context: Map<string, string | number | boolean>
   ): Promise<Map<string, Modification>> {
     const modifMap: Map<string, Modification> = new Map<string, Modification>();
     try {
       const data = await (
-        await fetch(BASE_API_URL + this._context.getEnvId() + URL_CAMPAIGNS, {
+        await fetch(BASE_API_URL + this._config.envId + URL_CAMPAIGNS, {
           method: "POST",
           headers: {
-            "x-api-key": this._context.getApiKey(),
+            "x-api-key": this._config.apiKey,
             "x-sdk-client": "Typescript",
             "x-sdk-version": "2.0.0",
           },

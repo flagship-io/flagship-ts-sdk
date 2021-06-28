@@ -1,17 +1,27 @@
-import {FlagshipConfig} from "./FlagshipConfig.ts";
-import {DecisionManager} from "../decision/DecisionManager.ts";
 import {Visitor} from "./Visitor.ts";
-import {FlagshipContext} from "./FlagshipContext.ts";
 import {FlagshipStatus} from "../Enum/FlagshipStatus";
+import {FlagshipConfig} from "../config/FlagshipConfig";
+import {DecisionApiConfig} from "../config/DecisionApiConfig";
+import {ConfigManager} from "../config/ConfigManager";
+import {ApiManager} from "../decision/ApiManager";
 
 export class Flagship {
     private static _instance?: Flagship = undefined;
-    private _context?: FlagshipContext = undefined;
-    private _status: FlagshipStatus = FlagshipStatus.NOT_READY;
-    private _decisionManager?: DecisionManager = undefined;
+    private _configManger: ConfigManager;
+    private _config: FlagshipConfig;
+    private _status: FlagshipStatus;
 
-    private get _config(): FlagshipConfig | undefined {
-        return this._context?.config;
+
+    set config(value: FlagshipConfig) {
+        this._config = value;
+    }
+
+    get config(): FlagshipConfig {
+        return this._config;
+    }
+
+    private set configManager(value: ConfigManager) {
+        this._configManger = value;
     }
 
     protected static getInstance(): Flagship {
@@ -22,61 +32,77 @@ export class Flagship {
     }
 
     private static isReady(): boolean {
-        return (
-            this._instance?._context?.getEnvId() != null &&
-            this._instance._context.getApiKey() != null &&
-            this._instance._config?.getFlagshipMode() != null
-        );
+        const apiKey = this._instance.config.apiKey;
+        const envId = this._instance.config.envId;
+        return (this._instance && true && apiKey !== null && apiKey !== "" && envId != null && envId != "");
     }
 
-    public static start(
-        envId: string,
-        apiKey: string,
-        config: FlagshipConfig
-    ): void {
-        this.getInstance().setStatus(FlagshipStatus.NOT_READY);
-        if (envId != null && apiKey != null) {
-            const context = new FlagshipContext(envId, apiKey, config);
-            this.getInstance().setContext(context);
-            console.log("API WORKED");
-        } else {
-            console.log("envId null && apiKey null");
+    protected setStatus(status: FlagshipStatus): void {
+
+        if (this.config && this.config.statusChangedCallback && this._status !== status) {
+            this.config.statusChangedCallback(status);
         }
+        this._status = status;
     }
 
     public static getStatus(): FlagshipStatus {
         return this.getInstance()._status;
     }
 
-    protected setStatus(status: FlagshipStatus): void {
-        // return early pattern
-        if (this._status === status) return;
-        this._status = status;
-        if (
-            this._config?.getOnStatusChangedListener() != undefined &&
-            this._config.getOnStatusChangedListener()?.onStatusChanged != undefined
-        ) {
-            this._config.getOnStatusChangedListener()!.onStatusChanged!(status);
-        }
-        if (this._status === FlagshipStatus.READY) {
-            console.log("status ready");
-        }
-    }
 
-    public static getConfig(): FlagshipConfig | undefined {
+    public static getConfig(): FlagshipConfig {
         return this.getInstance()._config;
     }
 
-    protected setContext(context: FlagshipContext): void {
-        if (context != undefined) {
-            this._context = context;
+    public static start(
+        envId: string,
+        apiKey: string,
+        config?: FlagshipConfig
+    ): void {
+        const flagship = this.getInstance();
+
+
+        if (!config) {
+            config = new DecisionApiConfig(envId, apiKey);
+        }
+        config.envId = envId;
+        config.apiKey = apiKey;
+
+        flagship.config = config;
+
+        flagship.setStatus(FlagshipStatus.NOT_READY);
+
+        //check custom logger
+        if (!config.logManager) {
+            // set default logManager
+        }
+
+        if (!envId || envId === "" || !apiKey || apiKey === "") {
+            //To Do change to config.logManager
+            console.log("Params 'envId' and 'apiKey' must not be null or empty.");
+            return;
+        }
+
+        const decisionManager = new ApiManager({});
+        const trackingManager = {};
+        flagship.configManager = new ConfigManager(config, decisionManager, trackingManager);
+
+        if (this.isReady()) {
+            flagship.setStatus(FlagshipStatus.READY);
+            //To Do change to config.logManager
+            console.log("Flagship SDK (version: V1) READY")
+        } else {
+            flagship.setStatus(FlagshipStatus.NOT_READY);
         }
     }
 
     public static newVisitor(
         visitorId: string,
-        context: Map<string, unknown>
-    ): Visitor {
+        context: Map<string, string | number | boolean>
+    ): Visitor|null {
+        if (!this.isReady() || visitorId==""){
+            return null
+        }
         const fsContext = this.getInstance()._context;
         if (fsContext !== undefined) {
             return new Visitor(visitorId, context, fsContext);
