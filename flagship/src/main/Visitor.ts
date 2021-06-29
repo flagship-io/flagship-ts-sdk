@@ -1,9 +1,9 @@
-import {Modification} from "../Model/Modification";
-import {ConfigManager} from "../config/ConfigManager";
+import {Modification} from "../Model/Modification.ts";
+import {ConfigManager} from "../config/ConfigManager.ts";
 
 export class Visitor {
     private _visitorId: string;
-    private _context: Map<string, string | number | boolean>;
+    private _context!: Map<string,string|number|boolean>;
     private _modifications: Map<string, Modification>;
     private _configManager: ConfigManager;
 
@@ -13,7 +13,6 @@ export class Visitor {
         configManager: ConfigManager
     ) {
         this._visitorId = visitorId;
-        this._context = new Map<string, string | number | boolean>();
         this._modifications = new Map<string, Modification>();
         this._configManager = configManager;
         this.updateContext(context);
