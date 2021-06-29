@@ -9,6 +9,7 @@ Flagship.start(
 
 (async () => {
 const context = new Map<string, string | boolean | number>();
+context.set("age",25);
 
 const visitor = Flagship.newVisitor(
     "toto",

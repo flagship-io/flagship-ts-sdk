@@ -111,7 +111,7 @@ export class Flagship {
         visitorId: string,
         context?: Map<string, string | number | boolean>
     ): Visitor | null {
-        if (!this.isReady() || visitorId == "") {
+        if (!this.isReady() || !visitorId) {
             return null
         }
 
