@@ -1,34 +1,34 @@
-import { DecisionMode } from "../Enum/DecisionMode";
-import { LogLevel } from "../Enum/LogLevel";
-import { FlagshipStatus } from "../Enum/FlagshipStatus";
+import { DecisionMode } from "../enum/DecisionMode.ts";
+import { LogLevel } from "../enum/LogLevel.ts";
+import { FlagshipStatus } from "../enum/FlagshipStatus.ts";
 
 export abstract class FlagshipConfig {
-  private _envId: string;
-  private _apiKey: string;
+  private _envId?: string;
+  private _apiKey?: string;
   private _decisionMode = DecisionMode.DECISION_API;
   private _timeout = 2000;
-  private _logLevel: LogLevel;
-  private _statusChangedCallback: (status: FlagshipStatus) => void;
-  private _logManager: any;
+  private _logLevel: LogLevel = LogLevel.ALL;
+  private _statusChangedCallback?: (status: FlagshipStatus) => void;
+  private _logManager: unknown;
 
   protected constructor(envId?: string, apiKey?: string) {
     this._envId = envId;
     this._apiKey = apiKey;
   }
 
-  public set envId(value: string) {
+  public set envId(value: string | undefined) {
     this._envId = value;
   }
 
-  public get envId(): string {
+  public get envId(): string | undefined {
     return this._envId;
   }
 
-  public set apiKey(value: string) {
+  public set apiKey(value: string | undefined) {
     this._apiKey = value;
   }
 
-  public get apiKey(): string {
+  public get apiKey(): string | undefined {
     return this._apiKey;
   }
 
@@ -57,19 +57,19 @@ export abstract class FlagshipConfig {
     this._logLevel = value;
   }
 
-  public set statusChangedCallback(fn: (status: FlagshipStatus) => void) {
+  public set statusChangedCallback(fn: ((status: FlagshipStatus) => void) | undefined) {
     this._statusChangedCallback = fn;
   }
 
-  public get statusChangedCallback():(status: FlagshipStatus) => void{
+  public get statusChangedCallback():((status: FlagshipStatus) => void) | undefined{
     return this._statusChangedCallback;
   }
 
-  public get logManager(): any {
+  public get logManager(): unknown {
     return this._logManager;
   }
 
-  public set logManager(value: any) {
+  public set logManager(value: unknown) {
     this.logManager = value;
   }
 
