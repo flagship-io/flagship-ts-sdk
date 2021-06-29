@@ -1,21 +1,23 @@
-import { Flagship } from "../../src/Main/Flagship.ts";
-import { Visitor } from "../../src/Main/Visitor.ts";
-import { DecisionMode } from "../../src/Enum/FlagshipMode.ts";
-import { FlagshipConfig } from "../../src/Main/FlagshipConfig.ts";
+import { DecisionApiConfig } from "../../src/config/DecisionApiConfig.ts";
+import { Flagship } from "../../src/main/Flagship.ts";
 
 Flagship.start(
-  "c0n48jn5thv01k0ijmo0",
-  "BsIK86oh7c12c9G7ce4Wm1yBlWeaMf3t1S0xyYzI",
-  new FlagshipConfig().withFlagshipMode(DecisionMode.DECISION_API)
+    "c0n48jn5thv01k0ijmo0",
+    "BsIK86oh7c12c9G7ce4Wm1yBlWeaMf3t1S0xyYzI",
+    new DecisionApiConfig()
 );
 
 (async () => {
-  const visitor: Visitor = Flagship.newVisitor(
+const context = new Map<string, string | boolean | number>();
+
+const visitor = Flagship.newVisitor(
     "toto",
-    new Map<string, unknown>()
-  );
+    context
+);
 
-  await visitor.synchronizeModifications();
+if (visitor) {
+    await visitor.synchronizeModifications();
+    console.log(visitor);
+}
+})()
 
-  console.log(visitor);
-})();
