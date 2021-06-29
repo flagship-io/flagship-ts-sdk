@@ -1,16 +1,7 @@
-import { BASE_API_URL, URL_CAMPAIGNS } from "../Enum/FlagshipConstant";
-import { Campaign } from "../Model/Campaign";
-import { OnStatusChangedListener } from "../Main/FlagshipConfig";
-import { DecisionManager } from "./DecisionManager";
-import { Flagship } from "../Main/Flagship";
-import { CampaignDTO } from "./api/models";
-import { VariationGroup } from "../Model/VariationGroup";
-import { TargetingGroups } from "../Model/TargetingGroups";
-import { Variation } from "../Model/Variation";
-import { Modifications } from "../Model/Modifications";
-import { Modification } from "../Model/Modification";
-import {FlagshipStatus} from "../Enum/FlagshipStatus";
-import {FlagshipConfig} from "../config/FlagshipConfig";
+import { BASE_API_URL, URL_CAMPAIGNS } from "../enum/FlagshipConstant.ts";
+import { DecisionManager } from "./DecisionManager.ts";
+import { CampaignDTO } from "./api/models.ts";
+import { Modification } from "../model/Modification.ts";
 
 export class ApiManager extends DecisionManager {
 
@@ -24,7 +15,7 @@ export class ApiManager extends DecisionManager {
         await fetch(BASE_API_URL + this._config.envId + URL_CAMPAIGNS, {
           method: "POST",
           headers: {
-            "x-api-key": this._config.apiKey,
+            "x-api-key": `${this._config.apiKey}`,
             "x-sdk-client": "Typescript",
             "x-sdk-version": "2.0.0",
           },
