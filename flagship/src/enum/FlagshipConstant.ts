@@ -47,6 +47,7 @@ export const TRACKER_MANAGER_MISSING_ERROR =
   "trackerManager must not be null.";
 export const CURL_LIBRARY_IS_NOT_LOADED = "curl library is not loaded";
 export const TYPE_ERROR = " '%s' must be a '%s'";
+export const VISITOR_ID_ERROR = "visitorId must not be null or empty";
 
 //Process
 export const PROCESS = "process";
