@@ -1,5 +1,5 @@
-import {FlagshipConfig} from "./FlagshipConfig";
-import {DecisionMode} from "../Enum/DecisionMode";
+import {FlagshipConfig} from "./FlagshipConfig.ts";
+import {DecisionMode} from "../enum/DecisionMode.ts";
 
 export class DecisionApiConfig extends FlagshipConfig{
     public constructor(envId?: string, apiKey?: string) {
