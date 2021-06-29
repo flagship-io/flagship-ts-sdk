@@ -42,7 +42,7 @@ export class Modification {
     return this._isReference;
   }
 
-  public getValue(): unknown {
+  public getValue(): any {
     return this._value;
   }
 }
