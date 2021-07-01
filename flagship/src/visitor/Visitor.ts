@@ -6,13 +6,15 @@ import {
   GET_MODIFICATION_MISSING_ERROR,
   GET_MODIFICATION_CAST_ERROR,
 } from "../enum/FlagshipConstant.ts";
-import { sprintf } from "../utils/utils.ts";
+import { sprintf, logError } from "../utils/utils.ts";
+import { FlagshipConfig } from "../config/FlagshipConfig.ts";
 
 export class Visitor {
   private _visitorId: string;
   private _context!: Map<string, string | number | boolean>;
   private _modifications: Map<string, Modification>;
   private _configManager: ConfigManager;
+  private _config: FlagshipConfig;
 
   constructor(
     visitorId: string,
@@ -22,6 +24,7 @@ export class Visitor {
     this._visitorId = visitorId;
     this._modifications = new Map<string, Modification>();
     this._configManager = configManager;
+    this._config = configManager.config;
     this._context = new Map<string, string | number | boolean>();
     this.updateContext(context);
   }
@@ -57,6 +60,13 @@ export class Visitor {
 
   get configManager(): ConfigManager {
     return this._configManager;
+  }
+
+  public get config(): FlagshipConfig {
+    return this._config;
+  }
+  public set config(v: FlagshipConfig) {
+    this._config = v;
   }
 
   public updateContext(context: Map<string, string | number | boolean>): void {
@@ -102,19 +112,30 @@ export class Visitor {
    */
   public getModification<T>(key: string, defaultValue: T, activate = false): T {
     if (!key) {
-      console.log(sprintf(GET_MODIFICATION_KEY_ERROR, key));
+      logError(
+        this.config.logManager,
+        sprintf(GET_MODIFICATION_KEY_ERROR, key),
+        "getModification"
+      );
       return defaultValue;
     }
 
     const modification = this._modifications.get(key);
     if (!modification) {
-      console.log(sprintf(GET_MODIFICATION_MISSING_ERROR, key));
+      logError(
+        this.config.logManager,
+        sprintf(GET_MODIFICATION_MISSING_ERROR, key),
+        "getModification"
+      );
       return defaultValue;
     }
 
     if (typeof modification.getValue() !== typeof defaultValue) {
-      console.log(sprintf(GET_MODIFICATION_CAST_ERROR, key));
-      //To do send activate if true
+      logError(
+        this.config.logManager,
+        sprintf(GET_MODIFICATION_CAST_ERROR, key),
+        "getModification"
+      );
       return defaultValue;
     }
 
