@@ -74,6 +74,14 @@ export class Visitor {
     this._config = v;
   }
 
+  /**
+   * Update the visitor context values, matching the given keys, used for targeting.
+   *
+   * A new context value associated with this key will be created if there is no previous matching value.
+   *
+   * Context keys must be String, and values types must be one of the following : Number, Boolean, String.
+   * @param context : collection of keys, values.
+   */
   public updateContext(context: Map<string, string | number | boolean>): void {
     if (!context) {
       logError(this.config, CONTEXT_NULL_ERROR, "updateContext");
@@ -84,6 +92,15 @@ export class Visitor {
     });
   }
 
+  /**
+   *  Update the visitor context values, matching the given keys, used for targeting.
+   *
+   * A new context value associated with this key will be created if there is no previous matching value.
+   * Context key must be String, and value type must be one of the following : Number, Boolean, String.
+   * @param key : context key.
+   * @param value : context value.
+   * @returns
+   */
   public updateContextKeyValue(
     key: string,
     value: string | number | boolean
