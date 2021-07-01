@@ -133,6 +133,7 @@ export class Visitor {
    * key or if the stored value type and default value type do not match, default value will be returned.
    *
    */
+
   public getModification<T>(key: string, defaultValue: T, activate = false): T {
     if (!key || typeof key != "string") {
       logError(
@@ -153,7 +154,7 @@ export class Visitor {
       return defaultValue;
     }
 
-    if (typeof modification.value !== typeof defaultValue) {
+    const castError = () => {
       logError(
         this.config,
         sprintf(GET_MODIFICATION_CAST_ERROR, key),
@@ -163,6 +164,19 @@ export class Visitor {
       if (!modification.value) {
         this.activateModification(key);
       }
+    };
+
+    if (
+      typeof modification.value === "object" &&
+      typeof defaultValue === "object" &&
+      Array.isArray(modification.value) !== Array.isArray(defaultValue)
+    ) {
+      castError();
+      return defaultValue;
+    }
+
+    if (typeof modification.value !== typeof defaultValue) {
+      castError();
       return defaultValue;
     }
 
@@ -204,9 +218,8 @@ export class Visitor {
   public async synchronizeModifications(): Promise<Visitor> {
     try {
       const modifications =
-        await this.configManager.decisionManager?.getCampaignsModifications(
-          this._visitorId,
-          this._context
+        await this.configManager.decisionManager?.getCampaignsModificationsAsync(
+          this
         );
       this._modifications = modifications;
     } catch (error) {
