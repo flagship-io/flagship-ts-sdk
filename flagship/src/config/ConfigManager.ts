@@ -1,13 +1,31 @@
-import {FlagshipConfig} from "./FlagshipConfig.ts";
-import {IDecisionManager} from "../decision/IDecisionManager.ts";
+import { FlagshipConfig } from "./FlagshipConfig.ts";
+import { IDecisionManager } from "../decision/IDecisionManager.ts";
+import { ITrackingManager } from "../api/TrackingManagerAbstract.ts";
 
-export class ConfigManager {
-  private _config:FlagshipConfig;
-  private _decisionManager:IDecisionManager;
-  private _trackingManager:unknown;
+export interface IConfigManager {
+  get config(): FlagshipConfig;
 
-  public constructor(config : FlagshipConfig, decisionManager: IDecisionManager, trackingManager: any) {
-    this._config= config;
+  set config(value: FlagshipConfig);
+
+  get decisionManager(): IDecisionManager;
+
+  set decisionManager(value: IDecisionManager);
+
+  get trackingManager(): ITrackingManager;
+
+  set trackingManager(value: ITrackingManager);
+}
+export class ConfigManager implements IConfigManager {
+  private _config: FlagshipConfig;
+  private _decisionManager: IDecisionManager;
+  private _trackingManager: ITrackingManager;
+
+  public constructor(
+    config: FlagshipConfig,
+    decisionManager: IDecisionManager,
+    trackingManager: ITrackingManager
+  ) {
+    this._config = config;
     this._decisionManager = decisionManager;
     this._trackingManager = trackingManager;
   }
@@ -28,11 +46,11 @@ export class ConfigManager {
     this._decisionManager = value;
   }
 
-  get trackingManager(): unknown {
+  get trackingManager(): ITrackingManager {
     return this._trackingManager;
   }
 
-  set trackingManager(value: unknown) {
+  set trackingManager(value: ITrackingManager) {
     this._trackingManager = value;
   }
 }
