@@ -58,3 +58,39 @@ export const PROCESS_NEW_VISITOR = "NEW VISITOR";
 export const PROCESS_ACTIVE_MODIFICATION = "ACTIVE MODIFICATION";
 export const PROCESS_SYNCHRONIZED_MODIFICATION = "SYNCHRONIZED MODIFICATION";
 export const PROCESS_SEND_HIT = "SEND HIT";
+
+//Api items
+
+export const CUSTOMER_ENV_ID_API_ITEM = "cid";
+export const VISITOR_ID_API_ITEM = "vid";
+export const VARIATION_GROUP_ID_API_ITEM = "caid";
+export const VARIATION_ID_API_ITEM = "vaid";
+export const DS_API_ITEM = "ds";
+export const T_API_ITEM = "t";
+export const DL_API_ITEM = "dl";
+export const SDK_APP = "APP";
+export const TID_API_ITEM = "tid";
+export const TA_API_ITEM = "ta";
+export const TT_API_ITEM = "tt";
+export const TC_API_ITEM = "tc";
+export const TCC_API_ITEM = "tcc";
+export const ICN_API_ITEM = "icn";
+export const SM_API_ITEM = "sm";
+export const PM_API_ITEM = "pm";
+export const TR_API_ITEM = "tr";
+export const TS_API_ITEM = "ts";
+export const IN_API_ITEM = "in";
+export const IC_API_ITEM = "ic";
+export const IP_API_ITEM = "ip";
+export const IQ_API_ITEM = "iq";
+export const IV_API_ITEM = "iv";
+export const EVENT_CATEGORY_API_ITEM = "ec";
+export const EVENT_ACTION_API_ITEM = "ea";
+export const EVENT_LABEL_API_ITEM = "el";
+export const EVENT_VALUE_API_ITEM = "ev";
+
+export const HEADER_X_API_KEY = "x-api-key";
+export const HEADER_CONTENT_TYPE = "Content-Type";
+export const HEADER_X_SDK_CLIENT = "x-sdk-client";
+export const HEADER_X_SDK_VERSION = "x-sdk-version";
+export const HEADER_APPLICATION_JSON = "application/json";
