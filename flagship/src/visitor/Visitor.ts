@@ -91,7 +91,7 @@ export class Visitor {
       key == "" ||
       (valueType != "string" && valueType != "number" && valueType != "boolean")
     ) {
-      //To Do change to config.logManager
+      //To Do change to config
       console.log(
         `params 'key' must be a non null String, and 'value' must be one of the following types : String, Number, Boolean`
       );
@@ -115,7 +115,7 @@ export class Visitor {
   public getModification<T>(key: string, defaultValue: T, activate = false): T {
     if (!key || typeof key != "string") {
       logError(
-        this.config.logManager,
+        this.config,
         sprintf(GET_MODIFICATION_KEY_ERROR, key),
         "getModification"
       );
@@ -125,7 +125,7 @@ export class Visitor {
     const modification = this._modifications.get(key);
     if (!modification) {
       logError(
-        this.config.logManager,
+        this.config,
         sprintf(GET_MODIFICATION_MISSING_ERROR, key),
         "getModification"
       );
@@ -134,7 +134,7 @@ export class Visitor {
 
     if (typeof modification.value !== typeof defaultValue) {
       logError(
-        this.config.logManager,
+        this.config,
         sprintf(GET_MODIFICATION_CAST_ERROR, key),
         "getModification"
       );
@@ -159,7 +159,7 @@ export class Visitor {
   public getModificationInfo(key: string): Modification | null {
     if (!key || typeof key != "string") {
       logError(
-        this.config.logManager,
+        this.config,
         sprintf(GET_MODIFICATION_KEY_ERROR, key),
         "getModificationInfo"
       );
@@ -170,7 +170,7 @@ export class Visitor {
 
     if (!modification) {
       logError(
-        this.config.logManager,
+        this.config,
         sprintf(GET_MODIFICATION_ERROR, key),
         "getModification"
       );
@@ -197,11 +197,7 @@ export class Visitor {
   private hasTrackingManager(process: string): boolean {
     const check = this.configManager.trackingManager;
     if (!check) {
-      logError(
-        this.config.logManager,
-        sprintf(TRACKER_MANAGER_MISSING_ERROR),
-        process
-      );
+      logError(this.config, sprintf(TRACKER_MANAGER_MISSING_ERROR), process);
     }
     return !!check;
   }
@@ -214,7 +210,7 @@ export class Visitor {
     const functionName = "activateModification";
     if (!key || typeof key != "string") {
       logError(
-        this.config.logManager,
+        this.config,
         sprintf(GET_MODIFICATION_KEY_ERROR, key),
         functionName
       );
@@ -226,7 +222,7 @@ export class Visitor {
     if (!modification) {
       if (!modification) {
         logError(
-          this.config.logManager,
+          this.config,
           sprintf(GET_MODIFICATION_ERROR, key),
           functionName
         );

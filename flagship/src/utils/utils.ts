@@ -1,3 +1,5 @@
+import { IFlagshipConfig } from "../config/FlagshipConfig.ts";
+
 /**
  * Return a formatted string
  */
@@ -10,6 +12,10 @@ export function sprintf(format: string, ...value: any[]): string {
   return formatted;
 }
 
-export function logError(logManager: any, message: string, tag: string) {
+export function logError(
+  config: IFlagshipConfig,
+  message: string,
+  tag: string
+) {
   console.log(tag, message);
 }
