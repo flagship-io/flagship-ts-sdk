@@ -1,3 +1,0 @@
-interface IFlashipEndpoints {
-  SEP: string;
-}
