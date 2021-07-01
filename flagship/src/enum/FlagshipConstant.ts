@@ -41,7 +41,7 @@ export const GET_MODIFICATION_MISSING_ERROR =
   "No modification for key {0}. Default value is returned.";
 export const GET_MODIFICATION_KEY_ERROR =
   "Key {0} must not be null. Default value is returned.";
-export const GET_MODIFICATION_ERROR = "No modification for key '%s'.";
+export const GET_MODIFICATION_ERROR = "No modification for key {0}.";
 export const DECISION_MANAGER_MISSING_ERROR =
   "decisionManager must not be null.";
 export const TRACKER_MANAGER_MISSING_ERROR = "trackerManager must not be null.";

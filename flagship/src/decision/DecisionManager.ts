@@ -1,35 +1,33 @@
-import {IDecisionManager} from "./IDecisionManager.ts";
-import {Campaign} from "../model/Campaign.ts";
-import {Modification} from "../model/Modification.ts";
-import {FlagshipConfig} from "../config/FlagshipConfig.ts";
+import { IDecisionManager } from "./IDecisionManager.ts";
+import { Modification } from "../model/Modification.ts";
+import { FlagshipConfig } from "../config/FlagshipConfig.ts";
+import { IHttpClient } from "../utils/httpClient.ts";
+import { Visitor } from "../visitor/Visitor.ts";
 
 export abstract class DecisionManager implements IDecisionManager {
-    protected _config: FlagshipConfig;
-    protected _panic = false;
-    protected _onStatusChangedListener = null;
+  protected _config: FlagshipConfig;
+  protected _panic = false;
+  protected _onStatusChangedListener = null;
+  protected _httpClient: IHttpClient;
 
-    public constructor(config: FlagshipConfig) {
-        this._config = config;
-    }
+  public get config() {
+    return this._config;
+  }
 
-    public getModifications(
-        campaigns: Array<Campaign>
-    ): Map<string, Modification> {
-        let modifications = new Map<string, Modification>();
-        if (campaigns != null) {
-            campaigns.forEach((campaign) => {
-                modifications = campaign.getModifications();
-            });
-        }
-        return modifications;
-    }
+  public set panic(v: boolean) {
+    this._panic = v;
+  }
 
-    abstract getCampaignsModifications(
-        visitorId: string,
-        context: Map<string, unknown>
-    ): Promise<Map<string, Modification>>;
+  public constructor(httpClient: IHttpClient, config: FlagshipConfig) {
+    this._config = config;
+    this._httpClient = httpClient;
+  }
 
-    public isPanic(): boolean {
-        return this._panic;
-    }
+  abstract getCampaignsModificationsAsync(
+    visitor: Visitor
+  ): Promise<Map<string, Modification>>;
+
+  public isPanic(): boolean {
+    return this._panic;
+  }
 }

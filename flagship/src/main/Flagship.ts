@@ -98,7 +98,10 @@ export class Flagship {
       return;
     }
 
-    const decisionManager = new ApiManager(flagship.config);
+    const decisionManager = new ApiManager(
+      new DenoHttpClient(),
+      flagship.config
+    );
     const trackingManager = new TrackingManager(new DenoHttpClient(), config);
     flagship.configManager = new ConfigManager(
       config,
