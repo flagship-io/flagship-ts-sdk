@@ -1,6 +1,16 @@
-import { DecisionMode } from "../enum/DecisionMode.ts";
 import { LogLevel } from "../enum/LogLevel.ts";
 import { FlagshipStatus } from "../enum/FlagshipStatus.ts";
+
+export enum DecisionMode {
+  /**
+   * Flagship SDK mode decision api
+   */
+  DECISION_API,
+  /**
+   * Flagship SDK mode bucketing
+   */
+  BUCKETING,
+}
 
 export interface IFlagshipConfig {
   set envId(value: string | undefined);
@@ -104,20 +114,5 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
 
   public set logManager(value: unknown) {
     this.logManager = value;
-  }
-
-  public toString(): string {
-    return (
-      "FlagshipConfig{" +
-      "envId='" +
-      this.envId +
-      "'" +
-      ", apiKey='" +
-      this.apiKey +
-      "'" +
-      ", mode=" +
-      this.decisionMode +
-      "}"
-    );
   }
 }
