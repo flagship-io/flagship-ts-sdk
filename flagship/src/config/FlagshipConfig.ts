@@ -2,7 +2,37 @@ import { DecisionMode } from "../enum/DecisionMode.ts";
 import { LogLevel } from "../enum/LogLevel.ts";
 import { FlagshipStatus } from "../enum/FlagshipStatus.ts";
 
-export abstract class FlagshipConfig {
+export interface IFlagshipConfig {
+  set envId(value: string | undefined);
+
+  get envId(): string | undefined;
+
+  set apiKey(value: string | undefined);
+
+  get apiKey(): string | undefined;
+
+  get decisionMode(): DecisionMode;
+
+  set decisionMode(value: DecisionMode);
+
+  get timeout(): number;
+
+  set timeout(value: number);
+
+  get logLevel(): LogLevel;
+
+  set logLevel(value: LogLevel);
+
+  set statusChangedCallback(fn: ((status: FlagshipStatus) => void) | undefined);
+
+  get statusChangedCallback(): ((status: FlagshipStatus) => void) | undefined;
+
+  get logManager(): unknown;
+
+  set logManager(value: unknown);
+}
+
+export abstract class FlagshipConfig implements IFlagshipConfig {
   private _envId?: string;
   private _apiKey?: string;
   private _decisionMode = DecisionMode.DECISION_API;
@@ -32,7 +62,6 @@ export abstract class FlagshipConfig {
     return this._apiKey;
   }
 
-
   public get decisionMode(): DecisionMode {
     return this._decisionMode;
   }
@@ -57,11 +86,15 @@ export abstract class FlagshipConfig {
     this._logLevel = value;
   }
 
-  public set statusChangedCallback(fn: ((status: FlagshipStatus) => void) | undefined) {
+  public set statusChangedCallback(
+    fn: ((status: FlagshipStatus) => void) | undefined
+  ) {
     this._statusChangedCallback = fn;
   }
 
-  public get statusChangedCallback():((status: FlagshipStatus) => void) | undefined{
+  public get statusChangedCallback():
+    | ((status: FlagshipStatus) => void)
+    | undefined {
     return this._statusChangedCallback;
   }
 
@@ -72,7 +105,6 @@ export abstract class FlagshipConfig {
   public set logManager(value: unknown) {
     this.logManager = value;
   }
-
 
   public toString(): string {
     return (
