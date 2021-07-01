@@ -22,27 +22,27 @@ export class Modification {
     this._value = value;
   }
 
-  public getKey(): string {
+  public get key(): string {
     return this._key;
   }
 
-  public getCampaignId(): string {
+  public get campaignId(): string {
     return this._campaignId;
   }
 
-  public getVariationGroupId(): string {
+  public get variationGroupId(): string {
     return this._variationGroupId;
   }
 
-  public getVariationId(): string {
+  public get variationId(): string {
     return this._variationId;
   }
 
-  public isReference(): boolean {
+  public get isReference(): boolean {
     return this._isReference;
   }
 
-  public getValue(): any {
+  public get value(): any {
     return this._value;
   }
 }
