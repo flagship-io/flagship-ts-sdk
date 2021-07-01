@@ -74,6 +74,9 @@ export class TrackingManager extends TrackingManagerAbstract {
           if (response.status >= 400) {
             logError(this.config, response.body, "sendHit");
           }
+        })
+        .catch((error) => {
+          logError(this.config, error.message, "sendHit");
         });
     } catch (error) {
       logError(this.config, error.message, "sendHit");
