@@ -9,3 +9,7 @@ export function sprintf(format: string, ...value: any[]): string {
   }
   return formatted;
 }
+
+export function logError(logManager: any, message: string, tag: string) {
+  console.log(tag, message);
+}
