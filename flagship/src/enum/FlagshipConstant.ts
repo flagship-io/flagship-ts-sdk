@@ -32,8 +32,9 @@ export const FLAGSHIP_SDK = "Flagship SDK";
 export const INITIALIZATION_PARAM_ERROR =
   "Params 'envId' and 'apiKey' must not be null or empty.";
 export const ERROR = "error";
+export const CONTEXT_NULL_ERROR = "Context must not to be null";
 export const CONTEXT_PARAM_ERROR =
-  "params 'key' must be a non null String, and 'value' must be one of the following types , Number, Boolean";
+  "params {0} must be a non null String, and 'value' must be one of the following types , Number, Boolean";
 export const GET_MODIFICATION_CAST_ERROR =
   "Modification for key {0} has a different type. Default value is returned.";
 export const GET_MODIFICATION_MISSING_ERROR =
@@ -45,7 +46,7 @@ export const DECISION_MANAGER_MISSING_ERROR =
   "decisionManager must not be null.";
 export const TRACKER_MANAGER_MISSING_ERROR = "trackerManager must not be null.";
 export const CURL_LIBRARY_IS_NOT_LOADED = "curl library is not loaded";
-export const TYPE_ERROR = " '%s' must be a '%s'";
+export const TYPE_ERROR = " {0} must be a {0}";
 export const VISITOR_ID_ERROR = "visitorId must not be null or empty";
 
 //Process
