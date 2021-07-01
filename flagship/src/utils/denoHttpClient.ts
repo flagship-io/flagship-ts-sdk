@@ -7,14 +7,12 @@ export class DenoHttpClient implements IHttpClient {
   ): Promise<IHttpResponse> {
     const response = await fetch(url, {
       method: "POST",
-      headers: options.header,
+      headers: options.headers,
       body: JSON.stringify(options.body),
     });
     if (response.ok) {
       return { status: response.status, body: response.json };
     }
-    console.log(url, options, response);
-
     throw new Error(response.statusText);
   }
 }
