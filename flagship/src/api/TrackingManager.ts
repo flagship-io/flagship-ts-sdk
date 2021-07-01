@@ -6,6 +6,7 @@ import {
   HEADER_X_API_KEY,
   HEADER_X_SDK_CLIENT,
   HEADER_X_SDK_VERSION,
+  HIT_API_URL,
   SDK_LANGUAGE,
   SDK_VERSION,
   URL_ACTIVATE_MODIFICATION,
@@ -13,6 +14,7 @@ import {
   VARIATION_ID_API_ITEM,
   VISITOR_ID_API_ITEM,
 } from "../enum/FlagshipConstant.ts";
+import { HitAbstract } from "../hit/HitAbstract.ts";
 import { Modification } from "../model/Modification.ts";
 import { logError } from "../utils/utils.ts";
 import { Visitor } from "../visitor/Visitor.ts";
@@ -25,7 +27,7 @@ export class TrackingManager extends TrackingManagerAbstract {
         [HEADER_X_API_KEY]: `${this.config.apiKey}`,
         [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
         [HEADER_X_SDK_VERSION]: SDK_VERSION,
-        // [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON,
+        [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON,
       };
 
       const url = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`;
@@ -38,14 +40,43 @@ export class TrackingManager extends TrackingManagerAbstract {
       };
 
       this.httpClient
-        .postAsync(url, { header: headers, body: postData })
+        .postAsync(url, {
+          headers: headers,
+          timeout: this.config.timeout,
+          body: postData,
+        })
         .then((response) => {
           if (response.status >= 400) {
-            logError(this.config.logManager, response.body, "sendActive");
+            logError(this.config, response.body, "sendActive");
           }
         });
     } catch (error) {
-      logError(this.config.logManager, error.message, "sendActive");
+      logError(this.config, error.message, "sendActive");
+    }
+  }
+
+  public sendHit(hit: HitAbstract): void {
+    try {
+      const headers = {
+        [HEADER_X_API_KEY]: `${this.config.apiKey}`,
+        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
+        [HEADER_X_SDK_VERSION]: SDK_VERSION,
+        [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON,
+      };
+
+      this.httpClient
+        .postAsync(HIT_API_URL, {
+          headers: headers,
+          timeout: this.config.timeout,
+          body: hit.toApiKeys(),
+        })
+        .then((response) => {
+          if (response.status >= 400) {
+            logError(this.config, response.body, "sendHit");
+          }
+        });
+    } catch (error) {
+      logError(this.config, error.message, "sendHit");
     }
   }
 }
