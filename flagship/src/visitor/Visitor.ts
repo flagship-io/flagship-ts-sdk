@@ -7,9 +7,13 @@ import {
   GET_MODIFICATION_CAST_ERROR,
   GET_MODIFICATION_ERROR,
   TRACKER_MANAGER_MISSING_ERROR,
+  SDK_APP,
+  CONTEXT_PARAM_ERROR,
+  CONTEXT_NULL_ERROR,
 } from "../enum/FlagshipConstant.ts";
 import { sprintf, logError } from "../utils/utils.ts";
 import { FlagshipConfig } from "../config/FlagshipConfig.ts";
+import { HitAbstract } from "../hit/HitAbstract.ts";
 
 export class Visitor {
   private _visitorId: string;
@@ -36,9 +40,8 @@ export class Visitor {
   }
 
   public set visitorId(v: string) {
-    //To do config.Logger
     if (!v) {
-      console.log(VISITOR_ID_ERROR);
+      logError(this.config, VISITOR_ID_ERROR, "visitorId");
       return;
     }
     this._visitorId = v;
@@ -73,12 +76,12 @@ export class Visitor {
 
   public updateContext(context: Map<string, string | number | boolean>): void {
     if (!context) {
-      console.log("contest is null");
+      logError(this.config, CONTEXT_NULL_ERROR, "updateContext");
       return;
     }
-    for (const [k, v] of context) {
-      this.updateContextKeyValue(k, v);
-    }
+    context.forEach((value, key) => {
+      this.updateContextKeyValue(key, value);
+    });
   }
 
   public updateContextKeyValue(
@@ -91,9 +94,10 @@ export class Visitor {
       key == "" ||
       (valueType != "string" && valueType != "number" && valueType != "boolean")
     ) {
-      //To Do change to config
-      console.log(
-        `params 'key' must be a non null String, and 'value' must be one of the following types : String, Number, Boolean`
+      logError(
+        this.config,
+        sprintf(CONTEXT_PARAM_ERROR, key),
+        "updateContextKeyValue"
       );
       return;
     }
@@ -235,5 +239,24 @@ export class Visitor {
     }
 
     this.configManager.trackingManager.sendActive(this, modification);
+  }
+
+  /**
+   * Send a Hit to Flagship servers for reporting.
+   * @param hit
+   */
+  public sendHit(hit: HitAbstract) {
+    if (!this.hasTrackingManager("sendHit")) {
+      return;
+    }
+    hit.visitorId = this.visitorId;
+    hit.ds = SDK_APP;
+    hit.config = this.config;
+
+    if (!hit.isReady()) {
+      logError(this.config, hit.getErrorMessage(), "sendHit");
+    }
+
+    this.configManager.trackingManager.sendHit(hit);
   }
 }
