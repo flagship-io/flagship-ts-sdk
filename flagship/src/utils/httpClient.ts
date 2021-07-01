@@ -1,10 +1,13 @@
 export interface IHttpOptions {
+  // deno-lint-ignore no-explicit-any
   body?: any;
-  header?: Record<string, string>;
+  headers?: Record<string, string>;
+  timeout?: number;
 }
 
 export interface IHttpResponse {
   status: number;
+  // deno-lint-ignore no-explicit-any
   body: any;
 }
 
