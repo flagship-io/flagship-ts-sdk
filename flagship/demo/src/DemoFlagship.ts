@@ -12,11 +12,11 @@ Flagship.start(
   const context = new Map<string, string | boolean | number>();
   context.set("age", 25);
 
-  const visitor = Flagship.newVisitor("toto");
+  const visitor = Flagship.newVisitor("toto", context);
 
   if (visitor) {
     await visitor.synchronizeModifications();
-    console.log(visitor.getModification("IsVIP", false));
+    console.log(visitor.getModification("IsVIP", true));
     visitor.activateModification("IsVIP");
     const event = new Event(EventCategory.ACTION_TRACKING, "click");
     visitor.sendHit(event);
