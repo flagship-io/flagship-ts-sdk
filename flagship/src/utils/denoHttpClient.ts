@@ -12,7 +12,11 @@ export class DenoHttpClient implements IHttpClient {
         body: JSON.stringify(options.body),
       });
       if (response.ok) {
-        return { status: response.status, body: await response.json() };
+        const applicationType = response.headers.get("Content-Type");
+        if (applicationType == "application/json") {
+          return { status: response.status, body: await response.json() };
+        }
+        return { status: response.status, body: await response.text() };
       }
       throw new Error(response.statusText);
     } catch (error) {

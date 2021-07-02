@@ -10,6 +10,7 @@ import {
   SDK_APP,
   CONTEXT_PARAM_ERROR,
   CONTEXT_NULL_ERROR,
+  PANIC_MODE_ERROR,
 } from "../enum/FlagshipConstant.ts";
 import { sprintf, logError } from "../utils/utils.ts";
 import { FlagshipConfig } from "../config/FlagshipConfig.ts";
@@ -129,12 +130,31 @@ export class Visitor {
   }
 
   /**
+   * isOnPanicMode
+   */
+  public isOnPanicMode(functionName: string) {
+    const check = this.configManager.decisionManager.isPanic();
+    if (check) {
+      logError(
+        this.config,
+        sprintf(PANIC_MODE_ERROR, functionName),
+        functionName
+      );
+    }
+    return check;
+  }
+
+  /**
    * Retrieve a modification value by its key. If no modification match the given
    * key or if the stored value type and default value type do not match, default value will be returned.
    *
    */
 
   public getModification<T>(key: string, defaultValue: T, activate = false): T {
+    if (this.isOnPanicMode("getModification")) {
+      return defaultValue;
+    }
+
     if (!key || typeof key != "string") {
       logError(
         this.config,
@@ -192,6 +212,10 @@ export class Visitor {
    * @param key : key which identify the modification.
    */
   public getModificationInfo(key: string): Modification | null {
+    if (this.isOnPanicMode("getModificationInfo")) {
+      return null;
+    }
+
     if (!key || typeof key != "string") {
       logError(
         this.config,
@@ -242,6 +266,11 @@ export class Visitor {
    */
   public activateModification(key: string): void {
     const functionName = "activateModification";
+
+    if (this.isOnPanicMode(functionName)) {
+      return;
+    }
+
     if (!key || typeof key != "string") {
       logError(
         this.config,
@@ -276,7 +305,12 @@ export class Visitor {
    * @param hit
    */
   public sendHit(hit: HitAbstract) {
-    if (!this.hasTrackingManager("sendHit")) {
+    const functionName = "sendHit";
+    if (this.isOnPanicMode(functionName)) {
+      return;
+    }
+
+    if (!this.hasTrackingManager(functionName)) {
       return;
     }
     hit.visitorId = this.visitorId;
@@ -284,7 +318,7 @@ export class Visitor {
     hit.config = this.config;
 
     if (!hit.isReady()) {
-      logError(this.config, hit.getErrorMessage(), "sendHit");
+      logError(this.config, hit.getErrorMessage(), functionName);
     }
 
     this.configManager.trackingManager.sendHit(hit);
