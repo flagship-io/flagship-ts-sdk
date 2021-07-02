@@ -42,10 +42,13 @@ export class ApiManager extends DecisionManager {
       if (data.body.panic) {
         this.panic = true;
       }
-      return data.body.campaigns;
+      if (data.body.campaigns) {
+        return data.body.campaigns;
+      }
     } catch (error) {
       logError(this.config, error.message, "sendActive");
     }
+    return [];
   }
 
   private getModifications(campaigns: Array<CampaignDTO>) {
