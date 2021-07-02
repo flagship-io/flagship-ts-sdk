@@ -47,6 +47,12 @@ export abstract class HitAbstract {
     this._hitType = type;
   }
 
+  /**
+   * Return true if value is a string and not empty, otherwise return false
+   * @param value
+   * @param itemName
+   * @returns
+   */
   protected isNotEmptyString(value: unknown, itemName: string): boolean {
     if (!value || typeof value != "string") {
       logError(this.config, sprintf(TYPE_ERROR, "string"), itemName);
