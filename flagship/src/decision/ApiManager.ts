@@ -38,6 +38,12 @@ export class ApiManager extends DecisionManager {
         timeout: this.config.timeout,
         body: postData,
       });
+
+      if (data.status >= 400) {
+        logError(this.config, data.body, "getCampaignsAsync");
+        return [];
+      }
+
       this.panic = false;
       if (data.body.panic) {
         this.panic = true;
@@ -46,7 +52,7 @@ export class ApiManager extends DecisionManager {
         return data.body.campaigns;
       }
     } catch (error) {
-      logError(this.config, error.message, "sendActive");
+      logError(this.config, error.message, "getCampaignsAsync");
     }
     return [];
   }
@@ -54,8 +60,6 @@ export class ApiManager extends DecisionManager {
   private getModifications(campaigns: Array<CampaignDTO>) {
     const modifications = new Map<string, Modification>();
     campaigns.forEach((campaign) => {
-      console.log("campaign", campaign);
-
       Object.entries(campaign.variation.modifications.value).forEach(
         ([key, value]) => {
           modifications.set(
