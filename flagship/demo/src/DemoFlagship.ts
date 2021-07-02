@@ -1,12 +1,9 @@
 import { DecisionApiConfig } from "../../src/config/DecisionApiConfig.ts";
 import { Flagship } from "../../src/main/Flagship.ts";
 import { Event, EventCategory } from "../../src/hit/Event.ts";
+import { API_KEY, ENV_ID } from "./env.ts";
 
-Flagship.start(
-  "c0n48jn5thv01k0ijmo0",
-  "BsIK86oh7c12c9G7ce4Wm1yBlWeaMf3t1S0xyYzI",
-  new DecisionApiConfig()
-);
+Flagship.start(ENV_ID, API_KEY, new DecisionApiConfig());
 
 (async () => {
   const context = new Map<string, string | boolean | number>();
