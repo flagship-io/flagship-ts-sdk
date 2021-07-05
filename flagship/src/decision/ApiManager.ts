@@ -30,7 +30,7 @@ export class ApiManager extends DecisionManager {
         visitorId: visitor.visitorId,
         // deno-lint-ignore camelcase
         trigger_hit: false,
-        context: Object.fromEntries(visitor.context),
+        context: visitor.context,
       };
       const url = `${BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`;
       const data = await this._httpClient.postAsync(url, {
