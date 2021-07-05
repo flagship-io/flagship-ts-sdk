@@ -8,10 +8,12 @@ import {
   Screen,
   Transaction,
   FlagshipStatus,
+  LogLevel,
 } from "../../mod.ts";
 import { API_KEY, ENV_ID } from "./env.ts";
 
 const config = new DecisionApiConfig();
+config.logLevel = LogLevel.ERROR;
 config.statusChangedCallback = (status) => {
   console.log("status", FlagshipStatus[status]);
 };
@@ -22,7 +24,7 @@ const visitor = Flagship.newVisitor(`visitor_1`);
 
 if (visitor) {
   await visitor.synchronizeModifications();
-  console.log(visitor.getModification("object", {}));
+  console.log(visitor.getModification("objec", {}));
   visitor.activateModification("object");
 
   console.log(visitor.getModificationInfo("object"));
