@@ -4,7 +4,8 @@ export class Modification {
   private _variationGroupId: string;
   private _variationId: string;
   private _isReference: boolean;
-  private _value: unknown;
+  // deno-lint-ignore no-explicit-any
+  private _value: any;
 
   constructor(
     key: string,
@@ -42,6 +43,7 @@ export class Modification {
     return this._isReference;
   }
 
+  // deno-lint-ignore no-explicit-any
   public get value(): any {
     return this._value;
   }
