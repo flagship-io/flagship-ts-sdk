@@ -6,6 +6,14 @@ import { ConfigManager, IConfigManager } from "../config/ConfigManager.ts";
 import { ApiManager } from "../decision/ApiManager.ts";
 import { TrackingManager } from "../api/TrackingManager.ts";
 import { DenoHttpClient } from "../utils/denoHttpClient.ts";
+import { FlagshipLogManager } from "../utils/FlagshipLogManager.ts";
+import { logError, logInfo, sprintf } from "../utils/utils.ts";
+import {
+  INITIALIZATION_PARAM_ERROR,
+  PROCESS_INITIALIZATION,
+  SDK_STARTED_INFO,
+  SDK_VERSION,
+} from "../enum/index.ts";
 
 export class Flagship {
   private static _instance: Flagship;
@@ -89,12 +97,11 @@ export class Flagship {
 
     //check custom logger
     if (!config.logManager) {
-      // set default logManager
+      config.logManager = new FlagshipLogManager();
     }
 
     if (!envId || envId === "" || !apiKey || apiKey === "") {
-      //To Do change to config.logManager
-      console.log("Params 'envId' and 'apiKey' must not be null or empty.");
+      logError(config, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION);
       return;
     }
 
@@ -111,8 +118,11 @@ export class Flagship {
 
     if (this.isReady()) {
       flagship.setStatus(FlagshipStatus.READY);
-      //To Do change to config.logManager
-      console.log("Flagship SDK (version: V1) READY");
+      logInfo(
+        config,
+        sprintf(SDK_STARTED_INFO, SDK_VERSION),
+        PROCESS_INITIALIZATION
+      );
     } else {
       flagship.setStatus(FlagshipStatus.NOT_READY);
     }

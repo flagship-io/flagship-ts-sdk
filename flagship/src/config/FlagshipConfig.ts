@@ -1,5 +1,5 @@
-import { LogLevel } from "../enum/LogLevel.ts";
-import { FlagshipStatus } from "../enum/FlagshipStatus.ts";
+import { FlagshipStatus, LogLevel } from "../enum/index.ts";
+import { IFlagshipLogManager } from "../utils/FlagshipLogManager.ts";
 
 export enum DecisionMode {
   /**
@@ -37,7 +37,7 @@ export interface IFlagshipConfig {
 
   get statusChangedCallback(): ((status: FlagshipStatus) => void) | undefined;
 
-  get logManager(): unknown;
+  get logManager(): IFlagshipLogManager;
 
   set logManager(value: unknown);
 }
@@ -49,7 +49,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _timeout = 2000;
   private _logLevel: LogLevel = LogLevel.ALL;
   private _statusChangedCallback?: (status: FlagshipStatus) => void;
-  private _logManager: unknown;
+  private _logManager!: IFlagshipLogManager;
 
   protected constructor(envId?: string, apiKey?: string) {
     this._envId = envId;
@@ -108,11 +108,11 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     return this._statusChangedCallback;
   }
 
-  public get logManager(): unknown {
+  public get logManager(): IFlagshipLogManager {
     return this._logManager;
   }
 
-  public set logManager(value: unknown) {
-    this.logManager = value;
+  public set logManager(value: IFlagshipLogManager) {
+    this._logManager = value;
   }
 }

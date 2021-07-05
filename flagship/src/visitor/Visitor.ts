@@ -11,7 +11,12 @@ import {
   CONTEXT_PARAM_ERROR,
   CONTEXT_NULL_ERROR,
   PANIC_MODE_ERROR,
-} from "../enum/FlagshipConstant.ts";
+  PROCESS_ACTIVE_MODIFICATION,
+  PROCESS_SEND_HIT,
+  PROCESS_GET_MODIFICATION_INFO,
+  PROCESS_GET_MODIFICATION,
+  PROCESS_UPDATE_CONTEXT,
+} from "../enum/index.ts";
 import { sprintf, logError } from "../utils/utils.ts";
 import { FlagshipConfig } from "../config/FlagshipConfig.ts";
 import { HitAbstract } from "../hit/HitAbstract.ts";
@@ -42,7 +47,7 @@ export class Visitor {
 
   public set visitorId(v: string) {
     if (!v) {
-      logError(this.config, VISITOR_ID_ERROR, "visitorId");
+      logError(this.config, VISITOR_ID_ERROR, "VISITOR ID");
       return;
     }
     this._visitorId = v;
@@ -87,7 +92,7 @@ export class Visitor {
     context: Record<string, string | number | boolean>
   ): void {
     if (!context) {
-      logError(this.config, CONTEXT_NULL_ERROR, "updateContext");
+      logError(this.config, CONTEXT_NULL_ERROR, PROCESS_UPDATE_CONTEXT);
       return;
     }
 
@@ -118,7 +123,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(CONTEXT_PARAM_ERROR, key),
-        "updateContextKeyValue"
+        PROCESS_UPDATE_CONTEXT
       );
       return;
     }
@@ -154,7 +159,7 @@ export class Visitor {
    */
 
   public getModification<T>(key: string, defaultValue: T, activate = false): T {
-    if (this.isOnPanicMode("getModification")) {
+    if (this.isOnPanicMode(PROCESS_GET_MODIFICATION)) {
       return defaultValue;
     }
 
@@ -162,7 +167,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(GET_MODIFICATION_KEY_ERROR, key),
-        "getModification"
+        PROCESS_GET_MODIFICATION
       );
       return defaultValue;
     }
@@ -172,7 +177,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(GET_MODIFICATION_MISSING_ERROR, key),
-        "getModification"
+        PROCESS_GET_MODIFICATION
       );
       return defaultValue;
     }
@@ -181,7 +186,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(GET_MODIFICATION_CAST_ERROR, key),
-        "getModification"
+        PROCESS_GET_MODIFICATION
       );
 
       if (!modification.value) {
@@ -215,7 +220,7 @@ export class Visitor {
    * @param key : key which identify the modification.
    */
   public getModificationInfo(key: string): Modification | null {
-    if (this.isOnPanicMode("getModificationInfo")) {
+    if (this.isOnPanicMode(PROCESS_GET_MODIFICATION_INFO)) {
       return null;
     }
 
@@ -223,7 +228,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(GET_MODIFICATION_KEY_ERROR, key),
-        "getModificationInfo"
+        PROCESS_GET_MODIFICATION_INFO
       );
       return null;
     }
@@ -234,7 +239,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(GET_MODIFICATION_ERROR, key),
-        "getModification"
+        PROCESS_GET_MODIFICATION_INFO
       );
       return null;
     }
@@ -268,9 +273,7 @@ export class Visitor {
    * @param key : key which identify the modification to activate.
    */
   public activateModification(key: string): void {
-    const functionName = "activateModification";
-
-    if (this.isOnPanicMode(functionName)) {
+    if (this.isOnPanicMode(PROCESS_ACTIVE_MODIFICATION)) {
       return;
     }
 
@@ -278,7 +281,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(GET_MODIFICATION_KEY_ERROR, key),
-        functionName
+        PROCESS_ACTIVE_MODIFICATION
       );
       return;
     }
@@ -290,13 +293,13 @@ export class Visitor {
         logError(
           this.config,
           sprintf(GET_MODIFICATION_ERROR, key),
-          functionName
+          PROCESS_ACTIVE_MODIFICATION
         );
         return;
       }
     }
 
-    if (!this.hasTrackingManager(functionName)) {
+    if (!this.hasTrackingManager(PROCESS_ACTIVE_MODIFICATION)) {
       return;
     }
 
@@ -308,12 +311,11 @@ export class Visitor {
    * @param hit
    */
   public sendHit(hit: HitAbstract) {
-    const functionName = "sendHit";
-    if (this.isOnPanicMode(functionName)) {
+    if (this.isOnPanicMode(PROCESS_SEND_HIT)) {
       return;
     }
 
-    if (!this.hasTrackingManager(functionName)) {
+    if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
       return;
     }
     hit.visitorId = this.visitorId;
@@ -321,7 +323,7 @@ export class Visitor {
     hit.config = this.config;
 
     if (!hit.isReady()) {
-      logError(this.config, hit.getErrorMessage(), functionName);
+      logError(this.config, hit.getErrorMessage(), PROCESS_SEND_HIT);
     }
 
     this.configManager.trackingManager.sendHit(hit);

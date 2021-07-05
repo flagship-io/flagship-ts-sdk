@@ -7,6 +7,8 @@ import {
   HEADER_X_SDK_CLIENT,
   HEADER_X_SDK_VERSION,
   HIT_API_URL,
+  PROCESS_SEND_ACTIVATE,
+  PROCESS_SEND_HIT,
   SDK_LANGUAGE,
   SDK_VERSION,
   URL_ACTIVATE_MODIFICATION,
@@ -47,11 +49,11 @@ export class TrackingManager extends TrackingManagerAbstract {
         })
         .then((response) => {
           if (response.status >= 400) {
-            logError(this.config, response.body, "sendActive");
+            logError(this.config, response.body, PROCESS_SEND_ACTIVATE);
           }
         });
     } catch (error) {
-      logError(this.config, error.message, "sendActive");
+      logError(this.config, error.message, PROCESS_SEND_ACTIVATE);
     }
   }
 
@@ -72,14 +74,14 @@ export class TrackingManager extends TrackingManagerAbstract {
         })
         .then((response) => {
           if (response.status >= 400) {
-            logError(this.config, response.body, "sendHit");
+            logError(this.config, response.body, PROCESS_SEND_HIT);
           }
         })
         .catch((error) => {
-          logError(this.config, error.message, "sendHit");
+          logError(this.config, error.message, PROCESS_SEND_HIT);
         });
     } catch (error) {
-      logError(this.config, error.message, "sendHit");
+      logError(this.config, error.message, PROCESS_SEND_HIT);
     }
   }
 }
