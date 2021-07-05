@@ -85,7 +85,7 @@ export class Visitor {
    * A new context value associated with this key will be created if there is no previous matching value.
    *
    * Context keys must be String, and values types must be one of the following : Number, Boolean, String.
-   * @param context : collection of keys, values.
+   * @param {Record<string, string | number | boolean>} context : collection of keys, values.
    */
   public updateContext(
     context: Record<string, string | number | boolean>
@@ -105,9 +105,8 @@ export class Visitor {
    *
    * A new context value associated with this key will be created if there is no previous matching value.
    * Context key must be String, and value type must be one of the following : Number, Boolean, String.
-   * @param key : context key.
-   * @param value : context value.
-   * @returns
+   * @param {string} key : context key.
+   * @param {string | number | boolean} value : context value.
    */
   public updateContextKeyValue(
     key: string,
@@ -154,9 +153,11 @@ export class Visitor {
   /**
    * Retrieve a modification value by its key. If no modification match the given
    * key or if the stored value type and default value type do not match, default value will be returned.
-   *
+   * @param {string} key
+   * @param {T} defaultValue
+   * @param {boolean} activate
+   * @returns {T}
    */
-
   public getModification<T>(key: string, defaultValue: T, activate = false): T {
     if (this.isOnPanicMode(PROCESS_GET_MODIFICATION)) {
       return defaultValue;
@@ -216,7 +217,8 @@ export class Visitor {
 
   /**
    * Get the campaign modification information value matching the given key.
-   * @param key : key which identify the modification.
+   * @param {string} key : key which identify the modification.
+   * @returns {Modification | null}
    */
   public getModificationInfo(key: string): Modification | null {
     if (this.isOnPanicMode(PROCESS_GET_MODIFICATION_INFO)) {
@@ -246,6 +248,10 @@ export class Visitor {
     return modification;
   }
 
+  /**
+   * This function calls the decision api and update all the campaigns modifications
+   * from the server according to the visitor context.
+   */
   public async synchronizeModifications(): Promise<Visitor> {
     try {
       const modifications =

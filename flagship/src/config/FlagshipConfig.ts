@@ -13,33 +13,46 @@ export enum DecisionMode {
 }
 
 export interface IFlagshipConfig {
+  /**
+   * Specify the environment id provided by Flagship, to use.
+   */
   set envId(value: string | undefined);
 
   get envId(): string | undefined;
 
+  /**
+   * Specify the secure api key provided by Flagship, to use.
+   */
   set apiKey(value: string | undefined);
 
   get apiKey(): string | undefined;
 
-  get decisionMode(): DecisionMode;
-
-  set decisionMode(value: DecisionMode);
-
   get timeout(): number;
 
+  /**
+   * Specify timeout in Milliseconds for api request.
+   * Default is 2000ms.
+   */
   set timeout(value: number);
 
   get logLevel(): LogLevel;
 
+  /**
+   * Set the maximum log level to display
+   */
   set logLevel(value: LogLevel);
 
+  /**
+   * Define a callable in order to get callback when the SDK status has changed.
+   */
   set statusChangedCallback(fn: ((status: FlagshipStatus) => void) | undefined);
 
   get statusChangedCallback(): ((status: FlagshipStatus) => void) | undefined;
 
   get logManager(): IFlagshipLogManager;
 
-  set logManager(value: unknown);
+  /**Specify a custom implementation of LogManager in order to receive logs from the SDK. */
+  set logManager(value: IFlagshipLogManager);
 }
 
 export abstract class FlagshipConfig implements IFlagshipConfig {
@@ -72,11 +85,14 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     return this._apiKey;
   }
 
-  public get decisionMode(): DecisionMode {
+  protected get decisionMode(): DecisionMode {
     return this._decisionMode;
   }
 
-  public set decisionMode(value: DecisionMode) {
+  /**
+   * Specify the SDK running mode.
+   */
+  protected set decisionMode(value: DecisionMode) {
     this._decisionMode = value;
   }
 
