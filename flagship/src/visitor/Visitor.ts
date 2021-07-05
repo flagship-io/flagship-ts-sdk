@@ -1,5 +1,4 @@
 import { Modification } from "../model/Modification.ts";
-import { IConfigManager } from "../config/ConfigManager.ts";
 import {
   VISITOR_ID_ERROR,
   GET_MODIFICATION_KEY_ERROR,
@@ -18,15 +17,15 @@ import {
   PROCESS_UPDATE_CONTEXT,
 } from "../enum/index.ts";
 import { sprintf, logError } from "../utils/utils.ts";
-import { FlagshipConfig } from "../config/FlagshipConfig.ts";
-import { HitAbstract } from "../hit/HitAbstract.ts";
+import { HitAbstract } from "../hit/index.ts";
+import { IFlagshipConfig, IConfigManager } from "../config/index.ts";
 
 export class Visitor {
   private _visitorId: string;
   private _context!: Record<string, string | number | boolean>;
   private _modifications: Map<string, Modification>;
   private _configManager: IConfigManager;
-  private _config: FlagshipConfig;
+  private _config: IFlagshipConfig;
 
   constructor(
     visitorId: string,
@@ -73,10 +72,10 @@ export class Visitor {
     return this._configManager;
   }
 
-  public get config(): FlagshipConfig {
+  public get config(): IFlagshipConfig {
     return this._config;
   }
-  public set config(v: FlagshipConfig) {
+  public set config(v: IFlagshipConfig) {
     this._config = v;
   }
 
@@ -140,7 +139,7 @@ export class Visitor {
   /**
    * isOnPanicMode
    */
-  public isOnPanicMode(functionName: string) {
+  private isOnPanicMode(functionName: string) {
     const check = this.configManager.decisionManager.isPanic();
     if (check) {
       logError(
