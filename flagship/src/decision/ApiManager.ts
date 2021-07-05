@@ -30,7 +30,7 @@ export class ApiManager extends DecisionManager {
         visitorId: visitor.visitorId,
         // deno-lint-ignore camelcase
         trigger_hit: false,
-        context: Object.fromEntries(visitor.context),
+        context: visitor.context,
       };
       const url = `${BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`;
       const data = await this._httpClient.postAsync(url, {
@@ -38,6 +38,12 @@ export class ApiManager extends DecisionManager {
         timeout: this.config.timeout,
         body: postData,
       });
+
+      if (data.status >= 400) {
+        logError(this.config, data.body, "getCampaignsAsync");
+        return [];
+      }
+
       this.panic = false;
       if (data.body.panic) {
         this.panic = true;
@@ -46,7 +52,7 @@ export class ApiManager extends DecisionManager {
         return data.body.campaigns;
       }
     } catch (error) {
-      logError(this.config, error.message, "sendActive");
+      logError(this.config, error.message, "getCampaignsAsync");
     }
     return [];
   }
@@ -54,8 +60,6 @@ export class ApiManager extends DecisionManager {
   private getModifications(campaigns: Array<CampaignDTO>) {
     const modifications = new Map<string, Modification>();
     campaigns.forEach((campaign) => {
-      console.log("campaign", campaign);
-
       Object.entries(campaign.variation.modifications.value).forEach(
         ([key, value]) => {
           modifications.set(

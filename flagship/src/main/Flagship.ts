@@ -120,14 +120,10 @@ export class Flagship {
 
   public static newVisitor(
     visitorId: string,
-    context?: Map<string, string | number | boolean>
+    context: Record<string, string | number | boolean> = {}
   ): Visitor | null {
     if (!this.isReady() || !visitorId) {
       return null;
-    }
-
-    if (!context) {
-      context = new Map<string, string | number | boolean>();
     }
 
     return new Visitor(visitorId, context, this.getInstance().configManager);

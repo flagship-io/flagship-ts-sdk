@@ -18,21 +18,21 @@ import { HitAbstract } from "../hit/HitAbstract.ts";
 
 export class Visitor {
   private _visitorId: string;
-  private _context!: Map<string, string | number | boolean>;
+  private _context!: Record<string, string | number | boolean>;
   private _modifications: Map<string, Modification>;
   private _configManager: IConfigManager;
   private _config: FlagshipConfig;
 
   constructor(
     visitorId: string,
-    context: Map<string, string | number | boolean>,
+    context: Record<string, string | number | boolean>,
     configManager: IConfigManager
   ) {
     this._visitorId = visitorId;
     this._modifications = new Map<string, Modification>();
     this._configManager = configManager;
     this._config = configManager.config;
-    this._context = new Map<string, string | number | boolean>();
+    this._context = {};
     this.updateContext(context);
   }
 
@@ -48,15 +48,15 @@ export class Visitor {
     this._visitorId = v;
   }
 
-  public get context(): Map<string, string | number | boolean> {
+  public get context(): Record<string, string | number | boolean> {
     return this._context;
   }
 
   /**
    * Clear the current context and set a new context value
    */
-  public set context(v: Map<string, string | number | boolean>) {
-    this._context.clear();
+  public set context(v: Record<string, string | number | boolean>) {
+    this._context = {};
     this.updateContext(v);
   }
 
@@ -83,12 +83,15 @@ export class Visitor {
    * Context keys must be String, and values types must be one of the following : Number, Boolean, String.
    * @param context : collection of keys, values.
    */
-  public updateContext(context: Map<string, string | number | boolean>): void {
+  public updateContext(
+    context: Record<string, string | number | boolean>
+  ): void {
     if (!context) {
       logError(this.config, CONTEXT_NULL_ERROR, "updateContext");
       return;
     }
-    context.forEach((value, key) => {
+
+    Object.entries(context).forEach(([key, value]) => {
       this.updateContextKeyValue(key, value);
     });
   }
@@ -119,14 +122,14 @@ export class Visitor {
       );
       return;
     }
-    this._context.set(key, value);
+    this._context[key] = value;
   }
 
   /**
    * clear the actual visitor context
    */
   public clearContext(): void {
-    this._context.clear();
+    this._context = {};
   }
 
   /**
