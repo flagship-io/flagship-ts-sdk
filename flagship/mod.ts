@@ -8,4 +8,4 @@ export {
   Screen,
   Transaction,
 } from "./src/hit/index.ts";
-export { FlagshipStatus } from "./src/enum/index.ts";
+export { FlagshipStatus, LogLevel } from "./src/enum/index.ts";
