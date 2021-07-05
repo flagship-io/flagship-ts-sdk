@@ -6,10 +6,11 @@ import {
   HEADER_X_API_KEY,
   HEADER_X_SDK_CLIENT,
   HEADER_X_SDK_VERSION,
+  PROCESS_GET_CAMPAIGNS,
   SDK_LANGUAGE,
   SDK_VERSION,
   URL_CAMPAIGNS,
-} from "../enum/FlagshipConstant.ts";
+} from "../enum/index.ts";
 import { DecisionManager } from "./DecisionManager.ts";
 import { CampaignDTO } from "./api/models.ts";
 import { Modification } from "../model/Modification.ts";
@@ -40,7 +41,7 @@ export class ApiManager extends DecisionManager {
       });
 
       if (data.status >= 400) {
-        logError(this.config, data.body, "getCampaignsAsync");
+        logError(this.config, data.body, PROCESS_GET_CAMPAIGNS);
         return [];
       }
 
@@ -52,7 +53,7 @@ export class ApiManager extends DecisionManager {
         return data.body.campaigns;
       }
     } catch (error) {
-      logError(this.config, error.message, "getCampaignsAsync");
+      logError(this.config, error.message, PROCESS_GET_CAMPAIGNS);
     }
     return [];
   }

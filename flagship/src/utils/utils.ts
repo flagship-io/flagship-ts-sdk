@@ -18,5 +18,15 @@ export function logError(
   message: string,
   tag: string
 ) {
-  console.log(tag, message);
+  if (!config || !config.logManager) {
+    return;
+  }
+  config.logManager.error(message, tag);
+}
+
+export function logInfo(config: IFlagshipConfig, message: string, tag: string) {
+  if (!config || !config.logManager) {
+    return;
+  }
+  config.logManager.info(message, tag);
 }

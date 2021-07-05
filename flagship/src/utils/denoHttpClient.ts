@@ -3,10 +3,13 @@ import { IHttpOptions, IHttpClient, IHttpResponse } from "./httpClient.ts";
 export class DenoHttpClient implements IHttpClient {
   public postAsync(url: string, options: IHttpOptions): Promise<IHttpResponse> {
     return new Promise<IHttpResponse>((resolve, reject) => {
+      const c = new AbortController();
+      const id = setTimeout(() => c.abort(), options.timeout);
       fetch(url, {
         method: "POST",
         headers: options.headers,
         body: JSON.stringify(options.body),
+        signal: c.signal,
       })
         .then(async (response) => {
           if (response.ok) {
@@ -23,6 +26,9 @@ export class DenoHttpClient implements IHttpClient {
         })
         .catch((error) => {
           reject(error);
+        })
+        .finally(() => {
+          clearInterval(id);
         });
     });
   }

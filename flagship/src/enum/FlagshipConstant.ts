@@ -5,6 +5,11 @@
 export const SDK_LANGUAGE = "TypeScript";
 
 /**
+ * Default request timeout in second
+ */
+export const REQUEST_TIME_OUT = 2000;
+
+/**
  * Decision api base url
  */
 export const BASE_API_URL = "https://decision.flagship.io/v2/";
@@ -23,7 +28,7 @@ export const SDK_VERSION = "v1";
  * Message Info
  */
 
-export const SDK_STARTED_INFO = "Flagship SDK (version: %s) READY";
+export const SDK_STARTED_INFO = "Flagship SDK (version: {0}) READY";
 export const FLAGSHIP_SDK = "Flagship SDK";
 
 /**
@@ -60,6 +65,8 @@ export const PROCESS_NEW_VISITOR = "NEW VISITOR";
 export const PROCESS_ACTIVE_MODIFICATION = "ACTIVE MODIFICATION";
 export const PROCESS_SYNCHRONIZED_MODIFICATION = "SYNCHRONIZED MODIFICATION";
 export const PROCESS_SEND_HIT = "SEND HIT";
+export const PROCESS_SEND_ACTIVATE = "SEND ACTIVATE";
+export const PROCESS_GET_CAMPAIGNS = "GET CAMPAIGNS";
 
 //Api items
 
