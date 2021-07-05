@@ -5,6 +5,11 @@
 export const SDK_LANGUAGE = "TypeScript";
 
 /**
+ * Default request timeout in second
+ */
+export const REQUEST_TIME_OUT = 2000;
+
+/**
  * Decision api base url
  */
 export const BASE_API_URL = "https://decision.flagship.io/v2/";

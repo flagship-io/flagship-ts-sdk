@@ -1,4 +1,4 @@
-import { FlagshipStatus, LogLevel } from "../enum/index.ts";
+import { FlagshipStatus, LogLevel, REQUEST_TIME_OUT } from "../enum/index.ts";
 import { IFlagshipLogManager } from "../utils/FlagshipLogManager.ts";
 
 export enum DecisionMode {
@@ -46,7 +46,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _envId?: string;
   private _apiKey?: string;
   private _decisionMode = DecisionMode.DECISION_API;
-  private _timeout = 2000;
+  private _timeout = REQUEST_TIME_OUT;
   private _logLevel: LogLevel = LogLevel.ALL;
   private _statusChangedCallback?: (status: FlagshipStatus) => void;
   private _logManager!: IFlagshipLogManager;
