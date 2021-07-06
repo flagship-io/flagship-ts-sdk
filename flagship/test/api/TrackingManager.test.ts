@@ -58,6 +58,7 @@ Deno.test("test TrackingManager sendActive ", () => {
   trackingManager.sendActive(visitor, modification);
   assertEquals(postAsync.calls.length, 2);
 
+  //Test http request data
   const url = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`;
   const headers = {
     [HEADER_X_API_KEY]: `${config.apiKey}`,
