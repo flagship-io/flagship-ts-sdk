@@ -14,7 +14,7 @@ export abstract class DecisionManager implements IDecisionManager {
     return this._config;
   }
 
-  public set panic(v: boolean) {
+  protected set panic(v: boolean) {
     this._panic = v;
   }
 
