@@ -14,9 +14,9 @@ import { API_KEY, ENV_ID } from "./env.ts";
 
 const config = new DecisionApiConfig();
 config.logLevel = LogLevel.ERROR;
-config.statusChangedCallback = (status) => {
+config.setStatusChangedCallback((status) => {
   console.log("status", FlagshipStatus[status]);
-};
+});
 
 Flagship.start(ENV_ID, API_KEY, config);
 

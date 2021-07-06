@@ -112,7 +112,6 @@ Deno.test("test TrackingManager sendHit ", () => {
   postAsync.returns = [postResponse, postResponseError];
   trackingManager.sendHit(hit);
   trackingManager.sendHit(hit);
-  console.log(postAsync.calls);
   assertEquals(postAsync.calls.length, 2);
 
   const headers = {
