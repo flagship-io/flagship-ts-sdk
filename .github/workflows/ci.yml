@@ -32,7 +32,7 @@ jobs:
         run: deno lint
 
       - name: Cache dependencies
-        run: deno cache ../deps.ts
+        run: deno cache deps.ts
 
       - name: Run tests
         run: deno test -A --unstable --allow-read
