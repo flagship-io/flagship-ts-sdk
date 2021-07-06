@@ -1,24 +1,24 @@
 import { Modification } from "../model/Modification.ts";
 import {
-  VISITOR_ID_ERROR,
-  GET_MODIFICATION_KEY_ERROR,
-  GET_MODIFICATION_MISSING_ERROR,
+  CONTEXT_NULL_ERROR,
+  CONTEXT_PARAM_ERROR,
   GET_MODIFICATION_CAST_ERROR,
   GET_MODIFICATION_ERROR,
-  TRACKER_MANAGER_MISSING_ERROR,
-  SDK_APP,
-  CONTEXT_PARAM_ERROR,
-  CONTEXT_NULL_ERROR,
+  GET_MODIFICATION_KEY_ERROR,
+  GET_MODIFICATION_MISSING_ERROR,
   PANIC_MODE_ERROR,
   PROCESS_ACTIVE_MODIFICATION,
-  PROCESS_SEND_HIT,
-  PROCESS_GET_MODIFICATION_INFO,
   PROCESS_GET_MODIFICATION,
+  PROCESS_GET_MODIFICATION_INFO,
+  PROCESS_SEND_HIT,
   PROCESS_UPDATE_CONTEXT,
+  SDK_APP,
+  TRACKER_MANAGER_MISSING_ERROR,
+  VISITOR_ID_ERROR,
 } from "../enum/index.ts";
-import { sprintf, logError } from "../utils/utils.ts";
+import { logError, sprintf } from "../utils/utils.ts";
 import { HitAbstract } from "../hit/index.ts";
-import { IFlagshipConfig, IConfigManager } from "../config/index.ts";
+import { IConfigManager, IFlagshipConfig } from "../config/index.ts";
 
 export class Visitor {
   private _visitorId: string;
@@ -30,7 +30,7 @@ export class Visitor {
   constructor(
     visitorId: string,
     context: Record<string, string | number | boolean>,
-    configManager: IConfigManager
+    configManager: IConfigManager,
   ) {
     this._visitorId = visitorId;
     this._modifications = new Map<string, Modification>();
@@ -88,7 +88,7 @@ export class Visitor {
    * @param {Record<string, string | number | boolean>} context : collection of keys, values.
    */
   public updateContext(
-    context: Record<string, string | number | boolean>
+    context: Record<string, string | number | boolean>,
   ): void {
     if (!context) {
       logError(this.config, CONTEXT_NULL_ERROR, PROCESS_UPDATE_CONTEXT);
@@ -110,7 +110,7 @@ export class Visitor {
    */
   public updateContextKeyValue(
     key: string,
-    value: string | number | boolean
+    value: string | number | boolean,
   ): void {
     const valueType = typeof value;
     if (
@@ -121,7 +121,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(CONTEXT_PARAM_ERROR, key),
-        PROCESS_UPDATE_CONTEXT
+        PROCESS_UPDATE_CONTEXT,
       );
       return;
     }
@@ -144,7 +144,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(PANIC_MODE_ERROR, functionName),
-        functionName
+        functionName,
       );
     }
     return check;
@@ -167,7 +167,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(GET_MODIFICATION_KEY_ERROR, key),
-        PROCESS_GET_MODIFICATION
+        PROCESS_GET_MODIFICATION,
       );
       return defaultValue;
     }
@@ -177,7 +177,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(GET_MODIFICATION_MISSING_ERROR, key),
-        PROCESS_GET_MODIFICATION
+        PROCESS_GET_MODIFICATION,
       );
       return defaultValue;
     }
@@ -186,7 +186,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(GET_MODIFICATION_CAST_ERROR, key),
-        PROCESS_GET_MODIFICATION
+        PROCESS_GET_MODIFICATION,
       );
 
       if (!modification.value) {
@@ -229,7 +229,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(GET_MODIFICATION_KEY_ERROR, key),
-        PROCESS_GET_MODIFICATION_INFO
+        PROCESS_GET_MODIFICATION_INFO,
       );
       return null;
     }
@@ -240,7 +240,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(GET_MODIFICATION_ERROR, key),
-        PROCESS_GET_MODIFICATION_INFO
+        PROCESS_GET_MODIFICATION_INFO,
       );
       return null;
     }
@@ -254,9 +254,9 @@ export class Visitor {
    */
   public async synchronizeModifications(): Promise<Visitor> {
     try {
-      const modifications =
-        await this.configManager.decisionManager?.getCampaignsModificationsAsync(
-          this
+      const modifications = await this.configManager.decisionManager
+        ?.getCampaignsModificationsAsync(
+          this,
         );
       this._modifications = modifications;
     } catch (error) {
@@ -286,7 +286,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(GET_MODIFICATION_KEY_ERROR, key),
-        PROCESS_ACTIVE_MODIFICATION
+        PROCESS_ACTIVE_MODIFICATION,
       );
       return;
     }
@@ -298,7 +298,7 @@ export class Visitor {
         logError(
           this.config,
           sprintf(GET_MODIFICATION_ERROR, key),
-          PROCESS_ACTIVE_MODIFICATION
+          PROCESS_ACTIVE_MODIFICATION,
         );
         return;
       }

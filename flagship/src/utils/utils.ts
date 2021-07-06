@@ -16,7 +16,7 @@ export function sprintf(format: string, ...value: any[]): string {
 export function logError(
   config: IFlagshipConfig,
   message: string,
-  tag: string
+  tag: string,
 ) {
   if (
     !config ||

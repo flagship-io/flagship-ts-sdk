@@ -2,8 +2,8 @@ import { IFlagshipConfig } from "../config/FlagshipConfig.ts";
 import {
   CUSTOMER_ENV_ID_API_ITEM,
   DS_API_ITEM,
-  TYPE_ERROR,
   T_API_ITEM,
+  TYPE_ERROR,
   VISITOR_ID_API_ITEM,
 } from "../enum/FlagshipConstant.ts";
 import { HitType } from "../enum/HitType.ts";

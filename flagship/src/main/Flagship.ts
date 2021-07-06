@@ -78,7 +78,7 @@ export class Flagship {
   public static start(
     envId: string,
     apiKey: string,
-    config?: FlagshipConfig
+    config?: FlagshipConfig,
   ): void {
     const flagship = this.getInstance();
 
@@ -104,13 +104,13 @@ export class Flagship {
 
     const decisionManager = new ApiManager(
       new DenoHttpClient(),
-      flagship.config
+      flagship.config,
     );
     const trackingManager = new TrackingManager(new DenoHttpClient(), config);
     flagship.configManager = new ConfigManager(
       config,
       decisionManager,
-      trackingManager
+      trackingManager,
     );
 
     if (this.isReady()) {
@@ -118,7 +118,7 @@ export class Flagship {
       logInfo(
         config,
         sprintf(SDK_STARTED_INFO, SDK_VERSION),
-        PROCESS_INITIALIZATION
+        PROCESS_INITIALIZATION,
       );
     } else {
       flagship.setStatus(FlagshipStatus.NOT_READY);
@@ -127,7 +127,7 @@ export class Flagship {
 
   public static newVisitor(
     visitorId: string,
-    context: Record<string, string | number | boolean> = {}
+    context: Record<string, string | number | boolean> = {},
   ): Visitor | null {
     if (!this.isReady() || !visitorId) {
       return null;

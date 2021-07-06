@@ -36,7 +36,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
   public abstract sendActive(
     visitor: Visitor,
-    modification: Modification
+    modification: Modification,
   ): void;
 
   public abstract sendHit(hit: HitAbstract): void;

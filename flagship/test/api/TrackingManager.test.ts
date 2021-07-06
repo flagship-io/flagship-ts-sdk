@@ -44,7 +44,7 @@ Deno.test("test TrackingManager sendActive ", () => {
     "variationGroupId",
     "variationId",
     false,
-    "value"
+    "value",
   );
 
   const postResponse: Promise<IHttpResponse> = new Promise((resolve) =>

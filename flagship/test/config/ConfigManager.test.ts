@@ -11,7 +11,7 @@ Deno.test("test ConfigManager", () => {
   const configManager = new ConfigManager(
     config,
     decisionManager,
-    trackingManager
+    trackingManager,
   );
 
   assertEquals(configManager.config, config);
@@ -26,7 +26,7 @@ Deno.test("test ConfigManager", () => {
   //Test set decisionManager
   const decisionManager2 = new ApiManager(
     {} as IHttpClient,
-    {} as DecisionApiConfig
+    {} as DecisionApiConfig,
   );
   configManager.decisionManager = decisionManager2;
   assertEquals(configManager.decisionManager, decisionManager2);
@@ -34,7 +34,7 @@ Deno.test("test ConfigManager", () => {
   //Test set TrackingManager
   const trackingManager2 = new TrackingManager(
     {} as IHttpClient,
-    {} as DecisionApiConfig
+    {} as DecisionApiConfig,
   );
   configManager.trackingManager = trackingManager2;
   assertEquals(configManager.trackingManager, trackingManager2);

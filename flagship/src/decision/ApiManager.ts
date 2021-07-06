@@ -33,7 +33,8 @@ export class ApiManager extends DecisionManager {
         trigger_hit: false,
         context: visitor.context,
       };
-      const url = `${BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`;
+      const url =
+        `${BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`;
       const data = await this._httpClient.postAsync(url, {
         headers,
         timeout: this.config.timeout,
@@ -66,17 +67,17 @@ export class ApiManager extends DecisionManager {
               campaign.variationGroupId,
               campaign.variation.id,
               campaign.variation.reference,
-              value
-            )
+              value,
+            ),
           );
-        }
+        },
       );
     });
     return modifications;
   }
 
   public async getCampaignsModificationsAsync(
-    visitor: Visitor
+    visitor: Visitor,
   ): Promise<Map<string, Modification>> {
     const campaigns = await this.getCampaignsAsync(visitor);
     return this.getModifications(campaigns);

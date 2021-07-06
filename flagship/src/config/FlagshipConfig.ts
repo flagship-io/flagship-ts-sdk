@@ -47,7 +47,7 @@ export interface IFlagshipConfig {
    * Define a callable in order to get callback when the SDK status has changed.
    */
   setStatusChangedCallback(
-    fn: ((status: FlagshipStatus) => void) | undefined
+    fn: ((status: FlagshipStatus) => void) | undefined,
   ): void;
 
   getStatusChangedCallback(): ((status: FlagshipStatus) => void) | undefined;
@@ -111,7 +111,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   }
 
   public setStatusChangedCallback(
-    fn: ((status: FlagshipStatus) => void) | undefined
+    fn: ((status: FlagshipStatus) => void) | undefined,
   ) {
     if (typeof fn !== "function") {
       logError(this, statusChangeError, "statusChangedCallback");

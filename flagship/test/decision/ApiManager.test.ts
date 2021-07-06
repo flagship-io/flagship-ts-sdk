@@ -76,7 +76,8 @@ Deno.test("test ApiManager", async () => {
     trigger_hit: false,
     context: visitor.context,
   };
-  const url = `${BASE_API_URL}${config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`;
+  const url =
+    `${BASE_API_URL}${config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`;
 
   assertEquals(postAsync.calls, [
     {

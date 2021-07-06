@@ -13,7 +13,7 @@ export class Modification {
     variationGroupId: string,
     variationId: string,
     isReference: boolean,
-    value: unknown
+    value: unknown,
   ) {
     this._key = key;
     this._campaignId = campaignId;

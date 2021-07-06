@@ -111,7 +111,7 @@ export class Item extends HitAbstract {
   public constructor(
     transactionId: string,
     productName: string,
-    productSku: string
+    productSku: string,
   ) {
     super(HitType.ITEM);
     this.transactionId = transactionId;

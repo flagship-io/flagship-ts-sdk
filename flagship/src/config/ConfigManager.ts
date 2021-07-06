@@ -23,7 +23,7 @@ export class ConfigManager implements IConfigManager {
   public constructor(
     config: FlagshipConfig,
     decisionManager: IDecisionManager,
-    trackingManager: ITrackingManager
+    trackingManager: ITrackingManager,
   ) {
     this._config = config;
     this._decisionManager = decisionManager;

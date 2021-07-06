@@ -49,11 +49,15 @@ export class FlagshipLogManager implements IFlagshipLogManager {
       return value.toString().length === 1 ? `0${value}` : value;
     };
 
-    const out = `[${getTwoDigit(now.getFullYear())}-${getTwoDigit(
-      now.getMonth()
-    )}-${getTwoDigit(now.getDay())} ${getTwoDigit(
-      now.getHours()
-    )}:${getTwoDigit(now.getMinutes())}] [${FLAGSHIP_SDK}] [${
+    const out = `[${getTwoDigit(now.getFullYear())}-${
+      getTwoDigit(
+        now.getMonth(),
+      )
+    }-${getTwoDigit(now.getDay())} ${
+      getTwoDigit(
+        now.getHours(),
+      )
+    }:${getTwoDigit(now.getMinutes())}] [${FLAGSHIP_SDK}] [${
       LogLevel[level]
     }] [${tag}] : ${message}`;
     console.log(out);

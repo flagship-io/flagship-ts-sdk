@@ -1,9 +1,9 @@
 {
-    "deno.enable": true,
-    "deno.lint": true,
-    "deno.unstable": true,
-    "cSpell.words": [
-        "Deno",
-        "sprintf"
-    ]
+  "deno.enable": true,
+  "deno.lint": true,
+  "deno.unstable": true,
+  "cSpell.words": [
+    "Deno",
+    "sprintf"
+  ]
 }

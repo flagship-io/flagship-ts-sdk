@@ -24,7 +24,7 @@ export abstract class DecisionManager implements IDecisionManager {
   }
 
   abstract getCampaignsModificationsAsync(
-    visitor: Visitor
+    visitor: Visitor,
   ): Promise<Map<string, Modification>>;
 
   public isPanic(): boolean {
