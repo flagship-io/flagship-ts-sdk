@@ -47,13 +47,11 @@ export class TrackingManager extends TrackingManagerAbstract {
           timeout: this.config.timeout,
           body: postData,
         })
-        .then((response) => {
-          if (response.status >= 400) {
-            logError(this.config, response.body, PROCESS_SEND_ACTIVATE);
-          }
+        .catch((error) => {
+          logError(this.config, JSON.stringify(error), PROCESS_SEND_HIT);
         });
     } catch (error) {
-      logError(this.config, error.message, PROCESS_SEND_ACTIVATE);
+      logError(this.config, JSON.stringify(error), PROCESS_SEND_ACTIVATE);
     }
   }
 
@@ -72,16 +70,11 @@ export class TrackingManager extends TrackingManagerAbstract {
           timeout: this.config.timeout,
           body: hit.toApiKeys(),
         })
-        .then((response) => {
-          if (response.status >= 400) {
-            logError(this.config, response.body, PROCESS_SEND_HIT);
-          }
-        })
         .catch((error) => {
-          logError(this.config, error.message, PROCESS_SEND_HIT);
+          logError(this.config, JSON.stringify(error), PROCESS_SEND_HIT);
         });
     } catch (error) {
-      logError(this.config, error.message, PROCESS_SEND_HIT);
+      logError(this.config, JSON.stringify(error), PROCESS_SEND_HIT);
     }
   }
 }
