@@ -12,20 +12,29 @@ export class DenoHttpClient implements IHttpClient {
         signal: c.signal,
       })
         .then(async (response) => {
-          if (response.ok) {
-            const applicationType = response.headers.get("Content-Type");
-            if (applicationType == "application/json") {
-              resolve({
-                status: response.status,
-                body: await response.json(),
-              });
-              return;
-            }
+          if (!response.ok) {
+            reject({ status: response.status, body: response.statusText });
+            return;
           }
-          resolve({ status: response.status, body: await response.text() });
+          const applicationType = response.headers.get("Content-Type");
+          const checkJson = applicationType === "application/json";
+          const body = checkJson
+            ? await response.json()
+            : await response.text();
+          if (response.status >= 400) {
+            reject({
+              status: response.status,
+              body: body || response.statusText,
+            });
+            return;
+          }
+          resolve({
+            status: response.status,
+            body: body,
+          });
         })
         .catch((error) => {
-          reject(error);
+          reject(error.message);
         })
         .finally(() => {
           clearInterval(id);
