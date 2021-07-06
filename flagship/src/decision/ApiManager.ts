@@ -40,11 +40,6 @@ export class ApiManager extends DecisionManager {
         body: postData,
       });
 
-      if (data.status >= 400) {
-        logError(this.config, data.body, PROCESS_GET_CAMPAIGNS);
-        return [];
-      }
-
       this.panic = false;
       if (data.body.panic) {
         this.panic = true;
@@ -53,7 +48,7 @@ export class ApiManager extends DecisionManager {
         return data.body.campaigns;
       }
     } catch (error) {
-      logError(this.config, error.message, PROCESS_GET_CAMPAIGNS);
+      logError(this.config, JSON.stringify(error), PROCESS_GET_CAMPAIGNS);
     }
     return [];
   }
