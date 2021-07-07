@@ -111,7 +111,7 @@ export class Item extends HitAbstract {
   public constructor(
     transactionId: string,
     productName: string,
-    productSku: string,
+    productSku: string
   ) {
     super(HitType.ITEM);
     this.transactionId = transactionId;
@@ -138,7 +138,7 @@ export class Item extends HitAbstract {
       apiKeys[IP_API_ITEM] = this.itemPrice;
     }
     if (this.itemQuantity) {
-      apiKeys[IQ_API_ITEM] = this.itemCategory;
+      apiKeys[IQ_API_ITEM] = this.itemQuantity;
     }
     if (this.itemCategory) {
       apiKeys[IV_API_ITEM] = this.itemCategory;
