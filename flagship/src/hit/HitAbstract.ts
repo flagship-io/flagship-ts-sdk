@@ -70,7 +70,7 @@ export abstract class HitAbstract {
   }
 
   protected isInteger(value: unknown, itemName: string): boolean {
-    if (!value || Number.isInteger(value)) {
+    if (!value || !Number.isInteger(value)) {
       logError(this.config, sprintf(TYPE_ERROR, itemName, "integer"), itemName);
       return false;
     }
