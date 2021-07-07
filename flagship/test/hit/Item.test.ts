@@ -12,6 +12,7 @@ import {
   SDK_APP,
   TID_API_ITEM,
   TYPE_ERROR,
+  TYPE_INTEGER_ERROR,
   T_API_ITEM,
   VISITOR_ID_API_ITEM,
 } from "../../src/enum/index.ts";
@@ -32,7 +33,7 @@ Deno.test("test hit type Item", () => {
   assertEquals(item.itemPrice, undefined);
   assertEquals(item.itemQuantity, undefined);
 
-  assertEquals(item.getErrorMessage(), ERROR_MESSAGE)
+  assertEquals(item.getErrorMessage(), ERROR_MESSAGE);
 
   assertEquals(item.isReady(), false);
 
@@ -97,20 +98,24 @@ Deno.test("test hit type Item", () => {
   assertEquals(item.itemQuantity, itemQuantity);
   assertEquals(logError.calls.length, 3);
 
+  item.itemQuantity = {} as number;
+  assertEquals(item.itemQuantity, itemQuantity);
+  assertEquals(logError.calls.length, 4);
+
   //log transactionId
   item.transactionId = "";
   assertEquals(item.transactionId, transactionId);
-  assertEquals(logError.calls.length, 4);
+  assertEquals(logError.calls.length, 5);
 
   //log productName
   item.productName = {} as string;
   assertEquals(item.productName, productName);
-  assertEquals(logError.calls.length, 5);
+  assertEquals(logError.calls.length, 6);
 
   //log productSku
   item.productSku = "";
   assertEquals(item.productSku, productSku);
-  assertEquals(logError.calls.length, 6);
+  assertEquals(logError.calls.length, 7);
 
   //test log
 
@@ -122,6 +127,10 @@ Deno.test("test hit type Item", () => {
   assertEquals(logError.calls, [
     logParams(sprintf(TYPE_ERROR, "itemCategory", "string"), "itemCategory"),
     logParams(sprintf(TYPE_ERROR, "itemPrice", "number"), "itemPrice"),
+    logParams(
+      sprintf(TYPE_INTEGER_ERROR, "itemQuantity", "integer"),
+      "itemQuantity"
+    ),
     logParams(sprintf(TYPE_ERROR, "itemQuantity", "integer"), "itemQuantity"),
     logParams(sprintf(TYPE_ERROR, "transactionId", "string"), "transactionId"),
     logParams(sprintf(TYPE_ERROR, "productName", "string"), "productName"),
