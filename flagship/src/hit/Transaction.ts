@@ -88,7 +88,7 @@ export class Transaction extends HitAbstract {
     if (!this.isInteger(v, "itemCount")) {
       return;
     }
-    this._itemCount = v;
+    this._itemCount = Math.trunc(v);
   }
 
   public get shippingMethod(): string {
