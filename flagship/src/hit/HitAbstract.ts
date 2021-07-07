@@ -5,6 +5,7 @@ import {
   T_API_ITEM,
   TYPE_ERROR,
   VISITOR_ID_API_ITEM,
+TYPE_INTEGER_ERROR,
 } from "../enum/FlagshipConstant.ts";
 import { HitType } from "../enum/HitType.ts";
 import { logError, sprintf } from "../utils/utils.ts";
@@ -70,9 +71,20 @@ export abstract class HitAbstract {
   }
 
   protected isInteger(value: unknown, itemName: string): boolean {
-    if (!value || !Number.isInteger(value)) {
+    if (!value || typeof value != "number") {
       logError(this.config, sprintf(TYPE_ERROR, itemName, "integer"), itemName);
       return false;
+    }
+    if (!Number.isInteger(value)) {
+      logError(
+        this.config,
+        sprintf(
+          TYPE_INTEGER_ERROR,
+          itemName,
+          "integer"
+        ),
+        itemName
+      );
     }
     return true;
   }
