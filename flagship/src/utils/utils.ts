@@ -8,7 +8,7 @@ export function sprintf(format: string, ...value: any[]): string {
   let formatted = format;
   for (let i = 0; i < value.length; i++) {
     const element = value[i];
-    formatted = format.replace(`{${i}}`, element);
+    formatted = formatted.replace(`{${i}}`, element);
   }
   return formatted;
 }
@@ -16,7 +16,7 @@ export function sprintf(format: string, ...value: any[]): string {
 export function logError(
   config: IFlagshipConfig,
   message: string,
-  tag: string,
+  tag: string
 ) {
   if (
     !config ||
