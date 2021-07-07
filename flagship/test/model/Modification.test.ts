@@ -1,4 +1,4 @@
-import { assertEquals, stub } from "../../deps.ts";
+import { assertEquals } from "../../deps.ts";
 import { Modification } from "../../src/model/Modification.ts";
 
 Deno.test("Test model Modification", () => {
