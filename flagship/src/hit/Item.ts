@@ -85,7 +85,7 @@ export class Item extends HitAbstract {
     if (!this.isInteger(v, "itemQuantity")) {
       return;
     }
-    this._itemQuantity = v;
+    this._itemQuantity = Math.trunc(v);
   }
 
   public get itemCategory(): string {
