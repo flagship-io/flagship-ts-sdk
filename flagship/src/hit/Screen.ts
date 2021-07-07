@@ -10,6 +10,9 @@ export class Screen extends HitAbstract {
     return this._screenName;
   }
   public set screenName(v: string) {
+    if (!this.isNotEmptyString(v, "screenName")) {
+      return;
+    }
     this._screenName = v;
   }
 
