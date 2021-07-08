@@ -1,11 +1,11 @@
-import { FlagshipConfig } from "./FlagshipConfig.ts";
+import { IFlagshipConfig } from "./FlagshipConfig.ts";
 import { IDecisionManager } from "../decision/IDecisionManager.ts";
 import { ITrackingManager } from "../api/TrackingManagerAbstract.ts";
 
 export interface IConfigManager {
-  get config(): FlagshipConfig;
+  get config(): IFlagshipConfig;
 
-  set config(value: FlagshipConfig);
+  set config(value: IFlagshipConfig);
 
   get decisionManager(): IDecisionManager;
 
@@ -16,25 +16,25 @@ export interface IConfigManager {
   set trackingManager(value: ITrackingManager);
 }
 export class ConfigManager implements IConfigManager {
-  private _config: FlagshipConfig;
+  private _config: IFlagshipConfig;
   private _decisionManager: IDecisionManager;
   private _trackingManager: ITrackingManager;
 
   public constructor(
-    config: FlagshipConfig,
+    config: IFlagshipConfig,
     decisionManager: IDecisionManager,
-    trackingManager: ITrackingManager,
+    trackingManager: ITrackingManager
   ) {
     this._config = config;
     this._decisionManager = decisionManager;
     this._trackingManager = trackingManager;
   }
 
-  get config(): FlagshipConfig {
+  get config(): IFlagshipConfig {
     return this._config;
   }
 
-  set config(value: FlagshipConfig) {
+  set config(value: IFlagshipConfig) {
     this._config = value;
   }
 
