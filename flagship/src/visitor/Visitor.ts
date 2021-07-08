@@ -21,8 +21,8 @@ import { HitAbstract } from "../hit/index.ts";
 import { IConfigManager, IFlagshipConfig } from "../config/index.ts";
 
 export class Visitor {
-  private _visitorId: string;
-  private _context!: Record<string, string | number | boolean>;
+  private _visitorId!: string;
+  private _context: Record<string, string | number | boolean>;
   private _modifications: Map<string, Modification>;
   private _configManager: IConfigManager;
   private _config: IFlagshipConfig;
@@ -30,9 +30,9 @@ export class Visitor {
   constructor(
     visitorId: string,
     context: Record<string, string | number | boolean>,
-    configManager: IConfigManager,
+    configManager: IConfigManager
   ) {
-    this._visitorId = visitorId;
+    this.visitorId = visitorId;
     this._modifications = new Map<string, Modification>();
     this._configManager = configManager;
     this._config = configManager.config;
@@ -45,7 +45,7 @@ export class Visitor {
   }
 
   public set visitorId(v: string) {
-    if (!v) {
+    if (!v || typeof v !== "string") {
       logError(this.config, VISITOR_ID_ERROR, "VISITOR ID");
       return;
     }
@@ -75,9 +75,6 @@ export class Visitor {
   public get config(): IFlagshipConfig {
     return this._config;
   }
-  public set config(v: IFlagshipConfig) {
-    this._config = v;
-  }
 
   /**
    * Update the visitor context values, matching the given keys, used for targeting.
@@ -88,7 +85,7 @@ export class Visitor {
    * @param {Record<string, string | number | boolean>} context : collection of keys, values.
    */
   public updateContext(
-    context: Record<string, string | number | boolean>,
+    context: Record<string, string | number | boolean>
   ): void {
     if (!context) {
       logError(this.config, CONTEXT_NULL_ERROR, PROCESS_UPDATE_CONTEXT);
@@ -110,7 +107,7 @@ export class Visitor {
    */
   public updateContextKeyValue(
     key: string,
-    value: string | number | boolean,
+    value: string | number | boolean
   ): void {
     const valueType = typeof value;
     if (
@@ -121,7 +118,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(CONTEXT_PARAM_ERROR, key),
-        PROCESS_UPDATE_CONTEXT,
+        PROCESS_UPDATE_CONTEXT
       );
       return;
     }
@@ -144,7 +141,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(PANIC_MODE_ERROR, functionName),
-        functionName,
+        functionName
       );
     }
     return check;
@@ -153,10 +150,26 @@ export class Visitor {
   /**
    * Retrieve a modification value by its key. If no modification match the given
    * key or if the stored value type and default value type do not match, default value will be returned.
-   * @param {string} key
-   * @param {T} defaultValue
-   * @param {boolean} activate
-   * @returns {T}
+   * @param {string} key : key associated to the modification.
+   * @param {T} defaultValue : default value to return.
+   * @param {boolean} activate : Set this parameter to true to automatically report on our server that the current visitor has seen this modification. It is possible to call activateModification() later.
+   */
+  public getModificationAsync<T>(
+    key: string,
+    defaultValue: T,
+    activate = false
+  ): Promise<T> {
+    return new Promise((resolve) => {
+      resolve(this.getModification(key, defaultValue, activate));
+    });
+  }
+
+  /**
+   * Retrieve a modification value by its key. If no modification match the given
+   * key or if the stored value type and default value type do not match, default value will be returned.
+   * @param {string} key : key associated to the modification.
+   * @param {T} defaultValue : default value to return.
+   * @param {boolean} activate : Set this parameter to true to automatically report on our server that the current visitor has seen this modification. It is possible to call activateModification() later.
    */
   public getModification<T>(key: string, defaultValue: T, activate = false): T {
     if (this.isOnPanicMode(PROCESS_GET_MODIFICATION)) {
@@ -167,7 +180,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(GET_MODIFICATION_KEY_ERROR, key),
-        PROCESS_GET_MODIFICATION,
+        PROCESS_GET_MODIFICATION
       );
       return defaultValue;
     }
@@ -177,7 +190,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(GET_MODIFICATION_MISSING_ERROR, key),
-        PROCESS_GET_MODIFICATION,
+        PROCESS_GET_MODIFICATION
       );
       return defaultValue;
     }
@@ -186,7 +199,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(GET_MODIFICATION_CAST_ERROR, key),
-        PROCESS_GET_MODIFICATION,
+        PROCESS_GET_MODIFICATION
       );
 
       if (!modification.value) {
@@ -220,6 +233,17 @@ export class Visitor {
    * @param {string} key : key which identify the modification.
    * @returns {Modification | null}
    */
+  public getModificationInfoAsync(key: string): Promise<Modification | null> {
+    return new Promise((resolve) => {
+      resolve(this.getModificationInfo(key));
+    });
+  }
+
+  /**
+   * Get the campaign modification information value matching the given key.
+   * @param {string} key : key which identify the modification.
+   * @returns {Modification | null}
+   */
   public getModificationInfo(key: string): Modification | null {
     if (this.isOnPanicMode(PROCESS_GET_MODIFICATION_INFO)) {
       return null;
@@ -229,7 +253,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(GET_MODIFICATION_KEY_ERROR, key),
-        PROCESS_GET_MODIFICATION_INFO,
+        PROCESS_GET_MODIFICATION_INFO
       );
       return null;
     }
@@ -240,7 +264,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(GET_MODIFICATION_ERROR, key),
-        PROCESS_GET_MODIFICATION_INFO,
+        PROCESS_GET_MODIFICATION_INFO
       );
       return null;
     }
@@ -252,17 +276,12 @@ export class Visitor {
    * This function calls the decision api and update all the campaigns modifications
    * from the server according to the visitor context.
    */
-  public async synchronizeModifications(): Promise<Visitor> {
-    try {
-      const modifications = await this.configManager.decisionManager
-        ?.getCampaignsModificationsAsync(
-          this,
-        );
-      this._modifications = modifications;
-    } catch (error) {
-      console.log(error);
-    }
-    return this;
+  public async synchronizeModifications(): Promise<void> {
+    const modifications =
+      await this.configManager.decisionManager?.getCampaignsModificationsAsync(
+        this
+      );
+    this._modifications = modifications;
   }
 
   private hasTrackingManager(process: string): boolean {
@@ -271,6 +290,16 @@ export class Visitor {
       logError(this.config, sprintf(TRACKER_MANAGER_MISSING_ERROR), process);
     }
     return !!check;
+  }
+
+  /**
+   * Report this user has seen this modification.
+   * @param key : key which identify the modification to activate.
+   */
+  public activateModificationAsync(key: string): Promise<void> {
+    return new Promise((resolve) => {
+      resolve(this.activateModification(key));
+    });
   }
 
   /**
@@ -286,7 +315,7 @@ export class Visitor {
       logError(
         this.config,
         sprintf(GET_MODIFICATION_KEY_ERROR, key),
-        PROCESS_ACTIVE_MODIFICATION,
+        PROCESS_ACTIVE_MODIFICATION
       );
       return;
     }
@@ -298,7 +327,7 @@ export class Visitor {
         logError(
           this.config,
           sprintf(GET_MODIFICATION_ERROR, key),
-          PROCESS_ACTIVE_MODIFICATION,
+          PROCESS_ACTIVE_MODIFICATION
         );
         return;
       }
@@ -309,6 +338,17 @@ export class Visitor {
     }
 
     this.configManager.trackingManager.sendActive(this, modification);
+  }
+
+  /**
+   * Send a Hit to Flagship servers for reporting.
+   * @param hit
+   */
+  public sendHitAsync(hit: HitAbstract): Promise<void> {
+    return new Promise((resolve) => {
+      this.sendHit(hit);
+      resolve();
+    });
   }
 
   /**
@@ -329,6 +369,7 @@ export class Visitor {
 
     if (!hit.isReady()) {
       logError(this.config, hit.getErrorMessage(), PROCESS_SEND_HIT);
+      return;
     }
 
     this.configManager.trackingManager.sendHit(hit);
