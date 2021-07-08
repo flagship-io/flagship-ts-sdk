@@ -23,7 +23,10 @@ import { Visitor } from "../visitor/Visitor.ts";
 import { TrackingManagerAbstract } from "./TrackingManagerAbstract.ts";
 
 export class TrackingManager extends TrackingManagerAbstract {
-  public sendActive(visitor: Visitor, modification: Modification): void {
+  public sendActive(
+    visitor: Visitor,
+    modification: Modification
+  ): Promise<void> {
     const headers = {
       [HEADER_X_API_KEY]: `${this.config.apiKey}`,
       [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
@@ -39,34 +42,44 @@ export class TrackingManager extends TrackingManagerAbstract {
       [VARIATION_GROUP_ID_API_ITEM]: modification.variationGroupId,
       [CUSTOMER_ENV_ID_API_ITEM]: this.config.envId,
     };
-
-    this.httpClient
-      .postAsync(url, {
-        headers: headers,
-        timeout: this.config.timeout,
-        body: postData,
-      })
-      .catch((error) => {
-        logError(this.config, JSON.stringify(error), PROCESS_SEND_ACTIVATE);
-      });
+    return new Promise<void>((resolve, reject) => {
+      this.httpClient
+        .postAsync(url, {
+          headers: headers,
+          timeout: this.config.timeout,
+          body: postData,
+        })
+        .then(() => {
+          resolve();
+        })
+        .catch((error) => {
+          logError(this.config, JSON.stringify(error), PROCESS_SEND_ACTIVATE);
+          reject(error);
+        });
+    });
   }
 
-  public sendHit(hit: HitAbstract): void {
+  public sendHit(hit: HitAbstract): Promise<void> {
     const headers = {
       [HEADER_X_API_KEY]: `${this.config.apiKey}`,
       [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
       [HEADER_X_SDK_VERSION]: SDK_VERSION,
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON,
     };
-
-    this.httpClient
-      .postAsync(HIT_API_URL, {
-        headers: headers,
-        timeout: this.config.timeout,
-        body: hit.toApiKeys(),
-      })
-      .catch((error) => {
-        logError(this.config, JSON.stringify(error), PROCESS_SEND_HIT);
-      });
+    return new Promise((resolve, reject) => {
+      this.httpClient
+        .postAsync(HIT_API_URL, {
+          headers: headers,
+          timeout: this.config.timeout,
+          body: hit.toApiKeys(),
+        })
+        .then(() => {
+          resolve();
+        })
+        .catch((error) => {
+          logError(this.config, JSON.stringify(error), PROCESS_SEND_HIT);
+          reject(error);
+        });
+    });
   }
 }

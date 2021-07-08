@@ -10,12 +10,12 @@ export interface ITrackingManager {
    * @param visitor
    * @param modification
    */
-  sendActive(visitor: Visitor, modification: Modification): void;
+  sendActive(visitor: Visitor, modification: Modification): Promise<void>;
   /**
    *Send a Hit to Flagship servers for reporting.
    * @param hit
    */
-  sendHit(hit: HitAbstract): void;
+  sendHit(hit: HitAbstract): Promise<void>;
 }
 
 export abstract class TrackingManagerAbstract implements ITrackingManager {
@@ -36,8 +36,8 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
   public abstract sendActive(
     visitor: Visitor,
-    modification: Modification,
-  ): void;
+    modification: Modification
+  ): Promise<void>;
 
-  public abstract sendHit(hit: HitAbstract): void;
+  public abstract sendHit(hit: HitAbstract): Promise<void>;
 }
