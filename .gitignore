@@ -1,2 +1,4 @@
 **/*.js
 flagship/demo/src/env.ts
+cov_profile
+cov_profile.lcov

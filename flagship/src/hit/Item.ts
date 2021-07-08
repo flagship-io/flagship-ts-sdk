@@ -85,7 +85,7 @@ export class Item extends HitAbstract {
     if (!this.isInteger(v, "itemQuantity")) {
       return;
     }
-    this._itemQuantity = v;
+    this._itemQuantity = Math.trunc(v);
   }
 
   public get itemCategory(): string {
@@ -138,7 +138,7 @@ export class Item extends HitAbstract {
       apiKeys[IP_API_ITEM] = this.itemPrice;
     }
     if (this.itemQuantity) {
-      apiKeys[IQ_API_ITEM] = this.itemCategory;
+      apiKeys[IQ_API_ITEM] = this.itemQuantity;
     }
     if (this.itemCategory) {
       apiKeys[IV_API_ITEM] = this.itemCategory;

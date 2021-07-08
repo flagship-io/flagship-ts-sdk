@@ -33,17 +33,13 @@ export class ApiManager extends DecisionManager {
         trigger_hit: false,
         context: visitor.context,
       };
-      const url = `${BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`;
+      const url =
+        `${BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`;
       const data = await this._httpClient.postAsync(url, {
         headers,
         timeout: this.config.timeout,
         body: postData,
       });
-
-      if (data.status >= 400) {
-        logError(this.config, data.body, PROCESS_GET_CAMPAIGNS);
-        return [];
-      }
 
       this.panic = false;
       if (data.body.panic) {
@@ -53,7 +49,7 @@ export class ApiManager extends DecisionManager {
         return data.body.campaigns;
       }
     } catch (error) {
-      logError(this.config, error.message, PROCESS_GET_CAMPAIGNS);
+      logError(this.config, JSON.stringify(error), PROCESS_GET_CAMPAIGNS);
     }
     return [];
   }
@@ -71,17 +67,17 @@ export class ApiManager extends DecisionManager {
               campaign.variationGroupId,
               campaign.variation.id,
               campaign.variation.reference,
-              value
-            )
+              value,
+            ),
           );
-        }
+        },
       );
     });
     return modifications;
   }
 
   public async getCampaignsModificationsAsync(
-    visitor: Visitor
+    visitor: Visitor,
   ): Promise<Map<string, Modification>> {
     const campaigns = await this.getCampaignsAsync(visitor);
     return this.getModifications(campaigns);

@@ -1,14 +1,14 @@
 import {
-  TID_API_ITEM,
+  ICN_API_ITEM,
+  PM_API_ITEM,
+  SM_API_ITEM,
   TA_API_ITEM,
-  TT_API_ITEM,
   TC_API_ITEM,
   TCC_API_ITEM,
-  ICN_API_ITEM,
-  SM_API_ITEM,
-  PM_API_ITEM,
+  TID_API_ITEM,
   TR_API_ITEM,
   TS_API_ITEM,
+  TT_API_ITEM,
 } from "../enum/FlagshipConstant.ts";
 import { HitType } from "../enum/HitType.ts";
 import { logError, sprintf } from "../utils/utils.ts";
@@ -88,7 +88,7 @@ export class Transaction extends HitAbstract {
     if (!this.isInteger(v, "itemCount")) {
       return;
     }
-    this._itemCount = v;
+    this._itemCount = Math.trunc(v);
   }
 
   public get shippingMethod(): string {

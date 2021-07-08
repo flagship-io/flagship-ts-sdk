@@ -5,6 +5,6 @@ export interface IDecisionManager {
   isPanic(): boolean;
 
   getCampaignsModificationsAsync(
-    visitor: Visitor
+    visitor: Visitor,
   ): Promise<Map<string, Modification>>;
 }

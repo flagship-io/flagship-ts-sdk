@@ -1,5 +1,6 @@
 import { FlagshipStatus, LogLevel, REQUEST_TIME_OUT } from "../enum/index.ts";
 import { IFlagshipLogManager } from "../utils/FlagshipLogManager.ts";
+import { logError } from "../utils/utils.ts";
 
 export enum DecisionMode {
   /**
@@ -45,9 +46,11 @@ export interface IFlagshipConfig {
   /**
    * Define a callable in order to get callback when the SDK status has changed.
    */
-  set statusChangedCallback(fn: ((status: FlagshipStatus) => void) | undefined);
+  setStatusChangedCallback(
+    fn: ((status: FlagshipStatus) => void) | undefined,
+  ): void;
 
-  get statusChangedCallback(): ((status: FlagshipStatus) => void) | undefined;
+  getStatusChangedCallback(): ((status: FlagshipStatus) => void) | undefined;
 
   get logManager(): IFlagshipLogManager;
 
@@ -55,10 +58,12 @@ export interface IFlagshipConfig {
   set logManager(value: IFlagshipLogManager);
 }
 
+export const statusChangeError = "statusChangedCallback must be a function";
+
 export abstract class FlagshipConfig implements IFlagshipConfig {
   private _envId?: string;
   private _apiKey?: string;
-  private _decisionMode = DecisionMode.DECISION_API;
+  protected _decisionMode = DecisionMode.DECISION_API;
   private _timeout = REQUEST_TIME_OUT;
   private _logLevel: LogLevel = LogLevel.ALL;
   private _statusChangedCallback?: (status: FlagshipStatus) => void;
@@ -85,15 +90,8 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     return this._apiKey;
   }
 
-  protected get decisionMode(): DecisionMode {
+  public get decisionMode(): DecisionMode {
     return this._decisionMode;
-  }
-
-  /**
-   * Specify the SDK running mode.
-   */
-  protected set decisionMode(value: DecisionMode) {
-    this._decisionMode = value;
   }
 
   public get timeout(): number {
@@ -112,13 +110,17 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._logLevel = value;
   }
 
-  public set statusChangedCallback(
-    fn: ((status: FlagshipStatus) => void) | undefined
+  public setStatusChangedCallback(
+    fn: ((status: FlagshipStatus) => void) | undefined,
   ) {
+    if (typeof fn !== "function") {
+      logError(this, statusChangeError, "statusChangedCallback");
+      return;
+    }
     this._statusChangedCallback = fn;
   }
 
-  public get statusChangedCallback():
+  public getStatusChangedCallback():
     | ((status: FlagshipStatus) => void)
     | undefined {
     return this._statusChangedCallback;

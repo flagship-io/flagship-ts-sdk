@@ -51,7 +51,9 @@ export const DECISION_MANAGER_MISSING_ERROR =
   "decisionManager must not be null.";
 export const TRACKER_MANAGER_MISSING_ERROR = "trackerManager must not be null.";
 export const CURL_LIBRARY_IS_NOT_LOADED = "curl library is not loaded";
-export const TYPE_ERROR = " {0} must be a {0}";
+export const TYPE_ERROR = "{0} must be a {1}";
+export const TYPE_INTEGER_ERROR =
+  "value of {0} is not an {1}, it will be truncated to {1}";
 export const VISITOR_ID_ERROR = "visitorId must not be null or empty";
 export const PANIC_MODE_ERROR = "{0} deactivated while panic mode is on.";
 

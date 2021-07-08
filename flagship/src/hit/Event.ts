@@ -18,8 +18,8 @@ export enum EventCategory {
 }
 
 export class Event extends HitAbstract {
-  private _category: EventCategory;
-  private _action: string;
+  private _category!: EventCategory;
+  private _action!: string;
   private _eventLabel!: string;
   private _eventValue!: number;
 
@@ -85,9 +85,8 @@ export class Event extends HitAbstract {
 
   public constructor(category: EventCategory, action: string) {
     super(HitType.EVENT);
-    this._category = category;
-    this._action = action;
-    this.category;
+    this.category = category;
+    this.action = action;
   }
 
   // deno-lint-ignore no-explicit-any

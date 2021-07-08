@@ -2,9 +2,10 @@ import { IFlagshipConfig } from "../config/FlagshipConfig.ts";
 import {
   CUSTOMER_ENV_ID_API_ITEM,
   DS_API_ITEM,
-  TYPE_ERROR,
   T_API_ITEM,
+  TYPE_ERROR,
   VISITOR_ID_API_ITEM,
+TYPE_INTEGER_ERROR,
 } from "../enum/FlagshipConstant.ts";
 import { HitType } from "../enum/HitType.ts";
 import { logError, sprintf } from "../utils/utils.ts";
@@ -12,7 +13,7 @@ import { logError, sprintf } from "../utils/utils.ts";
 export abstract class HitAbstract {
   private _visitorId!: string;
   private _config!: IFlagshipConfig;
-  private _hitType: HitType;
+  private _hitType!: HitType;
   private _ds!: string;
 
   public get visitorId(): string {
@@ -29,10 +30,10 @@ export abstract class HitAbstract {
     this._ds = v;
   }
 
-  public get hitType(): HitType {
+  protected get hitType(): HitType {
     return this._hitType;
   }
-  public set hitType(v: HitType) {
+  protected set hitType(v: HitType) {
     this._hitType = v;
   }
 
@@ -44,7 +45,7 @@ export abstract class HitAbstract {
   }
 
   protected constructor(type: HitType) {
-    this._hitType = type;
+    this.hitType = type;
   }
 
   /**
@@ -55,7 +56,7 @@ export abstract class HitAbstract {
    */
   protected isNotEmptyString(value: unknown, itemName: string): boolean {
     if (!value || typeof value != "string") {
-      logError(this.config, sprintf(TYPE_ERROR, "string"), itemName);
+      logError(this.config, sprintf(TYPE_ERROR, itemName, "string"), itemName);
       return false;
     }
     return true;
@@ -63,16 +64,27 @@ export abstract class HitAbstract {
 
   protected isNumeric(value: unknown, itemName: string): boolean {
     if (!value || typeof value != "number") {
-      logError(this.config, sprintf(TYPE_ERROR, "number"), itemName);
+      logError(this.config, sprintf(TYPE_ERROR, itemName, "number"), itemName);
       return false;
     }
     return true;
   }
 
   protected isInteger(value: unknown, itemName: string): boolean {
-    if (!value || Number.isInteger(value)) {
-      logError(this.config, sprintf(TYPE_ERROR, "integer"), itemName);
+    if (!value || typeof value != "number") {
+      logError(this.config, sprintf(TYPE_ERROR, itemName, "integer"), itemName);
       return false;
+    }
+    if (!Number.isInteger(value)) {
+      logError(
+        this.config,
+        sprintf(
+          TYPE_INTEGER_ERROR,
+          itemName,
+          "integer"
+        ),
+        itemName
+      );
     }
     return true;
   }
