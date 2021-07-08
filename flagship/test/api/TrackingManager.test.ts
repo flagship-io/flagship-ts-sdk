@@ -23,7 +23,7 @@ import {
 import { IHttpResponse } from "../../src/utils/httpClient.ts";
 import { Page } from "../../src/hit/index.ts";
 
-Deno.test("test TrackingManager sendActive ", () => {
+Deno.test("test TrackingManager sendActive ", async () => {
   const httpClient = new DenoHttpClient();
   const postAsync: Stub<DenoHttpClient> = stub(httpClient, "postAsync");
 
@@ -44,7 +44,7 @@ Deno.test("test TrackingManager sendActive ", () => {
     "variationGroupId",
     "variationId",
     false,
-    "value",
+    "value"
   );
 
   const postResponse: Promise<IHttpResponse> = new Promise((resolve) =>
@@ -54,8 +54,14 @@ Deno.test("test TrackingManager sendActive ", () => {
     reject({ status: 400, body: null })
   );
   postAsync.returns = [postResponse, postResponseError];
-  trackingManager.sendActive(visitor, modification);
-  trackingManager.sendActive(visitor, modification);
+
+  try {
+    await trackingManager.sendActive(visitor, modification);
+    await trackingManager.sendActive(visitor, modification);
+  } catch (error) {
+    assertEquals(error, { status: 400, body: null });
+  }
+
   assertEquals(postAsync.calls.length, 2);
 
   //Test http request data
@@ -94,7 +100,7 @@ Deno.test("test TrackingManager sendActive ", () => {
   ]);
 });
 
-Deno.test("test TrackingManager sendHit ", () => {
+Deno.test("test TrackingManager sendHit ", async () => {
   const httpClient = new DenoHttpClient();
   const postAsync: Stub<DenoHttpClient> = stub(httpClient, "postAsync");
   const config = new DecisionApiConfig("envId", "apiKey");
@@ -111,8 +117,13 @@ Deno.test("test TrackingManager sendHit ", () => {
   );
 
   postAsync.returns = [postResponse, postResponseError];
-  trackingManager.sendHit(hit);
-  trackingManager.sendHit(hit);
+  try {
+    await trackingManager.sendHit(hit);
+    await trackingManager.sendHit(hit);
+  } catch (error) {
+    assertEquals(error, { status: 400, body: null });
+  }
+
   assertEquals(postAsync.calls.length, 2);
 
   const headers = {
