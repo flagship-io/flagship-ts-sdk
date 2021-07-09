@@ -1,4 +1,5 @@
 import { IFlagshipConfig } from "../config/FlagshipConfig.ts";
+import { LogLevel } from "../enum/index.ts";
 
 /**
  * Return a formatted string
@@ -21,7 +22,8 @@ export function logError(
   if (
     !config ||
     !config.logManager ||
-    typeof config.logManager.error !== "function"
+    typeof config.logManager.error !== "function" ||
+    config.logLevel < LogLevel.ERROR
   ) {
     return;
   }
@@ -32,7 +34,8 @@ export function logInfo(config: IFlagshipConfig, message: string, tag: string) {
   if (
     !config ||
     !config.logManager ||
-    typeof config.logManager.info !== "function"
+    typeof config.logManager.info !== "function" ||
+    config.logLevel < LogLevel.INFO
   ) {
     return;
   }
