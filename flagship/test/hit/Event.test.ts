@@ -18,6 +18,10 @@ import {
 import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager.ts";
 import { sprintf } from "../../src/utils/utils.ts";
 
+// deno-lint-ignore no-explicit-any
+const getNull = (): any => {
+  return null;
+};
 Deno.test("test hit type Event", () => {
   const category = EventCategory.ACTION_TRACKING;
   const action = "action";
@@ -86,7 +90,7 @@ Deno.test("test hit type Event", () => {
 
   assertEquals(event.toApiKeys(), apiKeys);
 
-  event.eventLabel = {} as string;
+  event.eventLabel = getNull();
 
   assertEquals(event.eventLabel, label);
 
