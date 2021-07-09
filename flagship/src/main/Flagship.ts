@@ -1,6 +1,6 @@
 import { Visitor } from "../visitor/Visitor.ts";
 import { FlagshipStatus } from "../enum/FlagshipStatus.ts";
-import { FlagshipConfig } from "../config/FlagshipConfig.ts";
+import { IFlagshipConfig } from "../config/FlagshipConfig.ts";
 import { DecisionApiConfig } from "../config/DecisionApiConfig.ts";
 import { ConfigManager, IConfigManager } from "../config/ConfigManager.ts";
 import { ApiManager } from "../decision/ApiManager.ts";
@@ -18,10 +18,10 @@ import {
 export class Flagship {
   private static _instance: Flagship;
   private _configManger!: IConfigManager;
-  private _config!: FlagshipConfig;
+  private _config!: IFlagshipConfig;
   private _status!: FlagshipStatus;
 
-  get config(): FlagshipConfig {
+  get config(): IFlagshipConfig {
     return this._config;
   }
 
@@ -42,6 +42,9 @@ export class Flagship {
     return this._instance;
   }
 
+  /**
+   * Return true if the SDK is properly initialized, otherwise return false
+   */
   private static isReady(): boolean {
     const apiKey = this._instance.config.apiKey;
     const envId = this._instance.config.envId;
@@ -62,18 +65,30 @@ export class Flagship {
     this._status = status;
   }
 
+  /**
+   * Return current status of Flagship SDK.
+   */
   public static getStatus(): FlagshipStatus {
     return this.getInstance()._status;
   }
 
-  public static getConfig(): FlagshipConfig {
+  /**
+   * Return the current config set by the customer and used by the SDK.
+   */
+  public static getConfig(): IFlagshipConfig {
     return this.getInstance()._config;
   }
 
+  /**
+   * Start the flagship SDK, with a custom configuration implementation
+   * @param {string} envId : Environment id provided by Flagship.
+   * @param {string} apiKey : Secure api key provided by Flagship.
+   * @param {IFlagshipConfig} config : (optional) SDK configuration.
+   */
   public static start(
     envId: string,
     apiKey: string,
-    config?: FlagshipConfig
+    config?: IFlagshipConfig
   ): void {
     const flagship = this.getInstance();
 
@@ -118,6 +133,12 @@ export class Flagship {
     }
   }
 
+  /**
+   * Create a new visitor with a context.
+   * @param {string} visitorId : Unique visitor identifier.
+   * @param {Record<string, string | number | boolean>} context : visitor context. e.g: { isVip: true, country: "UK" }.
+   * @returns {Visitor} a new visitor instance
+   */
   public static newVisitor(
     visitorId: string,
     context: Record<string, string | number | boolean> = {}
