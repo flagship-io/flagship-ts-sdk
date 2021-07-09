@@ -24,10 +24,12 @@ const visitor = Flagship.newVisitor(`visitor_1`);
 
 if (visitor) {
   await visitor.synchronizeModifications();
-  console.log(visitor.getModification("objec", {}));
+  console.log(visitor.getModification("object", {}));
   visitor.activateModification("object");
 
-  console.log(visitor.getModificationInfo("object"));
+  visitor.getModificationInfoAsync("object").then((r) => {
+    console.log("r", r);
+  });
 
   const event = new Event(EventCategory.ACTION_TRACKING, "click");
   visitor.sendHit(event);
