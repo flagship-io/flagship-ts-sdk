@@ -3,3 +3,4 @@ cov_profile
 cov_profile.lcov
 flagship/node_modules/*
 dist
+coverage
