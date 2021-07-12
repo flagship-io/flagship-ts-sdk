@@ -1,6 +1,5 @@
-**/*.js
 flagship/demo/src/env.ts
 cov_profile
 cov_profile.lcov
-flagship/node_modules
+flagship/node_modules/*
 dist
