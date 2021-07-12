@@ -1,8 +1,8 @@
-import { IFlagshipConfig } from "../config/FlagshipConfig.ts";
-import { HitAbstract } from "../hit/HitAbstract.ts";
-import { Modification } from "../model/Modification.ts";
-import { IHttpClient } from "../utils/httpClient.ts";
-import { Visitor } from "../visitor/Visitor.ts";
+import { IFlagshipConfig } from "../config/FlagshipConfig";
+import { HitAbstract } from "../hit/HitAbstract";
+import { Modification } from "../model/Modification";
+import { IHttpClient } from "../utils/httpClient";
+import { Visitor } from "../visitor/Visitor";
 
 export interface ITrackingManager {
   /**

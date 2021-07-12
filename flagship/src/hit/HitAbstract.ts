@@ -1,4 +1,4 @@
-import { IFlagshipConfig } from "../config/FlagshipConfig.ts";
+import { IFlagshipConfig } from "../config/FlagshipConfig";
 import {
   CUSTOMER_ENV_ID_API_ITEM,
   DS_API_ITEM,
@@ -6,9 +6,9 @@ import {
   TYPE_ERROR,
   VISITOR_ID_API_ITEM,
 TYPE_INTEGER_ERROR,
-} from "../enum/FlagshipConstant.ts";
-import { HitType } from "../enum/HitType.ts";
-import { logError, sprintf } from "../utils/utils.ts";
+} from "../enum/FlagshipConstant";
+import { HitType } from "../enum/HitType";
+import { logError, sprintf } from "../utils/utils";
 
 export abstract class HitAbstract {
   private _visitorId!: string;

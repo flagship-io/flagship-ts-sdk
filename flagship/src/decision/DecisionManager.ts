@@ -1,13 +1,12 @@
-import { IDecisionManager } from "./IDecisionManager.ts";
-import { Modification } from "../model/Modification.ts";
-import { IFlagshipConfig } from "../config/FlagshipConfig.ts";
-import { IHttpClient } from "../utils/httpClient.ts";
-import { Visitor } from "../visitor/Visitor.ts";
+import { IDecisionManager } from "./IDecisionManager";
+import { Modification } from "../model/Modification";
+import { IFlagshipConfig } from "../config/FlagshipConfig";
+import { IHttpClient } from "../utils/httpClient";
+import { Visitor } from "../visitor/Visitor";
 
 export abstract class DecisionManager implements IDecisionManager {
   protected _config: IFlagshipConfig;
   protected _panic = false;
-  protected _onStatusChangedListener = null;
   protected _httpClient: IHttpClient;
 
   public get config() {

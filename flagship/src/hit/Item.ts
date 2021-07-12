@@ -5,9 +5,9 @@ import {
   IQ_API_ITEM,
   IV_API_ITEM,
   TID_API_ITEM,
-} from "../enum/FlagshipConstant.ts";
-import { HitType } from "../enum/HitType.ts";
-import { HitAbstract } from "./HitAbstract.ts";
+} from "../enum/FlagshipConstant";
+import { HitType } from "../enum/HitType";
+import { HitAbstract } from "./HitAbstract";
 
 export const ERROR_MESSAGE =
   "Transaction Id, Item name and item code are required";

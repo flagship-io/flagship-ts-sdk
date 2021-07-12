@@ -15,12 +15,12 @@ import {
   VARIATION_GROUP_ID_API_ITEM,
   VARIATION_ID_API_ITEM,
   VISITOR_ID_API_ITEM,
-} from "../enum/FlagshipConstant.ts";
-import { HitAbstract } from "../hit/HitAbstract.ts";
-import { Modification } from "../model/Modification.ts";
-import { logError } from "../utils/utils.ts";
-import { Visitor } from "../visitor/Visitor.ts";
-import { TrackingManagerAbstract } from "./TrackingManagerAbstract.ts";
+} from "../enum/FlagshipConstant";
+import { HitAbstract } from "../hit/HitAbstract";
+import { Modification } from "../model/Modification";
+import { logError } from "../utils/utils";
+import { Visitor } from "../visitor/Visitor";
+import { TrackingManagerAbstract } from "./TrackingManagerAbstract";
 
 export class TrackingManager extends TrackingManagerAbstract {
   public sendActive(
@@ -52,7 +52,7 @@ export class TrackingManager extends TrackingManagerAbstract {
         .then(() => {
           resolve();
         })
-        .catch((error) => {
+        .catch((error: any) => {
           logError(this.config, JSON.stringify(error), PROCESS_SEND_ACTIVATE);
           reject(error);
         });
@@ -76,7 +76,7 @@ export class TrackingManager extends TrackingManagerAbstract {
         .then(() => {
           resolve();
         })
-        .catch((error) => {
+        .catch((error: any) => {
           logError(this.config, JSON.stringify(error), PROCESS_SEND_HIT);
           reject(error);
         });

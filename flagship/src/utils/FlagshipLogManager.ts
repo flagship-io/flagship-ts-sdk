@@ -1,4 +1,4 @@
-import { FLAGSHIP_SDK, LogLevel } from "../enum/index.ts";
+import { FLAGSHIP_SDK, LogLevel } from "../enum/index";
 
 export interface IFlagshipLogManager {
   /**

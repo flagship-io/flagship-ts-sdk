@@ -10,12 +10,12 @@ import {
   SDK_LANGUAGE,
   SDK_VERSION,
   URL_CAMPAIGNS,
-} from "../enum/index.ts";
-import { DecisionManager } from "./DecisionManager.ts";
-import { CampaignDTO } from "./api/models.ts";
-import { Modification } from "../model/Modification.ts";
-import { Visitor } from "../visitor/Visitor.ts";
-import { logError } from "../utils/utils.ts";
+} from "../enum/index";
+import { DecisionManager } from "./DecisionManager";
+import { CampaignDTO } from "./api/models";
+import { Modification } from "../model/Modification";
+import { Visitor } from "../visitor/Visitor";
+import { logError } from "../utils/utils";
 
 export class ApiManager extends DecisionManager {
   private async getCampaignsAsync(visitor: Visitor) {

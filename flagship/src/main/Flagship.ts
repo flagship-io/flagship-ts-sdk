@@ -1,19 +1,19 @@
-import { Visitor } from "../visitor/Visitor.ts";
-import { FlagshipStatus } from "../enum/FlagshipStatus.ts";
-import { IFlagshipConfig } from "../config/FlagshipConfig.ts";
-import { DecisionApiConfig } from "../config/DecisionApiConfig.ts";
-import { ConfigManager, IConfigManager } from "../config/ConfigManager.ts";
-import { ApiManager } from "../decision/ApiManager.ts";
-import { TrackingManager } from "../api/TrackingManager.ts";
-import { DenoHttpClient } from "../utils/denoHttpClient.ts";
-import { FlagshipLogManager } from "../utils/FlagshipLogManager.ts";
-import { logError, logInfo, sprintf } from "../utils/utils.ts";
+import { Visitor } from "../visitor/Visitor";
+import { FlagshipStatus } from "../enum/FlagshipStatus";
+import { IFlagshipConfig } from "../config/FlagshipConfig";
+import { DecisionApiConfig } from "../config/DecisionApiConfig";
+import { ConfigManager, IConfigManager } from "../config/ConfigManager";
+import { ApiManager } from "../decision/ApiManager";
+import { TrackingManager } from "../api/TrackingManager";
+import { NodeHttpClient } from "../utils/NodeHttpClient";
+import { FlagshipLogManager } from "../utils/FlagshipLogManager";
+import { logError, logInfo, sprintf } from "../utils/utils";
 import {
   INITIALIZATION_PARAM_ERROR,
   PROCESS_INITIALIZATION,
   SDK_STARTED_INFO,
   SDK_VERSION,
-} from "../enum/index.ts";
+} from "../enum/index";
 
 export class Flagship {
   private static _instance: Flagship;
@@ -113,10 +113,10 @@ export class Flagship {
     }
 
     const decisionManager = new ApiManager(
-      new DenoHttpClient(),
+      new NodeHttpClient(),
       flagship.config
     );
-    const trackingManager = new TrackingManager(new DenoHttpClient(), config);
+    const trackingManager = new TrackingManager(new NodeHttpClient(), config);
     flagship.configManager = new ConfigManager(
       config,
       decisionManager,

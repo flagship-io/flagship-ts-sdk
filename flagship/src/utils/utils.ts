@@ -1,5 +1,5 @@
-import { IFlagshipConfig } from "../config/FlagshipConfig.ts";
-import { LogLevel } from "../enum/index.ts";
+import { IFlagshipConfig } from "../config/FlagshipConfig";
+import { LogLevel } from "../enum/index";
 
 /**
  * Return a formatted string
@@ -9,7 +9,7 @@ export function sprintf(format: string, ...value: any[]): string {
   let formatted = format;
   for (let i = 0; i < value.length; i++) {
     const element = value[i];
-    formatted = formatted.replaceAll(`{${i}}`, element);
+    formatted = formatted.replace(`{${i}}`, element);
   }
   return formatted;
 }

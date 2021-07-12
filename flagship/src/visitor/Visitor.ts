@@ -1,4 +1,4 @@
-import { Modification } from "../model/Modification.ts";
+import { Modification } from "../model/Modification";
 import {
   CONTEXT_NULL_ERROR,
   CONTEXT_PARAM_ERROR,
@@ -15,10 +15,10 @@ import {
   SDK_APP,
   TRACKER_MANAGER_MISSING_ERROR,
   VISITOR_ID_ERROR,
-} from "../enum/index.ts";
-import { logError, sprintf } from "../utils/utils.ts";
-import { HitAbstract } from "../hit/index.ts";
-import { IConfigManager, IFlagshipConfig } from "../config/index.ts";
+} from "../enum/index";
+import { logError, sprintf } from "../utils/utils";
+import { HitAbstract } from "../hit/index";
+import { IConfigManager, IFlagshipConfig } from "../config/index";
 
 export class Visitor {
   private _visitorId!: string;
@@ -159,9 +159,7 @@ export class Visitor {
     defaultValue: T,
     activate = false
   ): Promise<T> {
-    return new Promise((resolve) => {
-      resolve(this.getModification(key, defaultValue, activate));
-    });
+    return Promise.resolve(this.getModification(key, defaultValue, activate));
   }
 
   /**
@@ -234,9 +232,7 @@ export class Visitor {
    * @returns {Modification | null}
    */
   public getModificationInfoAsync(key: string): Promise<Modification | null> {
-    return new Promise((resolve) => {
-      resolve(this.getModificationInfo(key));
-    });
+    return Promise.resolve(this.getModificationInfo(key));
   }
 
   /**
@@ -297,9 +293,7 @@ export class Visitor {
    * @param key : key which identify the modification to activate.
    */
   public activateModificationAsync(key: string): Promise<void> {
-    return new Promise((resolve) => {
-      resolve(this.activateModification(key));
-    });
+    return Promise.resolve(this.activateModification(key));
   }
 
   /**
@@ -323,14 +317,12 @@ export class Visitor {
     const modification = this.modifications.get(key);
 
     if (!modification) {
-      if (!modification) {
-        logError(
-          this.config,
-          sprintf(GET_MODIFICATION_ERROR, key),
-          PROCESS_ACTIVE_MODIFICATION
-        );
-        return;
-      }
+      logError(
+        this.config,
+        sprintf(GET_MODIFICATION_ERROR, key),
+        PROCESS_ACTIVE_MODIFICATION
+      );
+      return;
     }
 
     if (!this.hasTrackingManager(PROCESS_ACTIVE_MODIFICATION)) {

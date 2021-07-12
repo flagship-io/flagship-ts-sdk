@@ -1,4 +1,4 @@
-import { IHttpClient, IHttpOptions, IHttpResponse } from "./httpClient.ts";
+import { IHttpClient, IHttpOptions, IHttpResponse } from "./httpClient";
 
 export class DenoHttpClient implements IHttpClient {
   public postAsync(url: string, options: IHttpOptions): Promise<IHttpResponse> {

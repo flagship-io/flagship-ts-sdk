@@ -1,6 +1,6 @@
-import { FlagshipStatus, LogLevel, REQUEST_TIME_OUT } from "../enum/index.ts";
-import { IFlagshipLogManager } from "../utils/FlagshipLogManager.ts";
-import { logError } from "../utils/utils.ts";
+import { FlagshipStatus, LogLevel, REQUEST_TIME_OUT } from "../enum/index";
+import { IFlagshipLogManager } from "../utils/FlagshipLogManager";
+import { logError } from "../utils/utils";
 
 export enum DecisionMode {
   /**
@@ -47,7 +47,7 @@ export interface IFlagshipConfig {
    * Define a callable in order to get callback when the SDK status has changed.
    */
   setStatusChangedCallback(
-    fn: ((status: FlagshipStatus) => void) | undefined,
+    fn: ((status: FlagshipStatus) => void) | undefined
   ): void;
 
   getStatusChangedCallback(): ((status: FlagshipStatus) => void) | undefined;
@@ -111,7 +111,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   }
 
   public setStatusChangedCallback(
-    fn: ((status: FlagshipStatus) => void) | undefined,
+    fn: ((status: FlagshipStatus) => void) | undefined
   ) {
     if (typeof fn !== "function") {
       logError(this, statusChangeError, "statusChangedCallback");
