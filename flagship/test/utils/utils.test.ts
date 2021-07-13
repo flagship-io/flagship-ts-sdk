@@ -1,89 +1,105 @@
-import { logError, logInfo, sprintf } from "../../src/utils/utils.ts";
-import { assertEquals, stub } from "../../deps.ts";
-import { DecisionApiConfig } from "../../src/config/index.ts";
-import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager.ts";
-import { LogLevel } from "../../src/enum/index.ts";
+import { logError, logInfo, sprintf } from "../../src/utils/utils";
+import { jest, expect, it, describe } from "@jest/globals";
+import { DecisionApiConfig } from "../../src/config/index";
+import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager";
+import { LogLevel } from "../../src/enum/index";
 
-Deno.test("test sprintf function", () => {
-  const textToTest = "My name is {0} {1}";
-  const output = sprintf(textToTest, "merveille", "kitoko");
-  assertEquals(output, "My name is merveille kitoko");
+describe("test sprintf function", () => {
+  it("should ", () => {
+    const textToTest = "My name is {0} {1}";
+    const output = sprintf(textToTest, "merveille", "kitoko");
+    expect(output).toBe("My name is merveille kitoko");
+  });
 });
 
-Deno.test("test logError function", () => {
+describe("test logError function", () => {
   const config = new DecisionApiConfig();
 
   const logManager = new FlagshipLogManager();
 
-  const errorMethod = stub(logManager, "error");
+  const errorMethod = jest.spyOn(logManager, "error");
 
   config.logManager = logManager;
 
   const messageAll = "this is a log message";
   const tag = "tag";
 
-  //test logError level ALL
-  logError(config, messageAll, tag);
+  it("test logError level ALL", () => {
+    logError(config, messageAll, tag);
+    expect(errorMethod).toBeCalledTimes(1);
+    expect(errorMethod).toBeCalledWith(messageAll, tag);
+  });
 
-  //test level EMERGENCY
-  config.logLevel = LogLevel.EMERGENCY;
-  const messageEmergency = "emergency";
-  logError(config, messageEmergency, tag);
+  it("test level EMERGENCY", () => {
+    config.logLevel = LogLevel.EMERGENCY;
+    const messageEmergency = "emergency";
+    logError(config, messageEmergency, tag);
+    expect(errorMethod).toBeCalledTimes(0);
+  });
 
-  //test level NONE
-  config.logLevel = LogLevel.NONE;
-  const messageNone = "none";
-  logError(config, messageNone, tag);
+  it("test level NONE", () => {
+    config.logLevel = LogLevel.NONE;
+    const messageNone = "none";
+    logError(config, messageNone, tag);
+    expect(errorMethod).toBeCalledTimes(0);
+  });
 
-  //test level INFO
-  config.logLevel = LogLevel.INFO;
-  const messageInfo = "this a message with info level";
-  logError(config, messageInfo, tag);
+  it("test level INFO", () => {
+    config.logLevel = LogLevel.INFO;
+    const messageInfo = "this a message with info level";
+    logError(config, messageInfo, tag);
+    expect(errorMethod).toBeCalledTimes(1);
+    expect(errorMethod).toBeCalledWith(messageInfo, tag);
+  });
 
-  //test invalid config
-  logError({} as DecisionApiConfig, messageAll, tag);
-
-  assertEquals(errorMethod.calls, [
-    { args: [messageAll, tag], self: logManager },
-    { args: [messageInfo, tag], self: logManager },
-  ]);
+  it("test invalid config", () => {
+    logError({} as DecisionApiConfig, messageAll, tag);
+    expect(errorMethod).toBeCalledTimes(0);
+  });
 });
 
-Deno.test("test logInfo function", () => {
+describe("test logInfo function", () => {
   const config = new DecisionApiConfig();
 
   const logManager = new FlagshipLogManager();
 
-  const infoMethod = stub(logManager, "info");
+  const infoMethod = jest.spyOn(logManager, "info");
 
   config.logManager = logManager;
 
   const messageAll = "this is a log message";
   const tag = "tag";
 
-  //test logInfo level ALL
-  logInfo(config, messageAll, tag);
+  it("test logError level ALL", () => {
+    logInfo(config, messageAll, tag);
+    expect(infoMethod).toBeCalledTimes(1);
+    expect(infoMethod).toBeCalledWith(messageAll, tag);
+  });
 
-  //test level EMERGENCY
-  config.logLevel = LogLevel.EMERGENCY;
-  const messageEmergency = "emergency";
-  logInfo(config, messageEmergency, tag);
+  it("test level EMERGENCY", () => {
+    config.logLevel = LogLevel.EMERGENCY;
+    const messageEmergency = "emergency";
+    logInfo(config, messageEmergency, tag);
+    expect(infoMethod).toBeCalledTimes(0);
+  });
 
-  //test level NONE
-  config.logLevel = LogLevel.NONE;
-  const messageNone = "none";
-  logInfo(config, messageNone, tag);
+  it("test level NONE", () => {
+    config.logLevel = LogLevel.NONE;
+    const messageNone = "none";
+    logInfo(config, messageNone, tag);
+    expect(infoMethod).toBeCalledTimes(0);
+  });
 
-  //test level DEBUG
-  config.logLevel = LogLevel.DEBUG;
-  const messageInfo = "this a message with info level";
-  logInfo(config, messageInfo, tag);
+  it("test level INFO", () => {
+    config.logLevel = LogLevel.INFO;
+    const messageInfo = "this a message with info level";
+    logInfo(config, messageInfo, tag);
+    expect(infoMethod).toBeCalledTimes(1);
+    expect(infoMethod).toBeCalledWith(messageInfo, tag);
+  });
 
-  //test invalid config
-  logInfo({} as DecisionApiConfig, messageAll, tag);
-
-  assertEquals(infoMethod.calls, [
-    { args: [messageAll, tag], self: logManager },
-    { args: [messageInfo, tag], self: logManager },
-  ]);
+  it("test invalid config", () => {
+    logError({} as DecisionApiConfig, messageAll, tag);
+    expect(infoMethod).toBeCalledTimes(0);
+  });
 });
