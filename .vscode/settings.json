@@ -1,10 +1,10 @@
 {
-  "deno.enable": false,
-  "deno.lint": false,
-  "deno.unstable": false,
-  "cSpell.words": [
-    "Deno",
-    "allowlist",
-    "sprintf"
-  ]
+  "eslint.validate": ["javascript"],
+  "cSpell.words": ["Deno", "allowlist", "sprintf"],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": null
+  }
 }
