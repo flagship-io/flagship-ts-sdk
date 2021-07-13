@@ -1,5 +1,5 @@
-import { assertEquals, stub } from "../../deps.ts";
-import { DecisionApiConfig } from "../../src/config/index.ts";
+import { jest, expect, it, describe } from "@jest/globals";
+import { DecisionApiConfig } from "../../src/config/index";
 import {
   CUSTOMER_ENV_ID_API_ITEM,
   DS_API_ITEM,
@@ -19,44 +19,46 @@ import {
   TYPE_INTEGER_ERROR,
   T_API_ITEM,
   VISITOR_ID_API_ITEM,
-} from "../../src/enum/index.ts";
-import { Transaction } from "../../src/hit/index.ts";
-import { CURRENCY_ERROR, ERROR_MESSAGE } from "../../src/hit/Transaction.ts";
-import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager.ts";
-import { sprintf } from "../../src/utils/utils.ts";
+} from "../../src/enum/index";
+import { Transaction } from "../../src/hit/index";
+import { CURRENCY_ERROR, ERROR_MESSAGE } from "../../src/hit/Transaction";
+import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager";
+import { sprintf } from "../../src/utils/utils";
 
-Deno.test("test hit type Transaction", () => {
+describe("test hit type Transaction", () => {
   const transactionId = "transactionId";
   const affiliation = "affiliation";
   const transaction = new Transaction(transactionId, affiliation);
 
-  assertEquals(transaction.transactionId, transactionId);
-  assertEquals(transaction.affiliation, affiliation);
-  assertEquals(transaction.couponCode, undefined);
-  assertEquals(transaction.currency, undefined);
-  assertEquals(transaction.itemCount, undefined);
-  assertEquals(transaction.paymentMethod, undefined);
-  assertEquals(transaction.shippingCosts, undefined);
-  assertEquals(transaction.shippingMethod, undefined);
-  assertEquals(transaction.taxes, undefined);
-  assertEquals(transaction.totalRevenue, undefined);
-  assertEquals(transaction.getErrorMessage(), ERROR_MESSAGE);
-
-  assertEquals(transaction.isReady(), false);
+  it("should ", () => {
+    expect(transaction.transactionId).toBe(transactionId);
+    expect(transaction.affiliation).toBe(affiliation);
+    expect(transaction.couponCode).toBeUndefined();
+    expect(transaction.currency).toBeUndefined();
+    expect(transaction.itemCount).toBeUndefined();
+    expect(transaction.paymentMethod).toBeUndefined();
+    expect(transaction.shippingCosts).toBeUndefined();
+    expect(transaction.shippingMethod).toBeUndefined();
+    expect(transaction.taxes).toBeUndefined();
+    expect(transaction.totalRevenue).toBeUndefined();
+    expect(transaction.getErrorMessage()).toBe(ERROR_MESSAGE);
+    expect(transaction.isReady()).toBeFalsy();
+  });
 
   const logManager = new FlagshipLogManager();
-  const logError = stub(logManager, "error");
+  const logError = jest.spyOn(logManager, "error");
 
   const config = new DecisionApiConfig("envId", "apiKey");
   config.logManager = logManager;
-  transaction.config = config;
-  transaction.ds = SDK_APP;
+
   const visitorId = "visitorId";
-  transaction.visitorId = visitorId;
+  it("should ", () => {
+    transaction.config = config;
+    transaction.ds = SDK_APP;
+    transaction.visitorId = visitorId;
+    expect(transaction.isReady()).toBeTruthy();
+  });
 
-  assertEquals(transaction.isReady(), true);
-
-  // deno-lint-ignore no-explicit-any
   const apiKeys: any = {
     [VISITOR_ID_API_ITEM]: visitorId,
     [DS_API_ITEM]: SDK_APP,
@@ -66,184 +68,210 @@ Deno.test("test hit type Transaction", () => {
     [TA_API_ITEM]: affiliation,
   };
 
-  assertEquals(transaction.toApiKeys(), apiKeys);
+  it("should ", () => {
+    expect(transaction.toApiKeys()).toEqual(apiKeys);
+  });
 
   const logParams = (message: string, tag: string) => ({
     args: [message, tag],
     self: logManager,
   });
 
-  //test set couponCode
-  const couponCode = "couponCode";
-  transaction.couponCode = couponCode;
-  assertEquals(transaction.couponCode, couponCode);
+  it("test set couponCode", () => {
+    const couponCode = "couponCode";
+    transaction.couponCode = couponCode;
+    expect(transaction.couponCode).toBe(couponCode);
 
-  apiKeys[TCC_API_ITEM] = couponCode;
-  assertEquals(transaction.toApiKeys(), apiKeys);
+    apiKeys[TCC_API_ITEM] = couponCode;
+    expect(transaction.toApiKeys()).toEqual(apiKeys);
 
-  transaction.couponCode = {} as string;
-  assertEquals(transaction.couponCode, couponCode);
-  assertEquals(logError.calls.length, 1);
-  const couponCodeLog = logParams(
-    sprintf(TYPE_ERROR, "couponCode", "string"),
-    "couponCode"
-  );
-  assertEquals(logError.calls, [couponCodeLog]);
+    transaction.couponCode = {} as string;
+    expect(transaction.couponCode).toEqual(couponCode);
+    expect(logError).toBeCalledTimes(1);
+    expect(logError).toBeCalledWith(
+      sprintf(TYPE_ERROR, "couponCode", "string"),
+      "couponCode"
+    );
+  });
 
-  //test set currency
   const currency = "EUR";
-  transaction.currency = currency;
-  assertEquals(transaction.currency, currency);
+  it("test set currency", () => {
+    transaction.currency = currency;
+    expect(transaction.currency).toBe(currency);
 
-  apiKeys[TC_API_ITEM] = currency;
-  assertEquals(transaction.toApiKeys(), apiKeys);
+    apiKeys[TC_API_ITEM] = currency;
+    expect(transaction.toApiKeys()).toEqual(apiKeys);
+  });
 
-  //test empty currency
-  transaction.currency = "";
-  assertEquals(transaction.currency, currency);
+  it("test empty currency", () => {
+    transaction.currency = "";
+    expect(transaction.currency).toBe(currency);
+    expect(logError).toBeCalledTimes(1);
+    expect(logError).toBeCalledWith(
+      sprintf(CURRENCY_ERROR, "currency", "string"),
+      "currency"
+    );
+  });
 
-  //test invalid currency
-  transaction.currency = "ER";
-  assertEquals(transaction.currency, currency);
+  it("test invalid currency", () => {
+    transaction.currency = "ER";
+    expect(transaction.currency).toBe(currency);
 
-  transaction.currency = "EURO";
-  assertEquals(transaction.currency, currency);
+    transaction.currency = "EURO";
+    expect(transaction.currency).toBe(currency);
 
-  const currentLog = logParams(
-    sprintf(CURRENCY_ERROR, "currency", "string"),
-    "currency"
-  );
+    expect(logError).toBeCalledTimes(2);
+    expect(logError).toBeCalledWith(
+      sprintf(CURRENCY_ERROR, "currency", "string"),
+      "currency"
+    );
+  });
 
-  //test itemCount
   const itemCount = 5;
-  transaction.itemCount = itemCount;
-  assertEquals(transaction.itemCount, itemCount);
+  it("test itemCount", () => {
+    transaction.itemCount = itemCount;
+    expect(transaction.itemCount).toBe(itemCount);
 
-  transaction.itemCount = 5.2;
-  assertEquals(transaction.itemCount, itemCount);
+    apiKeys[ICN_API_ITEM] = itemCount;
+    expect(transaction.toApiKeys()).toEqual(apiKeys);
+  });
 
-  apiKeys[ICN_API_ITEM] = itemCount;
-  assertEquals(transaction.toApiKeys(), apiKeys);
+  it("test itemCount log 1", () => {
+    transaction.itemCount = 5.2;
+    expect(transaction.itemCount).toBe(itemCount);
 
-  const itemCountLog = logParams(
-    sprintf(TYPE_INTEGER_ERROR, "itemCount", "integer"),
-    "itemCount"
-  );
+    expect(logError).toBeCalledTimes(1);
+    expect(logError).toBeCalledWith(
+      sprintf(TYPE_INTEGER_ERROR, "itemCount", "integer"),
+      "itemCount"
+    );
+  });
 
-  transaction.itemCount = {} as number;
-  assertEquals(transaction.itemCount, itemCount);
+  it("test itemCount log 1", () => {
+    transaction.itemCount = {} as number;
+    expect(transaction.itemCount).toBe(itemCount);
 
-  const itemCountLog2 = logParams(
-    sprintf(TYPE_ERROR, "itemCount", "integer"),
-    "itemCount"
-  );
+    expect(logError).toBeCalledTimes(1);
+    expect(logError).toBeCalledWith(
+      sprintf(TYPE_ERROR, "itemCount", "integer"),
+      "itemCount"
+    );
+  });
 
-  //test paymentMethod
   const paymentMethod = "paymentMethod";
-  transaction.paymentMethod = paymentMethod;
-  assertEquals(transaction.paymentMethod, paymentMethod);
+  it("test paymentMethod", () => {
+    transaction.paymentMethod = paymentMethod;
+    expect(transaction.paymentMethod).toBe(paymentMethod);
 
-  apiKeys[PM_API_ITEM] = paymentMethod;
-  assertEquals(transaction.toApiKeys(), apiKeys);
+    apiKeys[PM_API_ITEM] = paymentMethod;
+    expect(transaction.toApiKeys()).toEqual(apiKeys);
 
-  transaction.paymentMethod = "";
-  assertEquals(transaction.paymentMethod, paymentMethod);
+    transaction.paymentMethod = "";
+    expect(transaction.paymentMethod).toBe(paymentMethod);
 
-  const paymentMethodLog = logParams(
-    sprintf(TYPE_ERROR, "paymentMethod", "string"),
-    "paymentMethod"
-  );
+    expect(logError).toBeCalledWith(
+      sprintf(TYPE_ERROR, "paymentMethod", "string"),
+      "paymentMethod"
+    );
 
-  //test shippingCosts
+    expect(logError).toBeCalledTimes(1);
+  });
+
   const shippingCosts = 15;
-  transaction.shippingCosts = shippingCosts;
-  assertEquals(transaction.shippingCosts, shippingCosts);
+  it("test shippingCosts", () => {
+    const shippingCosts = 15;
+    transaction.shippingCosts = shippingCosts;
+    expect(transaction.shippingCosts).toBe(shippingCosts);
 
-  apiKeys[TS_API_ITEM] = shippingCosts;
-  assertEquals(transaction.toApiKeys(), apiKeys);
+    apiKeys[TS_API_ITEM] = shippingCosts;
+    expect(transaction.toApiKeys()).toEqual(apiKeys);
+  });
 
-  transaction.shippingCosts = {} as number;
-  assertEquals(transaction.shippingCosts, shippingCosts);
+  it("test shippingCosts log ", () => {
+    transaction.shippingCosts = {} as number;
+    expect(transaction.shippingCosts).toBe(shippingCosts);
 
-  const shippingCostsLog = logParams(
-    sprintf(TYPE_ERROR, "shippingCosts", "number"),
-    "shippingCosts"
-  );
+    expect(logError).toBeCalledTimes(1);
+    expect(logError).toBeCalledWith(
+      sprintf(TYPE_ERROR, "shippingCosts", "number"),
+      "shippingCosts"
+    );
+  });
 
-  //test shippingMethod
   const shippingMethod = "shippingMethod";
-  transaction.shippingMethod = shippingMethod;
-  assertEquals(transaction.shippingMethod, shippingMethod);
+  it("test shippingMethod", () => {
+    transaction.shippingMethod = shippingMethod;
+    expect(transaction.shippingMethod).toBe(shippingMethod);
 
-  apiKeys[SM_API_ITEM] = shippingMethod;
-  assertEquals(transaction.toApiKeys(), apiKeys);
+    apiKeys[SM_API_ITEM] = shippingMethod;
+    expect(transaction.toApiKeys()).toEqual(apiKeys);
+  });
 
-  transaction.shippingMethod = "";
-  assertEquals(transaction.shippingMethod, shippingMethod);
+  it("test shippingMethod log", () => {
+    transaction.shippingMethod = "";
+    expect(transaction.shippingMethod).toBe(shippingMethod);
 
-  const shippingMethodLog = logParams(
-    sprintf(TYPE_ERROR, "shippingMethod", "string"),
-    "shippingMethod"
-  );
+    expect(logError).toBeCalledTimes(1);
+    expect(logError).toBeCalledWith(
+      sprintf(TYPE_ERROR, "shippingMethod", "string"),
+      "shippingMethod"
+    );
+  });
 
-  //test taxes
   const taxes = 25.2;
-  transaction.taxes = taxes;
-  assertEquals(transaction.taxes, taxes);
+  it("test taxes", () => {
+    transaction.taxes = taxes;
+    expect(transaction.taxes).toBe(taxes);
+    apiKeys[TT_API_ITEM] = taxes;
+    expect(transaction.toApiKeys()).toEqual(apiKeys);
+  });
 
-  apiKeys[TT_API_ITEM] = taxes;
-  assertEquals(transaction.toApiKeys(), apiKeys);
+  it("test taxes log", () => {
+    transaction.taxes = {} as number;
+    expect(transaction.taxes).toBe(taxes);
+    expect(logError).toBeCalledTimes(1);
+    expect(logError).toBeCalledWith(
+      sprintf(TYPE_ERROR, "taxes", "number"),
+      "taxes"
+    );
+  });
 
-  transaction.taxes = {} as number;
-  assertEquals(transaction.taxes, taxes);
-
-  const taxesLog = logParams(sprintf(TYPE_ERROR, "taxes", "number"), "taxes");
-
-  //test totalRevenue
   const totalRevenue = 28.2;
-  transaction.totalRevenue = totalRevenue;
-  assertEquals(transaction.totalRevenue, totalRevenue);
+  it("test totalRevenue", () => {
+    transaction.totalRevenue = totalRevenue;
+    expect(transaction.totalRevenue).toBe(totalRevenue);
+    apiKeys[TR_API_ITEM] = totalRevenue;
+    expect(transaction.toApiKeys()).toEqual(apiKeys);
+  });
 
-  apiKeys[TR_API_ITEM] = totalRevenue;
-  assertEquals(transaction.toApiKeys(), apiKeys);
+  it("test totalRevenue log", () => {
+    transaction.totalRevenue = {} as number;
+    expect(transaction.totalRevenue).toBe(totalRevenue);
+    expect(logError).toBeCalledTimes(1);
+    expect(logError).toBeCalledWith(
+      sprintf(TYPE_ERROR, "totalRevenue", "number"),
+      "totalRevenue"
+    );
+  });
 
-  transaction.totalRevenue = {} as number;
-  assertEquals(transaction.totalRevenue, totalRevenue);
+  it("test log transactionId ", () => {
+    transaction.transactionId = "";
+    expect(transaction.transactionId).toBe(transactionId);
+    expect(logError).toBeCalledTimes(1);
+    expect(logError).toBeCalledWith(
+      sprintf(TYPE_ERROR, "transactionId", "string"),
+      "transactionId"
+    );
+  });
 
-  const totalRevenueLog = logParams(
-    sprintf(TYPE_ERROR, "totalRevenue", "number"),
-    "totalRevenue"
-  );
+  it("test affiliation ", () => {
+    transaction.affiliation = "";
 
-  //test log transactionId
-  transaction.transactionId = "";
-
-  const transactionIdLog = logParams(
-    sprintf(TYPE_ERROR, "transactionId", "string"),
-    "transactionId"
-  );
-
-  //test affiliation
-  transaction.affiliation = "";
-
-  const affiliationLog = logParams(
-    sprintf(TYPE_ERROR, "affiliation", "string"),
-    "affiliation"
-  );
-
-  assertEquals(logError.calls, [
-    couponCodeLog,
-    currentLog,
-    currentLog,
-    currentLog,
-    itemCountLog,
-    itemCountLog2,
-    paymentMethodLog,
-    shippingCostsLog,
-    shippingMethodLog,
-    taxesLog,
-    totalRevenueLog,
-    transactionIdLog,
-    affiliationLog,
-  ]);
+    expect(transaction.affiliation).toBe(affiliation);
+    expect(logError).toBeCalledTimes(1);
+    expect(logError).toBeCalledWith(
+      sprintf(TYPE_ERROR, "affiliation", "string"),
+      "affiliation"
+    );
+  });
 });
