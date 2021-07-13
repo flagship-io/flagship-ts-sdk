@@ -1,52 +1,60 @@
-import { assertEquals } from "../../deps.ts";
-import { DecisionMode } from "../../src/config/FlagshipConfig.ts";
-import { DecisionApiConfig } from "../../src/config/index.ts";
+import { jest, expect, it, describe } from "@jest/globals";
+import { DecisionMode } from "../../src/config/FlagshipConfig";
+import { DecisionApiConfig } from "../../src/config/index";
 import {
   FlagshipStatus,
   LogLevel,
   REQUEST_TIME_OUT,
-} from "../../src/enum/index.ts";
-import { IFlagshipLogManager } from "../../src/utils/FlagshipLogManager.ts";
+} from "../../src/enum/index";
+import { IFlagshipLogManager } from "../../src/utils/FlagshipLogManager";
 
-Deno.test("test DecisionApiConfig", () => {
+describe("test DecisionApiConfig", () => {
   const config = new DecisionApiConfig();
-  assertEquals(config.apiKey, undefined);
-  assertEquals(config.envId, undefined);
-  assertEquals(config.logLevel, LogLevel.ALL);
-  assertEquals(config.logManager, undefined);
-  assertEquals(config.getStatusChangedCallback(), undefined);
-  assertEquals(config.timeout, REQUEST_TIME_OUT);
-  assertEquals(config.decisionMode, DecisionMode.DECISION_API);
 
-  //Test envId field
-  const envId = "envId";
-  config.envId = envId;
-  assertEquals(config.envId, envId);
+  it("should ", () => {
+    expect(config.apiKey).toBeUndefined();
+    expect(config.envId).toBeUndefined();
+    expect(config.logLevel).toBe(LogLevel.ALL);
+    expect(config.logManager).toBeUndefined();
+    expect(config.getStatusChangedCallback()).toBeUndefined();
+    expect(config.timeout).toBe(REQUEST_TIME_OUT);
+    expect(config.decisionMode).toBe(DecisionMode.DECISION_API);
+  });
 
-  //Test apiKey field
-  const apiKey = "apiKey";
-  config.apiKey = apiKey;
-  assertEquals(config.apiKey, apiKey);
+  it("Test envId field ", () => {
+    const envId = "envId";
+    config.envId = envId;
+    expect(config.envId).toBe(envId);
+  });
 
-  //Test logLevel
-  config.logLevel = LogLevel.INFO;
-  assertEquals(config.logLevel, LogLevel.INFO);
+  it("Test apiKey field", () => {
+    const apiKey = "apiKey";
+    config.apiKey = apiKey;
+    expect(config.apiKey).toBe(apiKey);
+  });
 
-  //Test logManager
-  const logManager = {} as IFlagshipLogManager;
-  config.logManager = logManager;
-  assertEquals(config.logManager, logManager);
+  it("Test logLevel", () => {
+    config.logLevel = LogLevel.INFO;
+    expect(config.logLevel).toBe(LogLevel.INFO);
+  });
 
-  //test statusChangedCallback
-  const func = {} as (status: FlagshipStatus) => void;
-  config.setStatusChangedCallback(func);
-  assertEquals(config.getStatusChangedCallback(), undefined);
+  it("Test logManager", () => {
+    const logManager = {} as IFlagshipLogManager;
+    config.logManager = logManager;
+    expect(config.logManager).toBe(logManager);
+  });
 
-  const func2 = (_status: FlagshipStatus) => {};
-  config.setStatusChangedCallback(func2);
+  it("test statusChangedCallback", () => {
+    const func = {} as (status: FlagshipStatus) => void;
+    config.setStatusChangedCallback(func);
+    expect(config.getStatusChangedCallback()).toBeUndefined();
 
-  assertEquals(config.getStatusChangedCallback(), func2);
+    const func2 = (_status: FlagshipStatus) => {};
+    config.setStatusChangedCallback(func2);
 
-  config.timeout = 3000;
-  assertEquals(config.timeout, 3000);
+    expect(config.getStatusChangedCallback()).toBe(func2);
+
+    config.timeout = 3000;
+    expect(config.timeout).toBe(3000);
+  });
 });
