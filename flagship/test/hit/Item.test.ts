@@ -1,5 +1,5 @@
-import { assertEquals, stub } from "../../deps.ts";
-import { DecisionApiConfig } from "../../src/config/index.ts";
+import { jest, expect, it, describe } from "@jest/globals";
+import { DecisionApiConfig } from "../../src/config/index";
 import {
   CUSTOMER_ENV_ID_API_ITEM,
   DS_API_ITEM,
@@ -15,40 +15,44 @@ import {
   TYPE_INTEGER_ERROR,
   T_API_ITEM,
   VISITOR_ID_API_ITEM,
-} from "../../src/enum/index.ts";
-import { Item } from "../../src/hit/index.ts";
-import { ERROR_MESSAGE } from "../../src/hit/Item.ts";
-import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager.ts";
-import { sprintf } from "../../src/utils/utils.ts";
+} from "../../src/enum/index";
+import { Item } from "../../src/hit/index";
+import { ERROR_MESSAGE } from "../../src/hit/Item";
+import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager";
+import { sprintf } from "../../src/utils/utils";
 
-Deno.test("test hit type Item", () => {
+describe("test hit type Item", () => {
   const transactionId = "transactionId";
   const productName = "productName";
   const productSku = "productSku";
   const item = new Item(transactionId, productName, productSku);
-  assertEquals(item.transactionId, transactionId);
-  assertEquals(item.productName, productName);
-  assertEquals(item.productSku, productSku);
-  assertEquals(item.itemCategory, undefined);
-  assertEquals(item.itemPrice, undefined);
-  assertEquals(item.itemQuantity, undefined);
 
-  assertEquals(item.getErrorMessage(), ERROR_MESSAGE);
+  it("should ", () => {
+    expect(item.transactionId).toBe(transactionId);
+    expect(item.productName).toBe(productName);
+    expect(item.productSku).toBe(productSku);
+    expect(item.itemCategory).toBeUndefined();
+    expect(item.itemPrice).toBeUndefined();
+    expect(item.itemQuantity).toBeUndefined();
 
-  assertEquals(item.isReady(), false);
+    expect(item.getErrorMessage()).toBe(ERROR_MESSAGE);
 
-  const logManager = new FlagshipLogManager();
-  const logError = stub(logManager, "error");
+    expect(item.isReady()).toBeFalsy();
+  });
 
-  const config = new DecisionApiConfig("envId", "apiKey");
-  config.logManager = logManager;
-  item.config = config;
-  item.ds = SDK_APP;
   const visitorId = "visitorId";
-  item.visitorId = visitorId;
+  const config = new DecisionApiConfig("envId", "apiKey");
+  const logManager = new FlagshipLogManager();
+  const logError = jest.spyOn(logManager, "error");
 
-  assertEquals(item.isReady(), true);
-  // deno-lint-ignore no-explicit-any
+  it("should ", () => {
+    config.logManager = logManager;
+    item.config = config;
+    item.ds = SDK_APP;
+    item.visitorId = visitorId;
+    expect(item.isReady()).toBeTruthy();
+  });
+
   const apiKeys: any = {
     [VISITOR_ID_API_ITEM]: visitorId,
     [DS_API_ITEM]: SDK_APP,
@@ -59,81 +63,96 @@ Deno.test("test hit type Item", () => {
     [IC_API_ITEM]: productSku,
   };
 
-  assertEquals(item.toApiKeys(), apiKeys);
-
-  //test set itemCategory
-  const itemCategory = "itemCategory";
-  item.itemCategory = itemCategory;
-  assertEquals(item.itemCategory, itemCategory);
-
-  apiKeys[IV_API_ITEM] = itemCategory;
-
-  assertEquals(item.toApiKeys(), apiKeys);
-
-  item.itemCategory = "";
-  assertEquals(item.itemCategory, itemCategory);
-  assertEquals(logError.calls.length, 1);
-
-  //test set itemPrice
-  const itemPrice = 200.5;
-  item.itemPrice = itemPrice;
-  assertEquals(item.itemPrice, itemPrice);
-
-  apiKeys[IP_API_ITEM] = itemPrice;
-  assertEquals(item.toApiKeys(), apiKeys);
-
-  item.itemPrice = {} as number;
-  assertEquals(item.itemPrice, itemPrice);
-  assertEquals(logError.calls.length, 2);
-
-  //test set itemQuantity
-  const itemQuantity = 5;
-  item.itemQuantity = itemQuantity;
-  assertEquals(item.itemQuantity, itemQuantity);
-
-  apiKeys[IQ_API_ITEM] = itemQuantity;
-  assertEquals(item.toApiKeys(), apiKeys);
-
-  item.itemQuantity = 5.2;
-  assertEquals(item.itemQuantity, itemQuantity);
-  assertEquals(logError.calls.length, 3);
-
-  item.itemQuantity = {} as number;
-  assertEquals(item.itemQuantity, itemQuantity);
-  assertEquals(logError.calls.length, 4);
-
-  //log transactionId
-  item.transactionId = "";
-  assertEquals(item.transactionId, transactionId);
-  assertEquals(logError.calls.length, 5);
-
-  //log productName
-  item.productName = {} as string;
-  assertEquals(item.productName, productName);
-  assertEquals(logError.calls.length, 6);
-
-  //log productSku
-  item.productSku = "";
-  assertEquals(item.productSku, productSku);
-  assertEquals(logError.calls.length, 7);
-
-  //test log
-
-  const logParams = (message: string, tag: string) => ({
-    args: [message, tag],
-    self: logManager,
+  it("should ", () => {
+    expect(item.toApiKeys()).toEqual(apiKeys);
   });
 
-  assertEquals(logError.calls, [
-    logParams(sprintf(TYPE_ERROR, "itemCategory", "string"), "itemCategory"),
-    logParams(sprintf(TYPE_ERROR, "itemPrice", "number"), "itemPrice"),
-    logParams(
+  it("test set itemCategory", () => {
+    const itemCategory = "itemCategory";
+    item.itemCategory = itemCategory;
+    expect(item.itemCategory).toBe(itemCategory);
+
+    apiKeys[IV_API_ITEM] = itemCategory;
+
+    expect(item.toApiKeys()).toEqual(apiKeys);
+
+    item.itemCategory = "";
+    expect(logError).toHaveBeenCalledTimes(1);
+    expect(logError).toHaveBeenCalledWith(
+      sprintf(TYPE_ERROR, "itemCategory", "string"),
+      "itemCategory"
+    );
+    expect(item.itemCategory).toBe(itemCategory);
+  });
+
+  it("test set itemPrice", () => {
+    const itemPrice = 200.5;
+    item.itemPrice = itemPrice;
+    expect(item.itemPrice).toBe(itemPrice);
+
+    apiKeys[IP_API_ITEM] = itemPrice;
+    expect(item.toApiKeys()).toEqual(apiKeys);
+
+    item.itemPrice = {} as number;
+    expect(logError).toHaveBeenCalledTimes(1);
+    expect(logError).toHaveBeenCalledWith(
+      sprintf(TYPE_ERROR, "itemPrice", "number"),
+      "itemPrice"
+    );
+    expect(item.itemPrice).toBe(itemPrice);
+  });
+
+  it("test set itemQuantity", () => {
+    const itemQuantity = 5;
+    item.itemQuantity = itemQuantity;
+    expect(item.itemQuantity).toBe(itemQuantity);
+
+    apiKeys[IQ_API_ITEM] = itemQuantity;
+    expect(item.toApiKeys()).toEqual(apiKeys);
+
+    item.itemQuantity = 5.2;
+    expect(logError).toHaveBeenCalledTimes(1);
+    expect(logError).toHaveBeenCalledWith(
       sprintf(TYPE_INTEGER_ERROR, "itemQuantity", "integer"),
       "itemQuantity"
-    ),
-    logParams(sprintf(TYPE_ERROR, "itemQuantity", "integer"), "itemQuantity"),
-    logParams(sprintf(TYPE_ERROR, "transactionId", "string"), "transactionId"),
-    logParams(sprintf(TYPE_ERROR, "productName", "string"), "productName"),
-    logParams(sprintf(TYPE_ERROR, "productSku", "string"), "productSku"),
-  ]);
+    );
+    expect(item.itemQuantity).toBe(itemQuantity);
+
+    item.itemQuantity = {} as number;
+    expect(item.itemQuantity).toBe(itemQuantity);
+    expect(logError).toHaveBeenCalledWith(
+      sprintf(TYPE_ERROR, "itemQuantity", "integer"),
+      "itemQuantity"
+    );
+  });
+
+  it("log transactionId", () => {
+    item.transactionId = "";
+    expect(logError).toHaveBeenCalledTimes(1);
+    expect(logError).toHaveBeenCalledWith(
+      sprintf(TYPE_ERROR, "transactionId", "string"),
+      "transactionId"
+    );
+    expect(item.transactionId).toBe(transactionId);
+  });
+
+  it("log productName", () => {
+    item.productName = {} as string;
+    expect(logError).toHaveBeenCalledTimes(1);
+    expect(logError).toHaveBeenCalledWith(
+      sprintf(TYPE_ERROR, "productName", "string"),
+      "productName"
+    );
+    expect(item.productName).toBe(productName);
+  });
+
+  //log productSku
+  it("log productSku", () => {
+    item.productSku = "";
+    expect(logError).toBeCalledWith(
+      sprintf(TYPE_ERROR, "productSku", "string"),
+      "productSku"
+    );
+    expect(item.productSku).toBe(productSku);
+  });
 });
