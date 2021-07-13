@@ -1,6 +1,6 @@
-import { assertEquals, Stub, stub } from "../../deps.ts";
-import { ConfigManager, DecisionApiConfig } from "../../src/config/index.ts";
-import { ApiManager } from "../../src/decision/ApiManager.ts";
+import { jest, expect, it, describe } from "@jest/globals";
+import { ConfigManager, DecisionApiConfig } from "../../src/config/index";
+import { ApiManager } from "../../src/decision/ApiManager";
 import {
   BASE_API_URL,
   EXPOSE_ALL_KEYS,
@@ -12,14 +12,15 @@ import {
   SDK_LANGUAGE,
   SDK_VERSION,
   URL_CAMPAIGNS,
-} from "../../src/enum/index.ts";
-import { DenoHttpClient } from "../../src/utils/denoHttpClient.ts";
-import { Visitor } from "../../src/visitor/Visitor.ts";
-import { campaigns } from "./campaigns.ts";
+} from "../../src/enum/index";
+import { IHttpResponse } from "../../src/utils/httpClient";
+import { NodeHttpClient } from "../../src/utils/NodeHttpClient";
+import { Visitor } from "../../src/visitor/Visitor";
+import { campaigns } from "./campaigns";
 
-Deno.test("test ApiManager", async () => {
-  const httpClient = new DenoHttpClient();
-  const postAsync: Stub<DenoHttpClient> = stub(httpClient, "postAsync");
+describe("test ApiManager", () => {
+  const httpClient = new NodeHttpClient();
+  const postAsync = jest.spyOn(httpClient, "postAsync");
   const config = new DecisionApiConfig("envId", "apiKey");
   const apiManager = new ApiManager(httpClient, config);
 
@@ -28,40 +29,11 @@ Deno.test("test ApiManager", async () => {
 
   const visitor = new Visitor(visitorId, context, {} as ConfigManager);
 
-  const panicModeResponse = new Promise((resolve) =>
-    resolve({ status: 200, body: { panic: true } })
-  );
+  const panicModeResponse = { status: 200, body: { panic: true } };
 
-  const campaignResponse = new Promise((resolve) =>
-    resolve({ status: 200, body: campaigns })
-  );
+  const campaignResponse = { status: 200, body: campaigns };
 
-  const responseError = new Promise((_, reject) =>
-    reject({ status: 200, body: campaigns })
-  );
-
-  postAsync.returns = [panicModeResponse, campaignResponse, responseError];
-
-  //test panic mode
-  let modifications = await apiManager.getCampaignsModificationsAsync(visitor);
-
-  assertEquals(modifications.size, 0);
-  assertEquals(apiManager.isPanic(), true);
-
-  //test panic campaign
-  modifications = await apiManager.getCampaignsModificationsAsync(visitor);
-
-  assertEquals(postAsync.calls.length, 2);
-
-  assertEquals(modifications.size, 4);
-  assertEquals(modifications.get("array")?.value, [1, 1, 1]);
-  assertEquals(modifications.get("object")?.value, { value: 123456 });
-
-  //Test error
-  modifications = await apiManager.getCampaignsModificationsAsync(visitor);
-
-  assertEquals(postAsync.calls.length, 3);
-  assertEquals(modifications.size, 0);
+  const responseError: IHttpResponse = { status: 400, body: null };
 
   //Test http request data
   const headers = {
@@ -72,37 +44,49 @@ Deno.test("test ApiManager", async () => {
   };
   const postData = {
     visitorId: visitor.visitorId,
-    // deno-lint-ignore camelcase
     trigger_hit: false,
     context: visitor.context,
   };
-  const url =
-    `${BASE_API_URL}${config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`;
+  const url = `${BASE_API_URL}${config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`;
 
-  assertEquals(postAsync.calls, [
-    {
-      args: [
-        url,
-        { headers: headers, timeout: config.timeout, body: postData },
-      ],
-      returned: panicModeResponse,
-      self: httpClient,
-    },
-    {
-      args: [
-        url,
-        { headers: headers, timeout: config.timeout, body: postData },
-      ],
-      returned: campaignResponse,
-      self: httpClient,
-    },
-    {
-      args: [
-        url,
-        { headers: headers, timeout: config.timeout, body: postData },
-      ],
-      returned: responseError,
-      self: httpClient,
-    },
-  ]);
+  it("test panic mode ", async () => {
+    postAsync.mockResolvedValue(panicModeResponse);
+    const modifications = await apiManager.getCampaignsModificationsAsync(
+      visitor
+    );
+    expect(postAsync).toHaveBeenCalledWith(url, {
+      headers: headers,
+      timeout: config.timeout,
+      body: postData,
+    });
+    expect(modifications.size).toBe(0);
+    expect(apiManager.isPanic()).toBeTruthy();
+  });
+
+  it("test campaign", async () => {
+    postAsync.mockResolvedValue(campaignResponse);
+
+    const modifications = await apiManager.getCampaignsModificationsAsync(
+      visitor
+    );
+
+    expect(postAsync).toHaveBeenCalledWith(url, {
+      headers: headers,
+      timeout: config.timeout,
+      body: postData,
+    });
+
+    expect(modifications.size).toBe(4);
+    expect(modifications.get("array").value).toEqual([1, 1, 1]);
+    expect(modifications.get("object").value).toEqual({ value: 123456 });
+  });
+
+  it("Test error ", async () => {
+    postAsync.mockRejectedValue(responseError);
+    const modifications = await apiManager.getCampaignsModificationsAsync(
+      visitor
+    );
+    expect(postAsync).toHaveBeenCalledTimes(1);
+    expect(modifications.size).toBe(0);
+  });
 });
