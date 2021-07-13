@@ -1,5 +1,5 @@
 import { Modification } from "../../src/model/Modification";
-import { expect, it, describe, afterAll } from "@jest/globals";
+import { expect, it, describe } from "@jest/globals";
 
 describe("Test model Modification", () => {
   it("should ", () => {
