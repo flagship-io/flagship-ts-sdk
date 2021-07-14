@@ -10,12 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: flagship
+        working-directory: ./flagship
         
     strategy:
       matrix:
         node-version: [15.x]
     steps:
+      - run: ls
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2
