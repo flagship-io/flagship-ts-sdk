@@ -1,42 +1,42 @@
-import { IHttpClient, IHttpOptions, IHttpResponse } from "./httpClient";
+import { IHttpClient, IHttpOptions, IHttpResponse } from './httpClient'
 
 export class DenoHttpClient implements IHttpClient {
-  public postAsync(url: string, options: IHttpOptions): Promise<IHttpResponse> {
+  public postAsync (url: string, options: IHttpOptions): Promise<IHttpResponse> {
     return new Promise<IHttpResponse>((resolve, reject) => {
-      const c = new AbortController();
-      const id = setTimeout(() => c.abort(), options.timeout);
+      const c = new AbortController()
+      const id = setTimeout(() => c.abort(), options.timeout)
       fetch(url, {
-        method: "POST",
+        method: 'POST',
         headers: options.headers,
         body: JSON.stringify(options.body),
-        signal: c.signal,
+        signal: c.signal
       })
         .then(async (response) => {
-          const applicationType = response.headers.get("Content-Type");
-          const checkJson = applicationType === "application/json";
+          const applicationType = response.headers.get('Content-Type')
+          const checkJson = applicationType === 'application/json'
           const body = checkJson
             ? await response.json()
-            : await response.text();
+            : await response.text()
 
           if (!response.ok) {
             reject({
               status: response.status,
-              body: body || response.statusText,
-            });
-            return;
+              body: body || response.statusText
+            })
+            return
           }
 
           resolve({
             status: response.status,
-            body: body,
-          });
+            body: body
+          })
         })
         .catch((error) => {
-          reject(error.message);
+          reject(error.message)
         })
         .finally(() => {
-          clearInterval(id);
-        });
-    });
+          clearInterval(id)
+        })
+    })
   }
 }

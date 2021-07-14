@@ -4,47 +4,48 @@ export class Modification {
   private _variationGroupId: string;
   private _variationId: string;
   private _isReference: boolean;
-  // deno-lint-ignore no-explicit-any
+  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _value: any;
 
-  constructor(
+  constructor (
     key: string,
     campaignId: string,
     variationGroupId: string,
     variationId: string,
     isReference: boolean,
-    value: unknown,
+    value: unknown
   ) {
-    this._key = key;
-    this._campaignId = campaignId;
-    this._variationGroupId = variationGroupId;
-    this._variationId = variationId;
-    this._isReference = isReference;
-    this._value = value;
+    this._key = key
+    this._campaignId = campaignId
+    this._variationGroupId = variationGroupId
+    this._variationId = variationId
+    this._isReference = isReference
+    this._value = value
   }
 
-  public get key(): string {
-    return this._key;
+  public get key (): string {
+    return this._key
   }
 
-  public get campaignId(): string {
-    return this._campaignId;
+  public get campaignId (): string {
+    return this._campaignId
   }
 
-  public get variationGroupId(): string {
-    return this._variationGroupId;
+  public get variationGroupId (): string {
+    return this._variationGroupId
   }
 
-  public get variationId(): string {
-    return this._variationId;
+  public get variationId (): string {
+    return this._variationId
   }
 
-  public get isReference(): boolean {
-    return this._isReference;
+  public get isReference (): boolean {
+    return this._isReference
   }
 
-  // deno-lint-ignore no-explicit-any
-  public get value(): any {
-    return this._value;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public get value (): any {
+    return this._value
   }
 }

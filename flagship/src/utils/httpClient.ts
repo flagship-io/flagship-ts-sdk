@@ -1,5 +1,5 @@
 export interface IHttpOptions {
-  // deno-lint-ignore no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   body?: any;
   headers?: Record<string, string>;
   timeout?: number;
@@ -7,7 +7,7 @@ export interface IHttpOptions {
 
 export interface IHttpResponse {
   status: number;
-  // deno-lint-ignore no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   body: any;
 }
 

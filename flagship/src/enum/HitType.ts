@@ -3,29 +3,29 @@ export enum HitType {
    * User has seen a URL
    *
    */
-  PAGE_VIEW = "PAGEVIEW",
+  PAGE_VIEW = 'PAGEVIEW',
 
   /**
    * User has seen a screen.
    *
    */
-  SCREEN_VIEW = "SCREENVIEW",
+  SCREEN_VIEW = 'SCREENVIEW',
 
   /**
    * User has made a transaction.
    *
    */
-  TRANSACTION = "TRANSACTION",
+  TRANSACTION = 'TRANSACTION',
 
   /**
    * Item bought in a transaction.
    *
    */
-  ITEM = "ITEM",
+  ITEM = 'ITEM',
 
   /**
    * User has made a specific action.
    *
    */
-  EVENT = "EVENT",
+  EVENT = 'EVENT',
 }

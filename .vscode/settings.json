@@ -6,5 +6,8 @@
   },
   "[javascript]": {
     "editor.defaultFormatter": null
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": null
   }
 }

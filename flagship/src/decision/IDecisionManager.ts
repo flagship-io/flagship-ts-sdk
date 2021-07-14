@@ -1,5 +1,5 @@
-import { Modification } from "../model/Modification";
-import { Visitor } from "../visitor/Visitor";
+import { Modification } from '../model/Modification'
+import { Visitor } from '../visitor/Visitor'
 
 export interface IDecisionManager {
   isPanic(): boolean;
