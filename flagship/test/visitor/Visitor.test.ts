@@ -21,11 +21,12 @@ import {
 import { Screen } from "../../src/hit/index";
 import { Modification } from "../../src/model/Modification";
 import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager";
-import { IHttpClient } from "../../src/utils/httpClient";
 import { sprintf } from "../../src/utils/utils";
 import { Visitor } from "../../src/visitor/Visitor";
 import { returnModification } from "./modification";
 import { NodeHttpClient } from "../../src/utils/NodeHttpClient";
+import { IHttpResponse, IHttpOptions } from "../../src/utils/httpClient";
+import { Mock } from "jest-mock";
 
 // deno-lint-ignore no-explicit-any
 const getNull = (): any => {
@@ -44,7 +45,12 @@ describe("test visitor", () => {
 
   const httpClient = new NodeHttpClient();
 
-  httpClient.postAsync = jest.fn();
+  const post: Mock<
+    Promise<IHttpResponse>,
+    [url: string, options: IHttpOptions]
+  > = jest.fn();
+  httpClient.postAsync = post;
+  post.mockResolvedValue({} as IHttpResponse);
 
   const apiManager = new ApiManager(httpClient, config);
 
