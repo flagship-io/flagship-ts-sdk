@@ -274,7 +274,7 @@ export class Visitor {
    */
   public async synchronizeModifications(): Promise<void> {
     const modifications =
-      await this.configManager.decisionManager?.getCampaignsModificationsAsync(
+      await this.configManager.decisionManager.getCampaignsModificationsAsync(
         this
       );
     this._modifications = modifications;
