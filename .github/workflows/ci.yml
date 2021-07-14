@@ -6,12 +6,12 @@ on:
   pull_request:
     branches: [main]
 
+defaults:
+  run:
+    working-directory: ./flagship/
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./flagship/
 
     strategy:
       matrix:
