@@ -14,7 +14,7 @@ jobs:
         
     strategy:
       matrix:
-        node-version: [15.x]
+        node-version: [6.x, 10.x, 12.x, 14.x, 15.x]
     steps:
       - uses: actions/checkout@v2
       - run : ls
@@ -24,4 +24,4 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "yarn"
       - run: yarn install
-      - run: yarn test
+      - run: yarn test --silent=true
