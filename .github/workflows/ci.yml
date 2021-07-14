@@ -17,7 +17,7 @@ jobs:
         node-version: [15.x]
     steps:
       - uses: actions/checkout@v2
-        working-directory: ./flagship
+      - run : ls
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
