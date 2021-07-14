@@ -9,7 +9,7 @@ const {
   Page,
   Screen,
   Transaction,
-} = require('../../dist/index.node.js');
+} = require('flagship');
 const { API_KEY, ENV_ID } = require("./env.js");
 
 const config = new DecisionApiConfig();
