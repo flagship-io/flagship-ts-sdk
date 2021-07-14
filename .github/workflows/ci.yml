@@ -20,6 +20,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "yarn"
-        working-directory: ./flagship
       - run: yarn install
+        working-directory: ./flagship
       - run: yarn test
+        working-directory: ./flagship
