@@ -66,9 +66,9 @@ describe("test ApiManager", () => {
   it("test campaign", async () => {
     postAsync.mockResolvedValue(campaignResponse);
 
-    const modifications = await apiManager.getCampaignsModificationsAsync(
+    const modifications = (await apiManager.getCampaignsModificationsAsync(
       visitor
-    );
+    )) 
 
     expect(postAsync).toHaveBeenCalledWith(url, {
       headers: headers,
@@ -77,8 +77,8 @@ describe("test ApiManager", () => {
     });
 
     expect(modifications.size).toBe(4);
-    expect(modifications.get("array").value).toEqual([1, 1, 1]);
-    expect(modifications.get("object").value).toEqual({ value: 123456 });
+    expect(modifications.get("array")?.value).toEqual([1, 1, 1]);
+    expect(modifications.get("object")?.value).toEqual({ value: 123456 });
   });
 
   it("Test error ", async () => {
