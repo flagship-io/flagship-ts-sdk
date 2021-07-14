@@ -1,7 +1,11 @@
 import { jest, expect, it, describe } from "@jest/globals";
 import { NodeHttpClient } from "../../src/utils/NodeHttpClient";
 import { IHttpOptions } from "../../src/utils/httpClient";
-import axios, { AxiosRequestConfig, AxiosResponse as R } from "axios";
+import axios, {
+  AxiosError,
+  AxiosRequestConfig,
+  AxiosResponse as R,
+} from "axios";
 import { Mock } from "jest-mock";
 
 describe("test denoHttpClient", () => {
@@ -34,15 +38,20 @@ describe("test denoHttpClient", () => {
     });
   });
 
-  it("should ", () => {
-    axiosPost.mockRejectedValue({
-      data: null,
-      status: 400,
-      statusText: "error",
-    });
-    nodeHttpClient.postAsync(url, options).catch((error) => {
-      expect(error.status).toBe(400);
-      expect(error.body).toBe("error");
-    });
+  it("should ", async () => {
+    const error: AxiosError = {
+      config: {},
+      isAxiosError: true,
+      toJSON: jest.fn(),
+      name: "error",
+      message: "error",
+    };
+    axiosPost.mockRejectedValue(error);
+    try {
+      await nodeHttpClient.postAsync(url, options);
+      expect(axiosPost).toBeCalledTimes(1);
+    } catch (error) {
+      expect(error).toBe("error");
+    }
   });
 });
