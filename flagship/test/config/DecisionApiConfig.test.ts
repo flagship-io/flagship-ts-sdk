@@ -1,6 +1,5 @@
 import { jest, expect, it, describe } from "@jest/globals";
-import { DecisionMode } from "../../src/config/FlagshipConfig";
-import { DecisionApiConfig } from "../../src/config/index";
+import { DecisionApiConfig, DecisionMode } from "../../src/config/index";
 import {
   FlagshipStatus,
   LogLevel,
