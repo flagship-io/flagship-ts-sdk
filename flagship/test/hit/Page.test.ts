@@ -41,6 +41,7 @@ describe("test hit type Page", () => {
     expect(page.isReady()).toBeTruthy();
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const apiKeys: any = {
     [VISITOR_ID_API_ITEM]: visitorId,
     [DS_API_ITEM]: SDK_APP,

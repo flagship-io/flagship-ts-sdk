@@ -1,4 +1,4 @@
-import { jest, expect, it, describe } from "@jest/globals";
+import { expect, it, describe } from "@jest/globals";
 import { DecisionApiConfig, DecisionMode } from "../../src/config/index";
 import {
   FlagshipStatus,
@@ -48,7 +48,9 @@ describe("test DecisionApiConfig", () => {
     config.setStatusChangedCallback(func);
     expect(config.getStatusChangedCallback()).toBeUndefined();
 
-    const func2 = (_status: FlagshipStatus) => {};
+    const func2 = () => {
+      //
+    };
     config.setStatusChangedCallback(func2);
 
     expect(config.getStatusChangedCallback()).toBe(func2);

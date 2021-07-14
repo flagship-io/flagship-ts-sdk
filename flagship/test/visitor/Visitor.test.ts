@@ -28,13 +28,14 @@ import { NodeHttpClient } from "../../src/utils/NodeHttpClient";
 import { IHttpResponse, IHttpOptions } from "../../src/utils/httpClient";
 import { Mock } from "jest-mock";
 
-// deno-lint-ignore no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getNull = (): any => {
   return null;
 };
 
 describe("test visitor", () => {
   const visitorId = "visitorId";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const context: any = {};
 
   const logManager = new FlagshipLogManager();

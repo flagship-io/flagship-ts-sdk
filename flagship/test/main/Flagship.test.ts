@@ -88,6 +88,7 @@ describe("test Flagship with custom config", () => {
   });
 });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getNull = (): any => {
   return null;
 };

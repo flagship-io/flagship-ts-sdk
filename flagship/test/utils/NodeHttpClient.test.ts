@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { jest, expect, it, describe } from "@jest/globals";
 import { NodeHttpClient } from "../../src/utils/NodeHttpClient";
 import { IHttpOptions } from "../../src/utils/httpClient";
 import axios, {
   AxiosError,
   AxiosRequestConfig,
-  AxiosResponse as R,
 } from "axios";
 import { Mock } from "jest-mock";
 

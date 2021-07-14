@@ -18,7 +18,7 @@ import {
 import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager";
 import { sprintf } from "../../src/utils/utils";
 
-// deno-lint-ignore no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getNull = (): any => {
   return null;
 };
@@ -76,6 +76,7 @@ describe("test hit type Event", () => {
     expect(event.isReady()).toBeTruthy();
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const apiKeys: any = {
     [VISITOR_ID_API_ITEM]: visitorId,
     [DS_API_ITEM]: SDK_APP,

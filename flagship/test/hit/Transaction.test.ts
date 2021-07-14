@@ -59,6 +59,7 @@ describe("test hit type Transaction", () => {
     expect(transaction.isReady()).toBeTruthy();
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const apiKeys: any = {
     [VISITOR_ID_API_ITEM]: visitorId,
     [DS_API_ITEM]: SDK_APP,
@@ -72,10 +73,6 @@ describe("test hit type Transaction", () => {
     expect(transaction.toApiKeys()).toEqual(apiKeys);
   });
 
-  const logParams = (message: string, tag: string) => ({
-    args: [message, tag],
-    self: logManager,
-  });
 
   it("test set couponCode", () => {
     const couponCode = "couponCode";
