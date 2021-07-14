@@ -2,37 +2,23 @@ name: CI
 
 on:
   push:
-    branches: [main, feature/testing]
+    branches: [main, node]
   pull_request:
     branches: [main]
 
 jobs:
-  test:
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        working-directory: ./flagship
+  build:
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        deno: ["v1.x", "canary"]
-        os: [ubuntu-latest]
-
+        node-version: [6.x, 10.x, 12.x, 14.x 15.x]
     steps:
-      - name: Setup repo
-        uses: actions/checkout@v2
-
-      - name: Setup Deno
-
-        uses: denoland/setup-deno@4a4e59637fa62bd6c086a216c7e4c5b457ea9e79
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
         with:
-          deno-version: ${{ matrix.deno }}
-
-      - name: Run linter
-        run: deno lint
-
-      - name: Cache dependencies
-        run: deno cache deps.ts
-
-      - name: Run tests
-        run: deno test -A --unstable --allow-read
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+      - run: yarn install
+      - run: yarn test
