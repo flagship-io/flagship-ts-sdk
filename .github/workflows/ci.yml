@@ -5,18 +5,18 @@ on:
     branches: [main, node]
   pull_request:
     branches: [main]
-
-defaults:
-  run:
-    working-directory: ./flagship/
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: ./flagship
+        
     strategy:
       matrix:
         node-version: [15.x]
     steps:
+      - working-directory: ./flagship
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2
