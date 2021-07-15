@@ -12,5 +12,6 @@ export class VariationDTO {
 
 export class ModificationsDTO {
   public type = "";
-  public value: Map<string, unknown> = new Map<string, unknown>();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public value:any;
 }
