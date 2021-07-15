@@ -1,16 +1,5 @@
-const {
-  DecisionApiConfig,
-  Event,
-  EventCategory,
-  Flagship,
-  FlagshipStatus,
-  Item,
-  LogLevel,
-  Page,
-  Screen,
-  Transaction,
-} = require('flagship');
-const { API_KEY, ENV_ID } = require("./env.js");
+import { DecisionApiConfig, Event, EventCategory, Flagship, FlagshipStatus, Item, LogLevel, Page, Screen, Transaction } from 'flagship';
+import { API_KEY, ENV_ID } from "./env.js";
 
 const config = new DecisionApiConfig();
 config.logLevel = LogLevel.ERROR;
@@ -28,7 +17,7 @@ const visitor = Flagship.newVisitor(`visitor_1`);
     console.log(visitor.getModification("object", {}));
     visitor.activateModification("object");
 
-    visitor.getModificationInfoAsync("object").then((r) => {
+    visitor.getModificationInfoAsync("keyString").then((r) => {
       console.log("r", r);
     });
 
