@@ -92,9 +92,10 @@ export class Visitor {
       return
     }
 
-    Object.entries(context).forEach(([key, value]) => {
-      this.updateContextKeyValue(key, value)
-    })
+    for (const key in context) {
+        const value = context[key];
+        this.updateContextKeyValue(key, value)
+    }
   }
 
   /**
