@@ -15,7 +15,8 @@
     "lint:fix": "eslint . --ext .ts --fix",
     "lint": "eslint . --ext .ts",
     "test": "jest",
-    "build": "webpack"
+    "build": "webpack",
+    "postbuild": "node denoTrans.mjs"
   },
   "devDependencies": {
     "@babel/core": "^7.14.6",

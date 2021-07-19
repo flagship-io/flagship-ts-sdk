@@ -5,3 +5,4 @@ flagship/node_modules/*
 dist
 coverage
 flagship/demo/node_modules/*
+flagship/demo/src/config.js
