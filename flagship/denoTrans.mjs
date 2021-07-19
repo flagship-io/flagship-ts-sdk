@@ -87,8 +87,8 @@ function transformFile(filePath, dirPath, packageResolves = null) {
       }
     }
 
-    mkdirSync(`deno/${dirPath}`, { recursive: true });
-    writeFile(path.resolve(`deno/${filePath}`), content, (writeErr) => {
+    mkdirSync(`dist-deno/${dirPath}`, { recursive: true });
+    writeFile(path.resolve(`dist-deno/${filePath}`), content, (writeErr) => {
       if (writeErr) {
         console.log("err", writeErr);
       }
