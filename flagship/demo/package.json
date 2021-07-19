@@ -8,7 +8,7 @@
     "flagship": "file:../"
   },
   "scripts": {
-    "build": "babel src -d dist",
+    "build": "babel node -d dist",
     "start": "node dist/DemoFlagship.js"
   },
   "devDependencies": {

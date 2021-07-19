@@ -9,7 +9,7 @@ import {
   Page,
   Screen,
   Transaction,
-} from "../../deno/src/mod.ts";
+} from "../../dist/index.node";
 import { API_KEY, ENV_ID } from "./config.js";
 
 const config = new DecisionApiConfig();
