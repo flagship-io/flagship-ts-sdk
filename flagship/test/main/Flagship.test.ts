@@ -1,112 +1,103 @@
-import { jest, expect, it, describe } from "@jest/globals";
-import { ConfigManager, DecisionApiConfig } from "../../src/config/index";
+import { assertEquals, assertExists, stub } from "../../deps.ts";
+import { ConfigManager, DecisionApiConfig } from "../../src/config/index.ts";
 import {
   FlagshipStatus,
   INITIALIZATION_PARAM_ERROR,
   PROCESS_INITIALIZATION,
   SDK_STARTED_INFO,
   SDK_VERSION,
-} from "../../src/enum/index";
-import { Flagship } from "../../src/main/Flagship";
-import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager";
-import { sprintf } from "../../src/utils/utils";
+} from "../../src/enum/index.ts";
+import { Flagship } from "../../src/main/Flagship.ts";
+import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager.ts";
+import { sprintf } from "../../src/utils/utils.ts";
 
-describe("test Flagship class", () => {
+Deno.test("test Flagship class", () => {
   const envId = "envId";
   const apiKey = "apiKey";
+  Flagship.start(envId, apiKey);
 
-  it("should ", () => {
-    Flagship.start(envId, apiKey);
+  assertExists(Flagship.getConfig());
+  assertEquals(Flagship.getConfig() instanceof DecisionApiConfig, true);
 
-    expect(Flagship.getConfig()).toBeDefined();
-    expect(Flagship.getConfig()).toBeInstanceOf(DecisionApiConfig);
-
-    expect(Flagship.getConfig().envId).toBe(envId);
-    expect(Flagship.getConfig().apiKey).toBe(apiKey);
-    expect(Flagship.getConfig().logManager).toBeDefined();
-    expect(Flagship.getStatus()).toBe(FlagshipStatus.READY);
-    expect(Flagship.getConfig().logManager).toBeInstanceOf(FlagshipLogManager);
-  });
+  assertEquals(Flagship.getConfig().envId, envId);
+  assertEquals(Flagship.getConfig().apiKey, apiKey);
+  assertExists(Flagship.getConfig().logManager);
+  assertEquals(Flagship.getStatus(), FlagshipStatus.READY);
+  assertEquals(
+    Flagship.getConfig().logManager instanceof FlagshipLogManager,
+    true
+  );
 });
 
-describe("test Flagship with custom config", () => {
+Deno.test("test Flagship with custom config", () => {
   const envId = "envId";
   const apiKey = "apiKey";
 
   const config = new DecisionApiConfig();
-  it("should ", () => {
-    let countStatus = 0;
-    config.setStatusChangedCallback((status) => {
-      switch (countStatus) {
-        case 0:
-          expect(status).toBe(FlagshipStatus.NOT_READY);
-          break;
-        case 1:
-          expect(status).toBe(FlagshipStatus.READY);
-          break;
-        case 2:
-          expect(status).toBe(FlagshipStatus.NOT_READY);
-          break;
+  let countStatus = 0;
+  config.setStatusChangedCallback((status) => {
+    switch (countStatus) {
+      case 0:
+        assertEquals(status, FlagshipStatus.NOT_READY);
+        break;
+      case 1:
+        assertEquals(status, FlagshipStatus.READY);
+        break;
+      case 2:
+        assertEquals(status, FlagshipStatus.NOT_READY);
+        break;
 
-        default:
-          break;
-      }
-      countStatus++;
-    });
+      default:
+        break;
+    }
+    countStatus++;
   });
-
   const logManager = new FlagshipLogManager();
-  const errorLog = jest.spyOn(logManager, "error");
-  const infoLog = jest.spyOn(logManager, "info");
+  const errorLog = stub(logManager, "error");
+  const infoLog = stub(logManager, "info");
   config.logManager = logManager;
+  Flagship.start(envId, apiKey, config);
 
-  it("should ", () => {
-    Flagship.start(envId, apiKey, config);
-    expect(Flagship.getConfig()).toBeDefined();
-    expect(Flagship.getConfig()).toBe(config);
-    expect(Flagship.getConfig().envId).toBe(envId);
-    expect(Flagship.getConfig().apiKey).toBe(apiKey);
-    expect(Flagship.getConfig().logManager).toBe(logManager);
+  assertExists(Flagship.getConfig());
+  assertEquals(Flagship.getConfig(), config);
+  assertEquals(Flagship.getConfig().envId, envId);
+  assertEquals(Flagship.getConfig().apiKey, apiKey);
+  assertEquals(Flagship.getConfig().logManager, logManager);
 
-    expect(Flagship.getStatus()).toBe(FlagshipStatus.READY);
+  assertEquals(Flagship.getStatus(), FlagshipStatus.READY);
 
-    expect(infoLog).toBeCalledTimes(1);
-    expect(infoLog).toBeCalledWith(
-      sprintf(SDK_STARTED_INFO, SDK_VERSION),
-      PROCESS_INITIALIZATION
-    );
-  });
+  assertEquals(infoLog.calls, [
+    {
+      args: [sprintf(SDK_STARTED_INFO, SDK_VERSION), PROCESS_INITIALIZATION],
+      self: logManager,
+    },
+  ]);
 
-  it("should ", () => {
-    Flagship.start("", "", config);
-    expect(Flagship.getStatus()).toBe(FlagshipStatus.NOT_READY);
-    expect(errorLog).toBeCalledTimes(1);
-    expect(errorLog).toBeCalledWith(
-      INITIALIZATION_PARAM_ERROR,
-      PROCESS_INITIALIZATION
-    );
-  });
+  Flagship.start("", "", config);
+  assertEquals(Flagship.getStatus(), FlagshipStatus.NOT_READY);
+
+  assertEquals(errorLog.calls, [
+    {
+      args: [INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION],
+      self: logManager,
+    },
+  ]);
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// deno-lint-ignore no-explicit-any
 const getNull = (): any => {
   return null;
 };
 
-describe("test Flagship newVisitor", () => {
-  it("should ", () => {
-    Flagship.start("envId", "apiKey");
-    const visitorId = "visitorId";
-    const context = { isVip: true };
-    const visitor = Flagship.newVisitor(visitorId, context);
-    expect(visitor?.visitorId).toBe(visitorId);
-    expect(visitor?.context).toEqual(context);
-    expect(visitor?.configManager).toBeInstanceOf(ConfigManager);
+Deno.test("test Flagship newVisitor", () => {
+  Flagship.start("envId", "apiKey");
+  const visitorId = "visitorId";
+  const context = { isVip: true };
+  const visitor = Flagship.newVisitor(visitorId, context);
+  assertEquals(visitor?.visitorId, visitorId);
+  assertEquals(visitor?.context, context);
+  assertEquals(visitor?.configManager instanceof ConfigManager, true);
 
-    const visitorNull = Flagship.newVisitor(getNull(), context);
-    expect(visitorNull).toBeNull();
-
-    const newVisitor = Flagship.newVisitor(visitorId);
-    expect(newVisitor?.context).toEqual({});
-  });
+  const visitorNull = Flagship.newVisitor(getNull(), context);
+  assertEquals(visitorNull, null);
 });

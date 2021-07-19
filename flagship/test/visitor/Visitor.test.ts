@@ -1,7 +1,7 @@
-import { jest, expect, it, describe } from "@jest/globals";
-import { TrackingManager } from "../../src/api/TrackingManager";
-import { ConfigManager, DecisionApiConfig } from "../../src/config/index";
-import { ApiManager } from "../../src/decision/ApiManager";
+import { assertEquals, assertExists, stub } from "../../deps.ts";
+import { TrackingManager } from "../../src/api/TrackingManager.ts";
+import { ConfigManager, DecisionApiConfig } from "../../src/config/index.ts";
+import { ApiManager } from "../../src/decision/ApiManager.ts";
 import {
   CONTEXT_NULL_ERROR,
   CONTEXT_PARAM_ERROR,
@@ -17,175 +17,153 @@ import {
   PROCESS_UPDATE_CONTEXT,
   TRACKER_MANAGER_MISSING_ERROR,
   VISITOR_ID_ERROR,
-} from "../../src/enum/index";
-import { Screen } from "../../src/hit/index";
-import { Modification } from "../../src/model/Modification";
-import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager";
-import { sprintf } from "../../src/utils/utils";
-import { Visitor } from "../../src/visitor/Visitor";
-import { returnModification } from "./modification";
-import { HttpClient } from "../../src/utils/NodeHttpClient";
-import { IHttpResponse, IHttpOptions } from "../../src/utils/httpClient";
-import { Mock } from "jest-mock";
+} from "../../src/enum/index.ts";
+import { Screen } from "../../src/hit/index.ts";
+import { Modification } from "../../src/model/Modification.ts";
+import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager.ts";
+import { IHttpClient } from "../../src/utils/httpClient.ts";
+import { sprintf } from "../../src/utils/utils.ts";
+import { Visitor } from "../../src/visitor/Visitor.ts";
+import { returnModification } from "./modification.ts";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// deno-lint-ignore no-explicit-any
 const getNull = (): any => {
   return null;
 };
 
-describe("test visitor", () => {
+Deno.test("test visitor", async () => {
   const visitorId = "visitorId";
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // deno-lint-ignore no-explicit-any
   const context: any = {};
 
   const logManager = new FlagshipLogManager();
-  const logError = jest.spyOn(logManager, "error");
+  const logError = stub(logManager, "error");
 
   const config = new DecisionApiConfig("envId", "apiKey");
   config.logManager = logManager;
 
-  const httpClient = new HttpClient();
+  const apiManager = new ApiManager({} as IHttpClient, config);
 
-  const post: Mock<
-    Promise<IHttpResponse>,
-    [url: string, options: IHttpOptions]
-  > = jest.fn();
-  httpClient.postAsync = post;
-  post.mockResolvedValue({} as IHttpResponse);
-
-  const apiManager = new ApiManager(httpClient, config);
-
-  const getCampaignsModificationsAsync = jest.spyOn(
+  const getCampaignsModificationsAsync = stub(
     apiManager,
     "getCampaignsModificationsAsync"
   );
 
-  const isPanic = jest.spyOn(apiManager, "isPanic");
+  const isPanic = stub(apiManager, "isPanic");
 
-  const trackingManager = new TrackingManager(httpClient, config);
+  const trackingManager = new TrackingManager({} as IHttpClient, config);
 
-  const sendActive = jest.spyOn(trackingManager, "sendActive");
-  const sendHit = jest.spyOn(trackingManager, "sendHit");
+  const sendActive = stub(trackingManager, "sendActive");
+  const sendHit = stub(trackingManager, "sendHit");
 
   const configManager = new ConfigManager(config, apiManager, trackingManager);
 
   const visitor = new Visitor(visitorId, context, configManager);
 
-  it("should ", () => {
-    expect(visitor.visitorId).toBe(visitorId);
-    expect(visitor.config).toBe(config);
-    expect(visitor.configManager).toBe(configManager);
-    expect(visitor.context).toEqual({});
-    expect(visitor.modifications).toBeDefined();
-    expect(visitor.modifications.size).toBe(0);
+  assertEquals(visitor.visitorId, visitorId);
+  assertEquals(visitor.config, config);
+  assertEquals(visitor.configManager, configManager);
+  assertEquals(visitor.context, {});
+  assertExists(visitor.modifications);
+  assertEquals(visitor.modifications.size, 0);
+
+  //test invalid visitor id
+  visitor.visitorId = {} as string;
+  assertEquals(visitor.visitorId, visitorId);
+
+  visitor.visitorId = getNull();
+  assertEquals(visitor.visitorId, visitorId);
+
+  visitor.visitorId = "";
+  assertEquals(visitor.visitorId, visitorId);
+
+  const logParams = (message: string, tag: string) => ({
+    args: [message, tag],
+    self: logManager,
   });
 
-  it("test invalid visitor id", () => {
-    visitor.visitorId = {} as string;
-    expect(visitor.visitorId).toBe(visitorId);
-    expect(logError).toBeCalledTimes(1);
-    expect(logError).toBeCalledWith(VISITOR_ID_ERROR, "VISITOR ID");
+  const visitorLog = logParams(VISITOR_ID_ERROR, "VISITOR ID");
 
-    visitor.visitorId = getNull();
-    expect(visitor.visitorId).toBe(visitorId);
-    expect(logError).toBeCalledTimes(2);
-    expect(logError).toBeCalledWith(VISITOR_ID_ERROR, "VISITOR ID");
-
-    visitor.visitorId = "";
-    expect(visitor.visitorId).toBe(visitorId);
-    expect(logError).toBeCalledTimes(3);
-    expect(logError).toBeCalledWith(VISITOR_ID_ERROR, "VISITOR ID");
-  });
-
+  //test updateContextKeyValue
+  visitor.updateContextKeyValue("age", 20);
+  visitor.updateContextKeyValue("currency", "EUR");
+  visitor.updateContextKeyValue("isVip", true);
   const expectContext = { age: 20, currency: "EUR", isVip: true };
+  assertEquals(visitor.context, expectContext);
 
-  it("test updateContextKeyValue", () => {
-    visitor.updateContextKeyValue("age", 20);
-    visitor.updateContextKeyValue("currency", "EUR");
-    visitor.updateContextKeyValue("isVip", true);
+  //test updateContextKeyValue invalid value
+  const keyNewField = "newField";
+  visitor.updateContextKeyValue(keyNewField, {} as string);
 
-    expect(visitor.context).toEqual(expectContext);
-  });
+  //test updateContextKeyValue invalid key
+  visitor.updateContextKeyValue({} as string, "value");
 
-  it("test updateContextKeyValue invalid value", () => {
-    const keyNewField = "newField";
-    visitor.updateContextKeyValue(keyNewField, {} as string);
+  const updateContextKeyValueLog = logParams(
+    sprintf(CONTEXT_PARAM_ERROR, keyNewField),
+    PROCESS_UPDATE_CONTEXT
+  );
 
-    expect(visitor.context).toStrictEqual(expectContext);
-    expect(logError).toBeCalledTimes(1);
-    expect(logError).toBeCalledWith(
-      sprintf(CONTEXT_PARAM_ERROR, keyNewField),
-      PROCESS_UPDATE_CONTEXT
-    );
-  });
+  const updateContextKeyValueLogKey = logParams(
+    sprintf(CONTEXT_PARAM_ERROR, {}),
+    PROCESS_UPDATE_CONTEXT
+  );
 
-  it("test updateContextKeyValue invalid key", () => {
-    visitor.updateContextKeyValue({} as string, "value");
-    expect(visitor.context).toStrictEqual(expectContext);
-    expect(logError).toBeCalledTimes(1);
-    expect(logError).toBeCalledWith(
-      sprintf(CONTEXT_PARAM_ERROR, {}),
-      PROCESS_UPDATE_CONTEXT
-    );
-  });
-
+  //test updateContext
   const newContext = {
     local: "fr",
     color: "red",
   };
 
-  it("test updateContext", () => {
-    visitor.updateContext(newContext);
-    expect(visitor.context).toStrictEqual({ ...expectContext, ...newContext });
-  });
+  visitor.updateContext(newContext);
+  assertEquals(visitor.context, { ...expectContext, ...newContext });
 
-  it("test updateContext with null", () => {
-    visitor.updateContext(getNull());
-    expect(logError).toBeCalledTimes(1);
-    expect(visitor.context).toStrictEqual({ ...expectContext, ...newContext });
-    expect(logError).toBeCalledWith(CONTEXT_NULL_ERROR, PROCESS_UPDATE_CONTEXT);
-  });
+  //test updateContext with null
 
-  it("test set context", () => {
-    const setNewContext = {
-      "car-color": "blue",
-    };
-    visitor.context = setNewContext;
-    expect(visitor.context).toStrictEqual(setNewContext);
-  });
+  visitor.updateContext(getNull());
+  const updateContextLog = logParams(
+    CONTEXT_NULL_ERROR,
+    PROCESS_UPDATE_CONTEXT
+  );
 
-  it("test clear Context", () => {
-    visitor.clearContext();
-    expect(visitor.context).toEqual({});
-  });
+  //test set context
+  const setNewContext = {
+    "car-color": "blue",
+  };
+  visitor.context = setNewContext;
+  assertEquals(visitor.context, setNewContext);
 
-  it("test synchronizeModifications", async () => {
-    try {
-      getCampaignsModificationsAsync.mockResolvedValue(returnModification);
-      await visitor.synchronizeModifications();
-      expect(getCampaignsModificationsAsync).toBeCalledTimes(1);
-      expect(getCampaignsModificationsAsync).toBeCalledWith(visitor);
-    } catch (error) {
-      expect(logError).toBeCalled();
-    }
-  });
+  //test clear Context
+  visitor.clearContext();
+  assertEquals(visitor.context, {});
+
+  //test synchronizeModifications
+
+  getCampaignsModificationsAsync.returns = [returnModification];
+
+  await visitor.synchronizeModifications();
+
+  assertEquals(getCampaignsModificationsAsync.calls, [
+    {
+      args: [visitor],
+      self: apiManager,
+      returned: returnModification,
+    },
+  ]);
+
+  //test getModification
 
   const testModificationType = async <T>(
     key: string,
     defaultValue: T,
     activate = false
   ) => {
-    try {
-      const returnMod = returnModification.get(key) as Modification;
-      const modification = await visitor.getModificationAsync(
-        returnMod.key,
-        defaultValue,
-        activate
-      );
-      expect<T>(modification).toEqual(returnMod.value);
-    } catch (error) {
-      expect(logError).toBeCalled();
-    }
+    const returnMod = returnModification.get(key) as Modification;
+    const modification = await visitor.getModificationAsync(
+      returnMod.key,
+      defaultValue,
+      activate
+    );
+    assertEquals<T>(modification, returnMod.value);
   };
 
   const testModificationErrorCast = <T>(
@@ -199,12 +177,7 @@ describe("test visitor", () => {
       defaultValue,
       activate
     );
-    expect<T>(modification).toEqual(defaultValue);
-    expect(logError).toBeCalledTimes(1);
-    expect(logError).toBeCalledWith(
-      sprintf(GET_MODIFICATION_CAST_ERROR, key),
-      PROCESS_GET_MODIFICATION
-    );
+    assertEquals<T>(modification, defaultValue);
   };
 
   const testModificationWithDefault = <T>(
@@ -213,285 +186,211 @@ describe("test visitor", () => {
     activate = false
   ) => {
     const modification = visitor.getModification(key, defaultValue, activate);
-    expect<T>(modification).toEqual(defaultValue);
+    assertEquals<T>(modification, defaultValue);
   };
 
-  it("test getModification key string", () => {
-    testModificationType("keyString", "defaultString");
-  });
+  //key string
+  testModificationType("keyString", "defaultString");
 
-  it("test getModification key keyNumber", () => {
-    testModificationType("keyNumber", 10);
-  });
+  //key keyNumber
+  testModificationType("keyNumber", 10);
 
-  it("test getModification key keyBoolean", () => {
-    testModificationType("keyBoolean", false);
-  });
+  //key keyBoolean
+  testModificationType("keyBoolean", false);
 
-  it("test getModification key array", () => {
-    testModificationType("array", []);
-  });
+  //key array
+  testModificationType("array", []);
 
-  it("test getModification key object ", () => {
-    testModificationType("object", {});
-    testModificationType("complex", {});
-  });
+  //key object
+  testModificationType("object", {});
 
-  it("test getModificationAsync key string with default activate", async () => {
-    const returnMod = returnModification.get("keyString") as Modification;
-    const modification = await visitor.getModificationAsync(
-      returnMod.key,
-      "defaultValue"
-    );
-    expect<string>(modification).toEqual(returnMod.value);
-    expect(sendActive).toBeCalledTimes(0);
-  });
+  //key complex
+  testModificationType("complex", {});
 
-  it("test getModification key string with default activate", () => {
-    const returnMod = returnModification.get("keyString") as Modification;
-    const modification = visitor.getModification(returnMod.key, "defaultValue");
-    expect<string>(modification).toEqual(returnMod.value);
-    expect(sendActive).toBeCalledTimes(0);
-  });
+  //key string with activate
+  testModificationType("keyString", "defaultString", true);
 
-  it("test getModification key string with activate ", () => {
-    testModificationType("keyString", "defaultString", true);
-    expect(sendActive).toBeCalledTimes(1);
-    expect(sendActive).toBeCalledWith(
-      visitor,
-      returnModification.get("keyString")
-    );
-  });
+  const keyStringActivateParams = {
+    args: [visitor, returnModification.get("keyString")],
+    self: trackingManager,
+  };
 
+  //test key not exist
   const notExitKey = "notExitKey";
-  it("test getModification test key not exist", () => {
-    const notExitKey = "notExitKey";
-    testModificationWithDefault(notExitKey, "defaultValue");
-    expect(logError).toBeCalledTimes(1);
-    expect(logError).toBeCalledWith(
-      sprintf(GET_MODIFICATION_MISSING_ERROR, notExitKey),
+  testModificationWithDefault(notExitKey, "defaultValue");
+
+  const keyNotExistLog = logParams(
+    sprintf(GET_MODIFICATION_MISSING_ERROR, notExitKey),
+    PROCESS_GET_MODIFICATION
+  );
+
+  //test typeof key != defaultValue
+
+  const keyCastLog = (key: string) =>
+    logParams(
+      sprintf(GET_MODIFICATION_CAST_ERROR, key),
       PROCESS_GET_MODIFICATION
     );
-  });
 
-  it("test getModification test typeof value of key != defaultValue", () => {
-    testModificationErrorCast("keyString", 10);
-  });
+  testModificationErrorCast("keyString", 10);
 
-  it("test getModification test typeof value of key != defaultValue 2", () => {
-    testModificationErrorCast("array", 10);
-  });
+  testModificationErrorCast("array", 10);
 
-  it("test getModification test typeof value of key != defaultValue 3", () => {
-    testModificationErrorCast("array", {});
-  });
+  testModificationErrorCast("array", {});
+  testModificationErrorCast("object", []);
 
-  it("test getModification test typeof value of key != defaultValue 4", () => {
-    testModificationErrorCast("object", []);
-  });
+  //test typeof key != defaultValue with activate and modification value = null
+  testModificationErrorCast("keyNull", [], true);
 
-  it("test getModification test typeof value of key != defaultValue with activate and modification value = null", () => {
-    testModificationErrorCast("keyNull", [], true);
-    expect(sendActive).toBeCalledTimes(1);
-    expect(sendActive).toBeCalledWith(
-      visitor,
-      returnModification.get("keyNull")
-    );
-  });
+  const keyObjectActivateParams = {
+    args: [visitor, returnModification.get("keyNull")],
+    self: trackingManager,
+  };
 
-  it("test getModification test key == null or key != string ", () => {
-    testModificationWithDefault({} as string, "defaultValue");
-    expect(logError).toBeCalledTimes(1);
-    expect(logError).toBeCalledWith(
-      sprintf(GET_MODIFICATION_KEY_ERROR, {}),
-      PROCESS_GET_MODIFICATION
-    );
-  });
+  //test key == null or key != string
 
-  it("test getModification panic mode ", () => {
-    isPanic.mockReturnValue(true);
-    testModificationWithDefault("key", "defaultValue");
-    expect(logError).toBeCalledTimes(1);
-    expect(logError).toBeCalledWith(
-      sprintf(PANIC_MODE_ERROR, PROCESS_GET_MODIFICATION),
-      PROCESS_GET_MODIFICATION
-    );
-    isPanic.mockReturnValue(false);
-  });
+  testModificationWithDefault({} as string, "defaultValue");
 
+  const keyInvalid = logParams(
+    sprintf(GET_MODIFICATION_KEY_ERROR, {}),
+    PROCESS_GET_MODIFICATION
+  );
+
+  //test getModification panic mode
+
+  isPanic.returns = [true];
+
+  testModificationWithDefault("key", "defaultValue");
+
+  const panicModeLog = (functionName: string) =>
+    logParams(sprintf(PANIC_MODE_ERROR, functionName), functionName);
+
+  //test getModificationInfo
   const returnMod = returnModification.get("keyString") as Modification;
-  it("test getModificationInfo", () => {
-    const modification = visitor.getModificationInfo(returnMod.key);
-    expect(logError).toBeCalledTimes(0);
-    expect(modification).toBeDefined();
-    expect(modification).toEqual(returnMod);
-  });
+  let modification = visitor.getModificationInfo(returnMod.key);
+  assertEquals(modification, returnMod);
 
-  it("test key not exist in getModificationInfo", () => {
-    const modification = visitor.getModificationInfo(notExitKey);
-    expect(modification).toBeNull();
-    expect(logError).toBeCalledTimes(1);
-    expect(logError).toBeCalledWith(
-      sprintf(GET_MODIFICATION_ERROR, notExitKey),
-      PROCESS_GET_MODIFICATION_INFO
-    );
-  });
+  //test key not exist in getModificationInfo
+  modification = visitor.getModificationInfo(notExitKey);
+  assertEquals(modification, null);
 
-  it("test key is not valid in getModificationInfo", () => {
-    const modification = visitor.getModificationInfo(getNull());
-    expect(modification).toBeNull();
-    expect(logError).toBeCalledTimes(1);
-    expect(logError).toBeCalledWith(
-      sprintf(GET_MODIFICATION_KEY_ERROR, null),
-      PROCESS_GET_MODIFICATION_INFO
-    );
-  });
+  //test key is not valid in getModificationInfo
+  modification = visitor.getModificationInfo(getNull());
+  assertEquals(modification, null);
 
-  it("test panic mode getModificationInfo ", () => {
-    isPanic.mockReturnValue(true);
-    const modification = visitor.getModificationInfo(returnMod.key);
-    expect(modification).toBeNull();
-    expect(logError).toBeCalledTimes(1);
-    expect(logError).toBeCalledWith(
-      sprintf(PANIC_MODE_ERROR, PROCESS_GET_MODIFICATION_INFO),
-      PROCESS_GET_MODIFICATION_INFO
-    );
-    isPanic.mockReturnValue(false);
-  });
+  //test panic mode getModificationInfo
+  isPanic.returns = [true];
+  modification = visitor.getModificationInfo(returnMod.key);
+  assertEquals(modification, null);
 
-  it("test getModificationInfoAsync ", async () => {
-    try {
-      const modification = await visitor.getModificationInfoAsync(
-        returnMod.key
-      );
-      expect(modification).toEqual(returnMod);
-    } catch (error) {
-      expect(logError).toBeCalled();
-    }
-  });
+  const getKeyNotExistLog = (key: string, tag: string) =>
+    logParams(sprintf(GET_MODIFICATION_ERROR, key), tag);
 
-  it("test activateModification", () => {
-    visitor.activateModification(returnMod.key);
-    expect(sendActive).toBeCalledTimes(1);
-    expect(sendActive).toBeCalledWith(
-      visitor,
-      returnModification.get(returnMod.key)
-    );
-  });
+  const getKeyInvalidLog = (key: string, tag: string) =>
+    logParams(sprintf(GET_MODIFICATION_KEY_ERROR, key), tag);
 
-  it("test invalid key in activateModification", () => {
-    visitor.activateModification(getNull());
-    expect(sendActive).toBeCalledTimes(0);
-    expect(logError).toBeCalledTimes(1);
-    expect(logError).toBeCalledWith(
-      sprintf(GET_MODIFICATION_KEY_ERROR, getNull()),
-      PROCESS_ACTIVE_MODIFICATION
-    );
-  });
+  //test getModificationInfoAsync
 
-  it("test key not exist in activateModification", () => {
-    visitor.activateModification(notExitKey);
-    expect(sendActive).toBeCalledTimes(0);
-    expect(logError).toBeCalledTimes(1);
-    expect(logError).toBeCalledWith(
-      sprintf(GET_MODIFICATION_ERROR, notExitKey),
-      PROCESS_ACTIVE_MODIFICATION
-    );
-  });
+  modification = await visitor.getModificationInfoAsync(returnMod.key);
+  assertEquals(modification, returnMod);
 
-  it("test panic mode activateModification ", () => {
-    isPanic.mockReturnValue(true);
-    visitor.activateModification(returnMod.key);
-    expect(sendActive).toBeCalledTimes(0);
-    expect(logError).toBeCalledTimes(1);
-    expect(logError).toBeCalledWith(
-      sprintf(PANIC_MODE_ERROR, PROCESS_ACTIVE_MODIFICATION),
-      PROCESS_ACTIVE_MODIFICATION
-    );
-    isPanic.mockReturnValue(false);
-  });
+  // test activateModification
+  visitor.activateModification(returnMod.key);
 
-  it("test hasTrackingManager activateModification", () => {
-    configManager.trackingManager = getNull();
+  //test invalid key in activateModification
+  visitor.activateModification(getNull());
 
-    visitor.activateModification(returnMod.key);
+  //test key not exist in activateModification
+  visitor.activateModification(notExitKey);
 
-    expect(sendActive).toBeCalledTimes(0);
-    expect(logError).toBeCalledTimes(1);
-    expect(logError).toBeCalledWith(
-      TRACKER_MANAGER_MISSING_ERROR,
-      PROCESS_ACTIVE_MODIFICATION
-    );
+  //test panic mode activateModification
+  isPanic.returns = [true];
+  visitor.activateModification(returnMod.key);
 
-    configManager.trackingManager = trackingManager;
-  });
+  //test hasTrackingManager activateModification
 
-  it("test activateModificationAsync", async () => {
-    try {
-      await visitor.activateModificationAsync(returnMod.key);
-      expect(sendActive).toBeCalledTimes(1);
-      expect(sendActive).toBeCalledWith(
-        visitor,
-        returnModification.get(returnMod.key)
-      );
-    } catch (error) {
-      expect(logError).toBeCalled();
-    }
-  });
+  configManager.trackingManager = getNull();
 
+  visitor.activateModification(returnMod.key);
+
+  const trackingManagerCheck = (tag: string) =>
+    logParams(TRACKER_MANAGER_MISSING_ERROR, tag);
+
+  configManager.trackingManager = trackingManager;
+  //test activateModificationAsync
+
+  await visitor.activateModificationAsync(returnMod.key);
+
+  //test sendHit
   const hitScreen = new Screen("home");
 
-  it("test sendHit", () => {
-    visitor.sendHit(hitScreen);
-    expect(sendHit).toBeCalledTimes(1);
-    expect(sendHit).toBeCalledWith(hitScreen);
-  });
+  visitor.sendHit(hitScreen);
 
-  it("test hasTrackingManager activateModification", () => {
-    configManager.trackingManager = getNull();
-    visitor.sendHit(hitScreen);
+  //test hasTrackingManager activateModification
 
-    expect(sendHit).toBeCalledTimes(0);
-    expect(logError).toBeCalledTimes(1);
-    expect(logError).toBeCalledWith(
-      TRACKER_MANAGER_MISSING_ERROR,
-      PROCESS_SEND_HIT
-    );
+  configManager.trackingManager = getNull();
+  visitor.sendHit(hitScreen);
 
-    configManager.trackingManager = trackingManager;
-  });
+  configManager.trackingManager = trackingManager;
 
-  it("panic mode sendHit", () => {
-    isPanic.mockReturnValue(true);
-    visitor.sendHit(hitScreen);
+  //panic mode sendHit
+  isPanic.returns = [true];
+  visitor.sendHit(hitScreen);
 
-    expect(sendHit).toBeCalledTimes(0);
-    expect(logError).toBeCalledTimes(1);
-    expect(logError).toBeCalledWith(
-      sprintf(PANIC_MODE_ERROR, PROCESS_SEND_HIT),
-      PROCESS_SEND_HIT
-    );
-    isPanic.mockReturnValue(false);
-  });
+  //test isReady sendHit
+  const hitScreenNull = new Screen(getNull());
+  visitor.sendHit(hitScreenNull);
 
-  it("test isReady sendHit", () => {
-    const hitScreenNull = new Screen(getNull());
-    visitor.sendHit(hitScreenNull);
+  const hitIsReadyLog = logParams(
+    hitScreen.getErrorMessage(),
+    PROCESS_SEND_HIT
+  );
 
-    expect(logError).toBeCalledTimes(1);
-    expect(logError).toBeCalledWith(
-      hitScreen.getErrorMessage(),
-      PROCESS_SEND_HIT
-    );
-  });
+  //test sendHitAsync
+  await visitor.sendHitAsync(hitScreen);
 
-  it("test sendHitAsync", async () => {
-    try {
-      await visitor.sendHitAsync(hitScreen);
-      expect(sendHit).toBeCalledTimes(1);
-      expect(sendHit).toBeCalledWith(hitScreen);
-    } catch (error) {
-      expect(logError).toBeCalled();
-    }
-  });
+  assertEquals(sendHit.calls, [
+    {
+      args: [hitScreen],
+      self: trackingManager,
+    },
+    {
+      args: [hitScreen],
+      self: trackingManager,
+    },
+  ]);
+
+  assertEquals(sendActive.calls, [
+    keyStringActivateParams,
+    keyObjectActivateParams,
+    keyStringActivateParams,
+    keyStringActivateParams,
+  ]);
+
+  assertEquals(logError.calls, [
+    visitorLog,
+    visitorLog,
+    visitorLog,
+    updateContextKeyValueLog,
+    updateContextKeyValueLogKey,
+    updateContextLog,
+    keyNotExistLog,
+    keyCastLog("keyString"),
+    keyCastLog("array"),
+    keyCastLog("array"),
+    keyCastLog("object"),
+    keyCastLog("keyNull"),
+    keyInvalid,
+    panicModeLog(PROCESS_GET_MODIFICATION),
+    getKeyNotExistLog(notExitKey, PROCESS_GET_MODIFICATION_INFO),
+    getKeyInvalidLog(getNull(), PROCESS_GET_MODIFICATION_INFO),
+    panicModeLog(PROCESS_GET_MODIFICATION_INFO),
+    getKeyInvalidLog(getNull(), PROCESS_ACTIVE_MODIFICATION),
+    getKeyNotExistLog(notExitKey, PROCESS_ACTIVE_MODIFICATION),
+    panicModeLog(PROCESS_ACTIVE_MODIFICATION),
+    trackingManagerCheck(PROCESS_ACTIVE_MODIFICATION),
+    trackingManagerCheck(PROCESS_SEND_HIT),
+    panicModeLog(PROCESS_SEND_HIT),
+    hitIsReadyLog,
+  ]);
 });

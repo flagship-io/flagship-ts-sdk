@@ -1,8 +1,8 @@
-import { jest, expect, it, describe } from "@jest/globals";
-import { FLAGSHIP_SDK, LogLevel } from "../../src/enum/index";
-import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager";
+import { assertEquals, stub } from "../../deps.ts";
+import { FLAGSHIP_SDK, LogLevel } from "../../src/enum/index.ts";
+import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager.ts";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// deno-lint-ignore no-explicit-any
 const getTwoDigit = (value: any) => {
   return value.toString().length === 1 ? `0${value}` : value;
 };
@@ -14,49 +14,49 @@ const getOut = (level: LogLevel, message: string, tag: string) => {
     now.getMinutes()
   )}] [${FLAGSHIP_SDK}] [${LogLevel[level]}] [${tag}] : ${message}`;
 };
-describe("test FlagshipLogManager", () => {
-  const logError = jest.spyOn(console, "log");
+Deno.test("test FlagshipLogManager", () => {
+  const logError = stub(console, "log");
   const logManager = new FlagshipLogManager();
   const message = "this is a log message";
   const tag = "tag";
 
-  it("test alert", () => {
-    logManager.alert(message, tag);
-    expect(logError).toBeCalledWith(getOut(LogLevel.ALERT, message, tag));
+  //test alert
+  logManager.alert(message, tag);
+
+  //test critical
+  logManager.critical(message, tag);
+
+  //test debug
+  logManager.debug(message, tag);
+
+  //test emergency
+  logManager.emergency(message, tag);
+
+  //test error
+  logManager.error(message, tag);
+
+  //test info
+  logManager.info(message, tag);
+
+  //test info
+  logManager.notice(message, tag);
+
+  //test info
+  logManager.warning(message, tag);
+
+  const alertArgs = (level: LogLevel) => ({
+    args: [getOut(level, message, tag)],
+    self: console,
   });
 
-  it("test critical", () => {
-    logManager.critical(message, tag);
-    expect(logError).toBeCalledWith(getOut(LogLevel.CRITICAL, message, tag));
-  });
-
-  it("test critical debug", () => {
-    logManager.debug(message, tag);
-    expect(logError).toBeCalledWith(getOut(LogLevel.DEBUG, message, tag));
-  });
-
-  it("test emergency", () => {
-    logManager.emergency(message, tag);
-    expect(logError).toBeCalledWith(getOut(LogLevel.EMERGENCY, message, tag));
-  });
-
-  it("test error", () => {
-    logManager.error(message, tag);
-    expect(logError).toBeCalledWith(getOut(LogLevel.ERROR, message, tag));
-  });
-
-  it("test info", () => {
-    logManager.info(message, tag);
-    expect(logError).toBeCalledWith(getOut(LogLevel.INFO, message, tag));
-  });
-
-  it("test notice", () => {
-    logManager.notice(message, tag);
-    expect(logError).toBeCalledWith(getOut(LogLevel.NOTICE, message, tag));
-  });
-
-  it("test warning", () => {
-    logManager.warning(message, tag);
-    expect(logError).toBeCalledWith(getOut(LogLevel.WARNING, message, tag));
-  });
+  assertEquals(logError.calls, [
+    alertArgs(LogLevel.ALERT),
+    alertArgs(LogLevel.CRITICAL),
+    alertArgs(LogLevel.DEBUG),
+    alertArgs(LogLevel.EMERGENCY),
+    alertArgs(LogLevel.ERROR),
+    alertArgs(LogLevel.INFO),
+    alertArgs(LogLevel.NOTICE),
+    alertArgs(LogLevel.WARNING),
+  ]);
 });

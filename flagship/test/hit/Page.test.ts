@@ -1,5 +1,5 @@
-import { jest, expect, it, describe } from "@jest/globals";
-import { DecisionApiConfig } from "../../src/config/index";
+import { assertEquals, stub } from "../../deps.ts";
+import { DecisionApiConfig } from "../../src/config/index.ts";
 import {
   CUSTOMER_ENV_ID_API_ITEM,
   DL_API_ITEM,
@@ -9,39 +9,34 @@ import {
   TYPE_ERROR,
   T_API_ITEM,
   VISITOR_ID_API_ITEM,
-} from "../../src/enum/index";
-import { Page } from "../../src/hit/index";
-import { ERROR_MESSAGE } from "../../src/hit/Page";
-import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager";
-import { sprintf } from "../../src/utils/utils";
+} from "../../src/enum/index.ts";
+import { Page } from "../../src/hit/index.ts";
+import { ERROR_MESSAGE } from "../../src/hit/Page.ts";
+import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager.ts";
+import { sprintf } from "../../src/utils/utils.ts";
 
-describe("test hit type Page", () => {
+Deno.test("test hit type Page", () => {
   const url = "https://localhost";
   const page = new Page(url);
+  assertEquals(page.pageUrl, url);
 
-  it("should", () => {
-    expect(page.pageUrl).toBe(url);
+  assertEquals(page.getErrorMessage(), ERROR_MESSAGE);
 
-    expect(page.getErrorMessage()).toBe(ERROR_MESSAGE);
-
-    expect(page.isReady()).toBeFalsy();
-  });
+  assertEquals(page.isReady(), false);
 
   const logManager = new FlagshipLogManager();
-  const logError = jest.spyOn(logManager, "error");
+  const logError = stub(logManager, "error");
 
   const config = new DecisionApiConfig("envId", "apiKey");
   config.logManager = logManager;
+  page.config = config;
+  page.ds = SDK_APP;
   const visitorId = "visitorId";
+  page.visitorId = visitorId;
+  assertEquals(page.isReady(), true);
 
-  it("should ", () => {
-    page.config = config;
-    page.ds = SDK_APP;
-    page.visitorId = visitorId;
-    expect(page.isReady()).toBeTruthy();
-  });
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  //test method apiKey
+  // deno-lint-ignore no-explicit-any
   const apiKeys: any = {
     [VISITOR_ID_API_ITEM]: visitorId,
     [DS_API_ITEM]: SDK_APP,
@@ -50,17 +45,18 @@ describe("test hit type Page", () => {
     [DL_API_ITEM]: url,
   };
 
-  it("test method apiKey", () => {
-    expect(page.toApiKeys()).toEqual(apiKeys);
-  });
+  assertEquals(page.toApiKeys(), apiKeys);
 
-  it("test log page url", () => {
-    page.pageUrl = "";
-    expect(logError).toBeCalledTimes(1);
-    expect(logError).toBeCalledWith(
-      sprintf(TYPE_ERROR, "pageUrl", "string"),
-      "pageUrl"
-    );
-    expect(page.pageUrl).toBe(url);
-  });
+  //test log page url
+  page.pageUrl = "";
+  assertEquals(page.pageUrl, url);
+
+  assertEquals(logError.calls.length, 1);
+
+  assertEquals(logError.calls, [
+    {
+      args: [sprintf(TYPE_ERROR, "pageUrl", "string"), "pageUrl"],
+      self: logManager,
+    },
+  ]);
 });

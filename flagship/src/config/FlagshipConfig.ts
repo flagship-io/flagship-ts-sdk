@@ -1,6 +1,6 @@
-import { FlagshipStatus, LogLevel, REQUEST_TIME_OUT } from '../enum/index'
-import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
-import { logError } from '../utils/utils'
+import { FlagshipStatus, LogLevel, REQUEST_TIME_OUT } from "../enum/index.ts";
+import { IFlagshipLogManager } from "../utils/FlagshipLogManager.ts";
+import { logError } from "../utils/utils.ts";
 
 export enum DecisionMode {
   /**
@@ -47,18 +47,18 @@ export interface IFlagshipConfig {
    * Define a callable in order to get callback when the SDK status has changed.
    */
   setStatusChangedCallback(
-    fn: ((status: FlagshipStatus) => void) | undefined
+    fn: ((status: FlagshipStatus) => void) | undefined,
   ): void;
 
   getStatusChangedCallback(): ((status: FlagshipStatus) => void) | undefined;
 
   get logManager(): IFlagshipLogManager;
 
-  /** Specify a custom implementation of LogManager in order to receive logs from the SDK. */
+  /**Specify a custom implementation of LogManager in order to receive logs from the SDK. */
   set logManager(value: IFlagshipLogManager);
 }
 
-export const statusChangeError = 'statusChangedCallback must be a function'
+export const statusChangeError = "statusChangedCallback must be a function";
 
 export abstract class FlagshipConfig implements IFlagshipConfig {
   private _envId?: string;
@@ -69,68 +69,68 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _statusChangedCallback?: (status: FlagshipStatus) => void;
   private _logManager!: IFlagshipLogManager;
 
-  protected constructor (envId?: string, apiKey?: string) {
-    this._envId = envId
-    this._apiKey = apiKey
+  protected constructor(envId?: string, apiKey?: string) {
+    this._envId = envId;
+    this._apiKey = apiKey;
   }
 
-  public set envId (value: string | undefined) {
-    this._envId = value
+  public set envId(value: string | undefined) {
+    this._envId = value;
   }
 
-  public get envId (): string | undefined {
-    return this._envId
+  public get envId(): string | undefined {
+    return this._envId;
   }
 
-  public set apiKey (value: string | undefined) {
-    this._apiKey = value
+  public set apiKey(value: string | undefined) {
+    this._apiKey = value;
   }
 
-  public get apiKey (): string | undefined {
-    return this._apiKey
+  public get apiKey(): string | undefined {
+    return this._apiKey;
   }
 
-  public get decisionMode (): DecisionMode {
-    return this._decisionMode
+  public get decisionMode(): DecisionMode {
+    return this._decisionMode;
   }
 
-  public get timeout (): number {
-    return this._timeout
+  public get timeout(): number {
+    return this._timeout;
   }
 
-  public set timeout (value: number) {
-    this._timeout = value
+  public set timeout(value: number) {
+    this._timeout = value;
   }
 
-  public get logLevel (): LogLevel {
-    return this._logLevel
+  public get logLevel(): LogLevel {
+    return this._logLevel;
   }
 
-  public set logLevel (value: LogLevel) {
-    this._logLevel = value
+  public set logLevel(value: LogLevel) {
+    this._logLevel = value;
   }
 
-  public setStatusChangedCallback (
-    fn: ((status: FlagshipStatus) => void) | undefined
-  ) : void {
-    if (typeof fn !== 'function') {
-      logError(this, statusChangeError, 'statusChangedCallback')
-      return
+  public setStatusChangedCallback(
+    fn: ((status: FlagshipStatus) => void) | undefined,
+  ) {
+    if (typeof fn !== "function") {
+      logError(this, statusChangeError, "statusChangedCallback");
+      return;
     }
-    this._statusChangedCallback = fn
+    this._statusChangedCallback = fn;
   }
 
-  public getStatusChangedCallback ():
+  public getStatusChangedCallback():
     | ((status: FlagshipStatus) => void)
     | undefined {
-    return this._statusChangedCallback
+    return this._statusChangedCallback;
   }
 
-  public get logManager (): IFlagshipLogManager {
-    return this._logManager
+  public get logManager(): IFlagshipLogManager {
+    return this._logManager;
   }
 
-  public set logManager (value: IFlagshipLogManager) {
-    this._logManager = value
+  public set logManager(value: IFlagshipLogManager) {
+    this._logManager = value;
   }
 }

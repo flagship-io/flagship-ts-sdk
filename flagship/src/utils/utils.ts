@@ -1,43 +1,43 @@
-import { IFlagshipConfig } from '../config/FlagshipConfig'
-import { LogLevel } from '../enum/index'
+import { IFlagshipConfig } from "../config/FlagshipConfig.ts";
+import { LogLevel } from "../enum/index.ts";
 
 /**
  * Return a formatted string
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function sprintf (format: string, ...value: any[]): string {
-  let formatted = format
+// deno-lint-ignore no-explicit-any
+export function sprintf(format: string, ...value: any[]): string {
+  let formatted = format;
   for (let i = 0; i < value.length; i++) {
-    const element = value[i]
-    formatted = formatted.replace(new RegExp(`\\{${i}\\}`,'g'), element)
+    const element = value[i];
+    formatted = formatted.replaceAll(`{${i}}`, element);
   }
-  return formatted
+  return formatted;
 }
 
-export function logError (
+export function logError(
   config: IFlagshipConfig,
   message: string,
   tag: string
-):void {
+) {
   if (
     !config ||
     !config.logManager ||
-    typeof config.logManager.error !== 'function' ||
+    typeof config.logManager.error !== "function" ||
     config.logLevel < LogLevel.ERROR
   ) {
-    return
+    return;
   }
-  config.logManager.error(message, tag)
+  config.logManager.error(message, tag);
 }
 
-export function logInfo (config: IFlagshipConfig, message: string, tag: string):void {
+export function logInfo(config: IFlagshipConfig, message: string, tag: string) {
   if (
     !config ||
     !config.logManager ||
-    typeof config.logManager.info !== 'function' ||
+    typeof config.logManager.info !== "function" ||
     config.logLevel < LogLevel.INFO
   ) {
-    return
+    return;
   }
-  config.logManager.info(message, tag)
+  config.logManager.info(message, tag);
 }

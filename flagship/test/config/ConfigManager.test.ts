@@ -1,46 +1,41 @@
-import { expect, it, describe } from "@jest/globals";
-import { TrackingManager } from "../../src/api/TrackingManager";
-import { ConfigManager, DecisionApiConfig } from "../../src/config/index";
-import { ApiManager } from "../../src/decision/ApiManager";
-import { IHttpClient } from "../../src/utils/httpClient";
+import { assertEquals } from "../../deps.ts";
+import { TrackingManager } from "../../src/api/TrackingManager.ts";
+import { ConfigManager, DecisionApiConfig } from "../../src/config/index.ts";
+import { ApiManager } from "../../src/decision/ApiManager.ts";
+import { IHttpClient } from "../../src/utils/httpClient.ts";
 
-describe("test ConfigManager", () => {
+Deno.test("test ConfigManager", () => {
   const config = {} as DecisionApiConfig;
   const decisionManager = {} as ApiManager;
   const trackingManager = {} as TrackingManager;
   const configManager = new ConfigManager(
     config,
     decisionManager,
-    trackingManager
+    trackingManager,
   );
 
-  it("should", () => {
-    expect(configManager.config).toBe(config);
-    expect(configManager.decisionManager).toBe(decisionManager);
-    expect(configManager.trackingManager).toBe(trackingManager);
-  });
+  assertEquals(configManager.config, config);
+  assertEquals(configManager.decisionManager, decisionManager);
+  assertEquals(configManager.trackingManager, trackingManager);
 
-  it("Test set config ", () => {
-    const config2 = new DecisionApiConfig();
-    configManager.config = config2;
-    expect(configManager.config).toBe(config2);
-  });
+  //Test set config
+  const config2 = new DecisionApiConfig();
+  configManager.config = config2;
+  assertEquals(configManager.config, config2);
 
-  it("Test set decisionManager", () => {
-    const decisionManager2 = new ApiManager(
-      {} as IHttpClient,
-      {} as DecisionApiConfig
-    );
-    configManager.decisionManager = decisionManager2;
-    expect(configManager.decisionManager).toBe(decisionManager2);
-  });
+  //Test set decisionManager
+  const decisionManager2 = new ApiManager(
+    {} as IHttpClient,
+    {} as DecisionApiConfig,
+  );
+  configManager.decisionManager = decisionManager2;
+  assertEquals(configManager.decisionManager, decisionManager2);
 
-  it("Test set TrackingManager", () => {
-    const trackingManager2 = new TrackingManager(
-      {} as IHttpClient,
-      {} as DecisionApiConfig
-    );
-    configManager.trackingManager = trackingManager2;
-    expect(configManager.trackingManager).toBe(trackingManager2);
-  });
+  //Test set TrackingManager
+  const trackingManager2 = new TrackingManager(
+    {} as IHttpClient,
+    {} as DecisionApiConfig,
+  );
+  configManager.trackingManager = trackingManager2;
+  assertEquals(configManager.trackingManager, trackingManager2);
 });

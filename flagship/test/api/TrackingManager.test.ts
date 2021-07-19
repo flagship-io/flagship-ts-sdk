@@ -1,9 +1,9 @@
-import { jest, expect, it, describe } from "@jest/globals";
-import { TrackingManager } from "../../src/api/TrackingManager";
-import { ConfigManager, DecisionApiConfig } from "../../src/config/index";
-import { HttpClient } from "../../src/utils/NodeHttpClient";
-import { Visitor } from "../../src/visitor/Visitor";
-import { Modification } from "../../src/model/Modification";
+import { TrackingManager } from "../../src/api/TrackingManager.ts";
+import { ConfigManager, DecisionApiConfig } from "../../src/config/index.ts";
+import { DenoHttpClient } from "../../src/utils/denoHttpClient.ts";
+import { assertEquals, Stub, stub } from "../../deps.ts";
+import { Visitor } from "../../src/visitor/Visitor.ts";
+import { Modification } from "../../src/model/Modification.ts";
 import {
   BASE_API_URL,
   CUSTOMER_ENV_ID_API_ITEM,
@@ -19,124 +19,135 @@ import {
   VARIATION_GROUP_ID_API_ITEM,
   VARIATION_ID_API_ITEM,
   VISITOR_ID_API_ITEM,
-} from "../../src/enum/index";
-import { IHttpResponse } from "../../src/utils/httpClient";
-import { Page } from "../../src/hit/index";
+} from "../../src/enum/index.ts";
+import { IHttpResponse } from "../../src/utils/httpClient.ts";
+import { Page } from "../../src/hit/index.ts";
 
-//mock NodeHttpClient
-jest.mock("../../src/utils/NodeHttpClient");
+Deno.test("test TrackingManager sendActive ", async () => {
+  const httpClient = new DenoHttpClient();
+  const postAsync: Stub<DenoHttpClient> = stub(httpClient, "postAsync");
 
-describe("test TrackingManager sendActive ", () => {
-  it("should ", async () => {
-    const httpClient = new HttpClient();
+  const config = new DecisionApiConfig("envId", "apiKey");
 
-    const postAsync = jest.spyOn(httpClient, "postAsync");
+  const trackingManager = new TrackingManager(httpClient, config);
 
-    const config = new DecisionApiConfig("envId", "apiKey");
+  assertEquals(config, trackingManager.config);
+  assertEquals(httpClient, trackingManager.httpClient);
 
-    const trackingManager = new TrackingManager(httpClient, config);
+  const visitorId = "visitorId";
+  const context = { age: 20 };
 
-    expect(config).toBe(trackingManager.config);
-    expect(httpClient).toBe(trackingManager.httpClient);
+  const visitor = new Visitor(visitorId, context, {} as ConfigManager);
+  const modification = new Modification(
+    "key",
+    "campaignId",
+    "variationGroupId",
+    "variationId",
+    false,
+    "value"
+  );
 
-    const visitorId = "visitorId";
-    const context = { age: 20 };
+  const postResponse: Promise<IHttpResponse> = new Promise((resolve) =>
+    resolve({ status: 204, body: null })
+  );
+  const postResponseError: Promise<IHttpResponse> = new Promise((_, reject) =>
+    reject({ status: 400, body: null })
+  );
+  postAsync.returns = [postResponse, postResponseError];
 
-    const visitor = new Visitor(visitorId, context, {} as ConfigManager);
-    const modification = new Modification(
-      "key",
-      "campaignId",
-      "variationGroupId",
-      "variationId",
-      false,
-      "value"
-    );
+  try {
+    await trackingManager.sendActive(visitor, modification);
+    await trackingManager.sendActive(visitor, modification);
+  } catch (error) {
+    assertEquals(error, { status: 400, body: null });
+  }
 
-    //Test http request data
-    const url = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`;
-    const headers = {
-      [HEADER_X_API_KEY]: `${config.apiKey}`,
-      [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
-      [HEADER_X_SDK_VERSION]: SDK_VERSION,
-      [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON,
-    };
+  assertEquals(postAsync.calls.length, 2);
 
-    const postData = {
-      [VISITOR_ID_API_ITEM]: visitor.visitorId,
-      [VARIATION_ID_API_ITEM]: modification.variationId,
-      [VARIATION_GROUP_ID_API_ITEM]: modification.variationGroupId,
-      [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
-    };
+  //Test http request data
+  const url = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`;
+  const headers = {
+    [HEADER_X_API_KEY]: `${config.apiKey}`,
+    [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
+    [HEADER_X_SDK_VERSION]: SDK_VERSION,
+    [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON,
+  };
 
-    const postResponse: IHttpResponse = { status: 204, body: null };
-    const postResponseError: IHttpResponse = { status: 400, body: null };
+  const postData = {
+    [VISITOR_ID_API_ITEM]: visitor.visitorId,
+    [VARIATION_ID_API_ITEM]: modification.variationId,
+    [VARIATION_GROUP_ID_API_ITEM]: modification.variationGroupId,
+    [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
+  };
 
-    try {
-      postAsync.mockResolvedValue(postResponse);
-      await trackingManager.sendActive(visitor, modification);
-
-      expect(postAsync).toHaveBeenCalledWith(url, {
-        headers: headers,
-        timeout: config.timeout,
-        body: postData,
-      });
-
-      postAsync.mockRejectedValue(postResponseError);
-      await trackingManager.sendActive(visitor, modification);
-      expect(postAsync).toHaveBeenCalledWith(url, {
-        headers: headers,
-        timeout: config.timeout,
-        body: postData,
-      });
-    } catch (error) {
-      expect(error).toBe(postResponseError);
-    }
-
-    expect(postAsync).toHaveBeenCalledTimes(2);
-  });
+  assertEquals(postAsync.calls, [
+    {
+      args: [
+        url,
+        { headers: headers, timeout: config.timeout, body: postData },
+      ],
+      returned: postResponse,
+      self: httpClient,
+    },
+    {
+      args: [
+        url,
+        { headers: headers, timeout: config.timeout, body: postData },
+      ],
+      returned: postResponseError,
+      self: httpClient,
+    },
+  ]);
 });
 
-describe("test TrackingManager sendHit ", () => {
-  it(" should", async () => {
-    const httpClient = new HttpClient();
-    const postAsync = jest.spyOn(httpClient, "postAsync");
+Deno.test("test TrackingManager sendHit ", async () => {
+  const httpClient = new DenoHttpClient();
+  const postAsync: Stub<DenoHttpClient> = stub(httpClient, "postAsync");
+  const config = new DecisionApiConfig("envId", "apiKey");
+  const trackingManager = new TrackingManager(httpClient, config);
 
-    const config = new DecisionApiConfig("envId", "apiKey");
-    const trackingManager = new TrackingManager(httpClient, config);
+  const hit = new Page("url");
+  hit.config = config;
+  const postResponse: Promise<IHttpResponse> = new Promise((resolve) =>
+    resolve({ status: 204, body: null })
+  );
 
-    const hit = new Page("url");
-    hit.config = config;
+  const postResponseError: Promise<IHttpResponse> = new Promise((_, reject) =>
+    reject({ status: 400, body: null })
+  );
 
-    const headers = {
-      [HEADER_X_API_KEY]: `${config.apiKey}`,
-      [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
-      [HEADER_X_SDK_VERSION]: SDK_VERSION,
-      [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON,
-    };
+  postAsync.returns = [postResponse, postResponseError];
+  try {
+    await trackingManager.sendHit(hit);
+    await trackingManager.sendHit(hit);
+  } catch (error) {
+    assertEquals(error, { status: 400, body: null });
+  }
 
-    const postResponse: IHttpResponse = { status: 204, body: null };
+  assertEquals(postAsync.calls.length, 2);
 
-    const postResponseError: IHttpResponse = { status: 400, body: null };
-
-    try {
-      postAsync.mockResolvedValue(postResponse);
-      await trackingManager.sendHit(hit);
-      expect(postAsync).toBeCalledWith(HIT_API_URL, {
-        headers: headers,
-        timeout: config.timeout,
-        body: hit.toApiKeys(),
-      });
-
-      postAsync.mockRejectedValue(postResponseError);
-      await trackingManager.sendHit(hit);
-      expect(postAsync).toBeCalledWith(HIT_API_URL, {
-        headers: headers,
-        timeout: config.timeout,
-        body: hit.toApiKeys(),
-      });
-    } catch (error) {
-      expect(error).toBe(postResponseError);
-    }
-    expect(postAsync).toHaveBeenCalledTimes(2);
-  });
+  const headers = {
+    [HEADER_X_API_KEY]: `${config.apiKey}`,
+    [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
+    [HEADER_X_SDK_VERSION]: SDK_VERSION,
+    [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON,
+  };
+  assertEquals(postAsync.calls, [
+    {
+      args: [
+        HIT_API_URL,
+        { headers: headers, timeout: config.timeout, body: hit.toApiKeys() },
+      ],
+      returned: postResponse,
+      self: httpClient,
+    },
+    {
+      args: [
+        HIT_API_URL,
+        { headers: headers, timeout: config.timeout, body: hit.toApiKeys() },
+      ],
+      returned: postResponseError,
+      self: httpClient,
+    },
+  ]);
 });

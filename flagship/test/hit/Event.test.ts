@@ -1,7 +1,7 @@
-import { jest, expect, it, describe } from "@jest/globals";
-import { CATEGORY_ERROR, ERROR_MESSAGE } from "../../src/hit/Event";
-import { Event, EventCategory } from "../../src/hit/index";
-import { DecisionApiConfig } from "../../src/config/index";
+import { assertEquals, stub, Stub } from "../../deps.ts";
+import { CATEGORY_ERROR, ERROR_MESSAGE } from "../../src/hit/Event.ts";
+import { Event, EventCategory } from "../../src/hit/index.ts";
+import { DecisionApiConfig } from "../../src/config/index.ts";
 import {
   CUSTOMER_ENV_ID_API_ITEM,
   DS_API_ITEM,
@@ -14,69 +14,62 @@ import {
   TYPE_ERROR,
   T_API_ITEM,
   VISITOR_ID_API_ITEM,
-} from "../../src/enum/index";
-import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager";
-import { sprintf } from "../../src/utils/utils";
+} from "../../src/enum/index.ts";
+import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager.ts";
+import { sprintf } from "../../src/utils/utils.ts";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// deno-lint-ignore no-explicit-any
 const getNull = (): any => {
   return null;
 };
-
-describe("test hit type Event", () => {
+Deno.test("test hit type Event", () => {
   const category = EventCategory.ACTION_TRACKING;
   const action = "action";
   const event = new Event(category, action);
 
-  it("should ", () => {
-    expect(event.category).toBe(category);
-    expect(event.action).toBe(action);
-    expect(event.config).toBeUndefined();
-    expect(event.ds).toBeUndefined();
-    expect(event.eventLabel).toBeUndefined();
-    expect(event.eventValue).toBeUndefined();
-    expect(event.visitorId).toBeUndefined();
-    expect(event.getErrorMessage()).toBe(ERROR_MESSAGE);
-  });
+  assertEquals(event.category, category);
+  assertEquals(event.action, action);
+  assertEquals(event.config, undefined);
+  assertEquals(event.ds, undefined);
+  assertEquals(event.eventLabel, undefined);
+  assertEquals(event.eventValue, undefined);
+  assertEquals(event.visitorId, undefined);
+  assertEquals(event.getErrorMessage(), ERROR_MESSAGE);
 
-  it("test isReady method ", () => {
-    expect(event.isReady()).toBeFalsy();
-  });
+  //test isReady method
+  assertEquals(event.isReady(), false);
 
+  //test set config
   const logManager = new FlagshipLogManager();
-  const logError = jest.spyOn(logManager, "error");
+  const logError: Stub<FlagshipLogManager> = stub(logManager, "error");
+
   const config = new DecisionApiConfig("envId", "apiKey");
   config.logManager = logManager;
 
-  it("test set config ", () => {
-    event.config = config;
-    expect(event.config).toBe(config);
-  });
+  event.config = config;
 
-  it("test isReady method ", () => {
-    expect(event.isReady()).toBeFalsy();
-  });
+  assertEquals(event.config, config);
 
-  it("test set ds", () => {
-    event.ds = SDK_APP;
-    expect(event.ds).toBe(SDK_APP);
-  });
+  //test isReady method
+  assertEquals(event.isReady(), false);
 
-  it("test isReady method", () => {
-    expect(event.isReady()).toBeFalsy();
-  });
+  //test set ds
+  event.ds = SDK_APP;
+  assertEquals(event.ds, SDK_APP);
 
+  //test isReady method
+  assertEquals(event.isReady(), false);
+
+  //test visitorId
   const visitorId = "visitorId";
-  it("test visitorId", () => {
-    event.visitorId = visitorId;
-    expect(event.visitorId).toBe(visitorId);
-  });
+  event.visitorId = visitorId;
 
-  it("test isReady method", () => {
-    expect(event.isReady()).toBeTruthy();
-  });
+  assertEquals(event.visitorId, visitorId);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  //test isReady method
+  assertEquals(event.isReady(), true);
+
+  // deno-lint-ignore no-explicit-any
   const apiKeys: any = {
     [VISITOR_ID_API_ITEM]: visitorId,
     [DS_API_ITEM]: SDK_APP,
@@ -86,61 +79,63 @@ describe("test hit type Event", () => {
     [EVENT_ACTION_API_ITEM]: action,
   };
 
-  it("should ", () => {
-    expect(event.toApiKeys()).toEqual(apiKeys);
-  });
+  assertEquals(event.toApiKeys(), apiKeys);
 
   //test eventLabel
-  it("test eventLabel ", () => {
-    const label = "label";
-    event.eventLabel = label;
-    expect(event.eventLabel).toBe(label);
-    apiKeys[EVENT_LABEL_API_ITEM] = label;
+  const label = "label";
+  event.eventLabel = label;
+  assertEquals(event.eventLabel, label);
 
-    expect(event.toApiKeys()).toEqual(apiKeys);
+  apiKeys[EVENT_LABEL_API_ITEM] = label;
 
-    event.eventLabel = getNull();
+  assertEquals(event.toApiKeys(), apiKeys);
 
-    expect(logError).toHaveBeenCalledWith(
-      sprintf(TYPE_ERROR, "eventLabel", "string"),
-      "eventLabel"
-    );
-    expect(event.eventLabel).toBe(label);
-    expect(logError).toHaveBeenCalledTimes(1);
-  });
+  event.eventLabel = getNull();
+
+  assertEquals(event.eventLabel, label);
+
+  assertEquals(logError.calls.length, 1);
 
   //test set eventValue
-  it("test set eventValue", () => {
-    const value = 122;
-    event.eventValue = value;
-    expect(event.eventValue).toBe(value);
-    apiKeys[EVENT_VALUE_API_ITEM] = value;
+  const value = 122;
+  event.eventValue = value;
+  assertEquals(event.eventValue, value);
+  apiKeys[EVENT_VALUE_API_ITEM] = value;
+  assertEquals(event.toApiKeys(), apiKeys);
 
-    expect(event.toApiKeys()).toEqual(apiKeys);
+  event.eventValue = {} as number;
+  assertEquals(event.eventValue, value);
 
-    event.eventValue = {} as number;
-    expect(logError).toBeCalledWith(
-      sprintf(TYPE_ERROR, "eventValue", "number"),
-      "eventValue"
-    );
-    expect(event.eventValue).toBe(value);
-    expect(logError).toHaveBeenCalledTimes(1);
-  });
+  assertEquals(logError.calls.length, 2);
 
-  it("test log category", () => {
-    event.category = {} as EventCategory;
-    expect(event.category).toBe(category);
-    expect(logError).toHaveBeenCalledTimes(1);
-    expect(logError).toBeCalledWith(CATEGORY_ERROR, "category");
-  });
+  //test log category
 
-  it("test log action ", () => {
-    event.action = "";
-    expect(logError).toHaveBeenCalledTimes(1);
-    expect(logError).toBeCalledWith(
-      sprintf(TYPE_ERROR, "action", "string"),
-      "action"
-    );
-    expect(event.action).toBe(action);
-  });
+  event.category = {} as EventCategory;
+  assertEquals(event.category, category);
+  assertEquals(logError.calls.length, 3);
+
+  //test log action
+
+  event.action = "";
+  assertEquals(event.action, action);
+
+  //test log
+  assertEquals(logError.calls, [
+    {
+      args: [sprintf(TYPE_ERROR, "eventLabel", "string"), "eventLabel"],
+      self: logManager,
+    },
+    {
+      args: [sprintf(TYPE_ERROR, "eventValue", "number"), "eventValue"],
+      self: logManager,
+    },
+    {
+      args: [CATEGORY_ERROR, "category"],
+      self: logManager,
+    },
+    {
+      args: [sprintf(TYPE_ERROR, "action", "string"), "action"],
+      self: logManager,
+    },
+  ]);
 });
