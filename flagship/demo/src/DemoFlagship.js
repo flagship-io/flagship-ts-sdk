@@ -1,5 +1,16 @@
-import { DecisionApiConfig, Event, EventCategory, Flagship, FlagshipStatus, Item, LogLevel, Page, Screen, Transaction } from 'flagship';
-import { API_KEY, ENV_ID } from "./env.js";
+import {
+  DecisionApiConfig,
+  Event,
+  EventCategory,
+  Flagship,
+  FlagshipStatus,
+  Item,
+  LogLevel,
+  Page,
+  Screen,
+  Transaction,
+} from "../../deno/src/mod.ts";
+import { API_KEY, ENV_ID } from "./config.js";
 
 const config = new DecisionApiConfig();
 config.logLevel = LogLevel.ERROR;
@@ -9,7 +20,7 @@ config.setStatusChangedCallback((status) => {
 
 Flagship.start(ENV_ID, API_KEY, config);
 
-const visitor = Flagship.newVisitor(`visitor_1`);
+const visitor = Flagship.newVisitor(`visitor_1`, { age: 20 });
 
 (async () => {
   if (visitor) {
@@ -17,7 +28,7 @@ const visitor = Flagship.newVisitor(`visitor_1`);
     console.log(visitor.getModification("object", {}));
     visitor.activateModification("object");
 
-    visitor.getModificationInfoAsync("keyString").then((r) => {
+    visitor.getModificationInfoAsync("array").then((r) => {
       console.log("r", r);
     });
 
