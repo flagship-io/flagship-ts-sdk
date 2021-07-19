@@ -1,19 +1,19 @@
-import { Visitor } from "../visitor/Visitor.ts";
-import { FlagshipStatus } from "../enum/FlagshipStatus.ts";
-import { IFlagshipConfig } from "../config/FlagshipConfig.ts";
-import { DecisionApiConfig } from "../config/DecisionApiConfig.ts";
-import { ConfigManager, IConfigManager } from "../config/ConfigManager.ts";
-import { ApiManager } from "../decision/ApiManager.ts";
-import { TrackingManager } from "../api/TrackingManager.ts";
-import { DenoHttpClient } from "../utils/denoHttpClient.ts";
-import { FlagshipLogManager } from "../utils/FlagshipLogManager.ts";
-import { logError, logInfo, sprintf } from "../utils/utils.ts";
+import { Visitor } from '../visitor/Visitor'
+import { FlagshipStatus } from '../enum/FlagshipStatus'
+import { IFlagshipConfig } from '../config/FlagshipConfig'
+import { DecisionApiConfig } from '../config/DecisionApiConfig'
+import { ConfigManager, IConfigManager } from '../config/ConfigManager'
+import { ApiManager } from '../decision/ApiManager'
+import { TrackingManager } from '../api/TrackingManager'
+import { HttpClient } from '../utils/NodeHttpClient'
+import { FlagshipLogManager } from '../utils/FlagshipLogManager'
+import { logError, logInfo, sprintf } from '../utils/utils'
 import {
   INITIALIZATION_PARAM_ERROR,
   PROCESS_INITIALIZATION,
   SDK_STARTED_INFO,
-  SDK_VERSION,
-} from "../enum/index.ts";
+  SDK_VERSION
+} from '../enum/index'
 
 export class Flagship {
   private static _instance: Flagship;
@@ -21,62 +21,64 @@ export class Flagship {
   private _config!: IFlagshipConfig;
   private _status!: FlagshipStatus;
 
-  get config(): IFlagshipConfig {
-    return this._config;
+  get config (): IFlagshipConfig {
+    return this._config
   }
 
-  private set configManager(value: IConfigManager) {
-    this._configManger = value;
+  private set configManager (value: IConfigManager) {
+    this._configManger = value
   }
 
-  private get configManager(): IConfigManager {
-    return this._configManger;
+  private get configManager (): IConfigManager {
+    return this._configManger
   }
 
-  private constructor() {}
+  private constructor () {
+    //singleton
+  }
 
-  protected static getInstance(): Flagship {
+  protected static getInstance (): Flagship {
     if (!this._instance) {
-      this._instance = new this();
+      this._instance = new this()
     }
-    return this._instance;
+    return this._instance
   }
 
   /**
    * Return true if the SDK is properly initialized, otherwise return false
    */
-  private static isReady(): boolean {
-    const apiKey = this._instance.config.apiKey;
-    const envId = this._instance.config.envId;
+  private static isReady (): boolean {
+    const apiKey = this._instance.config.apiKey
+    const envId = this._instance.config.envId
     return (
       this._instance &&
       apiKey !== null &&
-      apiKey !== "" &&
+      apiKey !== '' &&
       envId != null &&
-      envId != ""
-    );
+      envId != ''
+    )
   }
 
-  protected setStatus(status: FlagshipStatus): void {
-    const statusChanged = this.config.getStatusChangedCallback();
+  protected setStatus (status: FlagshipStatus): void {
+    const statusChanged = this.config.getStatusChangedCallback()
     if (this.config && statusChanged && this._status !== status) {
-      statusChanged(status);
+      statusChanged(status)
     }
-    this._status = status;
+    this._status = status
   }
 
   /**
    * Return current status of Flagship SDK.
    */
-  public static getStatus(): FlagshipStatus {
-    return this.getInstance()._status;
+  public static getStatus (): FlagshipStatus {
+    return this.getInstance()._status
   }
 
   /**
    * Return the current config set by the customer and used by the SDK.
    */
-  public static getConfig(): IFlagshipConfig {
-    return this.getInstance()._config;
+  public static getConfig (): IFlagshipConfig {
+    return this.getInstance()._config
   }
 
   /**
@@ -85,51 +87,51 @@ export class Flagship {
    * @param {string} apiKey : Secure api key provided by Flagship.
    * @param {IFlagshipConfig} config : (optional) SDK configuration.
    */
-  public static start(
+  public static start (
     envId: string,
     apiKey: string,
     config?: IFlagshipConfig
   ): void {
-    const flagship = this.getInstance();
+    const flagship = this.getInstance()
 
     if (!config) {
-      config = new DecisionApiConfig(envId, apiKey);
+      config = new DecisionApiConfig(envId, apiKey)
     }
-    config.envId = envId;
-    config.apiKey = apiKey;
+    config.envId = envId
+    config.apiKey = apiKey
 
-    flagship._config = config;
+    flagship._config = config
 
-    flagship.setStatus(FlagshipStatus.NOT_READY);
+    flagship.setStatus(FlagshipStatus.NOT_READY)
 
-    //check custom logger
+    // check custom logger
     if (!config.logManager) {
-      config.logManager = new FlagshipLogManager();
+      config.logManager = new FlagshipLogManager()
     }
 
-    if (!envId || envId === "" || !apiKey || apiKey === "") {
-      logError(config, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION);
-      return;
+    if (!envId || envId === '' || !apiKey || apiKey === '') {
+      logError(config, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION)
+      return
     }
 
     const decisionManager = new ApiManager(
-      new DenoHttpClient(),
+      new HttpClient(),
       flagship.config
-    );
-    const trackingManager = new TrackingManager(new DenoHttpClient(), config);
+    )
+    const trackingManager = new TrackingManager(new HttpClient(), config)
     flagship.configManager = new ConfigManager(
       config,
       decisionManager,
       trackingManager
-    );
+    )
 
     if (this.isReady()) {
-      flagship.setStatus(FlagshipStatus.READY);
+      flagship.setStatus(FlagshipStatus.READY)
       logInfo(
         config,
         sprintf(SDK_STARTED_INFO, SDK_VERSION),
         PROCESS_INITIALIZATION
-      );
+      )
     }
   }
 
@@ -139,14 +141,14 @@ export class Flagship {
    * @param {Record<string, string | number | boolean>} context : visitor context. e.g: { isVip: true, country: "UK" }.
    * @returns {Visitor} a new visitor instance
    */
-  public static newVisitor(
+  public static newVisitor (
     visitorId: string,
     context: Record<string, string | number | boolean> = {}
   ): Visitor | null {
     if (!this.isReady() || !visitorId) {
-      return null;
+      return null
     }
 
-    return new Visitor(visitorId, context, this.getInstance().configManager);
+    return new Visitor(visitorId, context, this.getInstance().configManager)
   }
 }

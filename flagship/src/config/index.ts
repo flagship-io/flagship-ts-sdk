@@ -1,4 +1,4 @@
-export * from "./ConfigManager.ts";
-export * from "./DecisionApiConfig.ts";
-export { DecisionMode, FlagshipConfig } from "./FlagshipConfig.ts";
-export type { IFlagshipConfig } from "./FlagshipConfig.ts";
+export * from './ConfigManager'
+export * from './DecisionApiConfig'
+export { DecisionMode, FlagshipConfig } from './FlagshipConfig'
+export type { IFlagshipConfig } from './FlagshipConfig'

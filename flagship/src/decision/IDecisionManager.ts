@@ -1,5 +1,5 @@
-import { Modification } from "../model/Modification.ts";
-import { Visitor } from "../visitor/Visitor.ts";
+import { Modification } from '../model/Modification'
+import { Visitor } from '../visitor/Visitor'
 
 export interface IDecisionManager {
   isPanic(): boolean;

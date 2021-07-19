@@ -1,4 +1,8 @@
-**/*.js
-flagship/demo/src/env.ts
+flagship/demo/src/env.js
 cov_profile
 cov_profile.lcov
+flagship/node_modules/*
+dist
+coverage
+flagship/demo/node_modules/*
+flagship/demo/**/config.js

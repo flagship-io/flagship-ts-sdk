@@ -1,4 +1,4 @@
-import { Modification } from "../../src/model/Modification.ts";
+import { Modification } from "../../src/model/Modification";
 
 export const returnModification = new Map<string, Modification>([
   [

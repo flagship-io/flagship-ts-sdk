@@ -1,5 +1,5 @@
-import { assertEquals, stub } from "../../deps.ts";
-import { DecisionApiConfig } from "../../src/config/index.ts";
+import { jest, expect, it, describe } from "@jest/globals";
+import { DecisionApiConfig } from "../../src/config/index";
 import {
   CUSTOMER_ENV_ID_API_ITEM,
   DL_API_ITEM,
@@ -9,54 +9,56 @@ import {
   TYPE_ERROR,
   T_API_ITEM,
   VISITOR_ID_API_ITEM,
-} from "../../src/enum/index.ts";
-import { Screen } from "../../src/hit/index.ts";
-import { ERROR_MESSAGE } from "../../src/hit/Screen.ts";
-import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager.ts";
-import { sprintf } from "../../src/utils/utils.ts";
+} from "../../src/enum/index";
+import { Screen } from "../../src/hit/index";
+import { ERROR_MESSAGE } from "../../src/hit/Screen";
+import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager";
+import { sprintf } from "../../src/utils/utils";
 
-Deno.test("test hit type Page", () => {
+describe("test hit type Page", () => {
   const screenName = "home";
   const screen = new Screen(screenName);
-  assertEquals(screen.screenName, screenName);
 
-  assertEquals(screen.getErrorMessage(), ERROR_MESSAGE);
+  it("should ", () => {
+    expect(screen.screenName).toBe(screenName);
 
-  assertEquals(screen.isReady(), false);
+    expect(screen.getErrorMessage()).toBe(ERROR_MESSAGE);
+
+    expect(screen.isReady()).toBeFalsy();
+  });
 
   const logManager = new FlagshipLogManager();
-  const logError = stub(logManager, "error");
-
+  const logError = jest.spyOn(logManager, "error");
   const config = new DecisionApiConfig("envId", "apiKey");
   config.logManager = logManager;
-  screen.config = config;
-  screen.ds = SDK_APP;
   const visitorId = "visitorId";
-  screen.visitorId = visitorId;
-  assertEquals(screen.isReady(), true);
 
-  //test method apiKey
-  // deno-lint-ignore no-explicit-any
-  const apiKeys: any = {
-    [VISITOR_ID_API_ITEM]: visitorId,
-    [DS_API_ITEM]: SDK_APP,
-    [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
-    [T_API_ITEM]: HitType.SCREEN_VIEW,
-    [DL_API_ITEM]: screenName,
-  };
+  it("should ", () => {
+    screen.config = config;
+    screen.ds = SDK_APP;
+    screen.visitorId = visitorId;
+    expect(screen.isReady()).toBeTruthy();
+  });
 
-  assertEquals(screen.toApiKeys(), apiKeys);
+  it("test method apiKey ", () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const apiKeys: any = {
+      [VISITOR_ID_API_ITEM]: visitorId,
+      [DS_API_ITEM]: SDK_APP,
+      [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
+      [T_API_ITEM]: HitType.SCREEN_VIEW,
+      [DL_API_ITEM]: screenName,
+    };
+    expect(screen.toApiKeys()).toEqual(apiKeys);
+  });
 
-  //test log screenName url
-  screen.screenName = "";
-  assertEquals(screen.screenName, screenName);
-
-  assertEquals(logError.calls.length, 1);
-
-  assertEquals(logError.calls, [
-    {
-      args: [sprintf(TYPE_ERROR, "screenName", "string"), "screenName"],
-      self: logManager,
-    },
-  ]);
+  it("test log screenName url", () => {
+    screen.screenName = "";
+    expect(screen.screenName).toBe(screenName);
+    expect(logError).toBeCalledTimes(1);
+    expect(logError).toBeCalledWith(
+      sprintf(TYPE_ERROR, "screenName", "string"),
+      "screenName"
+    );
+  });
 });

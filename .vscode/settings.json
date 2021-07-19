@@ -1,9 +1,13 @@
 {
-  "deno.enable": true,
-  "deno.lint": true,
-  "deno.unstable": true,
-  "cSpell.words": [
-    "Deno",
-    "sprintf"
-  ]
+  "eslint.validate": ["javascript"],
+  "cSpell.words": ["Deno", "allowlist", "sprintf"],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": null
+  }
 }
