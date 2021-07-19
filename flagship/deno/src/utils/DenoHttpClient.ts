@@ -1,4 +1,4 @@
-import { IHttpClient, IHttpOptions, IHttpResponse } from './httpClient'
+import { IHttpClient, IHttpOptions, IHttpResponse } from './httpClient.ts'
 
 export class HttpClient implements IHttpClient {
   public postAsync (url: string, options: IHttpOptions): Promise<IHttpResponse> {

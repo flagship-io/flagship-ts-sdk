@@ -24,7 +24,7 @@ import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager";
 import { sprintf } from "../../src/utils/utils";
 import { Visitor } from "../../src/visitor/Visitor";
 import { returnModification } from "./modification";
-import { NodeHttpClient } from "../../src/utils/NodeHttpClient";
+import { HttpClient } from "../../src/utils/NodeHttpClient";
 import { IHttpResponse, IHttpOptions } from "../../src/utils/httpClient";
 import { Mock } from "jest-mock";
 
@@ -44,7 +44,7 @@ describe("test visitor", () => {
   const config = new DecisionApiConfig("envId", "apiKey");
   config.logManager = logManager;
 
-  const httpClient = new NodeHttpClient();
+  const httpClient = new HttpClient();
 
   const post: Mock<
     Promise<IHttpResponse>,

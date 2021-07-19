@@ -5,7 +5,7 @@ import { DecisionApiConfig } from '../config/DecisionApiConfig'
 import { ConfigManager, IConfigManager } from '../config/ConfigManager'
 import { ApiManager } from '../decision/ApiManager'
 import { TrackingManager } from '../api/TrackingManager'
-import { NodeHttpClient } from '../utils/NodeHttpClient'
+import { HttpClient } from '../utils/NodeHttpClient'
 import { FlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, logInfo, sprintf } from '../utils/utils'
 import {
@@ -115,10 +115,10 @@ export class Flagship {
     }
 
     const decisionManager = new ApiManager(
-      new NodeHttpClient(),
+      new HttpClient(),
       flagship.config
     )
-    const trackingManager = new TrackingManager(new NodeHttpClient(), config)
+    const trackingManager = new TrackingManager(new HttpClient(), config)
     flagship.configManager = new ConfigManager(
       config,
       decisionManager,

@@ -3,13 +3,7 @@ import {
   EVENT_CATEGORY_API_ITEM,
   EVENT_LABEL_API_ITEM,
   EVENT_VALUE_API_ITEM
-} from '../enum/FlagshipConstant'
-import { HitType } from '../enum/HitType.ts'
-import { logError } from '../utils/utils.ts'
-import { HitAbstract } from './HitAbstract.ts'
-import { HitType } from '../enum/HitType.ts'
-import { logError } from '../utils/utils.ts'
-import { HitAbstract } from './HitAbstract.ts'
+} from '../enum/FlagshipConstant.ts'
 import { HitType } from '../enum/HitType.ts'
 import { logError } from '../utils/utils.ts'
 import { HitAbstract } from './HitAbstract.ts'

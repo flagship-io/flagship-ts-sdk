@@ -14,12 +14,12 @@ import {
   URL_CAMPAIGNS,
 } from "../../src/enum/index";
 import { IHttpResponse } from "../../src/utils/httpClient";
-import { NodeHttpClient } from "../../src/utils/NodeHttpClient";
+import { HttpClient } from "../../src/utils/NodeHttpClient";
 import { Visitor } from "../../src/visitor/Visitor";
 import { campaigns } from "./campaigns";
 
 describe("test ApiManager", () => {
-  const httpClient = new NodeHttpClient();
+  const httpClient = new HttpClient();
   const postAsync = jest.spyOn(httpClient, "postAsync");
   const config = new DecisionApiConfig("envId", "apiKey");
   const apiManager = new ApiManager(httpClient, config);

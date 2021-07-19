@@ -10,11 +10,9 @@ import {
   TR_API_ITEM,
   TS_API_ITEM,
   TT_API_ITEM
-} from '../enum/FlagshipConstant'
+} from '../enum/FlagshipConstant.ts'
 import { HitType } from '../enum/HitType.ts'
-import { HitAbstract } from './HitAbstract.ts'
-import { logError, sprintf } from '../utils/utils'
-import { HitType } from '../enum/HitType.ts'
+import { logError, sprintf } from '../utils/utils.ts'
 import { HitAbstract } from './HitAbstract.ts'
 
 export const CURRENCY_ERROR = '{0} must be a string and have exactly 3 letters'

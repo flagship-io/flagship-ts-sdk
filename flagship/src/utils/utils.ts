@@ -9,7 +9,7 @@ export function sprintf (format: string, ...value: any[]): string {
   let formatted = format
   for (let i = 0; i < value.length; i++) {
     const element = value[i]
-    formatted = formatted.replace(`{${i}}`, element)
+    formatted = formatted.replace(new RegExp(`\\{${i}\\}`,'g'), element)
   }
   return formatted
 }

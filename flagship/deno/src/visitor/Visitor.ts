@@ -1,5 +1,4 @@
 import { Modification } from '../model/Modification.ts'
-import { HitAbstract } from '../hit/index.ts'
 import {
   CONTEXT_NULL_ERROR,
   CONTEXT_PARAM_ERROR,
@@ -16,11 +15,10 @@ import {
   SDK_APP,
   TRACKER_MANAGER_MISSING_ERROR,
   VISITOR_ID_ERROR
-} from '../enum/index'
-import { logError, sprintf } from '../utils/utils'
-import { Modification } from '../model/Modification.ts'
+} from '../enum/index.ts'
+import { logError, sprintf } from '../utils/utils.ts'
 import { HitAbstract } from '../hit/index.ts'
-import { IConfigManager, IFlagshipConfig } from '../config/index'
+import { IConfigManager, IFlagshipConfig } from '../config/index.ts'
 
 export class Visitor {
   private _visitorId!: string;

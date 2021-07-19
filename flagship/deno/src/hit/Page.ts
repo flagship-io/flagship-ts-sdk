@@ -1,12 +1,6 @@
 import { DL_API_ITEM } from '../enum/FlagshipConstant.ts'
 import { HitType } from '../enum/HitType.ts'
 import { HitAbstract } from './HitAbstract.ts'
-import { DL_API_ITEM } from '../enum/FlagshipConstant.ts'
-import { HitType } from '../enum/HitType.ts'
-import { HitAbstract } from './HitAbstract.ts'
-import { DL_API_ITEM } from '../enum/FlagshipConstant.ts'
-import { HitType } from '../enum/HitType.ts'
-import { HitAbstract } from './HitAbstract.ts'
 
 export const ERROR_MESSAGE = 'Page url is required'
 

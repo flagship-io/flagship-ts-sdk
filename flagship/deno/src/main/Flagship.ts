@@ -2,74 +2,18 @@ import { Visitor } from '../visitor/Visitor.ts'
 import { FlagshipStatus } from '../enum/FlagshipStatus.ts'
 import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
 import { DecisionApiConfig } from '../config/DecisionApiConfig.ts'
+import { ConfigManager, IConfigManager } from '../config/ConfigManager.ts'
 import { ApiManager } from '../decision/ApiManager.ts'
 import { TrackingManager } from '../api/TrackingManager.ts'
-import { NodeHttpClient } from '../utils/NodeHttpClient.ts'
+import { HttpClient } from '../utils/DenoHttpClient.ts'
 import { FlagshipLogManager } from '../utils/FlagshipLogManager.ts'
-import { Visitor } from '../visitor/Visitor.ts'
-import { FlagshipStatus } from '../enum/FlagshipStatus.ts'
-import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
-import { DecisionApiConfig } from '../config/DecisionApiConfig.ts'
-import { ApiManager } from '../decision/ApiManager.ts'
-import { TrackingManager } from '../api/TrackingManager.ts'
-import { NodeHttpClient } from '../utils/NodeHttpClient.ts'
-import { FlagshipLogManager } from '../utils/FlagshipLogManager.ts'
-import { Visitor } from '../visitor/Visitor.ts'
-import { FlagshipStatus } from '../enum/FlagshipStatus.ts'
-import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
-import { DecisionApiConfig } from '../config/DecisionApiConfig.ts'
-import { ApiManager } from '../decision/ApiManager.ts'
-import { TrackingManager } from '../api/TrackingManager.ts'
-import { NodeHttpClient } from '../utils/NodeHttpClient.ts'
-import { FlagshipLogManager } from '../utils/FlagshipLogManager.ts'
-import { Visitor } from '../visitor/Visitor.ts'
-import { FlagshipStatus } from '../enum/FlagshipStatus.ts'
-import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
-import { DecisionApiConfig } from '../config/DecisionApiConfig.ts'
-import { ApiManager } from '../decision/ApiManager.ts'
-import { TrackingManager } from '../api/TrackingManager.ts'
-import { NodeHttpClient } from '../utils/NodeHttpClient.ts'
-import { FlagshipLogManager } from '../utils/FlagshipLogManager.ts'
-import { ConfigManager, IConfigManager } from '../config/ConfigManager'
-import { Visitor } from '../visitor/Visitor.ts'
-import { FlagshipStatus } from '../enum/FlagshipStatus.ts'
-import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
-import { DecisionApiConfig } from '../config/DecisionApiConfig.ts'
-import { ApiManager } from '../decision/ApiManager.ts'
-import { TrackingManager } from '../api/TrackingManager.ts'
-import { NodeHttpClient } from '../utils/NodeHttpClient.ts'
-import { FlagshipLogManager } from '../utils/FlagshipLogManager.ts'
-import { Visitor } from '../visitor/Visitor.ts'
-import { FlagshipStatus } from '../enum/FlagshipStatus.ts'
-import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
-import { DecisionApiConfig } from '../config/DecisionApiConfig.ts'
-import { ApiManager } from '../decision/ApiManager.ts'
-import { TrackingManager } from '../api/TrackingManager.ts'
-import { NodeHttpClient } from '../utils/NodeHttpClient.ts'
-import { FlagshipLogManager } from '../utils/FlagshipLogManager.ts'
-import { Visitor } from '../visitor/Visitor.ts'
-import { FlagshipStatus } from '../enum/FlagshipStatus.ts'
-import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
-import { DecisionApiConfig } from '../config/DecisionApiConfig.ts'
-import { ApiManager } from '../decision/ApiManager.ts'
-import { TrackingManager } from '../api/TrackingManager.ts'
-import { NodeHttpClient } from '../utils/NodeHttpClient.ts'
-import { FlagshipLogManager } from '../utils/FlagshipLogManager.ts'
-import { Visitor } from '../visitor/Visitor.ts'
-import { FlagshipStatus } from '../enum/FlagshipStatus.ts'
-import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
-import { DecisionApiConfig } from '../config/DecisionApiConfig.ts'
-import { ApiManager } from '../decision/ApiManager.ts'
-import { TrackingManager } from '../api/TrackingManager.ts'
-import { NodeHttpClient } from '../utils/NodeHttpClient.ts'
-import { FlagshipLogManager } from '../utils/FlagshipLogManager.ts'
-import { logError, logInfo, sprintf } from '../utils/utils'
+import { logError, logInfo, sprintf } from '../utils/utils.ts'
 import {
   INITIALIZATION_PARAM_ERROR,
   PROCESS_INITIALIZATION,
   SDK_STARTED_INFO,
   SDK_VERSION
-} from '../enum/index'
+} from '../enum/index.ts'
 
 export class Flagship {
   private static _instance: Flagship;
@@ -171,10 +115,10 @@ export class Flagship {
     }
 
     const decisionManager = new ApiManager(
-      new NodeHttpClient(),
+      new HttpClient(),
       flagship.config
     )
-    const trackingManager = new TrackingManager(new NodeHttpClient(), config)
+    const trackingManager = new TrackingManager(new HttpClient(), config)
     flagship.configManager = new ConfigManager(
       config,
       decisionManager,

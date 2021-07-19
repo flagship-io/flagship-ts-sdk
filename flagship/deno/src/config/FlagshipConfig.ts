@@ -1,6 +1,4 @@
-import { FlagshipStatus, LogLevel, REQUEST_TIME_OUT } from '../enum/index'
-import { IFlagshipLogManager } from '../utils/FlagshipLogManager.ts'
-import { logError } from '../utils/utils.ts'
+import { FlagshipStatus, LogLevel, REQUEST_TIME_OUT } from '../enum/index.ts'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager.ts'
 import { logError } from '../utils/utils.ts'
 

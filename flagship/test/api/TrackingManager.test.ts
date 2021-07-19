@@ -1,7 +1,7 @@
 import { jest, expect, it, describe } from "@jest/globals";
 import { TrackingManager } from "../../src/api/TrackingManager";
 import { ConfigManager, DecisionApiConfig } from "../../src/config/index";
-import { NodeHttpClient } from "../../src/utils/NodeHttpClient";
+import { HttpClient } from "../../src/utils/NodeHttpClient";
 import { Visitor } from "../../src/visitor/Visitor";
 import { Modification } from "../../src/model/Modification";
 import {
@@ -28,7 +28,7 @@ jest.mock("../../src/utils/NodeHttpClient");
 
 describe("test TrackingManager sendActive ", () => {
   it("should ", async () => {
-    const httpClient = new NodeHttpClient();
+    const httpClient = new HttpClient();
 
     const postAsync = jest.spyOn(httpClient, "postAsync");
 
@@ -98,7 +98,7 @@ describe("test TrackingManager sendActive ", () => {
 
 describe("test TrackingManager sendHit ", () => {
   it(" should", async () => {
-    const httpClient = new NodeHttpClient();
+    const httpClient = new HttpClient();
     const postAsync = jest.spyOn(httpClient, "postAsync");
 
     const config = new DecisionApiConfig("envId", "apiKey");

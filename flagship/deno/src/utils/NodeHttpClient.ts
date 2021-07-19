@@ -1,4 +1,4 @@
-import { IHttpClient, IHttpOptions, IHttpResponse } from './httpClient'
+import { IHttpClient, IHttpOptions, IHttpResponse } from './httpClient.ts'
 import axios from 'axios'
 
 export class HttpClient implements IHttpClient {
