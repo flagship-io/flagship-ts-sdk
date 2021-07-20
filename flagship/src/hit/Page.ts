@@ -1,8 +1,12 @@
 import { DL_API_ITEM } from '../enum/FlagshipConstant'
 import { HitType } from '../enum/HitType'
-import { HitAbstract } from './HitAbstract'
+import { HitAbstract, IHitAbstract } from './HitAbstract'
 
 export const ERROR_MESSAGE = 'Page url is required'
+
+export interface IPage extends IHitAbstract{
+   pageUrl:string
+}
 
 export class Page extends HitAbstract {
   private _pageUrl!: string;
@@ -17,9 +21,9 @@ export class Page extends HitAbstract {
     this._pageUrl = v
   }
 
-  public constructor (pageUrl: string) {
+  public constructor (page:Omit<IPage, 'type'>) {
     super(HitType.PAGE_VIEW)
-    this.pageUrl = pageUrl
+    this.pageUrl = page.pageUrl
   }
 
   public isReady ():boolean {

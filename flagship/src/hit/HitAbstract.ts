@@ -10,10 +10,16 @@ import {
 import { HitType } from '../enum/HitType'
 import { logError, sprintf } from '../utils/utils'
 
-export abstract class HitAbstract {
+export interface IHitAbstract{
+  visitorId?:string
+  ds?: string
+  type: HitType
+}
+
+export abstract class HitAbstract implements IHitAbstract {
   private _visitorId!: string;
   private _config!: IFlagshipConfig;
-  private _hitType!: HitType;
+  private _type!: HitType;
   private _ds!: string;
 
   public get visitorId (): string {
@@ -32,12 +38,12 @@ export abstract class HitAbstract {
     this._ds = v
   }
 
-  protected get hitType (): HitType {
-    return this._hitType
+  public get type (): HitType {
+    return this._type
   }
 
-  protected set hitType (v: HitType) {
-    this._hitType = v
+  protected set type (v: HitType) {
+    this._type = v
   }
 
   public get config (): IFlagshipConfig {
@@ -49,7 +55,7 @@ export abstract class HitAbstract {
   }
 
   protected constructor (type: HitType) {
-    this.hitType = type
+    this.type = type
   }
 
   /**
@@ -103,7 +109,7 @@ export abstract class HitAbstract {
       [VISITOR_ID_API_ITEM]: this.visitorId,
       [DS_API_ITEM]: this.ds,
       [CUSTOMER_ENV_ID_API_ITEM]: `${this.config.envId}`,
-      [T_API_ITEM]: this.hitType
+      [T_API_ITEM]: this.type
     }
   }
 
@@ -116,7 +122,7 @@ export abstract class HitAbstract {
       this.ds &&
       this.config &&
       this.config.envId &&
-      this.hitType
+      this.type
     )
   }
 

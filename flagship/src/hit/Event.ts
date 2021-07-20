@@ -6,7 +6,7 @@ import {
 } from '../enum/FlagshipConstant'
 import { HitType } from '../enum/HitType'
 import { logError } from '../utils/utils'
-import { HitAbstract } from './HitAbstract'
+import { HitAbstract, IHitAbstract } from './HitAbstract'
 
 export const ERROR_MESSAGE = 'event category and event action are required'
 export const CATEGORY_ERROR =
@@ -17,7 +17,14 @@ export enum EventCategory {
   USER_ENGAGEMENT = 'USER_ENGAGEMENT',
 }
 
-export class Event extends HitAbstract {
+export interface IEvent extends IHitAbstract{
+  category: EventCategory
+  action: string
+  eventLabel?: string
+  eventValue?: number
+}
+
+export class Event extends HitAbstract implements IEvent {
   private _category!: EventCategory;
   private _action!: string;
   private _eventLabel!: string;
@@ -84,10 +91,17 @@ export class Event extends HitAbstract {
     this._eventValue = v
   }
 
-  public constructor (category: EventCategory, action: string) {
+  public constructor (event:Omit<IEvent, 'type'>) {
     super(HitType.EVENT)
-    this.category = category
-    this.action = action
+
+    this.category = event.category
+    this.action = event.action
+    if (event.eventLabel) {
+      this.eventLabel = event.eventLabel
+    }
+    if (event.eventValue) {
+      this.eventValue = event.eventValue
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -6,6 +6,7 @@ import {
   GET_MODIFICATION_ERROR,
   GET_MODIFICATION_KEY_ERROR,
   GET_MODIFICATION_MISSING_ERROR,
+  HitType,
   PANIC_MODE_ERROR,
   PROCESS_ACTIVE_MODIFICATION,
   PROCESS_GET_MODIFICATION,
@@ -17,8 +18,13 @@ import {
   VISITOR_ID_ERROR
 } from '../enum/index'
 import { logError, sprintf } from '../utils/utils'
-import { HitAbstract } from '../hit/index'
+import { Event, HitAbstract, IPage, Item, Page, Transaction, IScreen, Screen } from '../hit/index'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
+import { IEvent } from '../hit/Event'
+import { IItem } from '../hit/Item'
+import { ITransaction } from '../hit/Transaction'
+
+export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 
 export class Visitor {
   private _visitorId!: string;
@@ -359,18 +365,40 @@ export class Visitor {
    * Send a Hit to Flagship servers for reporting.
    * @param hit
    */
-  public sendHitAsync (hit: HitAbstract): Promise<void> {
-    return new Promise((resolve) => {
-      this.sendHit(hit)
-      resolve()
-    })
+  public sendHit (hit: HitAbstract): Promise<void> {
+    return Promise.resolve(this.sendHitSync(hit))
+  }
+
+  private getHit (hit:IPage|IScreen|IEvent|IItem|ITransaction) {
+    let newHit = null
+
+    switch (hit.type.toUpperCase()) {
+      case HitType.EVENT:
+        newHit = new Event(hit as IEvent)
+        break
+      case HitType.ITEM:
+        newHit = new Item(hit as IItem)
+        break
+      case 'PAGE':
+      case HitType.PAGE_VIEW:
+        newHit = new Page(hit as IPage)
+        break
+      case 'SCREEN':
+      case HitType.SCREEN_VIEW:
+        newHit = new Screen(hit as IScreen)
+        break
+      case HitType.TRANSACTION:
+        newHit = new Transaction(hit as ITransaction)
+        break
+    }
+    return newHit
   }
 
   /**
    * Send a Hit to Flagship servers for reporting.
    * @param hit
    */
-  public sendHit (hit: HitAbstract): void {
+  public sendHitSync (hit:IPage|IScreen|IEvent|IItem|ITransaction|HitAbstract): void {
     if (this.isOnPanicMode(PROCESS_SEND_HIT)) {
       return
     }
@@ -378,15 +406,25 @@ export class Visitor {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
       return
     }
-    hit.visitorId = this.visitorId
-    hit.ds = SDK_APP
-    hit.config = this.config
+    let hitInstance:HitAbstract
+    if (hit instanceof HitAbstract) {
+      hitInstance = hit
+    } else {
+      const hitFromInt = this.getHit(hit)
+      if (!hitFromInt) {
+        logError(this.config, TYPE_HIT_REQUIRED_ERROR, PROCESS_SEND_HIT)
+        return
+      }
+      hitInstance = hitFromInt
+    }
+    hitInstance.visitorId = this.visitorId
+    hitInstance.ds = SDK_APP
+    hitInstance.config = this.config
 
-    if (!hit.isReady()) {
-      logError(this.config, hit.getErrorMessage(), PROCESS_SEND_HIT)
+    if (!hitInstance.isReady()) {
+      logError(this.config, hitInstance.getErrorMessage(), PROCESS_SEND_HIT)
       return
     }
-
-    this.configManager.trackingManager.sendHit(hit)
+    this.configManager.trackingManager.sendHit(hitInstance)
   }
 }

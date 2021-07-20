@@ -13,13 +13,25 @@ import {
 } from '../enum/FlagshipConstant'
 import { HitType } from '../enum/HitType'
 import { logError, sprintf } from '../utils/utils'
-import { HitAbstract } from './HitAbstract'
+import { HitAbstract, IHitAbstract } from './HitAbstract'
 
 export const CURRENCY_ERROR = '{0} must be a string and have exactly 3 letters'
-export const ERROR_MESSAGE =
-  'Transaction Id and Transaction affiliation are required'
+export const ERROR_MESSAGE = 'Transaction Id and Transaction affiliation are required'
 
-export class Transaction extends HitAbstract {
+export interface ITransaction extends IHitAbstract{
+  transactionId: string
+  affiliation: string
+  taxes?: number
+  currency?: string
+  couponCode?: string
+  itemCount?: number
+  shippingMethod?: string
+  paymentMethod?: string
+  totalRevenue?: number
+  shippingCosts?: number
+}
+
+export class Transaction extends HitAbstract implements ITransaction {
   private _transactionId!: string;
   private _affiliation!: string;
   private _taxes!: number;
@@ -30,6 +42,7 @@ export class Transaction extends HitAbstract {
   private _paymentMethod!: string;
   private _totalRevenue!: number;
   private _shippingCosts!: number;
+
   public get transactionId (): string {
     return this._transactionId
   }
@@ -141,10 +154,42 @@ export class Transaction extends HitAbstract {
     this._shippingCosts = v
   }
 
-  public constructor (transactionId: string, affiliation: string) {
+  public constructor (transaction: Omit<ITransaction, 'type'>) {
     super(HitType.TRANSACTION)
+    const {
+      transactionId,
+      affiliation, taxes,
+      currency, couponCode,
+      itemCount, shippingMethod,
+      paymentMethod,
+      totalRevenue, shippingCosts
+    } = transaction
     this.transactionId = transactionId
     this.affiliation = affiliation
+    if (taxes) {
+      this.taxes = taxes
+    }
+    if (currency) {
+      this.currency = currency
+    }
+    if (couponCode) {
+      this.couponCode = couponCode
+    }
+    if (itemCount) {
+      this.itemCount = itemCount
+    }
+    if (shippingMethod) {
+      this.shippingMethod = shippingMethod
+    }
+    if (paymentMethod) {
+      this.paymentMethod = paymentMethod
+    }
+    if (totalRevenue) {
+      this.totalRevenue = totalRevenue
+    }
+    if (shippingCosts) {
+      this.shippingCosts = shippingCosts
+    }
   }
 
   public isReady ():boolean {

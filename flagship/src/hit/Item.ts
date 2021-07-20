@@ -7,11 +7,20 @@ import {
   TID_API_ITEM
 } from '../enum/FlagshipConstant'
 import { HitType } from '../enum/HitType'
-import { HitAbstract } from './HitAbstract'
+import { HitAbstract, IHitAbstract } from './HitAbstract'
 
-export const ERROR_MESSAGE =
-  'Transaction Id, Item name and item code are required'
-export class Item extends HitAbstract {
+export const ERROR_MESSAGE = 'Transaction Id, Item name and item code are required'
+
+export interface IItem extends IHitAbstract{
+   transactionId: string
+   productName: string
+   productSku: string
+   itemPrice?: number
+   itemQuantity?: number
+   itemCategory?: string
+}
+
+export class Item extends HitAbstract implements IItem {
   private _transactionId!: string;
   private _productName!: string;
   private _productSku!: string;
@@ -109,15 +118,22 @@ export class Item extends HitAbstract {
    * @param productName : Name of the item product.
    * @param productSku : The SKU or item code.
    */
-  public constructor (
-    transactionId: string,
-    productName: string,
-    productSku: string
-  ) {
+  public constructor (item:Omit<IItem, 'type'>) {
     super(HitType.ITEM)
-    this.transactionId = transactionId
-    this.productName = productName
-    this.productSku = productSku
+
+    this.transactionId = item.transactionId
+    this.productName = item.productName
+    this.productSku = item.productSku
+
+    if (item.itemCategory) {
+      this.itemCategory = item.itemCategory
+    }
+    if (item.itemPrice) {
+      this.itemPrice = item.itemPrice
+    }
+    if (item.itemQuantity) {
+      this.itemQuantity = item.itemQuantity
+    }
   }
 
   public isReady (): boolean {

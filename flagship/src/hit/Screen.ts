@@ -1,8 +1,12 @@
 import { DL_API_ITEM } from '../enum/FlagshipConstant'
 import { HitType } from '../enum/HitType'
-import { HitAbstract } from './HitAbstract'
+import { HitAbstract, IHitAbstract } from './HitAbstract'
 
 export const ERROR_MESSAGE = 'Screen name is required'
+
+export interface IScreen extends IHitAbstract{
+  screenName:string
+}
 
 export class Screen extends HitAbstract {
   private _screenName!: string;
@@ -17,9 +21,9 @@ export class Screen extends HitAbstract {
     this._screenName = v
   }
 
-  public constructor (screenName: string) {
+  public constructor (screen: Omit<IScreen, 'type'>) {
     super(HitType.SCREEN_VIEW)
-    this.screenName = screenName
+    this.screenName = screen.screenName
   }
 
   public isReady ():boolean {
