@@ -57,9 +57,9 @@ export class ApiManager extends DecisionManager {
   private getModifications (campaigns: Array<CampaignDTO>) {
     const modifications = new Map<string, Modification>()
     campaigns.forEach((campaign) => {
-      const object = campaign.variation.modifications.value;
+      const object = campaign.variation.modifications.value
       for (const key in object) {
-        const value = object[key];
+        const value = object[key]
         modifications.set(
           key,
           new Modification(

@@ -33,8 +33,9 @@ export class Flagship {
     return this._configManger
   }
 
+  // eslint-disable-next-line no-useless-constructor
   private constructor () {
-    //singleton
+    // singleton
   }
 
   protected static getInstance (): Flagship {
@@ -55,7 +56,7 @@ export class Flagship {
       apiKey !== null &&
       apiKey !== '' &&
       envId != null &&
-      envId != ''
+      envId !== ''
     )
   }
 

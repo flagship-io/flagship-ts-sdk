@@ -93,8 +93,8 @@ export class Visitor {
     }
 
     for (const key in context) {
-        const value = context[key];
-        this.updateContextKeyValue(key, value)
+      const value = context[key]
+      this.updateContextKeyValue(key, value)
     }
   }
 
@@ -113,8 +113,8 @@ export class Visitor {
     const valueType = typeof value
     if (
       typeof key !== 'string' ||
-      key == '' ||
-      (valueType != 'string' && valueType != 'number' && valueType != 'boolean')
+      key === '' ||
+      (valueType !== 'string' && valueType !== 'number' && valueType !== 'boolean')
     ) {
       logError(
         this.config,
@@ -155,12 +155,14 @@ export class Visitor {
    * @param {T} defaultValue : default value to return.
    * @param {boolean} activate : Set this parameter to true to automatically report on our server that the current visitor has seen this modification. It is possible to call activateModification() later.
    */
-  public getModificationAsync<T> (
+  public getModification<T> (
     key: string,
     defaultValue: T,
     activate = false
   ): Promise<T> {
-    return Promise.resolve(this.getModification(key, defaultValue, activate))
+    return Promise.resolve(
+      this.getModificationSync(key, defaultValue, activate)
+    )
   }
 
   /**
@@ -170,7 +172,11 @@ export class Visitor {
    * @param {T} defaultValue : default value to return.
    * @param {boolean} activate : Set this parameter to true to automatically report on our server that the current visitor has seen this modification. It is possible to call activateModification() later.
    */
-  public getModification<T> (key: string, defaultValue: T, activate = false): T {
+  public getModificationSync<T> (
+    key: string,
+    defaultValue: T,
+    activate = false
+  ): T {
     if (this.isOnPanicMode(PROCESS_GET_MODIFICATION)) {
       return defaultValue
     }
@@ -202,7 +208,7 @@ export class Visitor {
       )
 
       if (!modification.value) {
-        this.activateModification(key)
+        this.activateModificationSync(key)
       }
     }
 
@@ -221,7 +227,7 @@ export class Visitor {
     }
 
     if (activate) {
-      this.activateModification(key)
+      this.activateModificationSync(key)
     }
 
     return modification.value
@@ -232,8 +238,8 @@ export class Visitor {
    * @param {string} key : key which identify the modification.
    * @returns {Modification | null}
    */
-  public getModificationInfoAsync (key: string): Promise<Modification | null> {
-    return Promise.resolve(this.getModificationInfo(key))
+  public getModificationInfo (key: string): Promise<Modification | null> {
+    return Promise.resolve(this.getModificationInfoSync(key))
   }
 
   /**
@@ -241,7 +247,7 @@ export class Visitor {
    * @param {string} key : key which identify the modification.
    * @returns {Modification | null}
    */
-  public getModificationInfo (key: string): Modification | null {
+  public getModificationInfoSync (key: string): Modification | null {
     if (this.isOnPanicMode(PROCESS_GET_MODIFICATION_INFO)) {
       return null
     }
@@ -293,28 +299,13 @@ export class Visitor {
    * Report this user has seen this modification.
    * @param key : key which identify the modification to activate.
    */
-  public activateModificationAsync (key: string): Promise<void> {
-    return Promise.resolve(this.activateModification(key))
+  public activateModification (
+    key: string | Array<{ key: string }> | Array<string>
+  ): Promise<void> {
+    return Promise.resolve(this.activateModificationSync(key))
   }
 
-  /**
-   * Report this user has seen this modification.
-   * @param key : key which identify the modification to activate.
-   */
-  public activateModification (key: string): void {
-    if (this.isOnPanicMode(PROCESS_ACTIVE_MODIFICATION)) {
-      return
-    }
-
-    if (!key || typeof key !== 'string') {
-      logError(
-        this.config,
-        sprintf(GET_MODIFICATION_KEY_ERROR, key),
-        PROCESS_ACTIVE_MODIFICATION
-      )
-      return
-    }
-
+  private activate (key: string) {
     const modification = this.modifications.get(key)
 
     if (!modification) {
@@ -334,6 +325,37 @@ export class Visitor {
   }
 
   /**
+   * Report this user has seen this modification.
+   * @param key : key which identify the modification to activate.
+   */
+  public activateModificationSync (
+    key: string | Array<{ key: string }> | Array<string>
+  ): void {
+    if (this.isOnPanicMode(PROCESS_ACTIVE_MODIFICATION)) {
+      return
+    }
+
+    if (!key || (typeof key !== 'string' && !Array.isArray(key))) {
+      logError(
+        this.config,
+        sprintf(GET_MODIFICATION_KEY_ERROR, key),
+        PROCESS_ACTIVE_MODIFICATION
+      )
+      return
+    }
+
+    if (typeof key === 'string') {
+      this.activate(key)
+    } else if (Array.isArray(key)) {
+      key.forEach((item) => {
+        if (typeof item === 'string') {
+          this.activate(item)
+        } else this.activate(item.key)
+      })
+    }
+  }
+
+  /**
    * Send a Hit to Flagship servers for reporting.
    * @param hit
    */
@@ -348,7 +370,7 @@ export class Visitor {
    * Send a Hit to Flagship servers for reporting.
    * @param hit
    */
-  public sendHit (hit: HitAbstract):void {
+  public sendHit (hit: HitAbstract): void {
     if (this.isOnPanicMode(PROCESS_SEND_HIT)) {
       return
     }

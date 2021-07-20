@@ -1,11 +1,11 @@
 {
-  "eslint.validate": ["javascript"],
+  "eslint.validate": ["javascript", "typescript"],
   "cSpell.words": ["Deno", "allowlist", "sprintf"],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
   "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": null
   },
   "[typescript]": {
     "editor.defaultFormatter": null

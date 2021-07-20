@@ -1,92 +1,92 @@
-import { Modification } from "../../src/model/Modification";
+import { Modification } from '../../src/model/Modification'
 
 export const returnModification = new Map<string, Modification>([
   [
-    "keyNull",
+    'keyNull',
     new Modification(
-      "keyNull",
-      "c2nrh1hjg50l9thhu8bg",
-      "c2nrh1hjg50l9thhu8cg",
-      "c2nrh1hjg50l9thhu8dg",
+      'keyNull',
+      'c2nrh1hjg50l9thhu8bg',
+      'c2nrh1hjg50l9thhu8cg',
+      'c2nrh1hjg50l9thhu8dg',
       false,
       null
-    ),
+    )
   ],
   [
-    "keyString",
+    'keyString',
     new Modification(
-      "keyString",
-      "c2nrh1hjg50l9thhu8bg",
-      "c2nrh1hjg50l9thhu8cg",
-      "c2nrh1hjg50l9thhu8dg",
+      'keyString',
+      'c2nrh1hjg50l9thhu8bg',
+      'c2nrh1hjg50l9thhu8cg',
+      'c2nrh1hjg50l9thhu8dg',
       false,
-      "value"
-    ),
+      'value'
+    )
   ],
   [
-    "keyNumber",
+    'keyNumber',
     new Modification(
-      "keyNumber",
-      "c2nrh1hjg50l9thhu8bg",
-      "c2nrh1hjg50l9thhu8cg",
-      "c2nrh1hjg50l9thhu8dg",
+      'keyNumber',
+      'c2nrh1hjg50l9thhu8bg',
+      'c2nrh1hjg50l9thhu8cg',
+      'c2nrh1hjg50l9thhu8dg',
       false,
       52
-    ),
+    )
   ],
   [
-    "keyBoolean",
+    'keyBoolean',
     new Modification(
-      "keyBoolean",
-      "c2nrh1hjg50l9thhu8bg",
-      "c2nrh1hjg50l9thhu8cg",
-      "c2nrh1hjg50l9thhu8dg",
+      'keyBoolean',
+      'c2nrh1hjg50l9thhu8bg',
+      'c2nrh1hjg50l9thhu8cg',
+      'c2nrh1hjg50l9thhu8dg',
       false,
       true
-    ),
+    )
   ],
   [
-    "key",
+    'key',
     new Modification(
-      "key",
-      "c2nrh1hjg50l9thhu8bg",
-      "c2nrh1hjg50l9thhu8cg",
-      "c2nrh1hjg50l9thhu8dg",
+      'key',
+      'c2nrh1hjg50l9thhu8bg',
+      'c2nrh1hjg50l9thhu8cg',
+      'c2nrh1hjg50l9thhu8dg',
       false,
-      "value"
-    ),
+      'value'
+    )
   ],
   [
-    "array",
+    'array',
     new Modification(
-      "array",
-      "c3ev1afkprbg5u3burag",
-      "c3ev1afkprbg5u3burbg",
-      "c3ev1afkprbg5u3burcg",
+      'array',
+      'c3ev1afkprbg5u3burag',
+      'c3ev1afkprbg5u3burbg',
+      'c3ev1afkprbg5u3burcg',
       false,
       [1, 1, 1]
-    ),
+    )
   ],
   [
-    "complex",
+    'complex',
     new Modification(
-      "complex",
-      "c3ev1afkprbg5u3burag",
-      "c3ev1afkprbg5u3burbg",
-      "c3ev1afkprbg5u3burcg",
+      'complex',
+      'c3ev1afkprbg5u3burag',
+      'c3ev1afkprbg5u3burbg',
+      'c3ev1afkprbg5u3burcg',
       false,
       { carray: [] }
-    ),
+    )
   ],
   [
-    "object",
+    'object',
     new Modification(
-      "object",
-      "c3ev1afkprbg5u3burag",
-      "c3ev1afkprbg5u3burbg",
-      "c3ev1afkprbg5u3burcg",
+      'object',
+      'c3ev1afkprbg5u3burag',
+      'c3ev1afkprbg5u3burbg',
+      'c3ev1afkprbg5u3burcg',
       false,
       { value: 123456 }
-    ),
-  ],
-]);
+    )
+  ]
+])

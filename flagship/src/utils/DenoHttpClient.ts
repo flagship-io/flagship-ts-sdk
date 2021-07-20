@@ -19,10 +19,7 @@ export class HttpClient implements IHttpClient {
             : await response.text()
 
           if (!response.ok) {
-            reject({
-              status: response.status,
-              body: body || response.statusText
-            })
+            reject(new Error(body || response.statusText).message)
             return
           }
 

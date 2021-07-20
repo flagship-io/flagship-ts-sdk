@@ -96,7 +96,7 @@ export abstract class HitAbstract {
   /**
    * Return an object with Api parameters as keys
    */
- 
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public toApiKeys (): any {
     return {
