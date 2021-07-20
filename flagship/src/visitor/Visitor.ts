@@ -305,10 +305,21 @@ export class Visitor {
    * Report this user has seen this modification.
    * @param key : key which identify the modification to activate.
    */
-  public activateModification (
-    key: string | Array<{ key: string }> | Array<string>
-  ): Promise<void> {
-    return Promise.resolve(this.activateModificationSync(key))
+  public activateModification (key: string): Promise<void>
+  /**
+    * Report this user has seen these modifications.
+    * @deprecated use ["key1","key2",...] instead of
+    * @param {Array<{ key: string }>} keys keys which identify the modifications to activate.
+    */
+  public activateModification (keys: Array<{ key: string }>): Promise<void>
+  /**
+    * Report this user has seen these modifications.
+    * @param keys  keys which identify the modifications to activate.
+    */
+  public activateModification (keys: Array<string>):Promise<void>
+
+  public activateModification (params: string | Array<{ key: string }> | Array<string>): Promise<void> {
+    return Promise.resolve(this.activateModificationSync(params))
   }
 
   private activate (key: string) {
@@ -334,26 +345,37 @@ export class Visitor {
    * Report this user has seen this modification.
    * @param key : key which identify the modification to activate.
    */
-  public activateModificationSync (
-    key: string | Array<{ key: string }> | Array<string>
-  ): void {
+  public activateModificationSync (key: string): void
+  /**
+   * Report this user has seen these modifications.
+   * @deprecated use ["key1","key2",...] instead of
+   * @param {Array<{ key: string }>} keys keys which identify the modifications to activate.
+   */
+  public activateModificationSync (keys: Array<{ key: string }>): void
+  /**
+   * Report this user has seen these modifications.
+   * @param keys  keys which identify the modifications to activate.
+   */
+  public activateModificationSync (keys: Array<string>): void
+  public activateModificationSync (params: string | Array<{ key: string }> | Array<string>):void
+  public activateModificationSync (params: string | Array<{ key: string }> | Array<string>): void {
     if (this.isOnPanicMode(PROCESS_ACTIVE_MODIFICATION)) {
       return
     }
 
-    if (!key || (typeof key !== 'string' && !Array.isArray(key))) {
+    if (!params || (typeof params !== 'string' && !Array.isArray(params))) {
       logError(
         this.config,
-        sprintf(GET_MODIFICATION_KEY_ERROR, key),
+        sprintf(GET_MODIFICATION_KEY_ERROR, params),
         PROCESS_ACTIVE_MODIFICATION
       )
       return
     }
 
-    if (typeof key === 'string') {
-      this.activate(key)
-    } else if (Array.isArray(key)) {
-      key.forEach((item) => {
+    if (typeof params === 'string') {
+      this.activate(params)
+    } else if (Array.isArray(params)) {
+      params.forEach((item) => {
         if (typeof item === 'string') {
           this.activate(item)
         } else this.activate(item.key)
@@ -365,7 +387,7 @@ export class Visitor {
    * Send a Hit to Flagship servers for reporting.
    * @param hit
    */
-  public sendHit (hit: HitAbstract): Promise<void> {
+  public sendHit (hit:IPage|IScreen|IEvent|IItem|ITransaction|HitAbstract): Promise<void> {
     return Promise.resolve(this.sendHitSync(hit))
   }
 
