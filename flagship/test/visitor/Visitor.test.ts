@@ -444,17 +444,17 @@ describe('test visitor', () => {
     }
   })
 
-  const hitScreen = new Screen('home')
+  const hitScreen = new Screen({ screenName: 'home' })
 
   it('test sendHit', () => {
-    visitor.sendHit(hitScreen)
+    visitor.sendHitSync(hitScreen)
     expect(sendHit).toBeCalledTimes(1)
     expect(sendHit).toBeCalledWith(hitScreen)
   })
 
   it('test hasTrackingManager activateModification', () => {
     configManager.trackingManager = getNull()
-    visitor.sendHit(hitScreen)
+    visitor.sendHitSync(hitScreen)
 
     expect(sendHit).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
@@ -468,7 +468,7 @@ describe('test visitor', () => {
 
   it('panic mode sendHit', () => {
     isPanic.mockReturnValue(true)
-    visitor.sendHit(hitScreen)
+    visitor.sendHitSync(hitScreen)
 
     expect(sendHit).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
@@ -481,7 +481,7 @@ describe('test visitor', () => {
 
   it('test isReady sendHit', () => {
     const hitScreenNull = new Screen(getNull())
-    visitor.sendHit(hitScreenNull)
+    visitor.sendHitSync(hitScreenNull)
 
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(
@@ -492,7 +492,7 @@ describe('test visitor', () => {
 
   it('test sendHitAsync', async () => {
     try {
-      await visitor.sendHitAsync(hitScreen)
+      await visitor.sendHit(hitScreen)
       expect(sendHit).toBeCalledTimes(1)
       expect(sendHit).toBeCalledWith(hitScreen)
     } catch (error) {
