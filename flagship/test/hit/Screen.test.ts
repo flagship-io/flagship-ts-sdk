@@ -17,7 +17,7 @@ import { sprintf } from '../../src/utils/utils'
 
 describe('test hit type Page', () => {
   const screenName = 'home'
-  const screen = new Screen(screenName)
+  const screen = new Screen({ screenName })
 
   it('should ', () => {
     expect(screen.screenName).toBe(screenName)

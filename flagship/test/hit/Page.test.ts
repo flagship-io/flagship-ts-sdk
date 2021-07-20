@@ -17,7 +17,7 @@ import { sprintf } from '../../src/utils/utils'
 
 describe('test hit type Page', () => {
   const url = 'https://localhost'
-  const page = new Page(url)
+  const page = new Page({ pageUrl: url })
 
   it('should', () => {
     expect(page.pageUrl).toBe(url)

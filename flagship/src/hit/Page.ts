@@ -23,7 +23,7 @@ export class Page extends HitAbstract {
 
   public constructor (page:Omit<IPage, 'type'>) {
     super(HitType.PAGE_VIEW)
-    this.pageUrl = page.pageUrl
+    this.pageUrl = page?.pageUrl
   }
 
   public isReady ():boolean {

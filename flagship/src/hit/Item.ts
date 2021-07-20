@@ -120,19 +120,22 @@ export class Item extends HitAbstract implements IItem {
    */
   public constructor (item:Omit<IItem, 'type'>) {
     super(HitType.ITEM)
+    const {
+      transactionId, productName, productSku,
+      itemCategory, itemPrice, itemQuantity
+    } = item
+    this.transactionId = transactionId
+    this.productName = productName
+    this.productSku = productSku
 
-    this.transactionId = item.transactionId
-    this.productName = item.productName
-    this.productSku = item.productSku
-
-    if (item.itemCategory) {
-      this.itemCategory = item.itemCategory
+    if (itemCategory) {
+      this.itemCategory = itemCategory
     }
-    if (item.itemPrice) {
-      this.itemPrice = item.itemPrice
+    if (itemPrice) {
+      this.itemPrice = itemPrice
     }
-    if (item.itemQuantity) {
-      this.itemQuantity = item.itemQuantity
+    if (itemQuantity) {
+      this.itemQuantity = itemQuantity
     }
   }
 

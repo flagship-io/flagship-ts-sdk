@@ -26,7 +26,7 @@ const getNull = (): any => {
 describe('test hit type Event', () => {
   const category = EventCategory.ACTION_TRACKING
   const action = 'action'
-  const event = new Event(category, action)
+  const event = new Event({ category, action })
 
   it('should ', () => {
     expect(event.category).toBe(category)

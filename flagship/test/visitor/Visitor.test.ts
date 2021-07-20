@@ -9,20 +9,22 @@ import {
   GET_MODIFICATION_ERROR,
   GET_MODIFICATION_KEY_ERROR,
   GET_MODIFICATION_MISSING_ERROR,
+  HitType,
   PANIC_MODE_ERROR,
   PROCESS_ACTIVE_MODIFICATION,
   PROCESS_GET_MODIFICATION,
   PROCESS_GET_MODIFICATION_INFO,
   PROCESS_SEND_HIT,
   PROCESS_UPDATE_CONTEXT,
+  SDK_APP,
   TRACKER_MANAGER_MISSING_ERROR,
   VISITOR_ID_ERROR
 } from '../../src/enum/index'
-import { Screen } from '../../src/hit/index'
+import { EventCategory, Screen } from '../../src/hit/index'
 import { Modification } from '../../src/model/Modification'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { sprintf } from '../../src/utils/utils'
-import { Visitor } from '../../src/visitor/Visitor'
+import { TYPE_HIT_REQUIRED_ERROR, Visitor } from '../../src/visitor/Visitor'
 import { returnModification } from './modification'
 import { HttpClient } from '../../src/utils/NodeHttpClient'
 import { IHttpResponse, IHttpOptions } from '../../src/utils/httpClient'
@@ -384,6 +386,36 @@ describe('test visitor', () => {
     )
   })
 
+  it('test activateModification with array key', async () => {
+    const key1 = 'keyString'
+    const key2 = 'keyNumber'
+    await visitor.activateModification([{ key: key1 }, { key: key2 }])
+    expect(sendActive).toBeCalledTimes(2)
+    expect(sendActive).toBeCalledWith(
+      visitor,
+      returnModification.get(key1)
+    )
+    expect(sendActive).toBeCalledWith(
+      visitor,
+      returnModification.get(key2)
+    )
+  })
+
+  it('test activateModification with array', async () => {
+    const key1 = 'keyString'
+    const key2 = 'keyNumber'
+    await visitor.activateModification([key1, key2])
+    expect(sendActive).toBeCalledTimes(2)
+    expect(sendActive).toBeCalledWith(
+      visitor,
+      returnModification.get(key1)
+    )
+    expect(sendActive).toBeCalledWith(
+      visitor,
+      returnModification.get(key2)
+    )
+  })
+
   it('test invalid key in activateModification', () => {
     visitor.activateModificationSync(getNull())
     expect(sendActive).toBeCalledTimes(0)
@@ -498,5 +530,127 @@ describe('test visitor', () => {
     } catch (error) {
       expect(logError).toBeCalled()
     }
+  })
+
+  it('test sendHitAsync with literal object Event ', async () => {
+    try {
+      const hit = {
+        type: HitType.EVENT,
+        action: 'action_1',
+        category: EventCategory.ACTION_TRACKING
+      }
+      await visitor.sendHit(hit)
+      expect(sendHit).toBeCalledTimes(1)
+      expect(sendHit).toBeCalledWith(expect.objectContaining({ ...hit, visitorId, ds: SDK_APP, config }))
+    } catch (error) {
+      console.log(error)
+      expect(logError).toBeCalled()
+    }
+  })
+
+  it('test sendHitAsync with literal object ITEM ', async () => {
+    try {
+      const hit = {
+        type: HitType.ITEM,
+        transactionId: 'transaction_id_1',
+        productName: 'name',
+        productSku: '0014'
+      }
+      await visitor.sendHit(hit)
+      expect(sendHit).toBeCalledTimes(1)
+      expect(sendHit).toBeCalledWith(expect.objectContaining({ ...hit, visitorId, ds: SDK_APP, config }))
+    } catch (error) {
+      console.log(error)
+      expect(logError).toBeCalled()
+    }
+  })
+
+  it('test sendHitAsync with literal object PAGE ', async () => {
+    const hit = {
+      type: HitType.PAGE_VIEW,
+      pageUrl: 'home'
+    }
+    try {
+      await visitor.sendHit(hit)
+    } catch (error) {
+      expect(logError).toBeCalled()
+    }
+    expect(sendHit).toBeCalledWith(expect.objectContaining({ ...hit, visitorId, ds: SDK_APP, config }))
+    expect(sendHit).toBeCalledTimes(1)
+  })
+
+  it('test sendHitAsync with literal object PAGE ', async () => {
+    const hit = {
+      type: 'PAGE' as HitType,
+      pageUrl: 'home'
+    }
+
+    try {
+      await visitor.sendHit(hit)
+    } catch (error) {
+      expect(logError).toBeCalled()
+    }
+    expect(sendHit).toBeCalledWith(expect.objectContaining({ ...hit, type: HitType.PAGE_VIEW, visitorId, ds: SDK_APP, config }))
+    expect(sendHit).toBeCalledTimes(1)
+  })
+
+  it('test sendHitAsync with literal object SCREEN ', async () => {
+    const hit = {
+      type: HitType.SCREEN_VIEW,
+      screenName: 'home'
+    }
+    try {
+      await visitor.sendHit(hit)
+    } catch (error) {
+      expect(logError).toBeCalled()
+    }
+    expect(sendHit).toBeCalledWith(expect.objectContaining({ ...hit, visitorId, ds: SDK_APP, config }))
+    expect(sendHit).toBeCalledTimes(1)
+  })
+
+  it('test sendHitAsync with literal object PAGE ', async () => {
+    const hit = {
+      type: 'SCREEN' as HitType,
+      screenName: 'home'
+    }
+
+    try {
+      await visitor.sendHit(hit)
+    } catch (error) {
+      expect(logError).toBeCalled()
+    }
+    expect(sendHit).toBeCalledWith(expect.objectContaining({ ...hit, type: HitType.SCREEN_VIEW, visitorId, ds: SDK_APP, config }))
+    expect(sendHit).toBeCalledTimes(1)
+  })
+
+  it('test sendHitAsync with literal object TRANSACTION ', async () => {
+    const hit = {
+      type: HitType.TRANSACTION,
+      transactionId: 'transactionId',
+      affiliation: 'affiliation'
+    }
+    try {
+      await visitor.sendHit(hit)
+    } catch (error) {
+      expect(logError).toBeCalled()
+    }
+    expect(sendHit).toBeCalledWith(expect.objectContaining({ ...hit, visitorId, ds: SDK_APP, config }))
+    expect(sendHit).toBeCalledTimes(1)
+  })
+
+  it('test sendHitAsync with literal object type NotEXIST ', async () => {
+    const hit = {
+      type: 'NOT_EXIST' as HitType,
+      transactionId: 'transactionId',
+      affiliation: 'affiliation'
+    }
+    try {
+      await visitor.sendHit(hit)
+    } catch (error) {
+      expect(logError).toBeCalled()
+    }
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(TYPE_HIT_REQUIRED_ERROR, PROCESS_SEND_HIT)
+    expect(sendHit).toBeCalledTimes(0)
   })
 })

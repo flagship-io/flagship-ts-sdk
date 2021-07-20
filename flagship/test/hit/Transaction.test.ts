@@ -28,7 +28,7 @@ import { sprintf } from '../../src/utils/utils'
 describe('test hit type Transaction', () => {
   const transactionId = 'transactionId'
   const affiliation = 'affiliation'
-  const transaction = new Transaction(transactionId, affiliation)
+  const transaction = new Transaction({ transactionId, affiliation })
 
   it('should ', () => {
     expect(transaction.transactionId).toBe(transactionId)

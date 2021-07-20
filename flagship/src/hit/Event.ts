@@ -93,14 +93,14 @@ export class Event extends HitAbstract implements IEvent {
 
   public constructor (event:Omit<IEvent, 'type'>) {
     super(HitType.EVENT)
-
-    this.category = event.category
-    this.action = event.action
-    if (event.eventLabel) {
-      this.eventLabel = event.eventLabel
+    const { category, action, eventLabel, eventValue } = event
+    this.category = category
+    this.action = action
+    if (eventLabel) {
+      this.eventLabel = eventLabel
     }
-    if (event.eventValue) {
-      this.eventValue = event.eventValue
+    if (eventValue) {
+      this.eventValue = eventValue
     }
   }
 

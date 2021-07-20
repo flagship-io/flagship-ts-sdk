@@ -23,7 +23,7 @@ export class Screen extends HitAbstract {
 
   public constructor (screen: Omit<IScreen, 'type'>) {
     super(HitType.SCREEN_VIEW)
-    this.screenName = screen.screenName
+    this.screenName = screen?.screenName
   }
 
   public isReady ():boolean {

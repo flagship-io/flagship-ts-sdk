@@ -104,7 +104,7 @@ describe('test TrackingManager sendHit ', () => {
     const config = new DecisionApiConfig('envId', 'apiKey')
     const trackingManager = new TrackingManager(httpClient, config)
 
-    const hit = new Page('url')
+    const hit = new Page({ pageUrl: 'url' })
     hit.config = config
 
     const headers = {

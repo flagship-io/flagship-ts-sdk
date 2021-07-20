@@ -25,7 +25,7 @@ describe('test hit type Item', () => {
   const transactionId = 'transactionId'
   const productName = 'productName'
   const productSku = 'productSku'
-  const item = new Item(transactionId, productName, productSku)
+  const item = new Item({ transactionId, productName, productSku })
 
   it('should ', () => {
     expect(item.transactionId).toBe(transactionId)
