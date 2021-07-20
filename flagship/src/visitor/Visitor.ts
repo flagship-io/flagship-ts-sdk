@@ -23,19 +23,20 @@ import { IConfigManager, IFlagshipConfig } from '../config/index'
 import { IEvent } from '../hit/Event'
 import { IItem } from '../hit/Item'
 import { ITransaction } from '../hit/Transaction'
+import { getModification, primitive } from '../types'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 
 export class Visitor {
   private _visitorId!: string;
-  private _context: Record<string, string | number | boolean>;
+  private _context: Record<string, primitive>;
   private _modifications: Map<string, Modification>;
   private _configManager: IConfigManager;
   private _config: IFlagshipConfig;
 
   constructor (
     visitorId: string,
-    context: Record<string, string | number | boolean>,
+    context: Record<string, primitive>,
     configManager: IConfigManager
   ) {
     this.visitorId = visitorId
@@ -58,14 +59,14 @@ export class Visitor {
     this._visitorId = v
   }
 
-  public get context (): Record<string, string | number | boolean> {
+  public get context (): Record<string, primitive> {
     return this._context
   }
 
   /**
    * Clear the current context and set a new context value
    */
-  public set context (v: Record<string, string | number | boolean>) {
+  public set context (v: Record<string, primitive>) {
     this._context = {}
     this.updateContext(v)
   }
@@ -88,10 +89,10 @@ export class Visitor {
    * A new context value associated with this key will be created if there is no previous matching value.
    *
    * Context keys must be String, and values types must be one of the following : Number, Boolean, String.
-   * @param {Record<string, string | number | boolean>} context : collection of keys, values.
+   * @param {Record<string, primitive>} context : collection of keys, values.
    */
   public updateContext (
-    context: Record<string, string | number | boolean>
+    context: Record<string, primitive>
   ): void {
     if (!context) {
       logError(this.config, CONTEXT_NULL_ERROR, PROCESS_UPDATE_CONTEXT)
@@ -110,11 +111,11 @@ export class Visitor {
    * A new context value associated with this key will be created if there is no previous matching value.
    * Context key must be String, and value type must be one of the following : Number, Boolean, String.
    * @param {string} key : context key.
-   * @param {string | number | boolean} value : context value.
+   * @param {primitive} value : context value.
    */
   public updateContextKeyValue (
     key: string,
-    value: string | number | boolean
+    value: primitive
   ): void {
     const valueType = typeof value
     if (
@@ -161,32 +162,16 @@ export class Visitor {
    * @param {T} defaultValue : default value to return.
    * @param {boolean} activate : Set this parameter to true to automatically report on our server that the current visitor has seen this modification. It is possible to call activateModification() later.
    */
-  public getModification<T> (
-    key: string,
-    defaultValue: T,
-    activate = false
-  ): Promise<T> {
+  public getModification<T> (params: getModification<T>): Promise<T>
+  public getModification<T> (params: getModification<T>[]): Promise<T[]>
+  public getModification<T> (params: getModification<T>| getModification<T>[]): Promise<T|T[]> {
     return Promise.resolve(
-      this.getModificationSync(key, defaultValue, activate)
+      this.getModificationSync(params)
     )
   }
 
-  /**
-   * Retrieve a modification value by its key. If no modification match the given
-   * key or if the stored value type and default value type do not match, default value will be returned.
-   * @param {string} key : key associated to the modification.
-   * @param {T} defaultValue : default value to return.
-   * @param {boolean} activate : Set this parameter to true to automatically report on our server that the current visitor has seen this modification. It is possible to call activateModification() later.
-   */
-  public getModificationSync<T> (
-    key: string,
-    defaultValue: T,
-    activate = false
-  ): T {
-    if (this.isOnPanicMode(PROCESS_GET_MODIFICATION)) {
-      return defaultValue
-    }
-
+  private checkAndGetModification<T> (params:getModification<T>) :T {
+    const { key, defaultValue, activate } = params
     if (!key || typeof key !== 'string') {
       logError(
         this.config,
@@ -237,6 +222,32 @@ export class Visitor {
     }
 
     return modification.value
+  }
+
+  /**
+   * Retrieve a modification value by its key. If no modification match the given
+   * key or if the stored value type and default value type do not match, default value will be returned.
+   * @param {string} key key associated to the modification.
+   * @param {T} defaultValue default value to return.
+   * @param {boolean} activate Set this parameter to true to automatically report on our server that the current visitor has seen this modification. It is possible to call activateModification() later.
+   */
+  public getModificationSync<T> (params: getModification<T>): T
+  public getModificationSync<T> (params: getModification<T>[]): T[]
+  public getModificationSync<T> (params: getModification<T>| getModification<T>[]): T|T[]
+  public getModificationSync<T> (params: getModification<T>| getModification<T>[]): T|T[] {
+    if (this.isOnPanicMode(PROCESS_GET_MODIFICATION)) {
+      if (Array.isArray(params)) {
+        return params.map(item => item.defaultValue)
+      }
+      return params.defaultValue
+    }
+
+    if (Array.isArray(params)) {
+      return params.map(item => {
+        return this.checkAndGetModification(item)
+      })
+    }
+    return this.checkAndGetModification(params)
   }
 
   /**

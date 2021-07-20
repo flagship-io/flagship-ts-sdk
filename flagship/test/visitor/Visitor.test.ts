@@ -180,11 +180,27 @@ describe('test visitor', () => {
     try {
       const returnMod = returnModification.get(key) as Modification
       const modification = await visitor.getModification(
-        returnMod.key,
-        defaultValue,
-        activate
+        {
+          key: returnMod.key,
+          defaultValue,
+          activate
+        }
       )
       expect<T>(modification).toEqual(returnMod.value)
+    } catch (error) {
+      expect(logError).toBeCalled()
+    }
+  }
+
+  const testModificationTypeArray = async <T>(
+    params: {key: string,
+    defaultValue: T,
+    activate? :boolean}[]
+  ) => {
+    try {
+      const returnMod = params.map(item => returnModification.get(item.key) as Modification)
+      const modifications = await visitor.getModification(params)
+      expect<T[]>(modifications).toEqual(returnMod.map(item => item.value))
     } catch (error) {
       expect(logError).toBeCalled()
     }
@@ -197,9 +213,11 @@ describe('test visitor', () => {
   ) => {
     const returnMod = returnModification.get(key) as Modification
     const modification = visitor.getModificationSync(
-      returnMod.key,
-      defaultValue,
-      activate
+      {
+        key: returnMod.key,
+        defaultValue,
+        activate
+      }
     )
     expect<T>(modification).toEqual(defaultValue)
     expect(logError).toBeCalledTimes(1)
@@ -215,15 +233,28 @@ describe('test visitor', () => {
     activate = false
   ) => {
     const modification = visitor.getModificationSync(
-      key,
-      defaultValue,
-      activate
+      {
+        key,
+        defaultValue,
+        activate
+      }
     )
     expect<T>(modification).toEqual(defaultValue)
+  }
+  const testModificationWithDefaultArray = <T>(params: {key:string, defaultValue:T, activate?:boolean}[]) => {
+    const modifications = visitor.getModificationSync(params)
+    expect<T[]>(modifications).toEqual(params.map(item => item.defaultValue))
   }
 
   it('test getModification key string', () => {
     testModificationType('keyString', 'defaultString')
+  })
+
+  it('test getModification with array', () => {
+    testModificationTypeArray<string|number>([
+      { key: 'keyString', defaultValue: 'defaultString' },
+      { key: 'keyNumber', defaultValue: 10 }
+    ])
   })
 
   it('test getModification key keyNumber', () => {
@@ -246,8 +277,10 @@ describe('test visitor', () => {
   it('test getModificationAsync key string with default activate', async () => {
     const returnMod = returnModification.get('keyString') as Modification
     const modification = await visitor.getModification(
-      returnMod.key,
-      'defaultValue'
+      {
+        key: returnMod.key,
+        defaultValue: 'defaultValue'
+      }
     )
     expect<string>(modification).toEqual(returnMod.value)
     expect(sendActive).toBeCalledTimes(0)
@@ -256,8 +289,10 @@ describe('test visitor', () => {
   it('test getModification key string with default activate', () => {
     const returnMod = returnModification.get('keyString') as Modification
     const modification = visitor.getModificationSync(
-      returnMod.key,
-      'defaultValue'
+      {
+        key: returnMod.key,
+        defaultValue: 'defaultValue'
+      }
     )
     expect<string>(modification).toEqual(returnMod.value)
     expect(sendActive).toBeCalledTimes(0)
@@ -320,6 +355,16 @@ describe('test visitor', () => {
   it('test getModification panic mode ', () => {
     isPanic.mockReturnValue(true)
     testModificationWithDefault('key', 'defaultValue')
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(
+      sprintf(PANIC_MODE_ERROR, PROCESS_GET_MODIFICATION),
+      PROCESS_GET_MODIFICATION
+    )
+    isPanic.mockReturnValue(false)
+  })
+  it('test getModification with array panic mode  ', () => {
+    isPanic.mockReturnValue(true)
+    testModificationWithDefaultArray([{ key: 'key', defaultValue: 'defaultValue' }])
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(
       sprintf(PANIC_MODE_ERROR, PROCESS_GET_MODIFICATION),
