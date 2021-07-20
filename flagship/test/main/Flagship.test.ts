@@ -1,5 +1,5 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { ConfigManager, DecisionApiConfig } from '../../src/config/index'
+import { ConfigManager, DecisionApiConfig, DecisionMode } from '../../src/config/index'
 import {
   FlagshipStatus,
   INITIALIZATION_PARAM_ERROR,
@@ -29,14 +29,27 @@ describe('test Flagship class', () => {
   })
 })
 
+describe('test Flagship with custom config literal object', () => {
+  it('should ', () => {
+    const envId = 'envId'
+    const apiKey = 'apiKey'
+    const logManager = new FlagshipLogManager()
+    Flagship.start(envId, apiKey, { decisionMode: DecisionMode.DECISION_API, logManager })
+
+    expect(Flagship.getConfig().envId).toBe(envId)
+    expect(Flagship.getConfig().apiKey).toBe(apiKey)
+    expect(Flagship.getConfig().logManager).toBe(logManager)
+  })
+})
+
 describe('test Flagship with custom config', () => {
   const envId = 'envId'
   const apiKey = 'apiKey'
-
   const config = new DecisionApiConfig()
+
   it('should ', () => {
     let countStatus = 0
-    config.setStatusChangedCallback((status) => {
+    config.statusChangedCallback = (status) => {
       switch (countStatus) {
         case 0:
           expect(status).toBe(FlagshipStatus.NOT_READY)
@@ -52,7 +65,7 @@ describe('test Flagship with custom config', () => {
           break
       }
       countStatus++
-    })
+    }
   })
 
   const logManager = new FlagshipLogManager()

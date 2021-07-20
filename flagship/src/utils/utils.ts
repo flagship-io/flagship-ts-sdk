@@ -23,6 +23,7 @@ export function logError (
     !config ||
     !config.logManager ||
     typeof config.logManager.error !== 'function' ||
+    !config.logLevel ||
     config.logLevel < LogLevel.ERROR
   ) {
     return
@@ -35,6 +36,7 @@ export function logInfo (config: IFlagshipConfig, message: string, tag: string):
     !config ||
     !config.logManager ||
     typeof config.logManager.info !== 'function' ||
+    !config.logLevel ||
     config.logLevel < LogLevel.INFO
   ) {
     return

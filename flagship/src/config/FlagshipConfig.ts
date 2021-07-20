@@ -17,45 +17,37 @@ export interface IFlagshipConfig {
   /**
    * Specify the environment id provided by Flagship, to use.
    */
-  set envId(value: string | undefined);
-
-  get envId(): string | undefined;
+  envId?:string
 
   /**
    * Specify the secure api key provided by Flagship, to use.
    */
-  set apiKey(value: string | undefined);
-
-  get apiKey(): string | undefined;
-
-  get timeout(): number;
+  apiKey?:string
 
   /**
    * Specify timeout in Milliseconds for api request.
    * Default is 2000ms.
    */
-  set timeout(value: number);
-
-  get logLevel(): LogLevel;
+  timeout?: number;
 
   /**
    * Set the maximum log level to display
    */
-  set logLevel(value: LogLevel);
+  logLevel?: LogLevel;
+
+  /**
+   * Specify the SDK running mode.
+   * BUCKETING or DECISION_API
+   */
+  decisionMode: DecisionMode
 
   /**
    * Define a callable in order to get callback when the SDK status has changed.
    */
-  setStatusChangedCallback(
-    fn: ((status: FlagshipStatus) => void) | undefined
-  ): void;
-
-  getStatusChangedCallback(): ((status: FlagshipStatus) => void) | undefined;
-
-  get logManager(): IFlagshipLogManager;
+  statusChangedCallback?:(status: FlagshipStatus) => void;
 
   /** Specify a custom implementation of LogManager in order to receive logs from the SDK. */
-  set logManager(value: IFlagshipLogManager);
+  logManager?: IFlagshipLogManager;
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -72,6 +64,8 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   protected constructor (envId?: string, apiKey?: string) {
     this._envId = envId
     this._apiKey = apiKey
+    this.logLevel = LogLevel.ALL
+    this.timeout = REQUEST_TIME_OUT
   }
 
   public set envId (value: string | undefined) {
@@ -110,20 +104,16 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._logLevel = value
   }
 
-  public setStatusChangedCallback (
-    fn: ((status: FlagshipStatus) => void) | undefined
-  ) : void {
+  public get statusChangedCallback () :((status: FlagshipStatus) => void)|undefined {
+    return this._statusChangedCallback
+  }
+
+  public set statusChangedCallback (fn : ((status: FlagshipStatus) => void) | undefined) {
     if (typeof fn !== 'function') {
       logError(this, statusChangeError, 'statusChangedCallback')
       return
     }
     this._statusChangedCallback = fn
-  }
-
-  public getStatusChangedCallback ():
-    | ((status: FlagshipStatus) => void)
-    | undefined {
-    return this._statusChangedCallback
   }
 
   public get logManager (): IFlagshipLogManager {

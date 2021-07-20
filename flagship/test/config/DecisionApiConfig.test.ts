@@ -15,7 +15,7 @@ describe('test DecisionApiConfig', () => {
     expect(config.envId).toBeUndefined()
     expect(config.logLevel).toBe(LogLevel.ALL)
     expect(config.logManager).toBeUndefined()
-    expect(config.getStatusChangedCallback()).toBeUndefined()
+    expect(config.statusChangedCallback).toBeUndefined()
     expect(config.timeout).toBe(REQUEST_TIME_OUT)
     expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
   })
@@ -45,15 +45,15 @@ describe('test DecisionApiConfig', () => {
 
   it('test statusChangedCallback', () => {
     const func = {} as (status: FlagshipStatus) => void
-    config.setStatusChangedCallback(func)
-    expect(config.getStatusChangedCallback()).toBeUndefined()
+    config.statusChangedCallback = func
+    expect(config.statusChangedCallback).toBeUndefined()
 
     const func2 = () => {
       //
     }
-    config.setStatusChangedCallback(func2)
+    config.statusChangedCallback = func2
 
-    expect(config.getStatusChangedCallback()).toBe(func2)
+    expect(config.statusChangedCallback).toBe(func2)
 
     config.timeout = 3000
     expect(config.timeout).toBe(3000)

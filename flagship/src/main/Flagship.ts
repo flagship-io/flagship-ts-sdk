@@ -61,7 +61,7 @@ export class Flagship {
   }
 
   protected setStatus (status: FlagshipStatus): void {
-    const statusChanged = this.config.getStatusChangedCallback()
+    const statusChanged = this.config.statusChangedCallback
     if (this.config && statusChanged && this._status !== status) {
       statusChanged(status)
     }
