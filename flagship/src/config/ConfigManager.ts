@@ -3,17 +3,12 @@ import { IDecisionManager } from '../decision/IDecisionManager'
 import { ITrackingManager } from '../api/TrackingManagerAbstract'
 
 export interface IConfigManager {
-  get config(): IFlagshipConfig;
+  config: IFlagshipConfig;
 
-  set config(value: IFlagshipConfig);
+  decisionManager: IDecisionManager;
 
-  get decisionManager(): IDecisionManager;
+  trackingManager: ITrackingManager;
 
-  set decisionManager(value: IDecisionManager);
-
-  get trackingManager(): ITrackingManager;
-
-  set trackingManager(value: ITrackingManager);
 }
 export class ConfigManager implements IConfigManager {
   private _config: IFlagshipConfig;

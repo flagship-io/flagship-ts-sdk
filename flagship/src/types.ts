@@ -1,4 +1,4 @@
-export type getModification<T>={
+export type modificationsRequested<T>={
     key: string,
     defaultValue: T,
     activate? :boolean

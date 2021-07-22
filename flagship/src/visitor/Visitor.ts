@@ -23,7 +23,8 @@ import { IConfigManager, IFlagshipConfig } from '../config/index'
 import { IEvent } from '../hit/Event'
 import { IItem } from '../hit/Item'
 import { ITransaction } from '../hit/Transaction'
-import { getModification, primitive } from '../types'
+import { modificationsRequested, primitive } from '../types'
+import { CampaignDTO } from '../decision/api/models'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 
@@ -33,6 +34,7 @@ export class Visitor {
   private _modifications: Map<string, Modification>;
   private _configManager: IConfigManager;
   private _config: IFlagshipConfig;
+  private _campaigns!: CampaignDTO[]
 
   constructor (
     visitorId: string,
@@ -162,15 +164,15 @@ export class Visitor {
    * @param {T} defaultValue : default value to return.
    * @param {boolean} activate : Set this parameter to true to automatically report on our server that the current visitor has seen this modification. It is possible to call activateModification() later.
    */
-  public getModification<T> (params: getModification<T>): Promise<T>
-  public getModification<T> (params: getModification<T>[]): Promise<T[]>
-  public getModification<T> (params: getModification<T>| getModification<T>[]): Promise<T|T[]> {
+  public getModification<T> (params: modificationsRequested<T>, activateAll? : boolean): Promise<T>
+  public getModification<T> (params: modificationsRequested<T>[], activateAll? : boolean): Promise<T[]>
+  public getModification<T> (params: modificationsRequested<T>| modificationsRequested<T>[], activateAll? : boolean): Promise<T|T[]> {
     return Promise.resolve(
-      this.getModificationSync(params)
+      this.getModificationSync(params, activateAll)
     )
   }
 
-  private checkAndGetModification<T> (params:getModification<T>) :T {
+  private checkAndGetModification<T> (params:modificationsRequested<T>, activateAll = false) :T {
     const { key, defaultValue, activate } = params
     if (!key || typeof key !== 'string') {
       logError(
@@ -198,7 +200,7 @@ export class Visitor {
         PROCESS_GET_MODIFICATION
       )
 
-      if (!modification.value) {
+      if (!modification.value && (activate || activateAll)) {
         this.activateModificationSync(key)
       }
     }
@@ -217,7 +219,7 @@ export class Visitor {
       return defaultValue
     }
 
-    if (activate) {
+    if (activate || activateAll) {
       this.activateModificationSync(key)
     }
 
@@ -231,10 +233,10 @@ export class Visitor {
    * @param {T} defaultValue default value to return.
    * @param {boolean} activate Set this parameter to true to automatically report on our server that the current visitor has seen this modification. It is possible to call activateModification() later.
    */
-  public getModificationSync<T> (params: getModification<T>): T
-  public getModificationSync<T> (params: getModification<T>[]): T[]
-  public getModificationSync<T> (params: getModification<T>| getModification<T>[]): T|T[]
-  public getModificationSync<T> (params: getModification<T>| getModification<T>[]): T|T[] {
+  public getModificationSync<T> (params: modificationsRequested<T>, activateAll? : boolean): T
+  public getModificationSync<T> (params: modificationsRequested<T>[], activateAll? : boolean): T[]
+  public getModificationSync<T> (params: modificationsRequested<T>| modificationsRequested<T>[], activateAll? : boolean): T|T[]
+  public getModificationSync<T> (params: modificationsRequested<T>| modificationsRequested<T>[], activateAll = false): T|T[] {
     if (this.isOnPanicMode(PROCESS_GET_MODIFICATION)) {
       if (Array.isArray(params)) {
         return params.map(item => item.defaultValue)
@@ -244,10 +246,46 @@ export class Visitor {
 
     if (Array.isArray(params)) {
       return params.map(item => {
-        return this.checkAndGetModification(item)
+        return this.checkAndGetModification(item, activateAll)
       })
     }
-    return this.checkAndGetModification(params)
+    return this.checkAndGetModification(params, activateAll)
+  }
+
+  /**
+   * returns a Promise<object> containing all the data for all the campaigns associated with the current visitor.
+   * @deprecated
+   */
+  public getAllModifications (): Promise<{
+    visitorId: string;
+    campaigns: CampaignDTO[];
+    }>|null {
+    if (this.isOnPanicMode('getAllModifications')) {
+      return null
+    }
+    return Promise.resolve({
+      visitorId: this.visitorId,
+      campaigns: this._campaigns
+    })
+  }
+
+  /**
+   * Get data for a specific campaign.
+   * @param campaignId Identifies the campaign whose modifications you want to retrieve.
+   * @param activate
+   * @returns
+   */
+  public getModificationsForCampaign (campaignId:string, activate = false):Promise<{
+    visitorId: string;
+    campaigns: CampaignDTO[];
+    }>|null {
+    if (this.isOnPanicMode('getModificationsForCampaign')) {
+      return null
+    }
+    return Promise.resolve({
+      visitorId: this.visitorId,
+      campaigns: this._campaigns.filter(x => x.id === campaignId)
+    })
   }
 
   /**
@@ -297,11 +335,8 @@ export class Visitor {
    * from the server according to the visitor context.
    */
   public async synchronizeModifications (): Promise<void> {
-    const modifications =
-      await this.configManager.decisionManager.getCampaignsModificationsAsync(
-        this
-      )
-    this._modifications = modifications
+    this._campaigns = await this.configManager.decisionManager.getCampaignsAsync(this)
+    this._modifications = this.configManager.decisionManager.getModifications(this._campaigns)
   }
 
   private hasTrackingManager (process: string): boolean {
