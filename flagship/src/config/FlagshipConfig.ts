@@ -48,6 +48,11 @@ export interface IFlagshipConfig {
 
   /** Specify a custom implementation of LogManager in order to receive logs from the SDK. */
   logManager?: IFlagshipLogManager;
+
+  /**
+   * Decide to fetch automatically modifications data when creating a new FlagshipVisitor
+   */
+  fetchNow?:boolean
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -55,17 +60,28 @@ export const statusChangeError = 'statusChangedCallback must be a function'
 export abstract class FlagshipConfig implements IFlagshipConfig {
   private _envId?: string;
   private _apiKey?: string;
-  protected _decisionMode = DecisionMode.DECISION_API;
-  private _timeout = REQUEST_TIME_OUT;
-  private _logLevel: LogLevel = LogLevel.ALL;
+  protected _decisionMode:DecisionMode;
+  private _timeout! : number;
+  private _logLevel!: LogLevel;
   private _statusChangedCallback?: (status: FlagshipStatus) => void;
   private _logManager!: IFlagshipLogManager;
+  private _fetchNow! : boolean;
 
-  protected constructor (envId?: string, apiKey?: string) {
+  protected constructor (param: IFlagshipConfig) {
+    const {
+      envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
+      fetchNow, decisionMode
+    } = param
     this._envId = envId
     this._apiKey = apiKey
-    this.logLevel = LogLevel.ALL
-    this.timeout = REQUEST_TIME_OUT
+    this.logLevel = logLevel || LogLevel.ALL
+    this.timeout = timeout || REQUEST_TIME_OUT
+    this.fetchNow = typeof fetchNow === 'undefined' || fetchNow
+    this._decisionMode = decisionMode || DecisionMode.DECISION_API
+    if (logManager) {
+      this.logManager = logManager
+    }
+    this.statusChangedCallback = statusChangedCallback
   }
 
   public set envId (value: string | undefined) {
@@ -102,6 +118,14 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
 
   public set logLevel (value: LogLevel) {
     this._logLevel = value
+  }
+
+  public get fetchNow () : boolean {
+    return this._fetchNow
+  }
+
+  public set fetchNow (v : boolean) {
+    this._fetchNow = v
   }
 
   public get statusChangedCallback () :((status: FlagshipStatus) => void)|undefined {
