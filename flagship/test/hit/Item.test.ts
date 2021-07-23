@@ -41,7 +41,7 @@ describe('test hit type Item', () => {
   })
 
   const visitorId = 'visitorId'
-  const config = new DecisionApiConfig('envId', 'apiKey')
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   const logManager = new FlagshipLogManager()
   const logError = jest.spyOn(logManager, 'error')
 

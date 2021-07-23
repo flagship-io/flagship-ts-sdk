@@ -45,7 +45,7 @@ describe('test hit type Event', () => {
 
   const logManager = new FlagshipLogManager()
   const logError = jest.spyOn(logManager, 'error')
-  const config = new DecisionApiConfig('envId', 'apiKey')
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
 
   it('test set config ', () => {
