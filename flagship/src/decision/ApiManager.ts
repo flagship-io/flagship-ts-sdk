@@ -29,7 +29,6 @@ export class ApiManager extends DecisionManager {
 
       const postData = {
         visitorId: visitor.visitorId,
-        // deno-lint-ignore camelcase
         trigger_hit: false,
         context: visitor.context
       }
