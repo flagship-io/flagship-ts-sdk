@@ -32,7 +32,7 @@ describe('test TrackingManager sendActive ', () => {
 
     const postAsync = jest.spyOn(httpClient, 'postAsync')
 
-    const config = new DecisionApiConfig('envId', 'apiKey')
+    const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
 
     const trackingManager = new TrackingManager(httpClient, config)
 
@@ -101,7 +101,7 @@ describe('test TrackingManager sendHit ', () => {
     const httpClient = new HttpClient()
     const postAsync = jest.spyOn(httpClient, 'postAsync')
 
-    const config = new DecisionApiConfig('envId', 'apiKey')
+    const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
     const trackingManager = new TrackingManager(httpClient, config)
 
     const hit = new Page({ pageUrl: 'url' })
