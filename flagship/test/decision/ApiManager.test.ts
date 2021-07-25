@@ -21,7 +21,7 @@ import { campaigns } from './campaigns'
 describe('test ApiManager', () => {
   const httpClient = new HttpClient()
   const postAsync = jest.spyOn(httpClient, 'postAsync')
-  const config = new DecisionApiConfig('envId', 'apiKey')
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   const apiManager = new ApiManager(httpClient, config)
 
   const visitorId = 'visitorId'

@@ -1,5 +1,7 @@
 import { jest, expect, it, describe } from '@jest/globals'
+import { mocked } from 'ts-jest/utils'
 import { ConfigManager, DecisionApiConfig, DecisionMode } from '../../src/config/index'
+import { ApiManager } from '../../src/decision/ApiManager'
 import {
   FlagshipStatus,
   INITIALIZATION_PARAM_ERROR,
@@ -10,6 +12,18 @@ import {
 import { Flagship } from '../../src/main/Flagship'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { sprintf } from '../../src/utils/utils'
+
+const getCampaignsAsync = jest.fn().mockReturnValue(Promise.resolve([]))
+
+jest.mock('../../src/decision/ApiManager', () => {
+  return {
+    ApiManager: jest.fn().mockImplementation(() => {
+      return {
+        getCampaignsAsync
+      }
+    })
+  }
+})
 
 describe('test Flagship class', () => {
   const envId = 'envId'
@@ -107,11 +121,13 @@ const getNull = (): any => {
 }
 
 describe('test Flagship newVisitor', () => {
+  const mockedApiManager = mocked(ApiManager, true)
   it('should ', () => {
     Flagship.start('envId', 'apiKey')
     const visitorId = 'visitorId'
     const context = { isVip: true }
     const visitor = Flagship.newVisitor(visitorId, context)
+
     expect(visitor?.visitorId).toBe(visitorId)
     expect(visitor?.context).toEqual(context)
     expect(visitor?.configManager).toBeInstanceOf(ConfigManager)
@@ -121,5 +137,8 @@ describe('test Flagship newVisitor', () => {
 
     const newVisitor = Flagship.newVisitor(visitorId)
     expect(newVisitor?.context).toEqual({})
+
+    expect(getCampaignsAsync).toBeCalledTimes(2)
+    expect(getCampaignsAsync).toBeCalledWith(visitor)
   })
 })
