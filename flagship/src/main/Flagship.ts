@@ -1,6 +1,6 @@
 import { Visitor } from '../visitor/Visitor'
 import { FlagshipStatus } from '../enum/FlagshipStatus'
-import { IFlagshipConfig } from '../config/FlagshipConfig'
+import { FlagshipConfig, IFlagshipConfig } from '../config/FlagshipConfig'
 import { DecisionApiConfig } from '../config/DecisionApiConfig'
 import { ConfigManager, IConfigManager } from '../config/ConfigManager'
 import { ApiManager } from '../decision/ApiManager'
@@ -91,13 +91,14 @@ export class Flagship {
   public static start (
     envId: string,
     apiKey: string,
-    config?: IFlagshipConfig
+    config?: IFlagshipConfig| FlagshipConfig
   ): void {
     const flagship = this.getInstance()
 
-    if (!config) {
-      config = new DecisionApiConfig(envId, apiKey)
+    if (!(config instanceof FlagshipConfig)) {
+      config = new DecisionApiConfig(config)
     }
+
     config.envId = envId
     config.apiKey = apiKey
 
@@ -150,6 +151,11 @@ export class Flagship {
       return null
     }
 
-    return new Visitor(visitorId, context, this.getInstance().configManager)
+    const visitor = new Visitor(visitorId, context, this.getInstance().configManager)
+
+    if (this.getConfig().fetchNow) {
+      visitor.synchronizeModifications()
+    }
+    return visitor
   }
 }
