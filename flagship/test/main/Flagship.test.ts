@@ -19,7 +19,8 @@ jest.mock('../../src/decision/ApiManager', () => {
   return {
     ApiManager: jest.fn().mockImplementation(() => {
       return {
-        getCampaignsAsync
+        getCampaignsAsync,
+        getModifications: jest.fn()
       }
     })
   }
