@@ -1,57 +1,57 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { jest, expect, it, describe } from "@jest/globals";
-import { HttpClient } from "../../src/utils/NodeHttpClient";
-import { IHttpOptions } from "../../src/utils/httpClient";
+import { jest, expect, it, describe } from '@jest/globals'
+import { HttpClient } from '../../src/utils/NodeHttpClient'
+import { IHttpOptions } from '../../src/utils/httpClient'
 import axios, {
   AxiosError,
-  AxiosRequestConfig,
-} from "axios";
-import { Mock } from "jest-mock";
+  AxiosRequestConfig
+} from 'axios'
+import { Mock } from 'jest-mock'
 
-describe("test denoHttpClient", () => {
+describe('test denoHttpClient', () => {
   const axiosPost: Mock<
     Promise<any>,
     [url: string, data?: any, config?: AxiosRequestConfig]
-  > = jest.fn();
+  > = jest.fn()
 
-  axios.post = axiosPost;
+  axios.post = axiosPost
 
-  const nodeHttpClient = new HttpClient();
-  const url = "https://localhost";
-  const timeout = 2000;
+  const nodeHttpClient = new HttpClient()
+  const url = 'https://localhost'
+  const timeout = 2000
   const options: IHttpOptions = {
     timeout: timeout,
     headers: {
-      "x-api-toke": "token",
+      'x-api-toke': 'token'
     },
     body: {
-      ct: 20,
-    },
-  };
+      ct: 20
+    }
+  }
 
-  const responseJson = { isVip: true };
+  const responseJson = { isVip: true }
 
-  it("should ", () => {
-    axiosPost.mockResolvedValue({ data: responseJson, status: 200 });
+  it('should ', () => {
+    axiosPost.mockResolvedValue({ data: responseJson, status: 200 })
     nodeHttpClient.postAsync(url, options).then((response) => {
-      expect(response.body).toEqual(responseJson);
-    });
-  });
+      expect(response.body).toEqual(responseJson)
+    })
+  })
 
-  it("should ", async () => {
+  it('should ', async () => {
     const error: AxiosError = {
       config: {},
       isAxiosError: true,
       toJSON: jest.fn(),
-      name: "error",
-      message: "error",
-    };
-    axiosPost.mockRejectedValue(error);
-    try {
-      await nodeHttpClient.postAsync(url, options);
-      expect(axiosPost).toBeCalledTimes(1);
-    } catch (error) {
-      expect(error).toBe("error");
+      name: 'error',
+      message: 'error'
     }
-  });
-});
+    axiosPost.mockRejectedValue(error)
+    try {
+      await nodeHttpClient.postAsync(url, options)
+      expect(axiosPost).toBeCalledTimes(1)
+    } catch (error) {
+      expect(error).toBe('error')
+    }
+  })
+})

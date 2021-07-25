@@ -93,8 +93,8 @@ export class Visitor {
     }
 
     for (const key in context) {
-        const value = context[key];
-        this.updateContextKeyValue(key, value)
+      const value = context[key]
+      this.updateContextKeyValue(key, value)
     }
   }
 

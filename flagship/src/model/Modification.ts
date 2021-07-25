@@ -4,7 +4,7 @@ export class Modification {
   private _variationGroupId: string;
   private _variationId: string;
   private _isReference: boolean;
-  
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _value: any;
 

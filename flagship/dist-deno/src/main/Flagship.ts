@@ -34,7 +34,7 @@ export class Flagship {
   }
 
   private constructor () {
-    //singleton
+    // singleton
   }
 
   protected static getInstance (): Flagship {

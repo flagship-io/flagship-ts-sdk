@@ -1,112 +1,145 @@
-import { jest, expect, it, describe } from "@jest/globals";
-import { ConfigManager, DecisionApiConfig } from "../../src/config/index";
+import { jest, expect, it, describe } from '@jest/globals'
+import { mocked } from 'ts-jest/utils'
+import { ConfigManager, DecisionApiConfig, DecisionMode } from '../../src/config/index'
+import { ApiManager } from '../../src/decision/ApiManager'
 import {
   FlagshipStatus,
   INITIALIZATION_PARAM_ERROR,
   PROCESS_INITIALIZATION,
   SDK_STARTED_INFO,
-  SDK_VERSION,
-} from "../../src/enum/index";
-import { Flagship } from "../../src/main/Flagship";
-import { FlagshipLogManager } from "../../src/utils/FlagshipLogManager";
-import { sprintf } from "../../src/utils/utils";
+  SDK_VERSION
+} from '../../src/enum/index'
+import { Flagship } from '../../src/main/Flagship'
+import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
+import { sprintf } from '../../src/utils/utils'
 
-describe("test Flagship class", () => {
-  const envId = "envId";
-  const apiKey = "apiKey";
+const getCampaignsAsync = jest.fn().mockReturnValue(Promise.resolve([]))
 
-  it("should ", () => {
-    Flagship.start(envId, apiKey);
+jest.mock('../../src/decision/ApiManager', () => {
+  return {
+    ApiManager: jest.fn().mockImplementation(() => {
+      return {
+        getCampaignsAsync,
+        getModifications: jest.fn()
+      }
+    })
+  }
+})
 
-    expect(Flagship.getConfig()).toBeDefined();
-    expect(Flagship.getConfig()).toBeInstanceOf(DecisionApiConfig);
+describe('test Flagship class', () => {
+  const envId = 'envId'
+  const apiKey = 'apiKey'
 
-    expect(Flagship.getConfig().envId).toBe(envId);
-    expect(Flagship.getConfig().apiKey).toBe(apiKey);
-    expect(Flagship.getConfig().logManager).toBeDefined();
-    expect(Flagship.getStatus()).toBe(FlagshipStatus.READY);
-    expect(Flagship.getConfig().logManager).toBeInstanceOf(FlagshipLogManager);
-  });
-});
+  it('should ', () => {
+    Flagship.start(envId, apiKey)
 
-describe("test Flagship with custom config", () => {
-  const envId = "envId";
-  const apiKey = "apiKey";
+    expect(Flagship.getConfig()).toBeDefined()
+    expect(Flagship.getConfig()).toBeInstanceOf(DecisionApiConfig)
 
-  const config = new DecisionApiConfig();
-  it("should ", () => {
-    let countStatus = 0;
-    config.setStatusChangedCallback((status) => {
+    expect(Flagship.getConfig().envId).toBe(envId)
+    expect(Flagship.getConfig().apiKey).toBe(apiKey)
+    expect(Flagship.getConfig().logManager).toBeDefined()
+    expect(Flagship.getStatus()).toBe(FlagshipStatus.READY)
+    expect(Flagship.getConfig().logManager).toBeInstanceOf(FlagshipLogManager)
+  })
+})
+
+describe('test Flagship with custom config literal object', () => {
+  it('should ', () => {
+    const envId = 'envId'
+    const apiKey = 'apiKey'
+    const logManager = new FlagshipLogManager()
+    Flagship.start(envId, apiKey, { decisionMode: DecisionMode.DECISION_API, logManager })
+
+    expect(Flagship.getConfig().envId).toBe(envId)
+    expect(Flagship.getConfig().apiKey).toBe(apiKey)
+    expect(Flagship.getConfig().logManager).toBe(logManager)
+  })
+})
+
+describe('test Flagship with custom config', () => {
+  const envId = 'envId'
+  const apiKey = 'apiKey'
+  const config = new DecisionApiConfig()
+
+  it('should ', () => {
+    let countStatus = 0
+    config.statusChangedCallback = (status) => {
       switch (countStatus) {
         case 0:
-          expect(status).toBe(FlagshipStatus.NOT_READY);
-          break;
+          expect(status).toBe(FlagshipStatus.NOT_READY)
+          break
         case 1:
-          expect(status).toBe(FlagshipStatus.READY);
-          break;
+          expect(status).toBe(FlagshipStatus.READY)
+          break
         case 2:
-          expect(status).toBe(FlagshipStatus.NOT_READY);
-          break;
+          expect(status).toBe(FlagshipStatus.NOT_READY)
+          break
 
         default:
-          break;
+          break
       }
-      countStatus++;
-    });
-  });
+      countStatus++
+    }
+  })
 
-  const logManager = new FlagshipLogManager();
-  const errorLog = jest.spyOn(logManager, "error");
-  const infoLog = jest.spyOn(logManager, "info");
-  config.logManager = logManager;
+  const logManager = new FlagshipLogManager()
+  const errorLog = jest.spyOn(logManager, 'error')
+  const infoLog = jest.spyOn(logManager, 'info')
+  config.logManager = logManager
 
-  it("should ", () => {
-    Flagship.start(envId, apiKey, config);
-    expect(Flagship.getConfig()).toBeDefined();
-    expect(Flagship.getConfig()).toBe(config);
-    expect(Flagship.getConfig().envId).toBe(envId);
-    expect(Flagship.getConfig().apiKey).toBe(apiKey);
-    expect(Flagship.getConfig().logManager).toBe(logManager);
+  it('should ', () => {
+    Flagship.start(envId, apiKey, config)
+    expect(Flagship.getConfig()).toBeDefined()
+    expect(Flagship.getConfig()).toBe(config)
+    expect(Flagship.getConfig().envId).toBe(envId)
+    expect(Flagship.getConfig().apiKey).toBe(apiKey)
+    expect(Flagship.getConfig().logManager).toBe(logManager)
 
-    expect(Flagship.getStatus()).toBe(FlagshipStatus.READY);
+    expect(Flagship.getStatus()).toBe(FlagshipStatus.READY)
 
-    expect(infoLog).toBeCalledTimes(1);
+    expect(infoLog).toBeCalledTimes(1)
     expect(infoLog).toBeCalledWith(
       sprintf(SDK_STARTED_INFO, SDK_VERSION),
       PROCESS_INITIALIZATION
-    );
-  });
+    )
+  })
 
-  it("should ", () => {
-    Flagship.start("", "", config);
-    expect(Flagship.getStatus()).toBe(FlagshipStatus.NOT_READY);
-    expect(errorLog).toBeCalledTimes(1);
+  it('should ', () => {
+    Flagship.start('', '', config)
+    expect(Flagship.getStatus()).toBe(FlagshipStatus.NOT_READY)
+    expect(errorLog).toBeCalledTimes(1)
     expect(errorLog).toBeCalledWith(
       INITIALIZATION_PARAM_ERROR,
       PROCESS_INITIALIZATION
-    );
-  });
-});
+    )
+  })
+})
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getNull = (): any => {
-  return null;
-};
+  return null
+}
 
-describe("test Flagship newVisitor", () => {
-  it("should ", () => {
-    Flagship.start("envId", "apiKey");
-    const visitorId = "visitorId";
-    const context = { isVip: true };
-    const visitor = Flagship.newVisitor(visitorId, context);
-    expect(visitor?.visitorId).toBe(visitorId);
-    expect(visitor?.context).toEqual(context);
-    expect(visitor?.configManager).toBeInstanceOf(ConfigManager);
+describe('test Flagship newVisitor', () => {
+  const mockedApiManager = mocked(ApiManager, true)
+  it('should ', () => {
+    Flagship.start('envId', 'apiKey')
+    const visitorId = 'visitorId'
+    const context = { isVip: true }
+    const visitor = Flagship.newVisitor(visitorId, context)
 
-    const visitorNull = Flagship.newVisitor(getNull(), context);
-    expect(visitorNull).toBeNull();
+    expect(visitor?.visitorId).toBe(visitorId)
+    expect(visitor?.context).toEqual(context)
+    expect(visitor?.configManager).toBeInstanceOf(ConfigManager)
 
-    const newVisitor = Flagship.newVisitor(visitorId);
-    expect(newVisitor?.context).toEqual({});
-  });
-});
+    const visitorNull = Flagship.newVisitor(getNull(), context)
+    expect(visitorNull).toBeNull()
+
+    const newVisitor = Flagship.newVisitor(visitorId)
+    expect(newVisitor?.context).toEqual({})
+
+    expect(getCampaignsAsync).toBeCalledTimes(2)
+    expect(getCampaignsAsync).toBeCalledWith(visitor)
+  })
+})

@@ -18,7 +18,7 @@ import { Visitor } from '../visitor/Visitor'
 import { logError } from '../utils/utils'
 
 export class ApiManager extends DecisionManager {
-  private async getCampaignsAsync (visitor: Visitor) {
+  public async getCampaignsAsync (visitor: Visitor):Promise<CampaignDTO[]> {
     try {
       const headers = {
         [HEADER_X_API_KEY]: `${this.config.apiKey}`,
@@ -29,7 +29,6 @@ export class ApiManager extends DecisionManager {
 
       const postData = {
         visitorId: visitor.visitorId,
-        // deno-lint-ignore camelcase
         trigger_hit: false,
         context: visitor.context
       }
@@ -54,12 +53,12 @@ export class ApiManager extends DecisionManager {
     return []
   }
 
-  private getModifications (campaigns: Array<CampaignDTO>) {
+  public getModifications (campaigns: Array<CampaignDTO>):Map<string, Modification> {
     const modifications = new Map<string, Modification>()
     campaigns.forEach((campaign) => {
-      const object = campaign.variation.modifications.value;
+      const object = campaign.variation.modifications.value
       for (const key in object) {
-        const value = object[key];
+        const value = object[key]
         modifications.set(
           key,
           new Modification(
