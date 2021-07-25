@@ -43,7 +43,7 @@ describe('test visitor', () => {
   const logManager = new FlagshipLogManager()
   const logError = jest.spyOn(logManager, 'error')
 
-  const config = new DecisionApiConfig('envId', 'apiKey')
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
 
   const httpClient = new HttpClient()
@@ -57,9 +57,19 @@ describe('test visitor', () => {
 
   const apiManager = new ApiManager(httpClient, config)
 
-  const getCampaignsModificationsAsync = jest.spyOn(
+  // const getCampaignsModificationsAsync = jest.spyOn(
+  //   apiManager,
+  //   'getCampaignsModificationsAsync'
+  // )
+
+  const getCampaignsAsync = jest.spyOn(
     apiManager,
-    'getCampaignsModificationsAsync'
+    'getCampaignsAsync'
+  )
+
+  const getModifications = jest.spyOn(
+    apiManager,
+    'getModifications'
   )
 
   const isPanic = jest.spyOn(apiManager, 'isPanic')
@@ -163,12 +173,17 @@ describe('test visitor', () => {
 
   it('test synchronizeModifications', async () => {
     try {
-      getCampaignsModificationsAsync.mockResolvedValue(returnModification)
+      getCampaignsAsync.mockResolvedValue([])
+      getModifications.mockReturnValue(returnModification)
       await visitor.synchronizeModifications()
-      expect(getCampaignsModificationsAsync).toBeCalledTimes(1)
-      expect(getCampaignsModificationsAsync).toBeCalledWith(visitor)
+      expect(getCampaignsAsync).toBeCalledTimes(1)
+      expect(getCampaignsAsync).toBeCalledWith(visitor)
+      expect(getModifications).toBeCalledTimes(1)
+      expect(getModifications).toBeCalledWith([])
     } catch (error) {
-      expect(logError).toBeCalled()
+      console.log('test-jest', error)
+
+      // expect(logError).toBeCalled()
     }
   })
 

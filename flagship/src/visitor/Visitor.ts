@@ -25,10 +25,11 @@ import { IItem } from '../hit/Item'
 import { ITransaction } from '../hit/Transaction'
 import { modificationsRequested, primitive } from '../types'
 import { CampaignDTO } from '../decision/api/models'
+import { EventEmitter } from 'events'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 
-export class Visitor {
+export class Visitor extends EventEmitter {
   private _visitorId!: string;
   private _context: Record<string, primitive>;
   private _modifications: Map<string, Modification>;
@@ -41,6 +42,7 @@ export class Visitor {
     context: Record<string, primitive>,
     configManager: IConfigManager
   ) {
+    super()
     this.visitorId = visitorId
     this._modifications = new Map<string, Modification>()
     this._configManager = configManager
@@ -256,12 +258,17 @@ export class Visitor {
    * returns a Promise<object> containing all the data for all the campaigns associated with the current visitor.
    * @deprecated
    */
-  public getAllModifications (): Promise<{
+  public getAllModifications (activate = false): Promise<{
     visitorId: string;
     campaigns: CampaignDTO[];
     }>|null {
     if (this.isOnPanicMode('getAllModifications')) {
       return null
+    }
+    if (activate) {
+      this.modifications.forEach((_, key) => {
+        this.activateModification(key)
+      })
     }
     return Promise.resolve({
       visitorId: this.visitorId,
@@ -282,6 +289,15 @@ export class Visitor {
     if (this.isOnPanicMode('getModificationsForCampaign')) {
       return null
     }
+
+    if (activate) {
+      this.modifications.forEach(value => {
+        if (value.campaignId === campaignId) {
+          this.activateModification(value.key)
+        }
+      })
+    }
+
     return Promise.resolve({
       visitorId: this.visitorId,
       campaigns: this._campaigns.filter(x => x.id === campaignId)
@@ -335,8 +351,16 @@ export class Visitor {
    * from the server according to the visitor context.
    */
   public async synchronizeModifications (): Promise<void> {
-    this._campaigns = await this.configManager.decisionManager.getCampaignsAsync(this)
-    this._modifications = this.configManager.decisionManager.getModifications(this._campaigns)
+    this.configManager.decisionManager.getCampaignsAsync(this)
+      .then(campaigns => {
+        this._campaigns = campaigns
+        this._modifications = this.configManager.decisionManager.getModifications(this._campaigns)
+        this.emit('ready')
+        Promise.resolve()
+      }).catch(error => {
+        this.emit('ready', error)
+        Promise.reject(error)
+      })
   }
 
   private hasTrackingManager (process: string): boolean {
