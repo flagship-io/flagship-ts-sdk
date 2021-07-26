@@ -15,16 +15,23 @@ import { ERROR_MESSAGE } from '../../src/hit/Page'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { sprintf } from '../../src/utils/utils'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getNull = (): any => {
+  return null
+}
 describe('test hit type Page', () => {
   const url = 'https://localhost'
-  const page = new Page({ pageUrl: url })
+  const page = new Page({ documentLocation: url })
 
   it('should', () => {
-    expect(page.pageUrl).toBe(url)
-
+    expect(page.documentLocation).toBe(url)
     expect(page.getErrorMessage()).toBe(ERROR_MESSAGE)
-
     expect(page.isReady()).toBeFalsy()
+  })
+
+  it('should ', () => {
+    const page = new Page(getNull())
+    expect(page.documentLocation).toBeUndefined()
   })
 
   const logManager = new FlagshipLogManager()
@@ -55,12 +62,12 @@ describe('test hit type Page', () => {
   })
 
   it('test log page url', () => {
-    page.pageUrl = ''
+    page.documentLocation = ''
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(
-      sprintf(TYPE_ERROR, 'pageUrl', 'string'),
-      'pageUrl'
+      sprintf(TYPE_ERROR, 'documentLocation', 'string'),
+      'documentLocation'
     )
-    expect(page.pageUrl).toBe(url)
+    expect(page.documentLocation).toBe(url)
   })
 })

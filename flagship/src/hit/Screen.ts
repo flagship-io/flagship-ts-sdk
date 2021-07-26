@@ -5,35 +5,35 @@ import { HitAbstract, IHitAbstract } from './HitAbstract'
 export const ERROR_MESSAGE = 'Screen name is required'
 
 export interface IScreen extends IHitAbstract{
-  screenName:string
+  documentLocation:string
 }
 
-export class Screen extends HitAbstract {
-  private _screenName!: string;
-  public get screenName (): string {
-    return this._screenName
+export class Screen extends HitAbstract implements IScreen {
+  private _documentLocation!: string;
+  public get documentLocation (): string {
+    return this._documentLocation
   }
 
-  public set screenName (v: string) {
-    if (!this.isNotEmptyString(v, 'screenName')) {
+  public set documentLocation (v: string) {
+    if (!this.isNotEmptyString(v, 'documentLocation')) {
       return
     }
-    this._screenName = v
+    this._documentLocation = v
   }
 
   public constructor (screen: Omit<IScreen, 'type'>) {
     super(HitType.SCREEN_VIEW)
-    this.screenName = screen?.screenName
+    this.documentLocation = screen?.documentLocation
   }
 
   public isReady ():boolean {
-    return !!(super.isReady() && this.screenName)
+    return !!(super.isReady() && this.documentLocation)
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public toApiKeys ():any {
     const apiKeys = super.toApiKeys()
-    apiKeys[DL_API_ITEM] = this.screenName
+    apiKeys[DL_API_ITEM] = this.documentLocation
     return apiKeys
   }
 

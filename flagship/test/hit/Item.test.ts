@@ -40,6 +40,25 @@ describe('test hit type Item', () => {
     expect(item.isReady()).toBeFalsy()
   })
 
+  it('test constructor', () => {
+    const params = {
+      transactionId: 'transactionId',
+      productName: 'productName',
+      productSku: 'productSku',
+      itemCategory: 'category',
+      itemPrice: 15,
+      itemQuantity: 1
+    }
+
+    const item = new Item(params)
+    expect(item.transactionId).toBe(params.transactionId)
+    expect(item.productName).toBe(params.productName)
+    expect(item.productSku).toBe(params.productSku)
+    expect(item.itemCategory).toBe(params.itemCategory)
+    expect(item.itemPrice).toBe(params.itemPrice)
+    expect(item.itemQuantity).toBe(params.itemQuantity)
+  })
+
   const visitorId = 'visitorId'
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   const logManager = new FlagshipLogManager()
