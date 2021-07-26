@@ -354,17 +354,20 @@ export class Visitor extends EventEmitter {
    * from the server according to the visitor context.
    */
   public async synchronizeModifications (): Promise<void> {
-    this.configManager.decisionManager.getCampaignsAsync(this)
-      .then(campaigns => {
-        this._campaigns = campaigns
-        this._modifications = this.configManager.decisionManager.getModifications(this._campaigns)
-        this.emit('ready')
-        Promise.resolve()
-      }).catch(error => {
-        this.emit('ready', error)
-        logError(this.config, error.message, PROCESS_SYNCHRONIZED_MODIFICATION)
-        Promise.reject(error)
-      })
+    return new Promise((resolve, reject) => {
+      this.configManager.decisionManager.getCampaignsAsync(this)
+        .then(campaigns => {
+          this._campaigns = campaigns
+          this._modifications = this.configManager.decisionManager.getModifications(this._campaigns)
+          this.emit('ready')
+          resolve()
+        })
+        .catch(error => {
+          this.emit('ready', error)
+          logError(this.config, error.message, PROCESS_SYNCHRONIZED_MODIFICATION)
+          reject(error)
+        })
+    })
   }
 
   private hasTrackingManager (process: string): boolean {

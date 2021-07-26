@@ -186,7 +186,7 @@ describe('test visitor', () => {
   it('test synchronizeModifications', async () => {
     try {
       visitor.on('ready', (err) => {
-        expect(err).toBeNull()
+        expect(err).toBeUndefined()
       })
       getCampaignsAsync.mockResolvedValue(campaignDTO)
       getModifications.mockReturnValue(returnModification)
@@ -197,21 +197,6 @@ describe('test visitor', () => {
       expect(getModifications).toBeCalledWith(campaignDTO)
     } catch (error) {
       console.log('test-jest', error)
-
-      // expect(logError).toBeCalled()
-    }
-  })
-
-  it('test synchronizeModifications error', async () => {
-    const error = new Error('message')
-    try {
-      visitor.on('ready', (err) => {
-        expect(err).toBe(error)
-      })
-      getCampaignsAsync.mockRejectedValue(error)
-      getModifications.mockReturnValue(returnModification)
-      await visitor.synchronizeModifications()
-    } catch (error) {
       expect(logError).toBeCalled()
     }
   })
@@ -844,5 +829,50 @@ describe('test visitor', () => {
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(TYPE_HIT_REQUIRED_ERROR, PROCESS_SEND_HIT)
     expect(sendHit).toBeCalledTimes(0)
+  })
+})
+
+describe('synchronizeModifications', () => {
+  const visitorId = 'visitorId'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const context: any = {}
+
+  const logManager = new FlagshipLogManager()
+  const logError = jest.spyOn(logManager, 'error')
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
+  config.logManager = logManager
+
+  const httpClient = new HttpClient()
+
+  const post: Mock<
+    Promise<IHttpResponse>,
+    [url: string, options: IHttpOptions]
+  > = jest.fn()
+  httpClient.postAsync = post
+  post.mockResolvedValue({} as IHttpResponse)
+
+  const apiManager = new ApiManager(httpClient, config)
+
+  const getCampaignsAsync = jest.spyOn(
+    apiManager,
+    'getCampaignsAsync'
+  )
+
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  const configManager = new ConfigManager(config, apiManager, trackingManager)
+
+  const visitor = new Visitor(visitorId, context, configManager)
+  const error = new Error('message')
+  it('test synchronizeModifications error', async () => {
+    visitor.on('ready', (err) => {
+      expect(err).toBe(error)
+    })
+    getCampaignsAsync.mockRejectedValue(error)
+    visitor.synchronizeModifications().catch(err => {
+      expect(err).toBe(error)
+      expect(logError).toBeCalled()
+    })
   })
 })
