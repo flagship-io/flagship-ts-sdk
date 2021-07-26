@@ -45,6 +45,33 @@ describe('test hit type Transaction', () => {
     expect(transaction.isReady()).toBeFalsy()
   })
 
+  it('test construct', () => {
+    const params = {
+      transactionId: 'transactionId',
+      affiliation: 'affiliation',
+      couponCode: 'couponCode',
+      currency: 'EUR',
+      itemCount: 14,
+      paymentMethod: 'method',
+      shippingCosts: 45,
+      shippingMethod: 'method-ship',
+      taxes: 45,
+      totalRevenue: 78
+    }
+    const transaction = new Transaction(params)
+
+    expect(transaction.transactionId).toBe(params.transactionId)
+    expect(transaction.affiliation).toBe(params.affiliation)
+    expect(transaction.couponCode).toBe(params.couponCode)
+    expect(transaction.currency).toBe(params.currency)
+    expect(transaction.itemCount).toBe(params.itemCount)
+    expect(transaction.paymentMethod).toBe(params.paymentMethod)
+    expect(transaction.shippingCosts).toBe(params.shippingCosts)
+    expect(transaction.shippingMethod).toBe(params.shippingMethod)
+    expect(transaction.taxes).toBe(params.taxes)
+    expect(transaction.totalRevenue).toBe(params.totalRevenue)
+  })
+
   const logManager = new FlagshipLogManager()
   const logError = jest.spyOn(logManager, 'error')
 

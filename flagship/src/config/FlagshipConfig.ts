@@ -25,7 +25,7 @@ export interface IFlagshipConfig {
   apiKey?:string
 
   /**
-   * Specify timeout in Milliseconds for api request.
+   * Specify timeout in seconds for api request.
    * Default is 2000ms.
    */
   timeout?: number;
@@ -72,6 +72,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode
     } = param
+
     this._envId = envId
     this._apiKey = apiKey
     this.logLevel = logLevel || LogLevel.ALL

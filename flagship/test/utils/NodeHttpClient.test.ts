@@ -48,6 +48,7 @@ describe('test denoHttpClient', () => {
     }
     axiosPost.mockRejectedValue(error)
     try {
+      options.timeout = undefined
       await nodeHttpClient.postAsync(url, options)
       expect(axiosPost).toBeCalledTimes(1)
     } catch (error) {

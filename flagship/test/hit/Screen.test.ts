@@ -16,11 +16,11 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { sprintf } from '../../src/utils/utils'
 
 describe('test hit type Page', () => {
-  const screenName = 'home'
-  const screen = new Screen({ screenName })
+  const documentLocation = 'home'
+  const screen = new Screen({ documentLocation: documentLocation })
 
   it('should ', () => {
-    expect(screen.screenName).toBe(screenName)
+    expect(screen.documentLocation).toBe(documentLocation)
 
     expect(screen.getErrorMessage()).toBe(ERROR_MESSAGE)
 
@@ -47,18 +47,18 @@ describe('test hit type Page', () => {
       [DS_API_ITEM]: SDK_APP,
       [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
       [T_API_ITEM]: HitType.SCREEN_VIEW,
-      [DL_API_ITEM]: screenName
+      [DL_API_ITEM]: documentLocation
     }
     expect(screen.toApiKeys()).toEqual(apiKeys)
   })
 
-  it('test log screenName url', () => {
-    screen.screenName = ''
-    expect(screen.screenName).toBe(screenName)
+  it('test log documentLocation url', () => {
+    screen.documentLocation = ''
+    expect(screen.documentLocation).toBe(documentLocation)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(
-      sprintf(TYPE_ERROR, 'screenName', 'string'),
-      'screenName'
+      sprintf(TYPE_ERROR, 'documentLocation', 'string'),
+      'documentLocation'
     )
   })
 })

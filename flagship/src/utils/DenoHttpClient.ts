@@ -4,7 +4,7 @@ export class HttpClient implements IHttpClient {
   public postAsync (url: string, options: IHttpOptions): Promise<IHttpResponse> {
     return new Promise<IHttpResponse>((resolve, reject) => {
       const c = new AbortController()
-      const id = setTimeout(() => c.abort(), options.timeout)
+      const id = setTimeout(() => c.abort(), options.timeout || 2 * 1000)
       fetch(url, {
         method: 'POST',
         headers: options.headers,

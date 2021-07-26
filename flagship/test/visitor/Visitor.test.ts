@@ -12,8 +12,10 @@ import {
   HitType,
   PANIC_MODE_ERROR,
   PROCESS_ACTIVE_MODIFICATION,
+  PROCESS_GET_ALL_MODIFICATION,
   PROCESS_GET_MODIFICATION,
   PROCESS_GET_MODIFICATION_INFO,
+  PROCESS_MODIFICATIONS_FOR_CAMPAIGN,
   PROCESS_SEND_HIT,
   PROCESS_UPDATE_CONTEXT,
   SDK_APP,
@@ -56,11 +58,6 @@ describe('test visitor', () => {
   post.mockResolvedValue({} as IHttpResponse)
 
   const apiManager = new ApiManager(httpClient, config)
-
-  // const getCampaignsModificationsAsync = jest.spyOn(
-  //   apiManager,
-  //   'getCampaignsModificationsAsync'
-  // )
 
   const getCampaignsAsync = jest.spyOn(
     apiManager,
@@ -170,20 +167,37 @@ describe('test visitor', () => {
     visitor.clearContext()
     expect(visitor.context).toEqual({})
   })
+  const campaignDtoId = 'c2nrh1hjg50l9stringu8bg'
+  const campaignDTO = [
+    {
+      id: campaignDtoId,
+      variationGroupId: 'id',
+      variation: {
+        id: '1dl',
+        reference: false,
+        modifications: {
+          type: 'number',
+          value: 12
+        }
+      }
+    }
+  ]
 
   it('test synchronizeModifications', async () => {
     try {
-      getCampaignsAsync.mockResolvedValue([])
+      visitor.on('ready', (err) => {
+        expect(err).toBeUndefined()
+      })
+      getCampaignsAsync.mockResolvedValue(campaignDTO)
       getModifications.mockReturnValue(returnModification)
       await visitor.synchronizeModifications()
       expect(getCampaignsAsync).toBeCalledTimes(1)
       expect(getCampaignsAsync).toBeCalledWith(visitor)
       expect(getModifications).toBeCalledTimes(1)
-      expect(getModifications).toBeCalledWith([])
+      expect(getModifications).toBeCalledWith(campaignDTO)
     } catch (error) {
       console.log('test-jest', error)
-
-      // expect(logError).toBeCalled()
+      expect(logError).toBeCalled()
     }
   })
 
@@ -210,11 +224,11 @@ describe('test visitor', () => {
   const testModificationTypeArray = async <T>(
     params: {key: string,
     defaultValue: T,
-    activate? :boolean}[]
+    activate? :boolean}[], activateAll = false
   ) => {
     try {
       const returnMod = params.map(item => returnModification.get(item.key) as Modification)
-      const modifications = await visitor.getModification(params)
+      const modifications = await visitor.getModification(params, activateAll)
       expect<T[]>(modifications).toEqual(returnMod.map(item => item.value))
     } catch (error) {
       expect(logError).toBeCalled()
@@ -270,6 +284,15 @@ describe('test visitor', () => {
       { key: 'keyString', defaultValue: 'defaultString' },
       { key: 'keyNumber', defaultValue: 10 }
     ])
+  })
+
+  it('test getModification with array and activateAll', () => {
+    testModificationTypeArray<string|number>([
+      { key: 'keyString', defaultValue: 'defaultString' },
+      { key: 'keyNumber', defaultValue: 10 },
+      { key: 'keyNull', defaultValue: 10 }
+    ], true)
+    expect(sendActive).toBeCalledTimes(3)
   })
 
   it('test getModification key keyNumber', () => {
@@ -536,7 +559,80 @@ describe('test visitor', () => {
     }
   })
 
-  const hitScreen = new Screen({ screenName: 'home' })
+  it('test getAllModifications', async () => {
+    const campaigns = await visitor.getAllModifications()
+    expect(campaigns).toEqual({
+      visitorId: visitor.visitorId,
+      campaigns: campaignDTO
+    })
+  })
+
+  it('test getAllModifications with activate', async () => {
+    const campaigns = await visitor.getAllModifications(true)
+    expect(campaigns).toEqual({
+      visitorId: visitor.visitorId,
+      campaigns: campaignDTO
+    })
+    expect(sendActive).toBeCalledTimes(8)
+  })
+
+  it('test getAllModifications on panic mode', async () => {
+    isPanic.mockReturnValue(true)
+    try {
+      const campaigns = await visitor.getAllModifications(true)
+      expect(campaigns).toBeNull()
+      expect(campaigns).toBeNull()
+      expect(sendActive).toBeCalledTimes(0)
+      expect(logError).toBeCalledTimes(1)
+      expect(logError).toBeCalledWith(
+        sprintf(PANIC_MODE_ERROR, PROCESS_GET_ALL_MODIFICATION),
+        PROCESS_GET_ALL_MODIFICATION
+      )
+    } catch (error) {
+      console.log(error)
+    }
+
+    isPanic.mockReturnValue(false)
+  })
+
+  it('test getModificationsForCampaign', async () => {
+    const campaigns = await visitor.getModificationsForCampaign(campaignDtoId)
+    expect(campaigns).toEqual({
+      visitorId: visitor.visitorId,
+      campaigns: campaignDTO
+    })
+    expect(sendActive).toBeCalledTimes(0)
+  })
+
+  it('test getModificationsForCampaign with activate', async () => {
+    const campaigns = await visitor.getModificationsForCampaign(campaignDtoId, true)
+    expect(campaigns).toEqual({
+      visitorId: visitor.visitorId,
+      campaigns: campaignDTO
+    })
+    expect(sendActive).toBeCalledTimes(1)
+  })
+
+  it('test getModificationsForCampaign on panic mode', async () => {
+    isPanic.mockReturnValue(true)
+    try {
+      const campaigns = await visitor.getModificationsForCampaign(campaignDtoId, true)
+      expect(campaigns).toBeNull()
+      expect(campaigns).toBeNull()
+      expect(sendActive).toBeCalledTimes(0)
+      expect(logError).toBeCalledTimes(1)
+      expect(logError).toBeCalledWith(
+        sprintf(PANIC_MODE_ERROR, PROCESS_MODIFICATIONS_FOR_CAMPAIGN),
+        PROCESS_MODIFICATIONS_FOR_CAMPAIGN
+      )
+    } catch (error) {
+      console.log(error)
+    }
+
+    isPanic.mockReturnValue(false)
+  })
+
+  const hitScreen = new Screen({ documentLocation: 'home' })
 
   it('test sendHit', () => {
     visitor.sendHitSync(hitScreen)
@@ -628,7 +724,7 @@ describe('test visitor', () => {
   it('test sendHitAsync with literal object PAGE ', async () => {
     const hit = {
       type: HitType.PAGE_VIEW,
-      pageUrl: 'home'
+      documentLocation: 'home'
     }
     try {
       await visitor.sendHit(hit)
@@ -642,7 +738,7 @@ describe('test visitor', () => {
   it('test sendHitAsync with literal object PAGE ', async () => {
     const hit = {
       type: 'PAGE' as HitType,
-      pageUrl: 'home'
+      documentLocation: 'home'
     }
 
     try {
@@ -657,7 +753,7 @@ describe('test visitor', () => {
   it('test sendHitAsync with literal object SCREEN ', async () => {
     const hit = {
       type: HitType.SCREEN_VIEW,
-      screenName: 'home'
+      documentLocation: 'home'
     }
     try {
       await visitor.sendHit(hit)
@@ -671,7 +767,7 @@ describe('test visitor', () => {
   it('test sendHitAsync with literal object PAGE ', async () => {
     const hit = {
       type: 'SCREEN' as HitType,
-      screenName: 'home'
+      documentLocation: 'home'
     }
 
     try {
@@ -698,6 +794,27 @@ describe('test visitor', () => {
     expect(sendHit).toBeCalledTimes(1)
   })
 
+  it('test sendHitAsync with literal object TRANSACTION ', async () => {
+    const hits = [{
+      type: HitType.TRANSACTION,
+      transactionId: 'transactionId',
+      affiliation: 'affiliation'
+    },
+    {
+      type: HitType.TRANSACTION,
+      transactionId: 'transactionId_2',
+      affiliation: 'affiliation_2'
+    }]
+    try {
+      await visitor.sendHit(hits)
+    } catch (error) {
+      expect(logError).toBeCalled()
+    }
+    expect(sendHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ ...hits[0], visitorId, ds: SDK_APP, config }))
+    expect(sendHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ ...hits[1], visitorId, ds: SDK_APP, config }))
+    expect(sendHit).toBeCalledTimes(2)
+  })
+
   it('test sendHitAsync with literal object type NotEXIST ', async () => {
     const hit = {
       type: 'NOT_EXIST' as HitType,
@@ -712,5 +829,50 @@ describe('test visitor', () => {
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(TYPE_HIT_REQUIRED_ERROR, PROCESS_SEND_HIT)
     expect(sendHit).toBeCalledTimes(0)
+  })
+})
+
+describe('synchronizeModifications', () => {
+  const visitorId = 'visitorId'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const context: any = {}
+
+  const logManager = new FlagshipLogManager()
+  const logError = jest.spyOn(logManager, 'error')
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
+  config.logManager = logManager
+
+  const httpClient = new HttpClient()
+
+  const post: Mock<
+    Promise<IHttpResponse>,
+    [url: string, options: IHttpOptions]
+  > = jest.fn()
+  httpClient.postAsync = post
+  post.mockResolvedValue({} as IHttpResponse)
+
+  const apiManager = new ApiManager(httpClient, config)
+
+  const getCampaignsAsync = jest.spyOn(
+    apiManager,
+    'getCampaignsAsync'
+  )
+
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  const configManager = new ConfigManager(config, apiManager, trackingManager)
+
+  const visitor = new Visitor(visitorId, context, configManager)
+  const error = new Error('message')
+  it('test synchronizeModifications error', async () => {
+    visitor.on('ready', (err) => {
+      expect(err).toBe(error)
+    })
+    getCampaignsAsync.mockRejectedValue(error)
+    visitor.synchronizeModifications().catch(err => {
+      expect(err).toBe(error)
+      expect(logError).toBeCalled()
+    })
   })
 })

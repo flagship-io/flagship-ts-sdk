@@ -1,11 +1,11 @@
-import { expect, it, describe } from '@jest/globals'
+import { expect, it, describe, jest } from '@jest/globals'
 import { DecisionApiConfig, DecisionMode } from '../../src/config/index'
 import {
   FlagshipStatus,
   LogLevel,
   REQUEST_TIME_OUT
 } from '../../src/enum/index'
-import { IFlagshipLogManager } from '../../src/utils/FlagshipLogManager'
+import { FlagshipLogManager, IFlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 
 describe('test DecisionApiConfig', () => {
   const config = new DecisionApiConfig()
@@ -18,6 +18,31 @@ describe('test DecisionApiConfig', () => {
     expect(config.statusChangedCallback).toBeUndefined()
     expect(config.timeout).toBe(REQUEST_TIME_OUT)
     expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
+    expect(config.fetchNow).toBeTruthy()
+  })
+
+  it('test config constructor', () => {
+    const apiKey = 'apiKey'
+    const envId = 'envId'
+    const logManager = new FlagshipLogManager()
+    const statusChang = jest.fn()
+
+    const config = new DecisionApiConfig({
+      apiKey,
+      envId,
+      logLevel: LogLevel.DEBUG,
+      timeout: 5,
+      logManager,
+      statusChangedCallback: statusChang,
+      fetchNow: false
+    })
+    expect(config.apiKey).toBe(apiKey)
+    expect(config.envId).toBe(envId)
+    expect(config.logLevel).toBe(LogLevel.DEBUG)
+    expect(config.logManager).toBe(logManager)
+    expect(config.statusChangedCallback).toBe(statusChang)
+    expect(config.timeout).toBe(5)
+    expect(config.fetchNow).toBeFalsy()
   })
 
   it('Test envId field ', () => {

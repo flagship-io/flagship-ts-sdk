@@ -7,7 +7,7 @@ export const SDK_LANGUAGE = 'TypeScript'
 /**
  * Default request timeout in second
  */
-export const REQUEST_TIME_OUT = 2000
+export const REQUEST_TIME_OUT = 2
 
 /**
  * Decision api base url
@@ -69,6 +69,8 @@ export const PROCESS_SYNCHRONIZED_MODIFICATION = 'SYNCHRONIZED MODIFICATION'
 export const PROCESS_SEND_HIT = 'SEND HIT'
 export const PROCESS_SEND_ACTIVATE = 'SEND ACTIVATE'
 export const PROCESS_GET_CAMPAIGNS = 'GET CAMPAIGNS'
+export const PROCESS_GET_ALL_MODIFICATION = 'GET ALL MODIFICATIONS'
+export const PROCESS_MODIFICATIONS_FOR_CAMPAIGN = 'GET MODIFICATION FOR CAMPAIGN'
 
 // Api items
 

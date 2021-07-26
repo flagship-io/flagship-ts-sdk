@@ -39,6 +39,21 @@ describe('test hit type Event', () => {
     expect(event.getErrorMessage()).toBe(ERROR_MESSAGE)
   })
 
+  it('test constructor', () => {
+    const params = {
+      action: 'action',
+      category: EventCategory.ACTION_TRACKING,
+      eventLabel: 'label',
+      eventValue: 12
+    }
+
+    const event = new Event(params)
+    expect(event.category).toBe(params.category)
+    expect(event.action).toBe(params.action)
+    expect(event.eventLabel).toBe(params.eventLabel)
+    expect(event.eventValue).toBe(params.eventValue)
+  })
+
   it('test isReady method ', () => {
     expect(event.isReady()).toBeFalsy()
   })
