@@ -25,7 +25,7 @@ export interface IFlagshipConfig {
   apiKey?:string
 
   /**
-   * Specify timeout in Milliseconds for api request.
+   * Specify timeout in seconds for api request.
    * Default is 2000ms.
    */
   timeout?: number;

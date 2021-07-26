@@ -7,7 +7,7 @@ export const SDK_LANGUAGE = 'TypeScript'
 /**
  * Default request timeout in second
  */
-export const REQUEST_TIME_OUT = 2000
+export const REQUEST_TIME_OUT = 2
 
 /**
  * Decision api base url

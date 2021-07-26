@@ -7,7 +7,7 @@ export class HttpClient implements IHttpClient {
       axios
         .post(url, options.body, {
           headers: options.headers,
-          timeout: options.timeout
+          timeout: options.timeout || 2 * 1000
         })
         .then(async (response) => {
           resolve({
