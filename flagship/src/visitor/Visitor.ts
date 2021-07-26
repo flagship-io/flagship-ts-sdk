@@ -9,9 +9,12 @@ import {
   HitType,
   PANIC_MODE_ERROR,
   PROCESS_ACTIVE_MODIFICATION,
+  PROCESS_GET_ALL_MODIFICATION,
   PROCESS_GET_MODIFICATION,
   PROCESS_GET_MODIFICATION_INFO,
+  PROCESS_MODIFICATIONS_FOR_CAMPAIGN,
   PROCESS_SEND_HIT,
+  PROCESS_SYNCHRONIZED_MODIFICATION,
   PROCESS_UPDATE_CONTEXT,
   SDK_APP,
   TRACKER_MANAGER_MISSING_ERROR,
@@ -174,7 +177,7 @@ export class Visitor extends EventEmitter {
     )
   }
 
-  private checkAndGetModification<T> (params:modificationsRequested<T>, activateAll = false) :T {
+  private checkAndGetModification<T> (params:modificationsRequested<T>, activateAll?:boolean) :T {
     const { key, defaultValue, activate } = params
     if (!key || typeof key !== 'string') {
       logError(
@@ -222,7 +225,7 @@ export class Visitor extends EventEmitter {
     }
 
     if (activate || activateAll) {
-      this.activateModificationSync(key)
+      this.activateModification(key)
     }
 
     return modification.value
@@ -238,7 +241,7 @@ export class Visitor extends EventEmitter {
   public getModificationSync<T> (params: modificationsRequested<T>, activateAll? : boolean): T
   public getModificationSync<T> (params: modificationsRequested<T>[], activateAll? : boolean): T[]
   public getModificationSync<T> (params: modificationsRequested<T>| modificationsRequested<T>[], activateAll? : boolean): T|T[]
-  public getModificationSync<T> (params: modificationsRequested<T>| modificationsRequested<T>[], activateAll = false): T|T[] {
+  public getModificationSync<T> (params: modificationsRequested<T>| modificationsRequested<T>[], activateAll?:boolean): T|T[] {
     if (this.isOnPanicMode(PROCESS_GET_MODIFICATION)) {
       if (Array.isArray(params)) {
         return params.map(item => item.defaultValue)
@@ -256,13 +259,13 @@ export class Visitor extends EventEmitter {
 
   /**
    * returns a Promise<object> containing all the data for all the campaigns associated with the current visitor.
-   * @deprecated
+   *
    */
   public getAllModifications (activate = false): Promise<{
     visitorId: string;
     campaigns: CampaignDTO[];
     }>|null {
-    if (this.isOnPanicMode('getAllModifications')) {
+    if (this.isOnPanicMode(PROCESS_GET_ALL_MODIFICATION)) {
       return null
     }
     if (activate) {
@@ -286,7 +289,7 @@ export class Visitor extends EventEmitter {
     visitorId: string;
     campaigns: CampaignDTO[];
     }>|null {
-    if (this.isOnPanicMode('getModificationsForCampaign')) {
+    if (this.isOnPanicMode(PROCESS_MODIFICATIONS_FOR_CAMPAIGN)) {
       return null
     }
 
@@ -359,6 +362,7 @@ export class Visitor extends EventEmitter {
         Promise.resolve()
       }).catch(error => {
         this.emit('ready', error)
+        logError(this.config, error.message, PROCESS_SYNCHRONIZED_MODIFICATION)
         Promise.reject(error)
       })
   }
@@ -457,7 +461,13 @@ export class Visitor extends EventEmitter {
    * Send a Hit to Flagship servers for reporting.
    * @param hit
    */
-  public sendHit (hit:IPage|IScreen|IEvent|IItem|ITransaction|HitAbstract): Promise<void> {
+  public sendHit (hit:HitAbstract): Promise<void>
+  public sendHit (hit:Array<HitAbstract>): Promise<void>
+  public sendHit (hit:IPage|IScreen|IEvent|IItem|ITransaction): Promise<void>
+  public sendHit (hit:Array<IPage|IScreen|IEvent|IItem|ITransaction>): Promise<void>
+  public sendHit (hit:IPage|IScreen|IEvent|IItem|ITransaction|
+    Array<IPage|IScreen|IEvent|IItem|ITransaction>|
+    HitAbstract|HitAbstract[]): Promise<void> {
     return Promise.resolve(this.sendHitSync(hit))
   }
 
@@ -486,18 +496,7 @@ export class Visitor extends EventEmitter {
     return newHit
   }
 
-  /**
-   * Send a Hit to Flagship servers for reporting.
-   * @param hit
-   */
-  public sendHitSync (hit:IPage|IScreen|IEvent|IItem|ITransaction|HitAbstract): void {
-    if (this.isOnPanicMode(PROCESS_SEND_HIT)) {
-      return
-    }
-
-    if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
-      return
-    }
+  private async prepareAndSendHit (hit:IPage|IScreen|IEvent|IItem|ITransaction|HitAbstract) {
     let hitInstance:HitAbstract
     if (hit instanceof HitAbstract) {
       hitInstance = hit
@@ -518,5 +517,36 @@ export class Visitor extends EventEmitter {
       return
     }
     this.configManager.trackingManager.sendHit(hitInstance)
+  }
+
+  /**
+   * Send a Hit to Flagship servers for reporting.
+   * @param hit
+   */
+  public sendHitSync (hit:Array<HitAbstract>):void
+  public sendHitSync (hit:HitAbstract):void
+  public sendHitSync (hit:Array<IPage|IScreen|IEvent|IItem|ITransaction>):void
+  public sendHitSync (hit:IPage|IScreen|IEvent|IItem|ITransaction|HitAbstract):void
+  public sendHitSync (hit:IPage|IScreen|IEvent|IItem|ITransaction|
+    Array<IPage|IScreen|IEvent|IItem|ITransaction>|
+    HitAbstract|HitAbstract[]): void
+
+  public sendHitSync (hit:IPage|IScreen|IEvent|IItem|ITransaction|
+    Array<IPage|IScreen|IEvent|IItem|ITransaction>|
+    HitAbstract|HitAbstract[]): void {
+    if (this.isOnPanicMode(PROCESS_SEND_HIT)) {
+      return
+    }
+
+    if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
+      return
+    }
+    if (Array.isArray(hit)) {
+      hit.forEach(item => {
+        this.prepareAndSendHit(item)
+      })
+    } else {
+      this.prepareAndSendHit(hit)
+    }
   }
 }
