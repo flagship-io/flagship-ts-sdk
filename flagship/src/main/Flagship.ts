@@ -144,7 +144,7 @@ export class Flagship {
    * @returns {Visitor} a new visitor instance
    */
   public static newVisitor (
-    visitorId: string,
+    visitorId: string|null,
     context: Record<string, string | number | boolean> = {}
   ): Visitor | null {
     if (!this.isReady() || !visitorId) {

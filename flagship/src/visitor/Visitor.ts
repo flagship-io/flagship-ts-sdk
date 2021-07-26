@@ -41,17 +41,27 @@ export class Visitor extends EventEmitter {
   private _campaigns!: CampaignDTO[]
 
   constructor (
-    visitorId: string,
+    visitorId: string|null,
     context: Record<string, primitive>,
     configManager: IConfigManager
   ) {
     super()
-    this.visitorId = visitorId
+    this.visitorId = visitorId || this.createVisitorId()
     this._modifications = new Map<string, Modification>()
     this._configManager = configManager
     this._config = configManager.config
     this._context = {}
     this.updateContext(context)
+  }
+
+  private createVisitorId (): string {
+    const now = new Date()
+    const random = Math.floor(Math.random() * (99999 - 10000) + 10000)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const twoDigits = (value: any): any => (value.toString().length === 1 ? `0${value}` : value)
+    return `${now.getFullYear()}${twoDigits(now.getMonth() + 1)}${twoDigits(now.getDate())}${twoDigits(now.getHours())}${twoDigits(
+        now.getMinutes()
+    )}${random}`
   }
 
   public get visitorId (): string {
@@ -259,7 +269,7 @@ export class Visitor extends EventEmitter {
 
   /**
    * returns a Promise<object> containing all the data for all the campaigns associated with the current visitor.
-   *
+   *@deprecated
    */
   public getAllModifications (activate = false): Promise<{
     visitorId: string;
@@ -283,6 +293,7 @@ export class Visitor extends EventEmitter {
    * Get data for a specific campaign.
    * @param campaignId Identifies the campaign whose modifications you want to retrieve.
    * @param activate
+   * @deprecated
    * @returns
    */
   public getModificationsForCampaign (campaignId:string, activate = false):Promise<{

@@ -832,6 +832,14 @@ describe('test visitor', () => {
   })
 })
 
+describe('test visitor visitor Id null', () => {
+  const visitor = new Visitor(null, {}, {} as ConfigManager)
+  console.log(visitor.visitorId)
+
+  expect(visitor.visitorId).toBeDefined()
+  expect(visitor.visitorId).toHaveLength(17)
+})
+
 describe('synchronizeModifications', () => {
   const visitorId = 'visitorId'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
