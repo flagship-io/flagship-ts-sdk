@@ -72,6 +72,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode
     } = param
+
     this._envId = envId
     this._apiKey = apiKey
     this.logLevel = logLevel || LogLevel.ALL
