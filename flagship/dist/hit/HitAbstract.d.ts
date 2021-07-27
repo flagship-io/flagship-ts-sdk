@@ -1,16 +1,21 @@
 import { IFlagshipConfig } from '../config/FlagshipConfig';
 import { HitType } from '../enum/HitType';
-export declare abstract class HitAbstract {
+export interface IHitAbstract {
+    visitorId?: string;
+    ds?: string;
+    type: HitType;
+}
+export declare abstract class HitAbstract implements IHitAbstract {
     private _visitorId;
     private _config;
-    private _hitType;
+    private _type;
     private _ds;
     get visitorId(): string;
     set visitorId(v: string);
     get ds(): string;
     set ds(v: string);
-    protected get hitType(): HitType;
-    protected set hitType(v: HitType);
+    get type(): HitType;
+    protected set type(v: HitType);
     get config(): IFlagshipConfig;
     set config(v: IFlagshipConfig);
     protected constructor(type: HitType);

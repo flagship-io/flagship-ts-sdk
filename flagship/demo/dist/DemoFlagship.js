@@ -1,42 +1,88 @@
-"use strict";
+'use strict';
 
-var _index = require("../../dist/index.node");
+var _index = require('../../dist/index.node');
 
-var _config = require("./config.js");
+var _config = require('./config.js');
 
-const config = new _index.DecisionApiConfig();
-config.logLevel = _index.LogLevel.ERROR;
-config.setStatusChangedCallback(status => {
-    console.log("status", _index.FlagshipStatus[status]);
+const statusChangedCallback = status => {
+  console.log('status', _index.FlagshipStatus[status]);
+};
+
+_index.Flagship.start(_config.ENV_ID, _config.API_KEY, {
+  decisionMode: _index.DecisionMode.BUCKETING,
+  statusChangedCallback,
+  logLevel: _index.LogLevel.ERROR
 });
 
-_index.Flagship.start(_config.ENV_ID, _config.API_KEY, config);
+const visitor = _index.Flagship.newVisitor('', { key: 'value' });
 
-const visitor = _index.Flagship.newVisitor(`visitor_1`, { age: 20 });
+visitor.on('ready', err => {
+  if (err) {
+    console.log('Flagship error:', err);
+    return;
+  }
+  console.log('Flagship Ready');
+});
 
 (async () => {
-    if (visitor) {
-        await visitor.synchronizeModifications();
-        console.log(visitor.getModification("object", {}));
-        visitor.activateModification("object");
+  if (visitor) {
+    // clear context
+    visitor.clearContext();
 
-        visitor.getModificationInfoAsync("array").then(r => {
-            console.log("r", r);
-        });
+    // Update context
+    visitor.updateContext({ isVip: true });
 
-        const event = new _index.Event(_index.EventCategory.ACTION_TRACKING, "click");
-        visitor.sendHit(event);
+    await visitor.synchronizeModifications();
 
-        const item = new _index.Item("transaction_1", "product_name", "00255578");
-        visitor.sendHit(item);
+    // getModification
+    visitor.getModification({ key: 'object', defaultValue: {} }).then(modification => {
+      console.log('modification:', modification);
+    });
 
-        const page = new _index.Page("home");
-        visitor.sendHit(page);
+    visitor.getModification([{ key: 'array', defaultValue: [] }, {
+      key: 'object',
+      defaultValue: {},
+      activate: true
+    }]).then(modifications => {
+      console.log('modifications:', modifications);
+    });
 
-        const screen = new _index.Screen("home");
-        visitor.sendHit(screen);
+    // activateModification
+    visitor.activateModification('object');
 
-        const transaction = new _index.Transaction(`transaction_1`, "affiliation");
-        visitor.sendHit(transaction);
-    }
+    visitor.activateModification(['array', 'object']);
+
+    // getModificationInfo
+    visitor.getModificationInfo('array').then(data => {
+      console.log('info', data);
+    });
+
+    // send hit
+
+    // hit type Event
+    visitor.sendHit({
+      type: _index.HitType.EVENT,
+      category: _index.EventCategory.ACTION_TRACKING,
+      action: 'click'
+    });
+
+    // hit type Item
+    const item = new _index.Item({
+      transactionId: 'transaction_1',
+      productName: 'product_name',
+      productSku: '00255578'
+    });
+
+    visitor.sendHit(item);
+
+    // hit type Page
+    visitor.sendHit({ type: _index.HitType.PAGE, documentLocation: 'https://localhost' });
+
+    // hit type Screen
+    visitor.sendHit({ type: _index.HitType.SCREEN, documentLocation: 'https://localhost' });
+
+    // hit type Transaction
+    const transaction = new _index.Transaction({ transactionId: 'transaction_1', affiliation: 'affiliation' });
+    visitor.sendHit(transaction);
+  }
 })();

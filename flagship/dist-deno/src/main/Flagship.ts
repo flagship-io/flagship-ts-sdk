@@ -1,6 +1,6 @@
 import { Visitor } from '../visitor/Visitor.ts'
 import { FlagshipStatus } from '../enum/FlagshipStatus.ts'
-import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
+import { FlagshipConfig, IFlagshipConfig } from '../config/FlagshipConfig.ts'
 import { DecisionApiConfig } from '../config/DecisionApiConfig.ts'
 import { ConfigManager, IConfigManager } from '../config/ConfigManager.ts'
 import { ApiManager } from '../decision/ApiManager.ts'
@@ -33,6 +33,7 @@ export class Flagship {
     return this._configManger
   }
 
+  // eslint-disable-next-line no-useless-constructor
   private constructor () {
     // singleton
   }
@@ -55,12 +56,12 @@ export class Flagship {
       apiKey !== null &&
       apiKey !== '' &&
       envId != null &&
-      envId != ''
+      envId !== ''
     )
   }
 
   protected setStatus (status: FlagshipStatus): void {
-    const statusChanged = this.config.getStatusChangedCallback()
+    const statusChanged = this.config.statusChangedCallback
     if (this.config && statusChanged && this._status !== status) {
       statusChanged(status)
     }
@@ -90,13 +91,14 @@ export class Flagship {
   public static start (
     envId: string,
     apiKey: string,
-    config?: IFlagshipConfig
+    config?: IFlagshipConfig| FlagshipConfig
   ): void {
     const flagship = this.getInstance()
 
-    if (!config) {
-      config = new DecisionApiConfig(envId, apiKey)
+    if (!(config instanceof FlagshipConfig)) {
+      config = new DecisionApiConfig(config)
     }
+
     config.envId = envId
     config.apiKey = apiKey
 
@@ -142,13 +144,18 @@ export class Flagship {
    * @returns {Visitor} a new visitor instance
    */
   public static newVisitor (
-    visitorId: string,
+    visitorId: string|null,
     context: Record<string, string | number | boolean> = {}
   ): Visitor | null {
-    if (!this.isReady() || !visitorId) {
+    if (!this.isReady()) {
       return null
     }
 
-    return new Visitor(visitorId, context, this.getInstance().configManager)
+    const visitor = new Visitor(visitorId, context, this.getInstance().configManager)
+
+    if (this.getConfig().fetchNow) {
+      visitor.synchronizeModifications()
+    }
+    return visitor
   }
 }

@@ -1,4 +1,4 @@
-import { FlagshipConfig } from './FlagshipConfig';
+import { FlagshipConfig, IFlagshipConfig } from './FlagshipConfig';
 export declare class DecisionApiConfig extends FlagshipConfig {
-    constructor(envId?: string, apiKey?: string);
+    constructor(param?: Omit<IFlagshipConfig, 'decisionMode'>);
 }

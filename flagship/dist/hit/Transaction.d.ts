@@ -1,7 +1,19 @@
-import { HitAbstract } from './HitAbstract';
+import { HitAbstract, IHitAbstract } from './HitAbstract';
 export declare const CURRENCY_ERROR = "{0} must be a string and have exactly 3 letters";
 export declare const ERROR_MESSAGE = "Transaction Id and Transaction affiliation are required";
-export declare class Transaction extends HitAbstract {
+export interface ITransaction extends IHitAbstract {
+    transactionId: string;
+    affiliation: string;
+    taxes?: number;
+    currency?: string;
+    couponCode?: string;
+    itemCount?: number;
+    shippingMethod?: string;
+    paymentMethod?: string;
+    totalRevenue?: number;
+    shippingCosts?: number;
+}
+export declare class Transaction extends HitAbstract implements ITransaction {
     private _transactionId;
     private _affiliation;
     private _taxes;
@@ -32,7 +44,7 @@ export declare class Transaction extends HitAbstract {
     set totalRevenue(v: number);
     get shippingCosts(): number;
     set shippingCosts(v: number);
-    constructor(transactionId: string, affiliation: string);
+    constructor(transaction: Omit<ITransaction, 'type'>);
     isReady(): boolean;
     toApiKeys(): any;
     getErrorMessage(): string;

@@ -5,7 +5,7 @@ export declare const SDK_LANGUAGE = "TypeScript";
 /**
  * Default request timeout in second
  */
-export declare const REQUEST_TIME_OUT = 2000;
+export declare const REQUEST_TIME_OUT = 2;
 /**
  * Decision api base url
  */
@@ -52,6 +52,8 @@ export declare const PROCESS_SYNCHRONIZED_MODIFICATION = "SYNCHRONIZED MODIFICAT
 export declare const PROCESS_SEND_HIT = "SEND HIT";
 export declare const PROCESS_SEND_ACTIVATE = "SEND ACTIVATE";
 export declare const PROCESS_GET_CAMPAIGNS = "GET CAMPAIGNS";
+export declare const PROCESS_GET_ALL_MODIFICATION = "GET ALL MODIFICATIONS";
+export declare const PROCESS_MODIFICATIONS_FOR_CAMPAIGN = "GET MODIFICATION FOR CAMPAIGN";
 export declare const CUSTOMER_ENV_ID_API_ITEM = "cid";
 export declare const VISITOR_ID_API_ITEM = "vid";
 export declare const VARIATION_GROUP_ID_API_ITEM = "caid";
