@@ -28,7 +28,7 @@ import { IItem } from '../hit/Item'
 import { ITransaction } from '../hit/Transaction'
 import { modificationsRequested, primitive } from '../types'
 import { CampaignDTO } from '../decision/api/models'
-import { EventEmitter } from 'events'
+import { EventEmitter } from '../nodeDeps'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 
