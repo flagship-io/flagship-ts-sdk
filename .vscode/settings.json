@@ -8,6 +8,6 @@
     "editor.defaultFormatter": null
   },
   "[typescript]": {
-    "editor.defaultFormatter": null
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
 }
