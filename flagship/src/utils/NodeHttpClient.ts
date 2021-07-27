@@ -1,5 +1,6 @@
 import { IHttpClient, IHttpOptions, IHttpResponse } from './httpClient'
 import axios from 'axios'
+import { REQUEST_TIME_OUT } from '../enum'
 
 export class HttpClient implements IHttpClient {
   public postAsync (url: string, options: IHttpOptions): Promise<IHttpResponse> {
@@ -7,7 +8,7 @@ export class HttpClient implements IHttpClient {
       axios
         .post(url, options.body, {
           headers: options.headers,
-          timeout: options.timeout || 2 * 1000
+          timeout: options.timeout ? options.timeout * 1000 : REQUEST_TIME_OUT * 1000
         })
         .then(async (response) => {
           resolve({

@@ -1,6 +1,6 @@
 import { Visitor } from '../visitor/Visitor';
 import { FlagshipStatus } from '../enum/FlagshipStatus';
-import { IFlagshipConfig } from '../config/FlagshipConfig';
+import { FlagshipConfig, IFlagshipConfig } from '../config/FlagshipConfig';
 export declare class Flagship {
     private static _instance;
     private _configManger;
@@ -30,12 +30,12 @@ export declare class Flagship {
      * @param {string} apiKey : Secure api key provided by Flagship.
      * @param {IFlagshipConfig} config : (optional) SDK configuration.
      */
-    static start(envId: string, apiKey: string, config?: IFlagshipConfig): void;
+    static start(envId: string, apiKey: string, config?: IFlagshipConfig | FlagshipConfig): void;
     /**
      * Create a new visitor with a context.
      * @param {string} visitorId : Unique visitor identifier.
      * @param {Record<string, string | number | boolean>} context : visitor context. e.g: { isVip: true, country: "UK" }.
      * @returns {Visitor} a new visitor instance
      */
-    static newVisitor(visitorId: string, context?: Record<string, string | number | boolean>): Visitor | null;
+    static newVisitor(visitorId: string | null, context?: Record<string, string | number | boolean>): Visitor | null;
 }

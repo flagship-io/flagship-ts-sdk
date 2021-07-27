@@ -1,8 +1,7 @@
-import { DecisionMode, FlagshipConfig } from './FlagshipConfig.ts'
+import { DecisionMode, FlagshipConfig, IFlagshipConfig } from './FlagshipConfig.ts'
 
 export class DecisionApiConfig extends FlagshipConfig {
-  public constructor (envId?: string, apiKey?: string) {
-    super(envId, apiKey)
-    this._decisionMode = DecisionMode.DECISION_API
+  public constructor (param?: Omit<IFlagshipConfig, 'decisionMode'>) {
+    super({ ...param, decisionMode: DecisionMode.DECISION_API })
   }
 }

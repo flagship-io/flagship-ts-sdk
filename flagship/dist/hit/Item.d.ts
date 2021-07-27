@@ -1,6 +1,14 @@
-import { HitAbstract } from './HitAbstract';
+import { HitAbstract, IHitAbstract } from './HitAbstract';
 export declare const ERROR_MESSAGE = "Transaction Id, Item name and item code are required";
-export declare class Item extends HitAbstract {
+export interface IItem extends IHitAbstract {
+    transactionId: string;
+    productName: string;
+    productSku: string;
+    itemPrice?: number;
+    itemQuantity?: number;
+    itemCategory?: string;
+}
+export declare class Item extends HitAbstract implements IItem {
     private _transactionId;
     private _productName;
     private _productSku;
@@ -43,7 +51,7 @@ export declare class Item extends HitAbstract {
      * @param productName : Name of the item product.
      * @param productSku : The SKU or item code.
      */
-    constructor(transactionId: string, productName: string, productSku: string);
+    constructor(item: Omit<IItem, 'type'>);
     isReady(): boolean;
     toApiKeys(): any;
     getErrorMessage(): string;

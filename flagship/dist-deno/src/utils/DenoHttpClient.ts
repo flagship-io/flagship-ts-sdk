@@ -1,10 +1,11 @@
+import { REQUEST_TIME_OUT } from '../enum/index.ts'
 import { IHttpClient, IHttpOptions, IHttpResponse } from './httpClient.ts'
 
 export class HttpClient implements IHttpClient {
   public postAsync (url: string, options: IHttpOptions): Promise<IHttpResponse> {
     return new Promise<IHttpResponse>((resolve, reject) => {
       const c = new AbortController()
-      const id = setTimeout(() => c.abort(), options.timeout)
+      const id = setTimeout(() => c.abort(), options.timeout ? options.timeout * 1000 : REQUEST_TIME_OUT * 1000)
       fetch(url, {
         method: 'POST',
         headers: options.headers,
@@ -19,10 +20,7 @@ export class HttpClient implements IHttpClient {
             : await response.text()
 
           if (!response.ok) {
-            reject({
-              status: response.status,
-              body: body || response.statusText
-            })
+            reject(new Error(body || response.statusText).message)
             return
           }
 

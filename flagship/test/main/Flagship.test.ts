@@ -12,6 +12,7 @@ import {
 import { Flagship } from '../../src/main/Flagship'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { sprintf } from '../../src/utils/utils'
+import { Visitor } from '../../src/visitor/Visitor'
 
 const getCampaignsAsync = jest.fn().mockReturnValue(Promise.resolve([]))
 
@@ -134,12 +135,12 @@ describe('test Flagship newVisitor', () => {
     expect(visitor?.configManager).toBeInstanceOf(ConfigManager)
 
     const visitorNull = Flagship.newVisitor(getNull(), context)
-    expect(visitorNull).toBeNull()
+    expect(visitorNull).toBeInstanceOf(Visitor)
 
     const newVisitor = Flagship.newVisitor(visitorId)
     expect(newVisitor?.context).toEqual({})
 
-    expect(getCampaignsAsync).toBeCalledTimes(2)
+    expect(getCampaignsAsync).toBeCalledTimes(3)
     expect(getCampaignsAsync).toBeCalledWith(visitor)
   })
 })

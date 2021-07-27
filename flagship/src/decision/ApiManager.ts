@@ -19,7 +19,7 @@ import { logError } from '../utils/utils'
 
 export class ApiManager extends DecisionManager {
   public async getCampaignsAsync (visitor: Visitor):Promise<CampaignDTO[]> {
-    try {
+    return new Promise((resolve, reject) => {
       const headers = {
         [HEADER_X_API_KEY]: `${this.config.apiKey}`,
         [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
@@ -32,25 +32,30 @@ export class ApiManager extends DecisionManager {
         trigger_hit: false,
         context: visitor.context
       }
-      const url =
-        `${BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
-      const data = await this._httpClient.postAsync(url, {
+
+      const url = `${BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
+
+      this._httpClient.postAsync(url, {
         headers,
         timeout: this.config.timeout,
         body: postData
       })
-
-      this.panic = false
-      if (data.body.panic) {
-        this.panic = true
-      }
-      if (data.body.campaigns) {
-        return data.body.campaigns
-      }
-    } catch (error) {
-      logError(this.config, JSON.stringify(error), PROCESS_GET_CAMPAIGNS)
-    }
-    return []
+        .then(data => {
+          this.panic = false
+          if (data.body.panic) {
+            this.panic = true
+          }
+          let response:CampaignDTO[] = []
+          if (data.body.campaigns) {
+            response = data.body.campaigns
+          }
+          resolve(response)
+        })
+        .catch(error => {
+          logError(this.config, JSON.stringify(error), PROCESS_GET_CAMPAIGNS)
+          reject(error)
+        })
+    })
   }
 
   public getModifications (campaigns: Array<CampaignDTO>):Map<string, Modification> {
@@ -78,7 +83,13 @@ export class ApiManager extends DecisionManager {
   public async getCampaignsModificationsAsync (
     visitor: Visitor
   ): Promise<Map<string, Modification>> {
-    const campaigns = await this.getCampaignsAsync(visitor)
-    return this.getModifications(campaigns)
+    return new Promise((resolve, reject) => {
+      this.getCampaignsAsync(visitor).then(campaigns => {
+        resolve(this.getModifications(campaigns))
+      }).catch(error => {
+        console.log('campaigns', error)
+        reject(error)
+      })
+    })
   }
 }

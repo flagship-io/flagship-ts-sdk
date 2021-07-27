@@ -3,6 +3,7 @@ import { Modification } from '../model/Modification.ts'
 import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
 import { IHttpClient } from '../utils/httpClient.ts'
 import { Visitor } from '../visitor/Visitor.ts'
+import { CampaignDTO } from './api/models.ts'
 
 export abstract class DecisionManager implements IDecisionManager {
   protected _config: IFlagshipConfig;
@@ -22,6 +23,10 @@ export abstract class DecisionManager implements IDecisionManager {
     this._config = config
     this._httpClient = httpClient
   }
+
+  abstract getModifications (campaigns: CampaignDTO[]): Map<string, Modification>
+
+  abstract getCampaignsAsync(visitor: Visitor): Promise<CampaignDTO[]>
 
   abstract getCampaignsModificationsAsync(
     visitor: Visitor

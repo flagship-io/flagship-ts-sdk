@@ -1,10 +1,13 @@
-import { HitAbstract } from './HitAbstract';
-export declare const ERROR_MESSAGE = "Page url is required";
-export declare class Page extends HitAbstract {
-    private _pageUrl;
-    get pageUrl(): string;
-    set pageUrl(v: string);
-    constructor(pageUrl: string);
+import { HitAbstract, IHitAbstract } from './HitAbstract';
+export declare const ERROR_MESSAGE = "documentLocation url is required";
+export interface IPage extends IHitAbstract {
+    documentLocation: string;
+}
+export declare class Page extends HitAbstract implements IPage {
+    private _documentLocation;
+    get documentLocation(): string;
+    set documentLocation(v: string);
+    constructor(page: Omit<IPage, 'type'>);
     isReady(): boolean;
     toApiKeys(): any;
     getErrorMessage(): string;

@@ -6,11 +6,12 @@ import {
   HitType,
   Item,
   LogLevel,
-  Transaction
-} from '../../dist/index.node'
+  Transaction,
+  Modification
+} from '../../dist-deno/src/mod.ts'
 import { API_KEY, ENV_ID } from './config.js'
 
-const statusChangedCallback = (status) => {
+const statusChangedCallback = (status:FlagshipStatus) => {
   console.log('status', FlagshipStatus[status])
 }
 
@@ -26,7 +27,7 @@ const visitor = Flagship.newVisitor('visitor_id', { key: 'value' });
 (async () => {
   if (visitor) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    visitor.on('ready', (err) => {
+    visitor.on('ready', (err:any) => {
       if (err) {
         console.log('Flagship error:', err)
         return
@@ -66,7 +67,7 @@ const visitor = Flagship.newVisitor('visitor_id', { key: 'value' });
 
     // getModificationInfo
     visitor.getModificationInfo('array')
-      .then((data) => {
+      .then((data:Modification|null) => {
         console.log('info', data)
       })
 

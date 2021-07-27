@@ -147,7 +147,7 @@ export class Flagship {
     visitorId: string|null,
     context: Record<string, string | number | boolean> = {}
   ): Visitor | null {
-    if (!this.isReady() || !visitorId) {
+    if (!this.isReady()) {
       return null
     }
 

@@ -1,11 +1,17 @@
-import { HitAbstract } from './HitAbstract';
+import { HitAbstract, IHitAbstract } from './HitAbstract';
 export declare const ERROR_MESSAGE = "event category and event action are required";
 export declare const CATEGORY_ERROR = "The category value must be either EventCategory::ACTION_TRACKING or EventCategory::ACTION_TRACKING";
 export declare enum EventCategory {
     ACTION_TRACKING = "ACTION_TRACKING",
     USER_ENGAGEMENT = "USER_ENGAGEMENT"
 }
-export declare class Event extends HitAbstract {
+export interface IEvent extends IHitAbstract {
+    category: EventCategory;
+    action: string;
+    eventLabel?: string;
+    eventValue?: number;
+}
+export declare class Event extends HitAbstract implements IEvent {
     private _category;
     private _action;
     private _eventLabel;
@@ -34,7 +40,7 @@ export declare class Event extends HitAbstract {
      * <br/> NOTE: this value must be non-negative.
      */
     set eventValue(v: number);
-    constructor(category: EventCategory, action: string);
+    constructor(event: Omit<IEvent, 'type'>);
     toApiKeys(): any;
     isReady(): boolean;
     getErrorMessage(): string;
