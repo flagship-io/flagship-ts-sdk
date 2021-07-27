@@ -8,4 +8,5 @@ export {
   Screen,
   Transaction
 } from './hit/index.ts'
-export { FlagshipStatus, LogLevel } from './enum/index.ts'
+export { FlagshipStatus, LogLevel, HitType } from './enum/index.ts'
+export { Modification } from './model/Modification.ts'

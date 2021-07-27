@@ -83,10 +83,11 @@ describe('test ApiManager', () => {
 
   it('Test error ', async () => {
     postAsync.mockRejectedValue(responseError)
-    const modifications = await apiManager.getCampaignsModificationsAsync(
+    apiManager.getCampaignsModificationsAsync(
       visitor
-    )
-    expect(postAsync).toHaveBeenCalledTimes(1)
-    expect(modifications.size).toBe(0)
+    ).catch(error => {
+      expect(error).toBe(responseError)
+      expect(postAsync).toHaveBeenCalledTimes(1)
+    })
   })
 })
