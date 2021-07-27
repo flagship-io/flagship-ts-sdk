@@ -11,27 +11,29 @@ const statusChangedCallback = status => {
 _index.Flagship.start(_config.ENV_ID, _config.API_KEY, {
   decisionMode: _index.DecisionMode.BUCKETING,
   statusChangedCallback,
-  logLevel: _index.LogLevel.ERROR
+  logLevel: _index.LogLevel.ERROR,
+  fetchNow: false
 });
 
-const visitor = _index.Flagship.newVisitor('', { key: 'value' });
-
-visitor.on('ready', err => {
-  if (err) {
-    console.log('Flagship error:', err);
-    return;
-  }
-  console.log('Flagship Ready');
-});
+const visitor = _index.Flagship.newVisitor('visitor_id', { key: 'value' });
 
 (async () => {
   if (visitor) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    visitor.on('ready', err => {
+      if (err) {
+        console.log('Flagship error:', err);
+        return;
+      }
+      console.log('Flagship Ready');
+    });
     // clear context
     visitor.clearContext();
 
     // Update context
     visitor.updateContext({ isVip: true });
 
+    // optional when fetchNow = true, this method is call on each newVisitor
     await visitor.synchronizeModifications();
 
     // getModification
