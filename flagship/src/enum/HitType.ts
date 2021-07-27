@@ -6,10 +6,21 @@ export enum HitType {
   PAGE_VIEW = 'PAGEVIEW',
 
   /**
+   * User has seen a URL
+   *
+   */
+     PAGE= 'PAGE',
+
+  /**
    * User has seen a screen.
    *
    */
   SCREEN_VIEW = 'SCREENVIEW',
+  /**
+   * User has seen a screen.
+   *
+   */
+  SCREEN = 'SCREEN',
 
   /**
    * User has made a transaction.
