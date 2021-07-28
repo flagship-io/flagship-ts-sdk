@@ -31,6 +31,8 @@ export const SDK_VERSION = 'v1'
 export const SDK_STARTED_INFO = 'Flagship SDK (version: {0}) READY'
 export const FLAGSHIP_SDK = 'Flagship SDK'
 
+export const EMIT_READY = 'ready'
+
 /**
  * Message Error
  */
