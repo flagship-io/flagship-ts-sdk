@@ -19,12 +19,12 @@ import {
 import { HitAbstract } from '../hit/HitAbstract'
 import { Modification } from '../model/Modification'
 import { logError } from '../utils/utils'
-import { Visitor } from '../visitor/Visitor'
+import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { TrackingManagerAbstract } from './TrackingManagerAbstract'
 
 export class TrackingManager extends TrackingManagerAbstract {
   public sendActive (
-    visitor: Visitor,
+    visitor: VisitorAbstract,
     modification: Modification
   ): Promise<void> {
     const headers = {
