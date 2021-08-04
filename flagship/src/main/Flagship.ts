@@ -14,6 +14,7 @@ import {
   SDK_STARTED_INFO,
   SDK_VERSION
 } from '../enum/index'
+import { VisitorDelegate } from '../visitor/VisitorDelegate'
 
 export class Flagship {
   private static _instance: Flagship;
@@ -49,15 +50,9 @@ export class Flagship {
    * Return true if the SDK is properly initialized, otherwise return false
    */
   private static isReady (): boolean {
-    const apiKey = this._instance.config.apiKey
-    const envId = this._instance.config.envId
-    return (
-      this._instance &&
-      apiKey !== null &&
-      apiKey !== '' &&
-      envId != null &&
-      envId !== ''
-    )
+    const apiKey = this._instance?.config?.apiKey
+    const envId = this._instance?.config?.envId
+    return (!!this._instance && !!apiKey && !!envId)
   }
 
   protected setStatus (status: FlagshipStatus): void {
@@ -151,7 +146,9 @@ export class Flagship {
       return null
     }
 
-    const visitor = new Visitor(visitorId, context, this.getInstance().configManager)
+    const visitorDelegate = new VisitorDelegate(visitorId, context, this.getInstance().configManager)
+
+    const visitor = new Visitor(visitorDelegate)
 
     if (this.getConfig().fetchNow) {
       visitor.synchronizeModifications()
