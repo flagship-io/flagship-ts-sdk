@@ -4,6 +4,7 @@ import { HitAbstract, IPage, IScreen, IEvent, Event, Screen, IItem, ITransaction
 import { primitive, modificationsRequested } from '../types'
 import { logError, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
+import { CampaignDTO } from '../decision/api/models'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 
@@ -299,5 +300,49 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     } else {
       this.prepareAndSendHit(hit)
     }
+  }
+
+  /**
+   * returns a Promise<object> containing all the data for all the campaigns associated with the current visitor.
+   *@deprecated
+   */
+  public getAllModifications (activate = false): Promise<{
+    visitorId: string;
+    campaigns: CampaignDTO[];
+    }> {
+    if (activate) {
+      this.visitor.modifications.forEach((_, key) => {
+        this.activateModification(key)
+      })
+    }
+    return Promise.resolve({
+      visitorId: this.visitor.visitorId,
+      campaigns: this.visitor.campaigns
+    })
+  }
+
+  /**
+   * Get data for a specific campaign.
+   * @param campaignId Identifies the campaign whose modifications you want to retrieve.
+   * @param activate
+   * @deprecated
+   * @returns
+   */
+  public getModificationsForCampaign (campaignId:string, activate = false):Promise<{
+    visitorId: string;
+    campaigns: CampaignDTO[];
+    }> {
+    if (activate) {
+      this.visitor.modifications.forEach(value => {
+        if (value.campaignId === campaignId) {
+          this.activateModification(value.key)
+        }
+      })
+    }
+
+    return Promise.resolve({
+      visitorId: this.visitor.visitorId,
+      campaigns: this.visitor.campaigns.filter(x => x.id === campaignId)
+    })
   }
 }
