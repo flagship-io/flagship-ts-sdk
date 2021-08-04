@@ -12,42 +12,75 @@ import {
   HitType,
   EventCategory,
 } from "../flagship/dist-deno/src/mod.ts";
+import { OakSession } from "https://deno.land/x/sessions/mod.ts";
 
 const statusChangedCallback = (status: FlagshipStatus) => {
   console.log("status", FlagshipStatus[status]);
 };
 
 const app = new Application();
-let env = "c0n48jn5thv01k0ijmo0"; // c0n48jn5thv01k0ijmo0
-let apiKey = "BsIK86oh7c12c9G7ce4Wm1yBlWeaMf3t1S0xyYzI"; // BsIK86oh7c12c9G7ce4Wm1yBlWeaMf3t1S0xyYzI
-let visitor_idVar: string;
+const session = new OakSession(app);
+let environment_id = ""; // c0n48jn5thv01k0ijmo0
+let api_key = ""; // BsIK86oh7c12c9G7ce4Wm1yBlWeaMf3t1S0xyYzI
+let timeout = 0;
+let bucketing = false;
+let polling_interval = 0;
+let visitor_id: string = "";
 let contextVar: Record<string, string | number | boolean> | undefined;
 const router = new Router();
 router
   .get("/env", async (context) => {
-    Flagship.start(env, apiKey, {
-      decisionMode: DecisionMode.DECISION_API,
-      statusChangedCallback,
-      logLevel: LogLevel.ERROR,
-      fetchNow: false,
+    if (
+      (await context.state.session.has("envId")) &&
+      (await context.state.session.has("apiKey")) &&
+      (await context.state.session.has("timeout"))
+    ) {
+      Flagship.start(
+        await context.state.session.get("envId"),
+        await context.state.session.get("apiKey"),
+        {
+          decisionMode: DecisionMode.DECISION_API,
+          statusChangedCallback,
+          logLevel: LogLevel.ALL,
+          fetchNow: false,
+        }
+      );
+
+      return (context.response.body = {
+        environment_id: await context.state.session.get("envId"),
+        api_key: await context.state.session.get("apiKey"),
+        timeout: await context.state.session.get("timeout"),
+        bucketing,
+        polling_interval,
+      });
+    }
+    return (context.response.body = {
+      environment_id,
+      api_key,
+      timeout,
+      bucketing,
+      polling_interval,
     });
-    return (context.response.body = { env, apiKey });
   })
   .put("/env", async (context) => {
     const { environment_id, api_key, timeout } = await context.request.body()
       .value;
+
+    await context.state.session.set("envId", environment_id);
+    await context.state.session.set("apiKey", api_key);
+    await context.state.session.set("timeout", timeout);
+
     Flagship.start(environment_id, api_key, {
       decisionMode: DecisionMode.DECISION_API,
       statusChangedCallback,
       logLevel: LogLevel.ERROR,
       fetchNow: false,
     });
+
     return (context.response.body = { environment_id, api_key, timeout });
   })
-  .put("/visitor", async ({ request, response }) => {
+  .put("/visitor", async ({ request, response, state }) => {
     const { visitor_id, context } = await request.body().value;
-    visitor_idVar = visitor_id;
-    contextVar = context;
     const visitor = Flagship.newVisitor(`${visitor_id}`, context);
     if (visitor) {
       await visitor.synchronizeModifications();
@@ -55,7 +88,26 @@ router
         modification: await visitor.getAllModifications(),
         context,
       };
+      await state.session.set("visitor_id", visitor_id);
+      await state.session.set("context", context);
+      await state.session.set("visitor", visitor);
     }
+  })
+  .get("/visitor", async ({ state, response }) => {
+    if (
+      (await state.session.has("visitor")) &&
+      (await state.session.has("context")) &&
+      (await state.session.has("visitor_id"))
+    ) {
+      return (response.body = {
+        visitor_id: await state.session.get("visitor_id"),
+        context: await state.session.get("context"),
+      });
+    }
+    return (response.body = {
+      visitor_id,
+      contextVar,
+    });
   })
   .put(
     "/visitor/context/:flagKey",
@@ -80,9 +132,9 @@ router
       }
 
       const visitor = state.visitor;
+      await state.session.set("visitor", visitor);
       await visitor.synchronizeModifications();
       visitor.updateContext(obj);
-      //console.log(visitor);
       response.body = {
         flags: await visitor.getAllModifications(),
         context: visitor.context,
@@ -93,7 +145,7 @@ router
     const { flagKey, type, activate, defaultValue } = helpers.getQuery(ctx, {
       mergeParams: true,
     });
-    const visitor = Flagship.newVisitor(`${visitor_idVar}`, contextVar);
+    const visitor = ctx.state.visitor;
     if (visitor) {
       await visitor.synchronizeModifications();
       const modification = await visitor.getModification({
@@ -101,7 +153,6 @@ router
         defaultValue: JSON.parse(defaultValue),
       });
       ctx.response.body = { value: modification };
-      //console.log(visitor);
     }
   })
   .get("/flag/:flagKey/activate", async (ctx) => {
@@ -113,7 +164,6 @@ router
       return (ctx.response.body = "Activation sent");
     }
     return (ctx.response.body = "Not Sent");
-    //console.log(key);
   })
   .get("/flag/:flagKey/info", async (ctx) => {
     const visitor = ctx.state.visitor;
@@ -185,9 +235,12 @@ router
       }
     }
   });
+
 app.use(async (ctx, next) => {
   if (Flagship.getStatus() === FlagshipStatus.READY) {
-    const visitor = Flagship.newVisitor(`${visitor_idVar}`, contextVar);
+    const visitor = (await ctx.state.session.has("visitor"))
+      ? await ctx.state.session.get("visitor")
+      : Flagship.newVisitor(`${visitor_id}`, contextVar);
     if (!visitor) {
       ctx.response.status = 400;
       ctx.response.body = "Visitor coudn't be created";
@@ -195,6 +248,7 @@ app.use(async (ctx, next) => {
     }
     ctx.state.visitor = visitor;
   }
+
   await next();
 });
 app.use(router.routes());
