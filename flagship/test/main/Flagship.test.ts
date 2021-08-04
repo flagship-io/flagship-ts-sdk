@@ -132,7 +132,6 @@ describe('test Flagship newVisitor', () => {
 
     expect(visitor?.visitorId).toBe(visitorId)
     expect(visitor?.context).toEqual(context)
-    expect(visitor?.configManager).toBeInstanceOf(ConfigManager)
 
     const visitorNull = Flagship.newVisitor(getNull(), context)
     expect(visitorNull).toBeInstanceOf(Visitor)
@@ -141,6 +140,13 @@ describe('test Flagship newVisitor', () => {
     expect(newVisitor?.context).toEqual({})
 
     expect(getCampaignsAsync).toBeCalledTimes(3)
-    expect(getCampaignsAsync).toBeCalledWith(visitor)
+    expect(getCampaignsAsync).toBeCalledWith(expect.objectContaining({ visitorId: visitor?.visitorId, context: visitor?.context }))
+  })
+
+  describe('test not ready', () => {
+    const visitorId = 'visitorId'
+    const context = { isVip: true }
+    const visitor = Flagship.newVisitor(visitorId, context)
+    expect(visitor).toBeNull()
   })
 })
