@@ -15,7 +15,7 @@ import {
 } from '../../src/enum/index'
 import { IHttpResponse } from '../../src/utils/httpClient'
 import { HttpClient } from '../../src/utils/NodeHttpClient'
-import { Visitor } from '../../src/visitor/Visitor'
+import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { campaigns } from './campaigns'
 
 describe('test ApiManager', () => {
@@ -27,7 +27,7 @@ describe('test ApiManager', () => {
   const visitorId = 'visitorId'
   const context = { age: 20 }
 
-  const visitor = new Visitor(visitorId, context, {} as ConfigManager)
+  const visitor = new VisitorDelegate(visitorId, context, {} as ConfigManager)
 
   const panicModeResponse = { status: 200, body: { panic: true } }
 
