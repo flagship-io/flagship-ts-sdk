@@ -13,10 +13,52 @@ import {
   EventCategory,
 } from "../flagship/dist-deno/src/mod.ts";
 import { OakSession } from "https://deno.land/x/sessions/mod.ts";
+import { IFlagshipLogManager } from "../../dist-deno/src/utils/FlagshipLogManager.ts";
 
 const statusChangedCallback = (status: FlagshipStatus) => {
   console.log("status", FlagshipStatus[status]);
 };
+
+let Infos = "";
+let Errors = "";
+
+class CustomLogAdapter implements IFlagshipLogManager {
+  emergency(message: string, tag: string): void {
+    throw new Error("Method not implemented.");
+  }
+
+  alert(message: string, tag: string): void {
+    throw new Error("Method not implemented.");
+  }
+
+  critical(message: string, tag: string): void {
+    throw new Error("Method not implemented.");
+  }
+
+  error(message: string, tag: string): void {
+    Errors += message;
+  }
+
+  warning(message: string, tag: string): void {
+    throw new Error("Method not implemented.");
+  }
+
+  notice(message: string, tag: string): void {
+    throw new Error("Method not implemented.");
+  }
+
+  info(message: string, tag: string): void {
+    Infos += message;
+  }
+
+  debug(message: string, tag: string): void {
+    this.log(LogLevel.DEBUG, message, tag);
+  }
+
+  log(level: any, message: string, tag: string): void {
+    throw new Error("Method not implemented.");
+  }
+}
 
 const app = new Application();
 const session = new OakSession(app);
@@ -43,6 +85,7 @@ router
           statusChangedCallback,
           logLevel: LogLevel.ALL,
           fetchNow: false,
+          logManager: new CustomLogAdapter(),
         }
       );
 
@@ -75,6 +118,7 @@ router
       statusChangedCallback,
       logLevel: LogLevel.ERROR,
       fetchNow: false,
+      logManager: new CustomLogAdapter(),
     });
 
     return (context.response.body = { environment_id, api_key, timeout });

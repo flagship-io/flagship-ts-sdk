@@ -9,24 +9,66 @@ import {
   Transaction,
   Modification,
 } from "../../dist-deno/src/mod.ts";
-//import { API_KEY, ENV_ID } from './config.js'
+import { IFlagshipLogManager } from "../../dist-deno/src/utils/FlagshipLogManager.ts";
+import { API_KEY, ENV_ID } from "./config.js";
 
 const statusChangedCallback = (status: FlagshipStatus) => {
   console.log("status", FlagshipStatus[status]);
 };
 
-Flagship.start(
-  "c0n48jn5thv01k0ijmo0",
-  "BsIK86oh7c12c9G7ce4Wm1yBlWeaMf3t1S0xyYzI",
-  {
-    decisionMode: DecisionMode.DECISION_API,
-    statusChangedCallback,
-    logLevel: LogLevel.ERROR,
-    fetchNow: false,
-  }
-);
+let Infos = "";
+let Errors = "";
 
-const visitor = Flagship.newVisitor("toto", {});
+class CustomLogAdapter implements IFlagshipLogManager {
+  emergency(message: string, tag: string): void {
+    throw new Error("Method not implemented.");
+  }
+
+  alert(message: string, tag: string): void {
+    throw new Error("Method not implemented.");
+  }
+
+  critical(message: string, tag: string): void {
+    throw new Error("Method not implemented.");
+  }
+
+  error(message: string, tag: string): void {
+    Errors += message;
+  }
+
+  warning(message: string, tag: string): void {
+    throw new Error("Method not implemented.");
+  }
+
+  notice(message: string, tag: string): void {
+    throw new Error("Method not implemented.");
+  }
+
+  info(message: string, tag: string): void {
+    Infos += message;
+  }
+
+  debug(message: string, tag: string): void {
+    this.log(LogLevel.DEBUG, message, tag);
+  }
+
+  log(level: any, message: string, tag: string): void {
+    throw new Error("Method not implemented.");
+  }
+}
+
+Flagship.start(ENV_ID, API_KEY, {
+  decisionMode: DecisionMode.BUCKETING,
+  statusChangedCallback,
+  logLevel: LogLevel.ALL,
+  fetchNow: false,
+  logManager: new CustomLogAdapter(),
+});
+
+console.log("info:", Infos);
+console.log("errors:", Errors);
+
+const visitor = Flagship.newVisitor("visitor_id", { key: "value" });
 
 (async () => {
   if (visitor) {
