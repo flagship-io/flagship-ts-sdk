@@ -9,6 +9,7 @@ import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { IFlagshipConfig } from '../config'
 import { EMIT_READY } from '../enum/index'
+import { CampaignDTO } from '../decision/api/models'
 
 export class Visitor extends EventEmitter implements IVisitor {
   private visitorDelegate:VisitorAbstract
@@ -112,5 +113,13 @@ export class Visitor extends EventEmitter implements IVisitor {
     Array<IPage|IScreen|IEvent|IItem|ITransaction>|
     HitAbstract|HitAbstract[]): void {
     return this.visitorDelegate.sendHitSync(hit)
+  }
+
+  getAllModifications (activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+    return this.visitorDelegate.getAllModifications(activate)
+  }
+
+  getModificationsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+    return this.visitorDelegate.getModificationsForCampaign(campaignId, activate)
   }
 }
