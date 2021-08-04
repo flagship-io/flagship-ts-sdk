@@ -2,7 +2,6 @@ import { jest, expect, it, describe } from '@jest/globals'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager, DecisionApiConfig } from '../../src/config/index'
 import { HttpClient } from '../../src/utils/NodeHttpClient'
-import { Visitor } from '../../src/visitor/Visitor'
 import { Modification } from '../../src/model/Modification'
 import {
   BASE_API_URL,
@@ -22,6 +21,7 @@ import {
 } from '../../src/enum/index'
 import { IHttpResponse } from '../../src/utils/httpClient'
 import { Page } from '../../src/hit/index'
+import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 
 // mock NodeHttpClient
 jest.mock('../../src/utils/NodeHttpClient')
@@ -42,7 +42,7 @@ describe('test TrackingManager sendActive ', () => {
     const visitorId = 'visitorId'
     const context = { age: 20 }
 
-    const visitor = new Visitor(visitorId, context, {} as ConfigManager)
+    const visitor = new VisitorDelegate(visitorId, context, {} as ConfigManager)
     const modification = new Modification(
       'key',
       'campaignId',
