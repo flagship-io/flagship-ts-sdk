@@ -4,6 +4,7 @@ import { primitive, modificationsRequested } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { IConfigManager, IFlagshipConfig } from '../config'
+import { CampaignDTO } from '../decision/api/models'
 export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'modifications'|'context'|'hasConsented'|'setConsent'> {
     protected visitor:VisitorAbstract;
 
@@ -58,4 +59,8 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     abstract sendHitSync(hit: HitAbstract | IPage | IScreen | IEvent | IItem | ITransaction): void
     abstract sendHitSync (hit:IPage|IScreen|IEvent|IItem|ITransaction|
       Array<IPage|IScreen|IEvent|IItem|ITransaction>|HitAbstract|HitAbstract[]): void
+
+    abstract getAllModifications (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
+
+    abstract getModificationsForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 }

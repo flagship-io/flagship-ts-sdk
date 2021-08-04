@@ -27,6 +27,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       super()
       this.visitorId = visitorId || this.createVisitorId()
       this._modifications = new Map<string, Modification>()
+      this.campaigns = []
       this._configManager = configManager
       this._config = configManager.config
       this._context = {}
@@ -153,4 +154,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     abstract sendHitSync (hit:IPage|IScreen|IEvent|IItem|ITransaction|
         Array<IPage|IScreen|IEvent|IItem|ITransaction>|
         HitAbstract|HitAbstract[]): void
+
+    abstract getAllModifications (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
+
+    abstract getModificationsForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 }
