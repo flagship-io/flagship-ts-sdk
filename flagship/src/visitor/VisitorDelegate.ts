@@ -2,6 +2,7 @@ import { Modification } from '../index'
 import { HitAbstract, IPage, IScreen, IEvent, IItem, ITransaction } from '../hit/index'
 import { primitive, modificationsRequested } from '../types'
 import { VisitorAbstract } from './VisitorAbstract'
+import { CampaignDTO } from '../decision/api/models'
 
 export class VisitorDelegate extends VisitorAbstract {
   updateContext (context: Record<string, primitive>): void {
@@ -68,5 +69,13 @@ export class VisitorDelegate extends VisitorAbstract {
     Array<IPage|IScreen|IEvent|IItem|ITransaction>|
     HitAbstract|HitAbstract[]): void {
     return this.getStrategy().sendHitSync(hit)
+  }
+
+  getAllModifications (activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+    return this.getStrategy().getAllModifications(activate)
+  }
+
+  getModificationsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+    return this.getStrategy().getModificationsForCampaign(campaignId, activate)
   }
 }
