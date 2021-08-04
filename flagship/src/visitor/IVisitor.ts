@@ -1,4 +1,5 @@
 import { IFlagshipConfig } from '../config/index'
+import { CampaignDTO } from '../decision/api/models'
 import { HitAbstract, IEvent, IItem, IPage, IScreen, ITransaction } from '../hit/index'
 import { Modification } from '../model/Modification'
 import { modificationsRequested, primitive } from '../types'
@@ -129,4 +130,24 @@ export interface IVisitor{
     sendHitSync (hit:HitAbstract):void
     sendHitSync (hit:Array<IPage|IScreen|IEvent|IItem|ITransaction>):void
     sendHitSync (hit:IPage|IScreen|IEvent|IItem|ITransaction|HitAbstract):void
+
+  /**
+   * returns a Promise<object> containing all the data for all the campaigns associated with the current visitor.
+   *@deprecated
+   */
+  getAllModifications (activate:boolean): Promise<{
+    visitorId: string;
+    campaigns: CampaignDTO[];
+    }>
+
+   /**
+   * Get data for a specific campaign.
+   * @param campaignId Identifies the campaign whose modifications you want to retrieve.
+   * @param activate
+   * @deprecated
+   */
+   getModificationsForCampaign (campaignId:string, activate :boolean):Promise<{
+    visitorId: string;
+    campaigns: CampaignDTO[];
+    }>
 }
