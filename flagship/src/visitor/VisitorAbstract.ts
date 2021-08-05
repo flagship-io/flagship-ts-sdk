@@ -3,12 +3,16 @@ import { IConfigManager, IFlagshipConfig } from '../config/index'
 import { modificationsRequested, primitive } from '../types'
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
-import { VISITOR_ID_ERROR } from '../enum/index'
+import { FlagshipStatus, VISITOR_ID_ERROR } from '../enum/index'
 import { logError } from '../utils/utils'
-import { HitAbstract, IPage, IScreen, IEvent, IItem, ITransaction } from '../hit'
+import { HitAbstract, IPage, IScreen, IEvent, IItem, ITransaction } from '../hit/index'
 import { DefaultStrategy } from './DefaultStrategy'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { EventEmitter } from '../nodeDeps'
+import { Flagship } from '../main/Flagship'
+import { NotReadyStrategy } from './NotReadyStrategy'
+import { PanicStrategy } from './PanicStrategy'
+import { NoConsentStrategy } from './NoConsentStrategy'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _visitorId!: string;
@@ -109,7 +113,18 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     }
 
     protected getStrategy (): VisitorStrategyAbstract {
-      return new DefaultStrategy(this)
+      let strategy:VisitorStrategyAbstract
+      if (!Flagship.getStatus() || Flagship.getStatus() === FlagshipStatus.NOT_INITIALIZED) {
+        strategy = new NotReadyStrategy(this)
+      } else if (Flagship.getStatus() === FlagshipStatus.READY_PANIC_ON) {
+        strategy = new PanicStrategy(this)
+      } else if (!this.hasConsented) {
+        strategy = new NoConsentStrategy(this)
+      } else {
+        strategy = new DefaultStrategy(this)
+      }
+
+      return strategy
     }
 
     abstract updateContext(context: Record<string, primitive>): void
