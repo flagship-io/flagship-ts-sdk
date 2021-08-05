@@ -1,9 +1,9 @@
-import { Modification } from '..'
-import { HitAbstract, IPage, IScreen, IEvent, IItem, ITransaction } from '../hit'
+import { Modification } from '../index'
+import { HitAbstract, IPage, IScreen, IEvent, IItem, ITransaction } from '../hit/index'
 import { primitive, modificationsRequested } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
-import { IConfigManager, IFlagshipConfig } from '../config'
+import { IConfigManager, IFlagshipConfig } from '../config/index'
 import { CampaignDTO } from '../decision/api/models'
 export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'modifications'|'context'|'hasConsented'|'setConsent'> {
     protected visitor:VisitorAbstract;
