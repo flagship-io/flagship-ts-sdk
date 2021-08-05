@@ -14,11 +14,11 @@ import {
 import { DecisionManager } from './DecisionManager.ts'
 import { CampaignDTO } from './api/models.ts'
 import { Modification } from '../model/Modification.ts'
-import { Visitor } from '../visitor/Visitor.ts'
 import { logError } from '../utils/utils.ts'
+import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 
 export class ApiManager extends DecisionManager {
-  public async getCampaignsAsync (visitor: Visitor):Promise<CampaignDTO[]> {
+  public async getCampaignsAsync (visitor: VisitorAbstract):Promise<CampaignDTO[]> {
     return new Promise((resolve, reject) => {
       const headers = {
         [HEADER_X_API_KEY]: `${this.config.apiKey}`,
@@ -81,7 +81,7 @@ export class ApiManager extends DecisionManager {
   }
 
   public async getCampaignsModificationsAsync (
-    visitor: Visitor
+    visitor: VisitorAbstract
   ): Promise<Map<string, Modification>> {
     return new Promise((resolve, reject) => {
       this.getCampaignsAsync(visitor).then(campaigns => {

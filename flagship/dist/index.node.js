@@ -2767,6 +2767,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "SDK_VERSION": () => (/* binding */ SDK_VERSION),
 /* harmony export */   "SDK_STARTED_INFO": () => (/* binding */ SDK_STARTED_INFO),
 /* harmony export */   "FLAGSHIP_SDK": () => (/* binding */ FLAGSHIP_SDK),
+/* harmony export */   "EMIT_READY": () => (/* binding */ EMIT_READY),
 /* harmony export */   "INITIALIZATION_PARAM_ERROR": () => (/* binding */ INITIALIZATION_PARAM_ERROR),
 /* harmony export */   "ERROR": () => (/* binding */ ERROR),
 /* harmony export */   "CONTEXT_NULL_ERROR": () => (/* binding */ CONTEXT_NULL_ERROR),
@@ -2782,6 +2783,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "TYPE_INTEGER_ERROR": () => (/* binding */ TYPE_INTEGER_ERROR),
 /* harmony export */   "VISITOR_ID_ERROR": () => (/* binding */ VISITOR_ID_ERROR),
 /* harmony export */   "PANIC_MODE_ERROR": () => (/* binding */ PANIC_MODE_ERROR),
+/* harmony export */   "METHOD_DEACTIVATED_CONSENT_ERROR": () => (/* binding */ METHOD_DEACTIVATED_CONSENT_ERROR),
+/* harmony export */   "METHOD_DEACTIVATED_ERROR": () => (/* binding */ METHOD_DEACTIVATED_ERROR),
 /* harmony export */   "PROCESS": () => (/* binding */ PROCESS),
 /* harmony export */   "PROCESS_INITIALIZATION": () => (/* binding */ PROCESS_INITIALIZATION),
 /* harmony export */   "PROCESS_UPDATE_CONTEXT": () => (/* binding */ PROCESS_UPDATE_CONTEXT),
@@ -2853,6 +2856,7 @@ var SDK_VERSION = 'v1';
  */
 var SDK_STARTED_INFO = 'Flagship SDK (version: {0}) READY';
 var FLAGSHIP_SDK = 'Flagship SDK';
+var EMIT_READY = 'ready';
 /**
  * Message Error
  */
@@ -2871,6 +2875,8 @@ var TYPE_ERROR = '{0} must be a {1}';
 var TYPE_INTEGER_ERROR = 'value of {0} is not an {1}, it will be truncated to {1}';
 var VISITOR_ID_ERROR = 'visitorId must not be null or empty';
 var PANIC_MODE_ERROR = '{0} deactivated while panic mode is on.';
+var METHOD_DEACTIVATED_CONSENT_ERROR = 'Method {0} is deactivated for visitor {1} : visitor did not consent.';
+var METHOD_DEACTIVATED_ERROR = 'Method {0} is deactivated while SDK status is: {1}.';
 // Process
 var PROCESS = 'process';
 var PROCESS_INITIALIZATION = 'INITIALIZATION';
@@ -2936,13 +2942,31 @@ __webpack_require__.r(__webpack_exports__);
 var FlagshipStatus;
 (function (FlagshipStatus) {
     /**
-       * Flagship SDK has not been started or initialized successfully.
-       */
+        * It is the default initial status. This status remains until the sdk has been initialized successfully.
+        * Flagship SDK has not been started or initialized successfully.
+        * @deprecated in v2, use FlagshipStatus::NOT_INITIALIZED instead of
+        */
     FlagshipStatus[FlagshipStatus["NOT_READY"] = 0] = "NOT_READY";
     /**
-       * Flagship SDK is ready to use.
-       */
-    FlagshipStatus[FlagshipStatus["READY"] = 1] = "READY";
+     * It is the default initial status. This status remains until the sdk has been initialized successfully.
+     */
+    FlagshipStatus[FlagshipStatus["NOT_INITIALIZED"] = 0] = "NOT_INITIALIZED";
+    /**
+     * Flagship SDK is starting.
+     */
+    FlagshipStatus[FlagshipStatus["STARTING"] = 1] = "STARTING";
+    /**
+     * Flagship SDK has been started successfully but is still polling campaigns.
+     */
+    FlagshipStatus[FlagshipStatus["POLLING"] = 2] = "POLLING";
+    /**
+     * Flagship SDK is ready but is running in Panic mode: All features are disabled except the one which refresh this status.
+     */
+    FlagshipStatus[FlagshipStatus["READY_PANIC_ON"] = 3] = "READY_PANIC_ON";
+    /**
+     * Flagship SDK is ready to use.
+     */
+    FlagshipStatus[FlagshipStatus["READY"] = 4] = "READY";
 })(FlagshipStatus || (FlagshipStatus = {}));
 
 
@@ -3077,6 +3101,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "DECISION_MANAGER_MISSING_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.DECISION_MANAGER_MISSING_ERROR),
 /* harmony export */   "DL_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.DL_API_ITEM),
 /* harmony export */   "DS_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.DS_API_ITEM),
+/* harmony export */   "EMIT_READY": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.EMIT_READY),
 /* harmony export */   "ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.ERROR),
 /* harmony export */   "EVENT_ACTION_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.EVENT_ACTION_API_ITEM),
 /* harmony export */   "EVENT_CATEGORY_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.EVENT_CATEGORY_API_ITEM),
@@ -3101,6 +3126,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "IP_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.IP_API_ITEM),
 /* harmony export */   "IQ_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.IQ_API_ITEM),
 /* harmony export */   "IV_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.IV_API_ITEM),
+/* harmony export */   "METHOD_DEACTIVATED_CONSENT_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.METHOD_DEACTIVATED_CONSENT_ERROR),
+/* harmony export */   "METHOD_DEACTIVATED_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.METHOD_DEACTIVATED_ERROR),
 /* harmony export */   "PANIC_MODE_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.PANIC_MODE_ERROR),
 /* harmony export */   "PM_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.PM_API_ITEM),
 /* harmony export */   "PROCESS": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.PROCESS),
@@ -4062,6 +4089,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utils_FlagshipLogManager__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../utils/FlagshipLogManager */ "./src/utils/FlagshipLogManager.ts");
 /* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../utils/utils */ "./src/utils/utils.ts");
 /* harmony import */ var _enum_index__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../enum/index */ "./src/enum/index.ts");
+/* harmony import */ var _visitor_VisitorDelegate__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../visitor/VisitorDelegate */ "./src/visitor/VisitorDelegate.ts");
+
 
 
 
@@ -4105,13 +4134,10 @@ var Flagship = /** @class */ (function () {
      * Return true if the SDK is properly initialized, otherwise return false
      */
     Flagship.isReady = function () {
-        var apiKey = this._instance.config.apiKey;
-        var envId = this._instance.config.envId;
-        return (this._instance &&
-            apiKey !== null &&
-            apiKey !== '' &&
-            envId != null &&
-            envId !== '');
+        var _a, _b, _c, _d;
+        var apiKey = (_b = (_a = this._instance) === null || _a === void 0 ? void 0 : _a.config) === null || _b === void 0 ? void 0 : _b.apiKey;
+        var envId = (_d = (_c = this._instance) === null || _c === void 0 ? void 0 : _c.config) === null || _d === void 0 ? void 0 : _d.envId;
+        return (!!this._instance && !!apiKey && !!envId);
     };
     Flagship.prototype.setStatus = function (status) {
         var statusChanged = this.config.statusChangedCallback;
@@ -4174,7 +4200,8 @@ var Flagship = /** @class */ (function () {
         if (!this.isReady()) {
             return null;
         }
-        var visitor = new _visitor_Visitor__WEBPACK_IMPORTED_MODULE_0__.Visitor(visitorId, context, this.getInstance().configManager);
+        var visitorDelegate = new _visitor_VisitorDelegate__WEBPACK_IMPORTED_MODULE_11__.VisitorDelegate(visitorId, context, this.getInstance().configManager);
+        var visitor = new _visitor_Visitor__WEBPACK_IMPORTED_MODULE_0__.Visitor(visitorDelegate);
         if (this.getConfig().fetchNow) {
             visitor.synchronizeModifications();
         }
@@ -4469,22 +4496,22 @@ function logInfo(config, message, tag) {
 
 /***/ }),
 
-/***/ "./src/visitor/Visitor.ts":
-/*!********************************!*\
-  !*** ./src/visitor/Visitor.ts ***!
-  \********************************/
+/***/ "./src/visitor/DefaultStrategy.ts":
+/*!****************************************!*\
+  !*** ./src/visitor/DefaultStrategy.ts ***!
+  \****************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "TYPE_HIT_REQUIRED_ERROR": () => (/* binding */ TYPE_HIT_REQUIRED_ERROR),
-/* harmony export */   "Visitor": () => (/* binding */ Visitor)
+/* harmony export */   "DefaultStrategy": () => (/* binding */ DefaultStrategy)
 /* harmony export */ });
 /* harmony import */ var _enum_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../enum/index */ "./src/enum/index.ts");
-/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/utils */ "./src/utils/utils.ts");
-/* harmony import */ var _hit_index__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../hit/index */ "./src/hit/index.ts");
-/* harmony import */ var _nodeDeps__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../nodeDeps */ "./src/nodeDeps.ts");
+/* harmony import */ var _hit_index__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../hit/index */ "./src/hit/index.ts");
+/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/utils */ "./src/utils/utils.ts");
+/* harmony import */ var _VisitorStrategyAbstract__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./VisitorStrategyAbstract */ "./src/visitor/VisitorStrategyAbstract.ts");
 var __extends = (undefined && undefined.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -4541,92 +4568,11 @@ var __generator = (undefined && undefined.__generator) || function (thisArg, bod
 
 
 var TYPE_HIT_REQUIRED_ERROR = 'property type is required and must ';
-var Visitor = /** @class */ (function (_super) {
-    __extends(Visitor, _super);
-    function Visitor(visitorId, context, configManager) {
-        var _this = _super.call(this) || this;
-        _this.visitorId = visitorId || _this.createVisitorId();
-        _this._modifications = new Map();
-        _this._configManager = configManager;
-        _this._config = configManager.config;
-        _this._context = {};
-        _this.updateContext(context);
-        return _this;
+var DefaultStrategy = /** @class */ (function (_super) {
+    __extends(DefaultStrategy, _super);
+    function DefaultStrategy() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-    Visitor.prototype.createVisitorId = function () {
-        var now = new Date();
-        var random = Math.floor(Math.random() * (99999 - 10000) + 10000);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        var twoDigits = function (value) { return (value.toString().length === 1 ? "0" + value : value); };
-        return "" + now.getFullYear() + twoDigits(now.getMonth() + 1) + twoDigits(now.getDate()) + twoDigits(now.getHours()) + twoDigits(now.getMinutes()) + random;
-    };
-    Object.defineProperty(Visitor.prototype, "visitorId", {
-        get: function () {
-            return this._visitorId;
-        },
-        set: function (v) {
-            if (!v || typeof v !== 'string') {
-                (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, _enum_index__WEBPACK_IMPORTED_MODULE_0__.VISITOR_ID_ERROR, 'VISITOR ID');
-                return;
-            }
-            this._visitorId = v;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Visitor.prototype, "context", {
-        get: function () {
-            return this._context;
-        },
-        /**
-         * Clear the current context and set a new context value
-         */
-        set: function (v) {
-            this._context = {};
-            this.updateContext(v);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Visitor.prototype, "modifications", {
-        get: function () {
-            return this._modifications;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Visitor.prototype, "configManager", {
-        get: function () {
-            return this._configManager;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Visitor.prototype, "config", {
-        get: function () {
-            return this._config;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    /**
-     * Update the visitor context values, matching the given keys, used for targeting.
-     *
-     * A new context value associated with this key will be created if there is no previous matching value.
-     *
-     * Context keys must be String, and values types must be one of the following : Number, Boolean, String.
-     * @param {Record<string, primitive>} context : collection of keys, values.
-     */
-    Visitor.prototype.updateContext = function (context) {
-        if (!context) {
-            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, _enum_index__WEBPACK_IMPORTED_MODULE_0__.CONTEXT_NULL_ERROR, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_UPDATE_CONTEXT);
-            return;
-        }
-        for (var key in context) {
-            var value = context[key];
-            this.updateContextKeyValue(key, value);
-        }
-    };
     /**
      *  Update the visitor context values, matching the given keys, used for targeting.
      *
@@ -4635,49 +4581,46 @@ var Visitor = /** @class */ (function (_super) {
      * @param {string} key : context key.
      * @param {primitive} value : context value.
      */
-    Visitor.prototype.updateContextKeyValue = function (key, value) {
+    DefaultStrategy.prototype.updateContextKeyValue = function (key, value) {
         var valueType = typeof value;
         if (typeof key !== 'string' ||
             key === '' ||
             (valueType !== 'string' && valueType !== 'number' && valueType !== 'boolean')) {
-            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.CONTEXT_PARAM_ERROR, key), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_UPDATE_CONTEXT);
+            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.visitor.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.CONTEXT_PARAM_ERROR, key), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_UPDATE_CONTEXT);
             return;
         }
-        this._context[key] = value;
+        this.visitor.context[key] = value;
     };
-    /**
-     * clear the actual visitor context
-     */
-    Visitor.prototype.clearContext = function () {
-        this._context = {};
-    };
-    /**
-     * isOnPanicMode
-     */
-    Visitor.prototype.isOnPanicMode = function (functionName) {
-        var check = this.configManager.decisionManager.isPanic();
-        if (check) {
-            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.PANIC_MODE_ERROR, functionName), functionName);
+    DefaultStrategy.prototype.updateContext = function (context) {
+        if (!context) {
+            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.visitor.config, _enum_index__WEBPACK_IMPORTED_MODULE_0__.CONTEXT_NULL_ERROR, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_UPDATE_CONTEXT);
+            return;
         }
-        return check;
+        for (var key in context) {
+            var value = context[key];
+            this.updateContextKeyValue(key, value);
+        }
     };
-    Visitor.prototype.getModification = function (params, activateAll) {
+    DefaultStrategy.prototype.clearContext = function () {
+        this.visitor.context = {};
+    };
+    DefaultStrategy.prototype.getModification = function (params, activateAll) {
         return Promise.resolve(this.getModificationSync(params, activateAll));
     };
-    Visitor.prototype.checkAndGetModification = function (params, activateAll) {
+    DefaultStrategy.prototype.checkAndGetModification = function (params, activateAll) {
         var _this = this;
         var key = params.key, defaultValue = params.defaultValue, activate = params.activate;
         if (!key || typeof key !== 'string') {
-            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.GET_MODIFICATION_KEY_ERROR, key), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_GET_MODIFICATION);
+            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.GET_MODIFICATION_KEY_ERROR, key), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_GET_MODIFICATION);
             return defaultValue;
         }
-        var modification = this._modifications.get(key);
+        var modification = this.visitor.modifications.get(key);
         if (!modification) {
-            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.GET_MODIFICATION_MISSING_ERROR, key), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_GET_MODIFICATION);
+            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.GET_MODIFICATION_MISSING_ERROR, key), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_GET_MODIFICATION);
             return defaultValue;
         }
         var castError = function () {
-            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(_this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.GET_MODIFICATION_CAST_ERROR, key), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_GET_MODIFICATION);
+            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(_this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.GET_MODIFICATION_CAST_ERROR, key), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_GET_MODIFICATION);
             if (!modification.value && (activate || activateAll)) {
                 _this.activateModificationSync(key);
             }
@@ -4697,14 +4640,8 @@ var Visitor = /** @class */ (function (_super) {
         }
         return modification.value;
     };
-    Visitor.prototype.getModificationSync = function (params, activateAll) {
+    DefaultStrategy.prototype.getModificationSync = function (params, activateAll) {
         var _this = this;
-        if (this.isOnPanicMode(_enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_GET_MODIFICATION)) {
-            if (Array.isArray(params)) {
-                return params.map(function (item) { return item.defaultValue; });
-            }
-            return params.defaultValue;
-        }
         if (Array.isArray(params)) {
             return params.map(function (item) {
                 return _this.checkAndGetModification(item, activateAll);
@@ -4712,132 +4649,63 @@ var Visitor = /** @class */ (function (_super) {
         }
         return this.checkAndGetModification(params, activateAll);
     };
-    /**
-     * returns a Promise<object> containing all the data for all the campaigns associated with the current visitor.
-     *@deprecated
-     */
-    Visitor.prototype.getAllModifications = function (activate) {
-        var _this = this;
-        if (activate === void 0) { activate = false; }
-        if (this.isOnPanicMode(_enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_GET_ALL_MODIFICATION)) {
-            return null;
-        }
-        if (activate) {
-            this.modifications.forEach(function (_, key) {
-                _this.activateModification(key);
-            });
-        }
-        return Promise.resolve({
-            visitorId: this.visitorId,
-            campaigns: this._campaigns
-        });
-    };
-    /**
-     * Get data for a specific campaign.
-     * @param campaignId Identifies the campaign whose modifications you want to retrieve.
-     * @param activate
-     * @deprecated
-     * @returns
-     */
-    Visitor.prototype.getModificationsForCampaign = function (campaignId, activate) {
-        var _this = this;
-        if (activate === void 0) { activate = false; }
-        if (this.isOnPanicMode(_enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_MODIFICATIONS_FOR_CAMPAIGN)) {
-            return null;
-        }
-        if (activate) {
-            this.modifications.forEach(function (value) {
-                if (value.campaignId === campaignId) {
-                    _this.activateModification(value.key);
-                }
-            });
-        }
-        return Promise.resolve({
-            visitorId: this.visitorId,
-            campaigns: this._campaigns.filter(function (x) { return x.id === campaignId; })
-        });
-    };
-    /**
-     * Get the campaign modification information value matching the given key.
-     * @param {string} key : key which identify the modification.
-     * @returns {Modification | null}
-     */
-    Visitor.prototype.getModificationInfo = function (key) {
+    DefaultStrategy.prototype.getModificationInfo = function (key) {
         return Promise.resolve(this.getModificationInfoSync(key));
     };
-    /**
-     * Get the campaign modification information value matching the given key.
-     * @param {string} key : key which identify the modification.
-     * @returns {Modification | null}
-     */
-    Visitor.prototype.getModificationInfoSync = function (key) {
-        if (this.isOnPanicMode(_enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_GET_MODIFICATION_INFO)) {
-            return null;
-        }
+    DefaultStrategy.prototype.getModificationInfoSync = function (key) {
         if (!key || typeof key !== 'string') {
-            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.GET_MODIFICATION_KEY_ERROR, key), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_GET_MODIFICATION_INFO);
+            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.visitor.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.GET_MODIFICATION_KEY_ERROR, key), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_GET_MODIFICATION_INFO);
             return null;
         }
-        var modification = this.modifications.get(key);
+        var modification = this.visitor.modifications.get(key);
         if (!modification) {
-            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.GET_MODIFICATION_ERROR, key), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_GET_MODIFICATION_INFO);
+            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.visitor.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.GET_MODIFICATION_ERROR, key), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_GET_MODIFICATION_INFO);
             return null;
         }
         return modification;
     };
-    /**
-     * This function calls the decision api and update all the campaigns modifications
-     * from the server according to the visitor context.
-     */
-    Visitor.prototype.synchronizeModifications = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
-            return __generator(this, function (_a) {
-                return [2 /*return*/, new Promise(function (resolve, reject) {
-                        _this.configManager.decisionManager.getCampaignsAsync(_this)
-                            .then(function (campaigns) {
-                            _this._campaigns = campaigns;
-                            _this._modifications = _this.configManager.decisionManager.getModifications(_this._campaigns);
-                            _this.emit('ready');
-                            resolve();
-                        })
-                            .catch(function (error) {
-                            _this.emit('ready', error);
-                            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(_this.config, error.message, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SYNCHRONIZED_MODIFICATION);
-                            reject(error);
-                        });
-                    })];
+    DefaultStrategy.prototype.synchronizeModifications = function () {
+        var _this = this;
+        return new Promise(function (resolve, reject) {
+            _this.configManager.decisionManager.getCampaignsAsync(_this.visitor)
+                .then(function (campaigns) {
+                _this.visitor.campaigns = campaigns;
+                _this.visitor.modifications = _this.visitor.configManager.decisionManager.getModifications(_this.visitor.campaigns);
+                _this.visitor.emit(_enum_index__WEBPACK_IMPORTED_MODULE_0__.EMIT_READY);
+                resolve();
+            })
+                .catch(function (error) {
+                _this.visitor.emit(_enum_index__WEBPACK_IMPORTED_MODULE_0__.EMIT_READY, error);
+                (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(_this.config, error.message, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SYNCHRONIZED_MODIFICATION);
+                reject(error);
             });
         });
     };
-    Visitor.prototype.hasTrackingManager = function (process) {
+    DefaultStrategy.prototype.activateModification = function (params) {
+        return Promise.resolve(this.activateModificationSync(params));
+    };
+    DefaultStrategy.prototype.hasTrackingManager = function (process) {
         var check = this.configManager.trackingManager;
         if (!check) {
-            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.TRACKER_MANAGER_MISSING_ERROR), process);
+            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.TRACKER_MANAGER_MISSING_ERROR), process);
         }
         return !!check;
     };
-    Visitor.prototype.activateModification = function (params) {
-        return Promise.resolve(this.activateModificationSync(params));
-    };
-    Visitor.prototype.activate = function (key) {
-        var modification = this.modifications.get(key);
+    DefaultStrategy.prototype.activate = function (key) {
+        var modification = this.visitor.modifications.get(key);
         if (!modification) {
-            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.GET_MODIFICATION_ERROR, key), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_ACTIVE_MODIFICATION);
+            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.visitor.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.GET_MODIFICATION_ERROR, key), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_ACTIVE_MODIFICATION);
             return;
         }
         if (!this.hasTrackingManager(_enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_ACTIVE_MODIFICATION)) {
             return;
         }
-        this.configManager.trackingManager.sendActive(this, modification);
+        this.configManager.trackingManager.sendActive(this.visitor, modification);
     };
-    Visitor.prototype.activateModificationSync = function (params) {
+    DefaultStrategy.prototype.activateModificationSync = function (params) {
         var _this = this;
-        if (this.isOnPanicMode(_enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_ACTIVE_MODIFICATION)) {
-            return;
-        }
         if (!params || (typeof params !== 'string' && !Array.isArray(params))) {
-            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.GET_MODIFICATION_KEY_ERROR, params), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_ACTIVE_MODIFICATION);
+            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.GET_MODIFICATION_KEY_ERROR, params), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_ACTIVE_MODIFICATION);
             return;
         }
         if (typeof params === 'string') {
@@ -4853,52 +4721,52 @@ var Visitor = /** @class */ (function (_super) {
             });
         }
     };
-    Visitor.prototype.sendHit = function (hit) {
+    DefaultStrategy.prototype.sendHit = function (hit) {
         return Promise.resolve(this.sendHitSync(hit));
     };
-    Visitor.prototype.getHit = function (hit) {
+    DefaultStrategy.prototype.getHit = function (hit) {
         var newHit = null;
         switch (hit.type.toUpperCase()) {
             case _enum_index__WEBPACK_IMPORTED_MODULE_0__.HitType.EVENT:
-                newHit = new _hit_index__WEBPACK_IMPORTED_MODULE_2__.Event(hit);
+                newHit = new _hit_index__WEBPACK_IMPORTED_MODULE_1__.Event(hit);
                 break;
             case _enum_index__WEBPACK_IMPORTED_MODULE_0__.HitType.ITEM:
-                newHit = new _hit_index__WEBPACK_IMPORTED_MODULE_2__.Item(hit);
+                newHit = new _hit_index__WEBPACK_IMPORTED_MODULE_1__.Item(hit);
                 break;
-            case 'PAGE':
+            case _enum_index__WEBPACK_IMPORTED_MODULE_0__.HitType.PAGE:
             case _enum_index__WEBPACK_IMPORTED_MODULE_0__.HitType.PAGE_VIEW:
-                newHit = new _hit_index__WEBPACK_IMPORTED_MODULE_2__.Page(hit);
+                newHit = new _hit_index__WEBPACK_IMPORTED_MODULE_1__.Page(hit);
                 break;
-            case 'SCREEN':
+            case _enum_index__WEBPACK_IMPORTED_MODULE_0__.HitType.SCREEN:
             case _enum_index__WEBPACK_IMPORTED_MODULE_0__.HitType.SCREEN_VIEW:
-                newHit = new _hit_index__WEBPACK_IMPORTED_MODULE_2__.Screen(hit);
+                newHit = new _hit_index__WEBPACK_IMPORTED_MODULE_1__.Screen(hit);
                 break;
             case _enum_index__WEBPACK_IMPORTED_MODULE_0__.HitType.TRANSACTION:
-                newHit = new _hit_index__WEBPACK_IMPORTED_MODULE_2__.Transaction(hit);
+                newHit = new _hit_index__WEBPACK_IMPORTED_MODULE_1__.Transaction(hit);
                 break;
         }
         return newHit;
     };
-    Visitor.prototype.prepareAndSendHit = function (hit) {
+    DefaultStrategy.prototype.prepareAndSendHit = function (hit) {
         return __awaiter(this, void 0, void 0, function () {
             var hitInstance, hitFromInt;
             return __generator(this, function (_a) {
-                if (hit instanceof _hit_index__WEBPACK_IMPORTED_MODULE_2__.HitAbstract) {
+                if (hit instanceof _hit_index__WEBPACK_IMPORTED_MODULE_1__.HitAbstract) {
                     hitInstance = hit;
                 }
                 else {
                     hitFromInt = this.getHit(hit);
                     if (!hitFromInt) {
-                        (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, TYPE_HIT_REQUIRED_ERROR, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SEND_HIT);
+                        (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.config, TYPE_HIT_REQUIRED_ERROR, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SEND_HIT);
                         return [2 /*return*/];
                     }
                     hitInstance = hitFromInt;
                 }
-                hitInstance.visitorId = this.visitorId;
+                hitInstance.visitorId = this.visitor.visitorId;
                 hitInstance.ds = _enum_index__WEBPACK_IMPORTED_MODULE_0__.SDK_APP;
                 hitInstance.config = this.config;
                 if (!hitInstance.isReady()) {
-                    (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, hitInstance.getErrorMessage(), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SEND_HIT);
+                    (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.config, hitInstance.getErrorMessage(), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SEND_HIT);
                     return [2 /*return*/];
                 }
                 this.configManager.trackingManager.sendHit(hitInstance);
@@ -4906,11 +4774,8 @@ var Visitor = /** @class */ (function (_super) {
             });
         });
     };
-    Visitor.prototype.sendHitSync = function (hit) {
+    DefaultStrategy.prototype.sendHitSync = function (hit) {
         var _this = this;
-        if (this.isOnPanicMode(_enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SEND_HIT)) {
-            return;
-        }
         if (!this.hasTrackingManager(_enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SEND_HIT)) {
             return;
         }
@@ -4923,8 +4788,665 @@ var Visitor = /** @class */ (function (_super) {
             this.prepareAndSendHit(hit);
         }
     };
+    /**
+     * returns a Promise<object> containing all the data for all the campaigns associated with the current visitor.
+     *@deprecated
+     */
+    DefaultStrategy.prototype.getAllModifications = function (activate) {
+        var _this = this;
+        if (activate === void 0) { activate = false; }
+        if (activate) {
+            this.visitor.modifications.forEach(function (_, key) {
+                _this.activateModification(key);
+            });
+        }
+        return Promise.resolve({
+            visitorId: this.visitor.visitorId,
+            campaigns: this.visitor.campaigns
+        });
+    };
+    /**
+     * Get data for a specific campaign.
+     * @param campaignId Identifies the campaign whose modifications you want to retrieve.
+     * @param activate
+     * @deprecated
+     * @returns
+     */
+    DefaultStrategy.prototype.getModificationsForCampaign = function (campaignId, activate) {
+        var _this = this;
+        if (activate === void 0) { activate = false; }
+        if (activate) {
+            this.visitor.modifications.forEach(function (value) {
+                if (value.campaignId === campaignId) {
+                    _this.activateModification(value.key);
+                }
+            });
+        }
+        return Promise.resolve({
+            visitorId: this.visitor.visitorId,
+            campaigns: this.visitor.campaigns.filter(function (x) { return x.id === campaignId; })
+        });
+    };
+    return DefaultStrategy;
+}(_VisitorStrategyAbstract__WEBPACK_IMPORTED_MODULE_3__.VisitorStrategyAbstract));
+
+
+
+/***/ }),
+
+/***/ "./src/visitor/NoConsentStrategy.ts":
+/*!******************************************!*\
+  !*** ./src/visitor/NoConsentStrategy.ts ***!
+  \******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "NoConsentStrategy": () => (/* binding */ NoConsentStrategy)
+/* harmony export */ });
+/* harmony import */ var _enum_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../enum/index */ "./src/enum/index.ts");
+/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/utils */ "./src/utils/utils.ts");
+/* harmony import */ var _DefaultStrategy__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./DefaultStrategy */ "./src/visitor/DefaultStrategy.ts");
+var __extends = (undefined && undefined.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+
+
+var NoConsentStrategy = /** @class */ (function (_super) {
+    __extends(NoConsentStrategy, _super);
+    function NoConsentStrategy() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    NoConsentStrategy.prototype.activateModificationSync = function (params) {
+        this.log('activateModification');
+    };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    NoConsentStrategy.prototype.sendHitSync = function (hit) {
+        this.log('sendHit');
+    };
+    NoConsentStrategy.prototype.log = function (methodName) {
+        (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.METHOD_DEACTIVATED_CONSENT_ERROR, methodName, this.visitor.visitorId), methodName);
+    };
+    return NoConsentStrategy;
+}(_DefaultStrategy__WEBPACK_IMPORTED_MODULE_2__.DefaultStrategy));
+
+
+
+/***/ }),
+
+/***/ "./src/visitor/NotReadyStrategy.ts":
+/*!*****************************************!*\
+  !*** ./src/visitor/NotReadyStrategy.ts ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "NotReadyStrategy": () => (/* binding */ NotReadyStrategy)
+/* harmony export */ });
+/* harmony import */ var _enum_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../enum/index */ "./src/enum/index.ts");
+/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/utils */ "./src/utils/utils.ts");
+/* harmony import */ var _DefaultStrategy__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./DefaultStrategy */ "./src/visitor/DefaultStrategy.ts");
+var __extends = (undefined && undefined.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+
+
+var NotReadyStrategy = /** @class */ (function (_super) {
+    __extends(NotReadyStrategy, _super);
+    function NotReadyStrategy() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    NotReadyStrategy.prototype.synchronizeModifications = function () {
+        this.log('synchronizeModifications');
+        return Promise.resolve();
+    };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    NotReadyStrategy.prototype.getModificationSync = function (params, activateAll) {
+        this.log('getModification');
+        if (Array.isArray(params)) {
+            return params.map(function (item) {
+                return item.defaultValue;
+            });
+        }
+        return params.defaultValue;
+    };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    NotReadyStrategy.prototype.getModificationInfoSync = function (key) {
+        this.log('getModificationInfo');
+        return null;
+    };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    NotReadyStrategy.prototype.activateModificationSync = function (params) {
+        this.log('activateModification');
+    };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    NotReadyStrategy.prototype.sendHitSync = function (hit) {
+        this.log('sendHit');
+    };
+    NotReadyStrategy.prototype.log = function (methodName) {
+        (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.METHOD_DEACTIVATED_ERROR, methodName, _enum_index__WEBPACK_IMPORTED_MODULE_0__.FlagshipStatus[_enum_index__WEBPACK_IMPORTED_MODULE_0__.FlagshipStatus.NOT_INITIALIZED]), methodName);
+    };
+    return NotReadyStrategy;
+}(_DefaultStrategy__WEBPACK_IMPORTED_MODULE_2__.DefaultStrategy));
+
+
+
+/***/ }),
+
+/***/ "./src/visitor/PanicStrategy.ts":
+/*!**************************************!*\
+  !*** ./src/visitor/PanicStrategy.ts ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "PanicStrategy": () => (/* binding */ PanicStrategy)
+/* harmony export */ });
+/* harmony import */ var _enum_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../enum/index */ "./src/enum/index.ts");
+/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/utils */ "./src/utils/utils.ts");
+/* harmony import */ var _DefaultStrategy__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./DefaultStrategy */ "./src/visitor/DefaultStrategy.ts");
+var __extends = (undefined && undefined.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+
+
+var PanicStrategy = /** @class */ (function (_super) {
+    __extends(PanicStrategy, _super);
+    function PanicStrategy() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    PanicStrategy.prototype.updateContext = function (context) {
+        this.log('updateContext');
+    };
+    PanicStrategy.prototype.clearContext = function () {
+        this.log('clearContext');
+    };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    PanicStrategy.prototype.getModificationSync = function (params, activateAll) {
+        this.log('getModification');
+        if (Array.isArray(params)) {
+            return params.map(function (item) {
+                return item.defaultValue;
+            });
+        }
+        return params.defaultValue;
+    };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    PanicStrategy.prototype.getModificationInfoSync = function (key) {
+        this.log('getModificationInfo');
+        return null;
+    };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    PanicStrategy.prototype.activateModificationSync = function (params) {
+        this.log('activateModification');
+    };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    PanicStrategy.prototype.sendHitSync = function (hit) {
+        this.log('sendHit');
+    };
+    PanicStrategy.prototype.log = function (methodName) {
+        (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.METHOD_DEACTIVATED_ERROR, methodName, _enum_index__WEBPACK_IMPORTED_MODULE_0__.FlagshipStatus[_enum_index__WEBPACK_IMPORTED_MODULE_0__.FlagshipStatus.READY_PANIC_ON]), methodName);
+    };
+    return PanicStrategy;
+}(_DefaultStrategy__WEBPACK_IMPORTED_MODULE_2__.DefaultStrategy));
+
+
+
+/***/ }),
+
+/***/ "./src/visitor/Visitor.ts":
+/*!********************************!*\
+  !*** ./src/visitor/Visitor.ts ***!
+  \********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Visitor": () => (/* binding */ Visitor)
+/* harmony export */ });
+/* harmony import */ var _nodeDeps__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../nodeDeps */ "./src/nodeDeps.ts");
+/* harmony import */ var _enum_index__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../enum/index */ "./src/enum/index.ts");
+var __extends = (undefined && undefined.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+
+var Visitor = /** @class */ (function (_super) {
+    __extends(Visitor, _super);
+    function Visitor(visitorDelegate) {
+        var _this = _super.call(this) || this;
+        _this.visitorDelegate = visitorDelegate;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        _this.visitorDelegate.on(_enum_index__WEBPACK_IMPORTED_MODULE_1__.EMIT_READY, function (err) {
+            _this.emit(_enum_index__WEBPACK_IMPORTED_MODULE_1__.EMIT_READY, err);
+        });
+        return _this;
+    }
+    Object.defineProperty(Visitor.prototype, "visitorId", {
+        get: function () {
+            return this.visitorDelegate.visitorId;
+        },
+        set: function (v) {
+            this.visitorDelegate.visitorId = v;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Visitor.prototype, "hasConsented", {
+        get: function () {
+            return this.visitorDelegate.hasConsented;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Visitor.prototype.setConsent = function (hasConsented) {
+        this.visitorDelegate.setConsent(hasConsented);
+    };
+    Object.defineProperty(Visitor.prototype, "config", {
+        get: function () {
+            return this.visitorDelegate.config;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Visitor.prototype, "context", {
+        get: function () {
+            return this.visitorDelegate.context;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Visitor.prototype, "modifications", {
+        get: function () {
+            return this.visitorDelegate.modifications;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Visitor.prototype.updateContext = function (context) {
+        this.visitorDelegate.updateContext(context);
+    };
+    Visitor.prototype.clearContext = function () {
+        this.visitorDelegate.clearContext();
+    };
+    Visitor.prototype.getModification = function (params, activateAll) {
+        return this.visitorDelegate.getModification(params, activateAll);
+    };
+    Visitor.prototype.getModificationSync = function (params, activateAll) {
+        return this.visitorDelegate.getModificationSync(params, activateAll);
+    };
+    Visitor.prototype.getModificationInfo = function (key) {
+        return this.visitorDelegate.getModificationInfo(key);
+    };
+    Visitor.prototype.getModificationInfoSync = function (key) {
+        return this.visitorDelegate.getModificationInfoSync(key);
+    };
+    Visitor.prototype.synchronizeModifications = function () {
+        return this.visitorDelegate.synchronizeModifications();
+    };
+    Visitor.prototype.activateModification = function (params) {
+        return this.visitorDelegate.activateModification(params);
+    };
+    Visitor.prototype.activateModificationSync = function (params) {
+        this.visitorDelegate.activateModificationSync(params);
+    };
+    Visitor.prototype.sendHit = function (hit) {
+        return this.visitorDelegate.sendHit(hit);
+    };
+    Visitor.prototype.sendHitSync = function (hit) {
+        return this.visitorDelegate.sendHitSync(hit);
+    };
+    Visitor.prototype.getAllModifications = function (activate) {
+        if (activate === void 0) { activate = false; }
+        return this.visitorDelegate.getAllModifications(activate);
+    };
+    Visitor.prototype.getModificationsForCampaign = function (campaignId, activate) {
+        if (activate === void 0) { activate = false; }
+        return this.visitorDelegate.getModificationsForCampaign(campaignId, activate);
+    };
     return Visitor;
+}(_nodeDeps__WEBPACK_IMPORTED_MODULE_0__.EventEmitter));
+
+
+
+/***/ }),
+
+/***/ "./src/visitor/VisitorAbstract.ts":
+/*!****************************************!*\
+  !*** ./src/visitor/VisitorAbstract.ts ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "VisitorAbstract": () => (/* binding */ VisitorAbstract)
+/* harmony export */ });
+/* harmony import */ var _enum_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../enum/index */ "./src/enum/index.ts");
+/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/utils */ "./src/utils/utils.ts");
+/* harmony import */ var _DefaultStrategy__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./DefaultStrategy */ "./src/visitor/DefaultStrategy.ts");
+/* harmony import */ var _nodeDeps__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../nodeDeps */ "./src/nodeDeps.ts");
+/* harmony import */ var _main_Flagship__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../main/Flagship */ "./src/main/Flagship.ts");
+/* harmony import */ var _NotReadyStrategy__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./NotReadyStrategy */ "./src/visitor/NotReadyStrategy.ts");
+/* harmony import */ var _PanicStrategy__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./PanicStrategy */ "./src/visitor/PanicStrategy.ts");
+/* harmony import */ var _NoConsentStrategy__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./NoConsentStrategy */ "./src/visitor/NoConsentStrategy.ts");
+var __extends = (undefined && undefined.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+
+
+
+
+
+
+
+var VisitorAbstract = /** @class */ (function (_super) {
+    __extends(VisitorAbstract, _super);
+    function VisitorAbstract(visitorId, context, configManager) {
+        var _this = _super.call(this) || this;
+        _this.visitorId = visitorId || _this.createVisitorId();
+        _this._modifications = new Map();
+        _this.campaigns = [];
+        _this._configManager = configManager;
+        _this._config = configManager.config;
+        _this._context = {};
+        _this.updateContext(context);
+        return _this;
+    }
+    VisitorAbstract.prototype.createVisitorId = function () {
+        var now = new Date();
+        var random = Math.floor(Math.random() * (99999 - 10000) + 10000);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        var twoDigits = function (value) { return (value.toString().length === 1 ? "0" + value : value); };
+        return "" + now.getFullYear() + twoDigits(now.getMonth() + 1) + twoDigits(now.getDate()) + twoDigits(now.getHours()) + twoDigits(now.getMinutes()) + random;
+    };
+    Object.defineProperty(VisitorAbstract.prototype, "visitorId", {
+        get: function () {
+            return this._visitorId;
+        },
+        set: function (v) {
+            if (!v || typeof v !== 'string') {
+                (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, _enum_index__WEBPACK_IMPORTED_MODULE_0__.VISITOR_ID_ERROR, 'VISITOR ID');
+                return;
+            }
+            this._visitorId = v;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(VisitorAbstract.prototype, "hasConsented", {
+        /**
+         * Return True or False if the visitor has consented for protected data usage.
+         * @return bool
+         */
+        get: function () {
+            return this._hasConsented;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    /**
+      * Set if visitor has consented for protected data usage.
+      * @param {boolean} hasConsented True if the visitor has consented false otherwise.
+      */
+    VisitorAbstract.prototype.setConsent = function (hasConsented) {
+        this._hasConsented = hasConsented;
+    };
+    Object.defineProperty(VisitorAbstract.prototype, "context", {
+        get: function () {
+            return this._context;
+        },
+        /**
+        * Clear the current context and set a new context value
+        */
+        set: function (v) {
+            this._context = {};
+            this.updateContext(v);
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(VisitorAbstract.prototype, "modifications", {
+        get: function () {
+            return this._modifications;
+        },
+        set: function (v) {
+            this._modifications = v;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(VisitorAbstract.prototype, "configManager", {
+        get: function () {
+            return this._configManager;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(VisitorAbstract.prototype, "config", {
+        get: function () {
+            return this._config;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(VisitorAbstract.prototype, "campaigns", {
+        get: function () {
+            return this._campaigns;
+        },
+        set: function (v) {
+            this._campaigns = v;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    VisitorAbstract.prototype.getStrategy = function () {
+        var strategy;
+        if (!_main_Flagship__WEBPACK_IMPORTED_MODULE_4__.Flagship.getStatus() || _main_Flagship__WEBPACK_IMPORTED_MODULE_4__.Flagship.getStatus() === _enum_index__WEBPACK_IMPORTED_MODULE_0__.FlagshipStatus.NOT_INITIALIZED) {
+            strategy = new _NotReadyStrategy__WEBPACK_IMPORTED_MODULE_5__.NotReadyStrategy(this);
+        }
+        else if (_main_Flagship__WEBPACK_IMPORTED_MODULE_4__.Flagship.getStatus() === _enum_index__WEBPACK_IMPORTED_MODULE_0__.FlagshipStatus.READY_PANIC_ON) {
+            strategy = new _PanicStrategy__WEBPACK_IMPORTED_MODULE_6__.PanicStrategy(this);
+        }
+        else if (!this.hasConsented) {
+            strategy = new _NoConsentStrategy__WEBPACK_IMPORTED_MODULE_7__.NoConsentStrategy(this);
+        }
+        else {
+            strategy = new _DefaultStrategy__WEBPACK_IMPORTED_MODULE_2__.DefaultStrategy(this);
+        }
+        return strategy;
+    };
+    return VisitorAbstract;
 }(_nodeDeps__WEBPACK_IMPORTED_MODULE_3__.EventEmitter));
+
+
+
+/***/ }),
+
+/***/ "./src/visitor/VisitorDelegate.ts":
+/*!****************************************!*\
+  !*** ./src/visitor/VisitorDelegate.ts ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "VisitorDelegate": () => (/* binding */ VisitorDelegate)
+/* harmony export */ });
+/* harmony import */ var _VisitorAbstract__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./VisitorAbstract */ "./src/visitor/VisitorAbstract.ts");
+var __extends = (undefined && undefined.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+var VisitorDelegate = /** @class */ (function (_super) {
+    __extends(VisitorDelegate, _super);
+    function VisitorDelegate() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    VisitorDelegate.prototype.updateContext = function (context) {
+        this.getStrategy().updateContext(context);
+    };
+    VisitorDelegate.prototype.clearContext = function () {
+        this.getStrategy().clearContext();
+    };
+    VisitorDelegate.prototype.getModification = function (params, activateAll) {
+        return this.getStrategy().getModification(params, activateAll);
+    };
+    VisitorDelegate.prototype.getModificationSync = function (params, activateAll) {
+        return this.getStrategy().getModificationSync(params, activateAll);
+    };
+    VisitorDelegate.prototype.getModificationInfo = function (key) {
+        return this.getStrategy().getModificationInfo(key);
+    };
+    VisitorDelegate.prototype.getModificationInfoSync = function (key) {
+        return this.getStrategy().getModificationInfoSync(key);
+    };
+    VisitorDelegate.prototype.synchronizeModifications = function () {
+        return this.getStrategy().synchronizeModifications();
+    };
+    VisitorDelegate.prototype.activateModification = function (params) {
+        return this.getStrategy().activateModification(params);
+    };
+    VisitorDelegate.prototype.activateModificationSync = function (params) {
+        return this.getStrategy().activateModificationSync(params);
+    };
+    VisitorDelegate.prototype.sendHit = function (hit) {
+        return this.getStrategy().sendHit(hit);
+    };
+    VisitorDelegate.prototype.sendHitSync = function (hit) {
+        return this.getStrategy().sendHitSync(hit);
+    };
+    VisitorDelegate.prototype.getAllModifications = function (activate) {
+        if (activate === void 0) { activate = false; }
+        return this.getStrategy().getAllModifications(activate);
+    };
+    VisitorDelegate.prototype.getModificationsForCampaign = function (campaignId, activate) {
+        if (activate === void 0) { activate = false; }
+        return this.getStrategy().getModificationsForCampaign(campaignId, activate);
+    };
+    return VisitorDelegate;
+}(_VisitorAbstract__WEBPACK_IMPORTED_MODULE_0__.VisitorAbstract));
+
+
+
+/***/ }),
+
+/***/ "./src/visitor/VisitorStrategyAbstract.ts":
+/*!************************************************!*\
+  !*** ./src/visitor/VisitorStrategyAbstract.ts ***!
+  \************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "VisitorStrategyAbstract": () => (/* binding */ VisitorStrategyAbstract)
+/* harmony export */ });
+var VisitorStrategyAbstract = /** @class */ (function () {
+    function VisitorStrategyAbstract(visitor) {
+        this.visitor = visitor;
+    }
+    Object.defineProperty(VisitorStrategyAbstract.prototype, "configManager", {
+        get: function () {
+            return this.visitor.configManager;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(VisitorStrategyAbstract.prototype, "config", {
+        get: function () {
+            return this.visitor.config;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    return VisitorStrategyAbstract;
+}());
 
 
 

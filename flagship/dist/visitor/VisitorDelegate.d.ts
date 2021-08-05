@@ -1,25 +1,9 @@
-/// <reference types="node" />
-import { Modification } from '../model/Modification';
-import { HitAbstract, IPage, IScreen } from '../hit/index';
-import { IEvent } from '../hit/Event';
-import { IItem } from '../hit/Item';
-import { ITransaction } from '../hit/Transaction';
-import { modificationsRequested, primitive } from '../types';
-import { EventEmitter } from '../nodeDeps';
-import { IVisitor } from './IVisitor';
+import { Modification } from '../index';
+import { HitAbstract, IPage, IScreen, IEvent, IItem, ITransaction } from '../hit/index';
+import { primitive, modificationsRequested } from '../types';
 import { VisitorAbstract } from './VisitorAbstract';
-import { IFlagshipConfig } from '../config/index';
 import { CampaignDTO } from '../decision/api/models';
-export declare class Visitor extends EventEmitter implements IVisitor {
-    private visitorDelegate;
-    constructor(visitorDelegate: VisitorAbstract);
-    get visitorId(): string;
-    set visitorId(v: string);
-    get hasConsented(): boolean;
-    setConsent(hasConsented: boolean): void;
-    get config(): IFlagshipConfig;
-    get context(): Record<string, primitive>;
-    get modifications(): Map<string, Modification>;
+export declare class VisitorDelegate extends VisitorAbstract {
     updateContext(context: Record<string, primitive>): void;
     clearContext(): void;
     getModification<T>(params: modificationsRequested<T>, activateAll?: boolean): Promise<T>;

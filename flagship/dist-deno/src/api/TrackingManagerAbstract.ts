@@ -2,7 +2,7 @@ import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
 import { HitAbstract } from '../hit/HitAbstract.ts'
 import { Modification } from '../model/Modification.ts'
 import { IHttpClient } from '../utils/httpClient.ts'
-import { Visitor } from '../visitor/Visitor.ts'
+import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 
 export interface ITrackingManager {
   /**
@@ -10,7 +10,7 @@ export interface ITrackingManager {
    * @param visitor
    * @param modification
    */
-  sendActive(visitor: Visitor, modification: Modification): Promise<void>;
+  sendActive(visitor: VisitorAbstract, modification: Modification): Promise<void>;
   /**
    *Send a Hit to Flagship servers for reporting.
    * @param hit
@@ -35,7 +35,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   }
 
   public abstract sendActive(
-    visitor: Visitor,
+    visitor: VisitorAbstract,
     modification: Modification
   ): Promise<void>;
 

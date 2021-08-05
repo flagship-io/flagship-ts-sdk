@@ -2,8 +2,8 @@ import { IDecisionManager } from './IDecisionManager.ts'
 import { Modification } from '../model/Modification.ts'
 import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
 import { IHttpClient } from '../utils/httpClient.ts'
-import { Visitor } from '../visitor/Visitor.ts'
 import { CampaignDTO } from './api/models.ts'
+import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 
 export abstract class DecisionManager implements IDecisionManager {
   protected _config: IFlagshipConfig;
@@ -26,10 +26,10 @@ export abstract class DecisionManager implements IDecisionManager {
 
   abstract getModifications (campaigns: CampaignDTO[]): Map<string, Modification>
 
-  abstract getCampaignsAsync(visitor: Visitor): Promise<CampaignDTO[]>
+  abstract getCampaignsAsync(visitor: VisitorAbstract): Promise<CampaignDTO[]>
 
   abstract getCampaignsModificationsAsync(
-    visitor: Visitor
+    visitor: VisitorAbstract
   ): Promise<Map<string, Modification>>;
 
   public isPanic (): boolean {

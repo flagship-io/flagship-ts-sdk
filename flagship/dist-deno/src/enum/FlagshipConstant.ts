@@ -31,6 +31,8 @@ export const SDK_VERSION = 'v1'
 export const SDK_STARTED_INFO = 'Flagship SDK (version: {0}) READY'
 export const FLAGSHIP_SDK = 'Flagship SDK'
 
+export const EMIT_READY = 'ready'
+
 /**
  * Message Error
  */
@@ -56,6 +58,8 @@ export const TYPE_INTEGER_ERROR =
   'value of {0} is not an {1}, it will be truncated to {1}'
 export const VISITOR_ID_ERROR = 'visitorId must not be null or empty'
 export const PANIC_MODE_ERROR = '{0} deactivated while panic mode is on.'
+export const METHOD_DEACTIVATED_CONSENT_ERROR = 'Method {0} is deactivated for visitor {1} : visitor did not consent.'
+export const METHOD_DEACTIVATED_ERROR = 'Method {0} is deactivated while SDK status is: {1}.'
 
 // Process
 export const PROCESS = 'process'

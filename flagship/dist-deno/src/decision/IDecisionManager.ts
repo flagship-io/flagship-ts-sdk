@@ -1,5 +1,5 @@
 import { Modification } from '../model/Modification.ts'
-import { Visitor } from '../visitor/Visitor.ts'
+import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 import { CampaignDTO } from './api/models.ts'
 
 export interface IDecisionManager {
@@ -7,9 +7,9 @@ export interface IDecisionManager {
 
   getModifications (campaigns: Array<CampaignDTO>):Map<string, Modification>
 
-  getCampaignsAsync (visitor: Visitor):Promise<CampaignDTO[]>
+  getCampaignsAsync (visitor: VisitorAbstract):Promise<CampaignDTO[]>
 
   getCampaignsModificationsAsync(
-    visitor: Visitor,
+    visitor: VisitorAbstract,
   ): Promise<Map<string, Modification>>
 }

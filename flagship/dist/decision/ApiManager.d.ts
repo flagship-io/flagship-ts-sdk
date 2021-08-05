@@ -1,9 +1,9 @@
 import { DecisionManager } from './DecisionManager';
 import { CampaignDTO } from './api/models';
 import { Modification } from '../model/Modification';
-import { Visitor } from '../visitor/Visitor';
+import { VisitorAbstract } from '../visitor/VisitorAbstract';
 export declare class ApiManager extends DecisionManager {
-    getCampaignsAsync(visitor: Visitor): Promise<CampaignDTO[]>;
+    getCampaignsAsync(visitor: VisitorAbstract): Promise<CampaignDTO[]>;
     getModifications(campaigns: Array<CampaignDTO>): Map<string, Modification>;
-    getCampaignsModificationsAsync(visitor: Visitor): Promise<Map<string, Modification>>;
+    getCampaignsModificationsAsync(visitor: VisitorAbstract): Promise<Map<string, Modification>>;
 }
