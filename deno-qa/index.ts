@@ -13,7 +13,7 @@ import {
   EventCategory,
 } from "../flagship/dist-deno/src/mod.ts";
 import { OakSession } from "https://deno.land/x/sessions/mod.ts";
-import { IFlagshipLogManager } from "../../dist-deno/src/utils/FlagshipLogManager.ts";
+import { IFlagshipLogManager } from "../flagship/dist-deno/src/utils/FlagshipLogManager.ts";
 
 const statusChangedCallback = (status: FlagshipStatus) => {
   console.log("status", FlagshipStatus[status]);
@@ -21,6 +21,7 @@ const statusChangedCallback = (status: FlagshipStatus) => {
 
 let Infos = "";
 let Errors = "";
+let allInfo = "";
 
 class CustomLogAdapter implements IFlagshipLogManager {
   emergency(message: string, tag: string): void {
@@ -36,7 +37,7 @@ class CustomLogAdapter implements IFlagshipLogManager {
   }
 
   error(message: string, tag: string): void {
-    Errors += message;
+    Infos += message;
   }
 
   warning(message: string, tag: string): void {
@@ -56,7 +57,7 @@ class CustomLogAdapter implements IFlagshipLogManager {
   }
 
   log(level: any, message: string, tag: string): void {
-    throw new Error("Method not implemented.");
+    allInfo += message;
   }
 }
 
@@ -77,18 +78,6 @@ router
       (await context.state.session.has("apiKey")) &&
       (await context.state.session.has("timeout"))
     ) {
-      Flagship.start(
-        await context.state.session.get("envId"),
-        await context.state.session.get("apiKey"),
-        {
-          decisionMode: DecisionMode.DECISION_API,
-          statusChangedCallback,
-          logLevel: LogLevel.ALL,
-          fetchNow: false,
-          logManager: new CustomLogAdapter(),
-        }
-      );
-
       return (context.response.body = {
         environment_id: await context.state.session.get("envId"),
         api_key: await context.state.session.get("apiKey"),
@@ -116,10 +105,12 @@ router
     Flagship.start(environment_id, api_key, {
       decisionMode: DecisionMode.DECISION_API,
       statusChangedCallback,
-      logLevel: LogLevel.ERROR,
+      logLevel: LogLevel.ALL,
       fetchNow: false,
       logManager: new CustomLogAdapter(),
     });
+
+    await context.state.session.set("logs", Infos);
 
     return (context.response.body = { environment_id, api_key, timeout });
   })
@@ -135,6 +126,7 @@ router
       await state.session.set("visitor_id", visitor_id);
       await state.session.set("context", context);
       await state.session.set("visitor", visitor);
+      await state.session.set("logs", Infos);
     }
   })
   .get("/visitor", async ({ state, response }) => {
@@ -179,6 +171,7 @@ router
       await state.session.set("visitor", visitor);
       await visitor.synchronizeModifications();
       visitor.updateContext(obj);
+      await state.session.set("logs", Infos);
       response.body = {
         flags: await visitor.getAllModifications(),
         context: visitor.context,
@@ -196,6 +189,7 @@ router
         key: flagKey,
         defaultValue: JSON.parse(defaultValue),
       });
+      await ctx.state.session.set("logs", Infos);
       ctx.response.body = { value: modification };
     }
   })
@@ -205,8 +199,10 @@ router
 
     await visitor.synchronizeModifications();
     if (visitor.activateModification(flagKey)) {
+      await ctx.state.session.set("logs", Infos);
       return (ctx.response.body = "Activation sent");
     }
+    await ctx.state.session.set("logs", Infos);
     return (ctx.response.body = "Not Sent");
   })
   .get("/flag/:flagKey/info", async (ctx) => {
@@ -215,8 +211,8 @@ router
 
     await visitor.synchronizeModifications();
     const data = await visitor.getModificationInfo(flagKey);
+    await ctx.state.session.set("logs", Infos);
     ctx.response.body = { data };
-    //console.log(visitor);
   })
   .post("/hit", async ({ request, response, state }) => {
     const visitor = state.visitor;
@@ -255,29 +251,38 @@ router
           type: HitType.SCREEN,
           documentLocation: hit.dl,
         });
+        break;
       }
       case "PAGE": {
         visitor.sendHit({
           type: HitType.PAGE,
           documentLocation: hit.dl,
         });
+        break;
       }
-      case "TRANSACTION": {
-        visitor.sendHit({
-          type: HitType.TRANSACTION,
-          transactionId: hit.tid,
-          affiliation: hit.ta,
-          taxes: hit.tt,
-          currency: hit.tc,
-          couponCode: hit.tcc,
-          itemCount: hit.icn,
-          shippingMethod: hit.sm,
-          paymentMethod: hit.pm,
-          totalRevenue: hit.tr,
-          shippingCosts: hit.ts,
-        });
-      }
+      case "TRANSACTION":
+        {
+          visitor.sendHit({
+            type: HitType.TRANSACTION,
+            transactionId: hit.tid,
+            affiliation: hit.ta,
+            taxes: hit.tt,
+            currency: hit.tc,
+            couponCode: hit.tcc,
+            itemCount: hit.icn,
+            shippingMethod: hit.sm,
+            paymentMethod: hit.pm,
+            totalRevenue: hit.tr,
+            shippingCosts: hit.ts,
+          });
+        }
+        break;
     }
+
+    await state.session.set("logs", Infos);
+  })
+  .get("/logs", async (ctx) => {
+    ctx.response.body = await ctx.state.session.get("logs");
   });
 
 app.use(async (ctx, next) => {

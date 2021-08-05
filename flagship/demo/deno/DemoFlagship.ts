@@ -18,6 +18,7 @@ const statusChangedCallback = (status: FlagshipStatus) => {
 
 let Infos = "";
 let Errors = "";
+let allInfo = "";
 
 class CustomLogAdapter implements IFlagshipLogManager {
   emergency(message: string, tag: string): void {
@@ -53,7 +54,7 @@ class CustomLogAdapter implements IFlagshipLogManager {
   }
 
   log(level: any, message: string, tag: string): void {
-    throw new Error("Method not implemented.");
+    allInfo += message;
   }
 }
 
