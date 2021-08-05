@@ -7,7 +7,7 @@ import { modificationsRequested, primitive } from '../types'
 import { EventEmitter } from '../nodeDeps'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
-import { IFlagshipConfig } from '../config'
+import { IFlagshipConfig } from '../config/index'
 import { EMIT_READY } from '../enum/index'
 import { CampaignDTO } from '../decision/api/models'
 
@@ -16,7 +16,8 @@ export class Visitor extends EventEmitter implements IVisitor {
   public constructor (visitorDelegate: VisitorAbstract) {
     super()
     this.visitorDelegate = visitorDelegate
-    this.visitorDelegate.on(EMIT_READY, err => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.visitorDelegate.on(EMIT_READY, (err:any) => {
       this.emit(EMIT_READY, err)
     })
   }
