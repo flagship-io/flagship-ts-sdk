@@ -63,16 +63,16 @@ class CustomLogAdapter implements IFlagshipLogManager {
 
 const app = new Application();
 const session = new OakSession(app);
-let environment_id = ""; // c0n48jn5thv01k0ijmo0
-let api_key = ""; // BsIK86oh7c12c9G7ce4Wm1yBlWeaMf3t1S0xyYzI
-let timeout = 0;
-let bucketing = false;
-let polling_interval = 0;
-let visitor_id: string = "";
-let contextVar: Record<string, string | number | boolean> | undefined;
+
 const router = new Router();
 router
   .get("/env", async (context) => {
+    let environment_id = ""; // c0n48jn5thv01k0ijmo0
+    let api_key = ""; // BsIK86oh7c12c9G7ce4Wm1yBlWeaMf3t1S0xyYzI
+    let timeout = 0;
+    let bucketing = false;
+    let polling_interval = 0;
+
     if (
       (await context.state.session.has("envId")) &&
       (await context.state.session.has("apiKey")) &&
@@ -130,6 +130,9 @@ router
     }
   })
   .get("/visitor", async ({ state, response }) => {
+    let visitor_id: string = "";
+    let contextVar: Record<string, string | number | boolean> | undefined;
+
     if (
       (await state.session.has("visitor")) &&
       (await state.session.has("context")) &&
@@ -184,10 +187,14 @@ router
     });
     const visitor = ctx.state.visitor;
     if (visitor) {
+      let defaultValueParse = defaultValue;
+      try {
+        defaultValueParse = JSON.parse(defaultValue);
+      } catch {}
       await visitor.synchronizeModifications();
       const modification = await visitor.getModification({
         key: flagKey,
-        defaultValue: JSON.parse(defaultValue),
+        defaultValue: defaultValueParse,
       });
       await ctx.state.session.set("logs", Infos);
       ctx.response.body = { value: modification };
@@ -200,10 +207,10 @@ router
     await visitor.synchronizeModifications();
     if (visitor.activateModification(flagKey)) {
       await ctx.state.session.set("logs", Infos);
-      return (ctx.response.body = "Activation sent");
+      return (ctx.response.body = "Activation sent new version mon gars");
     }
     await ctx.state.session.set("logs", Infos);
-    return (ctx.response.body = "Not Sent");
+    return (ctx.response.body = "Not Sent new version tu crois quoi?");
   })
   .get("/flag/:flagKey/info", async (ctx) => {
     const visitor = ctx.state.visitor;
@@ -286,6 +293,8 @@ router
   });
 
 app.use(async (ctx, next) => {
+  let visitor_id: string = "";
+  let contextVar: Record<string, string | number | boolean> | undefined;
   if (Flagship.getStatus() === FlagshipStatus.READY) {
     const visitor = (await ctx.state.session.has("visitor"))
       ? await ctx.state.session.get("visitor")
