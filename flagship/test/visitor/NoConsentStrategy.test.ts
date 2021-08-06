@@ -22,7 +22,7 @@ describe('test NoConsentStrategy', () => {
   config.logManager = logManager
 
   const configManager = new ConfigManager(config, {} as DecisionManager, {} as TrackingManager)
-  const visitorDelegate = new VisitorDelegate(visitorId, context, configManager)
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
   const noConsentStrategy = new NoConsentStrategy(visitorDelegate)
 
   it('test activateModification', () => {

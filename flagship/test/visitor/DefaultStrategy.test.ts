@@ -59,7 +59,7 @@ describe('test DefaultStrategy ', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate(visitorId, context, configManager)
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
   const defaultStrategy = new DefaultStrategy(visitorDelegate)
 
   const newContext = {
@@ -660,7 +660,7 @@ describe('synchronizeModifications', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate(visitorId, context, configManager)
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
 
   const defaultStrategy = new DefaultStrategy(visitorDelegate)
 

@@ -39,7 +39,7 @@ describe('test visitor', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate(visitorId, context, configManager)
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
 
   const visitor = new Visitor(visitorDelegate)
 

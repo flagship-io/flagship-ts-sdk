@@ -22,7 +22,7 @@ describe('test NotReadyStrategy', () => {
   config.logManager = logManager
 
   const configManager = new ConfigManager(config, {} as DecisionManager, {} as TrackingManager)
-  const visitorDelegate = new VisitorDelegate(visitorId, context, configManager)
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
   const notReadyStrategy = new NotReadyStrategy(visitorDelegate)
 
   it('test synchronizedModifications', () => {

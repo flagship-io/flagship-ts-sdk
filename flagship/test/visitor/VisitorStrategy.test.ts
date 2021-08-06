@@ -25,7 +25,7 @@ describe('test getStrategy', () => {
   const trackingManager = new TrackingManager({} as IHttpClient, config)
   const configManager = new ConfigManager(config, {} as ApiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate(visitorId, context, configManager as ConfigManager)
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager: configManager as ConfigManager })
 
   it('test NotReadyStrategy flagship status is undefined', async () => {
     const methodName = 'activateModification'

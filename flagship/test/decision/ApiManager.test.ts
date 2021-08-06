@@ -27,7 +27,7 @@ describe('test ApiManager', () => {
   const visitorId = 'visitorId'
   const context = { age: 20 }
 
-  const visitor = new VisitorDelegate(visitorId, context, {} as ConfigManager)
+  const visitor = new VisitorDelegate({ visitorId, context, configManager: {} as ConfigManager })
 
   const panicModeResponse = { status: 200, body: { panic: true } }
 

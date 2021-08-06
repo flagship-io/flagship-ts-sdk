@@ -42,7 +42,7 @@ describe('test TrackingManager sendActive ', () => {
     const visitorId = 'visitorId'
     const context = { age: 20 }
 
-    const visitor = new VisitorDelegate(visitorId, context, {} as ConfigManager)
+    const visitor = new VisitorDelegate({ visitorId, context, configManager: {} as ConfigManager })
     const modification = new Modification(
       'key',
       'campaignId',

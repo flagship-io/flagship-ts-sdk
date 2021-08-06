@@ -75,7 +75,7 @@ describe('test VisitorDelegate', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate(visitorId, context, configManager as ConfigManager)
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager: configManager as ConfigManager })
   expect(updateContext).toBeCalledWith(context)
   expect(updateContext).toBeCalledTimes(1)
 
@@ -92,7 +92,7 @@ describe('test VisitorDelegate', () => {
   })
 
   it('test empty visitorId', () => {
-    const visitorDelegate = new VisitorDelegate(null, context, configManager)
+    const visitorDelegate = new VisitorDelegate({ visitorId: null, context, configManager })
     expect(visitorDelegate.visitorId).toBeDefined()
     expect(visitorDelegate.visitorId).toHaveLength(17)
   })
@@ -151,7 +151,7 @@ describe('test VisitorDelegate', () => {
 })
 
 describe('Name of the group', () => {
-  const visitorDelegate = new VisitorDelegate('visitorId', {}, {} as ConfigManager)
+  const visitorDelegate = new VisitorDelegate({ visitorId: 'visitorId', context: {}, configManager: {} as ConfigManager })
   it('test updateContext', () => {
     const contexts = {
       isVip: false

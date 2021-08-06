@@ -146,7 +146,7 @@ export class Flagship {
       return null
     }
 
-    const visitorDelegate = new VisitorDelegate(visitorId, context, this.getInstance().configManager)
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager: this.getInstance().configManager })
 
     const visitor = new Visitor(visitorDelegate)
 
