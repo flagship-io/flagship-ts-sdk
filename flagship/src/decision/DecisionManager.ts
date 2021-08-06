@@ -24,13 +24,40 @@ export abstract class DecisionManager implements IDecisionManager {
     this._httpClient = httpClient
   }
 
-  abstract getModifications (campaigns: CampaignDTO[]): Map<string, Modification>
+  public getModifications (campaigns: Array<CampaignDTO>):Map<string, Modification> {
+    const modifications = new Map<string, Modification>()
+    campaigns.forEach((campaign) => {
+      const object = campaign.variation.modifications.value
+      for (const key in object) {
+        const value = object[key]
+        modifications.set(
+          key,
+          new Modification(
+            key,
+            campaign.id,
+            campaign.variationGroupId,
+            campaign.variation.id,
+            campaign.variation.reference,
+            value
+          )
+        )
+      }
+    })
+    return modifications
+  }
 
   abstract getCampaignsAsync(visitor: VisitorAbstract): Promise<CampaignDTO[]>
 
-  abstract getCampaignsModificationsAsync(
-    visitor: VisitorAbstract
-  ): Promise<Map<string, Modification>>;
+  public async getCampaignsModificationsAsync (visitor: VisitorAbstract): Promise<Map<string, Modification>> {
+    return new Promise((resolve, reject) => {
+      this.getCampaignsAsync(visitor).then(campaigns => {
+        resolve(this.getModifications(campaigns))
+      }).catch(error => {
+        console.log('campaigns', error)
+        reject(error)
+      })
+    })
+  }
 
   public isPanic (): boolean {
     return this._panic
