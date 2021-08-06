@@ -304,7 +304,39 @@ app.use(async (ctx, next) => {
       ctx.response.body = "Visitor coudn't be created";
       return;
     }
-    ctx.state.visitor = visitor;
+    await ctx.state.session.set("visitor", visitor);
+  }
+
+  await next();
+});
+
+app.use(async (ctx, next) => {
+  let envId: string = "";
+  let apiKey: string = "";
+
+  if (
+    (await ctx.state.session.has("envId")) &&
+    (await ctx.state.session.has("apiKey"))
+  ) {
+    Flagship.start(
+      await ctx.state.session.get("envId"),
+      await ctx.state.session.get("apiKey"),
+      {
+        decisionMode: DecisionMode.DECISION_API,
+        statusChangedCallback,
+        logLevel: LogLevel.ALL,
+        fetchNow: false,
+        logManager: new CustomLogAdapter(),
+      }
+    );
+  } else {
+    Flagship.start(envId, apiKey, {
+      decisionMode: DecisionMode.DECISION_API,
+      statusChangedCallback,
+      logLevel: LogLevel.ALL,
+      fetchNow: false,
+      logManager: new CustomLogAdapter(),
+    });
   }
 
   await next();
@@ -317,4 +349,4 @@ app.use(async (context) => {
     index: "index.html",
   });
 });
-await app.listen({ port: 8000 });
+await app.listen({ port: 8002 });
