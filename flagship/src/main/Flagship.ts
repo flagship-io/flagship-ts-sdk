@@ -1,6 +1,6 @@
 import { Visitor } from '../visitor/Visitor'
 import { FlagshipStatus } from '../enum/FlagshipStatus'
-import { FlagshipConfig, IFlagshipConfig } from '../config/FlagshipConfig'
+import { DecisionMode, FlagshipConfig, IFlagshipConfig } from '../config/FlagshipConfig'
 import { DecisionApiConfig } from '../config/DecisionApiConfig'
 import { ConfigManager, IConfigManager } from '../config/ConfigManager'
 import { ApiManager } from '../decision/ApiManager'
@@ -15,6 +15,9 @@ import {
   SDK_VERSION
 } from '../enum/index'
 import { VisitorDelegate } from '../visitor/VisitorDelegate'
+import { BucketingConfig } from '../config'
+import { BucketingManager } from '../decision/BucketingManager'
+import { MurmurHash } from '../utils/MurmurHash'
 
 export class Flagship {
   private static _instance: Flagship;
@@ -91,7 +94,11 @@ export class Flagship {
     const flagship = this.getInstance()
 
     if (!(config instanceof FlagshipConfig)) {
-      config = new DecisionApiConfig(config)
+      if (config?.decisionMode === DecisionMode.BUCKETING) {
+        config = new BucketingConfig(config)
+      } else {
+        config = new DecisionApiConfig(config)
+      }
     }
 
     config.envId = envId
@@ -99,7 +106,7 @@ export class Flagship {
 
     flagship._config = config
 
-    flagship.setStatus(FlagshipStatus.NOT_READY)
+    flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
 
     // check custom logger
     if (!config.logManager) {
@@ -111,11 +118,26 @@ export class Flagship {
       return
     }
 
-    const decisionManager = new ApiManager(
-      new HttpClient(),
-      flagship.config
-    )
-    const trackingManager = new TrackingManager(new HttpClient(), config)
+    let decisionManager = flagship.configManager?.decisionManager
+
+    if (typeof decisionManager === 'object' && decisionManager instanceof BucketingManager) {
+      decisionManager.stopPolling()
+    }
+
+    const httpClient = new HttpClient()
+
+    if (config.decisionMode === DecisionMode.BUCKETING) {
+      decisionManager = new BucketingManager(httpClient, config, new MurmurHash())
+      const bucketingManager = decisionManager as BucketingManager
+      bucketingManager.startPolling()
+    } else {
+      decisionManager = new ApiManager(
+        httpClient,
+        config
+      )
+    }
+
+    const trackingManager = new TrackingManager(httpClient, config)
     flagship.configManager = new ConfigManager(
       config,
       decisionManager,
