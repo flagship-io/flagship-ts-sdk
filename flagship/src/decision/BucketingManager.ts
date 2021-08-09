@@ -21,6 +21,9 @@ export class BucketingManager extends DecisionManager {
     }
 
     public async startPolling (): Promise<void> {
+      if (this._isPooling) {
+        return
+      }
       this._isPooling = true
       if (this.config.pollingInterval === 0) {
         this._isPooling = false
@@ -42,10 +45,11 @@ export class BucketingManager extends DecisionManager {
           }
           await sleep((this.config.pollingInterval ?? REQUEST_TIME_OUT) * 1000)
         } catch (error) {
-        // logError(this.config, error,)
+          logError(this.config, error.message, 'startPolling')
         }
       // eslint-disable-next-line no-unmodified-loop-condition
       } while (this._isPooling)
+      logInfo(this.config, 'Bucketing polling have stopped', 'startPolling')
     }
 
     public stopPolling ():void {
@@ -113,9 +117,6 @@ export class BucketingManager extends DecisionManager {
           continue
         }
         totalAllocation += variation.allocation
-        console.log('variation.allocation', variation.allocation)
-
-        console.log(totalAllocation)
 
         if (hashAllocation < totalAllocation) {
           return {
@@ -129,6 +130,9 @@ export class BucketingManager extends DecisionManager {
     }
 
     private isMatchTargeting (variationGroup:VariationGroupDTO, visitor: VisitorAbstract):boolean {
+      if (!variationGroup || !variationGroup.targeting || !variationGroup.targeting.targetingGroups) {
+        return false
+      }
       for (const targetingGroup of variationGroup.targeting.targetingGroups) {
         const check = this.checkAndTargeting(targetingGroup.targetings, visitor)
         if (check) {
@@ -140,26 +144,26 @@ export class BucketingManager extends DecisionManager {
 
     private checkAndTargeting (targetings:Targetings[], visitor: VisitorAbstract) : boolean {
       let contextValue:primitive
+      let check = false
 
       for (const targeting of targetings) {
         const key = targeting.key
-        switch (key) {
-          case 'fs_all_users':
-            return true
-          case 'fs_users':
-            contextValue = visitor.visitorId
-            break
-          default:
-            if (!(key in visitor.context)) {
-              return false
-            }
-            contextValue = visitor.context[key]
-            break
+
+        if (key === 'fs_all_users') {
+          check = true
+          break
+        } else if (key === 'fs_users') {
+          contextValue = visitor.visitorId
+        } else {
+          if (!(key in visitor.context)) {
+            continue
+          }
+          contextValue = visitor.context[key]
         }
 
         return this.testOperator(targeting.operator, contextValue, targeting.value)
       }
-      return false
+      return check
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -173,10 +177,10 @@ export class BucketingManager extends DecisionManager {
           check = contextValue !== value
           break
         case 'CONTAINS':
-          check = new RegExp(`${value.join('|')}`, 'i').test(contextValue.toString())
+          check = new RegExp(`${value.join('|')}`).test(contextValue.toString())
           break
         case 'NOT_CONTAINS':
-          check = !(new RegExp(`${value.join('|')}`, 'i').test(contextValue.toString()))
+          check = !(new RegExp(`${value.join('|')}`).test(contextValue.toString()))
           break
         case 'GREATER_THAN':
           check = contextValue > value
@@ -191,10 +195,10 @@ export class BucketingManager extends DecisionManager {
           check = contextValue <= value
           break
         case 'STARTS_WITH':
-          check = new RegExp(`^${value}`, 'i').test(contextValue.toString())
+          check = new RegExp(`^${value}`).test(contextValue.toString())
           break
         case 'ENDS_WITH':
-          check = new RegExp(`${value}$`, 'i').test(contextValue.toString())
+          check = new RegExp(`${value}$`).test(contextValue.toString())
           break
         default:
           check = false
