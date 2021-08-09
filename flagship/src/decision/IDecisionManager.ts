@@ -1,3 +1,4 @@
+import { IFlagshipConfig } from '../config'
 import { Modification } from '../model/Modification'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { CampaignDTO } from './api/models'
@@ -12,4 +13,6 @@ export interface IDecisionManager {
   getCampaignsModificationsAsync(
     visitor: VisitorAbstract,
   ): Promise<Map<string, Modification>>
+
+  config:IFlagshipConfig
 }

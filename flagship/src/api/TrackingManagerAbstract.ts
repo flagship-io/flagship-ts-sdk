@@ -16,6 +16,8 @@ export interface ITrackingManager {
    * @param hit
    */
   sendHit(hit: HitAbstract): Promise<void>;
+
+  config:IFlagshipConfig
 }
 
 export abstract class TrackingManagerAbstract implements ITrackingManager {
@@ -28,6 +30,10 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
   public get httpClient ():IHttpClient {
     return this._httpClient
+  }
+
+  public set config (v:IFlagshipConfig) {
+    this._config = v
   }
 
   public get config ():IFlagshipConfig {
