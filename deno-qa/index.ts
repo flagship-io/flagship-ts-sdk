@@ -19,59 +19,63 @@ const statusChangedCallback = (status: FlagshipStatus) => {
   console.log("status", FlagshipStatus[status]);
 };
 
+let envIdGlobale: any;
+let apiKeyGlobal: any;
+
 let Infos = "";
 let Errors = "";
 let allInfo = "";
 
 class CustomLogAdapter implements IFlagshipLogManager {
-  emergency(message: string, tag: string): void {
+  emergency(_message: string, _tag: string): void {
     throw new Error("Method not implemented.");
   }
 
-  alert(message: string, tag: string): void {
+  alert(_message: string, _tag: string): void {
     throw new Error("Method not implemented.");
   }
 
-  critical(message: string, tag: string): void {
+  critical(_message: string, _tag: string): void {
     throw new Error("Method not implemented.");
   }
 
-  error(message: string, tag: string): void {
-    Infos += message;
+  error(message: string, _tag: string): void {
+    Infos += message + "\n";
+    Errors += message + "\n";
   }
 
-  warning(message: string, tag: string): void {
+  warning(_message: string, _tag: string): void {
     throw new Error("Method not implemented.");
   }
 
-  notice(message: string, tag: string): void {
+  notice(_message: string, _tag: string): void {
     throw new Error("Method not implemented.");
   }
 
-  info(message: string, tag: string): void {
-    Infos += message;
+  info(message: string, _tag: string): void {
+    Infos += message + "\n";
   }
 
   debug(message: string, tag: string): void {
-    this.log(LogLevel.DEBUG, message, tag);
+    Infos += message + "\n";
   }
 
-  log(level: any, message: string, tag: string): void {
-    allInfo += message;
+  log(_level: any, message: string, _tag: string): void {
+    Infos += message + "\n";
   }
 }
 
 const app = new Application();
-const session = new OakSession(app);
+const _session: OakSession = new OakSession(app);
 
 const router = new Router();
 router
   .get("/env", async (context) => {
-    let environment_id = ""; // c0n48jn5thv01k0ijmo0
-    let api_key = ""; // BsIK86oh7c12c9G7ce4Wm1yBlWeaMf3t1S0xyYzI
-    let timeout = 0;
-    let bucketing = false;
-    let polling_interval = 0;
+    const environmentId = ""; // c0n48jn5thv01k0ijmo0
+    const apiKey = ""; // BsIK86oh7c12c9G7ce4Wm1yBlWeaMf3t1S0xyYzI
+    const timeout = 0;
+    const bucketing = false;
+    const pollingInterval = 0;
 
     if (
       (await context.state.session.has("envId")) &&
@@ -83,26 +87,32 @@ router
         api_key: await context.state.session.get("apiKey"),
         timeout: await context.state.session.get("timeout"),
         bucketing,
-        polling_interval,
+        pollingInterval,
       });
     }
     return (context.response.body = {
-      environment_id,
-      api_key,
+      environmentId,
+      apiKey,
       timeout,
       bucketing,
-      polling_interval,
+      pollingInterval,
     });
   })
   .put("/env", async (context) => {
-    const { environment_id, api_key, timeout } = await context.request.body()
-      .value;
+    const {
+      environment_id: environmentId,
+      api_key: apiKey,
+      timeout,
+    } = await context.request.body().value;
 
-    await context.state.session.set("envId", environment_id);
-    await context.state.session.set("apiKey", api_key);
+    await context.state.session.set("envId", environmentId);
+    await context.state.session.set("apiKey", apiKey);
     await context.state.session.set("timeout", timeout);
 
-    Flagship.start(environment_id, api_key, {
+    envIdGlobale = environmentId;
+    apiKeyGlobal = apiKey;
+
+    Flagship.start(environmentId, apiKey, {
       decisionMode: DecisionMode.DECISION_API,
       statusChangedCallback,
       logLevel: LogLevel.ALL,
@@ -112,25 +122,25 @@ router
 
     await context.state.session.set("logs", Infos);
 
-    return (context.response.body = { environment_id, api_key, timeout });
+    return (context.response.body = { environmentId, apiKey, timeout });
   })
   .put("/visitor", async ({ request, response, state }) => {
-    const { visitor_id, context } = await request.body().value;
-    const visitor = Flagship.newVisitor(`${visitor_id}`, context);
+    const { visitor_id: visitorId, context } = await request.body().value;
+    const visitor = Flagship.newVisitor(`${visitorId}`, context);
     if (visitor) {
       await visitor.synchronizeModifications();
+      await state.session.set("visitor_id", visitorId);
+      await state.session.set("context", context);
+      await state.session.set("visitor", visitor);
+      await state.session.set("logs", Infos);
       response.body = {
         modification: await visitor.getAllModifications(),
         context,
       };
-      await state.session.set("visitor_id", visitor_id);
-      await state.session.set("context", context);
-      await state.session.set("visitor", visitor);
-      await state.session.set("logs", Infos);
     }
   })
   .get("/visitor", async ({ state, response }) => {
-    let visitor_id: string = "";
+    const visitorId = "";
     let contextVar: Record<string, string | number | boolean> | undefined;
 
     if (
@@ -144,16 +154,16 @@ router
       });
     }
     return (response.body = {
-      visitor_id,
+      visitorId,
       contextVar,
     });
   })
   .put(
     "/visitor/context/:flagKey",
     async ({ request, response, params, state }) => {
-      let obj: Record<string, string | number | boolean> = {};
+      const obj: Record<string, string | number | boolean> = {};
       const { type, value } = await request.body().value;
-      const { flagKey } = await params;
+      const { flagKey } = params;
       if (typeof flagKey === "undefined") {
         return (response.body = "ERROR MON GARS");
       }
@@ -170,27 +180,30 @@ router
         obj[flagKey] = value;
       }
 
-      const visitor = state.visitor;
-      await state.session.set("visitor", visitor);
-      await visitor.synchronizeModifications();
-      visitor.updateContext(obj);
-      await state.session.set("logs", Infos);
-      response.body = {
-        flags: await visitor.getAllModifications(),
-        context: visitor.context,
-      };
+      const visitor = await state.session.get("visitor");
+      if (visitor) {
+        await visitor.synchronizeModifications();
+        visitor.updateContext(obj);
+        await state.session.set("logs", Infos);
+        response.body = {
+          flags: await visitor.getAllModifications(),
+          context: visitor.context,
+        };
+      }
     }
   )
   .get("/flag/:flagKey", async (ctx) => {
     const { flagKey, type, activate, defaultValue } = helpers.getQuery(ctx, {
       mergeParams: true,
     });
-    const visitor = ctx.state.visitor;
+    const visitor = await ctx.state.session.get("visitor");
     if (visitor) {
       let defaultValueParse = defaultValue;
       try {
         defaultValueParse = JSON.parse(defaultValue);
-      } catch {}
+      } catch {
+        // Do nothing
+      }
       await visitor.synchronizeModifications();
       const modification = await visitor.getModification({
         key: flagKey,
@@ -201,7 +214,7 @@ router
     }
   })
   .get("/flag/:flagKey/activate", async (ctx) => {
-    const visitor = ctx.state.visitor;
+    const visitor = await ctx.state.session.get("visitor");
     const { flagKey } = await ctx.params;
 
     await visitor.synchronizeModifications();
@@ -213,7 +226,7 @@ router
     return (ctx.response.body = "Not Sent new version tu crois quoi?");
   })
   .get("/flag/:flagKey/info", async (ctx) => {
-    const visitor = ctx.state.visitor;
+    const visitor = await ctx.state.session.get("visitor");
     const { flagKey } = await ctx.params;
 
     await visitor.synchronizeModifications();
@@ -222,7 +235,7 @@ router
     ctx.response.body = { data };
   })
   .post("/hit", async ({ request, response, state }) => {
-    const visitor = state.visitor;
+    const visitor = await state.session.get("visitor");
     const hit = await request.body().value;
 
     switch (hit.t) {
@@ -290,45 +303,38 @@ router
   })
   .get("/logs", async (ctx) => {
     ctx.response.body = await ctx.state.session.get("logs");
+  })
+  .get("/clear", async (ctx) => {
+    Infos = "";
+    await ctx.state.session.set("logs", Infos);
+    ctx.response.body = await ctx.state.session.get("logs");
   });
 
 app.use(async (ctx, next) => {
-  let visitor_id: string = "";
-  let contextVar: Record<string, string | number | boolean> | undefined;
-  if (Flagship.getStatus() === FlagshipStatus.READY) {
-    const visitor = (await ctx.state.session.has("visitor"))
-      ? await ctx.state.session.get("visitor")
-      : Flagship.newVisitor(`${visitor_id}`, contextVar);
-    if (!visitor) {
-      ctx.response.status = 400;
-      ctx.response.body = "Visitor coudn't be created";
-      return;
-    }
-    await ctx.state.session.set("visitor", visitor);
-  }
-
-  await next();
-});
-
-app.use(async (ctx, next) => {
-  let envId: string = "";
-  let apiKey: string = "";
-
+  const envId = "";
+  const apiKey = "";
   if (
     (await ctx.state.session.has("envId")) &&
     (await ctx.state.session.has("apiKey"))
   ) {
-    Flagship.start(
-      await ctx.state.session.get("envId"),
-      await ctx.state.session.get("apiKey"),
-      {
-        decisionMode: DecisionMode.DECISION_API,
-        statusChangedCallback,
-        logLevel: LogLevel.ALL,
-        fetchNow: false,
-        logManager: new CustomLogAdapter(),
-      }
-    );
+    if (
+      envIdGlobale !== (await ctx.state.session.get("envId")) &&
+      apiKeyGlobal !== (await ctx.state.session.get("apiKey"))
+    ) {
+      envIdGlobale = await ctx.state.session.get("envId");
+      apiKeyGlobal = await ctx.state.session.get("apiKey");
+      Flagship.start(
+        await ctx.state.session.get("envId"),
+        await ctx.state.session.get("apiKey"),
+        {
+          decisionMode: DecisionMode.DECISION_API,
+          statusChangedCallback,
+          logLevel: LogLevel.ALL,
+          fetchNow: false,
+          logManager: new CustomLogAdapter(),
+        }
+      );
+    }
   } else {
     Flagship.start(envId, apiKey, {
       decisionMode: DecisionMode.DECISION_API,
@@ -341,6 +347,24 @@ app.use(async (ctx, next) => {
 
   await next();
 });
+
+app.use(async (ctx, next) => {
+  const visitorId = "";
+  let contextVar: Record<string, string | number | boolean> | undefined;
+  if (Flagship.getStatus() === FlagshipStatus.READY) {
+    const visitor = (await ctx.state.session.has("visitor"))
+      ? await ctx.state.session.get("visitor")
+      : Flagship.newVisitor(`${visitorId}`, contextVar);
+    if (!visitor) {
+      ctx.response.status = 400;
+      ctx.response.body = "Visitor coudn't be created";
+      return;
+    }
+  }
+
+  await next();
+});
+
 app.use(router.routes());
 app.use(router.allowedMethods());
 app.use(async (context) => {
