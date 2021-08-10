@@ -24,7 +24,6 @@ describe('test start in Bucketing mode', () => {
       decisionMode: DecisionMode.BUCKETING,
       pollingInterval: 0
     })
-    expect(stopPolling).toBeCalledTimes(1)
     expect(startPolling).toBeCalledTimes(2)
   })
 })
