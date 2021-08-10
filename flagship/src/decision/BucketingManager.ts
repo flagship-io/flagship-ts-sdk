@@ -1,4 +1,4 @@
-import { IFlagshipConfig } from '../config'
+import { IFlagshipConfig } from '../config/index'
 import { BUCKETING_API_CONTEXT_URL, BUCKETING_API_URL, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, REQUEST_TIME_OUT, SDK_LANGUAGE, SDK_VERSION } from '../enum/index'
 import { primitive } from '../types'
 import { IHttpClient } from '../utils/httpClient'
@@ -50,7 +50,7 @@ export class BucketingManager extends DecisionManager {
           }
           await sleep((this.config.pollingInterval ?? REQUEST_TIME_OUT) * 1000)
         } catch (error) {
-          logError(this.config, error.message, 'startPolling')
+          logError(this.config, error, 'startPolling')
         }
       // eslint-disable-next-line no-unmodified-loop-condition
       } while (this._isPooling)

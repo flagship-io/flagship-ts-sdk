@@ -15,7 +15,7 @@ import {
   SDK_VERSION
 } from '../enum/index'
 import { VisitorDelegate } from '../visitor/VisitorDelegate'
-import { BucketingConfig } from '../config'
+import { BucketingConfig } from '../config/index'
 import { BucketingManager } from '../decision/BucketingManager'
 import { MurmurHash } from '../utils/MurmurHash'
 
