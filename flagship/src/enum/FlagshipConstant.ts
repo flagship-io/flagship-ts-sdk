@@ -62,6 +62,8 @@ export const VISITOR_ID_ERROR = 'visitorId must not be null or empty'
 export const PANIC_MODE_ERROR = '{0} deactivated while panic mode is on.'
 export const METHOD_DEACTIVATED_CONSENT_ERROR = 'Method {0} is deactivated for visitor {1} : visitor did not consent.'
 export const METHOD_DEACTIVATED_ERROR = 'Method {0} is deactivated while SDK status is: {1}.'
+export const METHOD_DEACTIVATED_BUCKETING_ERROR = 'Method {0} is deactivated on Bucketing mode.'
+export const FLAGSHIP_VISITOR_NOT_AUTHENTICATE = 'Visitor is not authenticated yet'
 
 // Process
 export const PROCESS = 'process'
@@ -81,6 +83,8 @@ export const PROCESS_MODIFICATIONS_FOR_CAMPAIGN = 'GET MODIFICATION FOR CAMPAIGN
 // Api items
 
 export const CUSTOMER_ENV_ID_API_ITEM = 'cid'
+export const CUSTOMER_UID = 'cuid'
+export const ANONYMOUS_ID = 'aid'
 export const VISITOR_ID_API_ITEM = 'vid'
 export const VARIATION_GROUP_ID_API_ITEM = 'caid'
 export const VARIATION_ID_API_ITEM = 'vaid'
