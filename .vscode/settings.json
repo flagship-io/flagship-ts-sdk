@@ -1,6 +1,12 @@
 {
   "eslint.validate": ["javascript", "typescript"],
-  "cSpell.words": ["Deno", "allowlist", "sprintf", "targetings"],
+  "cSpell.words": [
+    "Deno",
+    "allowlist",
+    "sprintf",
+    "targetings",
+    "unauthenticate"
+  ],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
