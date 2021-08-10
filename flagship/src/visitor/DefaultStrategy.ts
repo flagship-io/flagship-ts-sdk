@@ -1,10 +1,12 @@
 import { Modification } from '../index'
-import { CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR, EMIT_READY, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_SYNCHRONIZED_MODIFICATION, PROCESS_UPDATE_CONTEXT, SDK_APP, TRACKER_MANAGER_MISSING_ERROR } from '../enum/index'
+import { CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR, EMIT_READY, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, METHOD_DEACTIVATED_BUCKETING_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_SYNCHRONIZED_MODIFICATION, PROCESS_UPDATE_CONTEXT, SDK_APP, TRACKER_MANAGER_MISSING_ERROR, VISITOR_ID_ERROR } from '../enum/index'
 import { HitAbstract, IPage, IScreen, IEvent, Event, Screen, IItem, ITransaction, Item, Page, Transaction } from '../hit/index'
 import { primitive, modificationsRequested } from '../types'
 import { logError, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
+import { FlagshipContext } from '../enum/FlagshipContext'
+import { DecisionMode } from '../config'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 
@@ -37,7 +39,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     this.visitor.context[key] = value
   }
 
-  updateContext (context: Record<string, primitive>): void {
+  updateContext (context: Record<string|FlagshipContext, primitive>): void {
     if (!context) {
       logError(this.visitor.config, CONTEXT_NULL_ERROR, PROCESS_UPDATE_CONTEXT)
       return
@@ -276,6 +278,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     hitInstance.visitorId = this.visitor.visitorId
     hitInstance.ds = SDK_APP
     hitInstance.config = this.config
+    hitInstance.anonymousId = this.visitor.anonymousId
 
     if (!hitInstance.isReady()) {
       logError(this.config, hitInstance.getErrorMessage(), PROCESS_SEND_HIT)
@@ -344,5 +347,38 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       visitorId: this.visitor.visitorId,
       campaigns: this.visitor.campaigns.filter(x => x.id === campaignId)
     })
+  }
+
+  authenticate (visitorId: string): void {
+    const functionName = 'authenticate'
+    if (this.config.decisionMode === DecisionMode.BUCKETING) {
+      this.logDeactivateOnBucketing(functionName)
+      return
+    }
+
+    if (!visitorId) {
+      logError(this.config, VISITOR_ID_ERROR, functionName)
+      return
+    }
+    this.visitor.anonymousId = this.visitor.visitorId
+    this.visitor.visitorId = visitorId
+  }
+
+  unauthenticate (): void {
+    const functionName = 'unauthenticate'
+    if (this.config.decisionMode === DecisionMode.BUCKETING) {
+      this.logDeactivateOnBucketing(functionName)
+      return
+    }
+    if (!this.visitor.anonymousId) {
+      logError(this.config, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, functionName)
+      return
+    }
+    this.visitor.visitorId = this.visitor.anonymousId
+    this.visitor.anonymousId = null
+  }
+
+  protected logDeactivateOnBucketing (functionName:string):void {
+    logError(this.config, sprintf(METHOD_DEACTIVATED_BUCKETING_ERROR, functionName), functionName)
   }
 }

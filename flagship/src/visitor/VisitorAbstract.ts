@@ -1,5 +1,5 @@
 import { Modification } from '../index'
-import { IConfigManager, IFlagshipConfig } from '../config/index'
+import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
 import { modificationsRequested, primitive } from '../types'
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
@@ -13,22 +13,25 @@ import { Flagship } from '../main/Flagship'
 import { NotReadyStrategy } from './NotReadyStrategy'
 import { PanicStrategy } from './PanicStrategy'
 import { NoConsentStrategy } from './NoConsentStrategy'
+import { FlagshipContext } from '../enum/FlagshipContext'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _visitorId!: string;
-    protected _context: Record<string, primitive>;
+    protected _context: Record<string|FlagshipContext, primitive>;
     protected _modifications: Map<string, Modification>;
     protected _configManager: IConfigManager;
     protected _config: IFlagshipConfig;
     protected _campaigns!: CampaignDTO[];
-    protected _hasConsented!:boolean
+    protected _hasConsented!:boolean;
+    protected _anonymousId!:string|null;
 
     constructor (param: {
         visitorId: string|null,
+        isAuthenticated?:boolean,
         context: Record<string, primitive>,
         configManager: IConfigManager
       }) {
-      const { visitorId, configManager, context } = param
+      const { visitorId, configManager, context, isAuthenticated } = param
       super()
       this.visitorId = visitorId || this.createVisitorId()
       this._modifications = new Map<string, Modification>()
@@ -37,6 +40,19 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this._config = configManager.config
       this._context = {}
       this.updateContext(context)
+      this._anonymousId = null
+
+      if (isAuthenticated && this.config.decisionMode === DecisionMode.DECISION_API) {
+        this._anonymousId = this.uuidV4()
+      }
+    }
+
+    protected uuidV4 ():string {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (char) {
+        const rand = Math.random() * 16 | 0
+        const value = char === 'x' ? rand : (rand & 0x3 | 0x8)
+        return value.toString(16)
+      })
     }
 
     protected createVisitorId (): string {
@@ -77,14 +93,14 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this._hasConsented = hasConsented
     }
 
-    public get context (): Record<string, primitive> {
+    public get context (): Record<string|FlagshipContext, primitive> {
       return this._context
     }
 
     /**
     * Clear the current context and set a new context value
     */
-    public set context (v: Record<string, primitive>) {
+    public set context (v: Record<string|FlagshipContext, primitive>) {
       this._context = {}
       this.updateContext(v)
     }
@@ -113,6 +129,14 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this._campaigns = v
     }
 
+    public get anonymousId () : string|null {
+      return this._anonymousId
+    }
+
+    public set anonymousId (v : string|null) {
+      this._anonymousId = v
+    }
+
     protected getStrategy (): VisitorStrategyAbstract {
       let strategy:VisitorStrategyAbstract
       if (!Flagship.getStatus() || Flagship.getStatus() === FlagshipStatus.NOT_INITIALIZED) {
@@ -128,7 +152,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       return strategy
     }
 
-    abstract updateContext(context: Record<string, primitive>): void
+    abstract updateContext(context: Record<string|FlagshipContext, primitive>): void
     abstract clearContext (): void
 
     abstract getModification<T>(params: modificationsRequested<T>, activateAll?: boolean): Promise<T>;
@@ -174,4 +198,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     abstract getAllModifications (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 
     abstract getModificationsForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
+
+    abstract authenticate(visitorId: string): void
+    abstract unauthenticate(): void
 }

@@ -1,5 +1,6 @@
 import { IFlagshipConfig } from '../config/index'
 import { CampaignDTO } from '../decision/api/models'
+import { FlagshipContext } from '../enum/FlagshipContext'
 import { HitAbstract, IEvent, IItem, IPage, IScreen, ITransaction } from '../hit/index'
 import { Modification } from '../model/Modification'
 import { modificationsRequested, primitive } from '../types'
@@ -29,10 +30,10 @@ export interface IVisitor{
    * A new context value associated with this key will be created if there is no previous matching value.
    *
    * Context keys must be String, and values types must be one of the following : Number, Boolean, String.
-   * @param {Record<string, primitive>} context : collection of keys, values.
+   * @param {Record<string|FlagshipContext, primitive>} context : collection of keys, values.
    */
     updateContext (
-    context: Record<string, primitive>
+    context: Record<string|FlagshipContext, primitive>
   ): void
 
   /**
@@ -150,4 +151,15 @@ export interface IVisitor{
     visitorId: string;
     campaigns: CampaignDTO[];
     }>
+
+    /**
+     * Authenticate anonymous visitor
+     * @param {string} visitorId
+     */
+    authenticate(visitorId:string):void
+
+    /**
+     * This function change authenticated Visitor to anonymous visitor
+     */
+    unauthenticate():void
 }

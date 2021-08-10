@@ -10,6 +10,7 @@ import { VisitorAbstract } from './VisitorAbstract'
 import { IFlagshipConfig } from '../config/index'
 import { EMIT_READY } from '../enum/index'
 import { CampaignDTO } from '../decision/api/models'
+import { FlagshipContext } from '../enum/FlagshipContext'
 
 export class Visitor extends EventEmitter implements IVisitor {
   private visitorDelegate:VisitorAbstract
@@ -50,7 +51,7 @@ export class Visitor extends EventEmitter implements IVisitor {
     return this.visitorDelegate.modifications
   }
 
-  public updateContext (context: Record<string, primitive>): void {
+  public updateContext (context: Record<string|FlagshipContext, primitive>): void {
     this.visitorDelegate.updateContext(context)
   }
 
@@ -122,5 +123,13 @@ export class Visitor extends EventEmitter implements IVisitor {
 
   getModificationsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
     return this.visitorDelegate.getModificationsForCampaign(campaignId, activate)
+  }
+
+  authenticate (visitorId: string): void {
+    this.visitorDelegate.authenticate(visitorId)
+  }
+
+  unauthenticate (): void {
+    this.visitorDelegate.unauthenticate()
   }
 }

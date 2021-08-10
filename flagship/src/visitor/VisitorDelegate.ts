@@ -3,9 +3,10 @@ import { HitAbstract, IPage, IScreen, IEvent, IItem, ITransaction } from '../hit
 import { primitive, modificationsRequested } from '../types'
 import { VisitorAbstract } from './VisitorAbstract'
 import { CampaignDTO } from '../decision/api/models'
+import { FlagshipContext } from '../enum/FlagshipContext'
 
 export class VisitorDelegate extends VisitorAbstract {
-  updateContext (context: Record<string, primitive>): void {
+  updateContext (context: Record<string|FlagshipContext, primitive>): void {
     this.getStrategy().updateContext(context)
   }
 
@@ -77,5 +78,13 @@ export class VisitorDelegate extends VisitorAbstract {
 
   getModificationsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
     return this.getStrategy().getModificationsForCampaign(campaignId, activate)
+  }
+
+  authenticate (visitorId: string): void {
+    this.getStrategy().authenticate(visitorId)
+  }
+
+  unauthenticate (): void {
+    this.getStrategy().unauthenticate()
   }
 }
