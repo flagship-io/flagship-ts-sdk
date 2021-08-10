@@ -18,6 +18,19 @@ import { VisitorDelegate } from '../visitor/VisitorDelegate'
 import { BucketingConfig } from '../config/index'
 import { BucketingManager } from '../decision/BucketingManager'
 import { MurmurHash } from '../utils/MurmurHash'
+import { primitive } from '../types'
+
+export interface INewVisitor{
+  /**
+   * Unique visitor identifier.
+   */
+  visitorId?:string
+  isAuthenticated?: boolean
+  /**
+   * visitor context
+   */
+  context?: Record<string, primitive>
+}
 
 export class Flagship {
   private static _instance: Flagship;
@@ -156,19 +169,44 @@ export class Flagship {
 
   /**
    * Create a new visitor with a context.
-   * @param {string} visitorId : Unique visitor identifier.
-   * @param {Record<string, string | number | boolean>} context : visitor context. e.g: { isVip: true, country: "UK" }.
+   * @param {INewVisitor} params
    * @returns {Visitor} a new visitor instance
    */
-  public static newVisitor (
-    visitorId: string|null,
-    context: Record<string, string | number | boolean> = {}
-  ): Visitor | null {
+
+  public static newVisitor (params:INewVisitor): Visitor | null
+
+  /**
+   * Create a new visitor with a context.
+   * @param {string} visitorId : Unique visitor identifier.
+   * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
+   * @returns {Visitor} a new visitor instance
+   */
+  public static newVisitor (visitorId: string|null, context?: Record<string, primitive>): Visitor | null
+
+  public static newVisitor (params:string|INewVisitor|null, params2?:Record<string, primitive>): Visitor | null {
     if (!this.isReady()) {
       return null
     }
 
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager: this.getInstance().configManager })
+    let visitorId:string|null
+    let context:Record<string, primitive>
+    let isAuthenticated = false
+
+    if (typeof params === 'string' || params === null) {
+      visitorId = params
+      context = params2 || {}
+    } else {
+      visitorId = params.visitorId || null
+      context = params.context || {}
+      isAuthenticated = params.isAuthenticated ?? false
+    }
+
+    const visitorDelegate = new VisitorDelegate({
+      visitorId,
+      context,
+      isAuthenticated,
+      configManager: this.getInstance().configManager
+    })
 
     const visitor = new Visitor(visitorDelegate)
 
