@@ -24,7 +24,7 @@ export const EXPOSE_ALL_KEYS = 'exposeAllKeys'
 /**
  * SDK version
  */
-export const SDK_VERSION = 'v1'
+export const SDK_VERSION = 'v2'
 
 /**
  * Message Info
@@ -64,6 +64,7 @@ export const METHOD_DEACTIVATED_CONSENT_ERROR = 'Method {0} is deactivated for v
 export const METHOD_DEACTIVATED_ERROR = 'Method {0} is deactivated while SDK status is: {1}.'
 export const METHOD_DEACTIVATED_BUCKETING_ERROR = 'Method {0} is deactivated on Bucketing mode.'
 export const FLAGSHIP_VISITOR_NOT_AUTHENTICATE = 'Visitor is not authenticated yet'
+export const PREDEFINED_CONTEXT_TYPE_ERROR = 'Predefined Context {0} must be type of {1}'
 
 // Process
 export const PROCESS = 'process'
