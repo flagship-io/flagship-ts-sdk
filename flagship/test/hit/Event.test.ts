@@ -37,6 +37,7 @@ describe('test hit type Event', () => {
     expect(event.eventLabel).toBeUndefined()
     expect(event.eventValue).toBeUndefined()
     expect(event.visitorId).toBeUndefined()
+    expect(event.anonymousId).toBeNull()
     expect(event.getErrorMessage()).toBe(ERROR_MESSAGE)
   })
 
@@ -88,19 +89,25 @@ describe('test hit type Event', () => {
     expect(event.visitorId).toBe(visitorId)
   })
 
+  const anonymousId = 'anonymousId'
+  it('test visitorId', () => {
+    event.anonymousId = anonymousId
+    expect(event.anonymousId).toBe(anonymousId)
+  })
+
   it('test isReady method', () => {
     expect(event.isReady()).toBeTruthy()
   })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const apiKeys: any = {
-    [VISITOR_ID_API_ITEM]: visitorId,
+    [VISITOR_ID_API_ITEM]: anonymousId,
     [DS_API_ITEM]: SDK_APP,
     [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
     [T_API_ITEM]: HitType.EVENT,
     [EVENT_CATEGORY_API_ITEM]: category,
     [EVENT_ACTION_API_ITEM]: action,
-    [CUSTOMER_UID]: null
+    [CUSTOMER_UID]: visitorId
   }
 
   it('should ', () => {

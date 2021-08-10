@@ -23,44 +23,49 @@ import {
 import { IHttpResponse } from '../../src/utils/httpClient'
 import { Page } from '../../src/hit/index'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
+import { ApiManager } from '../../src/decision/ApiManager'
 
 // mock NodeHttpClient
 jest.mock('../../src/utils/NodeHttpClient')
 
 describe('test TrackingManager sendActive ', () => {
+  const httpClient = new HttpClient()
+
+  const postAsync = jest.spyOn(httpClient, 'postAsync')
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
+
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  const visitorId = 'visitorId'
+  const context = { age: 20 }
+
+  const visitor = new VisitorDelegate({ visitorId, context, configManager: {} as ConfigManager })
+
+  const url = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
+  const headers = {
+    [HEADER_X_API_KEY]: `${config.apiKey}`,
+    [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
+    [HEADER_X_SDK_VERSION]: SDK_VERSION,
+    [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
+  }
+  const modification = new Modification(
+    'key',
+    'campaignId',
+    'variationGroupId',
+    'variationId',
+    false,
+    'value'
+  )
+
+  const postResponse: IHttpResponse = { status: 204, body: null }
+  const postResponseError: IHttpResponse = { status: 400, body: null }
+
   it('should ', async () => {
-    const httpClient = new HttpClient()
-
-    const postAsync = jest.spyOn(httpClient, 'postAsync')
-
-    const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
-
-    const trackingManager = new TrackingManager(httpClient, config)
-
     expect(config).toBe(trackingManager.config)
     expect(httpClient).toBe(trackingManager.httpClient)
 
-    const visitorId = 'visitorId'
-    const context = { age: 20 }
-
-    const visitor = new VisitorDelegate({ visitorId, context, configManager: {} as ConfigManager })
-    const modification = new Modification(
-      'key',
-      'campaignId',
-      'variationGroupId',
-      'variationId',
-      false,
-      'value'
-    )
-
     // Test http request data
-    const url = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
-    const headers = {
-      [HEADER_X_API_KEY]: `${config.apiKey}`,
-      [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
-      [HEADER_X_SDK_VERSION]: SDK_VERSION,
-      [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
-    }
 
     const postData = {
       [VISITOR_ID_API_ITEM]: visitor.visitorId,
@@ -69,9 +74,6 @@ describe('test TrackingManager sendActive ', () => {
       [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
       [ANONYMOUS_ID]: visitor.anonymousId
     }
-
-    const postResponse: IHttpResponse = { status: 204, body: null }
-    const postResponseError: IHttpResponse = { status: 400, body: null }
 
     try {
       postAsync.mockResolvedValue(postResponse)
@@ -93,7 +95,39 @@ describe('test TrackingManager sendActive ', () => {
     } catch (error) {
       expect(error).toBe(postResponseError)
     }
+    expect(postAsync).toHaveBeenCalledTimes(2)
+  })
 
+  it('should ', async () => {
+    const visitor = new VisitorDelegate({ visitorId, isAuthenticated: true, context, configManager: { config, trackingManager, decisionManager: {} as ApiManager } })
+    const postData = {
+      [VISITOR_ID_API_ITEM]: visitor.visitorId,
+      [VARIATION_ID_API_ITEM]: modification.variationId,
+      [VARIATION_GROUP_ID_API_ITEM]: modification.variationGroupId,
+      [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
+      [ANONYMOUS_ID]: visitor.anonymousId
+    }
+
+    try {
+      postAsync.mockResolvedValue(postResponse)
+      await trackingManager.sendActive(visitor, modification)
+
+      expect(postAsync).toHaveBeenCalledWith(url, {
+        headers: headers,
+        timeout: config.timeout,
+        body: postData
+      })
+
+      postAsync.mockRejectedValue(postResponseError)
+      await trackingManager.sendActive(visitor, modification)
+      expect(postAsync).toHaveBeenCalledWith(url, {
+        headers: headers,
+        timeout: config.timeout,
+        body: postData
+      })
+    } catch (error) {
+      expect(error).toBe(postResponseError)
+    }
     expect(postAsync).toHaveBeenCalledTimes(2)
   })
 })

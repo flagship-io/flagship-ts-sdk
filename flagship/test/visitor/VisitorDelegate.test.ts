@@ -32,6 +32,9 @@ const getModificationsForCampaign:Mock<Promise<{
   campaigns: CampaignDTO[];
 }>, [campaignId: string, activate?: boolean]> = jest.fn()
 
+const authenticate:Mock<void, [visitorId:string]> = jest.fn()
+const unauthenticate:Mock<void, []> = jest.fn()
+
 jest.mock('../../src/visitor/DefaultStrategy', () => {
   return {
     DefaultStrategy: jest.fn().mockImplementation(() => {
@@ -48,7 +51,9 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         sendHit,
         sendHitSync,
         getAllModifications,
-        getModificationsForCampaign
+        getModificationsForCampaign,
+        authenticate,
+        unauthenticate
       }
     })
   }
@@ -146,11 +151,19 @@ describe('test VisitorDelegate', () => {
 
     expect(visitorDelegate.configManager).toBe(configManager)
 
+    expect(visitorDelegate.anonymousId).toBeNull()
+
     visitorDelegate.modifications.set('newKey', new Modification('newKey', 'cma', 'var', 'varId', true, 'value'))
+  })
+
+  it('test anonymous', () => {
+    const visitorDelegate = new VisitorDelegate({ visitorId, isAuthenticated: true, context, configManager: configManager as ConfigManager })
+    expect(visitorDelegate.anonymousId).toBeDefined()
+    expect(visitorDelegate.anonymousId).toHaveLength(36)
   })
 })
 
-describe('Name of the group', () => {
+describe('test VisitorDelegate methods', () => {
   const visitorDelegate = new VisitorDelegate({ visitorId: 'visitorId', context: {}, configManager: {} as ConfigManager })
   it('test updateContext', () => {
     const contexts = {
@@ -268,5 +281,19 @@ describe('Name of the group', () => {
       expect(getModificationsForCampaign).toBeCalledTimes(1)
       expect(getModificationsForCampaign).toBeCalledWith(campaignId, false)
     })
+  })
+
+  it('test authenticate', () => {
+    authenticate.mockReturnValue()
+    const authenticateId = 'authenticateId'
+    visitorDelegate.authenticate(authenticateId)
+    expect(authenticate).toBeCalledTimes(1)
+    expect(authenticate).toBeCalledWith(authenticateId)
+  })
+
+  it('test unauthenticate', () => {
+    unauthenticate.mockReturnValue()
+    visitorDelegate.unauthenticate()
+    expect(unauthenticate).toBeCalledTimes(1)
   })
 })

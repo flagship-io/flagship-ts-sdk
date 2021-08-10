@@ -197,6 +197,22 @@ describe('test visitor', () => {
     })
   })
 
+  it('test authenticate', () => {
+    const authenticate = jest.spyOn(visitorDelegate, 'authenticate')
+    authenticate.mockReturnValue()
+    const authenticateId = 'authenticateId'
+    visitor.authenticate(authenticateId)
+    expect(authenticate).toBeCalledTimes(1)
+    expect(authenticate).toBeCalledWith(authenticateId)
+  })
+
+  it('test unauthenticate', () => {
+    const unauthenticate = jest.spyOn(visitorDelegate, 'unauthenticate')
+    unauthenticate.mockReturnValue()
+    visitor.unauthenticate()
+    expect(unauthenticate).toBeCalledTimes(1)
+  })
+
   it('test listener ', () => {
     const args = {}
     visitor.on(EMIT_READY, (params) => {

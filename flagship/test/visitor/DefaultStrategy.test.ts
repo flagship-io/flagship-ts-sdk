@@ -1,7 +1,7 @@
 import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig, EventCategory, Modification, Screen } from '../../src/index'
 import { TrackingManager } from '../../src/api/TrackingManager'
-import { ConfigManager } from '../../src/config/index'
+import { BucketingConfig, ConfigManager, DecisionMode } from '../../src/config/index'
 import { ApiManager } from '../../src/decision/ApiManager'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { IHttpResponse, IHttpOptions } from '../../src/utils/httpClient'
@@ -9,7 +9,7 @@ import { HttpClient } from '../../src/utils/NodeHttpClient'
 import { DefaultStrategy, TYPE_HIT_REQUIRED_ERROR } from '../../src/visitor/DefaultStrategy'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { Mock } from 'jest-mock'
-import { CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, PANIC_MODE_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_SYNCHRONIZED_MODIFICATION, PROCESS_UPDATE_CONTEXT, SDK_APP, TRACKER_MANAGER_MISSING_ERROR } from '../../src/enum'
+import { CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, METHOD_DEACTIVATED_BUCKETING_ERROR, PANIC_MODE_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_SYNCHRONIZED_MODIFICATION, PROCESS_UPDATE_CONTEXT, SDK_APP, TRACKER_MANAGER_MISSING_ERROR, VISITOR_ID_ERROR } from '../../src/enum'
 import { sprintf } from '../../src/utils/utils'
 import { returnModification } from './modification'
 
@@ -626,6 +626,71 @@ describe('test DefaultStrategy ', () => {
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(TYPE_HIT_REQUIRED_ERROR, PROCESS_SEND_HIT)
     expect(sendHit).toBeCalledTimes(0)
+  })
+
+  it('test unauthenticate with null anonymousId', () => {
+    defaultStrategy.unauthenticate()
+    expect(visitorDelegate.visitorId).toBe(visitorId)
+    expect(visitorDelegate.anonymousId).toBe(null)
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(FLAGSHIP_VISITOR_NOT_AUTHENTICATE, 'unauthenticate')
+  })
+
+  it('test authenticate with null visitorId', () => {
+    defaultStrategy.authenticate(getNull())
+    expect(visitorDelegate.visitorId).toBe(visitorId)
+    expect(visitorDelegate.anonymousId).toBeNull()
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(VISITOR_ID_ERROR, 'authenticate')
+  })
+
+  const authenticateId = 'authenticateId'
+  it('test authenticate', () => {
+    defaultStrategy.authenticate(authenticateId)
+    expect(visitorDelegate.visitorId).toBe(authenticateId)
+    expect(visitorDelegate.anonymousId).toBe(visitorId)
+  })
+
+  it('test unauthenticate', () => {
+    defaultStrategy.unauthenticate()
+    expect(visitorDelegate.visitorId).toBe(visitorId)
+    expect(visitorDelegate.anonymousId).toBeNull()
+  })
+})
+
+describe('test authenticate on bucketing mode', () => {
+  const visitorId = 'visitorId'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const context: any = {
+    isVip: true
+  }
+
+  const logManager = new FlagshipLogManager()
+  const logError = jest.spyOn(logManager, 'error')
+
+  const config = new BucketingConfig({ envId: 'envId', apiKey: 'apiKey' })
+  config.logManager = logManager
+
+  const configManager = new ConfigManager(config, {} as ApiManager, {} as TrackingManager)
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
+  const defaultStrategy = new DefaultStrategy(visitorDelegate)
+
+  it('test authenticate on bucketing mode', () => {
+    const authenticateId = 'authenticateId'
+    defaultStrategy.authenticate(authenticateId)
+    expect(visitorDelegate.visitorId).toBe(visitorId)
+    expect(visitorDelegate.anonymousId).toBe(null)
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_BUCKETING_ERROR, 'authenticate'), 'authenticate')
+  })
+
+  it('test unauthenticate on bucketing mode', () => {
+    defaultStrategy.unauthenticate()
+    expect(visitorDelegate.visitorId).toBe(visitorId)
+    expect(visitorDelegate.anonymousId).toBe(null)
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_BUCKETING_ERROR, 'unauthenticate'), 'unauthenticate')
   })
 })
 
