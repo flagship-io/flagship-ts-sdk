@@ -54,7 +54,7 @@ describe('test getStrategy', () => {
     expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
   })
 
-  it('test PanicStrategy', async () => {
+  it('test NoConsent', async () => {
     Flagship.getStatus = jest.fn(() => {
       return FlagshipStatus.READY
     })
