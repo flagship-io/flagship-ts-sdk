@@ -2,6 +2,7 @@ import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig } from '../../src/config/index'
 import {
   CUSTOMER_ENV_ID_API_ITEM,
+  CUSTOMER_UID,
   DL_API_ITEM,
   DS_API_ITEM,
   HitType,
@@ -47,7 +48,8 @@ describe('test hit type Page', () => {
       [DS_API_ITEM]: SDK_APP,
       [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
       [T_API_ITEM]: HitType.SCREEN_VIEW,
-      [DL_API_ITEM]: documentLocation
+      [DL_API_ITEM]: documentLocation,
+      [CUSTOMER_UID]: null
     }
     expect(screen.toApiKeys()).toEqual(apiKeys)
   })

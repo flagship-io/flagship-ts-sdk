@@ -44,6 +44,7 @@ describe('test ApiManager', () => {
   }
   const postData = {
     visitorId: visitor.visitorId,
+    anonymousId: visitor.anonymousId,
     trigger_hit: false,
     context: visitor.context
   }

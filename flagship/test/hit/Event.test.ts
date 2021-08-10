@@ -4,6 +4,7 @@ import { Event, EventCategory } from '../../src/hit/index'
 import { DecisionApiConfig } from '../../src/config/index'
 import {
   CUSTOMER_ENV_ID_API_ITEM,
+  CUSTOMER_UID,
   DS_API_ITEM,
   EVENT_ACTION_API_ITEM,
   EVENT_CATEGORY_API_ITEM,
@@ -98,7 +99,8 @@ describe('test hit type Event', () => {
     [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
     [T_API_ITEM]: HitType.EVENT,
     [EVENT_CATEGORY_API_ITEM]: category,
-    [EVENT_ACTION_API_ITEM]: action
+    [EVENT_ACTION_API_ITEM]: action,
+    [CUSTOMER_UID]: null
   }
 
   it('should ', () => {

@@ -4,6 +4,7 @@ import { ConfigManager, DecisionApiConfig } from '../../src/config/index'
 import { HttpClient } from '../../src/utils/NodeHttpClient'
 import { Modification } from '../../src/model/Modification'
 import {
+  ANONYMOUS_ID,
   BASE_API_URL,
   CUSTOMER_ENV_ID_API_ITEM,
   HEADER_APPLICATION_JSON,
@@ -65,7 +66,8 @@ describe('test TrackingManager sendActive ', () => {
       [VISITOR_ID_API_ITEM]: visitor.visitorId,
       [VARIATION_ID_API_ITEM]: modification.variationId,
       [VARIATION_GROUP_ID_API_ITEM]: modification.variationGroupId,
-      [CUSTOMER_ENV_ID_API_ITEM]: config.envId
+      [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
+      [ANONYMOUS_ID]: visitor.anonymousId
     }
 
     const postResponse: IHttpResponse = { status: 204, body: null }
