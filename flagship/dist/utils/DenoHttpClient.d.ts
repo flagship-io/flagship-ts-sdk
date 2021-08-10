@@ -1,4 +1,5 @@
 import { IHttpClient, IHttpOptions, IHttpResponse } from './httpClient';
 export declare class HttpClient implements IHttpClient {
+    getAsync(url: string, options?: IHttpOptions): Promise<IHttpResponse>;
     postAsync(url: string, options: IHttpOptions): Promise<IHttpResponse>;
 }

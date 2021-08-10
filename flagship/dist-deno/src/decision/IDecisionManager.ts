@@ -1,3 +1,4 @@
+import { IFlagshipConfig } from '../config/index.ts'
 import { Modification } from '../model/Modification.ts'
 import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 import { CampaignDTO } from './api/models.ts'
@@ -12,4 +13,6 @@ export interface IDecisionManager {
   getCampaignsModificationsAsync(
     visitor: VisitorAbstract,
   ): Promise<Map<string, Modification>>
+
+  config:IFlagshipConfig
 }

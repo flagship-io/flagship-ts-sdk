@@ -13,7 +13,6 @@ import {
 } from '../enum/index.ts'
 import { DecisionManager } from './DecisionManager.ts'
 import { CampaignDTO } from './api/models.ts'
-import { Modification } from '../model/Modification.ts'
 import { logError } from '../utils/utils.ts'
 import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 
@@ -55,41 +54,6 @@ export class ApiManager extends DecisionManager {
           logError(this.config, JSON.stringify(error), PROCESS_GET_CAMPAIGNS)
           reject(error)
         })
-    })
-  }
-
-  public getModifications (campaigns: Array<CampaignDTO>):Map<string, Modification> {
-    const modifications = new Map<string, Modification>()
-    campaigns.forEach((campaign) => {
-      const object = campaign.variation.modifications.value
-      for (const key in object) {
-        const value = object[key]
-        modifications.set(
-          key,
-          new Modification(
-            key,
-            campaign.id,
-            campaign.variationGroupId,
-            campaign.variation.id,
-            campaign.variation.reference,
-            value
-          )
-        )
-      }
-    })
-    return modifications
-  }
-
-  public async getCampaignsModificationsAsync (
-    visitor: VisitorAbstract
-  ): Promise<Map<string, Modification>> {
-    return new Promise((resolve, reject) => {
-      this.getCampaignsAsync(visitor).then(campaigns => {
-        resolve(this.getModifications(campaigns))
-      }).catch(error => {
-        console.log('campaigns', error)
-        reject(error)
-      })
     })
   }
 }

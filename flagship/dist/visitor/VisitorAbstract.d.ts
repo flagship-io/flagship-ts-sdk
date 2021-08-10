@@ -15,7 +15,11 @@ export declare abstract class VisitorAbstract extends EventEmitter implements IV
     protected _config: IFlagshipConfig;
     protected _campaigns: CampaignDTO[];
     protected _hasConsented: boolean;
-    constructor(visitorId: string | null, context: Record<string, primitive>, configManager: IConfigManager);
+    constructor(param: {
+        visitorId: string | null;
+        context: Record<string, primitive>;
+        configManager: IConfigManager;
+    });
     protected createVisitorId(): string;
     get visitorId(): string;
     set visitorId(v: string);

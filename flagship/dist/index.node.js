@@ -2296,6 +2296,67 @@ var TrackingManagerAbstract = /** @class */ (function () {
 
 /***/ }),
 
+/***/ "./src/config/BucketingConfig.ts":
+/*!***************************************!*\
+  !*** ./src/config/BucketingConfig.ts ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "BucketingConfig": () => (/* binding */ BucketingConfig)
+/* harmony export */ });
+/* harmony import */ var _enum_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../enum/index */ "./src/enum/index.ts");
+/* harmony import */ var _FlagshipConfig__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./FlagshipConfig */ "./src/config/FlagshipConfig.ts");
+var __extends = (undefined && undefined.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var __assign = (undefined && undefined.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+
+
+var BucketingConfig = /** @class */ (function (_super) {
+    __extends(BucketingConfig, _super);
+    function BucketingConfig(param) {
+        var _this = _super.call(this, __assign(__assign({}, param), { decisionMode: _FlagshipConfig__WEBPACK_IMPORTED_MODULE_1__.DecisionMode.BUCKETING })) || this;
+        if (param) {
+            var pollingInterval = param.pollingInterval;
+            _this.pollingInterval = pollingInterval !== null && pollingInterval !== void 0 ? pollingInterval : _enum_index__WEBPACK_IMPORTED_MODULE_0__.REQUEST_TIME_OUT;
+        }
+        else {
+            _this.pollingInterval = _enum_index__WEBPACK_IMPORTED_MODULE_0__.REQUEST_TIME_OUT;
+        }
+        return _this;
+    }
+    return BucketingConfig;
+}(_FlagshipConfig__WEBPACK_IMPORTED_MODULE_1__.FlagshipConfig));
+
+
+
+/***/ }),
+
 /***/ "./src/config/ConfigManager.ts":
 /*!*************************************!*\
   !*** ./src/config/ConfigManager.ts ***!
@@ -2501,6 +2562,16 @@ var FlagshipConfig = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
+    Object.defineProperty(FlagshipConfig.prototype, "pollingInterval", {
+        get: function () {
+            return this._pollingInterval;
+        },
+        set: function (v) {
+            this._pollingInterval = v;
+        },
+        enumerable: false,
+        configurable: true
+    });
     Object.defineProperty(FlagshipConfig.prototype, "statusChangedCallback", {
         get: function () {
             return this._statusChangedCallback;
@@ -2543,12 +2614,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "ConfigManager": () => (/* reexport safe */ _ConfigManager__WEBPACK_IMPORTED_MODULE_0__.ConfigManager),
 /* harmony export */   "DecisionApiConfig": () => (/* reexport safe */ _DecisionApiConfig__WEBPACK_IMPORTED_MODULE_1__.DecisionApiConfig),
-/* harmony export */   "DecisionMode": () => (/* reexport safe */ _FlagshipConfig__WEBPACK_IMPORTED_MODULE_2__.DecisionMode),
-/* harmony export */   "FlagshipConfig": () => (/* reexport safe */ _FlagshipConfig__WEBPACK_IMPORTED_MODULE_2__.FlagshipConfig)
+/* harmony export */   "BucketingConfig": () => (/* reexport safe */ _BucketingConfig__WEBPACK_IMPORTED_MODULE_2__.BucketingConfig),
+/* harmony export */   "DecisionMode": () => (/* reexport safe */ _FlagshipConfig__WEBPACK_IMPORTED_MODULE_3__.DecisionMode),
+/* harmony export */   "FlagshipConfig": () => (/* reexport safe */ _FlagshipConfig__WEBPACK_IMPORTED_MODULE_3__.FlagshipConfig)
 /* harmony export */ });
 /* harmony import */ var _ConfigManager__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ConfigManager */ "./src/config/ConfigManager.ts");
 /* harmony import */ var _DecisionApiConfig__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./DecisionApiConfig */ "./src/config/DecisionApiConfig.ts");
-/* harmony import */ var _FlagshipConfig__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./FlagshipConfig */ "./src/config/FlagshipConfig.ts");
+/* harmony import */ var _BucketingConfig__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./BucketingConfig */ "./src/config/BucketingConfig.ts");
+/* harmony import */ var _FlagshipConfig__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./FlagshipConfig */ "./src/config/FlagshipConfig.ts");
+
 
 
 
@@ -2569,8 +2643,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _enum_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../enum/index */ "./src/enum/index.ts");
 /* harmony import */ var _DecisionManager__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./DecisionManager */ "./src/decision/DecisionManager.ts");
-/* harmony import */ var _model_Modification__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../model/Modification */ "./src/model/Modification.ts");
-/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utils/utils */ "./src/utils/utils.ts");
+/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/utils */ "./src/utils/utils.ts");
 var __extends = (undefined && undefined.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -2625,7 +2698,6 @@ var __generator = (undefined && undefined.__generator) || function (thisArg, bod
 
 
 
-
 var ApiManager = /** @class */ (function (_super) {
     __extends(ApiManager, _super);
     function ApiManager() {
@@ -2666,33 +2738,7 @@ var ApiManager = /** @class */ (function (_super) {
                             resolve(response);
                         })
                             .catch(function (error) {
-                            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_3__.logError)(_this.config, JSON.stringify(error), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_GET_CAMPAIGNS);
-                            reject(error);
-                        });
-                    })];
-            });
-        });
-    };
-    ApiManager.prototype.getModifications = function (campaigns) {
-        var modifications = new Map();
-        campaigns.forEach(function (campaign) {
-            var object = campaign.variation.modifications.value;
-            for (var key in object) {
-                var value = object[key];
-                modifications.set(key, new _model_Modification__WEBPACK_IMPORTED_MODULE_2__.Modification(key, campaign.id, campaign.variationGroupId, campaign.variation.id, campaign.variation.reference, value));
-            }
-        });
-        return modifications;
-    };
-    ApiManager.prototype.getCampaignsModificationsAsync = function (visitor) {
-        return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
-            return __generator(this, function (_a) {
-                return [2 /*return*/, new Promise(function (resolve, reject) {
-                        _this.getCampaignsAsync(visitor).then(function (campaigns) {
-                            resolve(_this.getModifications(campaigns));
-                        }).catch(function (error) {
-                            console.log('campaigns', error);
+                            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(_this.config, JSON.stringify(error), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_GET_CAMPAIGNS);
                             reject(error);
                         });
                     })];
@@ -2701,6 +2747,314 @@ var ApiManager = /** @class */ (function (_super) {
     };
     return ApiManager;
 }(_DecisionManager__WEBPACK_IMPORTED_MODULE_1__.DecisionManager));
+
+
+
+/***/ }),
+
+/***/ "./src/decision/BucketingManager.ts":
+/*!******************************************!*\
+  !*** ./src/decision/BucketingManager.ts ***!
+  \******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "BucketingManager": () => (/* binding */ BucketingManager)
+/* harmony export */ });
+/* harmony import */ var _enum_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../enum/index */ "./src/enum/index.ts");
+/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/utils */ "./src/utils/utils.ts");
+/* harmony import */ var _DecisionManager__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./DecisionManager */ "./src/decision/DecisionManager.ts");
+var __extends = (undefined && undefined.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (undefined && undefined.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+
+
+
+var BucketingManager = /** @class */ (function (_super) {
+    __extends(BucketingManager, _super);
+    function BucketingManager(httpClient, config, murmurHash) {
+        var _this = _super.call(this, httpClient, config) || this;
+        _this._murmurHash = murmurHash;
+        return _this;
+    }
+    BucketingManager.prototype.startPolling = function () {
+        var _a;
+        return __awaiter(this, void 0, void 0, function () {
+            var url, headers, response, error_1;
+            var _b;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        if (this._isPooling) {
+                            return [2 /*return*/];
+                        }
+                        this._isPooling = true;
+                        if (this.config.pollingInterval === 0) {
+                            this._isPooling = false;
+                        }
+                        (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logInfo)(this.config, 'Bucketing polling starts', 'startPolling');
+                        _c.label = 1;
+                    case 1:
+                        _c.trys.push([1, 4, , 5]);
+                        url = (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.BUCKETING_API_URL, this.config.envId);
+                        headers = (_b = {},
+                            _b[_enum_index__WEBPACK_IMPORTED_MODULE_0__.HEADER_X_API_KEY] = "" + this.config.apiKey,
+                            _b[_enum_index__WEBPACK_IMPORTED_MODULE_0__.HEADER_X_SDK_CLIENT] = _enum_index__WEBPACK_IMPORTED_MODULE_0__.SDK_LANGUAGE,
+                            _b[_enum_index__WEBPACK_IMPORTED_MODULE_0__.HEADER_X_SDK_VERSION] = _enum_index__WEBPACK_IMPORTED_MODULE_0__.SDK_VERSION,
+                            _b[_enum_index__WEBPACK_IMPORTED_MODULE_0__.HEADER_CONTENT_TYPE] = _enum_index__WEBPACK_IMPORTED_MODULE_0__.HEADER_APPLICATION_JSON,
+                            _b);
+                        if (this._lastModified) {
+                            headers['If-Modified-Since'] = this._lastModified;
+                        }
+                        return [4 /*yield*/, this._httpClient.getAsync(url, { headers: headers })];
+                    case 2:
+                        response = _c.sent();
+                        if (response.status === 200) {
+                            this._bucketingContent = response.body;
+                        }
+                        if (response.headers) {
+                            this._lastModified = response.headers['Last-Modified'];
+                        }
+                        return [4 /*yield*/, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.sleep)(((_a = this.config.pollingInterval) !== null && _a !== void 0 ? _a : _enum_index__WEBPACK_IMPORTED_MODULE_0__.REQUEST_TIME_OUT) * 1000)];
+                    case 3:
+                        _c.sent();
+                        return [3 /*break*/, 5];
+                    case 4:
+                        error_1 = _c.sent();
+                        (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, error_1, 'startPolling');
+                        return [3 /*break*/, 5];
+                    case 5:
+                        if (this._isPooling) return [3 /*break*/, 1];
+                        _c.label = 6;
+                    case 6:
+                        (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logInfo)(this.config, 'Bucketing polling stopped', 'startPolling');
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    BucketingManager.prototype.stopPolling = function () {
+        this._isPooling = false;
+    };
+    BucketingManager.prototype.sendContext = function (visitor) {
+        var _this = this;
+        return new Promise(function (resolve) {
+            var _a;
+            var url = (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.BUCKETING_API_CONTEXT_URL, _this.config.envId);
+            var headers = (_a = {},
+                _a[_enum_index__WEBPACK_IMPORTED_MODULE_0__.HEADER_X_API_KEY] = "" + _this.config.apiKey,
+                _a[_enum_index__WEBPACK_IMPORTED_MODULE_0__.HEADER_X_SDK_CLIENT] = _enum_index__WEBPACK_IMPORTED_MODULE_0__.SDK_LANGUAGE,
+                _a[_enum_index__WEBPACK_IMPORTED_MODULE_0__.HEADER_X_SDK_VERSION] = _enum_index__WEBPACK_IMPORTED_MODULE_0__.SDK_VERSION,
+                _a[_enum_index__WEBPACK_IMPORTED_MODULE_0__.HEADER_CONTENT_TYPE] = _enum_index__WEBPACK_IMPORTED_MODULE_0__.HEADER_APPLICATION_JSON,
+                _a);
+            var body = {
+                visitorId: visitor.visitorId,
+                type: 'CONTEXT',
+                data: visitor.context
+            };
+            _this._httpClient.postAsync(url, { headers: headers, body: body })
+                .then(function () {
+                resolve();
+            })
+                .catch(function (error) {
+                (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(_this.config, error, 'sendContext');
+            });
+        });
+    };
+    BucketingManager.prototype.getCampaignsAsync = function (visitor) {
+        var _this = this;
+        this.sendContext(visitor);
+        return new Promise(function (resolve) {
+            if (!_this._bucketingContent) {
+                resolve([]);
+                return;
+            }
+            if (_this._bucketingContent.panic) {
+                _this.panic = true;
+                resolve([]);
+                return;
+            }
+            _this.panic = false;
+            if (!_this._bucketingContent.campaigns) {
+                resolve([]);
+                return;
+            }
+            var visitorCampaigns = [];
+            _this._bucketingContent.campaigns.forEach(function (campaign) {
+                var currentCampaigns = _this.getVisitorCampaigns(campaign.variationGroups, campaign.id, visitor);
+                if (currentCampaigns) {
+                    visitorCampaigns.push(currentCampaigns);
+                }
+            });
+            resolve(visitorCampaigns);
+        });
+    };
+    BucketingManager.prototype.getVisitorCampaigns = function (variationGroups, campaignId, visitor) {
+        for (var _i = 0, variationGroups_1 = variationGroups; _i < variationGroups_1.length; _i++) {
+            var variationGroup = variationGroups_1[_i];
+            var check = this.isMatchTargeting(variationGroup, visitor);
+            if (check) {
+                var variations = this.getVariation(variationGroup, visitor.visitorId);
+                if (!variations) {
+                    return null;
+                }
+                return {
+                    id: campaignId,
+                    variation: variations,
+                    variationGroupId: variationGroup.id
+                };
+            }
+        }
+        return null;
+    };
+    BucketingManager.prototype.getVariation = function (variationGroup, visitorId) {
+        var hash = this._murmurHash.murmurHash3Int32(variationGroup.id + visitorId);
+        var hashAllocation = hash % 100;
+        var totalAllocation = 0;
+        for (var _i = 0, _a = variationGroup.variations; _i < _a.length; _i++) {
+            var variation = _a[_i];
+            if (variation.allocation === undefined) {
+                continue;
+            }
+            totalAllocation += variation.allocation;
+            if (hashAllocation < totalAllocation) {
+                return {
+                    id: variation.id,
+                    modifications: variation.modifications,
+                    reference: !!variation.reference
+                };
+            }
+        }
+        return null;
+    };
+    BucketingManager.prototype.isMatchTargeting = function (variationGroup, visitor) {
+        if (!variationGroup || !variationGroup.targeting || !variationGroup.targeting.targetingGroups) {
+            return false;
+        }
+        for (var _i = 0, _a = variationGroup.targeting.targetingGroups; _i < _a.length; _i++) {
+            var targetingGroup = _a[_i];
+            var check = this.checkAndTargeting(targetingGroup.targetings, visitor);
+            if (check) {
+                return true;
+            }
+        }
+        return false;
+    };
+    BucketingManager.prototype.checkAndTargeting = function (targetings, visitor) {
+        var contextValue;
+        var check = false;
+        for (var _i = 0, targetings_1 = targetings; _i < targetings_1.length; _i++) {
+            var targeting = targetings_1[_i];
+            var key = targeting.key;
+            if (key === 'fs_all_users') {
+                check = true;
+                break;
+            }
+            else if (key === 'fs_users') {
+                contextValue = visitor.visitorId;
+            }
+            else {
+                if (!(key in visitor.context)) {
+                    continue;
+                }
+                contextValue = visitor.context[key];
+            }
+            return this.testOperator(targeting.operator, contextValue, targeting.value);
+        }
+        return check;
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    BucketingManager.prototype.testOperator = function (operator, contextValue, value) {
+        var check;
+        switch (operator) {
+            case 'EQUALS':
+                check = contextValue === value;
+                break;
+            case 'NOT_EQUALS':
+                check = contextValue !== value;
+                break;
+            case 'CONTAINS':
+                check = new RegExp("" + value.join('|')).test(contextValue.toString());
+                break;
+            case 'NOT_CONTAINS':
+                check = !(new RegExp("" + value.join('|')).test(contextValue.toString()));
+                break;
+            case 'GREATER_THAN':
+                check = contextValue > value;
+                break;
+            case 'LOWER_THAN':
+                check = contextValue < value;
+                break;
+            case 'GREATER_THAN_OR_EQUALS':
+                check = contextValue >= value;
+                break;
+            case 'LOWER_THAN_OR_EQUALS':
+                check = contextValue <= value;
+                break;
+            case 'STARTS_WITH':
+                check = new RegExp("^" + value).test(contextValue.toString());
+                break;
+            case 'ENDS_WITH':
+                check = new RegExp(value + "$").test(contextValue.toString());
+                break;
+            default:
+                check = false;
+                break;
+        }
+        return check;
+    };
+    return BucketingManager;
+}(_DecisionManager__WEBPACK_IMPORTED_MODULE_2__.DecisionManager));
 
 
 
@@ -2717,6 +3071,44 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "DecisionManager": () => (/* binding */ DecisionManager)
 /* harmony export */ });
+/* harmony import */ var _model_Modification__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../model/Modification */ "./src/model/Modification.ts");
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (undefined && undefined.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+
 var DecisionManager = /** @class */ (function () {
     function DecisionManager(httpClient, config) {
         this._panic = false;
@@ -2738,6 +3130,32 @@ var DecisionManager = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
+    DecisionManager.prototype.getModifications = function (campaigns) {
+        var modifications = new Map();
+        campaigns.forEach(function (campaign) {
+            var object = campaign.variation.modifications.value;
+            for (var key in object) {
+                var value = object[key];
+                modifications.set(key, new _model_Modification__WEBPACK_IMPORTED_MODULE_0__.Modification(key, campaign.id, campaign.variationGroupId, campaign.variation.id, campaign.variation.reference, value));
+            }
+        });
+        return modifications;
+    };
+    DecisionManager.prototype.getCampaignsModificationsAsync = function (visitor) {
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            return __generator(this, function (_a) {
+                return [2 /*return*/, new Promise(function (resolve, reject) {
+                        _this.getCampaignsAsync(visitor).then(function (campaigns) {
+                            resolve(_this.getModifications(campaigns));
+                        }).catch(function (error) {
+                            console.log('campaigns', error);
+                            reject(error);
+                        });
+                    })];
+            });
+        });
+    };
     DecisionManager.prototype.isPanic = function () {
         return this._panic;
     };
@@ -2761,6 +3179,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "REQUEST_TIME_OUT": () => (/* binding */ REQUEST_TIME_OUT),
 /* harmony export */   "BASE_API_URL": () => (/* binding */ BASE_API_URL),
 /* harmony export */   "HIT_API_URL": () => (/* binding */ HIT_API_URL),
+/* harmony export */   "BUCKETING_API_URL": () => (/* binding */ BUCKETING_API_URL),
+/* harmony export */   "BUCKETING_API_CONTEXT_URL": () => (/* binding */ BUCKETING_API_CONTEXT_URL),
 /* harmony export */   "URL_CAMPAIGNS": () => (/* binding */ URL_CAMPAIGNS),
 /* harmony export */   "URL_ACTIVATE_MODIFICATION": () => (/* binding */ URL_ACTIVATE_MODIFICATION),
 /* harmony export */   "EXPOSE_ALL_KEYS": () => (/* binding */ EXPOSE_ALL_KEYS),
@@ -2844,6 +3264,8 @@ var REQUEST_TIME_OUT = 2;
  */
 var BASE_API_URL = 'https://decision.flagship.io/v2/';
 var HIT_API_URL = 'https://ariane.abtasty.com';
+var BUCKETING_API_URL = 'https://cdn.flagship.io/{0}/bucketing.json';
+var BUCKETING_API_CONTEXT_URL = 'https://decision.flagship.io/v2/{0}/events';
 var URL_CAMPAIGNS = '/campaigns';
 var URL_ACTIVATE_MODIFICATION = 'activate';
 var EXPOSE_ALL_KEYS = 'exposeAllKeys';
@@ -3094,6 +3516,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "LogLevel": () => (/* reexport safe */ _LogLevel__WEBPACK_IMPORTED_MODULE_0__.LogLevel),
 /* harmony export */   "BASE_API_URL": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.BASE_API_URL),
+/* harmony export */   "BUCKETING_API_CONTEXT_URL": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.BUCKETING_API_CONTEXT_URL),
+/* harmony export */   "BUCKETING_API_URL": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.BUCKETING_API_URL),
 /* harmony export */   "CONTEXT_NULL_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.CONTEXT_NULL_ERROR),
 /* harmony export */   "CONTEXT_PARAM_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.CONTEXT_PARAM_ERROR),
 /* harmony export */   "CURL_LIBRARY_IS_NOT_LOADED": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.CURL_LIBRARY_IS_NOT_LOADED),
@@ -4090,6 +4514,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../utils/utils */ "./src/utils/utils.ts");
 /* harmony import */ var _enum_index__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../enum/index */ "./src/enum/index.ts");
 /* harmony import */ var _visitor_VisitorDelegate__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../visitor/VisitorDelegate */ "./src/visitor/VisitorDelegate.ts");
+/* harmony import */ var _config_index__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../config/index */ "./src/config/index.ts");
+/* harmony import */ var _decision_BucketingManager__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../decision/BucketingManager */ "./src/decision/BucketingManager.ts");
+/* harmony import */ var _utils_MurmurHash__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../utils/MurmurHash */ "./src/utils/MurmurHash.ts");
+
+
+
 
 
 
@@ -4165,14 +4595,20 @@ var Flagship = /** @class */ (function () {
      * @param {IFlagshipConfig} config : (optional) SDK configuration.
      */
     Flagship.start = function (envId, apiKey, config) {
+        var _a;
         var flagship = this.getInstance();
         if (!(config instanceof _config_FlagshipConfig__WEBPACK_IMPORTED_MODULE_2__.FlagshipConfig)) {
-            config = new _config_DecisionApiConfig__WEBPACK_IMPORTED_MODULE_3__.DecisionApiConfig(config);
+            if ((config === null || config === void 0 ? void 0 : config.decisionMode) === _config_FlagshipConfig__WEBPACK_IMPORTED_MODULE_2__.DecisionMode.BUCKETING) {
+                config = new _config_index__WEBPACK_IMPORTED_MODULE_12__.BucketingConfig(config);
+            }
+            else {
+                config = new _config_DecisionApiConfig__WEBPACK_IMPORTED_MODULE_3__.DecisionApiConfig(config);
+            }
         }
         config.envId = envId;
         config.apiKey = apiKey;
         flagship._config = config;
-        flagship.setStatus(_enum_FlagshipStatus__WEBPACK_IMPORTED_MODULE_1__.FlagshipStatus.NOT_READY);
+        flagship.setStatus(_enum_FlagshipStatus__WEBPACK_IMPORTED_MODULE_1__.FlagshipStatus.NOT_INITIALIZED);
         // check custom logger
         if (!config.logManager) {
             config.logManager = new _utils_FlagshipLogManager__WEBPACK_IMPORTED_MODULE_8__.FlagshipLogManager();
@@ -4181,8 +4617,20 @@ var Flagship = /** @class */ (function () {
             (0,_utils_utils__WEBPACK_IMPORTED_MODULE_9__.logError)(config, _enum_index__WEBPACK_IMPORTED_MODULE_10__.INITIALIZATION_PARAM_ERROR, _enum_index__WEBPACK_IMPORTED_MODULE_10__.PROCESS_INITIALIZATION);
             return;
         }
-        var decisionManager = new _decision_ApiManager__WEBPACK_IMPORTED_MODULE_5__.ApiManager(new _utils_NodeHttpClient__WEBPACK_IMPORTED_MODULE_7__.HttpClient(), flagship.config);
-        var trackingManager = new _api_TrackingManager__WEBPACK_IMPORTED_MODULE_6__.TrackingManager(new _utils_NodeHttpClient__WEBPACK_IMPORTED_MODULE_7__.HttpClient(), config);
+        var decisionManager = (_a = flagship.configManager) === null || _a === void 0 ? void 0 : _a.decisionManager;
+        if (typeof decisionManager === 'object' && decisionManager instanceof _decision_BucketingManager__WEBPACK_IMPORTED_MODULE_13__.BucketingManager) {
+            decisionManager.stopPolling();
+        }
+        var httpClient = new _utils_NodeHttpClient__WEBPACK_IMPORTED_MODULE_7__.HttpClient();
+        if (config.decisionMode === _config_FlagshipConfig__WEBPACK_IMPORTED_MODULE_2__.DecisionMode.BUCKETING) {
+            decisionManager = new _decision_BucketingManager__WEBPACK_IMPORTED_MODULE_13__.BucketingManager(httpClient, config, new _utils_MurmurHash__WEBPACK_IMPORTED_MODULE_14__.MurmurHash());
+            var bucketingManager = decisionManager;
+            bucketingManager.startPolling();
+        }
+        else {
+            decisionManager = new _decision_ApiManager__WEBPACK_IMPORTED_MODULE_5__.ApiManager(httpClient, config);
+        }
+        var trackingManager = new _api_TrackingManager__WEBPACK_IMPORTED_MODULE_6__.TrackingManager(httpClient, config);
         flagship.configManager = new _config_ConfigManager__WEBPACK_IMPORTED_MODULE_4__.ConfigManager(config, decisionManager, trackingManager);
         if (this.isReady()) {
             flagship.setStatus(_enum_FlagshipStatus__WEBPACK_IMPORTED_MODULE_1__.FlagshipStatus.READY);
@@ -4200,7 +4648,7 @@ var Flagship = /** @class */ (function () {
         if (!this.isReady()) {
             return null;
         }
-        var visitorDelegate = new _visitor_VisitorDelegate__WEBPACK_IMPORTED_MODULE_11__.VisitorDelegate(visitorId, context, this.getInstance().configManager);
+        var visitorDelegate = new _visitor_VisitorDelegate__WEBPACK_IMPORTED_MODULE_11__.VisitorDelegate({ visitorId: visitorId, context: context, configManager: this.getInstance().configManager });
         var visitor = new _visitor_Visitor__WEBPACK_IMPORTED_MODULE_0__.Visitor(visitorDelegate);
         if (this.getConfig().fetchNow) {
             visitor.synchronizeModifications();
@@ -4358,6 +4806,67 @@ var FlagshipLogManager = /** @class */ (function () {
 
 /***/ }),
 
+/***/ "./src/utils/MurmurHash.ts":
+/*!*********************************!*\
+  !*** ./src/utils/MurmurHash.ts ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "MurmurHash": () => (/* binding */ MurmurHash)
+/* harmony export */ });
+/* eslint-disable no-fallthrough */
+var MurmurHash = /** @class */ (function () {
+    function MurmurHash() {
+    }
+    MurmurHash.prototype.murmurHash3Int32 = function (key, seed) {
+        if (seed === void 0) { seed = 0; }
+        var h1, h1b, k1, i;
+        var remainder = key.length & 3; // key.length % 4
+        var bytes = key.length - remainder;
+        h1 = seed;
+        var c1 = 0xcc9e2d51;
+        var c2 = 0x1b873593;
+        i = 0;
+        while (i < bytes) {
+            k1 = (key.charCodeAt(i) & 0xff) | ((key.charCodeAt(++i) & 0xff) << 8) | ((key.charCodeAt(++i) & 0xff) << 16) | ((key.charCodeAt(++i) & 0xff) << 24);
+            ++i;
+            k1 = (((k1 & 0xffff) * c1) + ((((k1 >>> 16) * c1) & 0xffff) << 16)) & 0xffffffff;
+            k1 = (k1 << 15) | (k1 >>> 17);
+            k1 = (((k1 & 0xffff) * c2) + ((((k1 >>> 16) * c2) & 0xffff) << 16)) & 0xffffffff;
+            h1 ^= k1;
+            h1 = (h1 << 13) | (h1 >>> 19);
+            h1b = (((h1 & 0xffff) * 5) + ((((h1 >>> 16) * 5) & 0xffff) << 16)) & 0xffffffff;
+            h1 = (((h1b & 0xffff) + 0x6b64) + ((((h1b >>> 16) + 0xe654) & 0xffff) << 16));
+        }
+        k1 = 0;
+        switch (remainder) {
+            case 3: k1 ^= (key.charCodeAt(i + 2) & 0xff) << 16;
+            case 2: k1 ^= (key.charCodeAt(i + 1) & 0xff) << 8;
+            case 1:
+                k1 ^= (key.charCodeAt(i) & 0xff);
+                k1 = (((k1 & 0xffff) * c1) + ((((k1 >>> 16) * c1) & 0xffff) << 16)) & 0xffffffff;
+                k1 = (k1 << 15) | (k1 >>> 17);
+                k1 = (((k1 & 0xffff) * c2) + ((((k1 >>> 16) * c2) & 0xffff) << 16)) & 0xffffffff;
+                h1 ^= k1;
+        }
+        h1 ^= key.length;
+        h1 ^= h1 >>> 16;
+        h1 = (((h1 & 0xffff) * 0x85ebca6b) + ((((h1 >>> 16) * 0x85ebca6b) & 0xffff) << 16)) & 0xffffffff;
+        h1 ^= h1 >>> 13;
+        h1 = (((h1 & 0xffff) * 0xc2b2ae35) + ((((h1 >>> 16) * 0xc2b2ae35) & 0xffff) << 16)) & 0xffffffff;
+        h1 ^= h1 >>> 16;
+        return h1 >>> 0;
+    };
+    return MurmurHash;
+}());
+
+
+
+/***/ }),
+
 /***/ "./src/utils/NodeHttpClient.ts":
 /*!*************************************!*\
   !*** ./src/utils/NodeHttpClient.ts ***!
@@ -4372,47 +4881,33 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _enum__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../enum */ "./src/enum/index.ts");
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (undefined && undefined.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
 
 
 var HttpClient = /** @class */ (function () {
     function HttpClient() {
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    HttpClient.prototype.getResponse = function (response) {
+        return {
+            headers: response.headers,
+            status: response.status,
+            body: response.data
+        };
+    };
+    HttpClient.prototype.getAsync = function (url, options) {
+        var _this = this;
+        return new Promise(function (resolve, reject) {
+            axios__WEBPACK_IMPORTED_MODULE_0___default().get(url, {
+                headers: options === null || options === void 0 ? void 0 : options.headers,
+                timeout: (options === null || options === void 0 ? void 0 : options.timeout) ? options.timeout * 1000 : _enum__WEBPACK_IMPORTED_MODULE_1__.REQUEST_TIME_OUT * 1000
+            })
+                .then(function (response) {
+                resolve(_this.getResponse(response));
+            }).catch(function (error) {
+                reject(error.message);
+            });
+        });
+    };
     HttpClient.prototype.postAsync = function (url, options) {
         var _this = this;
         return new Promise(function (resolve, reject) {
@@ -4420,15 +4915,9 @@ var HttpClient = /** @class */ (function () {
                 headers: options.headers,
                 timeout: options.timeout ? options.timeout * 1000 : _enum__WEBPACK_IMPORTED_MODULE_1__.REQUEST_TIME_OUT * 1000
             })
-                .then(function (response) { return __awaiter(_this, void 0, void 0, function () {
-                return __generator(this, function (_a) {
-                    resolve({
-                        status: response.status,
-                        body: response.data
-                    });
-                    return [2 /*return*/];
-                });
-            }); })
+                .then(function (response) {
+                resolve(_this.getResponse(response));
+            })
                 .catch(function (error) {
                 reject(error.message);
             });
@@ -4452,7 +4941,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "sprintf": () => (/* binding */ sprintf),
 /* harmony export */   "logError": () => (/* binding */ logError),
-/* harmony export */   "logInfo": () => (/* binding */ logInfo)
+/* harmony export */   "logInfo": () => (/* binding */ logInfo),
+/* harmony export */   "sleep": () => (/* binding */ sleep)
 /* harmony export */ });
 /* harmony import */ var _enum_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../enum/index */ "./src/enum/index.ts");
 
@@ -4491,6 +4981,9 @@ function logInfo(config, message, tag) {
         return;
     }
     config.logManager.info(message, tag);
+}
+function sleep(ms) {
+    return new Promise(function (resolve) { return setTimeout(resolve, ms); });
 }
 
 
@@ -5214,8 +5707,10 @@ var __extends = (undefined && undefined.__extends) || (function () {
 
 var VisitorAbstract = /** @class */ (function (_super) {
     __extends(VisitorAbstract, _super);
-    function VisitorAbstract(visitorId, context, configManager) {
-        var _this = _super.call(this) || this;
+    function VisitorAbstract(param) {
+        var _this = this;
+        var visitorId = param.visitorId, configManager = param.configManager, context = param.context;
+        _this = _super.call(this) || this;
         _this.visitorId = visitorId || _this.createVisitorId();
         _this._modifications = new Map();
         _this.campaigns = [];

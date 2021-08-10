@@ -1,4 +1,4 @@
-import { IFlagshipConfig } from '../config'
+import { IFlagshipConfig } from '../config/index'
 import { Modification } from '../model/Modification'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { CampaignDTO } from './api/models'

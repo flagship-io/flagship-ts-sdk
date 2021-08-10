@@ -16,57 +16,16 @@ const statusChangedCallback = (status:FlagshipStatus) => {
   console.log('status', FlagshipStatus[status])
 }
 
-let Infos = ''
-let Errors = ''
-
-class CustomLogAdapter implements IFlagshipLogManager {
-  emergency (message: string, tag: string): void {
-    throw new Error('Method not implemented.')
-  }
-
-  alert (message: string, tag: string): void {
-    throw new Error('Method not implemented.')
-  }
-
-  critical (message: string, tag: string): void {
-    throw new Error('Method not implemented.')
-  }
-
-  error (message: string, tag: string): void {
-    Errors += message
-  }
-
-  warning (message: string, tag: string): void {
-    throw new Error('Method not implemented.')
-  }
-
-  notice (message: string, tag: string): void {
-    throw new Error('Method not implemented.')
-  }
-
-  info (message: string, tag: string): void {
-    Infos += message
-  }
-
-  debug (message: string, tag: string): void {
-    this.log(LogLevel.DEBUG, message, tag)
-  }
-
-  log (level: any, message: string, tag: string): void {
-    throw new Error('Method not implemented.')
-  }
+function sleep (ms:number) :Promise<unknown> {
+  return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 Flagship.start(ENV_ID, API_KEY, {
   decisionMode: DecisionMode.BUCKETING,
   statusChangedCallback,
   logLevel: LogLevel.ALL,
-  fetchNow: false,
-  logManager: new CustomLogAdapter()
+  fetchNow: false
 })
-
-console.log('info:', Infos)
-console.log('errors:', Errors)
 
 const visitor = Flagship.newVisitor('visitor_id', { key: 'value' });
 
@@ -86,63 +45,81 @@ const visitor = Flagship.newVisitor('visitor_id', { key: 'value' });
     // Update context
     visitor.updateContext({ isVip: true })
 
-    // optional when fetchNow = true, this method is call on each newVisitor
+    visitor.setConsent(true)
+
+    await sleep(1000)
+
     await visitor.synchronizeModifications()
 
-    // getModification
-    visitor.getModification({ key: 'object', defaultValue: {} })
-      .then((modification) => {
-        console.log('modification:', modification)
-      })
+    const modification = await visitor.getModification({ key: 'object', defaultValue: {} })
+    console.log('modification:', modification)
 
-    visitor.getModification([
-      { key: 'array', defaultValue: [] },
-      {
-        key: 'object',
-        defaultValue: {},
-        activate: true
-      }])
-      .then((modifications) => {
-        console.log('modifications:', modifications)
-      })
-
-    // activateModification
-    visitor.activateModification('object')
-
-    visitor.activateModification(['array', 'object'])
-
-    // getModificationInfo
-    visitor.getModificationInfo('array')
-      .then((data:Modification|null) => {
-        console.log('info', data)
-      })
-
-    // send hit
-
-    // hit type Event
-    visitor.sendHit({
-      type: HitType.EVENT,
-      category: EventCategory.ACTION_TRACKING,
-      action: 'click'
+    Flagship.start(ENV_ID, API_KEY, {
+      decisionMode: DecisionMode.DECISION_API,
+      statusChangedCallback,
+      logLevel: LogLevel.ALL,
+      fetchNow: false
     })
 
-    // hit type Item
-    const item = new Item({
-      transactionId: 'transaction_1',
-      productName: 'product_name',
-      productSku: '00255578'
-    })
+    for (let index = 0; index < 5; index++) {
+      // optional when fetchNow = true, this method is call on each newVisitor
+      await visitor.synchronizeModifications()
 
-    visitor.sendHit(item)
+      // getModification
+      visitor.getModification({ key: 'object', defaultValue: {} })
+        .then((modification) => {
+          console.log('modification:', modification)
+        })
 
-    // hit type Page
-    visitor.sendHit({ type: HitType.PAGE, documentLocation: 'https://localhost' })
+      visitor.getModification([
+        { key: 'array', defaultValue: [] },
+        {
+          key: 'object',
+          defaultValue: {},
+          activate: true
+        }])
+        .then((modifications) => {
+          console.log('modifications:', modifications)
+        })
 
-    // hit type Screen
-    visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'https://localhost' })
+      // activateModification
+      visitor.activateModification('object')
 
-    // hit type Transaction
-    const transaction = new Transaction({ transactionId: 'transaction_1', affiliation: 'affiliation' })
-    visitor.sendHit(transaction)
+      visitor.activateModification(['array', 'object'])
+
+      // getModificationInfo
+      visitor.getModificationInfo('array')
+        .then((data:Modification|null) => {
+          console.log('info', data)
+        })
+
+      // send hit
+
+      // hit type Event
+      visitor.sendHit({
+        type: HitType.EVENT,
+        category: EventCategory.ACTION_TRACKING,
+        action: 'click'
+      })
+
+      // hit type Item
+      const item = new Item({
+        transactionId: 'transaction_1',
+        productName: 'product_name',
+        productSku: '00255578'
+      })
+
+      visitor.sendHit(item)
+
+      // hit type Page
+      visitor.sendHit({ type: HitType.PAGE, documentLocation: 'https://localhost' })
+
+      // hit type Screen
+      visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'https://localhost' })
+
+      // hit type Transaction
+      const transaction = new Transaction({ transactionId: 'transaction_1', affiliation: 'affiliation' })
+      visitor.sendHit(transaction)
+    }
   }
 })()

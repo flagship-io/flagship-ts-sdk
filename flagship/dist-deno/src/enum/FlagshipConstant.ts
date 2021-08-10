@@ -14,6 +14,8 @@ export const REQUEST_TIME_OUT = 2
  */
 export const BASE_API_URL = 'https://decision.flagship.io/v2/'
 export const HIT_API_URL = 'https://ariane.abtasty.com'
+export const BUCKETING_API_URL = 'https://cdn.flagship.io/{0}/bucketing.json'
+export const BUCKETING_API_CONTEXT_URL = 'https://decision.flagship.io/v2/{0}/events'
 export const URL_CAMPAIGNS = '/campaigns'
 export const URL_ACTIVATE_MODIFICATION = 'activate'
 

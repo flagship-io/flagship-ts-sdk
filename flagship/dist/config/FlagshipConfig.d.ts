@@ -21,7 +21,7 @@ export interface IFlagshipConfig {
     apiKey?: string;
     /**
      * Specify timeout in seconds for api request.
-     * Default is 2000ms.
+     * Default is 2s.
      */
     timeout?: number;
     /**
@@ -43,6 +43,12 @@ export interface IFlagshipConfig {
      * Decide to fetch automatically modifications data when creating a new FlagshipVisitor
      */
     fetchNow?: boolean;
+    /**
+     * Specify delay between two bucketing polling. Default is 2s.
+     *
+     * Note: If 0 is given then it should poll only once at start time.
+     */
+    pollingInterval?: number;
 }
 export declare const statusChangeError = "statusChangedCallback must be a function";
 export declare abstract class FlagshipConfig implements IFlagshipConfig {
@@ -54,6 +60,7 @@ export declare abstract class FlagshipConfig implements IFlagshipConfig {
     private _statusChangedCallback?;
     private _logManager;
     private _fetchNow;
+    private _pollingInterval;
     protected constructor(param: IFlagshipConfig);
     set envId(value: string | undefined);
     get envId(): string | undefined;
@@ -66,6 +73,8 @@ export declare abstract class FlagshipConfig implements IFlagshipConfig {
     set logLevel(value: LogLevel);
     get fetchNow(): boolean;
     set fetchNow(v: boolean);
+    get pollingInterval(): number;
+    set pollingInterval(v: number);
     get statusChangedCallback(): ((status: FlagshipStatus) => void) | undefined;
     set statusChangedCallback(fn: ((status: FlagshipStatus) => void) | undefined);
     get logManager(): IFlagshipLogManager;

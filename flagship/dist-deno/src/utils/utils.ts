@@ -43,3 +43,7 @@ export function logInfo (config: IFlagshipConfig, message: string, tag: string):
   }
   config.logManager.info(message, tag)
 }
+
+export function sleep (ms:number) :Promise<unknown> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}

@@ -23,11 +23,12 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _campaigns!: CampaignDTO[];
     protected _hasConsented!:boolean
 
-    constructor (
-      visitorId: string|null,
-      context: Record<string, primitive>,
-      configManager: IConfigManager
-    ) {
+    constructor (param: {
+        visitorId: string|null,
+        context: Record<string, primitive>,
+        configManager: IConfigManager
+      }) {
+      const { visitorId, configManager, context } = param
       super()
       this.visitorId = visitorId || this.createVisitorId()
       this._modifications = new Map<string, Modification>()

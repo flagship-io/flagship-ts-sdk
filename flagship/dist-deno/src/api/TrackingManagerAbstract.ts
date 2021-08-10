@@ -16,6 +16,8 @@ export interface ITrackingManager {
    * @param hit
    */
   sendHit(hit: HitAbstract): Promise<void>;
+
+  config:IFlagshipConfig
 }
 
 export abstract class TrackingManagerAbstract implements ITrackingManager {

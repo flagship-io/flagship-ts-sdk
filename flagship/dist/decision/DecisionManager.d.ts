@@ -11,8 +11,8 @@ export declare abstract class DecisionManager implements IDecisionManager {
     get config(): IFlagshipConfig;
     protected set panic(v: boolean);
     constructor(httpClient: IHttpClient, config: IFlagshipConfig);
-    abstract getModifications(campaigns: CampaignDTO[]): Map<string, Modification>;
+    getModifications(campaigns: Array<CampaignDTO>): Map<string, Modification>;
     abstract getCampaignsAsync(visitor: VisitorAbstract): Promise<CampaignDTO[]>;
-    abstract getCampaignsModificationsAsync(visitor: VisitorAbstract): Promise<Map<string, Modification>>;
+    getCampaignsModificationsAsync(visitor: VisitorAbstract): Promise<Map<string, Modification>>;
     isPanic(): boolean;
 }

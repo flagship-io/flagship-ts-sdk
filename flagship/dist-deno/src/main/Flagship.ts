@@ -1,6 +1,6 @@
 import { Visitor } from '../visitor/Visitor.ts'
 import { FlagshipStatus } from '../enum/FlagshipStatus.ts'
-import { FlagshipConfig, IFlagshipConfig } from '../config/FlagshipConfig.ts'
+import { DecisionMode, FlagshipConfig, IFlagshipConfig } from '../config/FlagshipConfig.ts'
 import { DecisionApiConfig } from '../config/DecisionApiConfig.ts'
 import { ConfigManager, IConfigManager } from '../config/ConfigManager.ts'
 import { ApiManager } from '../decision/ApiManager.ts'
@@ -15,6 +15,9 @@ import {
   SDK_VERSION
 } from '../enum/index.ts'
 import { VisitorDelegate } from '../visitor/VisitorDelegate.ts'
+import { BucketingConfig } from '../config/index.ts'
+import { BucketingManager } from '../decision/BucketingManager.ts'
+import { MurmurHash } from '../utils/MurmurHash.ts'
 
 export class Flagship {
   private static _instance: Flagship;
@@ -91,7 +94,11 @@ export class Flagship {
     const flagship = this.getInstance()
 
     if (!(config instanceof FlagshipConfig)) {
-      config = new DecisionApiConfig(config)
+      if (config?.decisionMode === DecisionMode.BUCKETING) {
+        config = new BucketingConfig(config)
+      } else {
+        config = new DecisionApiConfig(config)
+      }
     }
 
     config.envId = envId
@@ -99,7 +106,7 @@ export class Flagship {
 
     flagship._config = config
 
-    flagship.setStatus(FlagshipStatus.NOT_READY)
+    flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
 
     // check custom logger
     if (!config.logManager) {
@@ -111,11 +118,26 @@ export class Flagship {
       return
     }
 
-    const decisionManager = new ApiManager(
-      new HttpClient(),
-      flagship.config
-    )
-    const trackingManager = new TrackingManager(new HttpClient(), config)
+    let decisionManager = flagship.configManager?.decisionManager
+
+    if (typeof decisionManager === 'object' && decisionManager instanceof BucketingManager) {
+      decisionManager.stopPolling()
+    }
+
+    const httpClient = new HttpClient()
+
+    if (config.decisionMode === DecisionMode.BUCKETING) {
+      decisionManager = new BucketingManager(httpClient, config, new MurmurHash())
+      const bucketingManager = decisionManager as BucketingManager
+      bucketingManager.startPolling()
+    } else {
+      decisionManager = new ApiManager(
+        httpClient,
+        config
+      )
+    }
+
+    const trackingManager = new TrackingManager(httpClient, config)
     flagship.configManager = new ConfigManager(
       config,
       decisionManager,
@@ -146,7 +168,7 @@ export class Flagship {
       return null
     }
 
-    const visitorDelegate = new VisitorDelegate(visitorId, context, this.getInstance().configManager)
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager: this.getInstance().configManager })
 
     const visitor = new Visitor(visitorDelegate)
 
