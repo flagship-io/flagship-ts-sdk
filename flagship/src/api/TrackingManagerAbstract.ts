@@ -32,10 +32,6 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     return this._httpClient
   }
 
-  public set config (v:IFlagshipConfig) {
-    this._config = v
-  }
-
   public get config ():IFlagshipConfig {
     return this._config
   }

@@ -10,10 +10,6 @@ export abstract class DecisionManager implements IDecisionManager {
   protected _panic = false;
   protected _httpClient: IHttpClient;
 
-  public set config (v:IFlagshipConfig) {
-    this._config = v
-  }
-
   public get config ():IFlagshipConfig {
     return this._config
   }
