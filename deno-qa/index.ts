@@ -165,7 +165,7 @@ router
       const { type, value } = await request.body().value;
       const { flagKey } = params;
       if (typeof flagKey === "undefined") {
-        return (response.body = "ERROR MON GARS");
+        return (response.body = { error: "ERROR flag Key undefined" });
       }
       if (type === "bool") {
         obj[flagKey] = value === "true";
@@ -175,6 +175,11 @@ router
         type === "double" ||
         type === "long"
       ) {
+        if (isNaN(Number(value))) {
+          return (response.body = {
+            error: "No Context updated due to Error in Type",
+          });
+        }
         obj[flagKey] = Number(value);
       } else {
         obj[flagKey] = value;
@@ -200,17 +205,43 @@ router
     if (visitor) {
       let defaultValueParse = defaultValue;
       try {
-        defaultValueParse = JSON.parse(defaultValue);
+        if (typeof flagKey === "undefined") {
+          return (ctx.response.body = { error: "ERROR flag Key undefined" });
+        }
+        if (type === "bool") {
+          if (defaultValue !== "true" && defaultValue !== "false") {
+            return (ctx.response.body = {
+              error: "No Context updated due to Error in Type",
+            });
+          }
+        } else if (
+          type === "int" ||
+          type === "float" ||
+          type === "double" ||
+          type === "long"
+        ) {
+          if (isNaN(Number(defaultValue))) {
+            return (ctx.response.body = {
+              error: "No Context updated due to Error in Type",
+            });
+          }
+          Number(defaultValue);
+        } else {
+          defaultValue;
+        }
+        defaultValueParse =
+          type === "bool" ? JSON.parse(defaultValue) : defaultValue;
       } catch {
-        // Do nothing
+        ctx.response.body = "Error in type";
       }
       await visitor.synchronizeModifications();
       const modification = await visitor.getModification({
         key: flagKey,
         defaultValue: defaultValueParse,
+        activate,
       });
       await ctx.state.session.set("logs", Infos);
-      ctx.response.body = { value: modification };
+      ctx.response.body = { value: `${flagKey} : ${modification}` };
     }
   })
   .get("/flag/:flagKey/activate", async (ctx) => {
@@ -220,10 +251,10 @@ router
     await visitor.synchronizeModifications();
     if (visitor.activateModification(flagKey)) {
       await ctx.state.session.set("logs", Infos);
-      return (ctx.response.body = "Activation sent new version mon gars");
+      return (ctx.response.body = "Activation sent");
     }
     await ctx.state.session.set("logs", Infos);
-    return (ctx.response.body = "Not Sent new version tu crois quoi?");
+    return (ctx.response.body = "Not Sent");
   })
   .get("/flag/:flagKey/info", async (ctx) => {
     const visitor = await ctx.state.session.get("visitor");
