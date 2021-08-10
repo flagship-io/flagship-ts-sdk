@@ -1,5 +1,5 @@
 import { IFlagshipConfig } from '../config'
-import { BUCKETING_API_URL, REQUEST_TIME_OUT } from '../enum/index'
+import { BUCKETING_API_CONTEXT_URL, BUCKETING_API_URL, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, REQUEST_TIME_OUT, SDK_LANGUAGE, SDK_VERSION } from '../enum/index'
 import { primitive } from '../types'
 import { IHttpClient } from '../utils/httpClient'
 import { MurmurHash } from '../utils/MurmurHash'
@@ -32,7 +32,12 @@ export class BucketingManager extends DecisionManager {
       do {
         try {
           const url = sprintf(BUCKETING_API_URL, this.config.envId)
-          const headers:Record<string, string> = {}
+          const headers:Record<string, string> = {
+            [HEADER_X_API_KEY]: `${this.config.apiKey}`,
+            [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
+            [HEADER_X_SDK_VERSION]: SDK_VERSION,
+            [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
+          }
           if (this._lastModified) {
             headers['If-Modified-Since'] = this._lastModified
           }
@@ -49,14 +54,39 @@ export class BucketingManager extends DecisionManager {
         }
       // eslint-disable-next-line no-unmodified-loop-condition
       } while (this._isPooling)
-      logInfo(this.config, 'Bucketing polling have stopped', 'startPolling')
+      logInfo(this.config, 'Bucketing polling stopped', 'startPolling')
     }
 
     public stopPolling ():void {
       this._isPooling = false
     }
 
+    private sendContext (visitor: VisitorAbstract):Promise<void> {
+      return new Promise((resolve) => {
+        const url = sprintf(BUCKETING_API_CONTEXT_URL, this.config.envId)
+        const headers:Record<string, string> = {
+          [HEADER_X_API_KEY]: `${this.config.apiKey}`,
+          [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
+          [HEADER_X_SDK_VERSION]: SDK_VERSION,
+          [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
+        }
+        const body = {
+          visitorId: visitor.visitorId,
+          type: 'CONTEXT',
+          data: visitor.context
+        }
+        this._httpClient.postAsync(url, { headers, body })
+          .then(() => {
+            resolve()
+          })
+          .catch(error => {
+            logError(this.config, error, 'sendContext')
+          })
+      })
+    }
+
     getCampaignsAsync (visitor: VisitorAbstract): Promise<CampaignDTO[]> {
+      this.sendContext(visitor)
       return new Promise<CampaignDTO[]>((resolve) => {
         if (!this._bucketingContent) {
           resolve([])

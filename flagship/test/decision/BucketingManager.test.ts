@@ -6,8 +6,10 @@ import { HttpClient } from '../../src/utils/NodeHttpClient'
 import { bucketing } from './bucketing'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { ConfigManager } from '../../src/config'
-import { BUCKETING_API_URL } from '../../src/enum'
+import { BUCKETING_API_CONTEXT_URL, BUCKETING_API_URL, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, SDK_LANGUAGE, SDK_VERSION } from '../../src/enum'
 import { sprintf } from '../../src/utils/utils'
+import { IHttpResponse } from '../../src/utils/httpClient'
+import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 
 describe('test BucketingManager', () => {
   const config = new BucketingConfig({ pollingInterval: 0 })
@@ -17,6 +19,10 @@ describe('test BucketingManager', () => {
   const getAsync = jest.spyOn(httpClient, 'getAsync')
 
   const bucketingManager = new BucketingManager(httpClient, config, murmurHash)
+
+  const sendContext = jest.spyOn(bucketingManager as any, 'sendContext')
+
+  sendContext.mockReturnValue(Promise.resolve())
 
   const visitorId = 'visitor_1'
   const context = {
@@ -28,6 +34,7 @@ describe('test BucketingManager', () => {
   it('test getCampaignsAsync empty', async () => {
     const campaigns = await bucketingManager.getCampaignsAsync(visitor)
     expect(campaigns).toHaveLength(0)
+    expect(sendContext).toBeCalledTimes(1)
   })
 
   it('test getCampaignsAsync panic mode', async () => {
@@ -36,6 +43,7 @@ describe('test BucketingManager', () => {
     const campaigns = await bucketingManager.getCampaignsAsync(visitor)
     expect(campaigns).toHaveLength(0)
     expect(bucketingManager.isPanic()).toBeTruthy()
+    expect(sendContext).toBeCalledTimes(1)
   })
 
   it('test getCampaignsAsync campaign empty', async () => {
@@ -51,6 +59,7 @@ describe('test BucketingManager', () => {
     const campaigns = await bucketingManager.getCampaignsAsync(visitor)
     expect(campaigns).toHaveLength(0)
     bucketingManager.stopPolling()
+    expect(sendContext).toBeCalledTimes(1)
   })
 
   const headers = { 'Last-Modified': 'Fri, 06 Aug 2021 11:16:19 GMT' }
@@ -62,7 +71,15 @@ describe('test BucketingManager', () => {
     expect(campaigns).toHaveLength(0)
     expect(bucketingManager.isPanic()).toBeFalsy()
     expect(getAsync).toBeCalledTimes(1)
-    expect(getAsync).toBeCalledWith(url, { headers: {} })
+    expect(getAsync).toBeCalledWith(url, {
+      headers: {
+        [HEADER_X_API_KEY]: `${config.apiKey}`,
+        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
+        [HEADER_X_SDK_VERSION]: SDK_VERSION,
+        [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
+      }
+    })
+    expect(sendContext).toBeCalledTimes(1)
   })
 
   it('test getCampaignsAsync campaign', async () => {
@@ -71,7 +88,67 @@ describe('test BucketingManager', () => {
     const modifications = await bucketingManager.getCampaignsModificationsAsync(visitor)
     expect(modifications.size).toBe(6)
     expect(getAsync).toBeCalledTimes(1)
-    expect(getAsync).toBeCalledWith(url, { headers: { 'If-Modified-Since': 'Fri, 06 Aug 2021 11:16:19 GMT' } })
+    expect(getAsync).toBeCalledWith(url, {
+      headers: {
+        [HEADER_X_API_KEY]: `${config.apiKey}`,
+        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
+        [HEADER_X_SDK_VERSION]: SDK_VERSION,
+        [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON,
+        'If-Modified-Since': 'Fri, 06 Aug 2021 11:16:19 GMT'
+      }
+    })
+  })
+})
+
+describe('test sendContext', () => {
+  const config = new BucketingConfig({ pollingInterval: 0 })
+  const murmurHash = new MurmurHash()
+  const httpClient = new HttpClient()
+  const logManager = new FlagshipLogManager()
+
+  const logError = jest.spyOn(logManager, 'error')
+
+  const postAsync = jest.spyOn(httpClient, 'postAsync')
+
+  const bucketingManager = new BucketingManager(httpClient, config, murmurHash) as any
+
+  const visitorId = 'visitor_1'
+  const context = {
+    age: 20
+  }
+  const visitor = new VisitorDelegate({ visitorId, context, configManager: {} as ConfigManager })
+
+  it('should ', () => {
+    const url = sprintf(BUCKETING_API_CONTEXT_URL, config.envId)
+    const headers:Record<string, string> = {
+      [HEADER_X_API_KEY]: `${config.apiKey}`,
+      [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
+      [HEADER_X_SDK_VERSION]: SDK_VERSION,
+      [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
+    }
+    const body = {
+      visitorId: visitor.visitorId,
+      type: 'CONTEXT',
+      data: visitor.context
+    }
+
+    postAsync.mockResolvedValue({} as IHttpResponse)
+    bucketingManager.sendContext(visitor).then(() => {
+      expect(postAsync).toBeCalledTimes(1)
+      expect(postAsync).toBeCalledWith(url, {
+        headers, body
+      })
+    })
+  })
+
+  it('should ', () => {
+    const messageError = 'error'
+    postAsync.mockRejectedValue(messageError)
+    bucketingManager.sendContext(visitor)
+      .catch(() => {
+        expect(postAsync).toBeCalledTimes(1)
+        expect(logError).toBeCalledTimes(1)
+      })
   })
 })
 
