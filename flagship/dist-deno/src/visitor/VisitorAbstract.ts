@@ -19,7 +19,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _context: Record<string, primitive>;
     protected _modifications: Map<string, Modification>;
     protected _configManager: IConfigManager;
-    protected _config: IFlagshipConfig;
     protected _campaigns!: CampaignDTO[];
     protected _hasConsented!:boolean;
     protected _anonymousId!:string|null;
@@ -36,7 +35,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this._modifications = new Map<string, Modification>()
       this.campaigns = []
       this._configManager = configManager
-      this._config = configManager.config
       this._context = {}
       this.updateContext(context)
       this._anonymousId = null
@@ -124,7 +122,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     }
 
     public get config (): IFlagshipConfig {
-      return this._config
+      return this.configManager.config
     }
 
     public get campaigns () : CampaignDTO[] {

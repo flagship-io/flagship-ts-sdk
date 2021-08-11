@@ -132,7 +132,7 @@ describe('test Flagship newVisitor', () => {
       fs_version: SDK_VERSION,
       fs_users: visitorId
     }
-    const visitor = Flagship.newVisitor(visitorId, context)
+    let visitor = Flagship.newVisitor(visitorId, context)
 
     expect(visitor?.visitorId).toBe(visitorId)
     expect(visitor?.context).toEqual({ ...context, ...predefinedContext })
@@ -145,6 +145,17 @@ describe('test Flagship newVisitor', () => {
 
     expect(getCampaignsAsync).toBeCalledTimes(3)
     expect(getCampaignsAsync).toBeCalledWith(expect.objectContaining({ visitorId: visitor?.visitorId, context: visitor?.context }))
+
+    visitor = Flagship.newVisitor({ visitorId, context })
+
+    expect(visitor?.visitorId).toBe(visitorId)
+    expect(visitor?.context).toEqual({ ...context, ...predefinedContext })
+
+    visitor = Flagship.newVisitor({})
+
+    expect(visitor?.visitorId).toBeDefined()
+    expect(visitor?.context).toEqual(expect.objectContaining({ ...predefinedContext, fs_users: expect.anything() }))
+    expect(visitor?.anonymousId).toBeNull()
   })
 
   describe('test not ready', () => {

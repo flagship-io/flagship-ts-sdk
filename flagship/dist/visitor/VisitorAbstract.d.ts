@@ -12,7 +12,6 @@ export declare abstract class VisitorAbstract extends EventEmitter implements IV
     protected _context: Record<string, primitive>;
     protected _modifications: Map<string, Modification>;
     protected _configManager: IConfigManager;
-    protected _config: IFlagshipConfig;
     protected _campaigns: CampaignDTO[];
     protected _hasConsented: boolean;
     protected _anonymousId: string | null;

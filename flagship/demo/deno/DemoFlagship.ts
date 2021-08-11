@@ -69,8 +69,6 @@ const visitor = Flagship.newVisitor({
       fetchNow: false
     })
 
-    console.log('visitor.config', visitor.config)
-
     for (let index = 0; index < 5; index++) {
       // optional when fetchNow = true, this method is call on each newVisitor
       await visitor.synchronizeModifications()

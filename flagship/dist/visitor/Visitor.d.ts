@@ -15,6 +15,7 @@ export declare class Visitor extends EventEmitter implements IVisitor {
     constructor(visitorDelegate: VisitorAbstract);
     get visitorId(): string;
     set visitorId(v: string);
+    get anonymousId(): string | null;
     get hasConsented(): boolean;
     setConsent(hasConsented: boolean): void;
     get config(): IFlagshipConfig;

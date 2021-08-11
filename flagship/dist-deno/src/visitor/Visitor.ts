@@ -30,6 +30,10 @@ export class Visitor extends EventEmitter implements IVisitor {
     this.visitorDelegate.visitorId = v
   }
 
+  public get anonymousId ():string|null {
+    return this.visitorDelegate.anonymousId
+  }
+
   public get hasConsented (): boolean {
     return this.visitorDelegate.hasConsented
   }

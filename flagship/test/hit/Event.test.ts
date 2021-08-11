@@ -100,7 +100,7 @@ describe('test hit type Event', () => {
   })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const apiKeys: any = {
+  const apiKeys: Record<string, unknown> = {
     [VISITOR_ID_API_ITEM]: anonymousId,
     [DS_API_ITEM]: SDK_APP,
     [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
@@ -111,6 +111,13 @@ describe('test hit type Event', () => {
   }
 
   it('should ', () => {
+    expect(event.toApiKeys()).toEqual(apiKeys)
+  })
+
+  it('test apiKey with anonymousId null', () => {
+    event.anonymousId = null
+    apiKeys[CUSTOMER_UID] = null
+    apiKeys[VISITOR_ID_API_ITEM] = visitorId
     expect(event.toApiKeys()).toEqual(apiKeys)
   })
 

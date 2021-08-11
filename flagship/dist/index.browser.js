@@ -4492,7 +4492,14 @@ var Flagship = /** @class */ (function () {
             decisionManager = new _decision_ApiManager__WEBPACK_IMPORTED_MODULE_5__.ApiManager(httpClient, config);
         }
         var trackingManager = new _api_TrackingManager__WEBPACK_IMPORTED_MODULE_6__.TrackingManager(httpClient, config);
-        flagship.configManager = new _config_ConfigManager__WEBPACK_IMPORTED_MODULE_4__.ConfigManager(config, decisionManager, trackingManager);
+        if (flagship.configManager) {
+            flagship.configManager.config = config;
+            flagship.configManager.decisionManager = decisionManager;
+            flagship.configManager.trackingManager = trackingManager;
+        }
+        else {
+            flagship.configManager = new _config_ConfigManager__WEBPACK_IMPORTED_MODULE_4__.ConfigManager(config, decisionManager, trackingManager);
+        }
         if (this.isReady()) {
             flagship.setStatus(_enum_FlagshipStatus__WEBPACK_IMPORTED_MODULE_1__.FlagshipStatus.READY);
             (0,_utils_utils__WEBPACK_IMPORTED_MODULE_9__.logInfo)(config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_9__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_10__.SDK_STARTED_INFO, _enum_index__WEBPACK_IMPORTED_MODULE_10__.SDK_VERSION), _enum_index__WEBPACK_IMPORTED_MODULE_10__.PROCESS_INITIALIZATION);
@@ -5523,6 +5530,13 @@ var Visitor = /** @class */ (function (_super) {
         enumerable: false,
         configurable: true
     });
+    Object.defineProperty(Visitor.prototype, "anonymousId", {
+        get: function () {
+            return this.visitorDelegate.anonymousId;
+        },
+        enumerable: false,
+        configurable: true
+    });
     Object.defineProperty(Visitor.prototype, "hasConsented", {
         get: function () {
             return this.visitorDelegate.hasConsented;
@@ -5662,7 +5676,6 @@ var VisitorAbstract = /** @class */ (function (_super) {
         _this._modifications = new Map();
         _this.campaigns = [];
         _this._configManager = configManager;
-        _this._config = configManager.config;
         _this._context = {};
         _this.updateContext(context);
         _this._anonymousId = null;
@@ -5756,7 +5769,7 @@ var VisitorAbstract = /** @class */ (function (_super) {
     });
     Object.defineProperty(VisitorAbstract.prototype, "config", {
         get: function () {
-            return this._config;
+            return this.configManager.config;
         },
         enumerable: false,
         configurable: true
