@@ -9,7 +9,7 @@ import { HttpClient } from '../../src/utils/NodeHttpClient'
 import { DefaultStrategy, TYPE_HIT_REQUIRED_ERROR } from '../../src/visitor/DefaultStrategy'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { Mock } from 'jest-mock'
-import { CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, METHOD_DEACTIVATED_BUCKETING_ERROR, PANIC_MODE_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_SYNCHRONIZED_MODIFICATION, PROCESS_UPDATE_CONTEXT, SDK_APP, TRACKER_MANAGER_MISSING_ERROR, VISITOR_ID_ERROR } from '../../src/enum'
+import { CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, METHOD_DEACTIVATED_BUCKETING_ERROR, PANIC_MODE_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_SYNCHRONIZED_MODIFICATION, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_LANGUAGE, SDK_VERSION, TRACKER_MANAGER_MISSING_ERROR, VISITOR_ID_ERROR } from '../../src/enum'
 import { sprintf } from '../../src/utils/utils'
 import { returnModification } from './modification'
 
@@ -62,6 +62,12 @@ describe('test DefaultStrategy ', () => {
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
   const defaultStrategy = new DefaultStrategy(visitorDelegate)
 
+  const predefinedContext = {
+    fs_client: SDK_LANGUAGE,
+    fs_version: SDK_VERSION,
+    fs_users: visitorDelegate.visitorId
+  }
+
   const newContext = {
     local: 'fr',
     color: 'red'
@@ -69,19 +75,19 @@ describe('test DefaultStrategy ', () => {
 
   it('test updateContext', () => {
     defaultStrategy.updateContext(newContext)
-    expect(visitorDelegate.context).toStrictEqual({ ...context, ...newContext })
+    expect(visitorDelegate.context).toStrictEqual({ ...context, ...newContext, ...predefinedContext })
   })
 
   it('test updateContext null', () => {
     defaultStrategy.updateContext(getNull())
-    expect(visitorDelegate.context).toStrictEqual({ ...context, ...newContext })
+    expect(visitorDelegate.context).toStrictEqual({ ...context, ...newContext, ...predefinedContext })
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(CONTEXT_NULL_ERROR, PROCESS_UPDATE_CONTEXT)
   })
 
   it('test updateContext invalid context', () => {
     defaultStrategy.updateContext({ key: {} as string })
-    expect(visitorDelegate.context).toStrictEqual({ ...context, ...newContext })
+    expect(visitorDelegate.context).toStrictEqual({ ...context, ...newContext, ...predefinedContext })
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(
       sprintf(CONTEXT_PARAM_ERROR, 'key'),
