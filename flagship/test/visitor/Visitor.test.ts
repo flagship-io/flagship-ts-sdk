@@ -9,7 +9,7 @@ import { Mock } from 'jest-mock'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { Visitor } from '../../src/visitor/Visitor'
 import { HitType, Modification } from '../../src'
-import { EMIT_READY } from '../../src/enum'
+import { EMIT_READY, SDK_LANGUAGE, SDK_VERSION } from '../../src/enum'
 import { CampaignDTO } from '../../src/decision/api/models'
 
 describe('test visitor', () => {
@@ -43,6 +43,12 @@ describe('test visitor', () => {
 
   const visitor = new Visitor(visitorDelegate)
 
+  const predefinedContext = {
+    fs_client: SDK_LANGUAGE,
+    fs_version: SDK_VERSION,
+    fs_users: visitor.visitorId
+  }
+
   it('test property', () => {
     expect(visitor.visitorId).toBe(visitorId)
     const newVisitorId = 'newVisitorId'
@@ -59,7 +65,7 @@ describe('test visitor', () => {
 
     expect(visitor.config).toBe(config)
 
-    expect(visitor.context).toEqual(context)
+    expect(visitor.context).toEqual({ ...context, ...predefinedContext })
 
     visitorDelegate.modifications.set('newKey', new Modification('newKey', 'cma', 'var', 'varId', true, 'value'))
 
@@ -72,7 +78,7 @@ describe('test visitor', () => {
       hasChild: true
     }
     visitor.updateContext(newContexts)
-    expect(visitor.context).toEqual(newContexts)
+    expect(visitor.context).toEqual({ ...newContexts, ...predefinedContext })
     expect(visitor.context).toEqual(visitorDelegate.context)
   })
 
