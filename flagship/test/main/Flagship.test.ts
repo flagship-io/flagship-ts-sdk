@@ -1,11 +1,12 @@
 import { jest, expect, it, describe } from '@jest/globals'
 import { mocked } from 'ts-jest/utils'
-import { ConfigManager, DecisionApiConfig, DecisionMode } from '../../src/config/index'
+import { DecisionApiConfig, DecisionMode } from '../../src/config/index'
 import { ApiManager } from '../../src/decision/ApiManager'
 import {
   FlagshipStatus,
   INITIALIZATION_PARAM_ERROR,
   PROCESS_INITIALIZATION,
+  SDK_LANGUAGE,
   SDK_STARTED_INFO,
   SDK_VERSION
 } from '../../src/enum/index'
@@ -128,16 +129,21 @@ describe('test Flagship newVisitor', () => {
     Flagship.start('envId', 'apiKey')
     const visitorId = 'visitorId'
     const context = { isVip: true }
+    const predefinedContext = {
+      fs_client: SDK_LANGUAGE,
+      fs_version: SDK_VERSION,
+      fs_users: visitorId
+    }
     const visitor = Flagship.newVisitor(visitorId, context)
 
     expect(visitor?.visitorId).toBe(visitorId)
-    expect(visitor?.context).toEqual(context)
+    expect(visitor?.context).toEqual({ ...context, ...predefinedContext })
 
     const visitorNull = Flagship.newVisitor(getNull(), context)
     expect(visitorNull).toBeInstanceOf(Visitor)
 
     const newVisitor = Flagship.newVisitor(visitorId)
-    expect(newVisitor?.context).toEqual({})
+    expect(newVisitor?.context).toEqual({ ...predefinedContext })
 
     expect(getCampaignsAsync).toBeCalledTimes(3)
     expect(getCampaignsAsync).toBeCalledWith(expect.objectContaining({ visitorId: visitor?.visitorId, context: visitor?.context }))
