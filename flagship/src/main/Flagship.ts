@@ -151,11 +151,18 @@ export class Flagship {
     }
 
     const trackingManager = new TrackingManager(httpClient, config)
-    flagship.configManager = new ConfigManager(
-      config,
-      decisionManager,
-      trackingManager
-    )
+
+    if (flagship.configManager) {
+      flagship.configManager.config = config
+      flagship.configManager.decisionManager = decisionManager
+      flagship.configManager.trackingManager = trackingManager
+    } else {
+      flagship.configManager = new ConfigManager(
+        config,
+        decisionManager,
+        trackingManager
+      )
+    }
 
     if (this.isReady()) {
       flagship.setStatus(FlagshipStatus.READY)
