@@ -1,117 +1,113 @@
-export enum FlagshipContext{
-    /**
+/**
      * Current device locale
-
      */
-     DEVICE_LOCALE = '{"key":"sdk_deviceLanguage", "type":"string"}',
-     /**
-      * Current device type  tablet, pc, server, iot, other
+export const DEVICE_LOCALE = '{"key":"sdk_deviceLanguage", "type":"string"}'
+/**
+  * Current device type  tablet, pc, server, iot, other
 
-      */
-     DEVICE_TYPE = '{"key":"sdk_deviceType", "type":"string"}',
-     /**
-      * Current device model
+  */
+export const DEVICE_TYPE = '{"key":"sdk_deviceType", "type":"string"}'
+/**
+  * Current device model
+  */
+export const DEVICE_MODEL = '{"key":"sdk_deviceModel", "type":"string"}'
+/**
+  * Current visitor city
 
-      */
-     DEVICE_MODEL = '{"key":"sdk_deviceModel", "type":"string"}',
-     /**
-      * Current visitor city
+  */
+export const LOCATION_CITY = '{"key":"sdk_city", "type":"string"}'
+/**
+  * Current visitor region
 
-      */
-     LOCATION_CITY = '{"key":"sdk_city", "type":"string"}',
-     /**
-      * Current visitor region
+  */
+export const LOCATION_REGION = '{"key":"sdk_region", "type":"string"}'
 
-      */
-     LOCATION_REGION = '{"key":"sdk_region", "type":"string"}',
+/**
+  * Current visitor country
 
-     /**
-      * Current visitor country
+  */
+export const LOCATION_COUNTRY = '{"key":"sdk_country", "type":"string"}'
 
-      */
-     LOCATION_COUNTRY = '{"key":"sdk_country", "type":"string"}',
+/**
+  * Current visitor latitude
 
-     /**
-      * Current visitor latitude
+  */
+export const LOCATION_LAT = '{"key":"sdk_lat", "type":"number"}'
 
-      */
-     LOCATION_LAT = '{"key":"sdk_lat", "type":"float"}',
+/**
+  * Current visitor longitude
 
-     /**
-      * Current visitor longitude
+  */
+export const LOCATION_LONG = '{"key":"sdk_long", "type":"number"}'
 
-      */
-     LOCATION_LONG = '{"key":"sdk_long", "type":"float"}',
+/**
+  * Device public ip
 
-     /**
-      * Device public ip
+  */
+export const IP = '{"key":"sdk_ip", "type":"string"}'
 
-      */
-     IP = '{"key":"sdk_ip", "type":"string"}',
+/**
+  * OS name
 
-     /**
-      * OS name
+  */
+export const OS_NAME = '{"key":"sdk_osName", "type":"string"}'
 
-      */
-     OS_NAME = '{"key":"sdk_osName", "type":"string"}',
+/**
+  * OS version name
 
-     /**
-      * OS version name
+  */
+export const OS_VERSION_NAME = '{"key":"sdk_osVersionName", "type":"string"}'
 
-      */
-     OS_VERSION_NAME = '{"key":"sdk_osVersionName", "type":"string"}',
+/**
+  * OS version code
 
-     /**
-      * OS version code
+  */
+export const OS_VERSION_CODE = '{"key":"sdk_osVersionCode", "type":"number"}'
 
-      */
-     OS_VERSION_CODE = '{"key":"sdk_osVersionCode", "type":"float"}',
+/**
+  * Carrier operator
 
-     /**
-      * Carrier operator
+  */
+export const CARRIER_NAME = '{"key":"sdk_carrierName", "type":"string"}'
 
-      */
-     CARRIER_NAME = '{"key":"sdk_carrierName", "type":"string"}',
+/**
+  * Internet connection type : 4G, 5G, Fiber
 
-     /**
-      * Internet connection type : 4G, 5G, Fiber
+  */
+export const INTERNET_CONNECTION = '{"key":"sdk_internetConnection", "type":"string"}'
 
-      */
-     INTERNET_CONNECTION = '{"key":"sdk_internetConnection", "type":"string"}',
+/**
+  * Customer app version name
 
-     /**
-      * Customer app version name
+  */
+export const APP_VERSION_NAME = '{"key":"sdk_versionName", "type":"string"}'
 
-      */
-     APP_VERSION_NAME = '{"key":"sdk_versionName", "type":"string"}',
+/**
+  * Customer app version code
 
-     /**
-      * Customer app version code
+  */
+export const APP_VERSION_CODE = '{"key":"sdk_versionCode", "type":"number"}'
 
-      */
-     APP_VERSION_CODE = '{"key":"sdk_versionCode", "type":"float"}',
+/**
+  * Current customer app interface name
 
-     /**
-      * Current customer app interface name
+  */
+export const INTERFACE_NAME = '{"key":"sdk_interfaceName", "type":"string"}'
 
-      */
-     INTERFACE_NAME = '{"key":"sdk_interfaceName", "type":"string"}',
+/**
+  * Flagship SDK client name
 
-     /**
-      * Flagship SDK client name
+  */
+export const FLAGSHIP_CLIENT = '{"key":"fs_client", "type":"string"}'
 
-      */
-     FLAGSHIP_CLIENT = '{"key":"fs_client", "type":"string"}',
+/**
+  * Flagship SDK version name
 
-     /**
-      * Flagship SDK version name
+  */
+export const FLAGSHIP_VERSION = '{"key":"fs_version", "type":"string"}'
 
-      */
-     FLAGSHIP_VERSION = '{"key":"fs_version", "type":"string"}',
+/**
+  * Current visitor id
 
-     /**
-      * Current visitor id
-
-      */
-     FLAGSHIP_VISITOR = '{"key":"fs_users", "type":"string"}',
-}
+  */
+export const FLAGSHIP_VISITOR = '{"key":"fs_users", "type":"string"}'
