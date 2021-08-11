@@ -1,11 +1,28 @@
 import { Modification } from '../index'
-import { CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR, EMIT_READY, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, METHOD_DEACTIVATED_BUCKETING_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_SYNCHRONIZED_MODIFICATION, PROCESS_UPDATE_CONTEXT, SDK_APP, TRACKER_MANAGER_MISSING_ERROR, VISITOR_ID_ERROR } from '../enum/index'
+import {
+  CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR,
+  EMIT_READY,
+  FLAGSHIP_VISITOR_NOT_AUTHENTICATE,
+  GET_MODIFICATION_CAST_ERROR,
+  GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR,
+  GET_MODIFICATION_MISSING_ERROR, HitType,
+  METHOD_DEACTIVATED_BUCKETING_ERROR,
+  PREDEFINED_CONTEXT_TYPE_ERROR,
+  PROCESS_ACTIVE_MODIFICATION,
+  PROCESS_GET_MODIFICATION,
+  PROCESS_GET_MODIFICATION_INFO,
+  PROCESS_SEND_HIT,
+  PROCESS_SYNCHRONIZED_MODIFICATION,
+  PROCESS_UPDATE_CONTEXT,
+  SDK_APP,
+  TRACKER_MANAGER_MISSING_ERROR,
+  VISITOR_ID_ERROR
+} from '../enum/index'
 import { HitAbstract, IPage, IScreen, IEvent, Event, Screen, IItem, ITransaction, Item, Page, Transaction } from '../hit/index'
 import { primitive, modificationsRequested } from '../types'
 import { logError, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
-import { FlagshipContext } from '../enum/FlagshipContext'
 import { DecisionMode } from '../config'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
@@ -36,10 +53,24 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       )
       return
     }
+    const predefinedContext = this.getPredefinedContext(key, value)
+    if (predefinedContext) {
+      if (!predefinedContext.check) {
+        logError(this.config, sprintf(
+          PREDEFINED_CONTEXT_TYPE_ERROR,
+          predefinedContext.key,
+          predefinedContext.type), PROCESS_UPDATE_CONTEXT)
+        return
+      }
+      key = predefinedContext.key
+    }
+    if (key.match(/^fs_/i)) {
+      return
+    }
     this.visitor.context[key] = value
   }
 
-  updateContext (context: Record<string|FlagshipContext, primitive>): void {
+  updateContext (context: Record<string, primitive>): void {
     if (!context) {
       logError(this.visitor.config, CONTEXT_NULL_ERROR, PROCESS_UPDATE_CONTEXT)
       return
@@ -49,6 +80,31 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       const value = context[key]
       this.updateContextKeyValue(key, value)
     }
+  }
+
+  private getPredefinedContext (key:string, value:primitive):{key:string, check:boolean, type: string}|null {
+    const checkRegex = key.match(/^{"key":".*",."type":"[a-z]*"}$/)
+    if (checkRegex) {
+      const predefinedContext:{key:string, type:string} = JSON.parse(key)
+      let check:boolean
+      switch (predefinedContext.type) {
+        case 'string':
+          check = typeof value === 'string'
+          break
+        case 'number':
+          check = typeof value === 'number'
+          break
+        default:
+          check = false
+          break
+      }
+      return {
+        key: predefinedContext.key,
+        check,
+        type: predefinedContext.type
+      }
+    }
+    return null
   }
 
   clearContext (): void {

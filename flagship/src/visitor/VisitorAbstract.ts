@@ -3,7 +3,7 @@ import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
 import { modificationsRequested, primitive } from '../types'
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
-import { FlagshipStatus, VISITOR_ID_ERROR } from '../enum/index'
+import { FlagshipStatus, SDK_LANGUAGE, SDK_VERSION, VISITOR_ID_ERROR } from '../enum/index'
 import { logError } from '../utils/utils'
 import { HitAbstract, IPage, IScreen, IEvent, IItem, ITransaction } from '../hit/index'
 import { DefaultStrategy } from './DefaultStrategy'
@@ -13,11 +13,10 @@ import { Flagship } from '../main/Flagship'
 import { NotReadyStrategy } from './NotReadyStrategy'
 import { PanicStrategy } from './PanicStrategy'
 import { NoConsentStrategy } from './NoConsentStrategy'
-import { FlagshipContext } from '../enum/FlagshipContext'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _visitorId!: string;
-    protected _context: Record<string|FlagshipContext, primitive>;
+    protected _context: Record<string, primitive>;
     protected _modifications: Map<string, Modification>;
     protected _configManager: IConfigManager;
     protected _config: IFlagshipConfig;
@@ -41,10 +40,17 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this._context = {}
       this.updateContext(context)
       this._anonymousId = null
+      this.loadPredefinedContext()
 
       if (isAuthenticated && this.config.decisionMode === DecisionMode.DECISION_API) {
         this._anonymousId = this.uuidV4()
       }
+    }
+
+    protected loadPredefinedContext ():void {
+      this.context.fs_client = SDK_LANGUAGE
+      this.context.fs_version = SDK_VERSION
+      this.context.fs_users = this.visitorId
     }
 
     protected uuidV4 ():string {
@@ -93,14 +99,14 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this._hasConsented = hasConsented
     }
 
-    public get context (): Record<string|FlagshipContext, primitive> {
+    public get context (): Record<string, primitive> {
       return this._context
     }
 
     /**
     * Clear the current context and set a new context value
     */
-    public set context (v: Record<string|FlagshipContext, primitive>) {
+    public set context (v: Record<string, primitive>) {
       this._context = {}
       this.updateContext(v)
     }
@@ -152,7 +158,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       return strategy
     }
 
-    abstract updateContext(context: Record<string|FlagshipContext, primitive>): void
+    abstract updateContext(context: Record<string, primitive>): void
     abstract clearContext (): void
 
     abstract getModification<T>(params: modificationsRequested<T>, activateAll?: boolean): Promise<T>;

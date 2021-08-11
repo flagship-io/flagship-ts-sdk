@@ -3,10 +3,9 @@ import { HitAbstract, IPage, IScreen, IEvent, IItem, ITransaction } from '../hit
 import { primitive, modificationsRequested } from '../types'
 import { VisitorAbstract } from './VisitorAbstract'
 import { CampaignDTO } from '../decision/api/models'
-import { FlagshipContext } from '../enum/FlagshipContext'
 
 export class VisitorDelegate extends VisitorAbstract {
-  updateContext (context: Record<string|FlagshipContext, primitive>): void {
+  updateContext (context: Record<string, primitive>): void {
     this.getStrategy().updateContext(context)
   }
 

@@ -5,7 +5,6 @@ import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
 import { CampaignDTO } from '../decision/api/models'
-import { FlagshipContext } from '../enum/FlagshipContext'
 export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'modifications'|'context'|'hasConsented'|'setConsent'> {
     protected visitor:VisitorAbstract;
 
@@ -21,7 +20,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       this.visitor = visitor
     }
 
-    abstract updateContext(context: Record<string|FlagshipContext, primitive>): void
+    abstract updateContext(context: Record<string, primitive>): void
     abstract clearContext (): void
 
     abstract getModification<T>(params: modificationsRequested<T>, activateAll?: boolean): Promise<T>;
