@@ -31,5 +31,5 @@ jobs:
         with:
           name: dist
           path: |
-            dist
-            dist-deno
+            flagship/dist
+            flagship/dist-deno
