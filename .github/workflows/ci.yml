@@ -14,7 +14,7 @@ jobs:
         
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 15.x]
+        node-version: [12.x]
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
@@ -26,10 +26,4 @@ jobs:
       - run: yarn lint
       - run: yarn test --silent=true
       - run: yarn build
-      - name: Archive production artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: dist
-          path: |
-            flagship/dist
-            flagship/dist-deno
+
