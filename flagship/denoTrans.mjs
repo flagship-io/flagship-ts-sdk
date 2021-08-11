@@ -35,41 +35,49 @@ function transformFile (filePath, dirPath, packageResolves = null) {
 
     const match1 = content.match(regex1)
 
-    match1?.forEach((item) => {
-      const lastChar = item.substring(item.length - 1)
-      content = content.replace(item, item.replace(/'$/gm, '.ts' + lastChar))
-    })
+    if (match1) {
+      match1.forEach((item) => {
+        const lastChar = item.substring(item.length - 1)
+        content = content.replace(item, item.replace(/'$/gm, '.ts' + lastChar))
+      })
+    }
 
     const regex2 = /^import {[\n\r](.*[\n\r])+} from ['"].+['"]/gm
 
     const match2 = content.match(regex2)
 
-    match2?.forEach((item) => {
-      const lastChar = item.substring(item.length - 1)
-      content = content.replace(item, item.replace(/'$/gm, '.ts' + lastChar))
-    })
+    if (match2) {
+      match2.forEach((item) => {
+        const lastChar = item.substring(item.length - 1)
+        content = content.replace(item, item.replace(/'$/gm, '.ts' + lastChar))
+      })
+    }
 
     const regex3 = /^export .* from ['"].*['"]/gm
     const match3 = content.match(regex3)
 
-    match3?.forEach((item) => {
-      const lastChar = item.substring(item.length - 1)
-      content = content.replace(
-        item,
-        item.replace(/['"]$/gm, '.ts' + lastChar)
-      )
-    })
+    if (match3) {
+      match3.forEach((item) => {
+        const lastChar = item.substring(item.length - 1)
+        content = content.replace(
+          item,
+          item.replace(/['"]$/gm, '.ts' + lastChar)
+        )
+      })
+    }
 
     const regex4 = /^export {[\n\r](.*[\n\r])*} from ['"].*['"]/gm
     const match4 = content.match(regex4)
 
-    match4?.forEach((item) => {
-      const lastChar = item.substring(item.length - 1)
-      content = content.replace(
-        item,
-        item.replace(/['"]$/gm, '.ts' + lastChar)
-      )
-    })
+    if (match4) {
+      match4.forEach((item) => {
+        const lastChar = item.substring(item.length - 1)
+        content = content.replace(
+          item,
+          item.replace(/['"]$/gm, '.ts' + lastChar)
+        )
+      })
+    }
 
     if (packageResolves) {
       for (const key in packageResolves) {
@@ -78,12 +86,14 @@ function transformFile (filePath, dirPath, packageResolves = null) {
           'gm'
         )
         const match5 = content.match(regex5)
-        match5?.forEach((item) => {
-          content = content.replace(
-            item,
-            item.replace(key, packageResolves[key])
-          )
-        })
+        if (match5) {
+          match5.forEach((item) => {
+            content = content.replace(
+              item,
+              item.replace(key, packageResolves[key])
+            )
+          })
+        }
       }
     }
 
