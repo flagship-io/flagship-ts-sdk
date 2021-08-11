@@ -9,7 +9,6 @@ import {
   Transaction,
   Modification
 } from '../../dist-deno/src/mod.ts'
-import { IFlagshipLogManager } from '../../dist-deno/src/utils/FlagshipLogManager.ts'
 import { API_KEY, ENV_ID } from './config.js'
 
 const statusChangedCallback = (status:FlagshipStatus) => {

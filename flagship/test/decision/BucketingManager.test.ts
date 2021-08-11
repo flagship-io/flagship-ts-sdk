@@ -20,6 +20,7 @@ describe('test BucketingManager', () => {
 
   const bucketingManager = new BucketingManager(httpClient, config, murmurHash)
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sendContext = jest.spyOn(bucketingManager as any, 'sendContext')
 
   sendContext.mockReturnValue(Promise.resolve())
@@ -110,6 +111,7 @@ describe('test sendContext', () => {
 
   const postAsync = jest.spyOn(httpClient, 'postAsync')
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const bucketingManager = new BucketingManager(httpClient, config, murmurHash) as any
 
   const visitorId = 'visitor_1'
@@ -158,6 +160,7 @@ describe('test bucketing method', () => {
   const httpClient = new HttpClient()
 
   const bucketingManager = new BucketingManager(httpClient, config, murmurHash)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const bucketingManagerAny = bucketingManager as any
 
   const visitorId = '123456'
@@ -207,6 +210,7 @@ describe('test bucketing method', () => {
   }
   it('test getVariation ', () => {
     const response = bucketingManagerAny.getVariation(variationGroups, visitorId)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { allocation, ...variation } = variations[0]
     expect(response).toEqual(variation)
   })

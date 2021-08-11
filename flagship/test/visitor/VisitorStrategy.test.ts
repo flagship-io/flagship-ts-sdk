@@ -1,4 +1,4 @@
-import { jest, expect, beforeAll, it, describe } from '@jest/globals'
+import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig, Flagship, FlagshipStatus } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'

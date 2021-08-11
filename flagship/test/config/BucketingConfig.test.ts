@@ -1,4 +1,4 @@
-import { expect, it, describe, jest } from '@jest/globals'
+import { expect, it, describe } from '@jest/globals'
 import { BucketingConfig } from '../../src/config'
 import { REQUEST_TIME_OUT } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'

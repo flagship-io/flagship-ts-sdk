@@ -1,7 +1,7 @@
 import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig, EventCategory, Modification, Screen } from '../../src/index'
 import { TrackingManager } from '../../src/api/TrackingManager'
-import { BucketingConfig, ConfigManager, DecisionMode } from '../../src/config/index'
+import { BucketingConfig, ConfigManager } from '../../src/config/index'
 import { ApiManager } from '../../src/decision/ApiManager'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { IHttpResponse, IHttpOptions } from '../../src/utils/httpClient'
@@ -9,7 +9,7 @@ import { HttpClient } from '../../src/utils/NodeHttpClient'
 import { DefaultStrategy, TYPE_HIT_REQUIRED_ERROR } from '../../src/visitor/DefaultStrategy'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { Mock } from 'jest-mock'
-import { CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, METHOD_DEACTIVATED_BUCKETING_ERROR, PANIC_MODE_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_SYNCHRONIZED_MODIFICATION, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_LANGUAGE, SDK_VERSION, TRACKER_MANAGER_MISSING_ERROR, VISITOR_ID_ERROR } from '../../src/enum'
+import { CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, METHOD_DEACTIVATED_BUCKETING_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_SYNCHRONIZED_MODIFICATION, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_LANGUAGE, SDK_VERSION, TRACKER_MANAGER_MISSING_ERROR, VISITOR_ID_ERROR } from '../../src/enum'
 import { sprintf } from '../../src/utils/utils'
 import { returnModification } from './modification'
 
@@ -202,11 +202,6 @@ describe('test DefaultStrategy ', () => {
       }
     )
     expect<T>(modification).toEqual(defaultValue)
-  }
-
-  const testModificationWithDefaultArray = <T>(params: {key:string, defaultValue:T, activate?:boolean}[]) => {
-    const modifications = defaultStrategy.getModificationSync(params)
-    expect<T[]>(modifications).toEqual(params.map(item => item.defaultValue))
   }
 
   it('test getModification key string', () => {

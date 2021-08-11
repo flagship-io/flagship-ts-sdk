@@ -9,6 +9,7 @@ const stopPolling = jest.fn()
 jest.mock('../../src/decision/BucketingManager', () => {
   return {
     BucketingManager: jest.fn().mockImplementation(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { BucketingManager } = jest.requireActual('../../src/decision/BucketingManager') as any
       return Object.assign(new BucketingManager({} as HttpClient, {} as IFlagshipConfig, {} as MurmurHash), { startPolling, stopPolling })
     })

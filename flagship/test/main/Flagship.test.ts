@@ -1,7 +1,6 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { mocked } from 'ts-jest/utils'
+// import { mocked } from 'ts-jest/utils'
 import { DecisionApiConfig, DecisionMode } from '../../src/config/index'
-import { ApiManager } from '../../src/decision/ApiManager'
 import {
   FlagshipStatus,
   INITIALIZATION_PARAM_ERROR,
@@ -124,7 +123,6 @@ const getNull = (): any => {
 }
 
 describe('test Flagship newVisitor', () => {
-  const mockedApiManager = mocked(ApiManager, true)
   it('should ', () => {
     Flagship.start('envId', 'apiKey')
     const visitorId = 'visitorId'
