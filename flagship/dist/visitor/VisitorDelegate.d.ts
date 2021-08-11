@@ -39,4 +39,6 @@ export declare class VisitorDelegate extends VisitorAbstract {
         visitorId: string;
         campaigns: CampaignDTO[];
     }>;
+    authenticate(visitorId: string): void;
+    unauthenticate(): void;
 }

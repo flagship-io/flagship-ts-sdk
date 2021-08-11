@@ -55,4 +55,6 @@ export declare class Visitor extends EventEmitter implements IVisitor {
         visitorId: string;
         campaigns: CampaignDTO[];
     }>;
+    authenticate(visitorId: string): void;
+    unauthenticate(): void;
 }

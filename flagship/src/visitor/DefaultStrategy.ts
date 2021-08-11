@@ -23,7 +23,7 @@ import { primitive, modificationsRequested } from '../types'
 import { logError, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
-import { DecisionMode } from '../config'
+import { DecisionMode } from '../config/index'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 

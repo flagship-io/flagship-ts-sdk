@@ -7,7 +7,8 @@ import {
   Item,
   LogLevel,
   Transaction,
-  Modification
+  Modification,
+  DEVICE_LOCALE
 } from '../../dist-deno/src/mod.ts'
 import { API_KEY, ENV_ID } from './config.js'
 
@@ -26,11 +27,19 @@ Flagship.start(ENV_ID, API_KEY, {
   fetchNow: false
 })
 
-const visitor = Flagship.newVisitor('visitor_id', { key: 'value' });
+const visitor = Flagship.newVisitor({
+  visitorId: 'visitor_id',
+  isAuthenticated: true,
+  context: {
+    key: 'value',
+    [DEVICE_LOCALE]: 'fr'
+  }
+});
 
 (async () => {
   if (visitor) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // deno-lint-ignore no-explicit-any
     visitor.on('ready', (err:any) => {
       if (err) {
         console.log('Flagship error:', err)
@@ -59,6 +68,8 @@ const visitor = Flagship.newVisitor('visitor_id', { key: 'value' });
       logLevel: LogLevel.ALL,
       fetchNow: false
     })
+
+    console.log('visitor.config', visitor.config)
 
     for (let index = 0; index < 5; index++) {
       // optional when fetchNow = true, this method is call on each newVisitor

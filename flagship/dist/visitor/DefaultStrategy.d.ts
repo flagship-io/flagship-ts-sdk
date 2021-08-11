@@ -15,6 +15,7 @@ export declare class DefaultStrategy extends VisitorStrategyAbstract {
      */
     private updateContextKeyValue;
     updateContext(context: Record<string, primitive>): void;
+    private getPredefinedContext;
     clearContext(): void;
     getModification<T>(params: modificationsRequested<T>, activateAll?: boolean): Promise<T>;
     getModification<T>(params: modificationsRequested<T>[], activateAll?: boolean): Promise<T[]>;
@@ -70,4 +71,7 @@ export declare class DefaultStrategy extends VisitorStrategyAbstract {
         visitorId: string;
         campaigns: CampaignDTO[];
     }>;
+    authenticate(visitorId: string): void;
+    unauthenticate(): void;
+    protected logDeactivateOnBucketing(functionName: string): void;
 }

@@ -19,7 +19,7 @@ export declare const EXPOSE_ALL_KEYS = "exposeAllKeys";
 /**
  * SDK version
  */
-export declare const SDK_VERSION = "v1";
+export declare const SDK_VERSION = "v2";
 /**
  * Message Info
  */
@@ -46,6 +46,9 @@ export declare const VISITOR_ID_ERROR = "visitorId must not be null or empty";
 export declare const PANIC_MODE_ERROR = "{0} deactivated while panic mode is on.";
 export declare const METHOD_DEACTIVATED_CONSENT_ERROR = "Method {0} is deactivated for visitor {1} : visitor did not consent.";
 export declare const METHOD_DEACTIVATED_ERROR = "Method {0} is deactivated while SDK status is: {1}.";
+export declare const METHOD_DEACTIVATED_BUCKETING_ERROR = "Method {0} is deactivated on Bucketing mode.";
+export declare const FLAGSHIP_VISITOR_NOT_AUTHENTICATE = "Visitor is not authenticated yet";
+export declare const PREDEFINED_CONTEXT_TYPE_ERROR = "Predefined Context {0} must be type of {1}";
 export declare const PROCESS = "process";
 export declare const PROCESS_INITIALIZATION = "INITIALIZATION";
 export declare const PROCESS_UPDATE_CONTEXT = "UPDATE CONTEXT";
@@ -60,6 +63,8 @@ export declare const PROCESS_GET_CAMPAIGNS = "GET CAMPAIGNS";
 export declare const PROCESS_GET_ALL_MODIFICATION = "GET ALL MODIFICATIONS";
 export declare const PROCESS_MODIFICATIONS_FOR_CAMPAIGN = "GET MODIFICATION FOR CAMPAIGN";
 export declare const CUSTOMER_ENV_ID_API_ITEM = "cid";
+export declare const CUSTOMER_UID = "cuid";
+export declare const ANONYMOUS_ID = "aid";
 export declare const VISITOR_ID_API_ITEM = "vid";
 export declare const VARIATION_GROUP_ID_API_ITEM = "caid";
 export declare const VARIATION_ID_API_ITEM = "vaid";

@@ -10,6 +10,9 @@ export declare abstract class HitAbstract implements IHitAbstract {
     private _config;
     private _type;
     private _ds;
+    private _anonymousId;
+    get anonymousId(): string | null;
+    set anonymousId(v: string | null);
     get visitorId(): string;
     set visitorId(v: string);
     get ds(): string;

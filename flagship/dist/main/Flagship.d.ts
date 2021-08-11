@@ -1,6 +1,18 @@
 import { Visitor } from '../visitor/Visitor';
 import { FlagshipStatus } from '../enum/FlagshipStatus';
 import { FlagshipConfig, IFlagshipConfig } from '../config/FlagshipConfig';
+import { primitive } from '../types';
+export interface INewVisitor {
+    /**
+     * Unique visitor identifier.
+     */
+    visitorId?: string;
+    isAuthenticated?: boolean;
+    /**
+     * visitor context
+     */
+    context?: Record<string, primitive>;
+}
 export declare class Flagship {
     private static _instance;
     private _configManger;
@@ -33,9 +45,15 @@ export declare class Flagship {
     static start(envId: string, apiKey: string, config?: IFlagshipConfig | FlagshipConfig): void;
     /**
      * Create a new visitor with a context.
-     * @param {string} visitorId : Unique visitor identifier.
-     * @param {Record<string, string | number | boolean>} context : visitor context. e.g: { isVip: true, country: "UK" }.
+     * @param {INewVisitor} params
      * @returns {Visitor} a new visitor instance
      */
-    static newVisitor(visitorId: string | null, context?: Record<string, string | number | boolean>): Visitor | null;
+    static newVisitor(params: INewVisitor): Visitor | null;
+    /**
+     * Create a new visitor with a context.
+     * @param {string} visitorId : Unique visitor identifier.
+     * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
+     * @returns {Visitor} a new visitor instance
+     */
+    static newVisitor(visitorId: string | null, context?: Record<string, primitive>): Visitor | null;
 }

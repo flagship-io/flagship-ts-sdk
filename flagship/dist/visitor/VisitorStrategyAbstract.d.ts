@@ -55,4 +55,6 @@ export declare abstract class VisitorStrategyAbstract implements Omit<IVisitor, 
         visitorId: string;
         campaigns: CampaignDTO[];
     }>;
+    abstract authenticate(visitorId: string): void;
+    abstract unauthenticate(): void;
 }

@@ -123,4 +123,12 @@ export class Visitor extends EventEmitter implements IVisitor {
   getModificationsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
     return this.visitorDelegate.getModificationsForCampaign(campaignId, activate)
   }
+
+  authenticate (visitorId: string): void {
+    this.visitorDelegate.authenticate(visitorId)
+  }
+
+  unauthenticate (): void {
+    this.visitorDelegate.unauthenticate()
+  }
 }

@@ -15,11 +15,15 @@ export declare abstract class VisitorAbstract extends EventEmitter implements IV
     protected _config: IFlagshipConfig;
     protected _campaigns: CampaignDTO[];
     protected _hasConsented: boolean;
+    protected _anonymousId: string | null;
     constructor(param: {
         visitorId: string | null;
+        isAuthenticated?: boolean;
         context: Record<string, primitive>;
         configManager: IConfigManager;
     });
+    protected loadPredefinedContext(): void;
+    protected uuidV4(): string;
     protected createVisitorId(): string;
     get visitorId(): string;
     set visitorId(v: string);
@@ -44,6 +48,8 @@ export declare abstract class VisitorAbstract extends EventEmitter implements IV
     get config(): IFlagshipConfig;
     get campaigns(): CampaignDTO[];
     set campaigns(v: CampaignDTO[]);
+    get anonymousId(): string | null;
+    set anonymousId(v: string | null);
     protected getStrategy(): VisitorStrategyAbstract;
     abstract updateContext(context: Record<string, primitive>): void;
     abstract clearContext(): void;
@@ -90,4 +96,6 @@ export declare abstract class VisitorAbstract extends EventEmitter implements IV
         visitorId: string;
         campaigns: CampaignDTO[];
     }>;
+    abstract authenticate(visitorId: string): void;
+    abstract unauthenticate(): void;
 }

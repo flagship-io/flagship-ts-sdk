@@ -9,4 +9,5 @@ export {
   Transaction
 } from './hit/index'
 export { FlagshipStatus, LogLevel, HitType } from './enum/index'
+export * from './enum/FlagshipContext'
 export { Modification } from './model/Modification'

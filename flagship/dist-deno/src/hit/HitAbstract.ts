@@ -5,9 +5,11 @@ import {
   T_API_ITEM,
   TYPE_ERROR,
   VISITOR_ID_API_ITEM,
-  TYPE_INTEGER_ERROR
+  TYPE_INTEGER_ERROR,
+  CUSTOMER_UID
 } from '../enum/FlagshipConstant.ts'
 import { HitType } from '../enum/HitType.ts'
+import { primitive } from '../types.ts'
 import { logError, sprintf } from '../utils/utils.ts'
 
 export interface IHitAbstract{
@@ -21,6 +23,15 @@ export abstract class HitAbstract implements IHitAbstract {
   private _config!: IFlagshipConfig;
   private _type!: HitType;
   private _ds!: string;
+  private _anonymousId! : string|null;
+
+  public get anonymousId () : string|null {
+    return this._anonymousId
+  }
+
+  public set anonymousId (v : string|null) {
+    this._anonymousId = v
+  }
 
   public get visitorId (): string {
     return this._visitorId
@@ -56,6 +67,7 @@ export abstract class HitAbstract implements IHitAbstract {
 
   protected constructor (type: HitType) {
     this.type = type
+    this._anonymousId = null
   }
 
   /**
@@ -105,12 +117,20 @@ export abstract class HitAbstract implements IHitAbstract {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public toApiKeys (): any {
-    return {
+    const apiKeys:Record<string, primitive|null> = {
       [VISITOR_ID_API_ITEM]: this.visitorId,
       [DS_API_ITEM]: this.ds,
       [CUSTOMER_ENV_ID_API_ITEM]: `${this.config.envId}`,
       [T_API_ITEM]: this.type
     }
+    if (this.visitorId && this._anonymousId) {
+      apiKeys[VISITOR_ID_API_ITEM] = this._anonymousId
+      apiKeys[CUSTOMER_UID] = this.visitorId
+    } else {
+      apiKeys[VISITOR_ID_API_ITEM] = this._anonymousId || this.visitorId
+      apiKeys[CUSTOMER_UID] = null
+    }
+    return apiKeys
   }
 
   /**

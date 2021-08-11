@@ -78,4 +78,12 @@ export class VisitorDelegate extends VisitorAbstract {
   getModificationsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
     return this.getStrategy().getModificationsForCampaign(campaignId, activate)
   }
+
+  authenticate (visitorId: string): void {
+    this.getStrategy().authenticate(visitorId)
+  }
+
+  unauthenticate (): void {
+    this.getStrategy().unauthenticate()
+  }
 }

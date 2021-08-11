@@ -1,4 +1,5 @@
 import {
+  ANONYMOUS_ID,
   BASE_API_URL,
   CUSTOMER_ENV_ID_API_ITEM,
   HEADER_APPLICATION_JSON,
@@ -18,6 +19,7 @@ import {
 } from '../enum/FlagshipConstant.ts'
 import { HitAbstract } from '../hit/HitAbstract.ts'
 import { Modification } from '../model/Modification.ts'
+import { primitive } from '../types.ts'
 import { logError } from '../utils/utils.ts'
 import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 import { TrackingManagerAbstract } from './TrackingManagerAbstract.ts'
@@ -36,12 +38,21 @@ export class TrackingManager extends TrackingManagerAbstract {
 
     const url = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
 
-    const postData = {
+    const postData:Record<string, primitive|null> = {
       [VISITOR_ID_API_ITEM]: visitor.visitorId,
       [VARIATION_ID_API_ITEM]: modification.variationId,
       [VARIATION_GROUP_ID_API_ITEM]: modification.variationGroupId,
-      [CUSTOMER_ENV_ID_API_ITEM]: this.config.envId
+      [CUSTOMER_ENV_ID_API_ITEM]: `${this.config.envId}`
     }
+
+    if (visitor.visitorId && visitor.anonymousId) {
+      postData[VISITOR_ID_API_ITEM] = visitor.visitorId
+      postData[ANONYMOUS_ID] = visitor.anonymousId
+    } else {
+      postData[VISITOR_ID_API_ITEM] = visitor.anonymousId || visitor.visitorId
+      postData[ANONYMOUS_ID] = null
+    }
+
     return new Promise<void>((resolve, reject) => {
       this.httpClient
         .postAsync(url, {

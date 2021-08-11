@@ -2209,8 +2209,16 @@ var TrackingManager = /** @class */ (function (_super) {
             _b[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.VISITOR_ID_API_ITEM] = visitor.visitorId,
             _b[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.VARIATION_ID_API_ITEM] = modification.variationId,
             _b[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.VARIATION_GROUP_ID_API_ITEM] = modification.variationGroupId,
-            _b[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.CUSTOMER_ENV_ID_API_ITEM] = this.config.envId,
+            _b[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.CUSTOMER_ENV_ID_API_ITEM] = "" + this.config.envId,
             _b);
+        if (visitor.visitorId && visitor.anonymousId) {
+            postData[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.VISITOR_ID_API_ITEM] = visitor.visitorId;
+            postData[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.ANONYMOUS_ID] = visitor.anonymousId;
+        }
+        else {
+            postData[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.VISITOR_ID_API_ITEM] = visitor.anonymousId || visitor.visitorId;
+            postData[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.ANONYMOUS_ID] = null;
+        }
         return new Promise(function (resolve, reject) {
             _this.httpClient
                 .postAsync(url, {
@@ -2717,6 +2725,7 @@ var ApiManager = /** @class */ (function (_super) {
                             _a);
                         var postData = {
                             visitorId: visitor.visitorId,
+                            anonymousId: visitor.anonymousId,
                             trigger_hit: false,
                             context: visitor.context
                         };
@@ -3205,6 +3214,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "PANIC_MODE_ERROR": () => (/* binding */ PANIC_MODE_ERROR),
 /* harmony export */   "METHOD_DEACTIVATED_CONSENT_ERROR": () => (/* binding */ METHOD_DEACTIVATED_CONSENT_ERROR),
 /* harmony export */   "METHOD_DEACTIVATED_ERROR": () => (/* binding */ METHOD_DEACTIVATED_ERROR),
+/* harmony export */   "METHOD_DEACTIVATED_BUCKETING_ERROR": () => (/* binding */ METHOD_DEACTIVATED_BUCKETING_ERROR),
+/* harmony export */   "FLAGSHIP_VISITOR_NOT_AUTHENTICATE": () => (/* binding */ FLAGSHIP_VISITOR_NOT_AUTHENTICATE),
+/* harmony export */   "PREDEFINED_CONTEXT_TYPE_ERROR": () => (/* binding */ PREDEFINED_CONTEXT_TYPE_ERROR),
 /* harmony export */   "PROCESS": () => (/* binding */ PROCESS),
 /* harmony export */   "PROCESS_INITIALIZATION": () => (/* binding */ PROCESS_INITIALIZATION),
 /* harmony export */   "PROCESS_UPDATE_CONTEXT": () => (/* binding */ PROCESS_UPDATE_CONTEXT),
@@ -3219,6 +3231,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "PROCESS_GET_ALL_MODIFICATION": () => (/* binding */ PROCESS_GET_ALL_MODIFICATION),
 /* harmony export */   "PROCESS_MODIFICATIONS_FOR_CAMPAIGN": () => (/* binding */ PROCESS_MODIFICATIONS_FOR_CAMPAIGN),
 /* harmony export */   "CUSTOMER_ENV_ID_API_ITEM": () => (/* binding */ CUSTOMER_ENV_ID_API_ITEM),
+/* harmony export */   "CUSTOMER_UID": () => (/* binding */ CUSTOMER_UID),
+/* harmony export */   "ANONYMOUS_ID": () => (/* binding */ ANONYMOUS_ID),
 /* harmony export */   "VISITOR_ID_API_ITEM": () => (/* binding */ VISITOR_ID_API_ITEM),
 /* harmony export */   "VARIATION_GROUP_ID_API_ITEM": () => (/* binding */ VARIATION_GROUP_ID_API_ITEM),
 /* harmony export */   "VARIATION_ID_API_ITEM": () => (/* binding */ VARIATION_ID_API_ITEM),
@@ -3272,7 +3286,7 @@ var EXPOSE_ALL_KEYS = 'exposeAllKeys';
 /**
  * SDK version
  */
-var SDK_VERSION = 'v1';
+var SDK_VERSION = 'v2';
 /**
  * Message Info
  */
@@ -3299,6 +3313,9 @@ var VISITOR_ID_ERROR = 'visitorId must not be null or empty';
 var PANIC_MODE_ERROR = '{0} deactivated while panic mode is on.';
 var METHOD_DEACTIVATED_CONSENT_ERROR = 'Method {0} is deactivated for visitor {1} : visitor did not consent.';
 var METHOD_DEACTIVATED_ERROR = 'Method {0} is deactivated while SDK status is: {1}.';
+var METHOD_DEACTIVATED_BUCKETING_ERROR = 'Method {0} is deactivated on Bucketing mode.';
+var FLAGSHIP_VISITOR_NOT_AUTHENTICATE = 'Visitor is not authenticated yet';
+var PREDEFINED_CONTEXT_TYPE_ERROR = 'Predefined Context {0} must be type of {1}';
 // Process
 var PROCESS = 'process';
 var PROCESS_INITIALIZATION = 'INITIALIZATION';
@@ -3315,6 +3332,8 @@ var PROCESS_GET_ALL_MODIFICATION = 'GET ALL MODIFICATIONS';
 var PROCESS_MODIFICATIONS_FOR_CAMPAIGN = 'GET MODIFICATION FOR CAMPAIGN';
 // Api items
 var CUSTOMER_ENV_ID_API_ITEM = 'cid';
+var CUSTOMER_UID = 'cuid';
+var ANONYMOUS_ID = 'aid';
 var VISITOR_ID_API_ITEM = 'vid';
 var VARIATION_GROUP_ID_API_ITEM = 'caid';
 var VARIATION_ID_API_ITEM = 'vaid';
@@ -3346,6 +3365,138 @@ var HEADER_CONTENT_TYPE = 'Content-Type';
 var HEADER_X_SDK_CLIENT = 'x-sdk-client';
 var HEADER_X_SDK_VERSION = 'x-sdk-version';
 var HEADER_APPLICATION_JSON = 'application/json';
+
+
+/***/ }),
+
+/***/ "./src/enum/FlagshipContext.ts":
+/*!*************************************!*\
+  !*** ./src/enum/FlagshipContext.ts ***!
+  \*************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "DEVICE_LOCALE": () => (/* binding */ DEVICE_LOCALE),
+/* harmony export */   "DEVICE_TYPE": () => (/* binding */ DEVICE_TYPE),
+/* harmony export */   "DEVICE_MODEL": () => (/* binding */ DEVICE_MODEL),
+/* harmony export */   "LOCATION_CITY": () => (/* binding */ LOCATION_CITY),
+/* harmony export */   "LOCATION_REGION": () => (/* binding */ LOCATION_REGION),
+/* harmony export */   "LOCATION_COUNTRY": () => (/* binding */ LOCATION_COUNTRY),
+/* harmony export */   "LOCATION_LAT": () => (/* binding */ LOCATION_LAT),
+/* harmony export */   "LOCATION_LONG": () => (/* binding */ LOCATION_LONG),
+/* harmony export */   "IP": () => (/* binding */ IP),
+/* harmony export */   "OS_NAME": () => (/* binding */ OS_NAME),
+/* harmony export */   "OS_VERSION_NAME": () => (/* binding */ OS_VERSION_NAME),
+/* harmony export */   "OS_VERSION_CODE": () => (/* binding */ OS_VERSION_CODE),
+/* harmony export */   "CARRIER_NAME": () => (/* binding */ CARRIER_NAME),
+/* harmony export */   "INTERNET_CONNECTION": () => (/* binding */ INTERNET_CONNECTION),
+/* harmony export */   "APP_VERSION_NAME": () => (/* binding */ APP_VERSION_NAME),
+/* harmony export */   "APP_VERSION_CODE": () => (/* binding */ APP_VERSION_CODE),
+/* harmony export */   "INTERFACE_NAME": () => (/* binding */ INTERFACE_NAME),
+/* harmony export */   "FLAGSHIP_CLIENT": () => (/* binding */ FLAGSHIP_CLIENT),
+/* harmony export */   "FLAGSHIP_VERSION": () => (/* binding */ FLAGSHIP_VERSION),
+/* harmony export */   "FLAGSHIP_VISITOR": () => (/* binding */ FLAGSHIP_VISITOR)
+/* harmony export */ });
+/**
+     * Current device locale
+     */
+var DEVICE_LOCALE = '{"key":"sdk_deviceLanguage", "type":"string"}';
+/**
+  * Current device type  tablet, pc, server, iot, other
+
+  */
+var DEVICE_TYPE = '{"key":"sdk_deviceType", "type":"string"}';
+/**
+  * Current device model
+  */
+var DEVICE_MODEL = '{"key":"sdk_deviceModel", "type":"string"}';
+/**
+  * Current visitor city
+
+  */
+var LOCATION_CITY = '{"key":"sdk_city", "type":"string"}';
+/**
+  * Current visitor region
+
+  */
+var LOCATION_REGION = '{"key":"sdk_region", "type":"string"}';
+/**
+  * Current visitor country
+
+  */
+var LOCATION_COUNTRY = '{"key":"sdk_country", "type":"string"}';
+/**
+  * Current visitor latitude
+
+  */
+var LOCATION_LAT = '{"key":"sdk_lat", "type":"number"}';
+/**
+  * Current visitor longitude
+
+  */
+var LOCATION_LONG = '{"key":"sdk_long", "type":"number"}';
+/**
+  * Device public ip
+
+  */
+var IP = '{"key":"sdk_ip", "type":"string"}';
+/**
+  * OS name
+
+  */
+var OS_NAME = '{"key":"sdk_osName", "type":"string"}';
+/**
+  * OS version name
+
+  */
+var OS_VERSION_NAME = '{"key":"sdk_osVersionName", "type":"string"}';
+/**
+  * OS version code
+
+  */
+var OS_VERSION_CODE = '{"key":"sdk_osVersionCode", "type":"number"}';
+/**
+  * Carrier operator
+
+  */
+var CARRIER_NAME = '{"key":"sdk_carrierName", "type":"string"}';
+/**
+  * Internet connection type : 4G, 5G, Fiber
+
+  */
+var INTERNET_CONNECTION = '{"key":"sdk_internetConnection", "type":"string"}';
+/**
+  * Customer app version name
+
+  */
+var APP_VERSION_NAME = '{"key":"sdk_versionName", "type":"string"}';
+/**
+  * Customer app version code
+
+  */
+var APP_VERSION_CODE = '{"key":"sdk_versionCode", "type":"number"}';
+/**
+  * Current customer app interface name
+
+  */
+var INTERFACE_NAME = '{"key":"sdk_interfaceName", "type":"string"}';
+/**
+  * Flagship SDK client name
+
+  */
+var FLAGSHIP_CLIENT = '{"key":"fs_client", "type":"string"}';
+/**
+  * Flagship SDK version name
+
+  */
+var FLAGSHIP_VERSION = '{"key":"fs_version", "type":"string"}';
+/**
+  * Current visitor id
+
+  */
+var FLAGSHIP_VISITOR = '{"key":"fs_users", "type":"string"}';
 
 
 /***/ }),
@@ -3515,6 +3666,7 @@ var LogLevel;
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "LogLevel": () => (/* reexport safe */ _LogLevel__WEBPACK_IMPORTED_MODULE_0__.LogLevel),
+/* harmony export */   "ANONYMOUS_ID": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.ANONYMOUS_ID),
 /* harmony export */   "BASE_API_URL": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.BASE_API_URL),
 /* harmony export */   "BUCKETING_API_CONTEXT_URL": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.BUCKETING_API_CONTEXT_URL),
 /* harmony export */   "BUCKETING_API_URL": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.BUCKETING_API_URL),
@@ -3522,6 +3674,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "CONTEXT_PARAM_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.CONTEXT_PARAM_ERROR),
 /* harmony export */   "CURL_LIBRARY_IS_NOT_LOADED": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.CURL_LIBRARY_IS_NOT_LOADED),
 /* harmony export */   "CUSTOMER_ENV_ID_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.CUSTOMER_ENV_ID_API_ITEM),
+/* harmony export */   "CUSTOMER_UID": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.CUSTOMER_UID),
 /* harmony export */   "DECISION_MANAGER_MISSING_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.DECISION_MANAGER_MISSING_ERROR),
 /* harmony export */   "DL_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.DL_API_ITEM),
 /* harmony export */   "DS_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.DS_API_ITEM),
@@ -3533,6 +3686,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "EVENT_VALUE_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.EVENT_VALUE_API_ITEM),
 /* harmony export */   "EXPOSE_ALL_KEYS": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.EXPOSE_ALL_KEYS),
 /* harmony export */   "FLAGSHIP_SDK": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.FLAGSHIP_SDK),
+/* harmony export */   "FLAGSHIP_VISITOR_NOT_AUTHENTICATE": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.FLAGSHIP_VISITOR_NOT_AUTHENTICATE),
 /* harmony export */   "GET_MODIFICATION_CAST_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.GET_MODIFICATION_CAST_ERROR),
 /* harmony export */   "GET_MODIFICATION_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.GET_MODIFICATION_ERROR),
 /* harmony export */   "GET_MODIFICATION_KEY_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.GET_MODIFICATION_KEY_ERROR),
@@ -3550,10 +3704,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "IP_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.IP_API_ITEM),
 /* harmony export */   "IQ_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.IQ_API_ITEM),
 /* harmony export */   "IV_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.IV_API_ITEM),
+/* harmony export */   "METHOD_DEACTIVATED_BUCKETING_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.METHOD_DEACTIVATED_BUCKETING_ERROR),
 /* harmony export */   "METHOD_DEACTIVATED_CONSENT_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.METHOD_DEACTIVATED_CONSENT_ERROR),
 /* harmony export */   "METHOD_DEACTIVATED_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.METHOD_DEACTIVATED_ERROR),
 /* harmony export */   "PANIC_MODE_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.PANIC_MODE_ERROR),
 /* harmony export */   "PM_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.PM_API_ITEM),
+/* harmony export */   "PREDEFINED_CONTEXT_TYPE_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.PREDEFINED_CONTEXT_TYPE_ERROR),
 /* harmony export */   "PROCESS": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.PROCESS),
 /* harmony export */   "PROCESS_ACTIVE_MODIFICATION": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.PROCESS_ACTIVE_MODIFICATION),
 /* harmony export */   "PROCESS_GET_ALL_MODIFICATION": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.PROCESS_GET_ALL_MODIFICATION),
@@ -3777,7 +3933,18 @@ __webpack_require__.r(__webpack_exports__);
 var HitAbstract = /** @class */ (function () {
     function HitAbstract(type) {
         this.type = type;
+        this._anonymousId = null;
     }
+    Object.defineProperty(HitAbstract.prototype, "anonymousId", {
+        get: function () {
+            return this._anonymousId;
+        },
+        set: function (v) {
+            this._anonymousId = v;
+        },
+        enumerable: false,
+        configurable: true
+    });
     Object.defineProperty(HitAbstract.prototype, "visitorId", {
         get: function () {
             return this._visitorId;
@@ -3854,12 +4021,21 @@ var HitAbstract = /** @class */ (function () {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     HitAbstract.prototype.toApiKeys = function () {
         var _a;
-        return _a = {},
+        var apiKeys = (_a = {},
             _a[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.VISITOR_ID_API_ITEM] = this.visitorId,
             _a[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.DS_API_ITEM] = this.ds,
             _a[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.CUSTOMER_ENV_ID_API_ITEM] = "" + this.config.envId,
             _a[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.T_API_ITEM] = this.type,
-            _a;
+            _a);
+        if (this.visitorId && this._anonymousId) {
+            apiKeys[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.VISITOR_ID_API_ITEM] = this._anonymousId;
+            apiKeys[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.CUSTOMER_UID] = this.visitorId;
+        }
+        else {
+            apiKeys[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.VISITOR_ID_API_ITEM] = this._anonymousId || this.visitorId;
+            apiKeys[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.CUSTOMER_UID] = null;
+        }
+        return apiKeys;
     };
     /**
      * Return true if all required attributes are given, otherwise return false
@@ -4637,18 +4813,29 @@ var Flagship = /** @class */ (function () {
             (0,_utils_utils__WEBPACK_IMPORTED_MODULE_9__.logInfo)(config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_9__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_10__.SDK_STARTED_INFO, _enum_index__WEBPACK_IMPORTED_MODULE_10__.SDK_VERSION), _enum_index__WEBPACK_IMPORTED_MODULE_10__.PROCESS_INITIALIZATION);
         }
     };
-    /**
-     * Create a new visitor with a context.
-     * @param {string} visitorId : Unique visitor identifier.
-     * @param {Record<string, string | number | boolean>} context : visitor context. e.g: { isVip: true, country: "UK" }.
-     * @returns {Visitor} a new visitor instance
-     */
-    Flagship.newVisitor = function (visitorId, context) {
-        if (context === void 0) { context = {}; }
+    Flagship.newVisitor = function (params, params2) {
+        var _a;
         if (!this.isReady()) {
             return null;
         }
-        var visitorDelegate = new _visitor_VisitorDelegate__WEBPACK_IMPORTED_MODULE_11__.VisitorDelegate({ visitorId: visitorId, context: context, configManager: this.getInstance().configManager });
+        var visitorId;
+        var context;
+        var isAuthenticated = false;
+        if (typeof params === 'string' || params === null) {
+            visitorId = params;
+            context = params2 || {};
+        }
+        else {
+            visitorId = params.visitorId || null;
+            context = params.context || {};
+            isAuthenticated = (_a = params.isAuthenticated) !== null && _a !== void 0 ? _a : false;
+        }
+        var visitorDelegate = new _visitor_VisitorDelegate__WEBPACK_IMPORTED_MODULE_11__.VisitorDelegate({
+            visitorId: visitorId,
+            context: context,
+            isAuthenticated: isAuthenticated,
+            configManager: this.getInstance().configManager
+        });
         var visitor = new _visitor_Visitor__WEBPACK_IMPORTED_MODULE_0__.Visitor(visitorDelegate);
         if (this.getConfig().fetchNow) {
             visitor.synchronizeModifications();
@@ -5005,6 +5192,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _hit_index__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../hit/index */ "./src/hit/index.ts");
 /* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/utils */ "./src/utils/utils.ts");
 /* harmony import */ var _VisitorStrategyAbstract__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./VisitorStrategyAbstract */ "./src/visitor/VisitorStrategyAbstract.ts");
+/* harmony import */ var _config_index__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../config/index */ "./src/config/index.ts");
 var __extends = (undefined && undefined.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -5060,6 +5248,7 @@ var __generator = (undefined && undefined.__generator) || function (thisArg, bod
 
 
 
+
 var TYPE_HIT_REQUIRED_ERROR = 'property type is required and must ';
 var DefaultStrategy = /** @class */ (function (_super) {
     __extends(DefaultStrategy, _super);
@@ -5082,6 +5271,17 @@ var DefaultStrategy = /** @class */ (function (_super) {
             (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.visitor.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.CONTEXT_PARAM_ERROR, key), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_UPDATE_CONTEXT);
             return;
         }
+        var predefinedContext = this.getPredefinedContext(key, value);
+        if (predefinedContext) {
+            if (!predefinedContext.check) {
+                (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.PREDEFINED_CONTEXT_TYPE_ERROR, predefinedContext.key, predefinedContext.type), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_UPDATE_CONTEXT);
+                return;
+            }
+            key = predefinedContext.key;
+        }
+        if (key.match(/^fs_/i)) {
+            return;
+        }
         this.visitor.context[key] = value;
     };
     DefaultStrategy.prototype.updateContext = function (context) {
@@ -5093,6 +5293,30 @@ var DefaultStrategy = /** @class */ (function (_super) {
             var value = context[key];
             this.updateContextKeyValue(key, value);
         }
+    };
+    DefaultStrategy.prototype.getPredefinedContext = function (key, value) {
+        var checkRegex = key.match(/^{"key":".*",."type":"[a-z]*"}$/);
+        if (checkRegex) {
+            var predefinedContext = JSON.parse(key);
+            var check = void 0;
+            switch (predefinedContext.type) {
+                case 'string':
+                    check = typeof value === 'string';
+                    break;
+                case 'number':
+                    check = typeof value === 'number';
+                    break;
+                default:
+                    check = false;
+                    break;
+            }
+            return {
+                key: predefinedContext.key,
+                check: check,
+                type: predefinedContext.type
+            };
+        }
+        return null;
     };
     DefaultStrategy.prototype.clearContext = function () {
         this.visitor.context = {};
@@ -5258,6 +5482,7 @@ var DefaultStrategy = /** @class */ (function (_super) {
                 hitInstance.visitorId = this.visitor.visitorId;
                 hitInstance.ds = _enum_index__WEBPACK_IMPORTED_MODULE_0__.SDK_APP;
                 hitInstance.config = this.config;
+                hitInstance.anonymousId = this.visitor.anonymousId;
                 if (!hitInstance.isReady()) {
                     (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.config, hitInstance.getErrorMessage(), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SEND_HIT);
                     return [2 /*return*/];
@@ -5319,6 +5544,35 @@ var DefaultStrategy = /** @class */ (function (_super) {
             visitorId: this.visitor.visitorId,
             campaigns: this.visitor.campaigns.filter(function (x) { return x.id === campaignId; })
         });
+    };
+    DefaultStrategy.prototype.authenticate = function (visitorId) {
+        var functionName = 'authenticate';
+        if (this.config.decisionMode === _config_index__WEBPACK_IMPORTED_MODULE_4__.DecisionMode.BUCKETING) {
+            this.logDeactivateOnBucketing(functionName);
+            return;
+        }
+        if (!visitorId) {
+            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.config, _enum_index__WEBPACK_IMPORTED_MODULE_0__.VISITOR_ID_ERROR, functionName);
+            return;
+        }
+        this.visitor.anonymousId = this.visitor.visitorId;
+        this.visitor.visitorId = visitorId;
+    };
+    DefaultStrategy.prototype.unauthenticate = function () {
+        var functionName = 'unauthenticate';
+        if (this.config.decisionMode === _config_index__WEBPACK_IMPORTED_MODULE_4__.DecisionMode.BUCKETING) {
+            this.logDeactivateOnBucketing(functionName);
+            return;
+        }
+        if (!this.visitor.anonymousId) {
+            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.config, _enum_index__WEBPACK_IMPORTED_MODULE_0__.FLAGSHIP_VISITOR_NOT_AUTHENTICATE, functionName);
+            return;
+        }
+        this.visitor.visitorId = this.visitor.anonymousId;
+        this.visitor.anonymousId = null;
+    };
+    DefaultStrategy.prototype.logDeactivateOnBucketing = function (functionName) {
+        (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.METHOD_DEACTIVATED_BUCKETING_ERROR, functionName), functionName);
     };
     return DefaultStrategy;
 }(_VisitorStrategyAbstract__WEBPACK_IMPORTED_MODULE_3__.VisitorStrategyAbstract));
@@ -5656,6 +5910,12 @@ var Visitor = /** @class */ (function (_super) {
         if (activate === void 0) { activate = false; }
         return this.visitorDelegate.getModificationsForCampaign(campaignId, activate);
     };
+    Visitor.prototype.authenticate = function (visitorId) {
+        this.visitorDelegate.authenticate(visitorId);
+    };
+    Visitor.prototype.unauthenticate = function () {
+        this.visitorDelegate.unauthenticate();
+    };
     return Visitor;
 }(_nodeDeps__WEBPACK_IMPORTED_MODULE_0__.EventEmitter));
 
@@ -5674,14 +5934,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "VisitorAbstract": () => (/* binding */ VisitorAbstract)
 /* harmony export */ });
-/* harmony import */ var _enum_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../enum/index */ "./src/enum/index.ts");
-/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/utils */ "./src/utils/utils.ts");
-/* harmony import */ var _DefaultStrategy__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./DefaultStrategy */ "./src/visitor/DefaultStrategy.ts");
-/* harmony import */ var _nodeDeps__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../nodeDeps */ "./src/nodeDeps.ts");
-/* harmony import */ var _main_Flagship__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../main/Flagship */ "./src/main/Flagship.ts");
-/* harmony import */ var _NotReadyStrategy__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./NotReadyStrategy */ "./src/visitor/NotReadyStrategy.ts");
-/* harmony import */ var _PanicStrategy__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./PanicStrategy */ "./src/visitor/PanicStrategy.ts");
-/* harmony import */ var _NoConsentStrategy__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./NoConsentStrategy */ "./src/visitor/NoConsentStrategy.ts");
+/* harmony import */ var _config_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../config/index */ "./src/config/index.ts");
+/* harmony import */ var _enum_index__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../enum/index */ "./src/enum/index.ts");
+/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/utils */ "./src/utils/utils.ts");
+/* harmony import */ var _DefaultStrategy__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./DefaultStrategy */ "./src/visitor/DefaultStrategy.ts");
+/* harmony import */ var _nodeDeps__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../nodeDeps */ "./src/nodeDeps.ts");
+/* harmony import */ var _main_Flagship__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../main/Flagship */ "./src/main/Flagship.ts");
+/* harmony import */ var _NotReadyStrategy__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./NotReadyStrategy */ "./src/visitor/NotReadyStrategy.ts");
+/* harmony import */ var _PanicStrategy__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./PanicStrategy */ "./src/visitor/PanicStrategy.ts");
+/* harmony import */ var _NoConsentStrategy__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./NoConsentStrategy */ "./src/visitor/NoConsentStrategy.ts");
 var __extends = (undefined && undefined.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -5705,11 +5966,12 @@ var __extends = (undefined && undefined.__extends) || (function () {
 
 
 
+
 var VisitorAbstract = /** @class */ (function (_super) {
     __extends(VisitorAbstract, _super);
     function VisitorAbstract(param) {
         var _this = this;
-        var visitorId = param.visitorId, configManager = param.configManager, context = param.context;
+        var visitorId = param.visitorId, configManager = param.configManager, context = param.context, isAuthenticated = param.isAuthenticated;
         _this = _super.call(this) || this;
         _this.visitorId = visitorId || _this.createVisitorId();
         _this._modifications = new Map();
@@ -5718,8 +5980,25 @@ var VisitorAbstract = /** @class */ (function (_super) {
         _this._config = configManager.config;
         _this._context = {};
         _this.updateContext(context);
+        _this._anonymousId = null;
+        _this.loadPredefinedContext();
+        if (isAuthenticated && _this.config.decisionMode === _config_index__WEBPACK_IMPORTED_MODULE_0__.DecisionMode.DECISION_API) {
+            _this._anonymousId = _this.uuidV4();
+        }
         return _this;
     }
+    VisitorAbstract.prototype.loadPredefinedContext = function () {
+        this.context.fs_client = _enum_index__WEBPACK_IMPORTED_MODULE_1__.SDK_LANGUAGE;
+        this.context.fs_version = _enum_index__WEBPACK_IMPORTED_MODULE_1__.SDK_VERSION;
+        this.context.fs_users = this.visitorId;
+    };
+    VisitorAbstract.prototype.uuidV4 = function () {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (char) {
+            var rand = Math.random() * 16 | 0;
+            var value = char === 'x' ? rand : (rand & 0x3 | 0x8);
+            return value.toString(16);
+        });
+    };
     VisitorAbstract.prototype.createVisitorId = function () {
         var now = new Date();
         var random = Math.floor(Math.random() * (99999 - 10000) + 10000);
@@ -5733,7 +6012,7 @@ var VisitorAbstract = /** @class */ (function (_super) {
         },
         set: function (v) {
             if (!v || typeof v !== 'string') {
-                (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, _enum_index__WEBPACK_IMPORTED_MODULE_0__.VISITOR_ID_ERROR, 'VISITOR ID');
+                (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.config, _enum_index__WEBPACK_IMPORTED_MODULE_1__.VISITOR_ID_ERROR, 'VISITOR ID');
                 return;
             }
             this._visitorId = v;
@@ -5807,24 +6086,34 @@ var VisitorAbstract = /** @class */ (function (_super) {
         enumerable: false,
         configurable: true
     });
+    Object.defineProperty(VisitorAbstract.prototype, "anonymousId", {
+        get: function () {
+            return this._anonymousId;
+        },
+        set: function (v) {
+            this._anonymousId = v;
+        },
+        enumerable: false,
+        configurable: true
+    });
     VisitorAbstract.prototype.getStrategy = function () {
         var strategy;
-        if (!_main_Flagship__WEBPACK_IMPORTED_MODULE_4__.Flagship.getStatus() || _main_Flagship__WEBPACK_IMPORTED_MODULE_4__.Flagship.getStatus() === _enum_index__WEBPACK_IMPORTED_MODULE_0__.FlagshipStatus.NOT_INITIALIZED) {
-            strategy = new _NotReadyStrategy__WEBPACK_IMPORTED_MODULE_5__.NotReadyStrategy(this);
+        if (!_main_Flagship__WEBPACK_IMPORTED_MODULE_5__.Flagship.getStatus() || _main_Flagship__WEBPACK_IMPORTED_MODULE_5__.Flagship.getStatus() === _enum_index__WEBPACK_IMPORTED_MODULE_1__.FlagshipStatus.NOT_INITIALIZED) {
+            strategy = new _NotReadyStrategy__WEBPACK_IMPORTED_MODULE_6__.NotReadyStrategy(this);
         }
-        else if (_main_Flagship__WEBPACK_IMPORTED_MODULE_4__.Flagship.getStatus() === _enum_index__WEBPACK_IMPORTED_MODULE_0__.FlagshipStatus.READY_PANIC_ON) {
-            strategy = new _PanicStrategy__WEBPACK_IMPORTED_MODULE_6__.PanicStrategy(this);
+        else if (_main_Flagship__WEBPACK_IMPORTED_MODULE_5__.Flagship.getStatus() === _enum_index__WEBPACK_IMPORTED_MODULE_1__.FlagshipStatus.READY_PANIC_ON) {
+            strategy = new _PanicStrategy__WEBPACK_IMPORTED_MODULE_7__.PanicStrategy(this);
         }
         else if (!this.hasConsented) {
-            strategy = new _NoConsentStrategy__WEBPACK_IMPORTED_MODULE_7__.NoConsentStrategy(this);
+            strategy = new _NoConsentStrategy__WEBPACK_IMPORTED_MODULE_8__.NoConsentStrategy(this);
         }
         else {
-            strategy = new _DefaultStrategy__WEBPACK_IMPORTED_MODULE_2__.DefaultStrategy(this);
+            strategy = new _DefaultStrategy__WEBPACK_IMPORTED_MODULE_3__.DefaultStrategy(this);
         }
         return strategy;
     };
     return VisitorAbstract;
-}(_nodeDeps__WEBPACK_IMPORTED_MODULE_3__.EventEmitter));
+}(_nodeDeps__WEBPACK_IMPORTED_MODULE_4__.EventEmitter));
 
 
 
@@ -5903,6 +6192,12 @@ var VisitorDelegate = /** @class */ (function (_super) {
     VisitorDelegate.prototype.getModificationsForCampaign = function (campaignId, activate) {
         if (activate === void 0) { activate = false; }
         return this.getStrategy().getModificationsForCampaign(campaignId, activate);
+    };
+    VisitorDelegate.prototype.authenticate = function (visitorId) {
+        this.getStrategy().authenticate(visitorId);
+    };
+    VisitorDelegate.prototype.unauthenticate = function () {
+        this.getStrategy().unauthenticate();
     };
     return VisitorDelegate;
 }(_VisitorAbstract__WEBPACK_IMPORTED_MODULE_0__.VisitorAbstract));
@@ -6102,13 +6397,35 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "FlagshipStatus": () => (/* reexport safe */ _enum_index__WEBPACK_IMPORTED_MODULE_3__.FlagshipStatus),
 /* harmony export */   "LogLevel": () => (/* reexport safe */ _enum_index__WEBPACK_IMPORTED_MODULE_3__.LogLevel),
 /* harmony export */   "HitType": () => (/* reexport safe */ _enum_index__WEBPACK_IMPORTED_MODULE_3__.HitType),
-/* harmony export */   "Modification": () => (/* reexport safe */ _model_Modification__WEBPACK_IMPORTED_MODULE_4__.Modification)
+/* harmony export */   "APP_VERSION_CODE": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.APP_VERSION_CODE),
+/* harmony export */   "APP_VERSION_NAME": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.APP_VERSION_NAME),
+/* harmony export */   "CARRIER_NAME": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.CARRIER_NAME),
+/* harmony export */   "DEVICE_LOCALE": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.DEVICE_LOCALE),
+/* harmony export */   "DEVICE_MODEL": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.DEVICE_MODEL),
+/* harmony export */   "DEVICE_TYPE": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.DEVICE_TYPE),
+/* harmony export */   "FLAGSHIP_CLIENT": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.FLAGSHIP_CLIENT),
+/* harmony export */   "FLAGSHIP_VERSION": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.FLAGSHIP_VERSION),
+/* harmony export */   "FLAGSHIP_VISITOR": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.FLAGSHIP_VISITOR),
+/* harmony export */   "INTERFACE_NAME": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.INTERFACE_NAME),
+/* harmony export */   "INTERNET_CONNECTION": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.INTERNET_CONNECTION),
+/* harmony export */   "IP": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.IP),
+/* harmony export */   "LOCATION_CITY": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.LOCATION_CITY),
+/* harmony export */   "LOCATION_COUNTRY": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.LOCATION_COUNTRY),
+/* harmony export */   "LOCATION_LAT": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.LOCATION_LAT),
+/* harmony export */   "LOCATION_LONG": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.LOCATION_LONG),
+/* harmony export */   "LOCATION_REGION": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.LOCATION_REGION),
+/* harmony export */   "OS_NAME": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.OS_NAME),
+/* harmony export */   "OS_VERSION_CODE": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.OS_VERSION_CODE),
+/* harmony export */   "OS_VERSION_NAME": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.OS_VERSION_NAME),
+/* harmony export */   "Modification": () => (/* reexport safe */ _model_Modification__WEBPACK_IMPORTED_MODULE_5__.Modification)
 /* harmony export */ });
 /* harmony import */ var _main_Flagship__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./main/Flagship */ "./src/main/Flagship.ts");
 /* harmony import */ var _config_index__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./config/index */ "./src/config/index.ts");
 /* harmony import */ var _hit_index__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./hit/index */ "./src/hit/index.ts");
 /* harmony import */ var _enum_index__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./enum/index */ "./src/enum/index.ts");
-/* harmony import */ var _model_Modification__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./model/Modification */ "./src/model/Modification.ts");
+/* harmony import */ var _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./enum/FlagshipContext */ "./src/enum/FlagshipContext.ts");
+/* harmony import */ var _model_Modification__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./model/Modification */ "./src/model/Modification.ts");
+
 
 
 

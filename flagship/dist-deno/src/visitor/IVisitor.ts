@@ -150,4 +150,15 @@ export interface IVisitor{
     visitorId: string;
     campaigns: CampaignDTO[];
     }>
+
+    /**
+     * Authenticate anonymous visitor
+     * @param {string} visitorId
+     */
+    authenticate(visitorId:string):void
+
+    /**
+     * This function change authenticated Visitor to anonymous visitor
+     */
+    unauthenticate():void
 }
