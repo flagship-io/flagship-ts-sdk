@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, node]
+    branches: [main, v2]
   pull_request:
     branches: [main]
 jobs:
@@ -25,3 +25,11 @@ jobs:
       - run: yarn install
       - run: yarn lint
       - run: yarn test --silent=true
+      - run: yarn build
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: |
+            dist
+            dist-deno
