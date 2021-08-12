@@ -25,4 +25,6 @@ jobs:
       - run: yarn install
       - run: yarn lint
       - run: yarn test --silent=true
+      - name: build
+      - run: yarn build
 
