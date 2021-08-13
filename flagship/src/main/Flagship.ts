@@ -49,21 +49,17 @@ export class Flagship {
    * Return true if the SDK is properly initialized, otherwise return false
    */
   private static isReady (): boolean {
-    const apiKey = this._instance.config.apiKey
-    const envId = this._instance.config.envId
-    return (
-      this._instance &&
-      apiKey !== null &&
-      apiKey !== '' &&
-      envId != null &&
-      envId !== ''
-    )
+    const apiKey = this._instance?.config?.apiKey
+    const envId = this._instance?.config?.envId
+    return (!!this._instance && !!apiKey && !!envId)
   }
 
   protected setStatus (status: FlagshipStatus): void {
     const statusChanged = this.config.statusChangedCallback
     if (this.config && statusChanged && this._status !== status) {
+      this._status = status
       statusChanged(status)
+      return
     }
     this._status = status
   }

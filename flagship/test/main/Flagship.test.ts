@@ -27,6 +27,11 @@ jest.mock('../../src/decision/ApiManager', () => {
   }
 })
 
+describe('test newVisitor null', () => {
+  const visitor = Flagship.newVisitor('visitor')
+  expect(visitor).toBeNull()
+})
+
 describe('test Flagship class', () => {
   const envId = 'envId'
   const apiKey = 'apiKey'
