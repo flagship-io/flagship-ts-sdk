@@ -1,5 +1,5 @@
 export { Flagship } from './main/Flagship.ts'
-export { DecisionApiConfig, DecisionMode } from './config/index.ts'
+export { DecisionApiConfig, DecisionMode, IFlagshipConfig } from './config/index.ts'
 export {
   Event,
   EventCategory,
