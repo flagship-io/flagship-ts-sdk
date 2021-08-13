@@ -3790,18 +3790,17 @@ var Flagship = /** @class */ (function () {
      * Return true if the SDK is properly initialized, otherwise return false
      */
     Flagship.isReady = function () {
-        var apiKey = this._instance.config.apiKey;
-        var envId = this._instance.config.envId;
-        return (this._instance &&
-            apiKey !== null &&
-            apiKey !== '' &&
-            envId != null &&
-            envId !== '');
+        var _a, _b, _c, _d;
+        var apiKey = (_b = (_a = this._instance) === null || _a === void 0 ? void 0 : _a.config) === null || _b === void 0 ? void 0 : _b.apiKey;
+        var envId = (_d = (_c = this._instance) === null || _c === void 0 ? void 0 : _c.config) === null || _d === void 0 ? void 0 : _d.envId;
+        return (!!this._instance && !!apiKey && !!envId);
     };
     Flagship.prototype.setStatus = function (status) {
         var statusChanged = this.config.statusChangedCallback;
         if (this.config && statusChanged && this._status !== status) {
+            this._status = status;
             statusChanged(status);
+            return;
         }
         this._status = status;
     };
