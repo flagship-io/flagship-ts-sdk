@@ -3,10 +3,15 @@ export { DecisionApiConfig, DecisionMode } from './config/index'
 export type { IFlagshipConfig } from './config/index'
 export {
   Event,
+  IEvent,
   EventCategory,
+  IItem,
   Item,
+  IPage,
   Page,
+  IScreen,
   Screen,
+  ITransaction,
   Transaction,
   HitAbstract
 } from './hit/index'
