@@ -4,13 +4,17 @@ import { IFlagshipConfig } from '../config/FlagshipConfig';
 import { IHttpClient } from '../utils/httpClient';
 import { CampaignDTO } from './api/models';
 import { VisitorAbstract } from '../visitor/VisitorAbstract';
+import { FlagshipStatus } from '../enum/index';
 export declare abstract class DecisionManager implements IDecisionManager {
     protected _config: IFlagshipConfig;
     protected _panic: boolean;
     protected _httpClient: IHttpClient;
+    private _statusChangedCallback;
     get config(): IFlagshipConfig;
     protected set panic(v: boolean);
+    statusChangedCallback(v: (status: FlagshipStatus) => void): void;
     constructor(httpClient: IHttpClient, config: IFlagshipConfig);
+    protected updateFlagshipStatus(v: FlagshipStatus): void;
     getModifications(campaigns: Array<CampaignDTO>): Map<string, Modification>;
     abstract getCampaignsAsync(visitor: VisitorAbstract): Promise<CampaignDTO[]>;
     getCampaignsModificationsAsync(visitor: VisitorAbstract): Promise<Map<string, Modification>>;

@@ -36,6 +36,8 @@ export declare class Flagship {
      * Return the current config set by the customer and used by the SDK.
      */
     static getConfig(): IFlagshipConfig;
+    private buildConfig;
+    private buildDecisionManager;
     /**
      * Start the flagship SDK, with a custom configuration implementation
      * @param {string} envId : Environment id provided by Flagship.

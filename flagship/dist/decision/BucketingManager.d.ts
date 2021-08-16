@@ -9,6 +9,7 @@ export declare class BucketingManager extends DecisionManager {
     private _lastModified;
     private _isPooling;
     private _murmurHash;
+    private _isFirstPooling;
     constructor(httpClient: IHttpClient, config: IFlagshipConfig, murmurHash: MurmurHash);
     startPolling(): Promise<void>;
     stopPolling(): void;

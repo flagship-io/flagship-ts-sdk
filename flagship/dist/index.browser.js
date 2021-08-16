@@ -3027,6 +3027,7 @@ var BucketingManager = /** @class */ (function (_super) {
     function BucketingManager(httpClient, config, murmurHash) {
         var _this = _super.call(this, httpClient, config) || this;
         _this._murmurHash = murmurHash;
+        _this._isFirstPooling = true;
         return _this;
     }
     BucketingManager.prototype.startPolling = function () {
@@ -3045,6 +3046,9 @@ var BucketingManager = /** @class */ (function (_super) {
                             this._isPooling = false;
                         }
                         (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logInfo)(this.config, 'Bucketing polling starts', 'startPolling');
+                        if (this._isFirstPooling) {
+                            this.updateFlagshipStatus(_enum_index__WEBPACK_IMPORTED_MODULE_0__.FlagshipStatus.POLLING);
+                        }
                         _c.label = 1;
                     case 1:
                         _c.trys.push([1, 4, , 5]);
@@ -3066,6 +3070,10 @@ var BucketingManager = /** @class */ (function (_super) {
                         }
                         if (response.headers) {
                             this._lastModified = response.headers['Last-Modified'];
+                        }
+                        if (this._isFirstPooling) {
+                            this._isFirstPooling = false;
+                            this.updateFlagshipStatus(_enum_index__WEBPACK_IMPORTED_MODULE_0__.FlagshipStatus.READY);
                         }
                         return [4 /*yield*/, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.sleep)(((_a = this.config.pollingInterval) !== null && _a !== void 0 ? _a : _enum_index__WEBPACK_IMPORTED_MODULE_0__.REQUEST_TIME_OUT) * 1000)];
                     case 3:
@@ -3274,6 +3282,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "DecisionManager": () => (/* binding */ DecisionManager)
 /* harmony export */ });
 /* harmony import */ var _model_Modification__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../model/Modification */ "./src/model/Modification.ts");
+/* harmony import */ var _enum_index__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../enum/index */ "./src/enum/index.ts");
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -3311,6 +3320,7 @@ var __generator = (undefined && undefined.__generator) || function (thisArg, bod
     }
 };
 
+
 var DecisionManager = /** @class */ (function () {
     function DecisionManager(httpClient, config) {
         this._panic = false;
@@ -3327,11 +3337,22 @@ var DecisionManager = /** @class */ (function () {
     Object.defineProperty(DecisionManager.prototype, "panic", {
         // eslint-disable-next-line accessor-pairs
         set: function (v) {
+            if (v) {
+                this.updateFlagshipStatus(_enum_index__WEBPACK_IMPORTED_MODULE_1__.FlagshipStatus.READY_PANIC_ON);
+            }
             this._panic = v;
         },
         enumerable: false,
         configurable: true
     });
+    DecisionManager.prototype.statusChangedCallback = function (v) {
+        this._statusChangedCallback = v;
+    };
+    DecisionManager.prototype.updateFlagshipStatus = function (v) {
+        if (typeof this._statusChangedCallback === 'function' && this._statusChangedCallback) {
+            this._statusChangedCallback(v);
+        }
+    };
     DecisionManager.prototype.getModifications = function (campaigns) {
         var modifications = new Map();
         campaigns.forEach(function (campaign) {
@@ -3351,7 +3372,6 @@ var DecisionManager = /** @class */ (function () {
                         _this.getCampaignsAsync(visitor).then(function (campaigns) {
                             resolve(_this.getModifications(campaigns));
                         }).catch(function (error) {
-                            console.log('campaigns', error);
                             reject(error);
                         });
                     })];
@@ -4959,6 +4979,31 @@ var Flagship = /** @class */ (function () {
     Flagship.getConfig = function () {
         return this.getInstance()._config;
     };
+    Flagship.prototype.buildConfig = function (config) {
+        if (config instanceof _config_FlagshipConfig__WEBPACK_IMPORTED_MODULE_2__.FlagshipConfig) {
+            return config;
+        }
+        var newConfig;
+        if ((config === null || config === void 0 ? void 0 : config.decisionMode) === _config_FlagshipConfig__WEBPACK_IMPORTED_MODULE_2__.DecisionMode.BUCKETING) {
+            newConfig = new _config_index__WEBPACK_IMPORTED_MODULE_12__.BucketingConfig(config);
+        }
+        else {
+            newConfig = new _config_DecisionApiConfig__WEBPACK_IMPORTED_MODULE_3__.DecisionApiConfig(config);
+        }
+        return newConfig;
+    };
+    Flagship.prototype.buildDecisionManager = function (config, httpClient) {
+        var decisionManager;
+        if (config.decisionMode === _config_FlagshipConfig__WEBPACK_IMPORTED_MODULE_2__.DecisionMode.BUCKETING) {
+            decisionManager = new _decision_BucketingManager__WEBPACK_IMPORTED_MODULE_13__.BucketingManager(httpClient, config, new _utils_MurmurHash__WEBPACK_IMPORTED_MODULE_14__.MurmurHash());
+            var bucketingManager = decisionManager;
+            bucketingManager.startPolling();
+        }
+        else {
+            decisionManager = new _decision_ApiManager__WEBPACK_IMPORTED_MODULE_5__.ApiManager(httpClient, config);
+        }
+        return decisionManager;
+    };
     /**
      * Start the flagship SDK, with a custom configuration implementation
      * @param {string} envId : Environment id provided by Flagship.
@@ -4968,23 +5013,17 @@ var Flagship = /** @class */ (function () {
     Flagship.start = function (envId, apiKey, config) {
         var _a;
         var flagship = this.getInstance();
-        if (!(config instanceof _config_FlagshipConfig__WEBPACK_IMPORTED_MODULE_2__.FlagshipConfig)) {
-            if ((config === null || config === void 0 ? void 0 : config.decisionMode) === _config_FlagshipConfig__WEBPACK_IMPORTED_MODULE_2__.DecisionMode.BUCKETING) {
-                config = new _config_index__WEBPACK_IMPORTED_MODULE_12__.BucketingConfig(config);
-            }
-            else {
-                config = new _config_DecisionApiConfig__WEBPACK_IMPORTED_MODULE_3__.DecisionApiConfig(config);
-            }
-        }
+        config = flagship.buildConfig(config);
         config.envId = envId;
         config.apiKey = apiKey;
         flagship._config = config;
-        flagship.setStatus(_enum_FlagshipStatus__WEBPACK_IMPORTED_MODULE_1__.FlagshipStatus.NOT_INITIALIZED);
+        flagship.setStatus(_enum_FlagshipStatus__WEBPACK_IMPORTED_MODULE_1__.FlagshipStatus.STARTING);
         // check custom logger
         if (!config.logManager) {
             config.logManager = new _utils_FlagshipLogManager__WEBPACK_IMPORTED_MODULE_8__.FlagshipLogManager();
         }
         if (!envId || envId === '' || !apiKey || apiKey === '') {
+            flagship.setStatus(_enum_FlagshipStatus__WEBPACK_IMPORTED_MODULE_1__.FlagshipStatus.NOT_INITIALIZED);
             (0,_utils_utils__WEBPACK_IMPORTED_MODULE_9__.logError)(config, _enum_index__WEBPACK_IMPORTED_MODULE_10__.INITIALIZATION_PARAM_ERROR, _enum_index__WEBPACK_IMPORTED_MODULE_10__.PROCESS_INITIALIZATION);
             return;
         }
@@ -4993,14 +5032,7 @@ var Flagship = /** @class */ (function () {
             decisionManager.stopPolling();
         }
         var httpClient = new _utils_NodeHttpClient__WEBPACK_IMPORTED_MODULE_7__.HttpClient();
-        if (config.decisionMode === _config_FlagshipConfig__WEBPACK_IMPORTED_MODULE_2__.DecisionMode.BUCKETING) {
-            decisionManager = new _decision_BucketingManager__WEBPACK_IMPORTED_MODULE_13__.BucketingManager(httpClient, config, new _utils_MurmurHash__WEBPACK_IMPORTED_MODULE_14__.MurmurHash());
-            var bucketingManager = decisionManager;
-            bucketingManager.startPolling();
-        }
-        else {
-            decisionManager = new _decision_ApiManager__WEBPACK_IMPORTED_MODULE_5__.ApiManager(httpClient, config);
-        }
+        decisionManager = flagship.buildDecisionManager(config, httpClient);
         var trackingManager = new _api_TrackingManager__WEBPACK_IMPORTED_MODULE_6__.TrackingManager(httpClient, config);
         if (flagship.configManager) {
             flagship.configManager.config = config;
@@ -5010,9 +5042,15 @@ var Flagship = /** @class */ (function () {
         else {
             flagship.configManager = new _config_ConfigManager__WEBPACK_IMPORTED_MODULE_4__.ConfigManager(config, decisionManager, trackingManager);
         }
+        flagship.configManager.decisionManager.statusChangedCallback(flagship.setStatus);
         if (this.isReady()) {
-            flagship.setStatus(_enum_FlagshipStatus__WEBPACK_IMPORTED_MODULE_1__.FlagshipStatus.READY);
+            if (flagship._status === _enum_FlagshipStatus__WEBPACK_IMPORTED_MODULE_1__.FlagshipStatus.STARTING) {
+                flagship.setStatus(_enum_FlagshipStatus__WEBPACK_IMPORTED_MODULE_1__.FlagshipStatus.READY);
+            }
             (0,_utils_utils__WEBPACK_IMPORTED_MODULE_9__.logInfo)(config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_9__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_10__.SDK_STARTED_INFO, _enum_index__WEBPACK_IMPORTED_MODULE_10__.SDK_VERSION), _enum_index__WEBPACK_IMPORTED_MODULE_10__.PROCESS_INITIALIZATION);
+        }
+        else {
+            flagship.setStatus(_enum_FlagshipStatus__WEBPACK_IMPORTED_MODULE_1__.FlagshipStatus.NOT_INITIALIZED);
         }
     };
     Flagship.newVisitor = function (params, params2) {
