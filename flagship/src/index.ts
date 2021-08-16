@@ -7,7 +7,8 @@ export {
   Item,
   Page,
   Screen,
-  Transaction
+  Transaction,
+  HitAbstract
 } from './hit/index'
 export { FlagshipStatus, LogLevel, HitType } from './enum/index'
 export * from './enum/FlagshipContext'
