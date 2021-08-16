@@ -74,6 +74,7 @@ export class Flagship {
 
   protected setStatus (status: FlagshipStatus): void {
     const statusChanged = this.config.statusChangedCallback
+
     if (this.config && statusChanged && this._status !== status) {
       this._status = status
       statusChanged(status)
@@ -109,17 +110,22 @@ export class Flagship {
     return newConfig
   }
 
-  private buildDecisionManager (config:FlagshipConfig, httpClient:HttpClient) : DecisionManager {
+  private buildDecisionManager (flagship:Flagship, config:FlagshipConfig, httpClient:HttpClient) : DecisionManager {
     let decisionManager:DecisionManager
+    const setStatus = (status:FlagshipStatus) => {
+      flagship.setStatus(status)
+    }
     if (config.decisionMode === DecisionMode.BUCKETING) {
       decisionManager = new BucketingManager(httpClient, config, new MurmurHash())
       const bucketingManager = decisionManager as BucketingManager
+      decisionManager.statusChangedCallback(setStatus)
       bucketingManager.startPolling()
     } else {
       decisionManager = new ApiManager(
         httpClient,
         config
       )
+      decisionManager.statusChangedCallback(setStatus)
     }
     return decisionManager
   }
@@ -165,7 +171,7 @@ export class Flagship {
 
     const httpClient = new HttpClient()
 
-    decisionManager = flagship.buildDecisionManager(config as FlagshipConfig, httpClient)
+    decisionManager = flagship.buildDecisionManager(flagship, config as FlagshipConfig, httpClient)
 
     const trackingManager = new TrackingManager(httpClient, config)
 
@@ -180,8 +186,6 @@ export class Flagship {
         trackingManager
       )
     }
-
-    flagship.configManager.decisionManager.statusChangedCallback(flagship.setStatus)
 
     if (this.isReady()) {
       if (flagship._status === FlagshipStatus.STARTING) {
