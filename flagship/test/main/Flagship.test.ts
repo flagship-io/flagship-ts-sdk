@@ -21,7 +21,8 @@ jest.mock('../../src/decision/ApiManager', () => {
     ApiManager: jest.fn().mockImplementation(() => {
       return {
         getCampaignsAsync,
-        getModifications: jest.fn()
+        getModifications: jest.fn(),
+        statusChangedCallback: jest.fn()
       }
     })
   }
@@ -73,13 +74,13 @@ describe('test Flagship with custom config', () => {
     config.statusChangedCallback = (status) => {
       switch (countStatus) {
         case 0:
-          expect(status).toBe(FlagshipStatus.NOT_READY)
+          expect(status).toBe(FlagshipStatus.STARTING)
           break
         case 1:
           expect(status).toBe(FlagshipStatus.READY)
           break
         case 2:
-          expect(status).toBe(FlagshipStatus.NOT_READY)
+          expect(status).toBe(FlagshipStatus.STARTING)
           break
 
         default:
@@ -113,7 +114,7 @@ describe('test Flagship with custom config', () => {
 
   it('should ', () => {
     Flagship.start('', '', config)
-    expect(Flagship.getStatus()).toBe(FlagshipStatus.NOT_READY)
+    expect(Flagship.getStatus()).toBe(FlagshipStatus.NOT_INITIALIZED)
     expect(errorLog).toBeCalledTimes(1)
     expect(errorLog).toBeCalledWith(
       INITIALIZATION_PARAM_ERROR,

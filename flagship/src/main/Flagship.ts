@@ -19,6 +19,7 @@ import { BucketingConfig } from '../config/index'
 import { BucketingManager } from '../decision/BucketingManager'
 import { MurmurHash } from '../utils/MurmurHash'
 import { primitive } from '../types'
+import { DecisionManager } from '../decision/DecisionManager'
 
 export interface INewVisitor{
   /**
@@ -95,6 +96,34 @@ export class Flagship {
     return this.getInstance()._config
   }
 
+  private buildConfig (config?: IFlagshipConfig| FlagshipConfig):FlagshipConfig {
+    if (config instanceof FlagshipConfig) {
+      return config
+    }
+    let newConfig:FlagshipConfig
+    if (config?.decisionMode === DecisionMode.BUCKETING) {
+      newConfig = new BucketingConfig(config)
+    } else {
+      newConfig = new DecisionApiConfig(config)
+    }
+    return newConfig
+  }
+
+  private buildDecisionManager (config:FlagshipConfig, httpClient:HttpClient) : DecisionManager {
+    let decisionManager:DecisionManager
+    if (config.decisionMode === DecisionMode.BUCKETING) {
+      decisionManager = new BucketingManager(httpClient, config, new MurmurHash())
+      const bucketingManager = decisionManager as BucketingManager
+      bucketingManager.startPolling()
+    } else {
+      decisionManager = new ApiManager(
+        httpClient,
+        config
+      )
+    }
+    return decisionManager
+  }
+
   /**
    * Start the flagship SDK, with a custom configuration implementation
    * @param {string} envId : Environment id provided by Flagship.
@@ -108,20 +137,14 @@ export class Flagship {
   ): void {
     const flagship = this.getInstance()
 
-    if (!(config instanceof FlagshipConfig)) {
-      if (config?.decisionMode === DecisionMode.BUCKETING) {
-        config = new BucketingConfig(config)
-      } else {
-        config = new DecisionApiConfig(config)
-      }
-    }
+    config = flagship.buildConfig(config)
 
     config.envId = envId
     config.apiKey = apiKey
 
     flagship._config = config
 
-    flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
+    flagship.setStatus(FlagshipStatus.STARTING)
 
     // check custom logger
     if (!config.logManager) {
@@ -129,6 +152,7 @@ export class Flagship {
     }
 
     if (!envId || envId === '' || !apiKey || apiKey === '') {
+      flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
       logError(config, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION)
       return
     }
@@ -141,16 +165,7 @@ export class Flagship {
 
     const httpClient = new HttpClient()
 
-    if (config.decisionMode === DecisionMode.BUCKETING) {
-      decisionManager = new BucketingManager(httpClient, config, new MurmurHash())
-      const bucketingManager = decisionManager as BucketingManager
-      bucketingManager.startPolling()
-    } else {
-      decisionManager = new ApiManager(
-        httpClient,
-        config
-      )
-    }
+    decisionManager = flagship.buildDecisionManager(config as FlagshipConfig, httpClient)
 
     const trackingManager = new TrackingManager(httpClient, config)
 
@@ -166,13 +181,19 @@ export class Flagship {
       )
     }
 
+    flagship.configManager.decisionManager.statusChangedCallback(flagship.setStatus)
+
     if (this.isReady()) {
-      flagship.setStatus(FlagshipStatus.READY)
+      if (flagship._status === FlagshipStatus.STARTING) {
+        flagship.setStatus(FlagshipStatus.READY)
+      }
       logInfo(
         config,
         sprintf(SDK_STARTED_INFO, SDK_VERSION),
         PROCESS_INITIALIZATION
       )
+    } else {
+      flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
     }
   }
 

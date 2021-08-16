@@ -6,7 +6,7 @@ import { HttpClient } from '../../src/utils/NodeHttpClient'
 import { bucketing } from './bucketing'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { ConfigManager } from '../../src/config'
-import { BUCKETING_API_CONTEXT_URL, BUCKETING_API_URL, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, SDK_LANGUAGE, SDK_VERSION } from '../../src/enum'
+import { BUCKETING_API_CONTEXT_URL, BUCKETING_API_URL, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, SDK_LANGUAGE, SDK_VERSION } from '../../src/enum'
 import { sprintf } from '../../src/utils/utils'
 import { IHttpResponse } from '../../src/utils/httpClient'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
@@ -98,6 +98,39 @@ describe('test BucketingManager', () => {
         'If-Modified-Since': 'Fri, 06 Aug 2021 11:16:19 GMT'
       }
     })
+  })
+})
+
+describe('test update', () => {
+  const config = new BucketingConfig({ pollingInterval: 0 })
+  const murmurHash = new MurmurHash()
+  const httpClient = new HttpClient()
+
+  const getAsync = jest.spyOn(httpClient, 'getAsync')
+
+  const bucketingManager = new BucketingManager(httpClient, config, murmurHash)
+
+  it('test', async () => {
+    getAsync.mockResolvedValue({ body: bucketing, status: 200 })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateFlagshipStatus = jest.spyOn(bucketingManager as any, 'updateFlagshipStatus')
+    let count = 0
+    bucketingManager.statusChangedCallback((status) => {
+      switch (count) {
+        case 0:
+          expect(status).toBe(FlagshipStatus.POLLING)
+          break
+        case 1:
+          expect(status).toBe(FlagshipStatus.READY)
+          break
+        default:
+          break
+      }
+      count++
+    })
+    await bucketingManager.startPolling()
+    await bucketingManager.startPolling()
+    expect(updateFlagshipStatus).toBeCalledTimes(2)
   })
 })
 

@@ -1,5 +1,5 @@
 import { IFlagshipConfig } from '../config/index'
-import { BUCKETING_API_CONTEXT_URL, BUCKETING_API_URL, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, REQUEST_TIME_OUT, SDK_LANGUAGE, SDK_VERSION } from '../enum/index'
+import { BUCKETING_API_CONTEXT_URL, BUCKETING_API_URL, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, REQUEST_TIME_OUT, SDK_LANGUAGE, SDK_VERSION } from '../enum/index'
 import { primitive } from '../types'
 import { IHttpClient } from '../utils/httpClient'
 import { MurmurHash } from '../utils/MurmurHash'
@@ -14,10 +14,12 @@ export class BucketingManager extends DecisionManager {
     private _lastModified!:string
     private _isPooling!:boolean
     private _murmurHash:MurmurHash
+    private _isFirstPooling:boolean
 
     public constructor (httpClient: IHttpClient, config: IFlagshipConfig, murmurHash: MurmurHash) {
       super(httpClient, config)
       this._murmurHash = murmurHash
+      this._isFirstPooling = true
     }
 
     public async startPolling (): Promise<void> {
@@ -29,6 +31,9 @@ export class BucketingManager extends DecisionManager {
         this._isPooling = false
       }
       logInfo(this.config, 'Bucketing polling starts', 'startPolling')
+      if (this._isFirstPooling) {
+        this.updateFlagshipStatus(FlagshipStatus.POLLING)
+      }
       do {
         try {
           const url = sprintf(BUCKETING_API_URL, this.config.envId)
@@ -47,6 +52,10 @@ export class BucketingManager extends DecisionManager {
           }
           if (response.headers) {
             this._lastModified = response.headers['Last-Modified']
+          }
+          if (this._isFirstPooling) {
+            this._isFirstPooling = false
+            this.updateFlagshipStatus(FlagshipStatus.READY)
           }
           await sleep((this.config.pollingInterval ?? REQUEST_TIME_OUT) * 1000)
         } catch (error) {

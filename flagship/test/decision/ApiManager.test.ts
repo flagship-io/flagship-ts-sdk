@@ -4,6 +4,7 @@ import { ApiManager } from '../../src/decision/ApiManager'
 import {
   BASE_API_URL,
   EXPOSE_ALL_KEYS,
+  FlagshipStatus,
   HEADER_APPLICATION_JSON,
   HEADER_CONTENT_TYPE,
   HEADER_X_API_KEY,
@@ -52,6 +53,9 @@ describe('test ApiManager', () => {
 
   it('test panic mode ', async () => {
     postAsync.mockResolvedValue(panicModeResponse)
+    apiManager.statusChangedCallback((status) => {
+      expect(status).toBe(FlagshipStatus.READY_PANIC_ON)
+    })
     const modifications = await apiManager.getCampaignsModificationsAsync(
       visitor
     )
