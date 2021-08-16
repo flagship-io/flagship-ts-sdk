@@ -1,3 +1,4 @@
+import { BucketingDTO } from '../decision/api/bucketingDTO'
 import { FlagshipStatus, LogLevel, REQUEST_TIME_OUT } from '../enum/index'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError } from '../utils/utils'
@@ -60,6 +61,10 @@ export interface IFlagshipConfig {
    * Note: If 0 is given then it should poll only once at start time.
    */
   pollingInterval?:number
+
+  onBucketingSuccess?:(param:{ status: FlagshipStatus; payload: BucketingDTO })=>void
+
+  onBucketingFail?:(error: Error)=>void;
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -74,6 +79,8 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _logManager!: IFlagshipLogManager;
   private _fetchNow! : boolean;
   private _pollingInterval!: number
+  private _onBucketingFail?: (error: Error)=>void;
+  private _onBucketingSuccess?: (param:{ status: number; payload: BucketingDTO })=>void;
 
   protected constructor (param: IFlagshipConfig) {
     const {
@@ -91,6 +98,22 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       this.logManager = logManager
     }
     this.statusChangedCallback = statusChangedCallback
+  }
+
+  public get onBucketingSuccess () : ((param:{ status: number; payload: BucketingDTO })=>void)| undefined {
+    return this._onBucketingSuccess
+  }
+
+  public set onBucketingSuccess (v : ((param:{ status: number; payload: BucketingDTO })=>void)| undefined) {
+    this._onBucketingSuccess = v
+  }
+
+  public get onBucketingFail () : ((error: Error)=>void)| undefined {
+    return this._onBucketingFail
+  }
+
+  public set onBucketingFail (v : ((error: Error)=>void)| undefined) {
+    this._onBucketingFail = v
   }
 
   public set envId (value: string | undefined) {

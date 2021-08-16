@@ -1,7 +1,7 @@
 import { IFlagshipConfig } from '../config/index'
 import { BUCKETING_API_CONTEXT_URL, BUCKETING_API_URL, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, REQUEST_TIME_OUT, SDK_LANGUAGE, SDK_VERSION } from '../enum/index'
 import { primitive } from '../types'
-import { IHttpClient } from '../utils/httpClient'
+import { IHttpClient, IHttpResponse } from '../utils/httpClient'
 import { MurmurHash } from '../utils/MurmurHash'
 import { logError, logInfo, sleep, sprintf } from '../utils/utils'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
@@ -22,11 +22,7 @@ export class BucketingManager extends DecisionManager {
       this._isFirstPooling = true
     }
 
-    public async startPolling (): Promise<void> {
-      if (this._isPooling) {
-        return
-      }
-      this._isPooling = true
+    private initStartPolling () {
       if (this.config.pollingInterval === 0) {
         this._isPooling = false
       }
@@ -34,6 +30,35 @@ export class BucketingManager extends DecisionManager {
       if (this._isFirstPooling) {
         this.updateFlagshipStatus(FlagshipStatus.POLLING)
       }
+    }
+
+    private finishLoop (response: IHttpResponse) {
+      if (response.status === 200) {
+        this._bucketingContent = response.body
+      }
+
+      if (response.headers) {
+        this._lastModified = response.headers['Last-Modified']
+      }
+
+      if (this._isFirstPooling) {
+        this._isFirstPooling = false
+        this.updateFlagshipStatus(FlagshipStatus.READY)
+      }
+
+      if (typeof this.config.onBucketingSuccess === 'function') {
+        this.config.onBucketingSuccess({ status: response.status, payload: this._bucketingContent })
+      }
+    }
+
+    public async startPolling (): Promise<void> {
+      if (this._isPooling) {
+        return
+      }
+      this._isPooling = true
+
+      this.initStartPolling()
+
       do {
         try {
           const url = sprintf(BUCKETING_API_URL, this.config.envId)
@@ -43,23 +68,24 @@ export class BucketingManager extends DecisionManager {
             [HEADER_X_SDK_VERSION]: SDK_VERSION,
             [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
           }
+
           if (this._lastModified) {
             headers['If-Modified-Since'] = this._lastModified
           }
+
           const response = await this._httpClient.getAsync(url, { headers })
-          if (response.status === 200) {
-            this._bucketingContent = response.body
-          }
-          if (response.headers) {
-            this._lastModified = response.headers['Last-Modified']
-          }
-          if (this._isFirstPooling) {
-            this._isFirstPooling = false
-            this.updateFlagshipStatus(FlagshipStatus.READY)
-          }
+
+          this.finishLoop(response)
+
           await sleep((this.config.pollingInterval ?? REQUEST_TIME_OUT) * 1000)
         } catch (error) {
           logError(this.config, error, 'startPolling')
+          if (this._isFirstPooling) {
+            this.updateFlagshipStatus(FlagshipStatus.NOT_INITIALIZED)
+          }
+          if (typeof this.config.onBucketingFail === 'function') {
+            this.config.onBucketingFail(new Error(error))
+          }
         }
       // eslint-disable-next-line no-unmodified-loop-condition
       } while (this._isPooling)

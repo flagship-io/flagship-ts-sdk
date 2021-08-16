@@ -7,11 +7,21 @@ describe('test BucketingConfig', () => {
   it('should ', () => {
     const config = new BucketingConfig()
     expect(config.pollingInterval).toBe(REQUEST_TIME_OUT)
+    expect(config.onBucketingSuccess).toBeUndefined()
+    expect(config.onBucketingFail).toBeUndefined()
   })
 
   it('should ', () => {
-    const config = new BucketingConfig({ pollingInterval: 3000 })
+    const onBucketingSuccess = () => {
+      //
+    }
+    const onBucketingFail = () => {
+      //
+    }
+    const config = new BucketingConfig({ pollingInterval: 3000, onBucketingSuccess, onBucketingFail })
     expect(config.pollingInterval).toBe(3000)
+    expect(config.onBucketingSuccess).toBe(onBucketingSuccess)
+    expect(config.onBucketingFail).toBe(onBucketingFail)
   })
 
   it('should ', () => {

@@ -10,6 +10,7 @@ import { BUCKETING_API_CONTEXT_URL, BUCKETING_API_URL, FlagshipStatus, HEADER_AP
 import { sprintf } from '../../src/utils/utils'
 import { IHttpResponse } from '../../src/utils/httpClient'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
+import { BucketingDTO } from '../../src/decision/api/bucketingDTO'
 
 describe('test BucketingManager', () => {
   const config = new BucketingConfig({ pollingInterval: 0 })
@@ -102,7 +103,12 @@ describe('test BucketingManager', () => {
 })
 
 describe('test update', () => {
-  const config = new BucketingConfig({ pollingInterval: 0 })
+  const onBucketingSuccess = (param: {
+    status: number
+    payload: BucketingDTO}) => {
+    expect(param).toEqual({ status: 200, payload: bucketing })
+  }
+  const config = new BucketingConfig({ pollingInterval: 0, onBucketingSuccess })
   const murmurHash = new MurmurHash()
   const httpClient = new HttpClient()
 
@@ -129,6 +135,43 @@ describe('test update', () => {
       count++
     })
     await bucketingManager.startPolling()
+    await bucketingManager.startPolling()
+    expect(updateFlagshipStatus).toBeCalledTimes(2)
+  })
+})
+
+describe('test error', () => {
+  const error = new Error('Error')
+  const onBucketingFail = (error: Error) => {
+    expect(error).toEqual(error)
+  }
+  const config = new BucketingConfig({ pollingInterval: 0, onBucketingFail })
+  const murmurHash = new MurmurHash()
+  const httpClient = new HttpClient()
+
+  const getAsync = jest.spyOn(httpClient, 'getAsync')
+
+  const bucketingManager = new BucketingManager(httpClient, config, murmurHash)
+
+  it('test', async () => {
+    getAsync.mockRejectedValue(error)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateFlagshipStatus = jest.spyOn(bucketingManager as any, 'updateFlagshipStatus')
+    let count = 0
+    bucketingManager.statusChangedCallback((status) => {
+      switch (count) {
+        case 0:
+          expect(status).toBe(FlagshipStatus.POLLING)
+          break
+        case 1:
+          expect(status).toBe(FlagshipStatus.NOT_INITIALIZED)
+          break
+        default:
+          break
+      }
+      count++
+    })
+
     await bucketingManager.startPolling()
     expect(updateFlagshipStatus).toBeCalledTimes(2)
   })
