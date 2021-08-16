@@ -30,8 +30,6 @@ describe('test ApiManager', () => {
 
   const visitor = new VisitorDelegate({ visitorId, context, configManager: {} as ConfigManager })
 
-  const panicModeResponse = { status: 200, body: { panic: true } }
-
   const campaignResponse = { status: 200, body: campaigns }
 
   const responseError: IHttpResponse = { status: 400, body: null }
@@ -52,6 +50,9 @@ describe('test ApiManager', () => {
   const url = `${BASE_API_URL}${config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
 
   it('test panic mode ', async () => {
+    const apiManager = new ApiManager(httpClient, config)
+    const panicModeResponse = { status: 200, body: { panic: true } }
+
     postAsync.mockResolvedValue(panicModeResponse)
     apiManager.statusChangedCallback((status) => {
       expect(status).toBe(FlagshipStatus.READY_PANIC_ON)
