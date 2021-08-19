@@ -37,12 +37,13 @@ export class BucketingManager extends DecisionManager {
         this._bucketingContent = response.body
       }
 
-      if (response.headers) {
-        const lastModified = response.headers['Last-Modified']
+      if (response.headers && response.headers['last-modified']) {
+        const lastModified = response.headers['last-modified']
+
         if (this._lastModified !== lastModified && this.config.onBucketingUpdated) {
           this.config.onBucketingUpdated(new Date(lastModified))
         }
-        this._lastModified = response.headers['Last-Modified']
+        this._lastModified = lastModified
       }
 
       if (this._isFirstPooling) {
@@ -74,7 +75,7 @@ export class BucketingManager extends DecisionManager {
           }
 
           if (this._lastModified) {
-            headers['If-Modified-Since'] = this._lastModified
+            headers['if-modified-since'] = this._lastModified
           }
 
           const response = await this._httpClient.getAsync(url, { headers })
@@ -83,7 +84,7 @@ export class BucketingManager extends DecisionManager {
 
           await sleep((this.config.pollingInterval ?? REQUEST_TIME_OUT) * 1000)
         } catch (error) {
-          logError(this.config, error, 'startPolling')
+          logError(this.config, error, 'startPolling dd')
           if (this._isFirstPooling) {
             this.updateFlagshipStatus(FlagshipStatus.NOT_INITIALIZED)
           }

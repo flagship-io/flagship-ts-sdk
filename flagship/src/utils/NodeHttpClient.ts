@@ -15,6 +15,9 @@ export class HttpClient implements IHttpClient {
   getAsync (url: string, options?: IHttpOptions): Promise<IHttpResponse> {
     return new Promise<IHttpResponse>((resolve, reject) => {
       axios.get(url, {
+        validateStatus: function (status) {
+          return status < 400
+        },
         headers: options?.headers,
         timeout: options?.timeout ? options.timeout * 1000 : REQUEST_TIME_OUT * 1000
       })
