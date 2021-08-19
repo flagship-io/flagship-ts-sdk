@@ -8,5 +8,6 @@ flagship/demo/**/config.js
 **/**/node_modules
 **/**/build
 **/**/config.ts
+**/**/.next/*
 **/node_modules
 **/dist

@@ -64,7 +64,9 @@ export interface IFlagshipConfig {
 
   onBucketingSuccess?:(param:{ status: FlagshipStatus; payload: BucketingDTO })=>void
 
-  onBucketingFail?:(error: Error)=>void;
+  onBucketingFail?:(error: Error)=>void
+
+  onBucketingUpdated?:(lastUpdate:Date)=>void
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -81,6 +83,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _pollingInterval!: number
   private _onBucketingFail?: (error: Error)=>void;
   private _onBucketingSuccess?: (param:{ status: number; payload: BucketingDTO })=>void;
+  private _onBucketingUpdated?: (lastUpdate:Date)=>void;
 
   protected constructor (param: IFlagshipConfig) {
     const {
@@ -114,6 +117,14 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
 
   public set onBucketingFail (v : ((error: Error)=>void)| undefined) {
     this._onBucketingFail = v
+  }
+
+  public get onBucketingUpdated () : ((lastUpdate:Date)=>void)|undefined {
+    return this._onBucketingUpdated
+  }
+
+  public set onBucketingUpdated (v : ((lastUpdate:Date)=>void)|undefined) {
+    this._onBucketingUpdated = v
   }
 
   public set envId (value: string | undefined) {

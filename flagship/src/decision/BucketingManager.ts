@@ -38,6 +38,10 @@ export class BucketingManager extends DecisionManager {
       }
 
       if (response.headers) {
+        const lastModified = response.headers['Last-Modified']
+        if (this._lastModified !== lastModified && this.config.onBucketingUpdated) {
+          this.config.onBucketingUpdated(new Date(lastModified))
+        }
         this._lastModified = response.headers['Last-Modified']
       }
 
