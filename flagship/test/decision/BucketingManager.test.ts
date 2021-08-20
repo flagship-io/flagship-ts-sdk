@@ -64,7 +64,7 @@ describe('test BucketingManager', () => {
     expect(sendContext).toBeCalledTimes(1)
   })
 
-  const headers = { 'Last-Modified': 'Fri, 06 Aug 2021 11:16:19 GMT' }
+  const headers = { 'last-modified': 'Fri, 06 Aug 2021 11:16:19 GMT' }
   const url = sprintf(BUCKETING_API_URL, config.envId)
   it('test getCampaignsAsync campaign empty', async () => {
     getAsync.mockResolvedValue({ body: {}, status: 200, headers })
@@ -96,7 +96,7 @@ describe('test BucketingManager', () => {
         [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
         [HEADER_X_SDK_VERSION]: SDK_VERSION,
         [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON,
-        'If-Modified-Since': 'Fri, 06 Aug 2021 11:16:19 GMT'
+        'if-modified-since': 'Fri, 06 Aug 2021 11:16:19 GMT'
       }
     })
   })
