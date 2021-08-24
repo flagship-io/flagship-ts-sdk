@@ -1,9 +1,8 @@
 import {
-  Application,
-  send,
-  Router,
-  helpers,
-} from "https://deno.land/x/oak/mod.ts";
+  RouterContext,
+  RouteParams,
+} from "https://deno.land/x/oak@v8.0.0/router.ts";
+import { Application, send, Router, helpers, OakSession } from "./deps.ts";
 import {
   DecisionMode,
   Flagship,
@@ -11,9 +10,8 @@ import {
   LogLevel,
   HitType,
   EventCategory,
-} from "../flagship/dist-deno/src/mod.ts";
-import { OakSession } from "https://deno.land/x/sessions/mod.ts";
-import { IFlagshipLogManager } from "../flagship/dist-deno/src/utils/FlagshipLogManager.ts";
+  IFlagshipLogManager,
+} from "./deps.ts";
 
 const statusChangedCallback = (status: FlagshipStatus) => {
   console.log("status", FlagshipStatus[status]);
@@ -65,6 +63,42 @@ class CustomLogAdapter implements IFlagshipLogManager {
   }
 }
 
+const putEnvValidation = async (
+  context: RouterContext<RouteParams, Record<string, any>>,
+  next: () => Promise<unknown>
+) => {
+  const {
+    environment_id: environmentId,
+    api_key: apiKey,
+    polling_interval: pollingInterval,
+    timeout,
+  } = await context.request.body().value;
+  const error: Record<string, unknown> = {};
+  const messageRequired = (field: string) => {
+    return `Field ${field} is required`;
+  };
+  const messageNumber = (field: string) => {
+    return `Field ${field} is must be a number`;
+  };
+  if (!environmentId) {
+    error.environmentId = messageRequired("environmentId");
+  }
+  if (!apiKey) {
+    error.apiKey = messageRequired("apiKey");
+  }
+  if (typeof pollingInterval !== "number") {
+    error.pollingInterval = messageNumber("pollingInterval");
+  }
+  if (typeof timeout !== "number") {
+    error.timeout = messageNumber("pollingInterval");
+  }
+  if (Object.keys(error).length) {
+    context.response.status = 422;
+    return (context.response.body = { error, ok: true });
+  }
+  await next();
+};
+
 const app = new Application();
 const _session: OakSession = new OakSession(app);
 
@@ -98,30 +132,36 @@ router
       pollingInterval,
     });
   })
-  .put("/env", async (context) => {
+  .put("/env", putEnvValidation, async (context) => {
     const {
       environment_id: environmentId,
       api_key: apiKey,
+      polling_interval: pollingInterval,
       timeout,
+      bucketing,
     } = await context.request.body().value;
 
     await context.state.session.set("envId", environmentId);
     await context.state.session.set("apiKey", apiKey);
     await context.state.session.set("timeout", timeout);
+    await context.state.session.set("bucketing", bucketing);
+    await context.state.session.set("pollingInterval", pollingInterval);
 
     envIdGlobale = environmentId;
     apiKeyGlobal = apiKey;
 
     Flagship.start(environmentId, apiKey, {
-      decisionMode: DecisionMode.DECISION_API,
+      decisionMode: bucketing
+        ? DecisionMode.BUCKETING
+        : DecisionMode.DECISION_API,
       statusChangedCallback,
       logLevel: LogLevel.ALL,
       fetchNow: false,
       logManager: new CustomLogAdapter(),
+      pollingInterval,
     });
 
     await context.state.session.set("logs", Infos);
-
     return (context.response.body = { environmentId, apiKey, timeout });
   })
   .put("/visitor", async ({ request, response, state }) => {
