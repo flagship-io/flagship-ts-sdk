@@ -1,15 +1,15 @@
-import { IFlagshipConfig } from "../config/index";
-import { CampaignDTO } from "../decision/api/models";
+import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
+import { CampaignDTO } from '../decision/api/models.ts'
 import {
   HitAbstract,
   IEvent,
   IItem,
   IPage,
   IScreen,
-  ITransaction,
-} from "../hit/index";
-import { Modification } from "../model/Modification";
-import { modificationsRequested, primitive } from "../types";
+  ITransaction
+} from '../hit/index.ts'
+import { Modification } from '../model/Modification.ts'
+import { modificationsRequested, primitive } from '../types.ts'
 
 export interface IVisitor {
   visitorId: string;

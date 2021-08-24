@@ -1,6 +1,7 @@
 export { Flagship } from './main/Flagship';
 export { DecisionApiConfig, DecisionMode } from './config/index';
 export type { IFlagshipConfig } from './config/index';
+export type { IEvent, IItem, IPage, IScreen, ITransaction } from './hit/index';
 export { Event, EventCategory, Item, Page, Screen, Transaction, HitAbstract } from './hit/index';
 export { FlagshipStatus, LogLevel, HitType } from './enum/index';
 export * from './enum/FlagshipContext';
