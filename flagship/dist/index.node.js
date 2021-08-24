@@ -2350,8 +2350,11 @@ var BucketingConfig = /** @class */ (function (_super) {
     function BucketingConfig(param) {
         var _this = _super.call(this, __assign(__assign({}, param), { decisionMode: _FlagshipConfig__WEBPACK_IMPORTED_MODULE_1__.DecisionMode.BUCKETING })) || this;
         if (param) {
-            var pollingInterval = param.pollingInterval;
+            var pollingInterval = param.pollingInterval, onBucketingFail = param.onBucketingFail, onBucketingSuccess = param.onBucketingSuccess, onBucketingUpdated = param.onBucketingUpdated;
             _this.pollingInterval = pollingInterval !== null && pollingInterval !== void 0 ? pollingInterval : _enum_index__WEBPACK_IMPORTED_MODULE_0__.REQUEST_TIME_OUT;
+            _this.onBucketingFail = onBucketingFail;
+            _this.onBucketingSuccess = onBucketingSuccess;
+            _this.onBucketingUpdated = onBucketingUpdated;
         }
         else {
             _this.pollingInterval = _enum_index__WEBPACK_IMPORTED_MODULE_0__.REQUEST_TIME_OUT;
@@ -2513,6 +2516,36 @@ var FlagshipConfig = /** @class */ (function () {
         }
         this.statusChangedCallback = statusChangedCallback;
     }
+    Object.defineProperty(FlagshipConfig.prototype, "onBucketingSuccess", {
+        get: function () {
+            return this._onBucketingSuccess;
+        },
+        set: function (v) {
+            this._onBucketingSuccess = v;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(FlagshipConfig.prototype, "onBucketingFail", {
+        get: function () {
+            return this._onBucketingFail;
+        },
+        set: function (v) {
+            this._onBucketingFail = v;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(FlagshipConfig.prototype, "onBucketingUpdated", {
+        get: function () {
+            return this._onBucketingUpdated;
+        },
+        set: function (v) {
+            this._onBucketingUpdated = v;
+        },
+        enumerable: false,
+        configurable: true
+    });
     Object.defineProperty(FlagshipConfig.prototype, "envId", {
         get: function () {
             return this._envId;
@@ -2736,9 +2769,11 @@ var ApiManager = /** @class */ (function (_super) {
                             body: postData
                         })
                             .then(function (data) {
-                            _this.panic = false;
                             if (data.body.panic) {
                                 _this.panic = true;
+                            }
+                            else {
+                                _this.panic = false;
                             }
                             var response = [];
                             if (data.body.campaigns) {
@@ -2837,6 +2872,34 @@ var BucketingManager = /** @class */ (function (_super) {
         _this._isFirstPooling = true;
         return _this;
     }
+    BucketingManager.prototype.initStartPolling = function () {
+        if (this.config.pollingInterval === 0) {
+            this._isPooling = false;
+        }
+        (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logInfo)(this.config, 'Bucketing polling starts', 'startPolling');
+        if (this._isFirstPooling) {
+            this.updateFlagshipStatus(_enum_index__WEBPACK_IMPORTED_MODULE_0__.FlagshipStatus.POLLING);
+        }
+    };
+    BucketingManager.prototype.finishLoop = function (response) {
+        if (response.status === 200) {
+            this._bucketingContent = response.body;
+        }
+        if (response.headers && response.headers['last-modified']) {
+            var lastModified = response.headers['last-modified'];
+            if (this._lastModified !== lastModified && this.config.onBucketingUpdated) {
+                this.config.onBucketingUpdated(new Date(lastModified));
+            }
+            this._lastModified = lastModified;
+        }
+        if (this._isFirstPooling) {
+            this._isFirstPooling = false;
+            this.updateFlagshipStatus(_enum_index__WEBPACK_IMPORTED_MODULE_0__.FlagshipStatus.READY);
+        }
+        if (typeof this.config.onBucketingSuccess === 'function') {
+            this.config.onBucketingSuccess({ status: response.status, payload: this._bucketingContent });
+        }
+    };
     BucketingManager.prototype.startPolling = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
@@ -2849,13 +2912,7 @@ var BucketingManager = /** @class */ (function (_super) {
                             return [2 /*return*/];
                         }
                         this._isPooling = true;
-                        if (this.config.pollingInterval === 0) {
-                            this._isPooling = false;
-                        }
-                        (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logInfo)(this.config, 'Bucketing polling starts', 'startPolling');
-                        if (this._isFirstPooling) {
-                            this.updateFlagshipStatus(_enum_index__WEBPACK_IMPORTED_MODULE_0__.FlagshipStatus.POLLING);
-                        }
+                        this.initStartPolling();
                         _c.label = 1;
                     case 1:
                         _c.trys.push([1, 4, , 5]);
@@ -2867,28 +2924,25 @@ var BucketingManager = /** @class */ (function (_super) {
                             _b[_enum_index__WEBPACK_IMPORTED_MODULE_0__.HEADER_CONTENT_TYPE] = _enum_index__WEBPACK_IMPORTED_MODULE_0__.HEADER_APPLICATION_JSON,
                             _b);
                         if (this._lastModified) {
-                            headers['If-Modified-Since'] = this._lastModified;
+                            headers['if-modified-since'] = this._lastModified;
                         }
                         return [4 /*yield*/, this._httpClient.getAsync(url, { headers: headers })];
                     case 2:
                         response = _c.sent();
-                        if (response.status === 200) {
-                            this._bucketingContent = response.body;
-                        }
-                        if (response.headers) {
-                            this._lastModified = response.headers['Last-Modified'];
-                        }
-                        if (this._isFirstPooling) {
-                            this._isFirstPooling = false;
-                            this.updateFlagshipStatus(_enum_index__WEBPACK_IMPORTED_MODULE_0__.FlagshipStatus.READY);
-                        }
+                        this.finishLoop(response);
                         return [4 /*yield*/, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.sleep)(((_a = this.config.pollingInterval) !== null && _a !== void 0 ? _a : _enum_index__WEBPACK_IMPORTED_MODULE_0__.REQUEST_TIME_OUT) * 1000)];
                     case 3:
                         _c.sent();
                         return [3 /*break*/, 5];
                     case 4:
                         error_1 = _c.sent();
-                        (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, error_1, 'startPolling');
+                        (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, error_1, 'startPolling dd');
+                        if (this._isFirstPooling) {
+                            this.updateFlagshipStatus(_enum_index__WEBPACK_IMPORTED_MODULE_0__.FlagshipStatus.NOT_INITIALIZED);
+                        }
+                        if (typeof this.config.onBucketingFail === 'function') {
+                            this.config.onBucketingFail(new Error(error_1));
+                        }
                         return [3 /*break*/, 5];
                     case 5:
                         if (this._isPooling) return [3 /*break*/, 1];
@@ -3146,6 +3200,9 @@ var DecisionManager = /** @class */ (function () {
         set: function (v) {
             if (v) {
                 this.updateFlagshipStatus(_enum_index__WEBPACK_IMPORTED_MODULE_1__.FlagshipStatus.READY_PANIC_ON);
+            }
+            else {
+                this.updateFlagshipStatus(_enum_index__WEBPACK_IMPORTED_MODULE_1__.FlagshipStatus.READY);
             }
             this._panic = v;
         },
@@ -4799,15 +4856,20 @@ var Flagship = /** @class */ (function () {
         }
         return newConfig;
     };
-    Flagship.prototype.buildDecisionManager = function (config, httpClient) {
+    Flagship.prototype.buildDecisionManager = function (flagship, config, httpClient) {
         var decisionManager;
+        var setStatus = function (status) {
+            flagship.setStatus(status);
+        };
         if (config.decisionMode === _config_FlagshipConfig__WEBPACK_IMPORTED_MODULE_2__.DecisionMode.BUCKETING) {
             decisionManager = new _decision_BucketingManager__WEBPACK_IMPORTED_MODULE_13__.BucketingManager(httpClient, config, new _utils_MurmurHash__WEBPACK_IMPORTED_MODULE_14__.MurmurHash());
             var bucketingManager = decisionManager;
+            decisionManager.statusChangedCallback(setStatus);
             bucketingManager.startPolling();
         }
         else {
             decisionManager = new _decision_ApiManager__WEBPACK_IMPORTED_MODULE_5__.ApiManager(httpClient, config);
+            decisionManager.statusChangedCallback(setStatus);
         }
         return decisionManager;
     };
@@ -4839,7 +4901,7 @@ var Flagship = /** @class */ (function () {
             decisionManager.stopPolling();
         }
         var httpClient = new _utils_NodeHttpClient__WEBPACK_IMPORTED_MODULE_7__.HttpClient();
-        decisionManager = flagship.buildDecisionManager(config, httpClient);
+        decisionManager = flagship.buildDecisionManager(flagship, config, httpClient);
         var trackingManager = new _api_TrackingManager__WEBPACK_IMPORTED_MODULE_6__.TrackingManager(httpClient, config);
         if (flagship.configManager) {
             flagship.configManager.config = config;
@@ -4849,7 +4911,6 @@ var Flagship = /** @class */ (function () {
         else {
             flagship.configManager = new _config_ConfigManager__WEBPACK_IMPORTED_MODULE_4__.ConfigManager(config, decisionManager, trackingManager);
         }
-        flagship.configManager.decisionManager.statusChangedCallback(flagship.setStatus);
         if (this.isReady()) {
             if (flagship._status === _enum_FlagshipStatus__WEBPACK_IMPORTED_MODULE_1__.FlagshipStatus.STARTING) {
                 flagship.setStatus(_enum_FlagshipStatus__WEBPACK_IMPORTED_MODULE_1__.FlagshipStatus.READY);
@@ -4979,6 +5040,19 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! events */ "events");
 /* harmony import */ var events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(events__WEBPACK_IMPORTED_MODULE_0__);
+
+
+
+/***/ }),
+
+/***/ "./src/types.ts":
+/*!**********************!*\
+  !*** ./src/types.ts ***!
+  \**********************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
 
 
 
@@ -5132,6 +5206,9 @@ var HttpClient = /** @class */ (function () {
         var _this = this;
         return new Promise(function (resolve, reject) {
             axios__WEBPACK_IMPORTED_MODULE_0___default().get(url, {
+                validateStatus: function (status) {
+                    return status < 400;
+                },
                 headers: options === null || options === void 0 ? void 0 : options.headers,
                 timeout: (options === null || options === void 0 ? void 0 : options.timeout) ? options.timeout * 1000 : _enum__WEBPACK_IMPORTED_MODULE_1__.REQUEST_TIME_OUT * 1000
             })
@@ -6295,6 +6372,38 @@ var VisitorStrategyAbstract = /** @class */ (function () {
 
 /***/ }),
 
+/***/ "./src/visitor/index.ts":
+/*!******************************!*\
+  !*** ./src/visitor/index.ts ***!
+  \******************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "NoConsentStrategy": () => (/* reexport safe */ _NoConsentStrategy__WEBPACK_IMPORTED_MODULE_0__.NoConsentStrategy),
+/* harmony export */   "NotReadyStrategy": () => (/* reexport safe */ _NotReadyStrategy__WEBPACK_IMPORTED_MODULE_1__.NotReadyStrategy),
+/* harmony export */   "DefaultStrategy": () => (/* reexport safe */ _DefaultStrategy__WEBPACK_IMPORTED_MODULE_2__.DefaultStrategy),
+/* harmony export */   "PanicStrategy": () => (/* reexport safe */ _PanicStrategy__WEBPACK_IMPORTED_MODULE_3__.PanicStrategy),
+/* harmony export */   "Visitor": () => (/* reexport safe */ _Visitor__WEBPACK_IMPORTED_MODULE_4__.Visitor),
+/* harmony export */   "VisitorDelegate": () => (/* reexport safe */ _VisitorDelegate__WEBPACK_IMPORTED_MODULE_5__.VisitorDelegate)
+/* harmony export */ });
+/* harmony import */ var _NoConsentStrategy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./NoConsentStrategy */ "./src/visitor/NoConsentStrategy.ts");
+/* harmony import */ var _NotReadyStrategy__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./NotReadyStrategy */ "./src/visitor/NotReadyStrategy.ts");
+/* harmony import */ var _DefaultStrategy__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./DefaultStrategy */ "./src/visitor/DefaultStrategy.ts");
+/* harmony import */ var _PanicStrategy__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./PanicStrategy */ "./src/visitor/PanicStrategy.ts");
+/* harmony import */ var _Visitor__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./Visitor */ "./src/visitor/Visitor.ts");
+/* harmony import */ var _VisitorDelegate__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./VisitorDelegate */ "./src/visitor/VisitorDelegate.ts");
+
+
+
+
+
+
+
+
+/***/ }),
+
 /***/ "events":
 /*!*************************!*\
   !*** external "events" ***!
@@ -6447,6 +6556,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "Page": () => (/* reexport safe */ _hit_index__WEBPACK_IMPORTED_MODULE_2__.Page),
 /* harmony export */   "Screen": () => (/* reexport safe */ _hit_index__WEBPACK_IMPORTED_MODULE_2__.Screen),
 /* harmony export */   "Transaction": () => (/* reexport safe */ _hit_index__WEBPACK_IMPORTED_MODULE_2__.Transaction),
+/* harmony export */   "HitAbstract": () => (/* reexport safe */ _hit_index__WEBPACK_IMPORTED_MODULE_2__.HitAbstract),
 /* harmony export */   "FlagshipStatus": () => (/* reexport safe */ _enum_index__WEBPACK_IMPORTED_MODULE_3__.FlagshipStatus),
 /* harmony export */   "LogLevel": () => (/* reexport safe */ _enum_index__WEBPACK_IMPORTED_MODULE_3__.LogLevel),
 /* harmony export */   "HitType": () => (/* reexport safe */ _enum_index__WEBPACK_IMPORTED_MODULE_3__.HitType),
@@ -6470,7 +6580,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "OS_NAME": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.OS_NAME),
 /* harmony export */   "OS_VERSION_CODE": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.OS_VERSION_CODE),
 /* harmony export */   "OS_VERSION_NAME": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.OS_VERSION_NAME),
-/* harmony export */   "Modification": () => (/* reexport safe */ _model_Modification__WEBPACK_IMPORTED_MODULE_5__.Modification)
+/* harmony export */   "Modification": () => (/* reexport safe */ _model_Modification__WEBPACK_IMPORTED_MODULE_5__.Modification),
+/* harmony export */   "Visitor": () => (/* reexport safe */ _visitor_index__WEBPACK_IMPORTED_MODULE_7__.Visitor)
 /* harmony export */ });
 /* harmony import */ var _main_Flagship__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./main/Flagship */ "./src/main/Flagship.ts");
 /* harmony import */ var _config_index__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./config/index */ "./src/config/index.ts");
@@ -6478,6 +6589,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _enum_index__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./enum/index */ "./src/enum/index.ts");
 /* harmony import */ var _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./enum/FlagshipContext */ "./src/enum/FlagshipContext.ts");
 /* harmony import */ var _model_Modification__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./model/Modification */ "./src/model/Modification.ts");
+/* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./types */ "./src/types.ts");
+/* harmony import */ var _visitor_index__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./visitor/index */ "./src/visitor/index.ts");
+
+
 
 
 

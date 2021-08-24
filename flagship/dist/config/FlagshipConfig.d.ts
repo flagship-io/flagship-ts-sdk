@@ -1,3 +1,4 @@
+import { BucketingDTO } from '../decision/api/bucketingDTO';
 import { FlagshipStatus, LogLevel } from '../enum/index';
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager';
 export declare enum DecisionMode {
@@ -49,6 +50,12 @@ export interface IFlagshipConfig {
      * Note: If 0 is given then it should poll only once at start time.
      */
     pollingInterval?: number;
+    onBucketingSuccess?: (param: {
+        status: FlagshipStatus;
+        payload: BucketingDTO;
+    }) => void;
+    onBucketingFail?: (error: Error) => void;
+    onBucketingUpdated?: (lastUpdate: Date) => void;
 }
 export declare const statusChangeError = "statusChangedCallback must be a function";
 export declare abstract class FlagshipConfig implements IFlagshipConfig {
@@ -61,7 +68,22 @@ export declare abstract class FlagshipConfig implements IFlagshipConfig {
     private _logManager;
     private _fetchNow;
     private _pollingInterval;
+    private _onBucketingFail?;
+    private _onBucketingSuccess?;
+    private _onBucketingUpdated?;
     protected constructor(param: IFlagshipConfig);
+    get onBucketingSuccess(): ((param: {
+        status: number;
+        payload: BucketingDTO;
+    }) => void) | undefined;
+    set onBucketingSuccess(v: ((param: {
+        status: number;
+        payload: BucketingDTO;
+    }) => void) | undefined);
+    get onBucketingFail(): ((error: Error) => void) | undefined;
+    set onBucketingFail(v: ((error: Error) => void) | undefined);
+    get onBucketingUpdated(): ((lastUpdate: Date) => void) | undefined;
+    set onBucketingUpdated(v: ((lastUpdate: Date) => void) | undefined);
     set envId(value: string | undefined);
     get envId(): string | undefined;
     set apiKey(value: string | undefined);
