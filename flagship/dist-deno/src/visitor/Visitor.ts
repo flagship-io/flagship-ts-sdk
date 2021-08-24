@@ -64,12 +64,14 @@ export class Visitor extends EventEmitter implements IVisitor {
 
   getModification<T>(params: modificationsRequested<T>, activateAll?: boolean): Promise<T>
   getModification<T>(params: modificationsRequested<T>[], activateAll?: boolean): Promise<T[]>
+  getModification<T> (params: modificationsRequested<T> | modificationsRequested<T>[], activateAll?: boolean): Promise<T | T[]>
   getModification<T> (params: modificationsRequested<T> | modificationsRequested<T>[], activateAll?: boolean): Promise<T | T[]> {
     return this.visitorDelegate.getModification(params, activateAll)
   }
 
   getModificationSync<T>(params: modificationsRequested<T>, activateAll?: boolean): T
   getModificationSync<T>(params: modificationsRequested<T>[], activateAll?: boolean): T[]
+  getModificationSync<T> (params: modificationsRequested<T> | modificationsRequested<T>[], activateAll?: boolean): T | T[]
   getModificationSync<T> (params: modificationsRequested<T> | modificationsRequested<T>[], activateAll?: boolean): T | T[] {
     return this.visitorDelegate.getModificationSync(params, activateAll)
   }
@@ -89,6 +91,7 @@ export class Visitor extends EventEmitter implements IVisitor {
   activateModification(key: string): Promise<void>
   activateModification(keys: { key: string }[]): Promise<void>
   activateModification(keys: string[]): Promise<void>
+  activateModification (params: string | Array<{ key: string }> | Array<string>): Promise<void>
   activateModification (params: string | Array<{ key: string }> | Array<string>): Promise<void> {
     return this.visitorDelegate.activateModification(params)
   }
@@ -96,6 +99,7 @@ export class Visitor extends EventEmitter implements IVisitor {
   activateModificationSync(key: string): void
   activateModificationSync(keys: { key: string }[]): void
   activateModificationSync(keys: string[]): void
+  activateModificationSync (params: string | Array<{ key: string }> | Array<string>): void
   activateModificationSync (params: string | Array<{ key: string }> | Array<string>): void {
     this.visitorDelegate.activateModificationSync(params)
   }
@@ -106,6 +110,10 @@ export class Visitor extends EventEmitter implements IVisitor {
   sendHit(hit: (IPage | IScreen | IEvent | IItem | ITransaction)[]): Promise<void>
   sendHit (hit:IPage|IScreen|IEvent|IItem|ITransaction|
     Array<IPage|IScreen|IEvent|IItem|ITransaction>|
+    HitAbstract|HitAbstract[]): Promise<void>
+
+  sendHit (hit:IPage|IScreen|IEvent|IItem|ITransaction|
+    Array<IPage|IScreen|IEvent|IItem|ITransaction>|
     HitAbstract|HitAbstract[]): Promise<void> {
     return this.visitorDelegate.sendHit(hit)
   }
@@ -114,6 +122,10 @@ export class Visitor extends EventEmitter implements IVisitor {
   sendHitSync(hit: HitAbstract): void
   sendHitSync(hit: (IPage | IScreen | IEvent | IItem | ITransaction)[]): void
   sendHitSync(hit: HitAbstract | IPage | IScreen | IEvent | IItem | ITransaction): void
+  sendHitSync (hit:IPage|IScreen|IEvent|IItem|ITransaction|
+    Array<IPage|IScreen|IEvent|IItem|ITransaction>|
+    HitAbstract|HitAbstract[]): void
+
   sendHitSync (hit:IPage|IScreen|IEvent|IItem|ITransaction|
     Array<IPage|IScreen|IEvent|IItem|ITransaction>|
     HitAbstract|HitAbstract[]): void {

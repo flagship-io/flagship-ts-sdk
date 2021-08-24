@@ -1,3 +1,4 @@
+import { BucketingDTO } from '../decision/api/bucketingDTO.ts'
 import { FlagshipStatus, LogLevel, REQUEST_TIME_OUT } from '../enum/index.ts'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager.ts'
 import { logError } from '../utils/utils.ts'
@@ -60,6 +61,12 @@ export interface IFlagshipConfig {
    * Note: If 0 is given then it should poll only once at start time.
    */
   pollingInterval?:number
+
+  onBucketingSuccess?:(param:{ status: FlagshipStatus; payload: BucketingDTO })=>void
+
+  onBucketingFail?:(error: Error)=>void
+
+  onBucketingUpdated?:(lastUpdate:Date)=>void
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -74,6 +81,9 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _logManager!: IFlagshipLogManager;
   private _fetchNow! : boolean;
   private _pollingInterval!: number
+  private _onBucketingFail?: (error: Error)=>void;
+  private _onBucketingSuccess?: (param:{ status: number; payload: BucketingDTO })=>void;
+  private _onBucketingUpdated?: (lastUpdate:Date)=>void;
 
   protected constructor (param: IFlagshipConfig) {
     const {
@@ -91,6 +101,30 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       this.logManager = logManager
     }
     this.statusChangedCallback = statusChangedCallback
+  }
+
+  public get onBucketingSuccess () : ((param:{ status: number; payload: BucketingDTO })=>void)| undefined {
+    return this._onBucketingSuccess
+  }
+
+  public set onBucketingSuccess (v : ((param:{ status: number; payload: BucketingDTO })=>void)| undefined) {
+    this._onBucketingSuccess = v
+  }
+
+  public get onBucketingFail () : ((error: Error)=>void)| undefined {
+    return this._onBucketingFail
+  }
+
+  public set onBucketingFail (v : ((error: Error)=>void)| undefined) {
+    this._onBucketingFail = v
+  }
+
+  public get onBucketingUpdated () : ((lastUpdate:Date)=>void)|undefined {
+    return this._onBucketingUpdated
+  }
+
+  public set onBucketingUpdated (v : ((lastUpdate:Date)=>void)|undefined) {
+    this._onBucketingUpdated = v
   }
 
   public set envId (value: string | undefined) {

@@ -25,8 +25,10 @@ export declare class Visitor extends EventEmitter implements IVisitor {
     clearContext(): void;
     getModification<T>(params: modificationsRequested<T>, activateAll?: boolean): Promise<T>;
     getModification<T>(params: modificationsRequested<T>[], activateAll?: boolean): Promise<T[]>;
+    getModification<T>(params: modificationsRequested<T> | modificationsRequested<T>[], activateAll?: boolean): Promise<T | T[]>;
     getModificationSync<T>(params: modificationsRequested<T>, activateAll?: boolean): T;
     getModificationSync<T>(params: modificationsRequested<T>[], activateAll?: boolean): T[];
+    getModificationSync<T>(params: modificationsRequested<T> | modificationsRequested<T>[], activateAll?: boolean): T | T[];
     getModificationInfo(key: string): Promise<Modification | null>;
     getModificationInfoSync(key: string): Modification | null;
     synchronizeModifications(): Promise<void>;
@@ -35,19 +37,27 @@ export declare class Visitor extends EventEmitter implements IVisitor {
         key: string;
     }[]): Promise<void>;
     activateModification(keys: string[]): Promise<void>;
+    activateModification(params: string | Array<{
+        key: string;
+    }> | Array<string>): Promise<void>;
     activateModificationSync(key: string): void;
     activateModificationSync(keys: {
         key: string;
     }[]): void;
     activateModificationSync(keys: string[]): void;
+    activateModificationSync(params: string | Array<{
+        key: string;
+    }> | Array<string>): void;
     sendHit(hit: HitAbstract): Promise<void>;
     sendHit(hit: HitAbstract[]): Promise<void>;
     sendHit(hit: IPage | IScreen | IEvent | IItem | ITransaction): Promise<void>;
     sendHit(hit: (IPage | IScreen | IEvent | IItem | ITransaction)[]): Promise<void>;
+    sendHit(hit: IPage | IScreen | IEvent | IItem | ITransaction | Array<IPage | IScreen | IEvent | IItem | ITransaction> | HitAbstract | HitAbstract[]): Promise<void>;
     sendHitSync(hit: HitAbstract[]): void;
     sendHitSync(hit: HitAbstract): void;
     sendHitSync(hit: (IPage | IScreen | IEvent | IItem | ITransaction)[]): void;
     sendHitSync(hit: HitAbstract | IPage | IScreen | IEvent | IItem | ITransaction): void;
+    sendHitSync(hit: IPage | IScreen | IEvent | IItem | ITransaction | Array<IPage | IScreen | IEvent | IItem | ITransaction> | HitAbstract | HitAbstract[]): void;
     getAllModifications(activate?: boolean): Promise<{
         visitorId: string;
         campaigns: CampaignDTO[];

@@ -41,9 +41,10 @@ export class ApiManager extends DecisionManager {
         body: postData
       })
         .then(data => {
-          this.panic = false
           if (data.body.panic) {
             this.panic = true
+          } else {
+            this.panic = false
           }
           let response:CampaignDTO[] = []
           if (data.body.campaigns) {

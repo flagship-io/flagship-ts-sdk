@@ -20,6 +20,8 @@ export abstract class DecisionManager implements IDecisionManager {
   protected set panic (v: boolean) {
     if (v) {
       this.updateFlagshipStatus(FlagshipStatus.READY_PANIC_ON)
+    } else {
+      this.updateFlagshipStatus(FlagshipStatus.READY)
     }
     this._panic = v
   }

@@ -11,6 +11,8 @@ export declare class BucketingManager extends DecisionManager {
     private _murmurHash;
     private _isFirstPooling;
     constructor(httpClient: IHttpClient, config: IFlagshipConfig, murmurHash: MurmurHash);
+    private initStartPolling;
+    private finishLoop;
     startPolling(): Promise<void>;
     stopPolling(): void;
     private sendContext;
