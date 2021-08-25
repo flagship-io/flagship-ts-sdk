@@ -5710,7 +5710,7 @@ var DefaultStrategy = /** @class */ (function (_super) {
             })
                 .catch(function (error) {
                 _this.visitor.emit(_enum_index__WEBPACK_IMPORTED_MODULE_0__.EMIT_READY, error);
-                (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(_this.config, error.message, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SYNCHRONIZED_MODIFICATION);
+                (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(_this.config, error.message || error, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SYNCHRONIZED_MODIFICATION);
                 reject(error);
             });
         });
@@ -5726,6 +5726,7 @@ var DefaultStrategy = /** @class */ (function (_super) {
         return !!check;
     };
     DefaultStrategy.prototype.activate = function (key) {
+        var _this = this;
         var modification = this.visitor.modifications.get(key);
         if (!modification) {
             (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.visitor.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.GET_MODIFICATION_ERROR, key), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_ACTIVE_MODIFICATION);
@@ -5734,7 +5735,10 @@ var DefaultStrategy = /** @class */ (function (_super) {
         if (!this.hasTrackingManager(_enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_ACTIVE_MODIFICATION)) {
             return;
         }
-        this.configManager.trackingManager.sendActive(this.visitor, modification);
+        this.configManager.trackingManager.sendActive(this.visitor, modification)
+            .catch(function (error) {
+            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(_this.config, JSON.stringify(error), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_ACTIVE_MODIFICATION);
+        });
     };
     DefaultStrategy.prototype.activateModificationSync = function (params) {
         var _this = this;
@@ -5784,6 +5788,7 @@ var DefaultStrategy = /** @class */ (function (_super) {
     DefaultStrategy.prototype.prepareAndSendHit = function (hit) {
         return __awaiter(this, void 0, void 0, function () {
             var hitInstance, hitFromInt;
+            var _this = this;
             return __generator(this, function (_a) {
                 if (hit instanceof _hit_index__WEBPACK_IMPORTED_MODULE_1__.HitAbstract) {
                     hitInstance = hit;
@@ -5804,7 +5809,10 @@ var DefaultStrategy = /** @class */ (function (_super) {
                     (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.config, hitInstance.getErrorMessage(), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SEND_HIT);
                     return [2 /*return*/];
                 }
-                this.configManager.trackingManager.sendHit(hitInstance);
+                this.configManager.trackingManager.sendHit(hitInstance)
+                    .catch(function (error) {
+                    (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(_this.config, JSON.stringify(error), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SEND_HIT);
+                });
                 return [2 /*return*/];
             });
         });

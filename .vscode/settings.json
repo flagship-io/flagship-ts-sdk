@@ -14,10 +14,10 @@
     "editor.defaultFormatter": null
   },
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
+    "editor.defaultFormatter": null
+  }
 
-  "deno.enable": true,
-  "deno.lint": true,
-  "deno.unstable": true
+  // "deno.enable": true,
+  // "deno.lint": true,
+  // "deno.unstable": true
 }
