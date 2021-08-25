@@ -19,6 +19,7 @@ export {
   LogLevel,
   HitType,
   EventCategory,
+  Visitor,
 } from "../flagship/dist-deno/src/mod.ts";
 
 export type { IFlagshipLogManager } from "../flagship/dist-deno/src/mod.ts";
