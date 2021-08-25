@@ -1,4 +1,11 @@
-import { Flagship,DecisionMode,LogLevel, FlagshipStatus, RouteParams, RouterContext } from "../deps.ts";
+import {
+  Flagship,
+  DecisionMode,
+  LogLevel,
+  FlagshipStatus,
+  RouteParams,
+  RouterContext,
+} from "../deps.ts";
 import { CustomLogAdapter } from "../utils/logger.ts";
 
 export const putEnvValidation = async (
@@ -11,6 +18,7 @@ export const putEnvValidation = async (
     api_key: apiKey,
     polling_interval: pollingInterval,
     timeout,
+    bucketing,
   } = await context.request.body().value;
   const error: Record<string, unknown> = {};
   const messageRequired = (field: string) => {
@@ -25,7 +33,7 @@ export const putEnvValidation = async (
   if (!apiKey) {
     error.apiKey = messageRequired("apiKey");
   }
-  if (typeof pollingInterval !== "number") {
+  if (bucketing && typeof pollingInterval !== "number") {
     error.pollingInterval = messageNumber("pollingInterval");
   }
   if (typeof timeout !== "number") {
@@ -42,38 +50,31 @@ export const getEnv = async (
   // deno-lint-ignore no-explicit-any
   context: RouterContext<RouteParams, Record<string, any>>
 ) => {
-  const environmentId = ""; // c0n48jn5thv01k0ijmo0
-  const apiKey = ""; // BsIK86oh7c12c9G7ce4Wm1yBlWeaMf3t1S0xyYzI
-  const timeout = 0;
-  const bucketing = false;
-  const pollingInterval = 0;
+  const config = {
+    // deno-lint-ignore camelcase
+    environment_id: null,
+    // deno-lint-ignore camelcase
+    api_key: null,
+    timeout: 2000,
+    bucketing: false,
+    // deno-lint-ignore camelcase
+    polling_interval: 2000,
+  };
 
-  if (
-    (await context.state.session.has("envId")) &&
-    (await context.state.session.has("apiKey")) &&
-    (await context.state.session.has("timeout"))
-  ) {
-    return (context.response.body = {
-      environment_id: await context.state.session.get("envId"),
-      api_key: await context.state.session.get("apiKey"),
-      timeout: await context.state.session.get("timeout"),
-      bucketing,
-      pollingInterval,
-    });
+  if (await context.state.session.has("config")) {
+    const configSession = await context.state.session.get("config");
+    config.environment_id = configSession.environmentId;
+    config.api_key = configSession.apiKey;
+    config.timeout = configSession.timeout;
+    config.bucketing = configSession.bucketing;
+    config.polling_interval = configSession.pollingInterval;
   }
-  return (context.response.body = {
-    environmentId,
-    apiKey,
-    timeout,
-    bucketing,
-    pollingInterval,
-  });
+  return (context.response.body = config);
 };
 
 const statusChangedCallback = (status: FlagshipStatus) => {
-    console.log("status", FlagshipStatus[status]);
-  };
-  
+  console.log("status", FlagshipStatus[status]);
+};
 
 export const putEnv = async (
   // deno-lint-ignore no-explicit-any
@@ -87,14 +88,13 @@ export const putEnv = async (
     bucketing,
   } = await context.request.body().value;
 
-  await context.state.session.set("envId", environmentId);
-  await context.state.session.set("apiKey", apiKey);
-  await context.state.session.set("timeout", timeout);
-  await context.state.session.set("bucketing", bucketing);
-  await context.state.session.set("pollingInterval", pollingInterval);
-
-//   envIdGlobale = environmentId;
-//   apiKeyGlobal = apiKey;
+  await context.state.session.set("config", {
+    environmentId,
+    apiKey,
+    timeout,
+    bucketing,
+    pollingInterval,
+  });
 
   Flagship.start(environmentId, apiKey, {
     decisionMode: bucketing
@@ -103,10 +103,9 @@ export const putEnv = async (
     statusChangedCallback,
     logLevel: LogLevel.ALL,
     fetchNow: false,
-    logManager: new CustomLogAdapter(),
+    logManager: new CustomLogAdapter(context.state.session),
     pollingInterval,
   });
 
-  await context.state.session.set("logs", Infos);
   return (context.response.body = { environmentId, apiKey, timeout });
 };
