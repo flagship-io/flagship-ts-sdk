@@ -1,9 +1,5 @@
 import { IFlagshipLogManager, LogLevel, OakSession } from "../deps.ts";
 
-let Infos = "";
-let Errors = "";
-let allInfo = "";
-
 export class CustomLogAdapter implements IFlagshipLogManager {
   private _session: OakSession;
   private _log: string;
@@ -23,8 +19,8 @@ export class CustomLogAdapter implements IFlagshipLogManager {
     throw new Error("Method not implemented.");
   }
 
-  error(message: string, _tag: string): void {
-    this._log += `[error] [${_tag}] : ${message} \n`;
+  error(message: string, tag: string): void {
+    this.log(LogLevel.ERROR, message, tag);
   }
 
   warning(_message: string, _tag: string): void {
@@ -35,15 +31,16 @@ export class CustomLogAdapter implements IFlagshipLogManager {
     throw new Error("Method not implemented.");
   }
 
-  info(message: string, _tag: string): void {
-    Infos += message + "\n";
+  info(message: string, tag: string): void {
+    this.log(LogLevel.INFO, message, tag);
   }
 
   debug(message: string, tag: string): void {
-    this._log += `[debug] [${tag}] : ${message} \n`;
+    this.log(LogLevel.DEBUG, message, tag);
   }
 
   log(level: LogLevel, message: string, tag: string): void {
     this._log += `[${LogLevel[level]}] [${tag}] : ${message} \n`;
+    this._session.set("logs", this._log);
   }
 }
