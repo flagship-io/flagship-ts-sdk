@@ -221,7 +221,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         })
         .catch(error => {
           this.visitor.emit(EMIT_READY, error)
-          logError(this.config, error.message, PROCESS_SYNCHRONIZED_MODIFICATION)
+          logError(this.config, error.message || error, PROCESS_SYNCHRONIZED_MODIFICATION)
           reject(error)
         })
     })
@@ -259,6 +259,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
 
     this.configManager.trackingManager.sendActive(this.visitor, modification)
+      .catch((error) => {
+        logError(this.config, JSON.stringify(error), PROCESS_ACTIVE_MODIFICATION)
+      })
   }
 
   activateModificationSync(key: string): void
@@ -341,6 +344,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
     this.configManager.trackingManager.sendHit(hitInstance)
+      .catch((error) => {
+        logError(this.config, JSON.stringify(error), PROCESS_SEND_HIT)
+      })
   }
 
   sendHitSync(hit: HitAbstract[]): void
