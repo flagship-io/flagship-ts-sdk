@@ -559,6 +559,22 @@ describe('test visitor', () => {
     }
   })
 
+  it('test activateModification failed', async () => {
+    try {
+      const error = 'Error'
+      sendActive.mockRejectedValue(error)
+      await visitor.activateModification(returnMod.key)
+      expect(sendActive).toBeCalledTimes(1)
+      expect(sendActive).toBeCalledWith(
+        visitor,
+        returnModification.get(returnMod.key)
+      )
+    } catch (error) {
+      expect(logError).toBeCalledTimes(1)
+      expect(logError).toBeCalledWith(error, PROCESS_ACTIVE_MODIFICATION)
+    }
+  })
+
   it('test getAllModifications', async () => {
     const campaigns = await visitor.getAllModifications()
     expect(campaigns).toEqual({
@@ -829,6 +845,19 @@ describe('test visitor', () => {
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(TYPE_HIT_REQUIRED_ERROR, PROCESS_SEND_HIT)
     expect(sendHit).toBeCalledTimes(0)
+  })
+
+  it('test sendHit failed', async () => {
+    try {
+      const error = 'Error'
+      sendHit.mockRejectedValue(error)
+      await visitor.sendHit(hitScreen)
+      expect(sendHit).toBeCalledTimes(1)
+      expect(sendHit).toBeCalledWith(hitScreen)
+    } catch (error) {
+      expect(logError).toBeCalledTimes(1)
+      expect(logError).toBeCalledWith(error, PROCESS_SEND_HIT)
+    }
   })
 })
 
