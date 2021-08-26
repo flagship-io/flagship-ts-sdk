@@ -53,6 +53,7 @@ export class TrackingManager extends TrackingManagerAbstract {
           resolve()
         })
         .catch((error) => {
+          logError(this.config, JSON.stringify(error), PROCESS_SEND_ACTIVATE)
           reject(error)
         })
     })
@@ -76,6 +77,7 @@ export class TrackingManager extends TrackingManagerAbstract {
           resolve()
         })
         .catch((error) => {
+          logError(this.config, JSON.stringify(error), PROCESS_SEND_HIT)
           reject(error)
         })
     })

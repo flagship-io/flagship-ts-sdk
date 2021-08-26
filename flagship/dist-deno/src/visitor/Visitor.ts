@@ -376,7 +376,7 @@ export class Visitor extends EventEmitter {
         .catch(error => {
           this.emit('ready', error)
           logError(this.config, error.message, PROCESS_SYNCHRONIZED_MODIFICATION)
-          resolve()
+          reject(error)
         })
     })
   }
@@ -426,11 +426,7 @@ export class Visitor extends EventEmitter {
       return
     }
 
-    this.configManager.trackingManager
-      .sendActive(this, modification)
-      .catch((error) => {
-        logError(this.config, error.message || error, PROCESS_ACTIVE_MODIFICATION)
-      })
+    this.configManager.trackingManager.sendActive(this, modification)
   }
 
   /**
@@ -534,9 +530,7 @@ export class Visitor extends EventEmitter {
       logError(this.config, hitInstance.getErrorMessage(), PROCESS_SEND_HIT)
       return
     }
-    this.configManager.trackingManager.sendHit(hitInstance).catch((error) => {
-      logError(this.config, error.message || error, PROCESS_SEND_HIT)
-    })
+    this.configManager.trackingManager.sendHit(hitInstance)
   }
 
   /**
