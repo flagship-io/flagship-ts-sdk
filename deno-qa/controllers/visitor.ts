@@ -87,7 +87,7 @@ export const getVisitor = async ({
     context: {},
   };
   if (await state.session.has("visitor")) {
-    const visitor: Visitor = await state.session.get("visitor_id");
+    const visitor: Visitor = await state.session.get("visitor");
     visitorBody.visitor_id = visitor.visitorId;
     visitorBody.context = visitor.context;
     visitorBody.consent = visitor.hasConsented;
