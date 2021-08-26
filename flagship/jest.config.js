@@ -28,7 +28,7 @@ module.exports = {
   // ],
 
   // Indicates which provider should be used to instrument code for coverage
-  coverageProvider: 'v8'
+  coverageProvider: 'babel'
 
   // A list of reporter names that Jest uses when writing coverage reports
   // coverageReporters: [
@@ -188,4 +188,4 @@ module.exports = {
 
   // Whether to use watchman for file crawling
   // watchman: true,
-};
+}
