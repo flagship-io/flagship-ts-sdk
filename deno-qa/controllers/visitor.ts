@@ -2,6 +2,7 @@ import { Modification } from "../../flagship/dist-deno/src/mod.ts";
 import { Flagship, RouteParams, RouterContext, Visitor } from "../deps.ts";
 
 export const putVisitorValidation = async (
+  // deno-lint-ignore no-explicit-any
   { request, response, state }: RouterContext<RouteParams, Record<string, any>>,
   next: () => Promise<unknown>
 ) => {
@@ -37,13 +38,15 @@ export const putVisitorValidation = async (
 export const putVisitor = async ({
   response,
   state,
+// deno-lint-ignore no-explicit-any
 }: RouterContext<RouteParams, Record<string, any>>) => {
   try {
-    const { visitorId, context, consent } = state.bodyValue;
-    const visitor = Flagship.newVisitor({ visitorId: `${visitorId}`, context });
-    const responseBody: Record<string, any> = {
+    const { visitorId, context,consent } = state.bodyValue;
+    const visitor = Flagship.newVisitor(`${visitorId}`, context );
+    const responseBody: Record<string, unknown> = {
       modification: [],
       context: {},
+      // deno-lint-ignore camelcase
       visitor_id: "",
       consent: false,
     };
@@ -78,6 +81,7 @@ export const putVisitor = async ({
 export const getVisitor = async ({
   state,
   response,
+// deno-lint-ignore no-explicit-any
 }: RouterContext<RouteParams, Record<string, any>>) => {
   const visitorBody: Record<string, unknown> = {
     context: {},
@@ -97,6 +101,7 @@ export const updateConsentValidation = async (
     params,
     response,
     state,
+  // deno-lint-ignore no-explicit-any
   }: RouterContext<RouteParams, Record<string, any>>,
   next: () => Promise<unknown>
 ) => {
@@ -147,13 +152,13 @@ export const updateConsentValidation = async (
 export const updateConsent = async ({
   response,
   state,
+// deno-lint-ignore no-explicit-any
 }: RouterContext<RouteParams, Record<string, any>>) => {
   const context: Record<string, string | number | boolean> = state.bodyValue;
   const responseBody: Record<string, unknown> = {};
   const visitor: Visitor = await state.session.get("visitor");
   if (visitor) {
     visitor.updateContext(context);
-    await visitor.synchronizeModifications();
     responseBody.context = visitor.context;
   }
   return (response.body = responseBody);

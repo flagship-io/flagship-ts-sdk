@@ -8,8 +8,6 @@ import {
   HEADER_X_SDK_CLIENT,
   HEADER_X_SDK_VERSION,
   HIT_API_URL,
-  PROCESS_SEND_ACTIVATE,
-  PROCESS_SEND_HIT,
   SDK_LANGUAGE,
   SDK_VERSION,
   URL_ACTIVATE_MODIFICATION,
@@ -20,7 +18,6 @@ import {
 import { HitAbstract } from '../hit/HitAbstract'
 import { Modification } from '../model/Modification'
 import { primitive } from '../types'
-import { logError } from '../utils/utils'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { TrackingManagerAbstract } from './TrackingManagerAbstract'
 
@@ -64,7 +61,6 @@ export class TrackingManager extends TrackingManagerAbstract {
           resolve()
         })
         .catch((error) => {
-          logError(this.config, JSON.stringify(error), PROCESS_SEND_ACTIVATE)
           reject(error)
         })
     })
@@ -88,7 +84,6 @@ export class TrackingManager extends TrackingManagerAbstract {
           resolve()
         })
         .catch((error) => {
-          logError(this.config, JSON.stringify(error), PROCESS_SEND_HIT)
           reject(error)
         })
     })

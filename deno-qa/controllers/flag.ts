@@ -1,6 +1,7 @@
 import { RouterContext, RouteParams, helpers, Visitor } from "../deps.ts";
 
 export const getFlagValidation = async (
+  // deno-lint-ignore no-explicit-any
   context: RouterContext<RouteParams, Record<string, any>>,
   next: () => Promise<unknown>
 ) => {
@@ -59,6 +60,7 @@ export const getFlagValidation = async (
 };
 
 export const getFlag = async (
+  // deno-lint-ignore no-explicit-any
   context: RouterContext<RouteParams, Record<string, any>>
 ) => {
   try {
@@ -79,6 +81,7 @@ export const getFlag = async (
 };
 
 export const getFlagInfo = async (
+  // deno-lint-ignore no-explicit-any
   context: RouterContext<RouteParams, Record<string, any>>
 ) => {
   const visitor: Visitor = await context.state.session.get("visitor");
@@ -89,6 +92,7 @@ export const getFlagInfo = async (
 };
 
 export const sendActivate = async (
+  // deno-lint-ignore no-explicit-any
   context: RouterContext<RouteParams, Record<string, any>>
 ) => {
   const visitor: Visitor = await context.state.session.get("visitor");

@@ -4,9 +4,10 @@ export const sendHit = async ({
   request,
   response,
   state,
+// deno-lint-ignore no-explicit-any
 }: RouterContext<RouteParams, Record<string, any>>) => {
   const visitor = await state.session.get("visitor");
-  const hit = await request.body().value;
+  const hit = await request.body().value;  
 
   switch (hit.t) {
     case "EVENT": {
@@ -20,7 +21,6 @@ export const sendHit = async ({
         eventLabel: hit.el,
         eventValue: hit.ev,
       });
-      response.body = "Hit sent";
       break;
     }
     case "ITEM": {
@@ -33,7 +33,6 @@ export const sendHit = async ({
         itemQuantity: hit.iq,
         itemCategory: hit.iv,
       });
-      response.body = "Hit sent";
       break;
     }
     case "SCREEN": {
@@ -68,4 +67,25 @@ export const sendHit = async ({
       }
       break;
   }
+
+  const config = {
+    // deno-lint-ignore camelcase
+    environment_id: null,
+    // deno-lint-ignore camelcase
+    api_key: null,
+    timeout: 2000,
+    bucketing: false,
+    // deno-lint-ignore camelcase
+    polling_interval: 2000,
+  };
+
+  if (await state.session.has("config")) {
+    const configSession = await state.session.get("config");
+    config.environment_id = configSession.environmentId;
+    config.api_key = configSession.apiKey;
+    config.timeout = configSession.timeout;
+    config.bucketing = configSession.bucketing;
+    config.polling_interval = configSession.pollingInterval;
+  }
+  return (response.body = config);
 };

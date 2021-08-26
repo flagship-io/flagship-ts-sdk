@@ -211,7 +211,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   synchronizeModifications (): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       this.configManager.decisionManager.getCampaignsAsync(this.visitor)
         .then(campaigns => {
           this.visitor.campaigns = campaigns
@@ -221,8 +221,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         })
         .catch(error => {
           this.visitor.emit(EMIT_READY, error)
-          logError(this.config, error.message || error, PROCESS_SYNCHRONIZED_MODIFICATION)
-          reject(error)
+          logError(this.config, error.message, PROCESS_SYNCHRONIZED_MODIFICATION)
+          resolve()
         })
     })
   }
@@ -260,7 +260,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     this.configManager.trackingManager.sendActive(this.visitor, modification)
       .catch((error) => {
-        logError(this.config, JSON.stringify(error), PROCESS_ACTIVE_MODIFICATION)
+        logError(this.config, error.message || error, PROCESS_ACTIVE_MODIFICATION)
       })
   }
 
@@ -343,10 +343,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       logError(this.config, hitInstance.getErrorMessage(), PROCESS_SEND_HIT)
       return
     }
-    this.configManager.trackingManager.sendHit(hitInstance)
-      .catch((error) => {
-        logError(this.config, JSON.stringify(error), PROCESS_SEND_HIT)
-      })
+    this.configManager.trackingManager.sendHit(hitInstance).catch((error) => {
+      logError(this.config, error.message || error, PROCESS_SEND_HIT)
+    })
   }
 
   sendHitSync(hit: HitAbstract[]): void
