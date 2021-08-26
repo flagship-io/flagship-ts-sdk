@@ -11,7 +11,10 @@ export {
   Page,
   IScreen,
   Screen,
+<<<<<<< HEAD
   ITransaction,
+=======
+>>>>>>> deno-qa-v1-refactor
   Transaction,
   HitAbstract
 } from './hit/index.ts'
@@ -19,5 +22,9 @@ export { FlagshipStatus, LogLevel, HitType } from './enum/index.ts'
 export * from './enum/FlagshipContext.ts'
 export { Modification } from './model/Modification.ts'
 export * from './types.ts'
+<<<<<<< HEAD
 export { Visitor } from './visitor/index.ts'
+=======
+export { Visitor } from './visitor/Visitor.ts'
+>>>>>>> deno-qa-v1-refactor
 export type { IFlagshipLogManager } from './utils/FlagshipLogManager.ts'
