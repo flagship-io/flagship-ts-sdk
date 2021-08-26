@@ -7,9 +7,5 @@ export { FlagshipStatus, LogLevel, HitType } from './enum/index';
 export * from './enum/FlagshipContext';
 export { Modification } from './model/Modification';
 export * from './types';
-<<<<<<< HEAD
 export { Visitor } from './visitor/index';
-=======
-export { Visitor } from './visitor/Visitor';
->>>>>>> deno-qa-v1-refactor
 export type { IFlagshipLogManager } from './utils/FlagshipLogManager';

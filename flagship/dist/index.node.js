@@ -5202,11 +5202,9 @@ var HttpClient = /** @class */ (function () {
         var _this = this;
         return new Promise(function (resolve, reject) {
             axios__WEBPACK_IMPORTED_MODULE_0___default().get(url, {
-                validateStatus: function (status) {
-                    return status < 400;
-                },
+                validateStatus: function (status) { return status < 400; },
                 headers: options === null || options === void 0 ? void 0 : options.headers,
-                timeout: (options === null || options === void 0 ? void 0 : options.timeout) ? options.timeout * 1000 : _enum__WEBPACK_IMPORTED_MODULE_1__.REQUEST_TIME_OUT * 1000
+                timeout: ((options === null || options === void 0 ? void 0 : options.timeout) ? options.timeout : _enum__WEBPACK_IMPORTED_MODULE_1__.REQUEST_TIME_OUT) * 1000
             })
                 .then(function (response) {
                 resolve(_this.getResponse(response));
@@ -5219,8 +5217,9 @@ var HttpClient = /** @class */ (function () {
         var _this = this;
         return new Promise(function (resolve, reject) {
             axios__WEBPACK_IMPORTED_MODULE_0___default().post(url, options.body, {
+                validateStatus: function (status) { return status < 400; },
                 headers: options.headers,
-                timeout: options.timeout ? options.timeout * 1000 : _enum__WEBPACK_IMPORTED_MODULE_1__.REQUEST_TIME_OUT * 1000
+                timeout: ((options === null || options === void 0 ? void 0 : options.timeout) ? options.timeout : _enum__WEBPACK_IMPORTED_MODULE_1__.REQUEST_TIME_OUT) * 1000
             })
                 .then(function (response) {
                 resolve(_this.getResponse(response));
@@ -5501,10 +5500,9 @@ var DefaultStrategy = /** @class */ (function (_super) {
         }
         return modification;
     };
-<<<<<<< HEAD
     DefaultStrategy.prototype.synchronizeModifications = function () {
         var _this = this;
-        return new Promise(function (resolve, reject) {
+        return new Promise(function (resolve) {
             _this.configManager.decisionManager.getCampaignsAsync(_this.visitor)
                 .then(function (campaigns) {
                 _this.visitor.campaigns = campaigns;
@@ -5514,32 +5512,8 @@ var DefaultStrategy = /** @class */ (function (_super) {
             })
                 .catch(function (error) {
                 _this.visitor.emit(_enum_index__WEBPACK_IMPORTED_MODULE_0__.EMIT_READY, error);
-                (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(_this.config, error.message || error, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SYNCHRONIZED_MODIFICATION);
-                reject(error);
-=======
-    /**
-     * This function calls the decision api and update all the campaigns modifications
-     * from the server according to the visitor context.
-     */
-    Visitor.prototype.synchronizeModifications = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
-            return __generator(this, function (_a) {
-                return [2 /*return*/, new Promise(function (resolve, reject) {
-                        _this.configManager.decisionManager.getCampaignsAsync(_this)
-                            .then(function (campaigns) {
-                            _this._campaigns = campaigns;
-                            _this._modifications = _this.configManager.decisionManager.getModifications(_this._campaigns);
-                            _this.emit('ready');
-                            resolve();
-                        })
-                            .catch(function (error) {
-                            _this.emit('ready', error);
-                            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(_this.config, error.message, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SYNCHRONIZED_MODIFICATION);
-                            resolve();
-                        });
-                    })];
->>>>>>> deno-qa-v1-refactor
+                (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(_this.config, error.message, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SYNCHRONIZED_MODIFICATION);
+                resolve();
             });
         });
     };
@@ -5553,18 +5527,9 @@ var DefaultStrategy = /** @class */ (function (_super) {
         }
         return !!check;
     };
-<<<<<<< HEAD
     DefaultStrategy.prototype.activate = function (key) {
         var _this = this;
         var modification = this.visitor.modifications.get(key);
-=======
-    Visitor.prototype.activateModification = function (params) {
-        return Promise.resolve(this.activateModificationSync(params));
-    };
-    Visitor.prototype.activate = function (key) {
-        var _this = this;
-        var modification = this.modifications.get(key);
->>>>>>> deno-qa-v1-refactor
         if (!modification) {
             (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.visitor.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.GET_MODIFICATION_ERROR, key), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_ACTIVE_MODIFICATION);
             return;
@@ -5572,22 +5537,10 @@ var DefaultStrategy = /** @class */ (function (_super) {
         if (!this.hasTrackingManager(_enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_ACTIVE_MODIFICATION)) {
             return;
         }
-<<<<<<< HEAD
         this.configManager.trackingManager.sendActive(this.visitor, modification)
             .catch(function (error) {
-            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(_this.config, JSON.stringify(error), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_ACTIVE_MODIFICATION);
+            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(_this.config, error.message || error, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_ACTIVE_MODIFICATION);
         });
-=======
-<<<<<<< HEAD
-        this.configManager.trackingManager.sendActive(this.visitor, modification);
-=======
-        this.configManager.trackingManager
-            .sendActive(this, modification)
-            .catch(function (error) {
-            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(_this.config, error.message || error, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_ACTIVE_MODIFICATION);
-        });
->>>>>>> deno-qa-v1-refactor
->>>>>>> v2
     };
     DefaultStrategy.prototype.activateModificationSync = function (params) {
         var _this = this;
@@ -5658,14 +5611,8 @@ var DefaultStrategy = /** @class */ (function (_super) {
                     (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.config, hitInstance.getErrorMessage(), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SEND_HIT);
                     return [2 /*return*/];
                 }
-<<<<<<< HEAD
-                this.configManager.trackingManager.sendHit(hitInstance)
-                    .catch(function (error) {
-                    (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(_this.config, JSON.stringify(error), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SEND_HIT);
-=======
                 this.configManager.trackingManager.sendHit(hitInstance).catch(function (error) {
-                    (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(_this.config, error.message || error, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SEND_HIT);
->>>>>>> v2
+                    (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(_this.config, error.message || error, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SEND_HIT);
                 });
                 return [2 /*return*/];
             });
@@ -6615,7 +6562,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "FlagshipStatus": () => (/* reexport safe */ _enum_index__WEBPACK_IMPORTED_MODULE_3__.FlagshipStatus),
 /* harmony export */   "LogLevel": () => (/* reexport safe */ _enum_index__WEBPACK_IMPORTED_MODULE_3__.LogLevel),
 /* harmony export */   "HitType": () => (/* reexport safe */ _enum_index__WEBPACK_IMPORTED_MODULE_3__.HitType),
-<<<<<<< HEAD
 /* harmony export */   "APP_VERSION_CODE": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.APP_VERSION_CODE),
 /* harmony export */   "APP_VERSION_NAME": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.APP_VERSION_NAME),
 /* harmony export */   "CARRIER_NAME": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.CARRIER_NAME),
@@ -6638,26 +6584,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "OS_VERSION_NAME": () => (/* reexport safe */ _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__.OS_VERSION_NAME),
 /* harmony export */   "Modification": () => (/* reexport safe */ _model_Modification__WEBPACK_IMPORTED_MODULE_5__.Modification),
 /* harmony export */   "Visitor": () => (/* reexport safe */ _visitor_index__WEBPACK_IMPORTED_MODULE_7__.Visitor)
-=======
-/* harmony export */   "Modification": () => (/* reexport safe */ _model_Modification__WEBPACK_IMPORTED_MODULE_4__.Modification),
-/* harmony export */   "Visitor": () => (/* reexport safe */ _visitor_Visitor__WEBPACK_IMPORTED_MODULE_6__.Visitor)
->>>>>>> deno-qa-v1-refactor
 /* harmony export */ });
 /* harmony import */ var _main_Flagship__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./main/Flagship */ "./src/main/Flagship.ts");
 /* harmony import */ var _config_index__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./config/index */ "./src/config/index.ts");
 /* harmony import */ var _hit_index__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./hit/index */ "./src/hit/index.ts");
 /* harmony import */ var _enum_index__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./enum/index */ "./src/enum/index.ts");
-<<<<<<< HEAD
 /* harmony import */ var _enum_FlagshipContext__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./enum/FlagshipContext */ "./src/enum/FlagshipContext.ts");
 /* harmony import */ var _model_Modification__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./model/Modification */ "./src/model/Modification.ts");
 /* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./types */ "./src/types.ts");
 /* harmony import */ var _visitor_index__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./visitor/index */ "./src/visitor/index.ts");
 
-=======
-/* harmony import */ var _model_Modification__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./model/Modification */ "./src/model/Modification.ts");
-/* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./types */ "./src/types.ts");
-/* harmony import */ var _visitor_Visitor__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./visitor/Visitor */ "./src/visitor/Visitor.ts");
->>>>>>> deno-qa-v1-refactor
 
 
 

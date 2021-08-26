@@ -15,11 +15,9 @@ export class HttpClient implements IHttpClient {
   getAsync (url: string, options?: IHttpOptions): Promise<IHttpResponse> {
     return new Promise<IHttpResponse>((resolve, reject) => {
       axios.get(url, {
-        validateStatus: function (status) {
-          return status < 400
-        },
+        validateStatus: (status) => status < 400,
         headers: options?.headers,
-        timeout: options?.timeout ? options.timeout * 1000 : REQUEST_TIME_OUT * 1000
+        timeout: (options?.timeout ? options.timeout : REQUEST_TIME_OUT) * 1000
       })
         .then(response => {
           resolve(this.getResponse(response))
@@ -33,8 +31,9 @@ export class HttpClient implements IHttpClient {
     return new Promise<IHttpResponse>((resolve, reject) => {
       axios
         .post(url, options.body, {
+          validateStatus: (status) => status < 400,
           headers: options.headers,
-          timeout: options.timeout ? options.timeout * 1000 : REQUEST_TIME_OUT * 1000
+          timeout: (options?.timeout ? options.timeout : REQUEST_TIME_OUT) * 1000
         })
         .then((response) => {
           resolve(this.getResponse(response))

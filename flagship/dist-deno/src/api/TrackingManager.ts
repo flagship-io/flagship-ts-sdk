@@ -8,8 +8,6 @@ import {
   HEADER_X_SDK_CLIENT,
   HEADER_X_SDK_VERSION,
   HIT_API_URL,
-  PROCESS_SEND_ACTIVATE,
-  PROCESS_SEND_HIT,
   SDK_LANGUAGE,
   SDK_VERSION,
   URL_ACTIVATE_MODIFICATION,
@@ -20,7 +18,6 @@ import {
 import { HitAbstract } from '../hit/HitAbstract.ts'
 import { Modification } from '../model/Modification.ts'
 import { primitive } from '../types.ts'
-import { logError } from '../utils/utils.ts'
 import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 import { TrackingManagerAbstract } from './TrackingManagerAbstract.ts'
 
