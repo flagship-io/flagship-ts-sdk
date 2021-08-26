@@ -1855,8 +1855,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "TrackingManager": () => (/* binding */ TrackingManager)
 /* harmony export */ });
 /* harmony import */ var _enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../enum/FlagshipConstant */ "./src/enum/FlagshipConstant.ts");
-/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/utils */ "./src/utils/utils.ts");
-/* harmony import */ var _TrackingManagerAbstract__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./TrackingManagerAbstract */ "./src/api/TrackingManagerAbstract.ts");
+/* harmony import */ var _TrackingManagerAbstract__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./TrackingManagerAbstract */ "./src/api/TrackingManagerAbstract.ts");
 var __extends = (undefined && undefined.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -1872,7 +1871,6 @@ var __extends = (undefined && undefined.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-
 
 
 var TrackingManager = /** @class */ (function (_super) {
@@ -1907,7 +1905,6 @@ var TrackingManager = /** @class */ (function (_super) {
                 resolve();
             })
                 .catch(function (error) {
-                (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(_this.config, JSON.stringify(error), _enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SEND_ACTIVATE);
                 reject(error);
             });
         });
@@ -1932,13 +1929,12 @@ var TrackingManager = /** @class */ (function (_super) {
                 resolve();
             })
                 .catch(function (error) {
-                (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(_this.config, JSON.stringify(error), _enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SEND_HIT);
                 reject(error);
             });
         });
     };
     return TrackingManager;
-}(_TrackingManagerAbstract__WEBPACK_IMPORTED_MODULE_2__.TrackingManagerAbstract));
+}(_TrackingManagerAbstract__WEBPACK_IMPORTED_MODULE_1__.TrackingManagerAbstract));
 
 
 
@@ -4501,7 +4497,7 @@ var Visitor = /** @class */ (function (_super) {
                             .catch(function (error) {
                             _this.emit('ready', error);
                             (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(_this.config, error.message, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SYNCHRONIZED_MODIFICATION);
-                            reject(error);
+                            resolve();
                         });
                     })];
             });
@@ -4518,6 +4514,7 @@ var Visitor = /** @class */ (function (_super) {
         return Promise.resolve(this.activateModificationSync(params));
     };
     Visitor.prototype.activate = function (key) {
+        var _this = this;
         var modification = this.modifications.get(key);
         if (!modification) {
             (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.GET_MODIFICATION_ERROR, key), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_ACTIVE_MODIFICATION);
@@ -4526,7 +4523,11 @@ var Visitor = /** @class */ (function (_super) {
         if (!this.hasTrackingManager(_enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_ACTIVE_MODIFICATION)) {
             return;
         }
-        this.configManager.trackingManager.sendActive(this, modification);
+        this.configManager.trackingManager
+            .sendActive(this, modification)
+            .catch(function (error) {
+            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(_this.config, error.message || error, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_ACTIVE_MODIFICATION);
+        });
     };
     Visitor.prototype.activateModificationSync = function (params) {
         var _this = this;
@@ -4579,6 +4580,7 @@ var Visitor = /** @class */ (function (_super) {
     Visitor.prototype.prepareAndSendHit = function (hit) {
         return __awaiter(this, void 0, void 0, function () {
             var hitInstance, hitFromInt;
+            var _this = this;
             return __generator(this, function (_a) {
                 if (hit instanceof _hit_index__WEBPACK_IMPORTED_MODULE_2__.HitAbstract) {
                     hitInstance = hit;
@@ -4598,7 +4600,9 @@ var Visitor = /** @class */ (function (_super) {
                     (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, hitInstance.getErrorMessage(), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SEND_HIT);
                     return [2 /*return*/];
                 }
-                this.configManager.trackingManager.sendHit(hitInstance);
+                this.configManager.trackingManager.sendHit(hitInstance).catch(function (error) {
+                    (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(_this.config, error.message || error, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SEND_HIT);
+                });
                 return [2 /*return*/];
             });
         });
