@@ -163,3 +163,40 @@ export const updateConsent = async ({
   }
   return (response.body = responseBody);
 };
+
+
+export const authenticate=async ({
+  request,
+  response,
+  state,
+// deno-lint-ignore no-explicit-any
+}: RouterContext<RouteParams, Record<string, any>>)=>{
+  // deno-lint-ignore camelcase
+  const { new_visitor_id } = await request.body().value;
+  if (!new_visitor_id) {
+    return (response.body = {error:"new visitor ID is required", ok:true});
+  }
+  const responseBody: Record<string, unknown> = {};
+  const visitor: Visitor = await state.session.get("visitor");
+  if (visitor) {
+    visitor.authenticate(new_visitor_id)
+    responseBody.visitorId = visitor.visitorId;
+    responseBody.anonymousId = visitor.anonymousId
+  }
+  return (response.body = responseBody);
+}
+
+export const unauthenticate=async ({
+  response,
+  state,
+// deno-lint-ignore no-explicit-any
+}: RouterContext<RouteParams, Record<string, any>>)=>{
+  const responseBody: Record<string, unknown> = {};
+  const visitor: Visitor = await state.session.get("visitor");
+  if (visitor) {
+    visitor.unauthenticate()
+    responseBody.visitorId = visitor.visitorId;
+    responseBody.anonymousId = visitor.anonymousId
+  }
+  return (response.body = responseBody);
+}
