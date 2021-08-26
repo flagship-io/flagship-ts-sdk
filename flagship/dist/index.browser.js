@@ -3959,6 +3959,19 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./src/types.ts":
+/*!**********************!*\
+  !*** ./src/types.ts ***!
+  \**********************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+
+
+
+/***/ }),
+
 /***/ "./src/utils/FlagshipLogManager.ts":
 /*!*****************************************!*\
   !*** ./src/utils/FlagshipLogManager.ts ***!
@@ -4711,16 +4724,22 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "Page": () => (/* reexport safe */ _hit_index__WEBPACK_IMPORTED_MODULE_2__.Page),
 /* harmony export */   "Screen": () => (/* reexport safe */ _hit_index__WEBPACK_IMPORTED_MODULE_2__.Screen),
 /* harmony export */   "Transaction": () => (/* reexport safe */ _hit_index__WEBPACK_IMPORTED_MODULE_2__.Transaction),
+/* harmony export */   "HitAbstract": () => (/* reexport safe */ _hit_index__WEBPACK_IMPORTED_MODULE_2__.HitAbstract),
 /* harmony export */   "FlagshipStatus": () => (/* reexport safe */ _enum_index__WEBPACK_IMPORTED_MODULE_3__.FlagshipStatus),
 /* harmony export */   "LogLevel": () => (/* reexport safe */ _enum_index__WEBPACK_IMPORTED_MODULE_3__.LogLevel),
 /* harmony export */   "HitType": () => (/* reexport safe */ _enum_index__WEBPACK_IMPORTED_MODULE_3__.HitType),
-/* harmony export */   "Modification": () => (/* reexport safe */ _model_Modification__WEBPACK_IMPORTED_MODULE_4__.Modification)
+/* harmony export */   "Modification": () => (/* reexport safe */ _model_Modification__WEBPACK_IMPORTED_MODULE_4__.Modification),
+/* harmony export */   "Visitor": () => (/* reexport safe */ _visitor_Visitor__WEBPACK_IMPORTED_MODULE_6__.Visitor)
 /* harmony export */ });
 /* harmony import */ var _main_Flagship__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./main/Flagship */ "./src/main/Flagship.ts");
 /* harmony import */ var _config_index__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./config/index */ "./src/config/index.ts");
 /* harmony import */ var _hit_index__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./hit/index */ "./src/hit/index.ts");
 /* harmony import */ var _enum_index__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./enum/index */ "./src/enum/index.ts");
 /* harmony import */ var _model_Modification__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./model/Modification */ "./src/model/Modification.ts");
+/* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./types */ "./src/types.ts");
+/* harmony import */ var _visitor_Visitor__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./visitor/Visitor */ "./src/visitor/Visitor.ts");
+
+
 
 
 
