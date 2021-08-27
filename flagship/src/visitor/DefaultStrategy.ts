@@ -221,7 +221,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         })
         .catch(error => {
           this.visitor.emit(EMIT_READY, error)
-          logError(this.config, error.message, PROCESS_SYNCHRONIZED_MODIFICATION)
+          logError(this.config, error.message || error, PROCESS_SYNCHRONIZED_MODIFICATION)
           resolve()
         })
     })
