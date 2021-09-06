@@ -1,5 +1,6 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { ConfigManager, DecisionApiConfig } from '../../src/config/index'
+import { TrackingManager } from '../../src/api/TrackingManager'
+import { DecisionApiConfig } from '../../src/config/index'
 import { ApiManager } from '../../src/decision/ApiManager'
 import {
   BASE_API_URL,
@@ -28,7 +29,7 @@ describe('test ApiManager', () => {
   const visitorId = 'visitorId'
   const context = { age: 20 }
 
-  const visitor = new VisitorDelegate({ visitorId, context, configManager: {} as ConfigManager })
+  const visitor = new VisitorDelegate({ visitorId, context, configManager: { config, decisionManager: apiManager, trackingManager: {} as TrackingManager } })
 
   const campaignResponse = { status: 200, body: campaigns }
 

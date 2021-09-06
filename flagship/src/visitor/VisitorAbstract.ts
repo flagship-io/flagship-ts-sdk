@@ -13,6 +13,7 @@ import { Flagship } from '../main/Flagship'
 import { NotReadyStrategy } from './NotReadyStrategy'
 import { PanicStrategy } from './PanicStrategy'
 import { NoConsentStrategy } from './NoConsentStrategy'
+import { cacheVisitor } from './VisitorCache'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _visitorId!: string;
@@ -24,25 +25,37 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _anonymousId!:string|null;
 
     constructor (param: {
-        visitorId: string|null,
+        visitorId?: string|null,
         isAuthenticated?:boolean,
         context: Record<string, primitive>,
         configManager: IConfigManager
       }) {
       const { visitorId, configManager, context, isAuthenticated } = param
       super()
-      this.visitorId = visitorId || this.createVisitorId()
+      this._configManager = configManager
+      const VisitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
+      this.visitorId = visitorId || VisitorCache?.visitorId || this.createVisitorId()
       this._modifications = new Map<string, Modification>()
       this.campaigns = []
-      this._configManager = configManager
+
       this._context = {}
       this.updateContext(context)
-      this._anonymousId = null
+      this._anonymousId = VisitorCache?.anonymousId || null
       this.loadPredefinedContext()
 
-      if (isAuthenticated && this.config.decisionMode === DecisionMode.DECISION_API) {
+      if (!this._anonymousId && isAuthenticated && this.config.decisionMode === DecisionMode.DECISION_API) {
         this._anonymousId = this.uuidV4()
       }
+
+      this.updateCache()
+    }
+
+    protected updateCache ():void {
+      const visitorProfil = {
+        visitorId: this.visitorId,
+        anonymousId: this.anonymousId
+      }
+      cacheVisitor.saveVisitorProfile(visitorProfil)
     }
 
     protected loadPredefinedContext ():void {

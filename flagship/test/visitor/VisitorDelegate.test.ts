@@ -1,7 +1,7 @@
 import { jest, expect, it, describe } from '@jest/globals'
 import { Modification } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
-import { ConfigManager, DecisionApiConfig } from '../../src/config'
+import { ConfigManager, DecisionApiConfig, FlagshipConfig } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
 import { HitType, VISITOR_ID_ERROR } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
@@ -11,6 +11,8 @@ import { Mock } from 'jest-mock'
 import { modificationsRequested } from '../../src/types'
 import { IEvent, IItem, IPage, IScreen, ITransaction } from '../../src/hit'
 import { CampaignDTO } from '../../src/decision/api/models'
+import { DecisionManager } from '../../src/decision/DecisionManager'
+import { cacheVisitor, VisitorProfil } from '../../src/visitor/VisitorCache'
 
 const updateContext = jest.fn()
 const clearContext = jest.fn()
@@ -164,7 +166,7 @@ describe('test VisitorDelegate', () => {
 })
 
 describe('test VisitorDelegate methods', () => {
-  const visitorDelegate = new VisitorDelegate({ visitorId: 'visitorId', context: {}, configManager: {} as ConfigManager })
+  const visitorDelegate = new VisitorDelegate({ visitorId: 'visitorId', context: {}, configManager: { config: {} as FlagshipConfig, decisionManager: {} as DecisionManager, trackingManager: {} as TrackingManager } })
   it('test updateContext', () => {
     const contexts = {
       isVip: false
@@ -295,5 +297,29 @@ describe('test VisitorDelegate methods', () => {
     unauthenticate.mockReturnValue()
     visitorDelegate.unauthenticate()
     expect(unauthenticate).toBeCalledTimes(1)
+  })
+})
+
+describe('Name of the group', () => {
+  const config = new DecisionApiConfig()
+  config.enableClientCache = true
+
+  const visitorId = 'visitorId'
+  const anonymousId = 'anonymousId'
+
+  it('should ', () => {
+    const loadVisitorProfile:Mock<VisitorProfil, []> = jest.fn()
+    cacheVisitor.loadVisitorProfile = loadVisitorProfile
+    loadVisitorProfile.mockReturnValue({ visitorId, anonymousId })
+    const visitorDelegate = new VisitorDelegate({
+      context: {},
+      configManager: {
+        config,
+        decisionManager: {} as DecisionManager,
+        trackingManager: {} as TrackingManager
+      }
+    })
+    expect(visitorDelegate.visitorId).toBe(visitorId)
+    expect(visitorDelegate.anonymousId).toBe(anonymousId)
   })
 })

@@ -5,12 +5,13 @@ import { BucketingManager } from '../../src/decision/BucketingManager'
 import { HttpClient } from '../../src/utils/NodeHttpClient'
 import { bucketing } from './bucketing'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
-import { ConfigManager } from '../../src/config'
 import { BUCKETING_API_CONTEXT_URL, BUCKETING_API_URL, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, SDK_LANGUAGE, SDK_VERSION } from '../../src/enum'
 import { sprintf } from '../../src/utils/utils'
 import { IHttpResponse } from '../../src/utils/httpClient'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { BucketingDTO } from '../../src/decision/api/bucketingDTO'
+import { DecisionManager } from '../../src/decision/DecisionManager'
+import { TrackingManager } from '../../src/api/TrackingManager'
 
 describe('test BucketingManager', () => {
   const config = new BucketingConfig({ pollingInterval: 0 })
@@ -31,7 +32,7 @@ describe('test BucketingManager', () => {
     age: 20
   }
 
-  const visitor = new VisitorDelegate({ visitorId, context, configManager: {} as ConfigManager })
+  const visitor = new VisitorDelegate({ visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager: {} as TrackingManager } })
 
   it('test getCampaignsAsync empty', async () => {
     const campaigns = await bucketingManager.getCampaignsAsync(visitor)
@@ -194,7 +195,7 @@ describe('test sendContext', () => {
   const context = {
     age: 20
   }
-  const visitor = new VisitorDelegate({ visitorId, context, configManager: {} as ConfigManager })
+  const visitor = new VisitorDelegate({ visitorId, context, configManager: { config, decisionManager: {} as DecisionManager, trackingManager: {} as TrackingManager } })
 
   it('should ', () => {
     const url = sprintf(BUCKETING_API_CONTEXT_URL, config.envId)
@@ -245,7 +246,7 @@ describe('test bucketing method', () => {
     age: 20
   }
 
-  const visitor = new VisitorDelegate({ visitorId, context, configManager: {} as ConfigManager })
+  const visitor = new VisitorDelegate({ visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager: {} as TrackingManager } })
 
   const variations = [
     {

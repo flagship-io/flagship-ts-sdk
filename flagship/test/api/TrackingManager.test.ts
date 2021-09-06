@@ -24,6 +24,7 @@ import { IHttpResponse } from '../../src/utils/httpClient'
 import { Page } from '../../src/hit/index'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { ApiManager } from '../../src/decision/ApiManager'
+import { DecisionManager } from '../../src/decision/DecisionManager'
 
 // mock NodeHttpClient
 jest.mock('../../src/utils/NodeHttpClient')
@@ -40,7 +41,7 @@ describe('test TrackingManager sendActive ', () => {
   const visitorId = 'visitorId'
   const context = { age: 20 }
 
-  const visitor = new VisitorDelegate({ visitorId, context, configManager: {} as ConfigManager })
+  const visitor = new VisitorDelegate({ visitorId, context, configManager: { config, trackingManager, decisionManager: {} as DecisionManager } })
 
   const url = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
   const headers = {
