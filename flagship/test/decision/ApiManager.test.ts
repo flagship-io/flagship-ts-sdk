@@ -29,7 +29,7 @@ describe('test ApiManager', () => {
   const visitorId = 'visitorId'
   const context = { age: 20 }
 
-  const visitor = new VisitorDelegate({ visitorId, context, configManager: { config, decisionManager: apiManager, trackingManager: {} as TrackingManager } })
+  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: apiManager, trackingManager: {} as TrackingManager } })
 
   const campaignResponse = { status: 200, body: campaigns }
 
