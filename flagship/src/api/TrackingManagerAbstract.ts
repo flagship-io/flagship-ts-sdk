@@ -17,6 +17,8 @@ export interface ITrackingManager {
    */
   sendHit(hit: HitAbstract): Promise<void>;
 
+  sendConsentHit(visitor: VisitorAbstract):Promise<void>;
+
   config:IFlagshipConfig
 }
 
@@ -42,4 +44,6 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   ): Promise<void>;
 
   public abstract sendHit(hit: HitAbstract): Promise<void>;
+
+  public abstract sendConsentHit(visitor: VisitorAbstract): Promise<void>;
 }
