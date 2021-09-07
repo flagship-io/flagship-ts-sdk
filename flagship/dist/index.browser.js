@@ -4486,7 +4486,7 @@ var Visitor = /** @class */ (function (_super) {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
-                return [2 /*return*/, new Promise(function (resolve, reject) {
+                return [2 /*return*/, new Promise(function (resolve) {
                         _this.configManager.decisionManager.getCampaignsAsync(_this)
                             .then(function (campaigns) {
                             _this._campaigns = campaigns;
@@ -4496,7 +4496,7 @@ var Visitor = /** @class */ (function (_super) {
                         })
                             .catch(function (error) {
                             _this.emit('ready', error);
-                            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(_this.config, error.message, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SYNCHRONIZED_MODIFICATION);
+                            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(_this.config, error.message || error, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SYNCHRONIZED_MODIFICATION);
                             resolve();
                         });
                     })];

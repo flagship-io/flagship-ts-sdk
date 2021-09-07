@@ -365,7 +365,7 @@ export class Visitor extends EventEmitter {
    * from the server according to the visitor context.
    */
   public async synchronizeModifications (): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       this.configManager.decisionManager.getCampaignsAsync(this)
         .then(campaigns => {
           this._campaigns = campaigns
@@ -375,7 +375,7 @@ export class Visitor extends EventEmitter {
         })
         .catch(error => {
           this.emit('ready', error)
-          logError(this.config, error.message, PROCESS_SYNCHRONIZED_MODIFICATION)
+          logError(this.config, error.message || error, PROCESS_SYNCHRONIZED_MODIFICATION)
           resolve()
         })
     })
