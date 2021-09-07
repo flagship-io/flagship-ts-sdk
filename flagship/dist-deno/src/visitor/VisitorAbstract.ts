@@ -13,6 +13,7 @@ import { Flagship } from '../main/Flagship.ts'
 import { NotReadyStrategy } from './NotReadyStrategy.ts'
 import { PanicStrategy } from './PanicStrategy.ts'
 import { NoConsentStrategy } from './NoConsentStrategy.ts'
+import { cacheVisitor } from './VisitorCache.ts'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _visitorId!: string;
@@ -24,25 +25,43 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _anonymousId!:string|null;
 
     constructor (param: {
-        visitorId: string|null,
+        visitorId?: string|null,
         isAuthenticated?:boolean,
+        hasConsented?: boolean
         context: Record<string, primitive>,
         configManager: IConfigManager
       }) {
-      const { visitorId, configManager, context, isAuthenticated } = param
+      const { visitorId, configManager, context, isAuthenticated, hasConsented } = param
       super()
-      this.visitorId = visitorId || this.createVisitorId()
+      this._configManager = configManager
+      const VisitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
+      this.visitorId = visitorId || VisitorCache?.visitorId || this.createVisitorId()
       this._modifications = new Map<string, Modification>()
       this.campaigns = []
-      this._configManager = configManager
+
       this._context = {}
       this.updateContext(context)
-      this._anonymousId = null
+      this._anonymousId = VisitorCache?.anonymousId || null
       this.loadPredefinedContext()
 
-      if (isAuthenticated && this.config.decisionMode === DecisionMode.DECISION_API) {
+      if (!hasConsented) {
+        this.setConsent(hasConsented ?? false)
+      }
+      this.hasConsented = hasConsented ?? false
+
+      if (!this._anonymousId && isAuthenticated && this.config.decisionMode === DecisionMode.DECISION_API) {
         this._anonymousId = this.uuidV4()
       }
+
+      this.updateCache()
+    }
+
+    protected updateCache ():void {
+      const visitorProfil = {
+        visitorId: this.visitorId,
+        anonymousId: this.anonymousId
+      }
+      cacheVisitor.saveVisitorProfile(visitorProfil)
     }
 
     protected loadPredefinedContext ():void {
@@ -89,12 +108,16 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       return this._hasConsented
     }
 
+    public set hasConsented (v:boolean) {
+      this._hasConsented = v
+    }
+
     /**
       * Set if visitor has consented for protected data usage.
       * @param {boolean} hasConsented True if the visitor has consented false otherwise.
       */
     public setConsent (hasConsented:boolean):void {
-      this._hasConsented = hasConsented
+      this.getStrategy().setConsent(hasConsented)
     }
 
     public get context (): Record<string, primitive> {

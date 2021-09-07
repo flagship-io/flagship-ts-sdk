@@ -5,6 +5,7 @@ import { VisitorStrategyAbstract } from './VisitorStrategyAbstract';
 import { CampaignDTO } from '../decision/api/models';
 export declare const TYPE_HIT_REQUIRED_ERROR = "property type is required and must ";
 export declare class DefaultStrategy extends VisitorStrategyAbstract {
+    setConsent(hasConsented: boolean): void;
     /**
      *  Update the visitor context values, matching the given keys, used for targeting.
      *

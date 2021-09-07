@@ -13,6 +13,7 @@ export declare const BASE_API_URL = "https://decision.flagship.io/v2/";
 export declare const HIT_API_URL = "https://ariane.abtasty.com";
 export declare const BUCKETING_API_URL = "https://cdn.flagship.io/{0}/bucketing.json";
 export declare const BUCKETING_API_CONTEXT_URL = "https://decision.flagship.io/v2/{0}/events";
+export declare const HIT_CONSENT_URL = "https://ariane.abtasty.com";
 export declare const URL_CAMPAIGNS = "/campaigns";
 export declare const URL_ACTIVATE_MODIFICATION = "activate";
 export declare const EXPOSE_ALL_KEYS = "exposeAllKeys";
