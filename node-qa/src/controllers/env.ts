@@ -46,7 +46,7 @@ export const putEnvValidation = (req: Request, res: Response, next: NextFunction
   next()
 }
 
-export const getEnv = async (req: Request, res: Response) => {
+export const getEnv = (req: Request, res: Response):void => {
   const config = {
     // deno-lint-ignore camelcase
     environment_id: '',
@@ -73,14 +73,14 @@ const statusChangedCallback = (status: FlagshipStatus) => {
   console.log('status', FlagshipStatus[status])
 }
 
-export const putEnv = async (req: Request, res: Response) => {
+export const putEnv = (req: Request, res: Response):void => {
   const {
     environment_id: environmentId,
     api_key: apiKey,
     polling_interval: pollingInterval,
     timeout,
     bucketing
-  } = await req.body
+  } = req.body
 
   req.session.config = {
     environmentId,
@@ -101,5 +101,5 @@ export const putEnv = async (req: Request, res: Response) => {
     pollingInterval
   })
 
-  return res.json({ environmentId, apiKey, timeout })
+  res.json({ environmentId, apiKey, timeout })
 }

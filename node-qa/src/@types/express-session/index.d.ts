@@ -1,4 +1,5 @@
 import 'express-session'
+import { Visitor } from '../../deps'
 
 declare module 'express-session' {
     interface SessionData {
@@ -10,5 +11,6 @@ declare module 'express-session' {
       pollingInterval:number,
       }
       logs?:string
+      visitor?: Visitor
     }
 }

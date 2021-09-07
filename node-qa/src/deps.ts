@@ -5,7 +5,7 @@ export {
   LogLevel,
   HitType,
   EventCategory,
-  Visitor
+  Visitor, Modification
 } from '../../flagship'
 
 export { Request, Response, NextFunction } from 'express'
