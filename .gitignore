@@ -11,3 +11,4 @@ flagship/demo/**/config.js
 **/**/.next/*
 **/node_modules
 **/dist
+**/.env
