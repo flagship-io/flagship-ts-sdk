@@ -1,4 +1,3 @@
-import { EventCategory } from '..'
 import {
   ANONYMOUS_ID,
   BASE_API_URL,
@@ -25,6 +24,7 @@ import {
   VISITOR_ID_API_ITEM
 } from '../enum/FlagshipConstant'
 import { HitType } from '../enum/HitType'
+import { EventCategory } from '../hit/index'
 import { HitAbstract } from '../hit/HitAbstract'
 import { Modification } from '../model/Modification'
 import { primitive } from '../types'
