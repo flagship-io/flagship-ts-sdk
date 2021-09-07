@@ -36,11 +36,13 @@ const getModificationsForCampaign:Mock<Promise<{
 
 const authenticate:Mock<void, [visitorId:string]> = jest.fn()
 const unauthenticate:Mock<void, []> = jest.fn()
+const setConsent:Mock<void, [boolean]> = jest.fn()
 
 jest.mock('../../src/visitor/DefaultStrategy', () => {
   return {
     DefaultStrategy: jest.fn().mockImplementation(() => {
       return {
+        setConsent,
         updateContext,
         clearContext,
         getModification,
@@ -146,9 +148,6 @@ describe('test VisitorDelegate', () => {
   it('test property', () => {
     expect(visitorDelegate.hasConsented).toBeFalsy()
 
-    visitorDelegate.setConsent(true)
-    expect(visitorDelegate.hasConsented).toBeTruthy()
-
     expect(visitorDelegate.config).toBe(config)
 
     expect(visitorDelegate.configManager).toBe(configManager)
@@ -167,6 +166,13 @@ describe('test VisitorDelegate', () => {
 
 describe('test VisitorDelegate methods', () => {
   const visitorDelegate = new VisitorDelegate({ visitorId: 'visitorId', context: {}, configManager: { config: {} as FlagshipConfig, decisionManager: {} as DecisionManager, trackingManager: {} as TrackingManager } })
+
+  it('test setConsent', () => {
+    visitorDelegate.setConsent(true)
+    expect(setConsent).toBeCalledTimes(1)
+    expect(setConsent).toBeCalledWith(true)
+  })
+
   it('test updateContext', () => {
     const contexts = {
       isVip: false

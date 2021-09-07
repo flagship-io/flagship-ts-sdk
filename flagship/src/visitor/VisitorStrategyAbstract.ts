@@ -5,11 +5,21 @@ import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
 import { CampaignDTO } from '../decision/api/models'
-export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'modifications'|'context'|'hasConsented'|'setConsent'> {
+import { ITrackingManager } from '../api/TrackingManagerAbstract'
+import { IDecisionManager } from '../decision/IDecisionManager'
+export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'modifications'|'context'|'hasConsented'> {
     protected visitor:VisitorAbstract;
 
     protected get configManager ():IConfigManager {
       return this.visitor.configManager
+    }
+
+    protected get trackingManager ():ITrackingManager {
+      return this.configManager.trackingManager
+    }
+
+    protected get decisionManager ():IDecisionManager {
+      return this.configManager.decisionManager
     }
 
     public get config ():IFlagshipConfig {
@@ -20,6 +30,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       this.visitor = visitor
     }
 
+    abstract setConsent (hasConsented: boolean): void
     abstract updateContext(context: Record<string, primitive>): void
     abstract clearContext (): void
 

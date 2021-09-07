@@ -32,7 +32,7 @@ describe('test BucketingManager', () => {
     age: 20
   }
 
-  const visitor = new VisitorDelegate({ visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager: {} as TrackingManager } })
+  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager: {} as TrackingManager } })
 
   it('test getCampaignsAsync empty', async () => {
     const campaigns = await bucketingManager.getCampaignsAsync(visitor)
@@ -195,7 +195,7 @@ describe('test sendContext', () => {
   const context = {
     age: 20
   }
-  const visitor = new VisitorDelegate({ visitorId, context, configManager: { config, decisionManager: {} as DecisionManager, trackingManager: {} as TrackingManager } })
+  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: {} as DecisionManager, trackingManager: {} as TrackingManager } })
 
   it('should ', () => {
     const url = sprintf(BUCKETING_API_CONTEXT_URL, config.envId)
@@ -246,7 +246,7 @@ describe('test bucketing method', () => {
     age: 20
   }
 
-  const visitor = new VisitorDelegate({ visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager: {} as TrackingManager } })
+  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager: {} as TrackingManager } })
 
   const variations = [
     {

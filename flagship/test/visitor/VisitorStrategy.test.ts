@@ -70,7 +70,7 @@ describe('test getStrategy', () => {
     })
     visitorDelegate.setConsent(true)
     await visitorDelegate.activateModification('key')
-    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledTimes(2)
     expect(logError).toBeCalledWith(sprintf(GET_MODIFICATION_ERROR, 'key'),
       PROCESS_ACTIVE_MODIFICATION)
   })

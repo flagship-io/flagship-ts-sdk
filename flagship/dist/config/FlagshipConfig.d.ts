@@ -50,6 +50,11 @@ export interface IFlagshipConfig {
      * Note: If 0 is given then it should poll only once at start time.
      */
     pollingInterval?: number;
+    /**
+     * Indicates whether enables or disables the client cache manager.
+     * By enabling the client cache, it will allow you to keep cross sessions visitor experience.
+     */
+    enableClientCache?: boolean;
     onBucketingSuccess?: (param: {
         status: FlagshipStatus;
         payload: BucketingDTO;
@@ -71,7 +76,10 @@ export declare abstract class FlagshipConfig implements IFlagshipConfig {
     private _onBucketingFail?;
     private _onBucketingSuccess?;
     private _onBucketingUpdated?;
+    private _enableClientCache;
     protected constructor(param: IFlagshipConfig);
+    get enableClientCache(): boolean;
+    set enableClientCache(v: boolean);
     get onBucketingSuccess(): ((param: {
         status: number;
         payload: BucketingDTO;

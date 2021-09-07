@@ -7,21 +7,30 @@ import {
   ANONYMOUS_ID,
   BASE_API_URL,
   CUSTOMER_ENV_ID_API_ITEM,
+  CUSTOMER_UID,
+  DS_API_ITEM,
+  EVENT_ACTION_API_ITEM,
+  EVENT_CATEGORY_API_ITEM,
+  EVENT_LABEL_API_ITEM,
   HEADER_APPLICATION_JSON,
   HEADER_CONTENT_TYPE,
   HEADER_X_API_KEY,
   HEADER_X_SDK_CLIENT,
   HEADER_X_SDK_VERSION,
+  HitType,
   HIT_API_URL,
+  HIT_CONSENT_URL,
+  SDK_APP,
   SDK_LANGUAGE,
   SDK_VERSION,
+  T_API_ITEM,
   URL_ACTIVATE_MODIFICATION,
   VARIATION_GROUP_ID_API_ITEM,
   VARIATION_ID_API_ITEM,
   VISITOR_ID_API_ITEM
 } from '../../src/enum/index'
 import { IHttpResponse } from '../../src/utils/httpClient'
-import { Page } from '../../src/hit/index'
+import { EventCategory, Page } from '../../src/hit/index'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { ApiManager } from '../../src/decision/ApiManager'
 import { DecisionManager } from '../../src/decision/DecisionManager'
@@ -100,7 +109,7 @@ describe('test TrackingManager sendActive ', () => {
   })
 
   it('should ', async () => {
-    const visitor = new VisitorDelegate({ visitorId, isAuthenticated: true, context, configManager: { config, trackingManager, decisionManager: {} as ApiManager } })
+    const visitor = new VisitorDelegate({ visitorId, hasConsented: true, isAuthenticated: true, context, configManager: { config, trackingManager, decisionManager: {} as ApiManager } })
     const postData = {
       [VISITOR_ID_API_ITEM]: visitor.visitorId,
       [VARIATION_ID_API_ITEM]: modification.variationId,
@@ -175,5 +184,68 @@ describe('test TrackingManager sendHit ', () => {
       expect(error).toBe(postResponseError)
     }
     expect(postAsync).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('test TrackingManager sendConsentHit ', () => {
+  it(' should', async () => {
+    const httpClient = new HttpClient()
+    const postAsync = jest.spyOn(httpClient, 'postAsync')
+
+    const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
+    const trackingManager = new TrackingManager(httpClient, config)
+
+    const headers = {
+      [HEADER_X_API_KEY]: `${config.apiKey}`,
+      [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
+      [HEADER_X_SDK_VERSION]: SDK_VERSION,
+      [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
+    }
+
+    const postResponse: IHttpResponse = { status: 204, body: null }
+
+    const postResponseError: IHttpResponse = { status: 400, body: null }
+
+    const configManager = new ConfigManager(config, {} as DecisionManager, {} as TrackingManager)
+
+    const visitor = new VisitorDelegate({ visitorId: 'visitorId', hasConsented: true, context: {}, configManager })
+
+    const postBody:Record<string, unknown> = {
+      [T_API_ITEM]: HitType.EVENT,
+      [EVENT_LABEL_API_ITEM]: `${SDK_LANGUAGE}:${visitor.hasConsented}`,
+      [EVENT_ACTION_API_ITEM]: 'fs_content',
+      [EVENT_CATEGORY_API_ITEM]: EventCategory.USER_ENGAGEMENT,
+      [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
+      [DS_API_ITEM]: SDK_APP,
+      [VISITOR_ID_API_ITEM]: visitor.visitorId,
+      [CUSTOMER_UID]: null
+    }
+
+    postAsync.mockResolvedValue(postResponse)
+    trackingManager.sendConsentHit(visitor).then(() => {
+      expect(postAsync).toBeCalledWith(HIT_CONSENT_URL, {
+        headers: headers,
+        timeout: config.timeout,
+        body: postBody
+      })
+    })
+
+    postAsync.mockRejectedValue(postResponseError)
+    trackingManager.sendConsentHit(visitor).catch(error => {
+      expect(error).toBe(postResponseError)
+    })
+
+    visitor.authenticate('visitorIdAuth')
+    postBody[VISITOR_ID_API_ITEM] = visitor.anonymousId
+    postBody[CUSTOMER_UID] = visitor.visitorId
+    postAsync.mockResolvedValue(postResponse)
+    trackingManager.sendConsentHit(visitor).then(() => {
+      expect(postAsync).toBeCalledWith(HIT_CONSENT_URL, {
+        headers: headers,
+        timeout: config.timeout,
+        body: postBody
+      })
+    })
+    expect(postAsync).toHaveBeenCalledTimes(3)
   })
 })

@@ -27,10 +27,11 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     constructor (param: {
         visitorId?: string|null,
         isAuthenticated?:boolean,
+        hasConsented?: boolean
         context: Record<string, primitive>,
         configManager: IConfigManager
       }) {
-      const { visitorId, configManager, context, isAuthenticated } = param
+      const { visitorId, configManager, context, isAuthenticated, hasConsented } = param
       super()
       this._configManager = configManager
       const VisitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
@@ -42,6 +43,11 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this.updateContext(context)
       this._anonymousId = VisitorCache?.anonymousId || null
       this.loadPredefinedContext()
+
+      if (!hasConsented) {
+        this.setConsent(hasConsented ?? false)
+      }
+      this.hasConsented = hasConsented ?? false
 
       if (!this._anonymousId && isAuthenticated && this.config.decisionMode === DecisionMode.DECISION_API) {
         this._anonymousId = this.uuidV4()
@@ -102,12 +108,16 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       return this._hasConsented
     }
 
+    public set hasConsented (v:boolean) {
+      this._hasConsented = v
+    }
+
     /**
       * Set if visitor has consented for protected data usage.
       * @param {boolean} hasConsented True if the visitor has consented false otherwise.
       */
     public setConsent (hasConsented:boolean):void {
-      this._hasConsented = hasConsented
+      this.getStrategy().setConsent(hasConsented)
     }
 
     public get context (): Record<string, primitive> {

@@ -12,6 +12,7 @@ import { Mock } from 'jest-mock'
 import { CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, METHOD_DEACTIVATED_BUCKETING_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_SYNCHRONIZED_MODIFICATION, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_LANGUAGE, SDK_VERSION, TRACKER_MANAGER_MISSING_ERROR, VISITOR_ID_ERROR } from '../../src/enum'
 import { sprintf } from '../../src/utils/utils'
 import { returnModification } from './modification'
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getNull = (): any => {
@@ -56,6 +57,7 @@ describe('test DefaultStrategy ', () => {
 
   const sendActive = jest.spyOn(trackingManager, 'sendActive')
   const sendHit = jest.spyOn(trackingManager, 'sendHit')
+  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
@@ -72,6 +74,36 @@ describe('test DefaultStrategy ', () => {
     local: 'fr',
     color: 'red'
   }
+
+  it('test setConsent hasTrackingManager', () => {
+    configManager.trackingManager = getNull()
+    defaultStrategy.setConsent(true)
+    expect(visitorDelegate.hasConsented).toBeTruthy()
+    expect(sendConsentHit).toBeCalledTimes(0)
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(
+      TRACKER_MANAGER_MISSING_ERROR,
+      'setConsent'
+    )
+    configManager.trackingManager = trackingManager
+  })
+
+  it('test setConsent', () => {
+    sendConsentHit.mockResolvedValue()
+    defaultStrategy.setConsent(true)
+    expect(visitorDelegate.hasConsented).toBeTruthy()
+    expect(sendConsentHit).toBeCalledTimes(1)
+    expect(sendConsentHit).toBeCalledWith(visitorDelegate)
+  })
+
+  it('test setConsent throw error', () => {
+    const error = 'message error'
+    sendConsentHit.mockRejectedValue(error)
+    defaultStrategy.setConsent(true)
+    expect(visitorDelegate.hasConsented).toBeTruthy()
+    expect(sendConsentHit).toBeCalledTimes(1)
+    expect(sendConsentHit).toBeCalledWith(visitorDelegate)
+  })
 
   it('test updateContext', () => {
     defaultStrategy.updateContext(newContext)
@@ -701,7 +733,13 @@ describe('test authenticate on bucketing mode', () => {
   const config = new BucketingConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
 
-  const configManager = new ConfigManager(config, {} as ApiManager, {} as TrackingManager)
+  const trackingManager = new TrackingManager({} as HttpClient, config)
+  const sendConsentHit:Mock<Promise<void>, [VisitorAbstract]> = jest.fn()
+  trackingManager.sendConsentHit = sendConsentHit
+
+  sendConsentHit.mockResolvedValue()
+
+  const configManager = new ConfigManager(config, {} as ApiManager, trackingManager)
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
   const defaultStrategy = new DefaultStrategy(visitorDelegate)

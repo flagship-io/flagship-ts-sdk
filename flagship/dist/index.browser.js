@@ -2363,7 +2363,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "TrackingManager": () => (/* binding */ TrackingManager)
 /* harmony export */ });
 /* harmony import */ var _enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../enum/FlagshipConstant */ "./src/enum/FlagshipConstant.ts");
-/* harmony import */ var _TrackingManagerAbstract__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./TrackingManagerAbstract */ "./src/api/TrackingManagerAbstract.ts");
+/* harmony import */ var _enum_HitType__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../enum/HitType */ "./src/enum/HitType.ts");
+/* harmony import */ var _hit_index__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../hit/index */ "./src/hit/index.ts");
+/* harmony import */ var _TrackingManagerAbstract__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./TrackingManagerAbstract */ "./src/api/TrackingManagerAbstract.ts");
 var __extends = (undefined && undefined.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -2381,11 +2383,50 @@ var __extends = (undefined && undefined.__extends) || (function () {
 })();
 
 
+
+
 var TrackingManager = /** @class */ (function (_super) {
     __extends(TrackingManager, _super);
     function TrackingManager() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    TrackingManager.prototype.sendConsentHit = function (visitor) {
+        var _this = this;
+        return new Promise(function (resolve, reject) {
+            var _a, _b;
+            var postBody = (_a = {},
+                _a[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.T_API_ITEM] = _enum_HitType__WEBPACK_IMPORTED_MODULE_1__.HitType.EVENT,
+                _a[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.EVENT_LABEL_API_ITEM] = _enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.SDK_LANGUAGE + ":" + visitor.hasConsented,
+                _a[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.EVENT_ACTION_API_ITEM] = 'fs_content',
+                _a[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.EVENT_CATEGORY_API_ITEM] = _hit_index__WEBPACK_IMPORTED_MODULE_2__.EventCategory.USER_ENGAGEMENT,
+                _a[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.CUSTOMER_ENV_ID_API_ITEM] = _this.config.envId,
+                _a[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.DS_API_ITEM] = _enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.SDK_APP,
+                _a);
+            if (visitor.visitorId && visitor.anonymousId) {
+                postBody[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.VISITOR_ID_API_ITEM] = visitor.anonymousId;
+                postBody[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.CUSTOMER_UID] = visitor.visitorId;
+            }
+            else {
+                postBody[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.VISITOR_ID_API_ITEM] = visitor.anonymousId || visitor.visitorId;
+                postBody[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.CUSTOMER_UID] = null;
+            }
+            var headers = (_b = {},
+                _b[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HEADER_X_API_KEY] = "" + _this.config.apiKey,
+                _b[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HEADER_X_SDK_CLIENT] = _enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.SDK_LANGUAGE,
+                _b[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HEADER_X_SDK_VERSION] = _enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.SDK_VERSION,
+                _b[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HEADER_CONTENT_TYPE] = _enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HEADER_APPLICATION_JSON,
+                _b);
+            _this.httpClient.postAsync(_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HIT_CONSENT_URL, {
+                headers: headers,
+                timeout: _this.config.timeout,
+                body: postBody
+            }).then(function () {
+                resolve();
+            }).catch(function (error) {
+                reject(error);
+            });
+        });
+    };
     TrackingManager.prototype.sendActive = function (visitor, modification) {
         var _a, _b;
         var _this = this;
@@ -2450,7 +2491,7 @@ var TrackingManager = /** @class */ (function (_super) {
         });
     };
     return TrackingManager;
-}(_TrackingManagerAbstract__WEBPACK_IMPORTED_MODULE_1__.TrackingManagerAbstract));
+}(_TrackingManagerAbstract__WEBPACK_IMPORTED_MODULE_3__.TrackingManagerAbstract));
 
 
 
@@ -2693,18 +2734,29 @@ var DecisionMode;
 var statusChangeError = 'statusChangedCallback must be a function';
 var FlagshipConfig = /** @class */ (function () {
     function FlagshipConfig(param) {
-        var envId = param.envId, apiKey = param.apiKey, timeout = param.timeout, logLevel = param.logLevel, logManager = param.logManager, statusChangedCallback = param.statusChangedCallback, fetchNow = param.fetchNow, decisionMode = param.decisionMode;
+        var envId = param.envId, apiKey = param.apiKey, timeout = param.timeout, logLevel = param.logLevel, logManager = param.logManager, statusChangedCallback = param.statusChangedCallback, fetchNow = param.fetchNow, decisionMode = param.decisionMode, enableClientCache = param.enableClientCache;
         this._envId = envId;
         this._apiKey = apiKey;
         this.logLevel = logLevel || _enum_index__WEBPACK_IMPORTED_MODULE_0__.LogLevel.ALL;
         this.timeout = timeout || _enum_index__WEBPACK_IMPORTED_MODULE_0__.REQUEST_TIME_OUT;
         this.fetchNow = typeof fetchNow === 'undefined' || fetchNow;
+        this.enableClientCache = typeof enableClientCache === 'undefined' || enableClientCache;
         this._decisionMode = decisionMode || DecisionMode.DECISION_API;
         if (logManager) {
             this.logManager = logManager;
         }
         this.statusChangedCallback = statusChangedCallback;
     }
+    Object.defineProperty(FlagshipConfig.prototype, "enableClientCache", {
+        get: function () {
+            return this._enableClientCache;
+        },
+        set: function (v) {
+            this._enableClientCache = v;
+        },
+        enumerable: false,
+        configurable: true
+    });
     Object.defineProperty(FlagshipConfig.prototype, "onBucketingSuccess", {
         get: function () {
             return this._onBucketingSuccess;
@@ -3456,6 +3508,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "HIT_API_URL": () => (/* binding */ HIT_API_URL),
 /* harmony export */   "BUCKETING_API_URL": () => (/* binding */ BUCKETING_API_URL),
 /* harmony export */   "BUCKETING_API_CONTEXT_URL": () => (/* binding */ BUCKETING_API_CONTEXT_URL),
+/* harmony export */   "HIT_CONSENT_URL": () => (/* binding */ HIT_CONSENT_URL),
 /* harmony export */   "URL_CAMPAIGNS": () => (/* binding */ URL_CAMPAIGNS),
 /* harmony export */   "URL_ACTIVATE_MODIFICATION": () => (/* binding */ URL_ACTIVATE_MODIFICATION),
 /* harmony export */   "EXPOSE_ALL_KEYS": () => (/* binding */ EXPOSE_ALL_KEYS),
@@ -3546,6 +3599,7 @@ var BASE_API_URL = 'https://decision.flagship.io/v2/';
 var HIT_API_URL = 'https://ariane.abtasty.com';
 var BUCKETING_API_URL = 'https://cdn.flagship.io/{0}/bucketing.json';
 var BUCKETING_API_CONTEXT_URL = 'https://decision.flagship.io/v2/{0}/events';
+var HIT_CONSENT_URL = 'https://ariane.abtasty.com';
 var URL_CAMPAIGNS = '/campaigns';
 var URL_ACTIVATE_MODIFICATION = 'activate';
 var EXPOSE_ALL_KEYS = 'exposeAllKeys';
@@ -3963,6 +4017,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "HEADER_X_SDK_CLIENT": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.HEADER_X_SDK_CLIENT),
 /* harmony export */   "HEADER_X_SDK_VERSION": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.HEADER_X_SDK_VERSION),
 /* harmony export */   "HIT_API_URL": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.HIT_API_URL),
+/* harmony export */   "HIT_CONSENT_URL": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.HIT_CONSENT_URL),
 /* harmony export */   "ICN_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.ICN_API_ITEM),
 /* harmony export */   "IC_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.IC_API_ITEM),
 /* harmony export */   "INITIALIZATION_PARAM_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.INITIALIZATION_PARAM_ERROR),
@@ -5111,13 +5166,14 @@ var Flagship = /** @class */ (function () {
         }
     };
     Flagship.newVisitor = function (params, params2) {
-        var _a;
+        var _a, _b;
         if (!this.isReady()) {
             return null;
         }
         var visitorId;
         var context;
         var isAuthenticated = false;
+        var hasConsented = false;
         if (typeof params === 'string' || params === null) {
             visitorId = params;
             context = params2 || {};
@@ -5126,11 +5182,13 @@ var Flagship = /** @class */ (function () {
             visitorId = params.visitorId || null;
             context = params.context || {};
             isAuthenticated = (_a = params.isAuthenticated) !== null && _a !== void 0 ? _a : false;
+            hasConsented = (_b = params.hasConsented) !== null && _b !== void 0 ? _b : false;
         }
         var visitorDelegate = new _visitor_VisitorDelegate__WEBPACK_IMPORTED_MODULE_11__.VisitorDelegate({
             visitorId: visitorId,
             context: context,
             isAuthenticated: isAuthenticated,
+            hasConsented: hasConsented,
             configManager: this.getInstance().configManager
         });
         var visitor = new _visitor_Visitor__WEBPACK_IMPORTED_MODULE_0__.Visitor(visitorDelegate);
@@ -5567,6 +5625,18 @@ var DefaultStrategy = /** @class */ (function (_super) {
     function DefaultStrategy() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    DefaultStrategy.prototype.setConsent = function (hasConsented) {
+        var _this = this;
+        var method = 'setConsent';
+        this.visitor.hasConsented = hasConsented;
+        if (!this.hasTrackingManager(method)) {
+            return;
+        }
+        this.trackingManager.sendConsentHit(this.visitor)
+            .catch(function (error) {
+            (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(_this.config, error.message || error, method);
+        });
+    };
     /**
      *  Update the visitor context values, matching the given keys, used for targeting.
      *
@@ -5696,16 +5766,16 @@ var DefaultStrategy = /** @class */ (function (_super) {
     DefaultStrategy.prototype.synchronizeModifications = function () {
         var _this = this;
         return new Promise(function (resolve) {
-            _this.configManager.decisionManager.getCampaignsAsync(_this.visitor)
+            _this.decisionManager.getCampaignsAsync(_this.visitor)
                 .then(function (campaigns) {
                 _this.visitor.campaigns = campaigns;
-                _this.visitor.modifications = _this.visitor.configManager.decisionManager.getModifications(_this.visitor.campaigns);
+                _this.visitor.modifications = _this.decisionManager.getModifications(_this.visitor.campaigns);
                 _this.visitor.emit(_enum_index__WEBPACK_IMPORTED_MODULE_0__.EMIT_READY);
                 resolve();
             })
                 .catch(function (error) {
                 _this.visitor.emit(_enum_index__WEBPACK_IMPORTED_MODULE_0__.EMIT_READY, error);
-                (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(_this.config, error.message, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SYNCHRONIZED_MODIFICATION);
+                (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(_this.config, error.message || error, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SYNCHRONIZED_MODIFICATION);
                 resolve();
             });
         });
@@ -5714,7 +5784,7 @@ var DefaultStrategy = /** @class */ (function (_super) {
         return Promise.resolve(this.activateModificationSync(params));
     };
     DefaultStrategy.prototype.hasTrackingManager = function (process) {
-        var check = this.configManager.trackingManager;
+        var check = this.trackingManager;
         if (!check) {
             (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.TRACKER_MANAGER_MISSING_ERROR), process);
         }
@@ -5730,7 +5800,7 @@ var DefaultStrategy = /** @class */ (function (_super) {
         if (!this.hasTrackingManager(_enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_ACTIVE_MODIFICATION)) {
             return;
         }
-        this.configManager.trackingManager.sendActive(this.visitor, modification)
+        this.trackingManager.sendActive(this.visitor, modification)
             .catch(function (error) {
             (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(_this.config, error.message || error, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_ACTIVE_MODIFICATION);
         });
@@ -5804,7 +5874,7 @@ var DefaultStrategy = /** @class */ (function (_super) {
                     (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(this.config, hitInstance.getErrorMessage(), _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SEND_HIT);
                     return [2 /*return*/];
                 }
-                this.configManager.trackingManager.sendHit(hitInstance).catch(function (error) {
+                this.trackingManager.sendHit(hitInstance).catch(function (error) {
                     (0,_utils_utils__WEBPACK_IMPORTED_MODULE_2__.logError)(_this.config, error.message || error, _enum_index__WEBPACK_IMPORTED_MODULE_0__.PROCESS_SEND_HIT);
                 });
                 return [2 /*return*/];
@@ -6067,6 +6137,10 @@ var PanicStrategy = /** @class */ (function (_super) {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    PanicStrategy.prototype.setConsent = function (_hasConsented) {
+        this.log('setConsent');
+    };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     PanicStrategy.prototype.updateContext = function (context) {
         this.log('updateContext');
     };
@@ -6269,6 +6343,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _NotReadyStrategy__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./NotReadyStrategy */ "./src/visitor/NotReadyStrategy.ts");
 /* harmony import */ var _PanicStrategy__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./PanicStrategy */ "./src/visitor/PanicStrategy.ts");
 /* harmony import */ var _NoConsentStrategy__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./NoConsentStrategy */ "./src/visitor/NoConsentStrategy.ts");
+/* harmony import */ var _VisitorCache__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./VisitorCache */ "./src/visitor/VisitorCache.ts");
 var __extends = (undefined && undefined.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -6293,25 +6368,39 @@ var __extends = (undefined && undefined.__extends) || (function () {
 
 
 
+
 var VisitorAbstract = /** @class */ (function (_super) {
     __extends(VisitorAbstract, _super);
     function VisitorAbstract(param) {
         var _this = this;
-        var visitorId = param.visitorId, configManager = param.configManager, context = param.context, isAuthenticated = param.isAuthenticated;
+        var visitorId = param.visitorId, configManager = param.configManager, context = param.context, isAuthenticated = param.isAuthenticated, hasConsented = param.hasConsented;
         _this = _super.call(this) || this;
-        _this.visitorId = visitorId || _this.createVisitorId();
+        _this._configManager = configManager;
+        var VisitorCache = _this.config.enableClientCache ? _VisitorCache__WEBPACK_IMPORTED_MODULE_9__.cacheVisitor.loadVisitorProfile() : null;
+        _this.visitorId = visitorId || (VisitorCache === null || VisitorCache === void 0 ? void 0 : VisitorCache.visitorId) || _this.createVisitorId();
         _this._modifications = new Map();
         _this.campaigns = [];
-        _this._configManager = configManager;
         _this._context = {};
         _this.updateContext(context);
-        _this._anonymousId = null;
+        _this._anonymousId = (VisitorCache === null || VisitorCache === void 0 ? void 0 : VisitorCache.anonymousId) || null;
         _this.loadPredefinedContext();
-        if (isAuthenticated && _this.config.decisionMode === _config_index__WEBPACK_IMPORTED_MODULE_0__.DecisionMode.DECISION_API) {
+        if (!hasConsented) {
+            _this.setConsent(hasConsented !== null && hasConsented !== void 0 ? hasConsented : false);
+        }
+        _this.hasConsented = hasConsented !== null && hasConsented !== void 0 ? hasConsented : false;
+        if (!_this._anonymousId && isAuthenticated && _this.config.decisionMode === _config_index__WEBPACK_IMPORTED_MODULE_0__.DecisionMode.DECISION_API) {
             _this._anonymousId = _this.uuidV4();
         }
+        _this.updateCache();
         return _this;
     }
+    VisitorAbstract.prototype.updateCache = function () {
+        var visitorProfil = {
+            visitorId: this.visitorId,
+            anonymousId: this.anonymousId
+        };
+        _VisitorCache__WEBPACK_IMPORTED_MODULE_9__.cacheVisitor.saveVisitorProfile(visitorProfil);
+    };
     VisitorAbstract.prototype.loadPredefinedContext = function () {
         this.context.fs_client = _enum_index__WEBPACK_IMPORTED_MODULE_1__.SDK_LANGUAGE;
         this.context.fs_version = _enum_index__WEBPACK_IMPORTED_MODULE_1__.SDK_VERSION;
@@ -6353,6 +6442,9 @@ var VisitorAbstract = /** @class */ (function (_super) {
         get: function () {
             return this._hasConsented;
         },
+        set: function (v) {
+            this._hasConsented = v;
+        },
         enumerable: false,
         configurable: true
     });
@@ -6361,7 +6453,7 @@ var VisitorAbstract = /** @class */ (function (_super) {
       * @param {boolean} hasConsented True if the visitor has consented false otherwise.
       */
     VisitorAbstract.prototype.setConsent = function (hasConsented) {
-        this._hasConsented = hasConsented;
+        this.getStrategy().setConsent(hasConsented);
     };
     Object.defineProperty(VisitorAbstract.prototype, "context", {
         get: function () {
@@ -6444,6 +6536,41 @@ var VisitorAbstract = /** @class */ (function (_super) {
 
 /***/ }),
 
+/***/ "./src/visitor/VisitorCache.ts":
+/*!*************************************!*\
+  !*** ./src/visitor/VisitorCache.ts ***!
+  \*************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "CLIENT_CACHE_KEY": () => (/* binding */ CLIENT_CACHE_KEY),
+/* harmony export */   "cacheVisitor": () => (/* binding */ cacheVisitor)
+/* harmony export */ });
+var CLIENT_CACHE_KEY = 'FS_CLIENT_VISITOR';
+var cacheVisitor = {
+    saveVisitorProfile: function (visitorProfile) {
+        try {
+            localStorage.setItem(CLIENT_CACHE_KEY, JSON.stringify(visitorProfile));
+        }
+        catch (error) {
+        }
+    },
+    loadVisitorProfile: function () {
+        var data = null;
+        try {
+            data = localStorage.getItem(CLIENT_CACHE_KEY);
+        }
+        catch (error) {
+        }
+        return data ? JSON.parse(data) : null;
+    }
+};
+
+
+/***/ }),
+
 /***/ "./src/visitor/VisitorDelegate.ts":
 /*!****************************************!*\
   !*** ./src/visitor/VisitorDelegate.ts ***!
@@ -6520,9 +6647,11 @@ var VisitorDelegate = /** @class */ (function (_super) {
     };
     VisitorDelegate.prototype.authenticate = function (visitorId) {
         this.getStrategy().authenticate(visitorId);
+        this.updateCache();
     };
     VisitorDelegate.prototype.unauthenticate = function () {
         this.getStrategy().unauthenticate();
+        this.updateCache();
     };
     return VisitorDelegate;
 }(_VisitorAbstract__WEBPACK_IMPORTED_MODULE_0__.VisitorAbstract));
@@ -6549,6 +6678,20 @@ var VisitorStrategyAbstract = /** @class */ (function () {
     Object.defineProperty(VisitorStrategyAbstract.prototype, "configManager", {
         get: function () {
             return this.visitor.configManager;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(VisitorStrategyAbstract.prototype, "trackingManager", {
+        get: function () {
+            return this.configManager.trackingManager;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(VisitorStrategyAbstract.prototype, "decisionManager", {
+        get: function () {
+            return this.configManager.decisionManager;
         },
         enumerable: false,
         configurable: true
