@@ -47,6 +47,8 @@
   },
   "dependencies": {
     "axios": "^0.21.1",
-    "events": "^3.3.0"
+    "events": "^3.3.0",
+    "http": "^0.0.1-security",
+    "https": "^1.0.0"
   }
 }
