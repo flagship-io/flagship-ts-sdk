@@ -12,7 +12,7 @@ module.exports = merge(common(), {
   },
   externals: [
     nodeExternals({
-      allowlist: ['axios', 'events']
+      allowlist: ['axios', 'events', 'http', 'https']
     })
   ]
 })

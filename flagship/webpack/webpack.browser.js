@@ -4,6 +4,12 @@ const common = require('./webpack.common.js')
 
 module.exports = merge(common(), {
   target: 'web',
+  resolve: {
+    alias: {
+      https: 'https-browserify',
+      http: 'http-browserify'
+    }
+  },
   output: {
     filename: 'index.browser.js',
     library: {

@@ -39,8 +39,6 @@ export class ApiManager extends DecisionManager {
         url += `&${SEND_CONTEXT_EVENT}=false`
       }
 
-      console.log('url:', url)
-
       this._httpClient.postAsync(url, {
         headers,
         timeout: this.config.timeout,
