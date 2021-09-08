@@ -7,7 +7,8 @@ import { HitAbstract, IEvent, IItem, IPage, IScreen, ITransaction } from '../hit
 
 export class PanicStrategy extends DefaultStrategy {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setConsent (_hasConsented:boolean):void {
+  setConsent (hasConsented:boolean):void {
+    this.visitor.hasConsented = hasConsented
     this.log('setConsent')
   }
 

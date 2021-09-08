@@ -2416,6 +2416,7 @@ var TrackingManager = /** @class */ (function (_super) {
                 _b[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HEADER_X_SDK_VERSION] = _enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.SDK_VERSION,
                 _b[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HEADER_CONTENT_TYPE] = _enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HEADER_APPLICATION_JSON,
                 _b);
+            console.log('consent hit', _enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HIT_CONSENT_URL);
             _this.httpClient.postAsync(_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HIT_CONSENT_URL, {
                 headers: headers,
                 timeout: _this.config.timeout,
@@ -3004,6 +3005,10 @@ var ApiManager = /** @class */ (function (_super) {
                             context: visitor.context
                         };
                         var url = "" + _enum_index__WEBPACK_IMPORTED_MODULE_0__.BASE_API_URL + _this.config.envId + _enum_index__WEBPACK_IMPORTED_MODULE_0__.URL_CAMPAIGNS + "?" + _enum_index__WEBPACK_IMPORTED_MODULE_0__.EXPOSE_ALL_KEYS + "=true";
+                        if (!visitor.hasConsented) {
+                            url += "&" + _enum_index__WEBPACK_IMPORTED_MODULE_0__.SEND_CONTEXT_EVENT + "=false";
+                        }
+                        console.log('url:', url);
                         _this._httpClient.postAsync(url, {
                             headers: headers,
                             timeout: _this.config.timeout,
@@ -3512,6 +3517,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "URL_CAMPAIGNS": () => (/* binding */ URL_CAMPAIGNS),
 /* harmony export */   "URL_ACTIVATE_MODIFICATION": () => (/* binding */ URL_ACTIVATE_MODIFICATION),
 /* harmony export */   "EXPOSE_ALL_KEYS": () => (/* binding */ EXPOSE_ALL_KEYS),
+/* harmony export */   "SEND_CONTEXT_EVENT": () => (/* binding */ SEND_CONTEXT_EVENT),
 /* harmony export */   "SDK_VERSION": () => (/* binding */ SDK_VERSION),
 /* harmony export */   "SDK_STARTED_INFO": () => (/* binding */ SDK_STARTED_INFO),
 /* harmony export */   "FLAGSHIP_SDK": () => (/* binding */ FLAGSHIP_SDK),
@@ -3603,6 +3609,7 @@ var HIT_CONSENT_URL = 'https://ariane.abtasty.com';
 var URL_CAMPAIGNS = '/campaigns';
 var URL_ACTIVATE_MODIFICATION = 'activate';
 var EXPOSE_ALL_KEYS = 'exposeAllKeys';
+var SEND_CONTEXT_EVENT = 'sendContextEvent';
 /**
  * SDK version
  */
@@ -4049,6 +4056,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "SDK_LANGUAGE": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.SDK_LANGUAGE),
 /* harmony export */   "SDK_STARTED_INFO": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.SDK_STARTED_INFO),
 /* harmony export */   "SDK_VERSION": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.SDK_VERSION),
+/* harmony export */   "SEND_CONTEXT_EVENT": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.SEND_CONTEXT_EVENT),
 /* harmony export */   "SM_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.SM_API_ITEM),
 /* harmony export */   "TA_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.TA_API_ITEM),
 /* harmony export */   "TCC_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.TCC_API_ITEM),
@@ -6137,7 +6145,8 @@ var PanicStrategy = /** @class */ (function (_super) {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    PanicStrategy.prototype.setConsent = function (_hasConsented) {
+    PanicStrategy.prototype.setConsent = function (hasConsented) {
+        this.visitor.hasConsented = hasConsented;
         this.log('setConsent');
     };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -58,6 +58,8 @@ export class TrackingManager extends TrackingManagerAbstract {
         [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
       }
 
+      console.log('consent hit', HIT_CONSENT_URL)
+
       this.httpClient.postAsync(HIT_CONSENT_URL, {
         headers,
         timeout: this.config.timeout,

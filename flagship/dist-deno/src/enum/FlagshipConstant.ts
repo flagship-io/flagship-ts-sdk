@@ -21,6 +21,7 @@ export const URL_CAMPAIGNS = '/campaigns'
 export const URL_ACTIVATE_MODIFICATION = 'activate'
 
 export const EXPOSE_ALL_KEYS = 'exposeAllKeys'
+export const SEND_CONTEXT_EVENT = 'sendContextEvent'
 
 /**
  * SDK version

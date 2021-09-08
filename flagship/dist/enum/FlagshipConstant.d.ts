@@ -17,6 +17,7 @@ export declare const HIT_CONSENT_URL = "https://ariane.abtasty.com";
 export declare const URL_CAMPAIGNS = "/campaigns";
 export declare const URL_ACTIVATE_MODIFICATION = "activate";
 export declare const EXPOSE_ALL_KEYS = "exposeAllKeys";
+export declare const SEND_CONTEXT_EVENT = "sendContextEvent";
 /**
  * SDK version
  */
