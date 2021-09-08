@@ -3,7 +3,7 @@ import { DecisionApiConfig } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { DecisionManager } from '../../src/decision/DecisionManager'
-import { FlagshipStatus, HitType, METHOD_DEACTIVATED_ERROR } from '../../src/enum'
+import { FlagshipStatus, HitType, METHOD_DEACTIVATED_ERROR, METHOD_DEACTIVATED_SEND_CONSENT_ERROR } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { sprintf } from '../../src/utils/utils'
 import { VisitorDelegate, PanicStrategy } from '../../src/visitor'
@@ -28,8 +28,9 @@ describe('test NotReadyStrategy', () => {
   it('test setConsent', () => {
     const methodName = 'setConsent'
     panicStrategy.setConsent(true)
+    expect(visitorDelegate.hasConsented).toBe(true)
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_SEND_CONSENT_ERROR, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
   })
 
   it('test updateContext', () => {
