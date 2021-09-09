@@ -52,9 +52,6 @@ export class TrackingManager extends TrackingManagerAbstract {
       }
 
       const headers = {
-        [HEADER_X_API_KEY]: `${this.config.apiKey}`,
-        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
-        [HEADER_X_SDK_VERSION]: SDK_VERSION,
         [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
       }
 
@@ -116,9 +113,6 @@ export class TrackingManager extends TrackingManagerAbstract {
 
   public sendHit (hit: HitAbstract): Promise<void> {
     const headers = {
-      [HEADER_X_API_KEY]: `${this.config.apiKey}`,
-      [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
-      [HEADER_X_SDK_VERSION]: SDK_VERSION,
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
     return new Promise((resolve, reject) => {
