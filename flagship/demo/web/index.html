@@ -82,7 +82,6 @@
 
       //step 4 listen visitor to be ready
       visitor.on("ready", function (error) {
-        console.log(visitor);
         if (error) {
           console.log("error", error);
         }
@@ -110,6 +109,54 @@
             const loginBtn = document.querySelector("form button");
             loginBtn.style.backgroundColor = flags[1];
           });
+
+        // activateModification
+        visitor.activateModification("object");
+
+        visitor.activateModification(["array", "object"]);
+
+        // getModificationInfo
+        visitor.getModificationInfo("array").then((data) => {
+          console.log("info", data);
+        });
+
+        visitor.setConsent(true);
+        // send hit
+
+        // hit type Event
+        visitor.sendHit({
+          type: HitType.EVENT,
+          category: EventCategory.ACTION_TRACKING,
+          action: "click",
+        });
+
+        // hit type Item
+        const item = new Item({
+          transactionId: "transaction_1",
+          productName: "product_name",
+          productSku: "00255578",
+        });
+
+        visitor.sendHit(item);
+
+        // hit type Page
+        visitor.sendHit({
+          type: HitType.PAGE,
+          documentLocation: "https://localhost",
+        });
+
+        // hit type Screen
+        visitor.sendHit({
+          type: HitType.SCREEN,
+          documentLocation: "https://localhost",
+        });
+
+        // hit type Transaction
+        const transaction = new Transaction({
+          transactionId: "transaction_1",
+          affiliation: "affiliation",
+        });
+        visitor.sendHit(transaction);
       });
     </script>
   </body>

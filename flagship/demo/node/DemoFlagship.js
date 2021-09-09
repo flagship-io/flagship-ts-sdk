@@ -10,6 +10,10 @@ import {
 } from '../../dist/index.node'
 import { API_KEY, ENV_ID } from './config.js'
 
+const sleep = (ms) => {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
 const statusChangedCallback = (status) => {
   console.log('status', FlagshipStatus[status])
 }
@@ -21,18 +25,20 @@ Flagship.start(ENV_ID, API_KEY, {
   fetchNow: false
 })
 
-const visitor = Flagship.newVisitor('visitor_id', { key: 'value' });
+const visitor = Flagship.newVisitor('visitor_id', { key: 'value' })
 
-(async () => {
+const start = async () => {
   if (visitor) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    visitor.on('ready', (err) => {
+    visitor.on('ready', async (err) => {
       if (err) {
         console.log('Flagship error:', err)
         return
       }
       console.log('Flagship Ready')
     })
+
+    await sleep(5000)
     // clear context
     visitor.clearContext()
 
@@ -41,6 +47,7 @@ const visitor = Flagship.newVisitor('visitor_id', { key: 'value' });
 
     // optional when fetchNow = true, this method is call on each newVisitor
     await visitor.synchronizeModifications()
+    visitor.setConsent(true)
 
     // getModification
     visitor.getModification({ key: 'object', defaultValue: {} })
@@ -98,4 +105,5 @@ const visitor = Flagship.newVisitor('visitor_id', { key: 'value' });
     const transaction = new Transaction({ transactionId: 'transaction_1', affiliation: 'affiliation' })
     visitor.sendHit(transaction)
   }
-})()
+}
+start()
