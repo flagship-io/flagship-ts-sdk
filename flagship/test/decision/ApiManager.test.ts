@@ -13,23 +13,33 @@ import {
   HEADER_X_SDK_VERSION,
   SDK_LANGUAGE,
   SDK_VERSION,
+  SEND_CONTEXT_EVENT,
   URL_CAMPAIGNS
 } from '../../src/enum/index'
 import { IHttpResponse } from '../../src/utils/httpClient'
 import { HttpClient } from '../../src/utils/NodeHttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { campaigns } from './campaigns'
+import { Mock } from 'jest-mock'
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 
 describe('test ApiManager', () => {
   const httpClient = new HttpClient()
   const postAsync = jest.spyOn(httpClient, 'postAsync')
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   const apiManager = new ApiManager(httpClient, config)
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  const sendConsentHit:Mock<Promise<void>, [visitor: VisitorAbstract]> = jest.fn()
+
+  sendConsentHit.mockResolvedValue()
+
+  trackingManager.sendConsentHit = sendConsentHit
 
   const visitorId = 'visitorId'
   const context = { age: 20 }
 
-  const visitor = new VisitorDelegate({ visitorId, context, configManager: { config, decisionManager: apiManager, trackingManager: {} as TrackingManager } })
+  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: apiManager, trackingManager: trackingManager } })
 
   const campaignResponse = { status: 200, body: campaigns }
 
@@ -73,11 +83,30 @@ describe('test ApiManager', () => {
   it('test campaign', async () => {
     postAsync.mockResolvedValue(campaignResponse)
 
-    const modifications = (await apiManager.getCampaignsModificationsAsync(
+    const modifications = await apiManager.getCampaignsModificationsAsync(
       visitor
-    ))
+    )
 
     expect(postAsync).toHaveBeenCalledWith(url, {
+      headers: headers,
+      timeout: config.timeout,
+      body: postData
+    })
+
+    expect(modifications.size).toBe(4)
+    expect(modifications.get('array')?.value).toEqual([1, 1, 1])
+    expect(modifications.get('object')?.value).toEqual({ value: 123456 })
+  })
+
+  it('test campaign with consent false', async () => {
+    postAsync.mockResolvedValue(campaignResponse)
+
+    visitor.setConsent(false)
+    const modifications = await apiManager.getCampaignsModificationsAsync(
+      visitor
+    )
+
+    expect(postAsync).toHaveBeenCalledWith(`${url}&${SEND_CONTEXT_EVENT}=false`, {
       headers: headers,
       timeout: config.timeout,
       body: postData

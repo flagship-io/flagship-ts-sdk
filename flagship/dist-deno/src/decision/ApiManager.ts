@@ -9,6 +9,7 @@ import {
   PROCESS_GET_CAMPAIGNS,
   SDK_LANGUAGE,
   SDK_VERSION,
+  SEND_CONTEXT_EVENT,
   URL_CAMPAIGNS
 } from '../enum/index.ts'
 import { DecisionManager } from './DecisionManager.ts'
@@ -33,7 +34,10 @@ export class ApiManager extends DecisionManager {
         context: visitor.context
       }
 
-      const url = `${BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
+      let url = `${BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
+      if (!visitor.hasConsented) {
+        url += `&${SEND_CONTEXT_EVENT}=false`
+      }
 
       this._httpClient.postAsync(url, {
         headers,

@@ -25,6 +25,7 @@ describe('test DefaultStrategy ', () => {
   const visitorDelegate = new VisitorDelegate({
     visitorId,
     context,
+    hasConsented: true,
     configManager: {
       config,
       decisionManager: {} as ApiManager,

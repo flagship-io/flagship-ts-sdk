@@ -31,6 +31,7 @@ export interface INewVisitor{
    * visitor context
    */
   context?: Record<string, primitive>
+  hasConsented?:boolean
 }
 
 export class Flagship {
@@ -225,6 +226,7 @@ export class Flagship {
     let visitorId:string|null
     let context:Record<string, primitive>
     let isAuthenticated = false
+    let hasConsented = false
 
     if (typeof params === 'string' || params === null) {
       visitorId = params
@@ -233,12 +235,14 @@ export class Flagship {
       visitorId = params.visitorId || null
       context = params.context || {}
       isAuthenticated = params.isAuthenticated ?? false
+      hasConsented = params.hasConsented ?? false
     }
 
     const visitorDelegate = new VisitorDelegate({
       visitorId,
       context,
       isAuthenticated,
+      hasConsented,
       configManager: this.getInstance().configManager
     })
 
