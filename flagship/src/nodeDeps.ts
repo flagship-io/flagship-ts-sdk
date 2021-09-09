@@ -1,12 +1,15 @@
 import axios from 'axios'
 
-import { Agent as HttpsAgent } from 'https'
-import { Agent as HttpAgent } from 'http'
+export const axiosInstance = axios.create({})
 
-export const axiosInstance = axios.create({
-  httpAgent: new HttpAgent({ keepAlive: true }),
-  httpsAgent: new HttpsAgent({ keepAlive: true })
-})
+if (typeof window === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { Agent: HttpAgent } = require('http')
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { Agent: HttpAgents } = require('https')
+  axiosInstance.defaults.httpAgent = new HttpAgent({ keepAlive: true })
+  axiosInstance.defaults.httpsAgent = new HttpAgents({ keepAlive: true })
+}
 
 export const defaultAxios = axios
 
