@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <title>
+      How to implement a flag around my feature “Log-in with Google“ and control
+      it through a feature toggle use case in Flagship
+    </title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="align-items-center justify-content-center row vh-100">
+        <div class="col-4">
+          <form action="">
+            <div class="mb-3">
+              <h3>Sign in</h3>
+              <p class="form-text">
+                Lorem ipsum dolor sit amet consectetur adipisicing elit.
+              </p>
+            </div>
+            <div class="input-group mb-3">
+              <input
+                type="email"
+                name=""
+                class="form-control"
+                placeholder="email"
+              />
+            </div>
+            <div class="input-group mb-3">
+              <input
+                type="password"
+                name=""
+                class="form-control"
+                placeholder="password"
+              />
+            </div>
+            <button class="btn btn-primary" type="submit">login</button>
+            <div class="text-center my-3 d-none" id="login-or">or</div>
+            <div class="d-flex justify-content-center d-none" id="google-login">
+              <div class="google-btn">
+                <div class="google-icon-wrapper">
+                  <img
+                    class="google-icon"
+                    src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"
+                    alt="google"
+                  />
+                </div>
+                <p class="btn-text"><strong>Sign in with google</strong></p>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <!-- step 1 import flagship Sdk bundle -->
+    <script src="../../dist/index.browser.js"></script>
+    <script>
+      //step 2 initialize Flagship SDK
+      Flagship.start(
+        "c1ndrd07m0300ro0jf20",
+        "QzdTI1M9iqaIhnJ66a34C5xdzrrvzq6q8XSVOsS6"
+      );
+
+      //step 3 create a visitor
+      //when fetch property is unset or true, newVisitor will call synchronizeModifications automatically
+      const visitor = Flagship.newVisitor({
+        visitorId: "anonymeId",
+        context: {
+          timezone: new Date().getTimezoneOffset() / -60,
+        },
+        isAuthenticate: false,
+      });
+
+      //step 4 listen visitor to be ready
+      visitor.on("ready", function (error) {
+        console.log(visitor);
+        if (error) {
+          console.log("error", error);
+        }
+
+        // step 5 get flags
+        visitor
+          .getModification([
+            {
+              key: "login-with-google",
+              defaultValue: false,
+            },
+            { key: "login-btn-color", defaultValue: "#0d6efd" },
+          ])
+          .then((flags) => {
+            const googleLogin = document.getElementById("google-login");
+            const loginOr = document.getElementById("login-or");
+            console.log("flag", flags);
+            if (!flags[0]) {
+              googleLogin.classList.add("d-none");
+              loginOr.classList.add("d-none");
+            } else {
+              googleLogin.classList.remove("d-none");
+              loginOr.classList.remove("d-none");
+            }
+            const loginBtn = document.querySelector("form button");
+            loginBtn.style.backgroundColor = flags[1];
+          });
+      });
+    </script>
+  </body>
+</html>
