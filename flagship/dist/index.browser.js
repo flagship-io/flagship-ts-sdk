@@ -2411,9 +2411,6 @@ var TrackingManager = /** @class */ (function (_super) {
                 postBody[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.CUSTOMER_UID] = null;
             }
             var headers = (_b = {},
-                _b[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HEADER_X_API_KEY] = "" + _this.config.apiKey,
-                _b[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HEADER_X_SDK_CLIENT] = _enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.SDK_LANGUAGE,
-                _b[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HEADER_X_SDK_VERSION] = _enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.SDK_VERSION,
                 _b[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HEADER_CONTENT_TYPE] = _enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HEADER_APPLICATION_JSON,
                 _b);
             _this.httpClient.postAsync(_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HIT_CONSENT_URL, {
@@ -2470,9 +2467,6 @@ var TrackingManager = /** @class */ (function (_super) {
         var _a;
         var _this = this;
         var headers = (_a = {},
-            _a[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HEADER_X_API_KEY] = "" + this.config.apiKey,
-            _a[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HEADER_X_SDK_CLIENT] = _enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.SDK_LANGUAGE,
-            _a[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HEADER_X_SDK_VERSION] = _enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.SDK_VERSION,
             _a[_enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HEADER_CONTENT_TYPE] = _enum_FlagshipConstant__WEBPACK_IMPORTED_MODULE_0__.HEADER_APPLICATION_JSON,
             _a);
         return new Promise(function (resolve, reject) {
@@ -3004,6 +2998,9 @@ var ApiManager = /** @class */ (function (_super) {
                             context: visitor.context
                         };
                         var url = "" + _enum_index__WEBPACK_IMPORTED_MODULE_0__.BASE_API_URL + _this.config.envId + _enum_index__WEBPACK_IMPORTED_MODULE_0__.URL_CAMPAIGNS + "?" + _enum_index__WEBPACK_IMPORTED_MODULE_0__.EXPOSE_ALL_KEYS + "=true";
+                        if (!visitor.hasConsented) {
+                            url += "&" + _enum_index__WEBPACK_IMPORTED_MODULE_0__.SEND_CONTEXT_EVENT + "=false";
+                        }
                         _this._httpClient.postAsync(url, {
                             headers: headers,
                             timeout: _this.config.timeout,
@@ -3512,6 +3509,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "URL_CAMPAIGNS": () => (/* binding */ URL_CAMPAIGNS),
 /* harmony export */   "URL_ACTIVATE_MODIFICATION": () => (/* binding */ URL_ACTIVATE_MODIFICATION),
 /* harmony export */   "EXPOSE_ALL_KEYS": () => (/* binding */ EXPOSE_ALL_KEYS),
+/* harmony export */   "SEND_CONTEXT_EVENT": () => (/* binding */ SEND_CONTEXT_EVENT),
 /* harmony export */   "SDK_VERSION": () => (/* binding */ SDK_VERSION),
 /* harmony export */   "SDK_STARTED_INFO": () => (/* binding */ SDK_STARTED_INFO),
 /* harmony export */   "FLAGSHIP_SDK": () => (/* binding */ FLAGSHIP_SDK),
@@ -3536,6 +3534,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "METHOD_DEACTIVATED_BUCKETING_ERROR": () => (/* binding */ METHOD_DEACTIVATED_BUCKETING_ERROR),
 /* harmony export */   "FLAGSHIP_VISITOR_NOT_AUTHENTICATE": () => (/* binding */ FLAGSHIP_VISITOR_NOT_AUTHENTICATE),
 /* harmony export */   "PREDEFINED_CONTEXT_TYPE_ERROR": () => (/* binding */ PREDEFINED_CONTEXT_TYPE_ERROR),
+/* harmony export */   "METHOD_DEACTIVATED_SEND_CONSENT_ERROR": () => (/* binding */ METHOD_DEACTIVATED_SEND_CONSENT_ERROR),
 /* harmony export */   "PROCESS": () => (/* binding */ PROCESS),
 /* harmony export */   "PROCESS_INITIALIZATION": () => (/* binding */ PROCESS_INITIALIZATION),
 /* harmony export */   "PROCESS_UPDATE_CONTEXT": () => (/* binding */ PROCESS_UPDATE_CONTEXT),
@@ -3603,6 +3602,7 @@ var HIT_CONSENT_URL = 'https://ariane.abtasty.com';
 var URL_CAMPAIGNS = '/campaigns';
 var URL_ACTIVATE_MODIFICATION = 'activate';
 var EXPOSE_ALL_KEYS = 'exposeAllKeys';
+var SEND_CONTEXT_EVENT = 'sendContextEvent';
 /**
  * SDK version
  */
@@ -3636,6 +3636,7 @@ var METHOD_DEACTIVATED_ERROR = 'Method {0} is deactivated while SDK status is: {
 var METHOD_DEACTIVATED_BUCKETING_ERROR = 'Method {0} is deactivated on Bucketing mode.';
 var FLAGSHIP_VISITOR_NOT_AUTHENTICATE = 'Visitor is not authenticated yet';
 var PREDEFINED_CONTEXT_TYPE_ERROR = 'Predefined Context {0} must be type of {1}';
+var METHOD_DEACTIVATED_SEND_CONSENT_ERROR = 'Send consent hit is deactivated while SDK status is: {1}.';
 // Process
 var PROCESS = 'process';
 var PROCESS_INITIALIZATION = 'INITIALIZATION';
@@ -4028,6 +4029,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "METHOD_DEACTIVATED_BUCKETING_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.METHOD_DEACTIVATED_BUCKETING_ERROR),
 /* harmony export */   "METHOD_DEACTIVATED_CONSENT_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.METHOD_DEACTIVATED_CONSENT_ERROR),
 /* harmony export */   "METHOD_DEACTIVATED_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.METHOD_DEACTIVATED_ERROR),
+/* harmony export */   "METHOD_DEACTIVATED_SEND_CONSENT_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.METHOD_DEACTIVATED_SEND_CONSENT_ERROR),
 /* harmony export */   "PANIC_MODE_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.PANIC_MODE_ERROR),
 /* harmony export */   "PM_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.PM_API_ITEM),
 /* harmony export */   "PREDEFINED_CONTEXT_TYPE_ERROR": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.PREDEFINED_CONTEXT_TYPE_ERROR),
@@ -4049,6 +4051,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "SDK_LANGUAGE": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.SDK_LANGUAGE),
 /* harmony export */   "SDK_STARTED_INFO": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.SDK_STARTED_INFO),
 /* harmony export */   "SDK_VERSION": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.SDK_VERSION),
+/* harmony export */   "SEND_CONTEXT_EVENT": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.SEND_CONTEXT_EVENT),
 /* harmony export */   "SM_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.SM_API_ITEM),
 /* harmony export */   "TA_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.TA_API_ITEM),
 /* harmony export */   "TCC_API_ITEM": () => (/* reexport safe */ _FlagshipConstant__WEBPACK_IMPORTED_MODULE_1__.TCC_API_ITEM),
@@ -5283,10 +5286,25 @@ var Modification = /** @class */ (function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "EventEmitter": () => (/* reexport safe */ events__WEBPACK_IMPORTED_MODULE_0__.EventEmitter)
+/* harmony export */   "axiosInstance": () => (/* binding */ axiosInstance),
+/* harmony export */   "defaultAxios": () => (/* binding */ defaultAxios),
+/* harmony export */   "EventEmitter": () => (/* reexport safe */ events__WEBPACK_IMPORTED_MODULE_1__.EventEmitter)
 /* harmony export */ });
-/* harmony import */ var events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! events */ "./node_modules/events/events.js");
-/* harmony import */ var events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(events__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
+/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var events__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! events */ "./node_modules/events/events.js");
+/* harmony import */ var events__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(events__WEBPACK_IMPORTED_MODULE_1__);
+
+var axiosInstance = axios__WEBPACK_IMPORTED_MODULE_0___default().create({});
+if (typeof window === 'undefined') {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    var HttpAgent = __webpack_require__(/*! http */ "?1749").Agent;
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    var HttpAgents = __webpack_require__(/*! https */ "?b7f9").Agent;
+    axiosInstance.defaults.httpAgent = new HttpAgent({ keepAlive: true });
+    axiosInstance.defaults.httpsAgent = new HttpAgents({ keepAlive: true });
+}
+var defaultAxios = (axios__WEBPACK_IMPORTED_MODULE_0___default());
 
 
 
@@ -5433,8 +5451,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "HttpClient": () => (/* binding */ HttpClient)
 /* harmony export */ });
-/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
-/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _nodeDeps__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../nodeDeps */ "./src/nodeDeps.ts");
 /* harmony import */ var _enum__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../enum */ "./src/enum/index.ts");
 
 
@@ -5452,7 +5469,7 @@ var HttpClient = /** @class */ (function () {
     HttpClient.prototype.getAsync = function (url, options) {
         var _this = this;
         return new Promise(function (resolve, reject) {
-            axios__WEBPACK_IMPORTED_MODULE_0___default().get(url, {
+            _nodeDeps__WEBPACK_IMPORTED_MODULE_0__.axiosInstance.get(url, {
                 validateStatus: function (status) { return status < 400; },
                 headers: options === null || options === void 0 ? void 0 : options.headers,
                 timeout: ((options === null || options === void 0 ? void 0 : options.timeout) ? options.timeout : _enum__WEBPACK_IMPORTED_MODULE_1__.REQUEST_TIME_OUT) * 1000
@@ -5467,7 +5484,7 @@ var HttpClient = /** @class */ (function () {
     HttpClient.prototype.postAsync = function (url, options) {
         var _this = this;
         return new Promise(function (resolve, reject) {
-            axios__WEBPACK_IMPORTED_MODULE_0___default().post(url, options.body, {
+            _nodeDeps__WEBPACK_IMPORTED_MODULE_0__.axiosInstance.post(url, options.body, {
                 validateStatus: function (status) { return status < 400; },
                 headers: options.headers,
                 timeout: ((options === null || options === void 0 ? void 0 : options.timeout) ? options.timeout : _enum__WEBPACK_IMPORTED_MODULE_1__.REQUEST_TIME_OUT) * 1000
@@ -6137,8 +6154,10 @@ var PanicStrategy = /** @class */ (function (_super) {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    PanicStrategy.prototype.setConsent = function (_hasConsented) {
-        this.log('setConsent');
+    PanicStrategy.prototype.setConsent = function (hasConsented) {
+        this.visitor.hasConsented = hasConsented;
+        var methodName = 'setConsent';
+        (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.logError)(this.config, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_1__.sprintf)(_enum_index__WEBPACK_IMPORTED_MODULE_0__.METHOD_DEACTIVATED_SEND_CONSENT_ERROR, _enum_index__WEBPACK_IMPORTED_MODULE_0__.FlagshipStatus[_enum_index__WEBPACK_IMPORTED_MODULE_0__.FlagshipStatus.READY_PANIC_ON]), methodName);
     };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     PanicStrategy.prototype.updateContext = function (context) {
@@ -6739,6 +6758,26 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+/***/ }),
+
+/***/ "?1749":
+/*!**********************!*\
+  !*** http (ignored) ***!
+  \**********************/
+/***/ (() => {
+
+/* (ignored) */
+
+/***/ }),
+
+/***/ "?b7f9":
+/*!***********************!*\
+  !*** https (ignored) ***!
+  \***********************/
+/***/ (() => {
+
+/* (ignored) */
 
 /***/ })
 

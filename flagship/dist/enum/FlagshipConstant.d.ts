@@ -17,6 +17,7 @@ export declare const HIT_CONSENT_URL = "https://ariane.abtasty.com";
 export declare const URL_CAMPAIGNS = "/campaigns";
 export declare const URL_ACTIVATE_MODIFICATION = "activate";
 export declare const EXPOSE_ALL_KEYS = "exposeAllKeys";
+export declare const SEND_CONTEXT_EVENT = "sendContextEvent";
 /**
  * SDK version
  */
@@ -50,6 +51,7 @@ export declare const METHOD_DEACTIVATED_ERROR = "Method {0} is deactivated while
 export declare const METHOD_DEACTIVATED_BUCKETING_ERROR = "Method {0} is deactivated on Bucketing mode.";
 export declare const FLAGSHIP_VISITOR_NOT_AUTHENTICATE = "Visitor is not authenticated yet";
 export declare const PREDEFINED_CONTEXT_TYPE_ERROR = "Predefined Context {0} must be type of {1}";
+export declare const METHOD_DEACTIVATED_SEND_CONSENT_ERROR = "Send consent hit is deactivated while SDK status is: {1}.";
 export declare const PROCESS = "process";
 export declare const PROCESS_INITIALIZATION = "INITIALIZATION";
 export declare const PROCESS_UPDATE_CONTEXT = "UPDATE CONTEXT";

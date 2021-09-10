@@ -1,5 +1,5 @@
 import { Modification } from '../index.ts'
-import { FlagshipStatus, METHOD_DEACTIVATED_ERROR } from '../enum/index.ts'
+import { FlagshipStatus, METHOD_DEACTIVATED_ERROR, METHOD_DEACTIVATED_SEND_CONSENT_ERROR } from '../enum/index.ts'
 import { modificationsRequested, primitive } from '../types.ts'
 import { logError, sprintf } from '../utils/utils.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
@@ -7,8 +7,10 @@ import { HitAbstract, IEvent, IItem, IPage, IScreen, ITransaction } from '../hit
 
 export class PanicStrategy extends DefaultStrategy {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setConsent (_hasConsented:boolean):void {
-    this.log('setConsent')
+  setConsent (hasConsented:boolean):void {
+    this.visitor.hasConsented = hasConsented
+    const methodName = 'setConsent'
+    logError(this.config, sprintf(METHOD_DEACTIVATED_SEND_CONSENT_ERROR, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
