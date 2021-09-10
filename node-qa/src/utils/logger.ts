@@ -1,9 +1,10 @@
+import session from 'express-session'
 import { IFlagshipLogManager, LogLevel, SessionData } from '../deps'
 
 export class CustomLogAdapter implements IFlagshipLogManager {
-  private _session: SessionData;
+  private _session: session.Session & SessionData;
   private _log: string;
-  public constructor (session: SessionData) {
+  public constructor (session: session.Session & SessionData) {
     this._session = session
     this._log = ''
   }
@@ -41,7 +42,11 @@ export class CustomLogAdapter implements IFlagshipLogManager {
   }
 
   log (level: LogLevel, message: string, tag: string): void {
-    this._log += `[${LogLevel[level]}] [${tag}] : ${message} \n`
+    this._log += `[${LogLevel[level]}] [${tag}] : ${message} \r\n`
+    console.log(this._log)
+
     this._session.logs = this._log
+
+    this._session.save()
   }
 }

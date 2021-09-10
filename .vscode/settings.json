@@ -1,8 +1,9 @@
 {
   "eslint.validate": ["javascript", "typescript"],
   "cSpell.words": [
-    "Deno",
     "allowlist",
+    "camelcase",
+    "Deno",
     "resave",
     "sprintf",
     "targetings",
