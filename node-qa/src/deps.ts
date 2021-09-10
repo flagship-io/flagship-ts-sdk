@@ -1,3 +1,5 @@
+import { Visitor } from '../../flagship'
+
 export {
   DecisionMode,
   Flagship,
@@ -24,5 +26,11 @@ declare module 'express-session' {
     pollingInterval:number,
     }
     logs?:string
+    visitor?: Visitor
+    flagValue?:{
+      flagKey:string
+      defaultValue:unknown
+      activate:boolean
+    }
   }
 }
