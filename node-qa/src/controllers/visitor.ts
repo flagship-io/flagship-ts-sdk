@@ -17,7 +17,8 @@ export const putVisitorValidation = (req: Request, res: Response, next: NextFunc
   }
 
   if (Object.keys(error).length) {
-    res.json({ error, ok: true }).status(422)
+    res.status(422).json({ error, ok: true })
+    return
   }
 
   res.locals.bodyValue = {
@@ -29,11 +30,12 @@ export const putVisitorValidation = (req: Request, res: Response, next: NextFunc
   next()
 }
 
+export const sessionVisitors:Record<string, Visitor> = {}
 export const putVisitor = async (req: Request, res: Response):Promise<void> => {
   try {
     const { visitorId, context, consent } = res.locals.bodyValue
 
-    const visitor = Flagship.newVisitor(`${visitorId}`, context)
+    const visitor = Flagship.newVisitor({ visitorId: `${visitorId}`, context, hasConsented: consent })
 
     const responseBody: Record<string, unknown> = {
       modification: [],
@@ -43,7 +45,7 @@ export const putVisitor = async (req: Request, res: Response):Promise<void> => {
     }
 
     if (visitor) {
-      visitor.setConsent(!!consent)
+      visitor.setConsent(consent)
       visitor.on('ready', (error: unknown) => {
         if (error) {
           console.log('error ready', error)
@@ -54,7 +56,7 @@ export const putVisitor = async (req: Request, res: Response):Promise<void> => {
 
       await visitor.synchronizeModifications()
 
-      req.session.visitor = visitor
+      sessionVisitors[req.session.id] = visitor
 
       const modifications: Modification[] = []
       visitor.modifications.forEach((value) => {
@@ -68,7 +70,7 @@ export const putVisitor = async (req: Request, res: Response):Promise<void> => {
     }
     res.json(responseBody)
   } catch (error) {
-    res.json({ error }).status(500)
+    res.status(500).json({ error })
   }
 }
 
@@ -76,8 +78,8 @@ export const getVisitor = (req: Request, res: Response):void => {
   const visitorBody: Record<string, unknown> = {
     context: {}
   }
-  if (req.session.visitor) {
-    const visitor: Visitor = req.session.visitor
+  const visitor: Visitor = sessionVisitors[req.session.id]
+  if (visitor) {
     visitorBody.visitor_id = visitor.visitorId
     visitorBody.context = visitor.context
     visitorBody.consent = visitor.hasConsented
@@ -85,16 +87,12 @@ export const getVisitor = (req: Request, res: Response):void => {
   res.json(visitorBody)
 }
 
-export const updateConsentValidation = async (req: Request, res: Response) => {
-  const { type, value } = req.body.value
-  const { contextKey } = params
-
+function checkContextKey (key:string, value:string, type:string):Record<string, unknown> {
   const error: Record<string, unknown> = {}
+  const typeErrorMessage = (argValue: unknown, argType: string) =>
+    `value ${argValue} must be ${argType}`
 
-  const typeErrorMessage = (value: unknown, type: string) =>
-    `value ${value} must be ${type}`
-
-  if (!contextKey) {
+  if (!key) {
     error.contextKey = 'context key is required'
   } else {
     switch (type) {
@@ -107,7 +105,7 @@ export const updateConsentValidation = async (req: Request, res: Response) => {
       case 'float':
       case 'double':
       case 'long':
-        if (!new RegExp(/^(\d+[\.,]{1}\d+)|(\d+)$/, 'g').test(value)) {
+        if (!/^\d+(([.,]{0,1}\d+)|\d*)$/.test(value)) {
           error.value = typeErrorMessage(value, type)
         }
         break
@@ -118,65 +116,64 @@ export const updateConsentValidation = async (req: Request, res: Response) => {
         break
     }
   }
-  if (Object.keys(error).length) {
-    response.status = 422
-    return (response.body = { error, ok: true })
-  }
-
-  state.bodyValue = {
-    [contextKey as string]: type === 'string' ? `${value}` : JSON.parse(value)
-  }
-
-  await next()
+  return error
 }
 
-export const updateConsent = async ({
-  response,
-  state
-// deno-lint-ignore no-explicit-any
-}: RouterContext<RouteParams, Record<string, any>>) => {
-  const context: Record<string, string | number | boolean> = state.bodyValue
+export const updateConsentValidation = (req: Request, res: Response, next: NextFunction):void => {
+  const { type, value } = req.body
+  const { contextKey } = req.params
+
+  const error = checkContextKey(contextKey, value, type)
+
+  if (Object.keys(error).length) {
+    res.json({ error, ok: true }).status(422)
+    return
+  }
+
+  res.locals.bodyValue = {
+    [contextKey]: type === 'string' ? `${value}` : JSON.parse(value)
+  }
+  next()
+}
+
+export const updateConsent = (req: Request, res: Response):void => {
+  const context: Record<string, string | number | boolean> = res.locals.bodyValue
   const responseBody: Record<string, unknown> = {}
-  const visitor: Visitor = await state.session.get('visitor')
+  const visitor = sessionVisitors[req.session.id]
   if (visitor) {
     visitor.updateContext(context)
     responseBody.context = visitor.context
   }
-  return (response.body = responseBody)
+  res.json(responseBody)
 }
 
-export const authenticate = async ({
-  request,
-  response,
-  state
-// deno-lint-ignore no-explicit-any
-}: RouterContext<RouteParams, Record<string, any>>) => {
-  // deno-lint-ignore camelcase
-  const { new_visitor_id } = await request.body().value
+export const authenticate = (req: Request, res: Response):void => {
+  // eslint-disable-next-line camelcase
+  const { new_visitor_id } = req.body
+
+  // eslint-disable-next-line camelcase
   if (!new_visitor_id) {
-    return (response.body = { error: 'new visitor ID is required', ok: true })
+    res.json({ error: 'new visitor ID is required', ok: true })
+    return
   }
+
   const responseBody: Record<string, unknown> = {}
-  const visitor: Visitor = await state.session.get('visitor')
+  const visitor = sessionVisitors[req.session.id]
   if (visitor) {
     visitor.authenticate(new_visitor_id)
     responseBody.visitorId = visitor.visitorId
     responseBody.anonymousId = visitor.anonymousId
   }
-  return (response.body = responseBody)
+  res.json(responseBody)
 }
 
-export const unauthenticate = async ({
-  response,
-  state
-// deno-lint-ignore no-explicit-any
-}: RouterContext<RouteParams, Record<string, any>>) => {
+export const unauthenticate = (req: Request, res: Response):void => {
   const responseBody: Record<string, unknown> = {}
-  const visitor: Visitor = await state.session.get('visitor')
+  const visitor = sessionVisitors[req.session.id]
   if (visitor) {
     visitor.unauthenticate()
     responseBody.visitorId = visitor.visitorId
     responseBody.anonymousId = visitor.anonymousId
   }
-  return (response.body = responseBody)
+  res.json(responseBody)
 }
