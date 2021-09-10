@@ -12,7 +12,7 @@ app.use(morgan('dev'))
 app.use(session({
   secret: process.env.SECRET || 'my_session_secret',
   saveUninitialized: true,
-  cookie: { maxAge: (1000 * 60 * 60 * 24), secure: true },
+  cookie: { maxAge: (1000 * 60 * 60 * 24), secure: 'auto' },
   resave: false
 }))
 
