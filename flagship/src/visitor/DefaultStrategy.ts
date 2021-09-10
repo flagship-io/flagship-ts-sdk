@@ -28,6 +28,18 @@ import { DecisionMode } from '../config/index'
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 
 export class DefaultStrategy extends VisitorStrategyAbstract {
+  setConsent (hasConsented: boolean): void {
+    const method = 'setConsent'
+    this.visitor.hasConsented = hasConsented
+    if (!this.hasTrackingManager(method)) {
+      return
+    }
+    this.trackingManager.sendConsentHit(this.visitor)
+      .catch((error) => {
+        logError(this.config, error.message || error, method)
+      })
+  }
+
   /**
    *  Update the visitor context values, matching the given keys, used for targeting.
    *
@@ -212,16 +224,16 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   synchronizeModifications (): Promise<void> {
     return new Promise((resolve) => {
-      this.configManager.decisionManager.getCampaignsAsync(this.visitor)
+      this.decisionManager.getCampaignsAsync(this.visitor)
         .then(campaigns => {
           this.visitor.campaigns = campaigns
-          this.visitor.modifications = this.visitor.configManager.decisionManager.getModifications(this.visitor.campaigns)
+          this.visitor.modifications = this.decisionManager.getModifications(this.visitor.campaigns)
           this.visitor.emit(EMIT_READY)
           resolve()
         })
         .catch(error => {
           this.visitor.emit(EMIT_READY, error)
-          logError(this.config, error.message, PROCESS_SYNCHRONIZED_MODIFICATION)
+          logError(this.config, error.message || error, PROCESS_SYNCHRONIZED_MODIFICATION)
           resolve()
         })
     })
@@ -235,7 +247,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   private hasTrackingManager (process: string): boolean {
-    const check = this.configManager.trackingManager
+    const check = this.trackingManager
     if (!check) {
       logError(this.config, sprintf(TRACKER_MANAGER_MISSING_ERROR), process)
     }
@@ -258,7 +270,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
-    this.configManager.trackingManager.sendActive(this.visitor, modification)
+    this.trackingManager.sendActive(this.visitor, modification)
       .catch((error) => {
         logError(this.config, error.message || error, PROCESS_ACTIVE_MODIFICATION)
       })
@@ -343,7 +355,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       logError(this.config, hitInstance.getErrorMessage(), PROCESS_SEND_HIT)
       return
     }
-    this.configManager.trackingManager.sendHit(hitInstance).catch((error) => {
+    this.trackingManager.sendHit(hitInstance).catch((error) => {
       logError(this.config, error.message || error, PROCESS_SEND_HIT)
     })
   }

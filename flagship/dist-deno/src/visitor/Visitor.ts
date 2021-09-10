@@ -80,30 +80,8 @@ export class Visitor extends EventEmitter implements IVisitor {
     return this.visitorDelegate.getModificationInfo(key)
   }
 
-<<<<<<< HEAD
   getModificationInfoSync (key: string): Modification | null {
     return this.visitorDelegate.getModificationInfoSync(key)
-=======
-  /**
-   * This function calls the decision api and update all the campaigns modifications
-   * from the server according to the visitor context.
-   */
-  public async synchronizeModifications (): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.configManager.decisionManager.getCampaignsAsync(this)
-        .then(campaigns => {
-          this._campaigns = campaigns
-          this._modifications = this.configManager.decisionManager.getModifications(this._campaigns)
-          this.emit('ready')
-          resolve()
-        })
-        .catch(error => {
-          this.emit('ready', error)
-          logError(this.config, error.message, PROCESS_SYNCHRONIZED_MODIFICATION)
-          resolve()
-        })
-    })
->>>>>>> deno-qa-v1-refactor
   }
 
   synchronizeModifications (): Promise<void> {
@@ -118,36 +96,12 @@ export class Visitor extends EventEmitter implements IVisitor {
     return this.visitorDelegate.activateModification(params)
   }
 
-<<<<<<< HEAD
   activateModificationSync(key: string): void
   activateModificationSync(keys: { key: string }[]): void
   activateModificationSync(keys: string[]): void
   activateModificationSync (params: string | Array<{ key: string }> | Array<string>): void
   activateModificationSync (params: string | Array<{ key: string }> | Array<string>): void {
     this.visitorDelegate.activateModificationSync(params)
-=======
-  private activate (key: string) {
-    const modification = this.modifications.get(key)
-
-    if (!modification) {
-      logError(
-        this.config,
-        sprintf(GET_MODIFICATION_ERROR, key),
-        PROCESS_ACTIVE_MODIFICATION
-      )
-      return
-    }
-
-    if (!this.hasTrackingManager(PROCESS_ACTIVE_MODIFICATION)) {
-      return
-    }
-
-    this.configManager.trackingManager
-      .sendActive(this, modification)
-      .catch((error) => {
-        logError(this.config, error.message || error, PROCESS_ACTIVE_MODIFICATION)
-      })
->>>>>>> deno-qa-v1-refactor
   }
 
   sendHit(hit: HitAbstract): Promise<void>
@@ -178,34 +132,8 @@ export class Visitor extends EventEmitter implements IVisitor {
     return this.visitorDelegate.sendHitSync(hit)
   }
 
-<<<<<<< HEAD
   getAllModifications (activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
     return this.visitorDelegate.getAllModifications(activate)
-=======
-  private async prepareAndSendHit (hit:IPage|IScreen|IEvent|IItem|ITransaction|HitAbstract) {
-    let hitInstance:HitAbstract
-    if (hit instanceof HitAbstract) {
-      hitInstance = hit
-    } else {
-      const hitFromInt = this.getHit(hit)
-      if (!hitFromInt) {
-        logError(this.config, TYPE_HIT_REQUIRED_ERROR, PROCESS_SEND_HIT)
-        return
-      }
-      hitInstance = hitFromInt
-    }
-    hitInstance.visitorId = this.visitorId
-    hitInstance.ds = SDK_APP
-    hitInstance.config = this.config
-
-    if (!hitInstance.isReady()) {
-      logError(this.config, hitInstance.getErrorMessage(), PROCESS_SEND_HIT)
-      return
-    }
-    this.configManager.trackingManager.sendHit(hitInstance).catch((error) => {
-      logError(this.config, error.message || error, PROCESS_SEND_HIT)
-    })
->>>>>>> deno-qa-v1-refactor
   }
 
   getModificationsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {

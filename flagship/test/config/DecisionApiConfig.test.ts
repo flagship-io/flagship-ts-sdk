@@ -19,6 +19,7 @@ describe('test DecisionApiConfig', () => {
     expect(config.timeout).toBe(REQUEST_TIME_OUT)
     expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
     expect(config.fetchNow).toBeTruthy()
+    expect(config.enableClientCache).toBeTruthy()
   })
 
   it('test config constructor', () => {
@@ -34,7 +35,8 @@ describe('test DecisionApiConfig', () => {
       timeout: 5,
       logManager,
       statusChangedCallback: statusChang,
-      fetchNow: false
+      fetchNow: false,
+      enableClientCache: false
     })
     expect(config.apiKey).toBe(apiKey)
     expect(config.envId).toBe(envId)
@@ -43,6 +45,7 @@ describe('test DecisionApiConfig', () => {
     expect(config.statusChangedCallback).toBe(statusChang)
     expect(config.timeout).toBe(5)
     expect(config.fetchNow).toBeFalsy()
+    expect(config.enableClientCache).toBeFalsy()
   })
 
   it('Test envId field ', () => {

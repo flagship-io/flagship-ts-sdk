@@ -9,7 +9,8 @@ export class HttpClient implements IHttpClient {
       fetch(url, {
         method: 'GET',
         headers: options?.headers,
-        signal: c.signal
+        signal: c.signal,
+        keepalive: true
       })
         .then(async (response) => {
           const applicationType = response.headers.get('Content-Type')
@@ -45,7 +46,8 @@ export class HttpClient implements IHttpClient {
         method: 'POST',
         headers: options.headers,
         body: JSON.stringify(options.body),
-        signal: c.signal
+        signal: c.signal,
+        keepalive: true
       })
         .then(async (response) => {
           const applicationType = response.headers.get('Content-Type')

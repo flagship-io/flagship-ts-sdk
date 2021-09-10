@@ -81,9 +81,11 @@ export class VisitorDelegate extends VisitorAbstract {
 
   authenticate (visitorId: string): void {
     this.getStrategy().authenticate(visitorId)
+    this.updateCache()
   }
 
   unauthenticate (): void {
     this.getStrategy().unauthenticate()
+    this.updateCache()
   }
 }

@@ -39,7 +39,7 @@ describe('test visitor', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, isAuthenticated: true })
 
   const visitor = new Visitor(visitorDelegate)
 
@@ -55,6 +55,8 @@ describe('test visitor', () => {
     visitor.visitorId = newVisitorId
     expect(visitor.visitorId).toBe(visitorDelegate.visitorId)
     expect(visitorDelegate.visitorId).toBe(newVisitorId)
+
+    expect(visitor.anonymousId).toBe(visitorDelegate.anonymousId)
 
     expect(visitor.hasConsented).toBeFalsy()
     expect(visitor.hasConsented).toBe(visitorDelegate.hasConsented)

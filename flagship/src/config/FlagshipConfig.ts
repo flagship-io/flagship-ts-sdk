@@ -62,6 +62,12 @@ export interface IFlagshipConfig {
    */
   pollingInterval?:number
 
+  /**
+   * Indicates whether enables or disables the client cache manager.
+   * By enabling the client cache, it will allow you to keep cross sessions visitor experience.
+   */
+  enableClientCache?:boolean
+
   onBucketingSuccess?:(param:{ status: FlagshipStatus; payload: BucketingDTO })=>void
 
   onBucketingFail?:(error: Error)=>void
@@ -84,11 +90,12 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _onBucketingFail?: (error: Error)=>void;
   private _onBucketingSuccess?: (param:{ status: number; payload: BucketingDTO })=>void;
   private _onBucketingUpdated?: (lastUpdate:Date)=>void;
+  private _enableClientCache! : boolean;
 
   protected constructor (param: IFlagshipConfig) {
     const {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
-      fetchNow, decisionMode
+      fetchNow, decisionMode, enableClientCache
     } = param
 
     this._envId = envId
@@ -96,11 +103,20 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this.logLevel = logLevel || LogLevel.ALL
     this.timeout = timeout || REQUEST_TIME_OUT
     this.fetchNow = typeof fetchNow === 'undefined' || fetchNow
+    this.enableClientCache = typeof enableClientCache === 'undefined' || enableClientCache
     this._decisionMode = decisionMode || DecisionMode.DECISION_API
     if (logManager) {
       this.logManager = logManager
     }
     this.statusChangedCallback = statusChangedCallback
+  }
+
+  public get enableClientCache () : boolean {
+    return this._enableClientCache
+  }
+
+  public set enableClientCache (v : boolean) {
+    this._enableClientCache = v
   }
 
   public get onBucketingSuccess () : ((param:{ status: number; payload: BucketingDTO })=>void)| undefined {

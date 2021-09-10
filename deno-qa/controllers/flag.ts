@@ -9,11 +9,17 @@ export const getFlagValidation = async (
     mergeParams: true,
   });
   const error: Record<string, unknown> = {};
+
   const typeErrorMessage = (value: unknown, type: string) =>
     `value ${value} must be ${type}`;
 
-  const parseDefaultValue = JSON.parse(defaultValue);
-
+  let parseDefaultValue = defaultValue
+  try {
+     parseDefaultValue =defaultValue ? JSON.parse(defaultValue):"";
+  } catch (error) {
+    
+  }
+  
   switch (type) {
     case "bool":
       if (defaultValue !== "true" && defaultValue !== "false") {

@@ -16,11 +16,13 @@ export declare abstract class VisitorAbstract extends EventEmitter implements IV
     protected _hasConsented: boolean;
     protected _anonymousId: string | null;
     constructor(param: {
-        visitorId: string | null;
+        visitorId?: string | null;
         isAuthenticated?: boolean;
+        hasConsented?: boolean;
         context: Record<string, primitive>;
         configManager: IConfigManager;
     });
+    protected updateCache(): void;
     protected loadPredefinedContext(): void;
     protected uuidV4(): string;
     protected createVisitorId(): string;
@@ -31,6 +33,7 @@ export declare abstract class VisitorAbstract extends EventEmitter implements IV
      * @return bool
      */
     get hasConsented(): boolean;
+    set hasConsented(v: boolean);
     /**
       * Set if visitor has consented for protected data usage.
       * @param {boolean} hasConsented True if the visitor has consented false otherwise.

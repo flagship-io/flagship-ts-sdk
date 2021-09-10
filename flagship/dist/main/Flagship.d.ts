@@ -12,6 +12,7 @@ export interface INewVisitor {
      * visitor context
      */
     context?: Record<string, primitive>;
+    hasConsented?: boolean;
 }
 export declare class Flagship {
     private static _instance;

@@ -104,6 +104,7 @@ export const putEnv = async (
     logLevel: LogLevel.ALL,
     fetchNow: false,
     logManager: new CustomLogAdapter(context.state.session),
+    pollingInterval,
   });
 
   return (context.response.body = { environmentId, apiKey, timeout });

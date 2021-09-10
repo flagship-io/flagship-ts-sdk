@@ -2,10 +2,11 @@
 import { jest, expect, it, describe } from '@jest/globals'
 import { HttpClient } from '../../src/utils/NodeHttpClient'
 import { IHttpOptions } from '../../src/utils/httpClient'
-import axios, {
+import {
+  axiosInstance as axios,
   AxiosError,
   AxiosRequestConfig
-} from 'axios'
+} from '../../src/nodeDeps'
 import { Mock } from 'jest-mock'
 
 describe('test Post method NOdeHttpClient', () => {

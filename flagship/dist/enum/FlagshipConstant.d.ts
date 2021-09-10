@@ -13,9 +13,11 @@ export declare const BASE_API_URL = "https://decision.flagship.io/v2/";
 export declare const HIT_API_URL = "https://ariane.abtasty.com";
 export declare const BUCKETING_API_URL = "https://cdn.flagship.io/{0}/bucketing.json";
 export declare const BUCKETING_API_CONTEXT_URL = "https://decision.flagship.io/v2/{0}/events";
+export declare const HIT_CONSENT_URL = "https://ariane.abtasty.com";
 export declare const URL_CAMPAIGNS = "/campaigns";
 export declare const URL_ACTIVATE_MODIFICATION = "activate";
 export declare const EXPOSE_ALL_KEYS = "exposeAllKeys";
+export declare const SEND_CONTEXT_EVENT = "sendContextEvent";
 /**
  * SDK version
  */
@@ -49,6 +51,7 @@ export declare const METHOD_DEACTIVATED_ERROR = "Method {0} is deactivated while
 export declare const METHOD_DEACTIVATED_BUCKETING_ERROR = "Method {0} is deactivated on Bucketing mode.";
 export declare const FLAGSHIP_VISITOR_NOT_AUTHENTICATE = "Visitor is not authenticated yet";
 export declare const PREDEFINED_CONTEXT_TYPE_ERROR = "Predefined Context {0} must be type of {1}";
+export declare const METHOD_DEACTIVATED_SEND_CONSENT_ERROR = "Send consent hit is deactivated while SDK status is: {1}.";
 export declare const PROCESS = "process";
 export declare const PROCESS_INITIALIZATION = "INITIALIZATION";
 export declare const PROCESS_UPDATE_CONTEXT = "UPDATE CONTEXT";
