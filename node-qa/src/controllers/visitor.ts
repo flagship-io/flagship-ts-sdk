@@ -45,7 +45,6 @@ export const putVisitor = async (req: Request, res: Response):Promise<void> => {
     }
 
     if (visitor) {
-      visitor.setConsent(consent)
       visitor.on('ready', (error: unknown) => {
         if (error) {
           console.log('error ready', error)
