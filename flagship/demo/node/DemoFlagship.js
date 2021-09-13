@@ -7,7 +7,7 @@ import {
   Item,
   LogLevel,
   Transaction
-} from '../../dist/index.node'
+} from 'flagship'
 import { API_KEY, ENV_ID } from './config.js'
 
 const sleep = (ms) => {
