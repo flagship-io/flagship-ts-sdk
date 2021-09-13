@@ -62,7 +62,7 @@ export const getEnv = (req: Request, res: Response):void => {
     const configSession = req.session.config
     config.environment_id = configSession.environmentId
     config.api_key = configSession.apiKey
-    config.timeout = configSession.timeout
+    config.timeout = configSession.timeout * 1000
     config.bucketing = configSession.bucketing
     config.polling_interval = configSession.pollingInterval
   }
@@ -85,7 +85,7 @@ export const putEnv = (req: Request, res: Response):void => {
   req.session.config = {
     environmentId,
     apiKey,
-    timeout,
+    timeout: timeout / 1000,
     bucketing,
     pollingInterval
   }
@@ -97,6 +97,7 @@ export const putEnv = (req: Request, res: Response):void => {
     statusChangedCallback,
     logLevel: LogLevel.ALL,
     fetchNow: false,
+    timeout: timeout / 1000,
     logManager: new CustomLogAdapter(req.session),
     pollingInterval
   })
