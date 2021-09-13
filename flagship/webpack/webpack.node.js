@@ -15,7 +15,7 @@ module.exports = merge(common(), {
   },
   externals: [
     nodeExternals({
-      allowlist: ['axios']
+      allowlist: ['axios', 'follow-redirects']
     })
   ]
 })

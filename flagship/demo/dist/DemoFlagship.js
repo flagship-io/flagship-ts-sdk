@@ -1,6 +1,6 @@
 'use strict';
 
-var _index = require('../../dist/index.node');
+var _flagship = require('flagship');
 
 var _config = require('./config.js');
 
@@ -9,17 +9,17 @@ const sleep = ms => {
 };
 
 const statusChangedCallback = status => {
-  console.log('status', _index.FlagshipStatus[status]);
+  console.log('status', _flagship.FlagshipStatus[status]);
 };
 
-_index.Flagship.start(_config.ENV_ID, _config.API_KEY, {
-  decisionMode: _index.DecisionMode.BUCKETING,
+_flagship.Flagship.start(_config.ENV_ID, _config.API_KEY, {
+  decisionMode: _flagship.DecisionMode.BUCKETING,
   statusChangedCallback,
-  logLevel: _index.LogLevel.ERROR,
+  logLevel: _flagship.LogLevel.ERROR,
   fetchNow: false
 });
 
-const visitor = _index.Flagship.newVisitor('visitor_id', { key: 'value' });
+const visitor = _flagship.Flagship.newVisitor('visitor_id', { key: 'value' });
 
 const start = async () => {
   if (visitor) {
@@ -70,13 +70,13 @@ const start = async () => {
 
     // hit type Event
     visitor.sendHit({
-      type: _index.HitType.EVENT,
-      category: _index.EventCategory.ACTION_TRACKING,
+      type: _flagship.HitType.EVENT,
+      category: _flagship.EventCategory.ACTION_TRACKING,
       action: 'click'
     });
 
     // hit type Item
-    const item = new _index.Item({
+    const item = new _flagship.Item({
       transactionId: 'transaction_1',
       productName: 'product_name',
       productSku: '00255578'
@@ -85,13 +85,13 @@ const start = async () => {
     visitor.sendHit(item);
 
     // hit type Page
-    visitor.sendHit({ type: _index.HitType.PAGE, documentLocation: 'https://localhost' });
+    visitor.sendHit({ type: _flagship.HitType.PAGE, documentLocation: 'https://localhost' });
 
     // hit type Screen
-    visitor.sendHit({ type: _index.HitType.SCREEN, documentLocation: 'https://localhost' });
+    visitor.sendHit({ type: _flagship.HitType.SCREEN, documentLocation: 'https://localhost' });
 
     // hit type Transaction
-    const transaction = new _index.Transaction({ transactionId: 'transaction_1', affiliation: 'affiliation' });
+    const transaction = new _flagship.Transaction({ transactionId: 'transaction_1', affiliation: 'affiliation' });
     visitor.sendHit(transaction);
   }
 };

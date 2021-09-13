@@ -15,9 +15,11 @@ export class HttpClient implements IHttpClient {
         .then(async (response) => {
           const applicationType = response.headers.get('Content-Type')
           const checkJson = applicationType === 'application/json'
-          const body = checkJson
-            ? await response.json()
-            : await response.text()
+          let body = await response.text()
+
+          if (body && checkJson) {
+            body = JSON.parse(body)
+          }
 
           if (!response.ok) {
             reject(new Error(body || response.statusText).message)
@@ -52,10 +54,10 @@ export class HttpClient implements IHttpClient {
         .then(async (response) => {
           const applicationType = response.headers.get('Content-Type')
           const checkJson = applicationType === 'application/json'
-          const body = checkJson
-            ? await response.json()
-            : await response.text()
-
+          let body = await response.text()
+          if (body && checkJson) {
+            body = JSON.parse(body)
+          }
           if (!response.ok) {
             reject(new Error(body || response.statusText).message)
             return

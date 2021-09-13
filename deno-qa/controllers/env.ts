@@ -103,6 +103,7 @@ export const putEnv = async (
     statusChangedCallback,
     logLevel: LogLevel.ALL,
     fetchNow: false,
+    timeout: timeout/1000,
     logManager: new CustomLogAdapter(context.state.session),
     pollingInterval,
   });
