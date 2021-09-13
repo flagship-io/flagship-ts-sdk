@@ -8,18 +8,21 @@
     "dev": "nodemon src/index.ts",
     "build": "rm -rf build/ && tsc",
     "lint:fix": "eslint . --ext .ts --fix",
-    "lint": "eslint . --ext .ts"
+    "lint": "eslint . --ext .ts",
+    "start": "rm -rf build/ && tsc && ts-node tools/copyAssets.ts && node build/index.js"
   },
   "dependencies": {
     "axios": "^0.21.4",
     "express": "^4.17.1",
     "express-session": "^1.17.2",
+    "flagship": "link:../flagship/",
     "morgan": "^1.10.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.13",
     "@types/express-session": "^1.17.4",
     "@types/morgan": "^1.9.3",
+    "@types/shelljs": "^0.8.9",
     "@typescript-eslint/eslint-plugin": "^4.31.0",
     "@typescript-eslint/parser": "^4.28.3",
     "eslint": "^7.12.1",
@@ -28,6 +31,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "nodemon": "^2.0.12",
+    "shelljs": "^0.8.4",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.2"
   }
