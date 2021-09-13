@@ -1,4 +1,4 @@
-FROM node:12-alpine as builder
+FROM node:14-alpine as builder
 
 WORKDIR /build
 
@@ -7,7 +7,7 @@ ADD ./flagship .
 RUN yarn install
 RUN yarn build-prod
 
-FROM node:12-alpine
+FROM node:14-alpine
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ COPY --from=builder build/dist/.  flagship/dist/
 
 ADD ./flagship/package.json flagship
 
-EXPOSE 8000
+EXPOSE 3000
 
 WORKDIR node-qa
 
