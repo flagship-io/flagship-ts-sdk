@@ -48,6 +48,7 @@ describe('test Flagship class', () => {
     expect(Flagship.getConfig().logManager).toBeDefined()
     expect(Flagship.getStatus()).toBe(FlagshipStatus.READY)
     expect(Flagship.getConfig().logManager).toBeInstanceOf(FlagshipLogManager)
+    expect(Flagship.getConfig().decisionMode).toBe(DecisionMode.DECISION_API)
   })
 })
 
@@ -56,11 +57,12 @@ describe('test Flagship with custom config literal object', () => {
     const envId = 'envId'
     const apiKey = 'apiKey'
     const logManager = new FlagshipLogManager()
-    Flagship.start(envId, apiKey, { decisionMode: DecisionMode.DECISION_API, logManager })
+    Flagship.start(envId, apiKey, { logManager })
 
     expect(Flagship.getConfig().envId).toBe(envId)
     expect(Flagship.getConfig().apiKey).toBe(apiKey)
     expect(Flagship.getConfig().logManager).toBe(logManager)
+    expect(Flagship.getConfig().decisionMode).toBe(DecisionMode.DECISION_API)
   })
 })
 

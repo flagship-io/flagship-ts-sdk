@@ -7,11 +7,11 @@ export enum DecisionMode {
   /**
    * Flagship SDK mode decision api
    */
-  DECISION_API,
+  DECISION_API='API',
   /**
    * Flagship SDK mode bucketing
    */
-  BUCKETING,
+  BUCKETING='BUCKETING',
 }
 
 export interface IFlagshipConfig {
@@ -40,7 +40,7 @@ export interface IFlagshipConfig {
    * Specify the SDK running mode.
    * BUCKETING or DECISION_API
    */
-  decisionMode: DecisionMode
+  decisionMode?: DecisionMode
 
   /**
    * Define a callable in order to get callback when the SDK status has changed.
