@@ -365,7 +365,7 @@ export class Visitor extends EventEmitter {
    * from the server according to the visitor context.
    */
   public async synchronizeModifications (): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       this.configManager.decisionManager.getCampaignsAsync(this)
         .then(campaigns => {
           this._campaigns = campaigns
@@ -375,8 +375,8 @@ export class Visitor extends EventEmitter {
         })
         .catch(error => {
           this.emit('ready', error)
-          logError(this.config, error.message, PROCESS_SYNCHRONIZED_MODIFICATION)
-          reject(error)
+          logError(this.config, error.message || error, PROCESS_SYNCHRONIZED_MODIFICATION)
+          resolve()
         })
     })
   }
@@ -426,7 +426,11 @@ export class Visitor extends EventEmitter {
       return
     }
 
-    this.configManager.trackingManager.sendActive(this, modification)
+    this.configManager.trackingManager
+      .sendActive(this, modification)
+      .catch((error) => {
+        logError(this.config, error.message || error, PROCESS_ACTIVE_MODIFICATION)
+      })
   }
 
   /**
@@ -530,7 +534,9 @@ export class Visitor extends EventEmitter {
       logError(this.config, hitInstance.getErrorMessage(), PROCESS_SEND_HIT)
       return
     }
-    this.configManager.trackingManager.sendHit(hitInstance)
+    this.configManager.trackingManager.sendHit(hitInstance).catch((error) => {
+      logError(this.config, error.message || error, PROCESS_SEND_HIT)
+    })
   }
 
   /**
