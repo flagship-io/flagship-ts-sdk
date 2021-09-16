@@ -5,8 +5,13 @@ import { DefaultStrategy } from './DefaultStrategy'
 
 export class NoConsentStrategy extends DefaultStrategy {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  activateModificationSync (params: string | string[] | { key: string }[]): void {
+  activateModificationSync (_params: string): void {
     this.log('activateModification')
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  activateModificationsSync (_params: string[] | { key: string }[]): void {
+    this.log('activateModifications')
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

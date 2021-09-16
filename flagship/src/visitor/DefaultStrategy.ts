@@ -239,11 +239,14 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     })
   }
 
-  activateModification(key: string): Promise<void>;
-  activateModification(keys: { key: string; }[]): Promise<void>;
-  activateModification(keys: string[]): Promise<void>;
-  activateModification (params: string | string[] | { key: string; }[]): Promise<void> {
+  activateModification (params: string): Promise<void> {
     return Promise.resolve(this.activateModificationSync(params))
+  }
+
+  activateModifications(keys: { key: string; }[]): Promise<void>;
+  activateModifications(keys: string[]): Promise<void>;
+  activateModifications (params: string[] | { key: string; }[]): Promise<void> {
+    return Promise.resolve(this.activateModificationsSync(params))
   }
 
   private hasTrackingManager (process: string): boolean {
@@ -276,12 +279,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       })
   }
 
-  activateModificationSync(key: string): void
-  activateModificationSync(keys: { key: string }[]): void
-  activateModificationSync(keys: string[]): void
-  activateModificationSync(params: string | string[] | { key: string }[]): void
-  activateModificationSync (params: string | string[] | { key: string }[]): void {
-    if (!params || (typeof params !== 'string' && !Array.isArray(params))) {
+  activateModificationSync (params: string): void {
+    if (!params || typeof params !== 'string') {
       logError(
         this.config,
         sprintf(GET_MODIFICATION_KEY_ERROR, params),
@@ -289,16 +288,26 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       )
       return
     }
+    this.activate(params)
+  }
 
-    if (typeof params === 'string') {
-      this.activate(params)
-    } else if (Array.isArray(params)) {
-      params.forEach((item) => {
-        if (typeof item === 'string') {
-          this.activate(item)
-        } else this.activate(item.key)
-      })
+  activateModificationsSync(keys: { key: string }[]): void
+  activateModificationsSync(keys: string[]): void
+  activateModificationsSync(params:string[] | { key: string }[]): void
+  activateModificationsSync (params: string[] | { key: string }[]): void {
+    if (!params || !Array.isArray(params)) {
+      logError(
+        this.config,
+        sprintf(GET_MODIFICATION_KEY_ERROR, params),
+        PROCESS_ACTIVE_MODIFICATION
+      )
+      return
     }
+    params.forEach((item) => {
+      if (typeof item === 'string') {
+        this.activate(item)
+      } else this.activate(item.key)
+    })
   }
 
   sendHit(hit: HitAbstract): Promise<void>;

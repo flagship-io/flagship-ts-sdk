@@ -26,18 +26,23 @@ export class NotReadyStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getModificationInfoSync (key: string): Modification | null {
+  public getModificationInfoSync (_key: string): Modification | null {
     this.log('getModificationInfo')
     return null
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public activateModificationSync (params: string | string[] | { key: string }[]): void {
+  public activateModificationSync (_params: string): void {
     this.log('activateModification')
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public sendHitSync (hit: HitAbstract | HitAbstract[] | IPage | IScreen | IEvent | IItem | ITransaction | (IPage | IScreen | IEvent | IItem | ITransaction)[]): void {
+  public activateModificationsSync (_params: string[] | { key: string }[]): void {
+    this.log('activateModifications')
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public sendHitSync (_hit: HitAbstract | HitAbstract[] | IPage | IScreen | IEvent | IItem | ITransaction | (IPage | IScreen | IEvent | IItem | ITransaction)[]): void {
     this.log('sendHit')
   }
 

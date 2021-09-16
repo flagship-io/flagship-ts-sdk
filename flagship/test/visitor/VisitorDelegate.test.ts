@@ -23,8 +23,10 @@ const getModificationsSync = jest.fn()
 const getModificationInfo:Mock<Promise<Modification>, [key: string]> = jest.fn()
 const getModificationInfoSync = jest.fn()
 const synchronizeModifications:Mock<Promise<void>, []> = jest.fn()
-const activateModification:Mock<Promise<void>, [keys: string[]]> = jest.fn()
-const activateModificationSync:Mock<void, [keys: string[]]> = jest.fn()
+const activateModification:Mock<Promise<void>, [keys: string]> = jest.fn()
+const activateModifications:Mock<Promise<void>, [keys: string[]]> = jest.fn()
+const activateModificationSync:Mock<void, [keys: string]> = jest.fn()
+const activateModificationsSync:Mock<void, [keys: string[]]> = jest.fn()
 const sendHit:Mock<Promise<void>, [hit: (IPage | IScreen | IEvent | IItem | ITransaction)[]]> = jest.fn()
 const sendHitSync:Mock<void, [hit: (IPage | IScreen | IEvent | IItem | ITransaction)[]]> = jest.fn()
 const getAllModifications:Mock<Promise<{
@@ -56,6 +58,8 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         synchronizeModifications,
         activateModification,
         activateModificationSync,
+        activateModifications,
+        activateModificationsSync,
         sendHit,
         sendHitSync,
         getAllModifications,
@@ -288,11 +292,26 @@ describe('test VisitorDelegate methods', () => {
     })
   })
 
-  it('test activateModification', () => {
+  it('test activateModifications', () => {
+    activateModifications.mockResolvedValue()
+    visitorDelegate.activateModifications(['key']).then(() => {
+      expect(activateModifications).toBeCalledTimes(1)
+      expect(activateModifications).toBeCalledWith(['key'])
+    })
+  })
+
+  it('test activateModificationSync', () => {
     activateModificationSync.mockReturnValue()
     visitorDelegate.activateModificationSync('key')
     expect(activateModificationSync).toBeCalledTimes(1)
     expect(activateModificationSync).toBeCalledWith('key')
+  })
+
+  it('test activateModificationsSync', () => {
+    activateModificationsSync.mockReturnValue()
+    visitorDelegate.activateModificationsSync(['key'])
+    expect(activateModificationsSync).toBeCalledTimes(1)
+    expect(activateModificationsSync).toBeCalledWith(['key'])
   })
 
   it('test sendHit', () => {

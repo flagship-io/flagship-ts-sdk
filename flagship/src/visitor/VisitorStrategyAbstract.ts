@@ -46,14 +46,15 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     abstract synchronizeModifications (): Promise<void>
 
     abstract activateModification(key: string): Promise<void>;
-    abstract activateModification(keys: { key: string; }[]): Promise<void>;
-    abstract activateModification(keys: string[]): Promise<void>;
-    abstract activateModification (params: string | Array<{ key: string }> | Array<string>): Promise<void>
-
     abstract activateModificationSync(key: string): void
-    abstract activateModificationSync(keys: { key: string }[]): void
-    abstract activateModificationSync(keys: string[]): void
-    abstract activateModificationSync (params: string | Array<{ key: string }> | Array<string>): void
+
+    abstract activateModifications(keys: { key: string; }[]): Promise<void>;
+    abstract activateModifications(keys: string[]): Promise<void>;
+    abstract activateModifications (params: Array<{ key: string }> | Array<string>): Promise<void>
+
+    abstract activateModificationsSync(keys: { key: string }[]): void
+    abstract activateModificationsSync(keys: string[]): void
+    abstract activateModificationsSync (params:Array<{ key: string }> | Array<string>): void
 
     abstract sendHit(hit: HitAbstract): Promise<void>;
     abstract sendHit(hit: HitAbstract[]): Promise<void>;

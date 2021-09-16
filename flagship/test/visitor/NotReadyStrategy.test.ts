@@ -73,6 +73,14 @@ describe('test NotReadyStrategy', () => {
     })
   })
 
+  it('test activateModifications', () => {
+    notReadyStrategy.activateModifications(['key']).then(() => {
+      const methodName = 'activateModifications'
+      expect(logError).toBeCalledTimes(1)
+      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
+    })
+  })
+
   it('test sendHit', () => {
     notReadyStrategy.sendHit({ type: HitType.PAGE, documentLocation: 'home' }).then(() => {
       const methodName = 'sendHit'

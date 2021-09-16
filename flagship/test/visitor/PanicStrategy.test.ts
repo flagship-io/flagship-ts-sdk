@@ -85,6 +85,14 @@ describe('test NotReadyStrategy', () => {
     })
   })
 
+  it('test activateModifications', () => {
+    panicStrategy.activateModifications(['key']).then(() => {
+      const methodName = 'activateModifications'
+      expect(logError).toBeCalledTimes(1)
+      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+    })
+  })
+
   it('test sendHit', () => {
     panicStrategy.sendHit({ type: HitType.PAGE, documentLocation: 'home' }).then(() => {
       const methodName = 'sendHit'

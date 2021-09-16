@@ -90,20 +90,26 @@ export class Visitor extends EventEmitter implements IVisitor {
     return this.visitorDelegate.synchronizeModifications()
   }
 
-  activateModification(key: string): Promise<void>
-  activateModification(keys: { key: string }[]): Promise<void>
-  activateModification(keys: string[]): Promise<void>
-  activateModification (params: string | Array<{ key: string }> | Array<string>): Promise<void>
-  activateModification (params: string | Array<{ key: string }> | Array<string>): Promise<void> {
-    return this.visitorDelegate.activateModification(params)
+  activateModification (key: string): Promise<void> {
+    return this.visitorDelegate.activateModification(key)
   }
 
-  activateModificationSync(key: string): void
-  activateModificationSync(keys: { key: string }[]): void
-  activateModificationSync(keys: string[]): void
-  activateModificationSync (params: string | Array<{ key: string }> | Array<string>): void
-  activateModificationSync (params: string | Array<{ key: string }> | Array<string>): void {
-    this.visitorDelegate.activateModificationSync(params)
+  activateModifications(keys: { key: string }[]): Promise<void>
+  activateModifications(keys: string[]): Promise<void>
+  activateModifications (params: Array<{ key: string }> | Array<string>): Promise<void>
+  activateModifications (params: Array<{ key: string }> | Array<string>): Promise<void> {
+    return this.visitorDelegate.activateModifications(params)
+  }
+
+  activateModificationSync (key: string): void {
+    this.visitorDelegate.activateModificationSync(key)
+  }
+
+  activateModificationsSync(keys: { key: string }[]): void
+  activateModificationsSync(keys: string[]): void
+  activateModificationsSync (params: Array<{ key: string }> | Array<string>): void
+  activateModificationsSync (params: Array<{ key: string }> | Array<string>): void {
+    this.visitorDelegate.activateModificationsSync(params)
   }
 
   sendHit(hit: HitAbstract): Promise<void>

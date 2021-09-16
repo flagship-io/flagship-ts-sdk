@@ -378,7 +378,7 @@ describe('test DefaultStrategy ', () => {
   it('test activateModification with array key', async () => {
     const key1 = 'keyString'
     const key2 = 'keyNumber'
-    await defaultStrategy.activateModification([{ key: key1 }, { key: key2 }])
+    await defaultStrategy.activateModifications([{ key: key1 }, { key: key2 }])
     expect(sendActive).toBeCalledTimes(2)
     expect(sendActive).toBeCalledWith(
       visitorDelegate,
@@ -393,7 +393,7 @@ describe('test DefaultStrategy ', () => {
   it('test activateModification with array', async () => {
     const key1 = 'keyString'
     const key2 = 'keyNumber'
-    await defaultStrategy.activateModification([key1, key2])
+    await defaultStrategy.activateModifications([key1, key2])
     expect(sendActive).toBeCalledTimes(2)
     expect(sendActive).toBeCalledWith(
       visitorDelegate,
@@ -407,6 +407,16 @@ describe('test DefaultStrategy ', () => {
 
   it('test invalid key in activateModification', () => {
     defaultStrategy.activateModificationSync(getNull())
+    expect(sendActive).toBeCalledTimes(0)
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(
+      sprintf(GET_MODIFICATION_KEY_ERROR, getNull()),
+      PROCESS_ACTIVE_MODIFICATION
+    )
+  })
+
+  it('test invalid key in activateModifications', () => {
+    defaultStrategy.activateModificationsSync(getNull())
     expect(sendActive).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(

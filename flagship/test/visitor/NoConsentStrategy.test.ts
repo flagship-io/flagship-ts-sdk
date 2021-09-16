@@ -33,6 +33,14 @@ describe('test NoConsentStrategy', () => {
     })
   })
 
+  it('test activateModifications', () => {
+    noConsentStrategy.activateModifications(['key']).then(() => {
+      const methodName = 'activateModifications'
+      expect(logError).toBeCalledTimes(1)
+      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
+    })
+  })
+
   it('test sendHit', () => {
     noConsentStrategy.sendHit({ type: HitType.PAGE, documentLocation: 'home' }).then(() => {
       const methodName = 'sendHit'
