@@ -45,33 +45,45 @@ export interface IVisitor {
   clearContext(): void;
 
   /**
-   * Retrieve a modification value by its key. If no modification match the given
+   * Retrieve a modification value by key. If no modification match the given
    * key or if the stored value type and default value type do not match, default value will be returned.
-   * @param {string} key : key associated to the modification.
-   * @param {T} defaultValue : default value to return.
-   * @param {boolean} activate : Set this parameter to true to automatically report on our server that the current visitor has seen this modification. It is possible to call activateModification() later.
+   * @param {modificationsRequested<T>} params
+   * @param {boolean} activateAll
    */
   getModification<T>(
     params: modificationsRequested<T>,
     activateAll?: boolean
   ): Promise<T>;
-  getModification<T>(
+
+  /**
+   * Retrieve an array of modification value by keys. If no modification match the given
+   * key or if the stored value type and default value type do not match, an array of default value will be returned.
+   * @param {modificationsRequested<T>[]} params
+   * @param {boolean} activateAll
+   */
+  getModifications<T>(
     params: modificationsRequested<T>[],
     activateAll?: boolean
   ): Promise<T[]>;
 
   /**
-   * Retrieve a modification value by its key. If no modification match the given
+   * Retrieve a modification value by key. If no modification match the given
    * key or if the stored value type and default value type do not match, default value will be returned.
-   * @param {string} key key associated to the modification.
-   * @param {T} defaultValue default value to return.
-   * @param {boolean} activate Set this parameter to true to automatically report on our server that the current visitor has seen this modification. It is possible to call activateModification() later.
+   * @param {modificationsRequested<T>} params
+   * @param {boolean} activateAll
    */
   getModificationSync<T>(
     params: modificationsRequested<T>,
     activateAll?: boolean
   ): T;
-  getModificationSync<T>(
+
+ /**
+   *Retrieve an array of modification value by keys. If no modification match the given
+   * key or if the stored value type and default value type do not match, an array of default value will be returned.
+   * @param {modificationsRequested<T>[]} params
+   * @param {boolean} activateAll
+   */
+  getModificationsSync<T>(
     params: modificationsRequested<T>[],
     activateAll?: boolean
   ): T[];
