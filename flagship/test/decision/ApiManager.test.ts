@@ -118,12 +118,19 @@ describe('test ApiManager', () => {
   })
 
   it('Test error ', async () => {
-    postAsync.mockRejectedValue(responseError)
-    apiManager.getCampaignsModificationsAsync(
+    const getModifications = jest.spyOn(apiManager, 'getModifications')
+    getModifications.mockRejectedValue(responseError)
+    const modifications = await apiManager.getCampaignsModificationsAsync(
       visitor
-    ).catch(error => {
-      expect(error).toBe(responseError)
-      expect(postAsync).toHaveBeenCalledTimes(1)
-    })
+    )
+    expect(modifications.size).toBe(0)
+  })
+
+  it('Test error ', async () => {
+    postAsync.mockRejectedValue(responseError)
+    const modifications = await apiManager.getCampaignsModificationsAsync(
+      visitor
+    )
+    expect(modifications.size).toBe(0)
   })
 })
