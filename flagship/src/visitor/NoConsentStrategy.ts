@@ -1,4 +1,4 @@
-import { IHit } from '..'
+import { IHit } from '../types'
 import { METHOD_DEACTIVATED_CONSENT_ERROR } from '../enum/index'
 import { HitAbstract } from '../hit/index'
 import { logError, sprintf } from '../utils/utils'
