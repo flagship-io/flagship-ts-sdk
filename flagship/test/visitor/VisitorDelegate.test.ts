@@ -8,8 +8,7 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/NodeHttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { Mock } from 'jest-mock'
-import { modificationsRequested } from '../../src/types'
-import { IEvent, IItem, IPage, IScreen, ITransaction } from '../../src/hit'
+import { IHit, modificationsRequested } from '../../src/types'
 import { CampaignDTO } from '../../src/decision/api/models'
 import { DecisionManager } from '../../src/decision/DecisionManager'
 import { cacheVisitor, VisitorProfil } from '../../src/visitor/VisitorCache'
@@ -27,8 +26,12 @@ const activateModification:Mock<Promise<void>, [keys: string]> = jest.fn()
 const activateModifications:Mock<Promise<void>, [keys: string[]]> = jest.fn()
 const activateModificationSync:Mock<void, [keys: string]> = jest.fn()
 const activateModificationsSync:Mock<void, [keys: string[]]> = jest.fn()
-const sendHit:Mock<Promise<void>, [hit: (IPage | IScreen | IEvent | IItem | ITransaction)[]]> = jest.fn()
-const sendHitSync:Mock<void, [hit: (IPage | IScreen | IEvent | IItem | ITransaction)[]]> = jest.fn()
+const sendHit:Mock<Promise<void>, [hit: IHit]> = jest.fn()
+const sendHitSync:Mock<void, [hit: IHit]> = jest.fn()
+
+const sendHits:Mock<Promise<void>, [hit: IHit[]]> = jest.fn()
+const sendHitsSync:Mock<void, [hit: IHit[]]> = jest.fn()
+
 const getAllModifications:Mock<Promise<{
   visitorId: string;
   campaigns: CampaignDTO[];
@@ -62,6 +65,8 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         activateModificationsSync,
         sendHit,
         sendHitSync,
+        sendHits,
+        sendHitsSync,
         getAllModifications,
         getModificationsForCampaign,
         authenticate,
@@ -323,12 +328,29 @@ describe('test VisitorDelegate methods', () => {
     })
   })
 
+  it('test sendHits', () => {
+    sendHits.mockResolvedValue()
+    const page = [{ type: HitType.PAGE, documentLocation: 'home' }]
+    visitorDelegate.sendHits(page).then(() => {
+      expect(sendHits).toBeCalledTimes(1)
+      expect(sendHits).toBeCalledWith(page)
+    })
+  })
+
   it('test sendHitSync', () => {
     sendHitSync.mockReturnValue()
     const page = { type: HitType.PAGE, documentLocation: 'home' }
     visitorDelegate.sendHitSync(page)
     expect(sendHitSync).toBeCalledTimes(1)
     expect(sendHitSync).toBeCalledWith(page)
+  })
+
+  it('test sendHitsSync', () => {
+    sendHitsSync.mockReturnValue()
+    const page = [{ type: HitType.PAGE, documentLocation: 'home' }]
+    visitorDelegate.sendHitsSync(page)
+    expect(sendHitsSync).toBeCalledTimes(1)
+    expect(sendHitsSync).toBeCalledWith(page)
   })
 
   it('test getAllModifications', () => {

@@ -1,15 +1,12 @@
 import { Modification } from '../model/Modification'
-import { HitAbstract, IPage, IScreen } from '../hit/index'
-import { IEvent } from '../hit/Event'
-import { IItem } from '../hit/Item'
-import { ITransaction } from '../hit/Transaction'
-import { modificationsRequested, primitive } from '../types'
+import { IHit, modificationsRequested, primitive } from '../types'
 import { EventEmitter } from '../nodeDeps'
 import { IVisitor } from './IVisitor'
-import { VisitorAbstract } from './VisitorAbstract'
 import { IFlagshipConfig } from '../config/index'
 import { EMIT_READY } from '../enum/index'
 import { CampaignDTO } from '../decision/api/models'
+import { HitAbstract } from '../hit/HitAbstract'
+import { VisitorAbstract } from './VisitorAbstract'
 
 export class Visitor extends EventEmitter implements IVisitor {
   private visitorDelegate:VisitorAbstract
@@ -112,32 +109,32 @@ export class Visitor extends EventEmitter implements IVisitor {
     this.visitorDelegate.activateModificationsSync(params)
   }
 
-  sendHit(hit: HitAbstract): Promise<void>
-  sendHit(hit: HitAbstract[]): Promise<void>
-  sendHit(hit: IPage | IScreen | IEvent | IItem | ITransaction): Promise<void>
-  sendHit(hit: (IPage | IScreen | IEvent | IItem | ITransaction)[]): Promise<void>
-  sendHit (hit:IPage|IScreen|IEvent|IItem|ITransaction|
-    Array<IPage|IScreen|IEvent|IItem|ITransaction>|
-    HitAbstract|HitAbstract[]): Promise<void>
-
-  sendHit (hit:IPage|IScreen|IEvent|IItem|ITransaction|
-    Array<IPage|IScreen|IEvent|IItem|ITransaction>|
-    HitAbstract|HitAbstract[]): Promise<void> {
+  sendHit(hit: HitAbstract): Promise<void>;
+  sendHit(hit: IHit): Promise<void>;
+  sendHit (hit: IHit|HitAbstract): Promise<void>
+  sendHit (hit: IHit|HitAbstract): Promise<void> {
     return this.visitorDelegate.sendHit(hit)
   }
 
-  sendHitSync(hit: HitAbstract[]): void
-  sendHitSync(hit: HitAbstract): void
-  sendHitSync(hit: (IPage | IScreen | IEvent | IItem | ITransaction)[]): void
-  sendHitSync(hit: HitAbstract | IPage | IScreen | IEvent | IItem | ITransaction): void
-  sendHitSync (hit:IPage|IScreen|IEvent|IItem|ITransaction|
-    Array<IPage|IScreen|IEvent|IItem|ITransaction>|
-    HitAbstract|HitAbstract[]): void
+  sendHitSync(hit: HitAbstract): void;
+  sendHitSync(hit: IHit): void;
+  sendHitSync (hit: IHit|HitAbstract): void
+  sendHitSync (hit: IHit|HitAbstract): void {
+    this.visitorDelegate.sendHitSync(hit)
+  }
 
-  sendHitSync (hit:IPage|IScreen|IEvent|IItem|ITransaction|
-    Array<IPage|IScreen|IEvent|IItem|ITransaction>|
-    HitAbstract|HitAbstract[]): void {
-    return this.visitorDelegate.sendHitSync(hit)
+  sendHits(hits: HitAbstract[]): Promise<void>;
+  sendHits(hits: IHit[]): Promise<void>;
+  sendHits (hits: HitAbstract[]|IHit[]): Promise<void>
+  sendHits (hits: HitAbstract[]|IHit[]): Promise<void> {
+    return this.visitorDelegate.sendHits(hits)
+  }
+
+  sendHitsSync(hits: HitAbstract[]): void;
+  sendHitsSync(hits: IHit[]): void;
+  sendHitsSync (hits: HitAbstract[]|IHit[]): void
+  sendHitsSync (hits: HitAbstract[]|IHit[]): void {
+    this.visitorDelegate.sendHitsSync(hits)
   }
 
   getAllModifications (activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {

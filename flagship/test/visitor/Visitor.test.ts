@@ -230,6 +230,16 @@ describe('test visitor', () => {
     })
   })
 
+  it('test sendHits', () => {
+    const sendHits = jest.spyOn(visitorDelegate, 'sendHits')
+    sendHits.mockResolvedValue()
+    const page = [{ type: HitType.PAGE, documentLocation: 'home' }]
+    visitor.sendHits(page).then(() => {
+      expect(sendHits).toBeCalledTimes(1)
+      expect(sendHits).toBeCalledWith(page)
+    })
+  })
+
   it('test sendHitSync', () => {
     const sendHitSync = jest.spyOn(visitorDelegate, 'sendHitSync')
     sendHitSync.mockReturnValue()
@@ -237,6 +247,15 @@ describe('test visitor', () => {
     visitor.sendHitSync(page)
     expect(sendHitSync).toBeCalledTimes(1)
     expect(sendHitSync).toBeCalledWith(page)
+  })
+
+  it('test sendHitsSync', () => {
+    const sendHitsSync = jest.spyOn(visitorDelegate, 'sendHitsSync')
+    sendHitsSync.mockReturnValue()
+    const page = [{ type: HitType.PAGE, documentLocation: 'home' }]
+    visitor.sendHitsSync(page)
+    expect(sendHitsSync).toBeCalledTimes(1)
+    expect(sendHitsSync).toBeCalledWith(page)
   })
 
   it('test getAllModifications', () => {

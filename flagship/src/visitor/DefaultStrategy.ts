@@ -19,7 +19,7 @@ import {
   VISITOR_ID_ERROR
 } from '../enum/index'
 import { HitAbstract, IPage, IScreen, IEvent, Event, Screen, IItem, ITransaction, Item, Page, Transaction } from '../hit/index'
-import { primitive, modificationsRequested } from '../types'
+import { primitive, modificationsRequested, IHit } from '../types'
 import { logError, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
@@ -311,14 +311,18 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   sendHit(hit: HitAbstract): Promise<void>;
-  sendHit(hit: HitAbstract[]): Promise<void>;
-  sendHit(hit: IPage | IScreen | IEvent | IItem | ITransaction): Promise<void>;
-  sendHit(hit: (IPage | IScreen | IEvent | IItem | ITransaction)[]): Promise<void>;
-  sendHit (hit: HitAbstract | HitAbstract[] | IPage | IScreen | IEvent | IItem | ITransaction | (IPage | IScreen | IEvent | IItem | ITransaction)[]): Promise<void> {
+  sendHit(hit: IHit): Promise<void>;
+  sendHit (hit: IHit|HitAbstract): Promise<void> {
     return Promise.resolve(this.sendHitSync(hit))
   }
 
-  private getHit (hit:IPage|IScreen|IEvent|IItem|ITransaction) {
+  sendHits(hit: HitAbstract[]): Promise<void>;
+  sendHits(hit: IHit[]): Promise<void>;
+  sendHits (hit: HitAbstract[] | IHit[]): Promise<void> {
+    return Promise.resolve(this.sendHitsSync(hit))
+  }
+
+  private getHit (hit:IHit) {
     let newHit = null
 
     switch (hit.type.toUpperCase()) {
@@ -343,7 +347,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return newHit
   }
 
-  private async prepareAndSendHit (hit:IPage|IScreen|IEvent|IItem|ITransaction|HitAbstract) {
+  private async prepareAndSendHit (hit:IHit|HitAbstract) {
     let hitInstance:HitAbstract
     if (hit instanceof HitAbstract) {
       hitInstance = hit
@@ -369,22 +373,26 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     })
   }
 
-  sendHitSync(hit: HitAbstract[]): void
-  sendHitSync(hit: HitAbstract): void
-  sendHitSync(hit: (IPage | IScreen | IEvent | IItem | ITransaction)[]): void
-  sendHitSync(hit: HitAbstract | IPage | IScreen | IEvent | IItem | ITransaction): void
-  sendHitSync(hit: HitAbstract | HitAbstract[] | IPage | IScreen | IEvent | IItem | ITransaction | (IPage | IScreen | IEvent | IItem | ITransaction)[]): void
-  sendHitSync (hit: HitAbstract | HitAbstract[] | IPage | IScreen | IEvent | IItem | ITransaction | (IPage | IScreen | IEvent | IItem | ITransaction)[]): void {
+  sendHitsSync(hit: HitAbstract[]): void
+  sendHitsSync(hit: IHit[]): void
+  sendHitsSync (hit:HitAbstract[] | IHit []): void
+  sendHitsSync (hit:HitAbstract[] | IHit []): void {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
       return
     }
-    if (Array.isArray(hit)) {
-      hit.forEach(item => {
-        this.prepareAndSendHit(item)
-      })
-    } else {
-      this.prepareAndSendHit(hit)
+    hit.forEach(item => {
+      this.prepareAndSendHit(item)
+    })
+  }
+
+  sendHitSync(hit: HitAbstract): void
+  sendHitSync(hit: IHit): void
+  sendHitSync (hit: IHit|HitAbstract): void
+  sendHitSync (hit: IHit|HitAbstract): void {
+    if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
+      return
     }
+    this.prepareAndSendHit(hit)
   }
 
   /**

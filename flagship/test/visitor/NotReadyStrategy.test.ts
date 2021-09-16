@@ -88,4 +88,12 @@ describe('test NotReadyStrategy', () => {
       expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
     })
   })
+
+  it('test sendHits', () => {
+    notReadyStrategy.sendHits([{ type: HitType.PAGE, documentLocation: 'home' }]).then(() => {
+      const methodName = 'sendHits'
+      expect(logError).toBeCalledTimes(1)
+      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
+    })
+  })
 })

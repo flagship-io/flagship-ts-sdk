@@ -1,6 +1,6 @@
 import { Modification } from '../index'
-import { HitAbstract, IPage, IScreen, IEvent, IItem, ITransaction } from '../hit/index'
-import { primitive, modificationsRequested } from '../types'
+import { HitAbstract } from '../hit/index'
+import { primitive, modificationsRequested, IHit } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
@@ -57,18 +57,20 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     abstract activateModificationsSync (params:Array<{ key: string }> | Array<string>): void
 
     abstract sendHit(hit: HitAbstract): Promise<void>;
-    abstract sendHit(hit: HitAbstract[]): Promise<void>;
-    abstract sendHit(hit: IPage | IScreen | IEvent | IItem | ITransaction): Promise<void>;
-    abstract sendHit(hit: (IPage | IScreen | IEvent | IItem | ITransaction)[]): Promise<void>;
-    abstract sendHit (hit:IPage|IScreen|IEvent|IItem|ITransaction|
-      Array<IPage|IScreen|IEvent|IItem|ITransaction>|HitAbstract|HitAbstract[]): Promise<void>
+    abstract sendHit(hit: IHit): Promise<void>;
+    abstract sendHit(hit: IHit|HitAbstract): Promise<void>;
 
-    abstract sendHitSync(hit: HitAbstract[]): void
-    abstract sendHitSync(hit: HitAbstract): void
-    abstract sendHitSync(hit: (IPage | IScreen | IEvent | IItem | ITransaction)[]): void
-    abstract sendHitSync(hit: HitAbstract | IPage | IScreen | IEvent | IItem | ITransaction): void
-    abstract sendHitSync (hit:IPage|IScreen|IEvent|IItem|ITransaction|
-      Array<IPage|IScreen|IEvent|IItem|ITransaction>|HitAbstract|HitAbstract[]): void
+    abstract sendHitSync(hit: HitAbstract): void;
+    abstract sendHitSync(hit: IHit): void;
+    abstract sendHitSync(hit: IHit|HitAbstract): void;
+
+    abstract sendHits(hit: HitAbstract[]): Promise<void>;
+    abstract sendHits(hit: IHit[]): Promise<void>;
+    abstract sendHits (hit: HitAbstract[]|IHit[]): Promise<void>
+
+    abstract sendHitsSync(hit: HitAbstract[]): void;
+    abstract sendHitsSync(hit: IHit[]): void;
+    abstract sendHitsSync (hit: HitAbstract[]|IHit[]): void
 
     abstract getAllModifications (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 

@@ -509,9 +509,23 @@ describe('test DefaultStrategy ', () => {
     expect(sendHit).toBeCalledWith(hitScreen)
   })
 
-  it('test hasTrackingManager activateModification', () => {
+  it('test hasTrackingManager sendHitSync', () => {
     configManager.trackingManager = getNull()
     defaultStrategy.sendHitSync(hitScreen)
+
+    expect(sendHit).toBeCalledTimes(0)
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(
+      TRACKER_MANAGER_MISSING_ERROR,
+      PROCESS_SEND_HIT
+    )
+
+    configManager.trackingManager = trackingManager
+  })
+
+  it('test hasTrackingManager sendHitSync', () => {
+    configManager.trackingManager = getNull()
+    defaultStrategy.sendHitsSync([hitScreen])
 
     expect(sendHit).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
@@ -662,7 +676,7 @@ describe('test DefaultStrategy ', () => {
       affiliation: 'affiliation_2'
     }]
     try {
-      await defaultStrategy.sendHit(hits)
+      await defaultStrategy.sendHits(hits)
     } catch (error) {
       expect(logError).toBeCalled()
     }

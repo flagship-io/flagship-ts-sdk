@@ -1,9 +1,9 @@
 import { Modification } from '../index'
 import { FlagshipStatus, METHOD_DEACTIVATED_ERROR, METHOD_DEACTIVATED_SEND_CONSENT_ERROR } from '../enum/index'
-import { modificationsRequested, primitive } from '../types'
+import { IHit, modificationsRequested, primitive } from '../types'
 import { logError, sprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
-import { HitAbstract, IEvent, IItem, IPage, IScreen, ITransaction } from '../hit/index'
+import { HitAbstract } from '../hit/index'
 
 export class PanicStrategy extends DefaultStrategy {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -53,8 +53,13 @@ export class PanicStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public sendHitSync (_hit: HitAbstract | HitAbstract[] | IPage | IScreen | IEvent | IItem | ITransaction | (IPage | IScreen | IEvent | IItem | ITransaction)[]): void {
+  sendHitSync (_hit: HitAbstract | IHit): void {
     this.log('sendHit')
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  sendHitsSync (_hits: HitAbstract[] | IHit[]): void {
+    this.log('sendHits')
   }
 
   private log (methodName:string) {

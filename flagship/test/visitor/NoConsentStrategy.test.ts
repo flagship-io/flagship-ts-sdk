@@ -48,4 +48,12 @@ describe('test NoConsentStrategy', () => {
       expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
     })
   })
+
+  it('test sendHits', () => {
+    noConsentStrategy.sendHits([{ type: HitType.PAGE, documentLocation: 'home' }]).then(() => {
+      const methodName = 'sendHits'
+      expect(logError).toBeCalledTimes(1)
+      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
+    })
+  })
 })

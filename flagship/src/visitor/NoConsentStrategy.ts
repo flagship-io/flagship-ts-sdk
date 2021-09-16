@@ -1,5 +1,6 @@
+import { IHit } from '..'
 import { METHOD_DEACTIVATED_CONSENT_ERROR } from '../enum/index'
-import { HitAbstract, IEvent, IItem, IPage, IScreen, ITransaction } from '../hit/index'
+import { HitAbstract } from '../hit/index'
 import { logError, sprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
 
@@ -15,8 +16,13 @@ export class NoConsentStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  sendHitSync (hit: HitAbstract | HitAbstract[] | IPage | IScreen | IEvent | IItem | ITransaction | (IPage | IScreen | IEvent | IItem | ITransaction)[]): void {
+  sendHitSync (_hit: HitAbstract | IHit): void {
     this.log('sendHit')
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  sendHitsSync (_hits: HitAbstract[] | IHit[]): void {
+    this.log('sendHits')
   }
 
   private log (methodName:string) {

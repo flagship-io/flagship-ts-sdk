@@ -100,4 +100,12 @@ describe('test NotReadyStrategy', () => {
       expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
     })
   })
+
+  it('test sendHits', () => {
+    panicStrategy.sendHits([{ type: HitType.PAGE, documentLocation: 'home' }]).then(() => {
+      const methodName = 'sendHits'
+      expect(logError).toBeCalledTimes(1)
+      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+    })
+  })
 })
