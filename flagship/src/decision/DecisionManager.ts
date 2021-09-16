@@ -5,6 +5,7 @@ import { IHttpClient } from '../utils/httpClient'
 import { CampaignDTO } from './api/models'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { FlagshipStatus } from '../enum/index'
+import { logError } from '../utils/utils'
 
 export abstract class DecisionManager implements IDecisionManager {
   protected _config: IFlagshipConfig;
@@ -18,11 +19,7 @@ export abstract class DecisionManager implements IDecisionManager {
 
   // eslint-disable-next-line accessor-pairs
   protected set panic (v: boolean) {
-    if (v) {
-      this.updateFlagshipStatus(FlagshipStatus.READY_PANIC_ON)
-    } else {
-      this.updateFlagshipStatus(FlagshipStatus.READY)
-    }
+    this.updateFlagshipStatus(v ? FlagshipStatus.READY_PANIC_ON : FlagshipStatus.READY)
     this._panic = v
   }
 
@@ -66,12 +63,11 @@ export abstract class DecisionManager implements IDecisionManager {
   abstract getCampaignsAsync(visitor: VisitorAbstract): Promise<CampaignDTO[]>
 
   public async getCampaignsModificationsAsync (visitor: VisitorAbstract): Promise<Map<string, Modification>> {
-    return new Promise((resolve, reject) => {
-      this.getCampaignsAsync(visitor).then(campaigns => {
-        resolve(this.getModifications(campaigns))
-      }).catch(error => {
-        reject(error)
-      })
+    return this.getCampaignsAsync(visitor).then(campaigns => {
+      return this.getModifications(campaigns)
+    }).catch((error) => {
+      logError(this.config, error.message || error, 'getCampaignsModificationsAsync')
+      return new Map<string, Modification>()
     })
   }
 
