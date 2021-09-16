@@ -35,12 +35,10 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     abstract clearContext (): void
 
     abstract getModification<T>(params: modificationsRequested<T>, activateAll?: boolean): Promise<T>;
-    abstract getModification<T>(params: modificationsRequested<T>[], activateAll?: boolean): Promise<T[]>;
-    abstract getModification<T>(params: modificationsRequested<T> | modificationsRequested<T>[], activateAll?: boolean): Promise<T | T[]>;
-
     abstract getModificationSync<T>(params: modificationsRequested<T>, activateAll?: boolean): T
-    abstract getModificationSync<T>(params: modificationsRequested<T>[], activateAll?: boolean): T[]
-    abstract getModificationSync<T>(params: modificationsRequested<T> | modificationsRequested<T>[], activateAll?: boolean): T | T[]
+
+    abstract getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<T[]>
+    abstract getModificationsSync<T> (params: modificationsRequested<T>[], activateAll?: boolean): T[]
 
     abstract getModificationInfo (key: string): Promise<Modification | null>
     abstract getModificationInfoSync(key: string): Modification | null

@@ -123,12 +123,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     this.visitor.context = {}
   }
 
-  getModification<T>(params: modificationsRequested<T>, activateAll?: boolean): Promise<T>;
-  getModification<T>(params: modificationsRequested<T>[], activateAll?: boolean): Promise<T[]>;
-  getModification<T> (params: modificationsRequested<T> | modificationsRequested<T>[], activateAll?: boolean): Promise<T | T[]> {
-    return Promise.resolve(this.getModificationSync(params, activateAll))
-  }
-
   private checkAndGetModification<T> (params:modificationsRequested<T>, activateAll?:boolean) :T {
     const { key, defaultValue, activate } = params
     if (!key || typeof key !== 'string') {
@@ -183,15 +177,21 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return modification.value
   }
 
-  getModificationSync<T>(params: modificationsRequested<T>, activateAll?: boolean): T
-  getModificationSync<T>(params: modificationsRequested<T>[], activateAll?: boolean): T[]
-  getModificationSync<T>(params: modificationsRequested<T> | modificationsRequested<T>[], activateAll?: boolean): T | T[]
-  getModificationSync<T> (params: modificationsRequested<T> | modificationsRequested<T>[], activateAll?: boolean): T | T[] {
-    if (Array.isArray(params)) {
-      return params.map(item => {
-        return this.checkAndGetModification(item, activateAll)
-      })
-    }
+  getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<T[]> {
+    return Promise.resolve(this.getModificationsSync(params, activateAll))
+  }
+
+  getModificationsSync<T> (params: modificationsRequested<T>[], activateAll?: boolean): T[] {
+    return params.map(item => {
+      return this.checkAndGetModification(item, activateAll)
+    })
+  }
+
+  getModification<T> (params: modificationsRequested<T>, activateAll?: boolean): Promise<T> {
+    return Promise.resolve(this.getModificationSync(params, activateAll))
+  }
+
+  getModificationSync<T> (params: modificationsRequested<T>, activateAll?: boolean): T {
     return this.checkAndGetModification(params, activateAll)
   }
 

@@ -62,18 +62,20 @@ export class Visitor extends EventEmitter implements IVisitor {
     this.visitorDelegate.clearContext()
   }
 
-  getModification<T>(params: modificationsRequested<T>, activateAll?: boolean): Promise<T>
-  getModification<T>(params: modificationsRequested<T>[], activateAll?: boolean): Promise<T[]>
-  getModification<T> (params: modificationsRequested<T> | modificationsRequested<T>[], activateAll?: boolean): Promise<T | T[]>
-  getModification<T> (params: modificationsRequested<T> | modificationsRequested<T>[], activateAll?: boolean): Promise<T | T[]> {
+  getModification<T> (params: modificationsRequested<T>, activateAll?: boolean): Promise<T> {
     return this.visitorDelegate.getModification(params, activateAll)
   }
 
-  getModificationSync<T>(params: modificationsRequested<T>, activateAll?: boolean): T
-  getModificationSync<T>(params: modificationsRequested<T>[], activateAll?: boolean): T[]
-  getModificationSync<T> (params: modificationsRequested<T> | modificationsRequested<T>[], activateAll?: boolean): T | T[]
-  getModificationSync<T> (params: modificationsRequested<T> | modificationsRequested<T>[], activateAll?: boolean): T | T[] {
+  getModificationSync<T> (params: modificationsRequested<T>, activateAll?: boolean): T {
     return this.visitorDelegate.getModificationSync(params, activateAll)
+  }
+
+  getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<T[]> {
+    return this.visitorDelegate.getModifications(params, activateAll)
+  }
+
+  getModificationsSync<T> (params: modificationsRequested<T>[], activateAll?: boolean): T[] {
+    return this.visitorDelegate.getModificationsSync(params, activateAll)
   }
 
   getModificationInfo (key: string): Promise<Modification | null> {

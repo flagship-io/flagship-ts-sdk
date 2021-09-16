@@ -16,8 +16,10 @@ import { cacheVisitor, VisitorProfil } from '../../src/visitor/VisitorCache'
 
 const updateContext = jest.fn()
 const clearContext = jest.fn()
-const getModification:Mock<Promise<unknown[]>, [params: modificationsRequested<unknown>[], activateAll?: boolean]> = jest.fn()
+const getModification:Mock<Promise<unknown>, [params: modificationsRequested<unknown>, activateAll?: boolean]> = jest.fn()
 const getModificationSync = jest.fn()
+const getModifications:Mock<Promise<unknown[]>, [params: modificationsRequested<unknown>[], activateAll?: boolean]> = jest.fn()
+const getModificationsSync = jest.fn()
 const getModificationInfo:Mock<Promise<Modification>, [key: string]> = jest.fn()
 const getModificationInfoSync = jest.fn()
 const synchronizeModifications:Mock<Promise<void>, []> = jest.fn()
@@ -47,6 +49,8 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         clearContext,
         getModification,
         getModificationSync,
+        getModifications,
+        getModificationsSync,
         getModificationInfo,
         getModificationInfoSync,
         synchronizeModifications,
@@ -209,6 +213,28 @@ describe('test VisitorDelegate methods', () => {
       })
   })
 
+  it('test getModifications', () => {
+    getModifications.mockResolvedValue([])
+    const param = [{ key: 'key', defaultValue: 'value' }]
+    visitorDelegate.getModifications(param)
+      .then(() => {
+        expect(getModifications).toBeCalledTimes(2)
+        expect(getModifications).toBeCalledWith(param, undefined)
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+
+    visitorDelegate.getModifications(param, true)
+      .then(() => {
+        expect(getModifications).toBeCalledTimes(2)
+        expect(getModifications).toBeCalledWith(param, true)
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+  })
+
   it('test getModificationSync', () => {
     getModificationSync.mockReturnValue([])
     const param = { key: 'key', defaultValue: 'value' }
@@ -218,6 +244,17 @@ describe('test VisitorDelegate methods', () => {
     visitorDelegate.getModificationSync(param, true)
     expect(getModificationSync).toBeCalledTimes(2)
     expect(getModificationSync).toBeCalledWith(param, true)
+  })
+
+  it('test getModificationsSync', () => {
+    getModificationSync.mockReturnValue([])
+    const param = [{ key: 'key', defaultValue: 'value' }]
+    visitorDelegate.getModificationsSync(param)
+    expect(getModificationsSync).toBeCalledTimes(1)
+    expect(getModificationsSync).toBeCalledWith(param, undefined)
+    visitorDelegate.getModificationsSync(param, true)
+    expect(getModificationsSync).toBeCalledTimes(2)
+    expect(getModificationsSync).toBeCalledWith(param, true)
   })
 
   it('test getModificationInfo', () => {

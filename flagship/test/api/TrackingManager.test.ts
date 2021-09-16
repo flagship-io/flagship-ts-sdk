@@ -193,9 +193,6 @@ describe('test TrackingManager sendConsentHit ', () => {
     const trackingManager = new TrackingManager(httpClient, config)
 
     const headers = {
-      [HEADER_X_API_KEY]: `${config.apiKey}`,
-      [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
-      [HEADER_X_SDK_VERSION]: SDK_VERSION,
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 

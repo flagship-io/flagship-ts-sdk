@@ -13,16 +13,20 @@ export class VisitorDelegate extends VisitorAbstract {
     this.getStrategy().clearContext()
   }
 
-  getModification<T>(params: modificationsRequested<T>, activateAll?: boolean): Promise<T>;
-  getModification<T>(params: modificationsRequested<T>[], activateAll?: boolean): Promise<T[]>;
-  getModification<T> (params: modificationsRequested<T> | modificationsRequested<T>[], activateAll?: boolean): Promise<T | T[]> {
+  getModification<T> (params: modificationsRequested<T>, activateAll?: boolean): Promise<T> {
     return this.getStrategy().getModification(params, activateAll)
   }
 
-  getModificationSync<T>(params: modificationsRequested<T>, activateAll?: boolean): T
-  getModificationSync<T>(params: modificationsRequested<T>[], activateAll?: boolean): T[]
-  getModificationSync<T> (params: modificationsRequested<T> | modificationsRequested<T>[], activateAll?: boolean): T | T[] {
+  getModificationSync<T> (params: modificationsRequested<T>, activateAll?: boolean): T {
     return this.getStrategy().getModificationSync(params, activateAll)
+  }
+
+  getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<T[]> {
+    return this.getStrategy().getModifications(params, activateAll)
+  }
+
+  getModificationsSync<T> (params: modificationsRequested<T>[], activateAll?: boolean): T[] {
+    return this.getStrategy().getModificationsSync(params, activateAll)
   }
 
   getModificationInfo (key: string): Promise<Modification | null> {

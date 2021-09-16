@@ -46,8 +46,8 @@ describe('test NotReadyStrategy', () => {
 
   it('test getModification array', () => {
     const defaultValue = 'value'
-    notReadyStrategy.getModification([{ key: 'key', defaultValue }]).then((value) => {
-      const methodName = 'getModification'
+    notReadyStrategy.getModifications([{ key: 'key', defaultValue }]).then((value) => {
+      const methodName = 'getModifications'
 
       expect(value).toEqual([defaultValue])
       expect(logError).toBeCalledTimes(1)

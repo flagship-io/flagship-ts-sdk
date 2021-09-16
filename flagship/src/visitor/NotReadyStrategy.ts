@@ -12,14 +12,17 @@ export class NotReadyStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getModificationSync<T> (params: modificationsRequested<T> | modificationsRequested<T>[], activateAll?: boolean): T | T[] {
+  getModificationSync<T> (params: modificationsRequested<T>, _activateAll?: boolean): T {
     this.log('getModification')
-    if (Array.isArray(params)) {
-      return params.map(item => {
-        return item.defaultValue
-      })
-    }
     return params.defaultValue
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getModificationsSync<T> (params: modificationsRequested<T>[], _activateAll?: boolean): T[] {
+    this.log('getModifications')
+    return params.map(item => {
+      return item.defaultValue
+    })
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -113,6 +113,29 @@ describe('test visitor', () => {
       })
   })
 
+  it('test getModifications', () => {
+    const getModifications = jest.spyOn(visitorDelegate, 'getModifications')
+    getModifications.mockResolvedValue([])
+    const param = [{ key: 'key', defaultValue: 'value' }]
+    visitor.getModifications(param)
+      .then(() => {
+        expect(getModifications).toBeCalledTimes(2)
+        expect(getModifications).toBeCalledWith(param, undefined)
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+
+    visitor.getModifications(param, true)
+      .then(() => {
+        expect(getModifications).toBeCalledTimes(2)
+        expect(getModifications).toBeCalledWith(param, true)
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+  })
+
   it('test getModificationSync', () => {
     const getModificationSync = jest.spyOn(visitorDelegate, 'getModificationSync')
     getModificationSync.mockReturnValue([])
@@ -123,6 +146,18 @@ describe('test visitor', () => {
     visitor.getModificationSync(param, true)
     expect(getModificationSync).toBeCalledTimes(2)
     expect(getModificationSync).toBeCalledWith(param, true)
+  })
+
+  it('test getModificationsSync', () => {
+    const getModificationsSync = jest.spyOn(visitorDelegate, 'getModificationsSync')
+    getModificationsSync.mockReturnValue([])
+    const param = [{ key: 'key', defaultValue: 'value' }]
+    visitor.getModificationsSync(param)
+    expect(getModificationsSync).toBeCalledTimes(1)
+    expect(getModificationsSync).toBeCalledWith(param, undefined)
+    visitor.getModificationsSync(param, true)
+    expect(getModificationsSync).toBeCalledTimes(2)
+    expect(getModificationsSync).toBeCalledWith(param, true)
   })
 
   it('test getModificationInfo', () => {

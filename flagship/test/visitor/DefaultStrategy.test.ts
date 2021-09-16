@@ -193,7 +193,7 @@ describe('test DefaultStrategy ', () => {
   ) => {
     try {
       const returnMod = params.map(item => returnModification.get(item.key) as Modification)
-      const modifications = await defaultStrategy.getModification(params, activateAll)
+      const modifications = await defaultStrategy.getModifications(params, activateAll)
       expect<T[]>(modifications).toEqual(returnMod.map(item => item.value))
     } catch (error) {
       expect(logError).toBeCalled()
