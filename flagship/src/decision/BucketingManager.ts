@@ -83,7 +83,8 @@ export class BucketingManager extends DecisionManager {
           this.finishLoop(response)
 
           await sleep((this.config.pollingInterval ?? REQUEST_TIME_OUT) * 1000)
-        } catch (error) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error:any) {
           logError(this.config, error, 'startPolling dd')
           if (this._isFirstPooling) {
             this.updateFlagshipStatus(FlagshipStatus.NOT_INITIALIZED)
@@ -127,49 +128,45 @@ export class BucketingManager extends DecisionManager {
 
     getCampaignsAsync (visitor: VisitorAbstract): Promise<CampaignDTO[]> {
       this.sendContext(visitor)
-      return new Promise<CampaignDTO[]>((resolve) => {
-        if (!this._bucketingContent) {
-          resolve([])
-          return
-        }
-        if (this._bucketingContent.panic) {
-          this.panic = true
-          resolve([])
-          return
-        }
-        this.panic = false
 
-        if (!this._bucketingContent.campaigns) {
-          resolve([])
-          return
+      if (!this._bucketingContent) {
+        return Promise.resolve([])
+      }
+      if (this._bucketingContent.panic) {
+        this.panic = true
+        return Promise.resolve([])
+      }
+      this.panic = false
+
+      if (!this._bucketingContent.campaigns) {
+        return Promise.resolve([])
+      }
+
+      const visitorCampaigns:CampaignDTO[] = []
+
+      this._bucketingContent.campaigns.forEach(campaign => {
+        const currentCampaigns = this.getVisitorCampaigns(campaign.variationGroups, campaign.id, visitor)
+        if (currentCampaigns) {
+          visitorCampaigns.push(currentCampaigns)
         }
-
-        const visitorCampaigns:CampaignDTO[] = []
-
-        this._bucketingContent.campaigns.forEach(campaign => {
-          const currentCampaigns = this.getVisitorCampaigns(campaign.variationGroups, campaign.id, visitor)
-          if (currentCampaigns) {
-            visitorCampaigns.push(currentCampaigns)
-          }
-        })
-        resolve(visitorCampaigns)
       })
+      return Promise.resolve(visitorCampaigns)
     }
 
     private getVisitorCampaigns (variationGroups : VariationGroupDTO[], campaignId: string, visitor: VisitorAbstract) :CampaignDTO|null {
       for (const variationGroup of variationGroups) {
         const check = this.isMatchTargeting(variationGroup, visitor)
         if (check) {
-          const variations = this.getVariation(
+          const variation = this.getVariation(
             variationGroup,
             visitor.visitorId
           )
-          if (!variations) {
+          if (!variation) {
             return null
           }
           return {
             id: campaignId,
-            variation: variations,
+            variation: variation,
             variationGroupId: variationGroup.id
           }
         }
@@ -203,22 +200,16 @@ export class BucketingManager extends DecisionManager {
       if (!variationGroup || !variationGroup.targeting || !variationGroup.targeting.targetingGroups) {
         return false
       }
-      for (const targetingGroup of variationGroup.targeting.targetingGroups) {
-        const check = this.checkAndTargeting(targetingGroup.targetings, visitor)
-        if (check) {
-          return true
-        }
-      }
-      return false
+      return variationGroup.targeting.targetingGroups.some(
+        targetingGroup => this.checkAndTargeting(targetingGroup.targetings, visitor)
+      )
     }
 
     private checkAndTargeting (targetings:Targetings[], visitor: VisitorAbstract) : boolean {
       let contextValue:primitive
       let check = false
 
-      for (const targeting of targetings) {
-        const key = targeting.key
-
+      for (const { key, value, operator } of targetings) {
         if (key === 'fs_all_users') {
           check = true
           break
@@ -231,7 +222,7 @@ export class BucketingManager extends DecisionManager {
           contextValue = visitor.context[key]
         }
 
-        return this.testOperator(targeting.operator, contextValue, targeting.value)
+        return this.testOperator(operator, contextValue, value)
       }
       return check
     }
