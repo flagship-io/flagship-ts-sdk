@@ -118,12 +118,12 @@ export interface IVisitor {
    * @deprecated use ["key1","key2",...] instead of
    * @param {Array<{ key: string }>} keys keys which identify the modifications to activate.
    */
-  activateModification(keys: Array<{ key: string }>): Promise<void>;
+   activateModifications(keys: Array<{ key: string }>): Promise<void>;
   /**
    * Report this user has seen these modifications.
    * @param keys  keys which identify the modifications to activate.
    */
-  activateModification(keys: Array<string>): Promise<void>;
+   activateModifications(keys: Array<string>): Promise<void>;
 
   /**
    * Report this user has seen this modification.
@@ -135,12 +135,12 @@ export interface IVisitor {
    * @deprecated use ["key1","key2",...] instead of
    * @param {Array<{ key: string }>} keys keys which identify the modifications to activate.
    */
-  activateModificationSync(keys: Array<{ key: string }>): void;
+  activateModificationsSync(keys: Array<{ key: string }>): void;
   /**
    * Report this user has seen these modifications.
    * @param keys  keys which identify the modifications to activate.
    */
-  activateModificationSync(keys: Array<string>): void;
+  activateModificationsSync(keys: Array<string>): void;
   /**
    * Send a Hit to Flagship servers for reporting.
    * @param hit
