@@ -85,7 +85,7 @@ const visitor = Flagship.newVisitor({
         });
 
       visitor
-        .getModification([
+        .getModifications([
           { key: "array", defaultValue: [] },
           {
             key: "object",
@@ -100,7 +100,7 @@ const visitor = Flagship.newVisitor({
       // activateModification
       visitor.activateModification("object");
 
-      visitor.activateModification(["array", "object"]);
+      visitor.activateModifications(["array", "object"]);
 
       // getModificationInfo
       visitor.getModificationInfo("array").then((data: Modification | null) => {
