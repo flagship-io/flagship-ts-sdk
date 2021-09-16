@@ -1,15 +1,8 @@
 import { IFlagshipConfig } from '../config/FlagshipConfig'
 import { CampaignDTO } from '../decision/api/models'
-import {
-  HitAbstract,
-  IEvent,
-  IItem,
-  IPage,
-  IScreen,
-  ITransaction
-} from '../hit/index'
+import { HitAbstract } from '../hit/index'
 import { Modification } from '../model/Modification'
-import { modificationsRequested, primitive } from '../types'
+import { IHit, modificationsRequested, primitive } from '../types'
 
 export interface IVisitor {
   visitorId: string;
@@ -141,29 +134,34 @@ export interface IVisitor {
    * @param keys  keys which identify the modifications to activate.
    */
   activateModificationsSync(keys: Array<string>): void;
-  /**
-   * Send a Hit to Flagship servers for reporting.
-   * @param hit
-   */
-  sendHit(hit: HitAbstract): Promise<void>;
-  sendHit(hit: Array<HitAbstract>): Promise<void>;
-  sendHit(hit: IPage | IScreen | IEvent | IItem | ITransaction): Promise<void>;
-  sendHit(
-    hit: Array<IPage | IScreen | IEvent | IItem | ITransaction>
-  ): Promise<void>;
 
   /**
    * Send a Hit to Flagship servers for reporting.
    * @param hit
    */
-  sendHitSync(hit: Array<HitAbstract>): void;
+  sendHit(hit: HitAbstract): Promise<void>;
+  sendHit(hit: IHit): Promise<void>;
+
+  /**
+   * Send Hits to Flagship servers for reporting.
+   * @param hit
+   */
+  sendHits(hit: Array<HitAbstract>): Promise<void>;
+  sendHits(hit: Array<IHit>): Promise<void>;
+
+  /**
+   * Send a Hit to Flagship servers for reporting.
+   * @param hit
+   */
   sendHitSync(hit: HitAbstract): void;
-  sendHitSync(
-    hit: Array<IPage | IScreen | IEvent | IItem | ITransaction>
-  ): void;
-  sendHitSync(
-    hit: IPage | IScreen | IEvent | IItem | ITransaction | HitAbstract
-  ): void;
+  sendHitSync(hit: IHit | HitAbstract): void;
+
+  /**
+  * Send a Hits to Flagship servers for reporting.
+  * @param hit
+  */
+  sendHitsSync(hit: Array<HitAbstract>): void;
+  sendHitsSync(hit: Array<IHit>): void;
 
   /**
    * returns a Promise<object> containing all the data for all the campaigns associated with the current visitor.
