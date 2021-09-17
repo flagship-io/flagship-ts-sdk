@@ -12,7 +12,7 @@ export class NotReadyStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getModificationSync<T> (params: modificationsRequested<T>, _activateAll?: boolean): T {
+  getModificationSync<T> (params: modificationsRequested<T>): T {
     this.log('getModification')
     return params.defaultValue
   }

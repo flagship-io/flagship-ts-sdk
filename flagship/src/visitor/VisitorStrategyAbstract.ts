@@ -34,8 +34,8 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     abstract updateContext(context: Record<string, primitive>): void
     abstract clearContext (): void
 
-    abstract getModification<T>(params: modificationsRequested<T>, activateAll?: boolean): Promise<T>;
-    abstract getModificationSync<T>(params: modificationsRequested<T>, activateAll?: boolean): T
+    abstract getModification<T>(params: modificationsRequested<T>): Promise<T>;
+    abstract getModificationSync<T>(params: modificationsRequested<T>): T
 
     abstract getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<T[]>
     abstract getModificationsSync<T> (params: modificationsRequested<T>[], activateAll?: boolean): T[]

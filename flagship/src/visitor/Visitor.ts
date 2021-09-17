@@ -59,12 +59,12 @@ export class Visitor extends EventEmitter implements IVisitor {
     this.visitorDelegate.clearContext()
   }
 
-  getModification<T> (params: modificationsRequested<T>, activateAll?: boolean): Promise<T> {
-    return this.visitorDelegate.getModification(params, activateAll)
+  getModification<T> (params: modificationsRequested<T>): Promise<T> {
+    return this.visitorDelegate.getModification(params)
   }
 
-  getModificationSync<T> (params: modificationsRequested<T>, activateAll?: boolean): T {
-    return this.visitorDelegate.getModificationSync(params, activateAll)
+  getModificationSync<T> (params: modificationsRequested<T>): T {
+    return this.visitorDelegate.getModificationSync(params)
   }
 
   getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<T[]> {

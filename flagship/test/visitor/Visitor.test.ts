@@ -103,7 +103,7 @@ describe('test visitor', () => {
         console.log(error)
       })
 
-    visitor.getModification(param, true)
+    visitor.getModification(param)
       .then(() => {
         expect(getModification).toBeCalledTimes(2)
         expect(getModification).toBeCalledWith(param, true)
@@ -142,10 +142,10 @@ describe('test visitor', () => {
     const param = { key: 'key', defaultValue: 'value' }
     visitor.getModificationSync(param)
     expect(getModificationSync).toBeCalledTimes(1)
-    expect(getModificationSync).toBeCalledWith(param, undefined)
-    visitor.getModificationSync(param, true)
+    expect(getModificationSync).toBeCalledWith(param)
+    visitor.getModificationSync(param)
     expect(getModificationSync).toBeCalledTimes(2)
-    expect(getModificationSync).toBeCalledWith(param, true)
+    expect(getModificationSync).toBeCalledWith(param)
   })
 
   it('test getModificationsSync', () => {

@@ -212,7 +212,7 @@ describe('test VisitorDelegate methods', () => {
         console.log(error)
       })
 
-    visitorDelegate.getModification(param, true)
+    visitorDelegate.getModification(param)
       .then(() => {
         expect(getModification).toBeCalledTimes(2)
         expect(getModification).toBeCalledWith(param, true)
@@ -249,10 +249,10 @@ describe('test VisitorDelegate methods', () => {
     const param = { key: 'key', defaultValue: 'value' }
     visitorDelegate.getModificationSync(param)
     expect(getModificationSync).toBeCalledTimes(1)
-    expect(getModificationSync).toBeCalledWith(param, undefined)
-    visitorDelegate.getModificationSync(param, true)
+    expect(getModificationSync).toBeCalledWith(param)
+    visitorDelegate.getModificationSync(param)
     expect(getModificationSync).toBeCalledTimes(2)
-    expect(getModificationSync).toBeCalledWith(param, true)
+    expect(getModificationSync).toBeCalledWith(param)
   })
 
   it('test getModificationsSync', () => {

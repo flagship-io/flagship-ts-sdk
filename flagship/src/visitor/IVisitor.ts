@@ -43,10 +43,7 @@ export interface IVisitor {
    * @param {modificationsRequested<T>} params
    * @param {boolean} activateAll
    */
-  getModification<T>(
-    params: modificationsRequested<T>,
-    activateAll?: boolean
-  ): Promise<T>;
+  getModification<T>(params: modificationsRequested<T>): Promise<T>;
 
   /**
    * Retrieve an array of modification value by keys. If no modification match the given
@@ -65,10 +62,7 @@ export interface IVisitor {
    * @param {modificationsRequested<T>} params
    * @param {boolean} activateAll
    */
-  getModificationSync<T>(
-    params: modificationsRequested<T>,
-    activateAll?: boolean
-  ): T;
+  getModificationSync<T>(params: modificationsRequested<T>): T;
 
  /**
    *Retrieve an array of modification value by keys. If no modification match the given

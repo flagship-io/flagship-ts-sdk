@@ -187,12 +187,12 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     })
   }
 
-  getModification<T> (params: modificationsRequested<T>, activateAll?: boolean): Promise<T> {
-    return Promise.resolve(this.getModificationSync(params, activateAll))
+  getModification<T> (params: modificationsRequested<T>): Promise<T> {
+    return Promise.resolve(this.getModificationSync(params))
   }
 
-  getModificationSync<T> (params: modificationsRequested<T>, activateAll?: boolean): T {
-    return this.checkAndGetModification(params, activateAll)
+  getModificationSync<T> (params: modificationsRequested<T>): T {
+    return this.checkAndGetModification(params)
   }
 
   getModificationInfo (key: string): Promise<Modification | null> {
