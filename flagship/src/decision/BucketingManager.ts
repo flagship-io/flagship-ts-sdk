@@ -102,8 +102,8 @@ export class BucketingManager extends DecisionManager {
       this._isPooling = false
     }
 
-    private sendContext (visitor: VisitorAbstract):Promise<void> {
-      return new Promise((resolve) => {
+    private async sendContext (visitor: VisitorAbstract):Promise<void> {
+      try {
         const url = sprintf(BUCKETING_API_CONTEXT_URL, this.config.envId)
         const headers:Record<string, string> = {
           [HEADER_X_API_KEY]: `${this.config.apiKey}`,
@@ -116,14 +116,11 @@ export class BucketingManager extends DecisionManager {
           type: 'CONTEXT',
           data: visitor.context
         }
-        this._httpClient.postAsync(url, { headers, body })
-          .then(() => {
-            resolve()
-          })
-          .catch(error => {
-            logError(this.config, error, 'sendContext')
-          })
-      })
+        await this._httpClient.postAsync(url, { headers, body })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error:any) {
+        logError(this.config, error.message || error, 'sendContext')
+      }
     }
 
     getCampaignsAsync (visitor: VisitorAbstract): Promise<CampaignDTO[]> {
