@@ -222,21 +222,17 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return modification
   }
 
-  synchronizeModifications (): Promise<void> {
-    return new Promise((resolve) => {
-      this.decisionManager.getCampaignsAsync(this.visitor)
-        .then(campaigns => {
-          this.visitor.campaigns = campaigns
-          this.visitor.modifications = this.decisionManager.getModifications(this.visitor.campaigns)
-          this.visitor.emit(EMIT_READY)
-          resolve()
-        })
-        .catch(error => {
-          this.visitor.emit(EMIT_READY, error)
-          logError(this.config, error.message || error, PROCESS_SYNCHRONIZED_MODIFICATION)
-          resolve()
-        })
-    })
+  async synchronizeModifications (): Promise<void> {
+    try {
+      const campaigns = await this.decisionManager.getCampaignsAsync(this.visitor)
+      this.visitor.campaigns = campaigns
+      this.visitor.modifications = this.decisionManager.getModifications(this.visitor.campaigns)
+      this.visitor.emit(EMIT_READY)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      this.visitor.emit(EMIT_READY, error)
+      logError(this.config, error.message || error, PROCESS_SYNCHRONIZED_MODIFICATION)
+    }
   }
 
   activateModification (params: string): Promise<void> {
