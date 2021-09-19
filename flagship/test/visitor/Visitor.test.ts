@@ -97,7 +97,7 @@ describe('test visitor', () => {
     visitor.getModification(param)
       .then(() => {
         expect(getModification).toBeCalledTimes(2)
-        expect(getModification).toBeCalledWith(param, undefined)
+        expect(getModification).toBeCalledWith(param)
       })
       .catch((error) => {
         console.log(error)
@@ -106,7 +106,7 @@ describe('test visitor', () => {
     visitor.getModification(param)
       .then(() => {
         expect(getModification).toBeCalledTimes(2)
-        expect(getModification).toBeCalledWith(param, true)
+        expect(getModification).toBeCalledWith(param)
       })
       .catch((error) => {
         console.log(error)
