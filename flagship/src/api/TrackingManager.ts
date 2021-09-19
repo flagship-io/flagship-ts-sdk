@@ -32,42 +32,36 @@ import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { TrackingManagerAbstract } from './TrackingManagerAbstract'
 
 export class TrackingManager extends TrackingManagerAbstract {
-  public sendConsentHit (visitor: VisitorAbstract): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const postBody:Record<string, unknown> = {
-        [T_API_ITEM]: HitType.EVENT,
-        [EVENT_LABEL_API_ITEM]: `${SDK_LANGUAGE}:${visitor.hasConsented}`,
-        [EVENT_ACTION_API_ITEM]: 'fs_content',
-        [EVENT_CATEGORY_API_ITEM]: EventCategory.USER_ENGAGEMENT,
-        [CUSTOMER_ENV_ID_API_ITEM]: this.config.envId,
-        [DS_API_ITEM]: SDK_APP
-      }
+  public async sendConsentHit (visitor: VisitorAbstract): Promise<void> {
+    const postBody:Record<string, unknown> = {
+      [T_API_ITEM]: HitType.EVENT,
+      [EVENT_LABEL_API_ITEM]: `${SDK_LANGUAGE}:${visitor.hasConsented}`,
+      [EVENT_ACTION_API_ITEM]: 'fs_content',
+      [EVENT_CATEGORY_API_ITEM]: EventCategory.USER_ENGAGEMENT,
+      [CUSTOMER_ENV_ID_API_ITEM]: this.config.envId,
+      [DS_API_ITEM]: SDK_APP
+    }
 
-      if (visitor.visitorId && visitor.anonymousId) {
-        postBody[VISITOR_ID_API_ITEM] = visitor.anonymousId
-        postBody[CUSTOMER_UID] = visitor.visitorId
-      } else {
-        postBody[VISITOR_ID_API_ITEM] = visitor.anonymousId || visitor.visitorId
-        postBody[CUSTOMER_UID] = null
-      }
+    if (visitor.visitorId && visitor.anonymousId) {
+      postBody[VISITOR_ID_API_ITEM] = visitor.anonymousId
+      postBody[CUSTOMER_UID] = visitor.visitorId
+    } else {
+      postBody[VISITOR_ID_API_ITEM] = visitor.anonymousId || visitor.visitorId
+      postBody[CUSTOMER_UID] = null
+    }
 
-      const headers = {
-        [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
-      }
+    const headers = {
+      [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
+    }
 
-      this.httpClient.postAsync(HIT_CONSENT_URL, {
-        headers,
-        timeout: this.config.timeout,
-        body: postBody
-      }).then(() => {
-        resolve()
-      }).catch(error => {
-        reject(error)
-      })
+    await this.httpClient.postAsync(HIT_CONSENT_URL, {
+      headers,
+      timeout: this.config.timeout,
+      body: postBody
     })
   }
 
-  public sendActive (
+  public async sendActive (
     visitor: VisitorAbstract,
     modification: Modification
   ): Promise<void> {
@@ -95,39 +89,22 @@ export class TrackingManager extends TrackingManagerAbstract {
       postData[ANONYMOUS_ID] = null
     }
 
-    return new Promise<void>((resolve, reject) => {
-      this.httpClient
-        .postAsync(url, {
-          headers: headers,
-          timeout: this.config.timeout,
-          body: postData
-        })
-        .then(() => {
-          resolve()
-        })
-        .catch((error) => {
-          reject(error)
-        })
+    await this.httpClient.postAsync(url, {
+      headers: headers,
+      timeout: this.config.timeout,
+      body: postData
     })
   }
 
-  public sendHit (hit: HitAbstract): Promise<void> {
+  public async sendHit (hit: HitAbstract): Promise<void> {
     const headers = {
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
-    return new Promise((resolve, reject) => {
-      this.httpClient
-        .postAsync(HIT_API_URL, {
-          headers: headers,
-          timeout: this.config.timeout,
-          body: hit.toApiKeys()
-        })
-        .then(() => {
-          resolve()
-        })
-        .catch((error) => {
-          reject(error)
-        })
+
+    await this.httpClient.postAsync(HIT_API_URL, {
+      headers: headers,
+      timeout: this.config.timeout,
+      body: hit.toApiKeys()
     })
   }
 }
