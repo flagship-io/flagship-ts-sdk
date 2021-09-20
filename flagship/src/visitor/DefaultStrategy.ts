@@ -24,6 +24,7 @@ import { logError, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
 import { DecisionMode } from '../config/index'
+import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 
@@ -38,6 +39,29 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       .catch((error) => {
         logError(this.config, error.message || error, method)
       })
+  }
+
+  private checkPredefinedContext (key:string, value:primitive):boolean|null {
+    const type = FLAGSHIP_CONTEXT[key]
+    if (!type) {
+      return null
+    }
+
+    let check = false
+
+    if (type === 'string') {
+      check = typeof value === 'string'
+    } else if (type === 'number') {
+      check = typeof value === 'number'
+    }
+
+    if (!check) {
+      logError(this.config, sprintf(
+        PREDEFINED_CONTEXT_TYPE_ERROR,
+        key,
+        type), PROCESS_UPDATE_CONTEXT)
+    }
+    return check
   }
 
   /**
@@ -65,20 +89,16 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       )
       return
     }
-    const predefinedContext = this.getPredefinedContext(key, value)
-    if (predefinedContext) {
-      if (!predefinedContext.check) {
-        logError(this.config, sprintf(
-          PREDEFINED_CONTEXT_TYPE_ERROR,
-          predefinedContext.key,
-          predefinedContext.type), PROCESS_UPDATE_CONTEXT)
-        return
-      }
-      key = predefinedContext.key
-    }
+
     if (key.match(/^fs_/i)) {
       return
     }
+
+    const predefinedContext = this.checkPredefinedContext(key, value)
+    if (typeof predefinedContext === 'boolean' && !predefinedContext) {
+      return
+    }
+
     this.visitor.context[key] = value
   }
 
@@ -92,31 +112,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       const value = context[key]
       this.updateContextKeyValue(key, value)
     }
-  }
-
-  private getPredefinedContext (key:string, value:primitive):{key:string, check:boolean, type: string}|null {
-    const checkRegex = key.match(/^{"key":".*",."type":"[a-z]*"}$/)
-    if (checkRegex) {
-      const predefinedContext:{key:string, type:string} = JSON.parse(key)
-      let check:boolean
-      switch (predefinedContext.type) {
-        case 'string':
-          check = typeof value === 'string'
-          break
-        case 'number':
-          check = typeof value === 'number'
-          break
-        default:
-          check = false
-          break
-      }
-      return {
-        key: predefinedContext.key,
-        check,
-        type: predefinedContext.type
-      }
-    }
-    return null
   }
 
   clearContext (): void {

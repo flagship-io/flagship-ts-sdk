@@ -66,19 +66,4 @@ describe('test DefaultStrategy ', () => {
       'sdk_internetConnection',
       'string'), PROCESS_UPDATE_CONTEXT)
   })
-
-  it('test error type', () => {
-    const newContext = {
-      [APP_VERSION_CODE]: 5,
-      town: 'Tokyo',
-      '{"key":"sdk_internetConnection", "type":""}': '8' // type not exist
-    }
-    defaultStrategy.updateContext(newContext)
-    expect(visitorDelegate.context).toEqual({ ...expectContext, town: 'Tokyo' })
-    expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(
-      PREDEFINED_CONTEXT_TYPE_ERROR,
-      'sdk_internetConnection',
-      ''), PROCESS_UPDATE_CONTEXT)
-  })
 })
