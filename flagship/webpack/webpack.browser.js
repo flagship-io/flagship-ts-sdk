@@ -10,7 +10,8 @@ module.exports = merge(common(), {
   resolve: {
     alias: {
       http: false,
-      https: false
+      https: false,
+      'node-fetch': false
     }
   },
   output: {
@@ -22,7 +23,7 @@ module.exports = merge(common(), {
   externals: [
     nodeExternals({
       importType: 'umd',
-      allowlist: ['axios', 'events']
+      allowlist: ['events']
     })
   ]
 })
