@@ -6,12 +6,12 @@ import { DefaultStrategy } from './DefaultStrategy'
 
 export class NoConsentStrategy extends DefaultStrategy {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  activateModificationSync (_params: string): void {
+  async activateModification (_params: string): Promise<void> {
     this.log('activateModification')
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  activateModificationsSync (_params: string[] | { key: string }[]): void {
+  async activateModifications (_params: string[] | { key: string }[]): Promise<void> {
     this.log('activateModifications')
   }
 

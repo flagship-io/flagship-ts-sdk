@@ -303,20 +303,6 @@ describe('test VisitorDelegate methods', () => {
     })
   })
 
-  it('test activateModificationSync', () => {
-    activateModificationSync.mockReturnValue()
-    visitorDelegate.activateModificationSync('key')
-    expect(activateModificationSync).toBeCalledTimes(1)
-    expect(activateModificationSync).toBeCalledWith('key')
-  })
-
-  it('test activateModificationsSync', () => {
-    activateModificationsSync.mockReturnValue()
-    visitorDelegate.activateModificationsSync(['key'])
-    expect(activateModificationsSync).toBeCalledTimes(1)
-    expect(activateModificationsSync).toBeCalledWith(['key'])
-  })
-
   it('test sendHit', () => {
     sendHit.mockResolvedValue()
     const page = { type: HitType.PAGE, documentLocation: 'home' }

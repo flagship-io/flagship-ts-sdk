@@ -195,15 +195,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     abstract synchronizeModifications (): Promise<void>
 
     abstract activateModification(key: string): Promise<void>;
-    abstract activateModificationSync(key: string): void
 
     abstract activateModifications(keys: { key: string; }[]): Promise<void>;
     abstract activateModifications(keys: string[]): Promise<void>;
     abstract activateModifications (params: Array<{ key: string }> | Array<string>): Promise<void>
-
-    abstract activateModificationsSync(keys: { key: string }[]): void
-    abstract activateModificationsSync(keys: string[]): void
-    abstract activateModificationsSync (params:Array<{ key: string }> | Array<string>): void
 
     abstract sendHit(hit: HitAbstract): Promise<void>;
     abstract sendHit(hit: IHit): Promise<void>;

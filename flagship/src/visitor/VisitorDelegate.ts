@@ -45,20 +45,10 @@ export class VisitorDelegate extends VisitorAbstract {
     return this.getStrategy().activateModification(key)
   }
 
-  activateModificationSync (key: string): void {
-    return this.getStrategy().activateModificationSync(key)
-  }
-
   activateModifications(keys: { key: string; }[]): Promise<void>;
   activateModifications(keys: string[]): Promise<void>;
   activateModifications (params: Array<{ key: string }> | Array<string>): Promise<void> {
     return this.getStrategy().activateModifications(params)
-  }
-
-  activateModificationsSync(keys: { key: string }[]): void
-  activateModificationsSync(keys: string[]): void
-  activateModificationsSync (params: Array<{ key: string }> | Array<string>): void {
-    return this.getStrategy().activateModificationsSync(params)
   }
 
   sendHit(hit: HitAbstract): Promise<void>

@@ -9,7 +9,7 @@ import { DefaultStrategy, TYPE_HIT_REQUIRED_ERROR } from '../../src/visitor/Defa
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { Mock } from 'jest-mock'
 import { CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, METHOD_DEACTIVATED_BUCKETING_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_SYNCHRONIZED_MODIFICATION, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_LANGUAGE, SDK_VERSION, TRACKER_MANAGER_MISSING_ERROR, VISITOR_ID_ERROR } from '../../src/enum'
-import { sleep, sprintf } from '../../src/utils/utils'
+import { sprintf } from '../../src/utils/utils'
 import { returnModification } from './modification'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 
@@ -365,8 +365,8 @@ describe('test DefaultStrategy ', () => {
     )
   })
 
-  it('test activateModification', () => {
-    defaultStrategy.activateModificationSync(returnMod.key)
+  it('test activateModification', async () => {
+    await defaultStrategy.activateModification(returnMod.key)
     expect(sendActive).toBeCalledTimes(1)
     expect(sendActive).toBeCalledWith(
       visitorDelegate,
@@ -404,8 +404,8 @@ describe('test DefaultStrategy ', () => {
     )
   })
 
-  it('test invalid key in activateModification', () => {
-    defaultStrategy.activateModificationSync(getNull())
+  it('test invalid key in activateModification', async () => {
+    await defaultStrategy.activateModification(getNull())
     expect(sendActive).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(
@@ -414,8 +414,8 @@ describe('test DefaultStrategy ', () => {
     )
   })
 
-  it('test invalid key in activateModifications', () => {
-    defaultStrategy.activateModificationsSync(getNull())
+  it('test invalid key in activateModifications', async () => {
+    await defaultStrategy.activateModifications(getNull())
     expect(sendActive).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(
@@ -424,8 +424,8 @@ describe('test DefaultStrategy ', () => {
     )
   })
 
-  it('test key not exist in activateModification', () => {
-    defaultStrategy.activateModificationSync(notExitKey)
+  it('test key not exist in activateModification', async () => {
+    await defaultStrategy.activateModification(notExitKey)
     expect(sendActive).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(
@@ -434,10 +434,10 @@ describe('test DefaultStrategy ', () => {
     )
   })
 
-  it('test hasTrackingManager activateModification', () => {
+  it('test hasTrackingManager activateModification', async () => {
     configManager.trackingManager = getNull()
 
-    defaultStrategy.activateModificationSync(returnMod.key)
+    await defaultStrategy.activateModification(returnMod.key)
 
     expect(sendActive).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)

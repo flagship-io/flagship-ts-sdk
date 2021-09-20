@@ -32,12 +32,12 @@ export class NotReadyStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public activateModificationSync (_params: string): void {
+  async activateModification (_params: string): Promise<void> {
     this.log('activateModification')
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public activateModificationsSync (_params: string[] | { key: string }[]): void {
+  async activateModifications (_params: string[] | { key: string }[]): Promise<void> {
     this.log('activateModifications')
   }
 

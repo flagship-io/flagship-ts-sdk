@@ -98,17 +98,6 @@ export class Visitor extends EventEmitter implements IVisitor {
     return this.visitorDelegate.activateModifications(params)
   }
 
-  activateModificationSync (key: string): void {
-    this.visitorDelegate.activateModificationSync(key)
-  }
-
-  activateModificationsSync(keys: { key: string }[]): void
-  activateModificationsSync(keys: string[]): void
-  activateModificationsSync (params: Array<{ key: string }> | Array<string>): void
-  activateModificationsSync (params: Array<{ key: string }> | Array<string>): void {
-    this.visitorDelegate.activateModificationsSync(params)
-  }
-
   sendHit(hit: HitAbstract): Promise<void>;
   sendHit(hit: IHit): Promise<void>;
   sendHit (hit: IHit|HitAbstract): Promise<void>

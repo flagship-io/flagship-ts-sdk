@@ -113,23 +113,6 @@ export interface IVisitor {
    activateModifications(keys: Array<string>): Promise<void>;
 
   /**
-   * Report this user has seen this modification.
-   * @param key : key which identify the modification to activate.
-   */
-  activateModificationSync(key: string): void;
-  /**
-   * Report this user has seen these modifications.
-   * @deprecated use ["key1","key2",...] instead of
-   * @param {Array<{ key: string }>} keys keys which identify the modifications to activate.
-   */
-  activateModificationsSync(keys: Array<{ key: string }>): void;
-  /**
-   * Report this user has seen these modifications.
-   * @param keys  keys which identify the modifications to activate.
-   */
-  activateModificationsSync(keys: Array<string>): void;
-
-  /**
    * Send a Hit to Flagship servers for reporting.
    * @param hit
    */

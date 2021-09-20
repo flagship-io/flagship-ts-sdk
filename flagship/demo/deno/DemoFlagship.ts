@@ -25,6 +25,7 @@ Flagship.start(ENV_ID, API_KEY, {
   statusChangedCallback,
   logLevel: LogLevel.ALL,
   fetchNow: false,
+  timeout:5
 });
 
 const visitor = Flagship.newVisitor({
@@ -56,7 +57,7 @@ const visitor = Flagship.newVisitor({
 
     visitor.setConsent(true);
 
-    await sleep(1000);
+    await sleep(5000);
 
     await visitor.synchronizeModifications();
 
@@ -66,12 +67,12 @@ const visitor = Flagship.newVisitor({
     });
     console.log("modification:", modification);
 
-    Flagship.start(ENV_ID, API_KEY, {
-      decisionMode: DecisionMode.DECISION_API,
-      statusChangedCallback,
-      logLevel: LogLevel.ALL,
-      fetchNow: false,
-    });
+    // Flagship.start(ENV_ID, API_KEY, {
+    //   decisionMode: DecisionMode.DECISION_API,
+    //   statusChangedCallback,
+    //   logLevel: LogLevel.ALL,
+    //   fetchNow: false,
+    // });
 
     for (let index = 0; index < 5; index++) {
       // optional when fetchNow = true, this method is call on each newVisitor

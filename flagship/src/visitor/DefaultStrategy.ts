@@ -147,7 +147,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       )
 
       if (!modification.value && (activate || activateAll)) {
-        this.activateModificationSync(key)
+        this.activateModification(key)
       }
     }
 
@@ -230,47 +230,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
   }
 
-  activateModification (params: string): Promise<void> {
-    return Promise.resolve(this.activateModificationSync(params))
-  }
-
-  activateModifications(keys: { key: string; }[]): Promise<void>;
-  activateModifications(keys: string[]): Promise<void>;
-  activateModifications (params: string[] | { key: string; }[]): Promise<void> {
-    return Promise.resolve(this.activateModificationsSync(params))
-  }
-
-  private hasTrackingManager (process: string): boolean {
-    const check = this.trackingManager
-    if (!check) {
-      logError(this.config, sprintf(TRACKER_MANAGER_MISSING_ERROR), process)
-    }
-    return !!check
-  }
-
-  private activate (key: string) {
-    const modification = this.visitor.modifications.get(key)
-
-    if (!modification) {
-      logError(
-        this.visitor.config,
-        sprintf(GET_MODIFICATION_ERROR, key),
-        PROCESS_ACTIVE_MODIFICATION
-      )
-      return
-    }
-
-    if (!this.hasTrackingManager(PROCESS_ACTIVE_MODIFICATION)) {
-      return
-    }
-
-    this.trackingManager.sendActive(this.visitor, modification)
-      .catch((error) => {
-        logError(this.config, error.message || error, PROCESS_ACTIVE_MODIFICATION)
-      })
-  }
-
-  activateModificationSync (params: string): void {
+  async activateModification (params: string): Promise<void> {
     if (!params || typeof params !== 'string') {
       logError(
         this.config,
@@ -279,13 +239,12 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       )
       return
     }
-    this.activate(params)
+    return this.activate(params)
   }
 
-  activateModificationsSync(keys: { key: string }[]): void
-  activateModificationsSync(keys: string[]): void
-  activateModificationsSync(params:string[] | { key: string }[]): void
-  activateModificationsSync (params: string[] | { key: string }[]): void {
+  activateModifications(keys: { key: string; }[]): Promise<void>;
+  activateModifications(keys: string[]): Promise<void>;
+  async activateModifications (params: string[] | { key: string; }[]): Promise<void> {
     if (!params || !Array.isArray(params)) {
       logError(
         this.config,
@@ -299,6 +258,38 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         this.activate(item)
       } else this.activate(item.key)
     })
+  }
+
+  private hasTrackingManager (process: string): boolean {
+    const check = this.trackingManager
+    if (!check) {
+      logError(this.config, sprintf(TRACKER_MANAGER_MISSING_ERROR), process)
+    }
+    return !!check
+  }
+
+  private async activate (key: string) {
+    try {
+      const modification = this.visitor.modifications.get(key)
+
+      if (!modification) {
+        logError(
+          this.visitor.config,
+          sprintf(GET_MODIFICATION_ERROR, key),
+          PROCESS_ACTIVE_MODIFICATION
+        )
+        return
+      }
+
+      if (!this.hasTrackingManager(PROCESS_ACTIVE_MODIFICATION)) {
+        return
+      }
+
+      await this.trackingManager.sendActive(this.visitor, modification)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      logError(this.config, error.message || error, PROCESS_ACTIVE_MODIFICATION)
+    }
   }
 
   sendHit(hit: HitAbstract): Promise<void>;

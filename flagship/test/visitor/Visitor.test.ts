@@ -203,22 +203,6 @@ describe('test visitor', () => {
     })
   })
 
-  it('test activateModificationSync', () => {
-    const activateModificationSync = jest.spyOn(visitorDelegate, 'activateModificationSync')
-    activateModificationSync.mockReturnValue()
-    visitor.activateModificationSync('key')
-    expect(activateModificationSync).toBeCalledTimes(1)
-    expect(activateModificationSync).toBeCalledWith('key')
-  })
-
-  it('test activateModificationsSync', () => {
-    const activateModificationsSync = jest.spyOn(visitorDelegate, 'activateModificationsSync')
-    activateModificationsSync.mockReturnValue()
-    visitor.activateModificationsSync(['key'])
-    expect(activateModificationsSync).toBeCalledTimes(1)
-    expect(activateModificationsSync).toBeCalledWith(['key'])
-  })
-
   it('test sendHit', () => {
     const sendHit = jest.spyOn(visitorDelegate, 'sendHit')
     sendHit.mockResolvedValue()
