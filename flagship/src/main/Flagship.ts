@@ -5,7 +5,6 @@ import { DecisionApiConfig } from '../config/DecisionApiConfig'
 import { ConfigManager, IConfigManager } from '../config/ConfigManager'
 import { ApiManager } from '../decision/ApiManager'
 import { TrackingManager } from '../api/TrackingManager'
-import { HttpClient } from '../utils/NodeHttpClient'
 import { FlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, logInfo, sprintf } from '../utils/utils'
 import {
@@ -20,6 +19,7 @@ import { BucketingManager } from '../decision/BucketingManager'
 import { MurmurHash } from '../utils/MurmurHash'
 import { primitive } from '../types'
 import { DecisionManager } from '../decision/DecisionManager'
+import { HttpClient } from '../utils/HttpClient'
 
 export interface INewVisitor{
   /**

@@ -1,7 +1,7 @@
 import { IDecisionManager } from './IDecisionManager'
 import { Modification } from '../model/Modification'
 import { IFlagshipConfig } from '../config/FlagshipConfig'
-import { IHttpClient } from '../utils/httpClient'
+import { IHttpClient } from '../utils/HttpClient'
 import { CampaignDTO } from './api/models'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { FlagshipStatus } from '../enum/index'

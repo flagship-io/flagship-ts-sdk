@@ -1,7 +1,7 @@
 import { IFlagshipConfig } from '../config/FlagshipConfig'
 import { HitAbstract } from '../hit/HitAbstract'
 import { Modification } from '../model/Modification'
-import { IHttpClient } from '../utils/httpClient'
+import { IHttpClient } from '../utils/HttpClient'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 
 export interface ITrackingManager {
