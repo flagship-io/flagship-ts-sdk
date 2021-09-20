@@ -1,18 +1,18 @@
-import axios from 'axios'
+export const globalOption:Record<string, unknown> = {}
 
-export const axiosInstance = axios.create({})
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+export const fetch = typeof window === 'undefined' ? require('node-fetch').default : window.fetch
 
 if (typeof window === 'undefined') {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { Agent: HttpAgent } = require('http')
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { Agent: HttpAgents } = require('https')
-  axiosInstance.defaults.httpAgent = new HttpAgent({ keepAlive: true })
-  axiosInstance.defaults.httpsAgent = new HttpAgents({ keepAlive: true })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  globalOption.agent = (parsedURL:URL) => {
+    return parsedURL.protocol === 'http:' ? new HttpAgent({ keepAlive: true }) : new HttpAgents({ keepAlive: true })
+  }
 }
-
-export const defaultAxios = axios
-
-export { AxiosResponse, AxiosError, AxiosRequestConfig } from 'axios'
 
 export { EventEmitter } from 'events'
