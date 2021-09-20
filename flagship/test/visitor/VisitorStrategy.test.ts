@@ -5,7 +5,7 @@ import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
 import { GET_MODIFICATION_ERROR, METHOD_DEACTIVATED_CONSENT_ERROR, METHOD_DEACTIVATED_ERROR, PROCESS_ACTIVE_MODIFICATION } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { IHttpClient } from '../../src/utils/httpClient'
+import { IHttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
 import { VisitorDelegate } from '../../src/visitor'
 

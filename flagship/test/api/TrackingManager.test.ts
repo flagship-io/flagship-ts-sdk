@@ -1,7 +1,7 @@
 import { jest, expect, it, describe } from '@jest/globals'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager, DecisionApiConfig } from '../../src/config/index'
-import { HttpClient } from '../../src/utils/NodeHttpClient'
+import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { Modification } from '../../src/model/Modification'
 import {
   ANONYMOUS_ID,
@@ -29,14 +29,14 @@ import {
   VARIATION_ID_API_ITEM,
   VISITOR_ID_API_ITEM
 } from '../../src/enum/index'
-import { IHttpResponse } from '../../src/utils/httpClient'
+
 import { EventCategory, Page } from '../../src/hit/index'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { ApiManager } from '../../src/decision/ApiManager'
 import { DecisionManager } from '../../src/decision/DecisionManager'
 
 // mock NodeHttpClient
-jest.mock('../../src/utils/NodeHttpClient')
+jest.mock('../../src/utils/HttpClient')
 
 describe('test TrackingManager sendActive ', () => {
   const httpClient = new HttpClient()

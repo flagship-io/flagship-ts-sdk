@@ -2,7 +2,7 @@ import { jest, expect, it, describe } from '@jest/globals'
 import { Flagship, DecisionMode } from '../../src'
 import { IFlagshipConfig } from '../../src/config'
 import { MurmurHash } from '../../src/utils/MurmurHash'
-import { HttpClient } from '../../src/utils/NodeHttpClient'
+import { HttpClient } from '../../src/utils/HttpClient'
 
 const startPolling = jest.fn()
 const stopPolling = jest.fn()

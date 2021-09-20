@@ -2,12 +2,11 @@ import { jest, expect, it, describe } from '@jest/globals'
 import { BucketingConfig } from '../../src/config/BucketingConfig'
 import { MurmurHash } from '../../src/utils/MurmurHash'
 import { BucketingManager } from '../../src/decision/BucketingManager'
-import { HttpClient } from '../../src/utils/NodeHttpClient'
 import { bucketing } from './bucketing'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { BUCKETING_API_CONTEXT_URL, BUCKETING_API_URL, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, SDK_LANGUAGE, SDK_VERSION } from '../../src/enum'
-import { sprintf } from '../../src/utils/utils'
-import { IHttpResponse } from '../../src/utils/httpClient'
+import { sprintf, sleep } from '../../src/utils/utils'
+import { IHttpResponse, HttpClient } from '../../src/utils/HttpClient'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { BucketingDTO } from '../../src/decision/api/bucketingDTO'
 import { DecisionManager } from '../../src/decision/DecisionManager'
@@ -42,7 +41,8 @@ describe('test BucketingManager', () => {
 
   it('test getCampaignsAsync panic mode', async () => {
     getAsync.mockResolvedValue({ body: { panic: true }, status: 200 })
-    await bucketingManager.startPolling()
+    bucketingManager.startPolling()
+    await sleep(500)
     const campaigns = await bucketingManager.getCampaignsAsync(visitor)
     expect(campaigns).toHaveLength(0)
     expect(bucketingManager.isPanic()).toBeTruthy()
@@ -87,7 +87,8 @@ describe('test BucketingManager', () => {
 
   it('test getCampaignsAsync campaign', async () => {
     getAsync.mockResolvedValue({ body: bucketing, status: 200 })
-    await bucketingManager.startPolling()
+    bucketingManager.startPolling()
+    await sleep(500)
     const modifications = await bucketingManager.getCampaignsModificationsAsync(visitor)
     expect(modifications.size).toBe(6)
     expect(getAsync).toBeCalledTimes(1)
@@ -135,8 +136,9 @@ describe('test update', () => {
       }
       count++
     })
-    await bucketingManager.startPolling()
-    await bucketingManager.startPolling()
+    bucketingManager.startPolling()
+    bucketingManager.startPolling()
+    await sleep(500)
     expect(updateFlagshipStatus).toBeCalledTimes(2)
   })
 })
@@ -173,7 +175,8 @@ describe('test error', () => {
       count++
     })
 
-    await bucketingManager.startPolling()
+    bucketingManager.startPolling()
+    await sleep(500)
     expect(updateFlagshipStatus).toBeCalledTimes(2)
   })
 })

@@ -16,8 +16,7 @@ import {
   SEND_CONTEXT_EVENT,
   URL_CAMPAIGNS
 } from '../../src/enum/index'
-import { IHttpResponse } from '../../src/utils/httpClient'
-import { HttpClient } from '../../src/utils/NodeHttpClient'
+import { IHttpResponse, HttpClient } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { campaigns } from './campaigns'
 import { Mock } from 'jest-mock'

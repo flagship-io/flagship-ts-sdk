@@ -5,7 +5,7 @@ import { ConfigManager, DecisionApiConfig, FlagshipConfig } from '../../src/conf
 import { ApiManager } from '../../src/decision/ApiManager'
 import { HitType, VISITOR_ID_ERROR } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { HttpClient } from '../../src/utils/NodeHttpClient'
+import { HttpClient } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { Mock } from 'jest-mock'
 import { IHit, modificationsRequested } from '../../src/types'
