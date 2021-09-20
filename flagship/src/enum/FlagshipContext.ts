@@ -1,113 +1,136 @@
 /**
      * Current device locale
      */
-export const DEVICE_LOCALE = '{"key":"sdk_deviceLanguage", "type":"string"}'
+export const DEVICE_LOCALE = 'sdk_deviceLanguage'
 /**
   * Current device type  tablet, pc, server, iot, other
 
   */
-export const DEVICE_TYPE = '{"key":"sdk_deviceType", "type":"string"}'
+export const DEVICE_TYPE = 'sdk_deviceType'
 /**
   * Current device model
   */
-export const DEVICE_MODEL = '{"key":"sdk_deviceModel", "type":"string"}'
+export const DEVICE_MODEL = 'sdk_deviceModel'
 /**
   * Current visitor city
 
   */
-export const LOCATION_CITY = '{"key":"sdk_city", "type":"string"}'
+export const LOCATION_CITY = 'sdk_city'
 /**
   * Current visitor region
 
   */
-export const LOCATION_REGION = '{"key":"sdk_region", "type":"string"}'
+export const LOCATION_REGION = 'sdk_region'
 
 /**
   * Current visitor country
 
   */
-export const LOCATION_COUNTRY = '{"key":"sdk_country", "type":"string"}'
+export const LOCATION_COUNTRY = 'sdk_country'
 
 /**
   * Current visitor latitude
 
   */
-export const LOCATION_LAT = '{"key":"sdk_lat", "type":"number"}'
+export const LOCATION_LAT = 'sdk_lat'
 
 /**
   * Current visitor longitude
 
   */
-export const LOCATION_LONG = '{"key":"sdk_long", "type":"number"}'
+export const LOCATION_LONG = 'sdk_long'
 
 /**
   * Device public ip
 
   */
-export const IP = '{"key":"sdk_ip", "type":"string"}'
+export const IP = 'sdk_ip'
 
 /**
   * OS name
 
   */
-export const OS_NAME = '{"key":"sdk_osName", "type":"string"}'
+export const OS_NAME = 'sdk_osName'
 
 /**
   * OS version name
 
   */
-export const OS_VERSION_NAME = '{"key":"sdk_osVersionName", "type":"string"}'
+export const OS_VERSION_NAME = 'sdk_osVersionName'
 
 /**
   * OS version code
 
   */
-export const OS_VERSION_CODE = '{"key":"sdk_osVersionCode", "type":"number"}'
+export const OS_VERSION_CODE = 'sdk_osVersionCode'
 
 /**
   * Carrier operator
 
   */
-export const CARRIER_NAME = '{"key":"sdk_carrierName", "type":"string"}'
+export const CARRIER_NAME = 'sdk_carrierName'
 
 /**
   * Internet connection type : 4G, 5G, Fiber
 
   */
-export const INTERNET_CONNECTION = '{"key":"sdk_internetConnection", "type":"string"}'
+export const INTERNET_CONNECTION = 'sdk_internetConnection'
 
 /**
   * Customer app version name
 
   */
-export const APP_VERSION_NAME = '{"key":"sdk_versionName", "type":"string"}'
+export const APP_VERSION_NAME = 'sdk_versionName'
 
 /**
   * Customer app version code
 
   */
-export const APP_VERSION_CODE = '{"key":"sdk_versionCode", "type":"number"}'
+export const APP_VERSION_CODE = 'sdk_versionCode'
 
 /**
   * Current customer app interface name
 
   */
-export const INTERFACE_NAME = '{"key":"sdk_interfaceName", "type":"string"}'
+export const INTERFACE_NAME = 'sdk_interfaceName'
 
 /**
   * Flagship SDK client name
 
   */
-export const FLAGSHIP_CLIENT = '{"key":"fs_client", "type":"string"}'
+export const FLAGSHIP_CLIENT = 'fs_client'
 
 /**
   * Flagship SDK version name
 
   */
-export const FLAGSHIP_VERSION = '{"key":"fs_version", "type":"string"}'
+export const FLAGSHIP_VERSION = 'fs_version'
 
 /**
   * Current visitor id
 
   */
-export const FLAGSHIP_VISITOR = '{"key":"fs_users", "type":"string"}'
+export const FLAGSHIP_VISITOR = 'fs_users'
+
+export const FLAGSHIP_CONTEXT:Record<string, string> = {
+  [DEVICE_LOCALE]: 'string',
+  [DEVICE_TYPE]: 'string',
+  [DEVICE_MODEL]: 'string',
+  [LOCATION_CITY]: 'string',
+  [LOCATION_REGION]: 'string',
+  [LOCATION_COUNTRY]: 'string',
+  [LOCATION_LAT]: 'number',
+  [LOCATION_LONG]: 'number',
+  [IP]: 'string',
+  [OS_NAME]: 'string',
+  [OS_VERSION_NAME]: 'string',
+  [OS_VERSION_CODE]: 'number',
+  [CARRIER_NAME]: 'string',
+  [INTERNET_CONNECTION]: 'string',
+  [APP_VERSION_NAME]: 'string',
+  [APP_VERSION_CODE]: 'number',
+  [INTERFACE_NAME]: 'string',
+  [FLAGSHIP_CLIENT]: 'string',
+  [FLAGSHIP_VERSION]: 'string',
+  [FLAGSHIP_VISITOR]: 'string'
+}
