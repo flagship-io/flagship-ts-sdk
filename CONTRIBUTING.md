@@ -21,15 +21,15 @@ flagship-ts-sdk/flagship$ yarn install
 
 1. Ensure you're able to do a build.
 
-    ```bash
-    flagship-ts-sdk$ cd flagship
-    flagship-ts-sdk/flagship$ yarn run build
-    ```
+   ```bash
+   flagship-ts-sdk$ cd flagship
+   flagship-ts-sdk/flagship$ yarn run build
+   ```
 
 2. Ensure you're able to pass unit test.
 
    ```bash
-   flagship-js-sdk/flagship$ yarn run test
+   flagship-ts-sdk/flagship$ yarn run test
    ```
 
 3. Consider updating the [README.md](./README.md) with details of changes if needed.
