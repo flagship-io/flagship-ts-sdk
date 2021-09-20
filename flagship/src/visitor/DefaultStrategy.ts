@@ -304,13 +304,21 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   sendHit(hit: HitAbstract): Promise<void>;
   sendHit(hit: IHit): Promise<void>;
   sendHit (hit: IHit|HitAbstract): Promise<void> {
-    return Promise.resolve(this.sendHitSync(hit))
+    if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
+      return Promise.resolve()
+    }
+    return this.prepareAndSendHit(hit)
   }
 
-  sendHits(hit: HitAbstract[]): Promise<void>;
-  sendHits(hit: IHit[]): Promise<void>;
-  sendHits (hit: HitAbstract[] | IHit[]): Promise<void> {
-    return Promise.resolve(this.sendHitsSync(hit))
+  sendHits(hits: HitAbstract[]): Promise<void>;
+  sendHits(hits: IHit[]): Promise<void>;
+  async sendHits (hits: HitAbstract[] | IHit[]): Promise<void> {
+    if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
+      return Promise.resolve()
+    }
+    hits.forEach((hit) => {
+      this.prepareAndSendHit(hit)
+    })
   }
 
   private getHit (hit:IHit) {
@@ -339,51 +347,32 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   private async prepareAndSendHit (hit:IHit|HitAbstract) {
-    let hitInstance:HitAbstract
-    if (hit instanceof HitAbstract) {
-      hitInstance = hit
-    } else {
-      const hitFromInt = this.getHit(hit)
-      if (!hitFromInt) {
-        logError(this.config, TYPE_HIT_REQUIRED_ERROR, PROCESS_SEND_HIT)
+    try {
+      let hitInstance:HitAbstract
+      if (hit instanceof HitAbstract) {
+        hitInstance = hit
+      } else {
+        const hitFromInt = this.getHit(hit)
+        if (!hitFromInt) {
+          logError(this.config, TYPE_HIT_REQUIRED_ERROR, PROCESS_SEND_HIT)
+          return
+        }
+        hitInstance = hitFromInt
+      }
+      hitInstance.visitorId = this.visitor.visitorId
+      hitInstance.ds = SDK_APP
+      hitInstance.config = this.config
+      hitInstance.anonymousId = this.visitor.anonymousId
+
+      if (!hitInstance.isReady()) {
+        logError(this.config, hitInstance.getErrorMessage(), PROCESS_SEND_HIT)
         return
       }
-      hitInstance = hitFromInt
-    }
-    hitInstance.visitorId = this.visitor.visitorId
-    hitInstance.ds = SDK_APP
-    hitInstance.config = this.config
-    hitInstance.anonymousId = this.visitor.anonymousId
-
-    if (!hitInstance.isReady()) {
-      logError(this.config, hitInstance.getErrorMessage(), PROCESS_SEND_HIT)
-      return
-    }
-    this.trackingManager.sendHit(hitInstance).catch((error) => {
+      await this.trackingManager.sendHit(hitInstance)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
       logError(this.config, error.message || error, PROCESS_SEND_HIT)
-    })
-  }
-
-  sendHitsSync(hit: HitAbstract[]): void
-  sendHitsSync(hit: IHit[]): void
-  sendHitsSync (hit:HitAbstract[] | IHit []): void
-  sendHitsSync (hit:HitAbstract[] | IHit []): void {
-    if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
-      return
     }
-    hit.forEach(item => {
-      this.prepareAndSendHit(item)
-    })
-  }
-
-  sendHitSync(hit: HitAbstract): void
-  sendHitSync(hit: IHit): void
-  sendHitSync (hit: IHit|HitAbstract): void
-  sendHitSync (hit: IHit|HitAbstract): void {
-    if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
-      return
-    }
-    this.prepareAndSendHit(hit)
   }
 
   /**

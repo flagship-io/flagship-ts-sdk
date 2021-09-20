@@ -239,24 +239,6 @@ describe('test visitor', () => {
     })
   })
 
-  it('test sendHitSync', () => {
-    const sendHitSync = jest.spyOn(visitorDelegate, 'sendHitSync')
-    sendHitSync.mockReturnValue()
-    const page = { type: HitType.PAGE, documentLocation: 'home' }
-    visitor.sendHitSync(page)
-    expect(sendHitSync).toBeCalledTimes(1)
-    expect(sendHitSync).toBeCalledWith(page)
-  })
-
-  it('test sendHitsSync', () => {
-    const sendHitsSync = jest.spyOn(visitorDelegate, 'sendHitsSync')
-    sendHitsSync.mockReturnValue()
-    const page = [{ type: HitType.PAGE, documentLocation: 'home' }]
-    visitor.sendHitsSync(page)
-    expect(sendHitsSync).toBeCalledTimes(1)
-    expect(sendHitsSync).toBeCalledWith(page)
-  })
-
   it('test getAllModifications', () => {
     const getAllModifications = jest.spyOn(visitorDelegate, 'getAllModifications')
     getAllModifications.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })

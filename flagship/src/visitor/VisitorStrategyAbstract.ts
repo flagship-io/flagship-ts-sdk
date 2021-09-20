@@ -60,17 +60,9 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     abstract sendHit(hit: IHit): Promise<void>;
     abstract sendHit(hit: IHit|HitAbstract): Promise<void>;
 
-    abstract sendHitSync(hit: HitAbstract): void;
-    abstract sendHitSync(hit: IHit): void;
-    abstract sendHitSync(hit: IHit|HitAbstract): void;
-
     abstract sendHits(hit: HitAbstract[]): Promise<void>;
     abstract sendHits(hit: IHit[]): Promise<void>;
     abstract sendHits (hit: HitAbstract[]|IHit[]): Promise<void>
-
-    abstract sendHitsSync(hit: HitAbstract[]): void;
-    abstract sendHitsSync(hit: IHit[]): void;
-    abstract sendHitsSync (hit: HitAbstract[]|IHit[]): void
 
     abstract getAllModifications (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 

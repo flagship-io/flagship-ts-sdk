@@ -116,25 +116,11 @@ export class Visitor extends EventEmitter implements IVisitor {
     return this.visitorDelegate.sendHit(hit)
   }
 
-  sendHitSync(hit: HitAbstract): void;
-  sendHitSync(hit: IHit): void;
-  sendHitSync (hit: IHit|HitAbstract): void
-  sendHitSync (hit: IHit|HitAbstract): void {
-    this.visitorDelegate.sendHitSync(hit)
-  }
-
   sendHits(hits: HitAbstract[]): Promise<void>;
   sendHits(hits: IHit[]): Promise<void>;
   sendHits (hits: HitAbstract[]|IHit[]): Promise<void>
   sendHits (hits: HitAbstract[]|IHit[]): Promise<void> {
     return this.visitorDelegate.sendHits(hits)
-  }
-
-  sendHitsSync(hits: HitAbstract[]): void;
-  sendHitsSync(hits: IHit[]): void;
-  sendHitsSync (hits: HitAbstract[]|IHit[]): void
-  sendHitsSync (hits: HitAbstract[]|IHit[]): void {
-    this.visitorDelegate.sendHitsSync(hits)
   }
 
   getAllModifications (activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {

@@ -42,13 +42,15 @@ export class NotReadyStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  sendHitSync (_hit: HitAbstract | IHit): void {
+  sendHit (_hit: HitAbstract | IHit): Promise<void> {
     this.log('sendHit')
+    return Promise.resolve()
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  sendHitsSync (_hits: HitAbstract[] | IHit[]): void {
+  sendHits (_hits: HitAbstract[] | IHit[]): Promise<void> {
     this.log('sendHits')
+    return Promise.resolve()
   }
 
   private log (methodName:string) {

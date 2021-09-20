@@ -27,7 +27,6 @@ const activateModifications:Mock<Promise<void>, [keys: string[]]> = jest.fn()
 const activateModificationSync:Mock<void, [keys: string]> = jest.fn()
 const activateModificationsSync:Mock<void, [keys: string[]]> = jest.fn()
 const sendHit:Mock<Promise<void>, [hit: IHit]> = jest.fn()
-const sendHitSync:Mock<void, [hit: IHit]> = jest.fn()
 
 const sendHits:Mock<Promise<void>, [hit: IHit[]]> = jest.fn()
 const sendHitsSync:Mock<void, [hit: IHit[]]> = jest.fn()
@@ -64,7 +63,6 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         activateModifications,
         activateModificationsSync,
         sendHit,
-        sendHitSync,
         sendHits,
         sendHitsSync,
         getAllModifications,
@@ -335,22 +333,6 @@ describe('test VisitorDelegate methods', () => {
       expect(sendHits).toBeCalledTimes(1)
       expect(sendHits).toBeCalledWith(page)
     })
-  })
-
-  it('test sendHitSync', () => {
-    sendHitSync.mockReturnValue()
-    const page = { type: HitType.PAGE, documentLocation: 'home' }
-    visitorDelegate.sendHitSync(page)
-    expect(sendHitSync).toBeCalledTimes(1)
-    expect(sendHitSync).toBeCalledWith(page)
-  })
-
-  it('test sendHitsSync', () => {
-    sendHitsSync.mockReturnValue()
-    const page = [{ type: HitType.PAGE, documentLocation: 'home' }]
-    visitorDelegate.sendHitsSync(page)
-    expect(sendHitsSync).toBeCalledTimes(1)
-    expect(sendHitsSync).toBeCalledWith(page)
   })
 
   it('test getAllModifications', () => {

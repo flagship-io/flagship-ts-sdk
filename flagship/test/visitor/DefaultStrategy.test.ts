@@ -9,7 +9,7 @@ import { DefaultStrategy, TYPE_HIT_REQUIRED_ERROR } from '../../src/visitor/Defa
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { Mock } from 'jest-mock'
 import { CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, METHOD_DEACTIVATED_BUCKETING_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_SYNCHRONIZED_MODIFICATION, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_LANGUAGE, SDK_VERSION, TRACKER_MANAGER_MISSING_ERROR, VISITOR_ID_ERROR } from '../../src/enum'
-import { sprintf } from '../../src/utils/utils'
+import { sleep, sprintf } from '../../src/utils/utils'
 import { returnModification } from './modification'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 
@@ -502,15 +502,15 @@ describe('test DefaultStrategy ', () => {
 
   const hitScreen = new Screen({ documentLocation: 'home' })
 
-  it('test sendHit', () => {
-    defaultStrategy.sendHitSync(hitScreen)
+  it('test sendHit', async () => {
+    await defaultStrategy.sendHit(hitScreen)
     expect(sendHit).toBeCalledTimes(1)
     expect(sendHit).toBeCalledWith(hitScreen)
   })
 
-  it('test hasTrackingManager sendHitSync', () => {
+  it('test hasTrackingManager sendHit', async () => {
     configManager.trackingManager = getNull()
-    defaultStrategy.sendHitSync(hitScreen)
+    await defaultStrategy.sendHit(hitScreen)
 
     expect(sendHit).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
@@ -522,9 +522,9 @@ describe('test DefaultStrategy ', () => {
     configManager.trackingManager = trackingManager
   })
 
-  it('test hasTrackingManager sendHitSync', () => {
+  it('test hasTrackingManager sendHits', async () => {
     configManager.trackingManager = getNull()
-    defaultStrategy.sendHitsSync([hitScreen])
+    await defaultStrategy.sendHits([hitScreen])
 
     expect(sendHit).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
@@ -532,13 +532,12 @@ describe('test DefaultStrategy ', () => {
       TRACKER_MANAGER_MISSING_ERROR,
       PROCESS_SEND_HIT
     )
-
     configManager.trackingManager = trackingManager
   })
 
-  it('test isReady sendHit', () => {
+  it('test isReady sendHit', async () => {
     const hitScreenNull = new Screen(getNull())
-    defaultStrategy.sendHitSync(hitScreenNull)
+    await defaultStrategy.sendHit(hitScreenNull)
 
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(
@@ -679,6 +678,7 @@ describe('test DefaultStrategy ', () => {
     } catch (error) {
       expect(logError).toBeCalled()
     }
+    // await sleep(4000)
     expect(sendHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ ...hits[0], visitorId, ds: SDK_APP, config }))
     expect(sendHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ ...hits[1], visitorId, ds: SDK_APP, config }))
     expect(sendHit).toBeCalledTimes(2)

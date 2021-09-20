@@ -144,20 +144,6 @@ export interface IVisitor {
   sendHits(hit: Array<IHit>): Promise<void>;
 
   /**
-   * Send a Hit to Flagship servers for reporting.
-   * @param hit
-   */
-  sendHitSync(hit: HitAbstract): void;
-  sendHitSync(hit: IHit | HitAbstract): void;
-
-  /**
-  * Send a Hits to Flagship servers for reporting.
-  * @param hit
-  */
-  sendHitsSync(hit: Array<HitAbstract>): void;
-  sendHitsSync(hit: Array<IHit>): void;
-
-  /**
    * returns a Promise<object> containing all the data for all the campaigns associated with the current visitor.
    *@deprecated
    */
