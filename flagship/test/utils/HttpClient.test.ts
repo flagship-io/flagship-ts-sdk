@@ -1,22 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { jest, expect, it, describe } from '@jest/globals'
-import { HttpClient } from '../../src/utils/NodeHttpClient'
-import { IHttpOptions } from '../../src/utils/httpClient'
-import {
-  axiosInstance as axios,
-  AxiosError,
-  AxiosRequestConfig
-} from '../../src/nodeDeps'
-import { Mock } from 'jest-mock'
+import { HttpClient, IHttpOptions } from '../../src/utils/HttpClient'
+import { Response } from 'node-fetch'
+import * as nodeDeps from '../../src/nodeDeps'
+
+globalThis.AbortController = require('abort-controller')
 
 describe('test Post method NOdeHttpClient', () => {
-  const axiosPost: Mock<
-    Promise<any>,
-    [url: string, data?: any, config?: AxiosRequestConfig]
-  > = jest.fn()
-
-  axios.post = axiosPost
-
+  const fetch = jest.spyOn(nodeDeps, 'fetch')
   const nodeHttpClient = new HttpClient()
   const url = 'https://localhost'
   const timeout = 2000
@@ -33,39 +24,35 @@ describe('test Post method NOdeHttpClient', () => {
   const responseJson = { isVip: true }
 
   it('should ', () => {
-    axiosPost.mockResolvedValue({ data: responseJson, status: 200 })
+    fetch.mockResolvedValue(new Response(JSON.stringify(responseJson), { status: 200 }))
     nodeHttpClient.postAsync(url, options).then((response) => {
-      expect(response.body).toEqual(responseJson)
+      expect(response.body).toEqual(JSON.stringify(responseJson))
     })
   })
 
   it('should ', async () => {
-    const error: AxiosError = {
+    const error = {
       config: {},
       isAxiosError: true,
       toJSON: jest.fn(),
       name: 'error',
       message: 'error'
     }
-    axiosPost.mockRejectedValue(error)
+    fetch.mockRejectedValue(error)
     try {
       options.timeout = undefined
       await nodeHttpClient.postAsync(url, options)
-      expect(axiosPost).toBeCalledTimes(1)
-    } catch (error) {
-      expect(error).toBe('error')
+      expect(fetch).toBeCalledTimes(1)
+    } catch (err) {
+      console.log(error)
+
+      expect(err).toEqual(error)
     }
   })
 })
 
 describe('test Get method NOdeHttpClient', () => {
-  const axiosGet: Mock<
-    Promise<any>,
-    [url: string, config?: AxiosRequestConfig]
-  > = jest.fn()
-
-  axios.get = axiosGet
-
+  const fetch = jest.spyOn(nodeDeps, 'fetch')
   const nodeHttpClient = new HttpClient()
   const url = 'https://localhost'
   const timeout = 2000
@@ -79,27 +66,22 @@ describe('test Get method NOdeHttpClient', () => {
   const responseJson = { isVip: true }
 
   it('should ', () => {
-    axiosGet.mockResolvedValue({ data: responseJson, status: 200 })
+    fetch.mockResolvedValue(new Response(JSON.stringify(responseJson), { status: 200, headers: { 'Content-Type': 'application/json' } }))
     nodeHttpClient.getAsync(url, options).then((response) => {
       expect(response.body).toEqual(responseJson)
     })
   })
 
   it('should ', async () => {
-    const error: AxiosError = {
-      config: {},
-      isAxiosError: true,
-      toJSON: jest.fn(),
-      name: 'error',
-      message: 'error'
-    }
-    axiosGet.mockRejectedValue(error)
+    const error = 'error'
+    fetch.mockRejectedValue(new Response(JSON.stringify(error),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }))
     try {
       options.timeout = undefined
       await nodeHttpClient.getAsync(url, options)
-      expect(axiosGet).toBeCalledTimes(1)
-    } catch (error) {
-      expect(error).toBe('error')
+      expect(fetch).toBeCalledTimes(1)
+    } catch (err) {
+      expect(error).toEqual(error)
     }
   })
 })
