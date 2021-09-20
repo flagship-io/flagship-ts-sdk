@@ -213,7 +213,7 @@ export class BucketingManager extends DecisionManager {
     for (const { key, value, operator } of targetings) {
       if (key === 'fs_all_users') {
         check = true
-        break
+        continue
       } else if (key === 'fs_users') {
         contextValue = visitor.visitorId
       } else {
