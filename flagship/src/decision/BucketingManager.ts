@@ -223,7 +223,11 @@ export class BucketingManager extends DecisionManager {
         contextValue = visitor.context[key]
       }
 
-      return this.testOperator(operator, contextValue, value)
+      check = this.testOperator(operator, contextValue, value)
+
+      if (!check) {
+        break
+      }
     }
     return check
   }

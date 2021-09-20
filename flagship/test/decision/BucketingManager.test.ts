@@ -368,17 +368,36 @@ describe('test bucketing method', () => {
     expect(response).toBeTruthy()
   })
 
-  it('test checkAndTargeting fs_all_users', () => {
+  it('test checkAndTargeting fs_users', () => {
     const testOperator = jest.spyOn(bucketingManagerAny, 'testOperator')
-    const targetingFsUsers = {
+    const targetingFsUsers = [{
       key: 'fs_users',
-      operator: 'EQUALS',
-      value: visitorId
-    }
-    const response = bucketingManagerAny.checkAndTargeting([targetingFsUsers], visitor)
+      operator: 'STARTS_WITH',
+      value: '12'
+    }, {
+      key: 'fs_users',
+      operator: 'ENDS_WITH',
+      value: '6'
+    }]
+    const response = bucketingManagerAny.checkAndTargeting(targetingFsUsers, visitor)
     expect(response).toBeTruthy()
+    expect(testOperator).toBeCalledTimes(2)
+  })
+
+  it('test checkAndTargeting fs_users targeting and', () => {
+    const testOperator = jest.spyOn(bucketingManagerAny, 'testOperator')
+    const targetingFsUsers = [{
+      key: 'fs_users',
+      operator: 'STARTS_WITH',
+      value: '2'
+    }, {
+      key: 'fs_users',
+      operator: 'ENDS_WITH',
+      value: '6'
+    }]
+    const response = bucketingManagerAny.checkAndTargeting(targetingFsUsers, visitor)
+    expect(response).toBeFalsy()
     expect(testOperator).toBeCalledTimes(1)
-    expect(testOperator).toBeCalledWith(targetingFsUsers.operator, visitorId, targetingFsUsers.value)
   })
 
   it('test checkAndTargeting key not match context', () => {
