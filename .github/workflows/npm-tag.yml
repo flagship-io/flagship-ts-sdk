@@ -1,7 +1,7 @@
-name: NPM CD
+name: NPM TAG
 on:
-  release:
-    types: [published]
+  push:
+    branches: [main]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -14,8 +14,6 @@ jobs:
         with:
           node-version: '14.x'
           registry-url: 'https://registry.npmjs.org'
-      - run: yarn install
-      - run: yarn build-prod
-      - run: npm publish --tag alpha
+      - run: npm dist-tag add @flagship.io/js-sdk@2.3.0-alpha.0 alpha
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
