@@ -6,7 +6,6 @@ coverage
 flagship/demo/node_modules/*
 flagship/demo/**/config.js
 flagship/dist
-flagship/dist-deno
 **/**/node_modules
 **/**/build
 **/**/config.ts

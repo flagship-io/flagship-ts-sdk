@@ -1,0 +1,130 @@
+import { Modification } from '../model/Modification.ts'
+import { IHit, modificationsRequested, primitive } from '../types.ts'
+import { EventEmitter } from '../deps.ts'
+import { IVisitor } from './IVisitor.ts'
+import { IFlagshipConfig } from '../config/index.ts'
+import { EMIT_READY } from '../enum/index.ts'
+import { CampaignDTO } from '../decision/api/models.ts'
+import { HitAbstract } from '../hit/HitAbstract.ts'
+import { VisitorAbstract } from './VisitorAbstract.ts'
+
+export class Visitor extends EventEmitter implements IVisitor {
+  private visitorDelegate:VisitorAbstract
+  public constructor (visitorDelegate: VisitorAbstract) {
+    super()
+    this.visitorDelegate = visitorDelegate
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.visitorDelegate.on(EMIT_READY, (err:any) => {
+      this.emit(EMIT_READY, err)
+    })
+  }
+
+  public get visitorId () : string {
+    return this.visitorDelegate.visitorId
+  }
+
+  public set visitorId (v : string) {
+    this.visitorDelegate.visitorId = v
+  }
+
+  public get anonymousId ():string|null {
+    return this.visitorDelegate.anonymousId
+  }
+
+  public get hasConsented (): boolean {
+    return this.visitorDelegate.hasConsented
+  }
+
+  public setConsent (hasConsented: boolean): void {
+    this.visitorDelegate.setConsent(hasConsented)
+  }
+
+  public get config (): IFlagshipConfig {
+    return this.visitorDelegate.config
+  }
+
+  public get context () : Record<string, primitive> {
+    return this.visitorDelegate.context
+  }
+
+  public get modifications (): Map<string, Modification> {
+    return this.visitorDelegate.modifications
+  }
+
+  public updateContext (context: Record<string, primitive>): void {
+    this.visitorDelegate.updateContext(context)
+  }
+
+  public clearContext (): void {
+    this.visitorDelegate.clearContext()
+  }
+
+  getModification<T> (params: modificationsRequested<T>): Promise<T> {
+    return this.visitorDelegate.getModification(params)
+  }
+
+  getModificationSync<T> (params: modificationsRequested<T>): T {
+    return this.visitorDelegate.getModificationSync(params)
+  }
+
+  getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<T[]> {
+    return this.visitorDelegate.getModifications(params, activateAll)
+  }
+
+  getModificationsSync<T> (params: modificationsRequested<T>[], activateAll?: boolean): T[] {
+    return this.visitorDelegate.getModificationsSync(params, activateAll)
+  }
+
+  getModificationInfo (key: string): Promise<Modification | null> {
+    return this.visitorDelegate.getModificationInfo(key)
+  }
+
+  getModificationInfoSync (key: string): Modification | null {
+    return this.visitorDelegate.getModificationInfoSync(key)
+  }
+
+  synchronizeModifications (): Promise<void> {
+    return this.visitorDelegate.synchronizeModifications()
+  }
+
+  activateModification (key: string): Promise<void> {
+    return this.visitorDelegate.activateModification(key)
+  }
+
+  activateModifications(keys: { key: string }[]): Promise<void>
+  activateModifications(keys: string[]): Promise<void>
+  activateModifications (params: Array<{ key: string }> | Array<string>): Promise<void>
+  activateModifications (params: Array<{ key: string }> | Array<string>): Promise<void> {
+    return this.visitorDelegate.activateModifications(params)
+  }
+
+  sendHit(hit: HitAbstract): Promise<void>;
+  sendHit(hit: IHit): Promise<void>;
+  sendHit (hit: IHit|HitAbstract): Promise<void>
+  sendHit (hit: IHit|HitAbstract): Promise<void> {
+    return this.visitorDelegate.sendHit(hit)
+  }
+
+  sendHits(hits: HitAbstract[]): Promise<void>;
+  sendHits(hits: IHit[]): Promise<void>;
+  sendHits (hits: HitAbstract[]|IHit[]): Promise<void>
+  sendHits (hits: HitAbstract[]|IHit[]): Promise<void> {
+    return this.visitorDelegate.sendHits(hits)
+  }
+
+  getAllModifications (activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+    return this.visitorDelegate.getAllModifications(activate)
+  }
+
+  getModificationsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+    return this.visitorDelegate.getModificationsForCampaign(campaignId, activate)
+  }
+
+  authenticate (visitorId: string): void {
+    this.visitorDelegate.authenticate(visitorId)
+  }
+
+  unauthenticate (): void {
+    this.visitorDelegate.unauthenticate()
+  }
+}
