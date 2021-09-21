@@ -9,7 +9,7 @@ export enum HitType {
    * User has seen a URL
    *
    */
-     PAGE= 'PAGE',
+     PAGE= 'PAGEVIEW',
 
   /**
    * User has seen a screen.
@@ -20,7 +20,7 @@ export enum HitType {
    * User has seen a screen.
    *
    */
-  SCREEN = 'SCREEN',
+  SCREEN = 'SCREENVIEW',
 
   /**
    * User has made a transaction.

@@ -605,7 +605,7 @@ describe('test DefaultStrategy ', () => {
 
   it('test sendHitAsync with literal object PAGE ', async () => {
     const hit = {
-      type: 'PAGE' as HitType,
+      type: 'PAGEVIEW' as HitType,
       documentLocation: 'home'
     }
 
@@ -634,7 +634,7 @@ describe('test DefaultStrategy ', () => {
 
   it('test sendHitAsync with literal object PAGE ', async () => {
     const hit = {
-      type: 'SCREEN' as HitType,
+      type: 'SCREENVIEW' as HitType,
       documentLocation: 'home'
     }
 
