@@ -1,6 +1,6 @@
 'use strict';
 
-var _flagship = require('flagship');
+var _jsSdk = require('@flagship.io/js-sdk');
 
 var _config = require('./config.js');
 
@@ -9,17 +9,17 @@ const sleep = ms => {
 };
 
 const statusChangedCallback = status => {
-  console.log('status', _flagship.FlagshipStatus[status]);
+  console.log('status', _jsSdk.FlagshipStatus[status]);
 };
 
-_flagship.Flagship.start(_config.ENV_ID, _config.API_KEY, {
-  decisionMode: _flagship.DecisionMode.BUCKETING,
+_jsSdk.Flagship.start(_config.ENV_ID, _config.API_KEY, {
+  decisionMode: _jsSdk.DecisionMode.DECISION_API,
   statusChangedCallback,
-  logLevel: _flagship.LogLevel.ERROR,
+  logLevel: _jsSdk.LogLevel.ERROR,
   fetchNow: false
 });
 
-const visitor = _flagship.Flagship.newVisitor('visitor_id', { key: 'value' });
+const visitor = _jsSdk.Flagship.newVisitor('visitor_id', { key: 'value' });
 
 const start = async () => {
   if (visitor) {
@@ -70,13 +70,13 @@ const start = async () => {
 
     // hit type Event
     visitor.sendHit({
-      type: _flagship.HitType.EVENT,
-      category: _flagship.EventCategory.ACTION_TRACKING,
+      type: _jsSdk.HitType.EVENT,
+      category: _jsSdk.EventCategory.ACTION_TRACKING,
       action: 'click'
     });
 
     // hit type Item
-    const item = new _flagship.Item({
+    const item = new _jsSdk.Item({
       transactionId: 'transaction_1',
       productName: 'product_name',
       productSku: '00255578'
@@ -85,13 +85,13 @@ const start = async () => {
     visitor.sendHit(item);
 
     // hit type Page
-    visitor.sendHit({ type: _flagship.HitType.PAGE, documentLocation: 'https://localhost' });
+    visitor.sendHit({ type: _jsSdk.HitType.PAGE, documentLocation: 'https://localhost' });
 
     // hit type Screen
-    visitor.sendHit({ type: _flagship.HitType.SCREEN, documentLocation: 'https://localhost' });
+    visitor.sendHit({ type: _jsSdk.HitType.SCREEN, documentLocation: 'https://localhost' });
 
     // hit type Transaction
-    const transaction = new _flagship.Transaction({ transactionId: 'transaction_1', affiliation: 'affiliation' });
+    const transaction = new _jsSdk.Transaction({ transactionId: 'transaction_1', affiliation: 'affiliation' });
     visitor.sendHit(transaction);
   }
 };

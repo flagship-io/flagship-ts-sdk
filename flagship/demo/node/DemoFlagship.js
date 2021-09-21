@@ -7,7 +7,7 @@ import {
   Item,
   LogLevel,
   Transaction
-} from 'flagship'
+} from '@flagship.io/js-sdk'
 import { API_KEY, ENV_ID } from './config.js'
 
 const sleep = (ms) => {
@@ -19,7 +19,7 @@ const statusChangedCallback = (status) => {
 }
 
 Flagship.start(ENV_ID, API_KEY, {
-  decisionMode: DecisionMode.BUCKETING,
+  decisionMode: DecisionMode.DECISION_API,
   statusChangedCallback,
   logLevel: LogLevel.ERROR,
   fetchNow: false
