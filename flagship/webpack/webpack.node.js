@@ -7,6 +7,9 @@ const nodeExternals = require('webpack-node-externals')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const common = require('./webpack.common.js')
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const TerserPlugin = require('terser-webpack-plugin')
+
 module.exports = merge(common(), {
   target: 'node',
   output: {
@@ -14,6 +17,17 @@ module.exports = merge(common(), {
     library: {
       type: 'commonjs2'
     }
+  },
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          keep_classnames: /AbortSignal/,
+          keep_fnames: /AbortSignal/
+        }
+      })
+    ]
   },
   plugins: [
     new webpack.ProvidePlugin({
