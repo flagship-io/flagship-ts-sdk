@@ -13,14 +13,13 @@ export const getFlagValidation = async (
   const typeErrorMessage = (value: unknown, type: string) =>
     `value ${value} must be ${type}`;
 
-  let parseDefaultValue =defaultValue;
+  let parseDefaultValue = defaultValue
   try {
-    parseDefaultValue =defaultValue? JSON.parse(defaultValue):"";
+     parseDefaultValue =defaultValue ? JSON.parse(defaultValue):"";
   } catch (error) {
     
   }
   
-
   switch (type) {
     case "bool":
       if (defaultValue !== "true" && defaultValue !== "false") {

@@ -1,11 +1,11 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { mocked } from 'ts-jest/utils'
-import { ConfigManager, DecisionApiConfig, DecisionMode } from '../../src/config/index'
-import { ApiManager } from '../../src/decision/ApiManager'
+// import { mocked } from 'ts-jest/utils'
+import { DecisionApiConfig, DecisionMode } from '../../src/config/index'
 import {
   FlagshipStatus,
   INITIALIZATION_PARAM_ERROR,
   PROCESS_INITIALIZATION,
+  SDK_LANGUAGE,
   SDK_STARTED_INFO,
   SDK_VERSION
 } from '../../src/enum/index'
@@ -21,7 +21,8 @@ jest.mock('../../src/decision/ApiManager', () => {
     ApiManager: jest.fn().mockImplementation(() => {
       return {
         getCampaignsAsync,
-        getModifications: jest.fn()
+        getModifications: jest.fn(),
+        statusChangedCallback: jest.fn()
       }
     })
   }
@@ -47,6 +48,7 @@ describe('test Flagship class', () => {
     expect(Flagship.getConfig().logManager).toBeDefined()
     expect(Flagship.getStatus()).toBe(FlagshipStatus.READY)
     expect(Flagship.getConfig().logManager).toBeInstanceOf(FlagshipLogManager)
+    expect(Flagship.getConfig().decisionMode).toBe(DecisionMode.DECISION_API)
   })
 })
 
@@ -55,11 +57,12 @@ describe('test Flagship with custom config literal object', () => {
     const envId = 'envId'
     const apiKey = 'apiKey'
     const logManager = new FlagshipLogManager()
-    Flagship.start(envId, apiKey, { decisionMode: DecisionMode.DECISION_API, logManager })
+    Flagship.start(envId, apiKey, { logManager })
 
     expect(Flagship.getConfig().envId).toBe(envId)
     expect(Flagship.getConfig().apiKey).toBe(apiKey)
     expect(Flagship.getConfig().logManager).toBe(logManager)
+    expect(Flagship.getConfig().decisionMode).toBe(DecisionMode.DECISION_API)
   })
 })
 
@@ -73,13 +76,13 @@ describe('test Flagship with custom config', () => {
     config.statusChangedCallback = (status) => {
       switch (countStatus) {
         case 0:
-          expect(status).toBe(FlagshipStatus.NOT_READY)
+          expect(status).toBe(FlagshipStatus.STARTING)
           break
         case 1:
           expect(status).toBe(FlagshipStatus.READY)
           break
         case 2:
-          expect(status).toBe(FlagshipStatus.NOT_READY)
+          expect(status).toBe(FlagshipStatus.STARTING)
           break
 
         default:
@@ -113,7 +116,7 @@ describe('test Flagship with custom config', () => {
 
   it('should ', () => {
     Flagship.start('', '', config)
-    expect(Flagship.getStatus()).toBe(FlagshipStatus.NOT_READY)
+    expect(Flagship.getStatus()).toBe(FlagshipStatus.NOT_INITIALIZED)
     expect(errorLog).toBeCalledTimes(1)
     expect(errorLog).toBeCalledWith(
       INITIALIZATION_PARAM_ERROR,
@@ -128,24 +131,45 @@ const getNull = (): any => {
 }
 
 describe('test Flagship newVisitor', () => {
-  const mockedApiManager = mocked(ApiManager, true)
   it('should ', () => {
     Flagship.start('envId', 'apiKey')
     const visitorId = 'visitorId'
     const context = { isVip: true }
-    const visitor = Flagship.newVisitor(visitorId, context)
+    const predefinedContext = {
+      fs_client: SDK_LANGUAGE,
+      fs_version: SDK_VERSION,
+      fs_users: visitorId
+    }
+    let visitor = Flagship.newVisitor(visitorId, context)
 
     expect(visitor?.visitorId).toBe(visitorId)
-    expect(visitor?.context).toEqual(context)
-    expect(visitor?.configManager).toBeInstanceOf(ConfigManager)
+    expect(visitor?.context).toEqual({ ...context, ...predefinedContext })
 
     const visitorNull = Flagship.newVisitor(getNull(), context)
     expect(visitorNull).toBeInstanceOf(Visitor)
 
     const newVisitor = Flagship.newVisitor(visitorId)
-    expect(newVisitor?.context).toEqual({})
+    expect(newVisitor?.context).toEqual({ ...predefinedContext })
 
     expect(getCampaignsAsync).toBeCalledTimes(3)
-    expect(getCampaignsAsync).toBeCalledWith(visitor)
+    expect(getCampaignsAsync).toBeCalledWith(expect.objectContaining({ visitorId: visitor?.visitorId, context: visitor?.context }))
+
+    visitor = Flagship.newVisitor({ visitorId, context })
+
+    expect(visitor?.visitorId).toBe(visitorId)
+    expect(visitor?.context).toEqual({ ...context, ...predefinedContext })
+
+    visitor = Flagship.newVisitor({})
+
+    expect(visitor?.visitorId).toBeDefined()
+    expect(visitor?.context).toEqual(expect.objectContaining({ ...predefinedContext, fs_users: expect.anything() }))
+    expect(visitor?.anonymousId).toBeNull()
+  })
+
+  describe('test not ready', () => {
+    const visitorId = 'visitorId'
+    const context = { isVip: true }
+    const visitor = Flagship.newVisitor(visitorId, context)
+    expect(visitor).toBeNull()
   })
 })

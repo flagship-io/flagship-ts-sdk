@@ -1,3 +1,4 @@
+import { BucketingDTO } from '../decision/api/bucketingDTO'
 import { FlagshipStatus, LogLevel, REQUEST_TIME_OUT } from '../enum/index'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError } from '../utils/utils'
@@ -6,11 +7,11 @@ export enum DecisionMode {
   /**
    * Flagship SDK mode decision api
    */
-  DECISION_API,
+  DECISION_API='API',
   /**
    * Flagship SDK mode bucketing
    */
-  BUCKETING,
+  BUCKETING='BUCKETING',
 }
 
 export interface IFlagshipConfig {
@@ -26,7 +27,7 @@ export interface IFlagshipConfig {
 
   /**
    * Specify timeout in seconds for api request.
-   * Default is 2000ms.
+   * Default is 2s.
    */
   timeout?: number;
 
@@ -39,7 +40,7 @@ export interface IFlagshipConfig {
    * Specify the SDK running mode.
    * BUCKETING or DECISION_API
    */
-  decisionMode: DecisionMode
+  decisionMode?: DecisionMode
 
   /**
    * Define a callable in order to get callback when the SDK status has changed.
@@ -52,7 +53,26 @@ export interface IFlagshipConfig {
   /**
    * Decide to fetch automatically modifications data when creating a new FlagshipVisitor
    */
-  fetchNow?:boolean
+  fetchNow?:boolean,
+
+  /**
+   * Specify delay between two bucketing polling. Default is 2s.
+   *
+   * Note: If 0 is given then it should poll only once at start time.
+   */
+  pollingInterval?:number
+
+  /**
+   * Indicates whether enables or disables the client cache manager.
+   * By enabling the client cache, it will allow you to keep cross sessions visitor experience.
+   */
+  enableClientCache?:boolean
+
+  onBucketingSuccess?:(param:{ status: FlagshipStatus; payload: BucketingDTO })=>void
+
+  onBucketingFail?:(error: Error)=>void
+
+  onBucketingUpdated?:(lastUpdate:Date)=>void
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -66,11 +86,16 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _statusChangedCallback?: (status: FlagshipStatus) => void;
   private _logManager!: IFlagshipLogManager;
   private _fetchNow! : boolean;
+  private _pollingInterval!: number
+  private _onBucketingFail?: (error: Error)=>void;
+  private _onBucketingSuccess?: (param:{ status: number; payload: BucketingDTO })=>void;
+  private _onBucketingUpdated?: (lastUpdate:Date)=>void;
+  private _enableClientCache! : boolean;
 
   protected constructor (param: IFlagshipConfig) {
     const {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
-      fetchNow, decisionMode
+      fetchNow, decisionMode, enableClientCache
     } = param
 
     this._envId = envId
@@ -78,11 +103,44 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this.logLevel = logLevel || LogLevel.ALL
     this.timeout = timeout || REQUEST_TIME_OUT
     this.fetchNow = typeof fetchNow === 'undefined' || fetchNow
+    this.enableClientCache = typeof enableClientCache === 'undefined' || enableClientCache
     this._decisionMode = decisionMode || DecisionMode.DECISION_API
     if (logManager) {
       this.logManager = logManager
     }
     this.statusChangedCallback = statusChangedCallback
+  }
+
+  public get enableClientCache () : boolean {
+    return this._enableClientCache
+  }
+
+  public set enableClientCache (v : boolean) {
+    this._enableClientCache = v
+  }
+
+  public get onBucketingSuccess () : ((param:{ status: number; payload: BucketingDTO })=>void)| undefined {
+    return this._onBucketingSuccess
+  }
+
+  public set onBucketingSuccess (v : ((param:{ status: number; payload: BucketingDTO })=>void)| undefined) {
+    this._onBucketingSuccess = v
+  }
+
+  public get onBucketingFail () : ((error: Error)=>void)| undefined {
+    return this._onBucketingFail
+  }
+
+  public set onBucketingFail (v : ((error: Error)=>void)| undefined) {
+    this._onBucketingFail = v
+  }
+
+  public get onBucketingUpdated () : ((lastUpdate:Date)=>void)|undefined {
+    return this._onBucketingUpdated
+  }
+
+  public set onBucketingUpdated (v : ((lastUpdate:Date)=>void)|undefined) {
+    this._onBucketingUpdated = v
   }
 
   public set envId (value: string | undefined) {
@@ -127,6 +185,14 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
 
   public set fetchNow (v : boolean) {
     this._fetchNow = v
+  }
+
+  public get pollingInterval () : number {
+    return this._pollingInterval
+  }
+
+  public set pollingInterval (v : number) {
+    this._pollingInterval = v
   }
 
   public get statusChangedCallback () :((status: FlagshipStatus) => void)|undefined {

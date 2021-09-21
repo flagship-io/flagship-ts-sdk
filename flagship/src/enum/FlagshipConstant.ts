@@ -14,15 +14,19 @@ export const REQUEST_TIME_OUT = 2
  */
 export const BASE_API_URL = 'https://decision.flagship.io/v2/'
 export const HIT_API_URL = 'https://ariane.abtasty.com'
+export const BUCKETING_API_URL = 'https://cdn.flagship.io/{0}/bucketing.json'
+export const BUCKETING_API_CONTEXT_URL = 'https://decision.flagship.io/v2/{0}/events'
+export const HIT_CONSENT_URL = 'https://ariane.abtasty.com'
 export const URL_CAMPAIGNS = '/campaigns'
 export const URL_ACTIVATE_MODIFICATION = 'activate'
 
 export const EXPOSE_ALL_KEYS = 'exposeAllKeys'
+export const SEND_CONTEXT_EVENT = 'sendContextEvent'
 
 /**
  * SDK version
  */
-export const SDK_VERSION = 'v1'
+export const SDK_VERSION = 'v2'
 
 /**
  * Message Info
@@ -30,6 +34,8 @@ export const SDK_VERSION = 'v1'
 
 export const SDK_STARTED_INFO = 'Flagship SDK (version: {0}) READY'
 export const FLAGSHIP_SDK = 'Flagship SDK'
+
+export const EMIT_READY = 'ready'
 
 /**
  * Message Error
@@ -56,6 +62,12 @@ export const TYPE_INTEGER_ERROR =
   'value of {0} is not an {1}, it will be truncated to {1}'
 export const VISITOR_ID_ERROR = 'visitorId must not be null or empty'
 export const PANIC_MODE_ERROR = '{0} deactivated while panic mode is on.'
+export const METHOD_DEACTIVATED_CONSENT_ERROR = 'Method {0} is deactivated for visitor {1} : visitor did not consent.'
+export const METHOD_DEACTIVATED_ERROR = 'Method {0} is deactivated while SDK status is: {1}.'
+export const METHOD_DEACTIVATED_BUCKETING_ERROR = 'Method {0} is deactivated on Bucketing mode.'
+export const FLAGSHIP_VISITOR_NOT_AUTHENTICATE = 'Visitor is not authenticated yet'
+export const PREDEFINED_CONTEXT_TYPE_ERROR = 'Predefined Context {0} must be type of {1}'
+export const METHOD_DEACTIVATED_SEND_CONSENT_ERROR = 'Send consent hit is deactivated while SDK status is: {1}.'
 
 // Process
 export const PROCESS = 'process'
@@ -75,6 +87,8 @@ export const PROCESS_MODIFICATIONS_FOR_CAMPAIGN = 'GET MODIFICATION FOR CAMPAIGN
 // Api items
 
 export const CUSTOMER_ENV_ID_API_ITEM = 'cid'
+export const CUSTOMER_UID = 'cuid'
+export const ANONYMOUS_ID = 'aid'
 export const VISITOR_ID_API_ITEM = 'vid'
 export const VARIATION_GROUP_ID_API_ITEM = 'caid'
 export const VARIATION_ID_API_ITEM = 'vaid'

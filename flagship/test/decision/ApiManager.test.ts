@@ -1,9 +1,11 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { ConfigManager, DecisionApiConfig } from '../../src/config/index'
+import { TrackingManager } from '../../src/api/TrackingManager'
+import { DecisionApiConfig } from '../../src/config/index'
 import { ApiManager } from '../../src/decision/ApiManager'
 import {
   BASE_API_URL,
   EXPOSE_ALL_KEYS,
+  FlagshipStatus,
   HEADER_APPLICATION_JSON,
   HEADER_CONTENT_TYPE,
   HEADER_X_API_KEY,
@@ -11,25 +13,32 @@ import {
   HEADER_X_SDK_VERSION,
   SDK_LANGUAGE,
   SDK_VERSION,
+  SEND_CONTEXT_EVENT,
   URL_CAMPAIGNS
 } from '../../src/enum/index'
-import { IHttpResponse } from '../../src/utils/httpClient'
-import { HttpClient } from '../../src/utils/NodeHttpClient'
-import { Visitor } from '../../src/visitor/Visitor'
+import { IHttpResponse, HttpClient } from '../../src/utils/HttpClient'
+import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { campaigns } from './campaigns'
+import { Mock } from 'jest-mock'
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 
 describe('test ApiManager', () => {
   const httpClient = new HttpClient()
   const postAsync = jest.spyOn(httpClient, 'postAsync')
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   const apiManager = new ApiManager(httpClient, config)
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  const sendConsentHit:Mock<Promise<void>, [visitor: VisitorAbstract]> = jest.fn()
+
+  sendConsentHit.mockResolvedValue()
+
+  trackingManager.sendConsentHit = sendConsentHit
 
   const visitorId = 'visitorId'
   const context = { age: 20 }
 
-  const visitor = new Visitor(visitorId, context, {} as ConfigManager)
-
-  const panicModeResponse = { status: 200, body: { panic: true } }
+  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: apiManager, trackingManager: trackingManager } })
 
   const campaignResponse = { status: 200, body: campaigns }
 
@@ -44,13 +53,20 @@ describe('test ApiManager', () => {
   }
   const postData = {
     visitorId: visitor.visitorId,
+    anonymousId: visitor.anonymousId,
     trigger_hit: false,
     context: visitor.context
   }
   const url = `${BASE_API_URL}${config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
 
   it('test panic mode ', async () => {
+    const apiManager = new ApiManager(httpClient, config)
+    const panicModeResponse = { status: 200, body: { panic: true } }
+
     postAsync.mockResolvedValue(panicModeResponse)
+    apiManager.statusChangedCallback((status) => {
+      expect(status).toBe(FlagshipStatus.READY_PANIC_ON)
+    })
     const modifications = await apiManager.getCampaignsModificationsAsync(
       visitor
     )
@@ -66,9 +82,9 @@ describe('test ApiManager', () => {
   it('test campaign', async () => {
     postAsync.mockResolvedValue(campaignResponse)
 
-    const modifications = (await apiManager.getCampaignsModificationsAsync(
+    const modifications = await apiManager.getCampaignsModificationsAsync(
       visitor
-    ))
+    )
 
     expect(postAsync).toHaveBeenCalledWith(url, {
       headers: headers,
@@ -81,13 +97,39 @@ describe('test ApiManager', () => {
     expect(modifications.get('object')?.value).toEqual({ value: 123456 })
   })
 
+  it('test campaign with consent false', async () => {
+    postAsync.mockResolvedValue(campaignResponse)
+
+    visitor.setConsent(false)
+    const modifications = await apiManager.getCampaignsModificationsAsync(
+      visitor
+    )
+
+    expect(postAsync).toHaveBeenCalledWith(`${url}&${SEND_CONTEXT_EVENT}=false`, {
+      headers: headers,
+      timeout: config.timeout,
+      body: postData
+    })
+
+    expect(modifications.size).toBe(4)
+    expect(modifications.get('array')?.value).toEqual([1, 1, 1])
+    expect(modifications.get('object')?.value).toEqual({ value: 123456 })
+  })
+
+  it('Test error ', async () => {
+    const getModifications = jest.spyOn(apiManager, 'getModifications')
+    getModifications.mockRejectedValue(responseError)
+    const modifications = await apiManager.getCampaignsModificationsAsync(
+      visitor
+    )
+    expect(modifications.size).toBe(0)
+  })
+
   it('Test error ', async () => {
     postAsync.mockRejectedValue(responseError)
-    apiManager.getCampaignsModificationsAsync(
+    const modifications = await apiManager.getCampaignsModificationsAsync(
       visitor
-    ).catch(error => {
-      expect(error).toBe(responseError)
-      expect(postAsync).toHaveBeenCalledTimes(1)
-    })
+    )
+    expect(modifications.size).toBe(0)
   })
 })

@@ -1,8 +1,8 @@
 import { IFlagshipConfig } from '../config/FlagshipConfig'
 import { HitAbstract } from '../hit/HitAbstract'
 import { Modification } from '../model/Modification'
-import { IHttpClient } from '../utils/httpClient'
-import { Visitor } from '../visitor/Visitor'
+import { IHttpClient } from '../utils/HttpClient'
+import { VisitorAbstract } from '../visitor/VisitorAbstract'
 
 export interface ITrackingManager {
   /**
@@ -10,12 +10,16 @@ export interface ITrackingManager {
    * @param visitor
    * @param modification
    */
-  sendActive(visitor: Visitor, modification: Modification): Promise<void>;
+  sendActive(visitor: VisitorAbstract, modification: Modification): Promise<void>;
   /**
    *Send a Hit to Flagship servers for reporting.
    * @param hit
    */
   sendHit(hit: HitAbstract): Promise<void>;
+
+  sendConsentHit(visitor: VisitorAbstract):Promise<void>;
+
+  config:IFlagshipConfig
 }
 
 export abstract class TrackingManagerAbstract implements ITrackingManager {
@@ -35,9 +39,11 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   }
 
   public abstract sendActive(
-    visitor: Visitor,
+    visitor: VisitorAbstract,
     modification: Modification
   ): Promise<void>;
 
   public abstract sendHit(hit: HitAbstract): Promise<void>;
+
+  public abstract sendConsentHit(visitor: VisitorAbstract): Promise<void>;
 }

@@ -8,9 +8,11 @@ import {
 import { sendHit } from "./controllers/hit.ts";
 import { clearLog, getLog } from "./controllers/logs.ts";
 import {
+authenticate,
   getVisitor,
   putVisitor,
   putVisitorValidation,
+  unauthenticate,
   updateConsent,
   updateConsentValidation,
 } from "./controllers/visitor.ts";
@@ -43,6 +45,10 @@ router
   .get("/visitor", getVisitor)
   .put("/visitor",checkFlagshipStart, putVisitorValidation, putVisitor)
   .put("/visitor/context/:contextKey",checkFlagshipStart,checkFsVisitor, updateConsentValidation, updateConsent)
+  
+  .put("/authenticate",checkFlagshipStart,checkFsVisitor, authenticate)
+  .put("/unauthenticate",checkFlagshipStart,checkFsVisitor, unauthenticate)
+
   .get("/flag/:flagKey",checkFlagshipStart,checkFsVisitor, getFlagValidation, getFlag)
   .get("/flag/:flagKey/info",checkFlagshipStart,checkFsVisitor, getFlagInfo)
   .get("/flag/:flagKey/activate",checkFlagshipStart,checkFsVisitor, sendActivate)

@@ -9,87 +9,51 @@ import {
   PROCESS_GET_CAMPAIGNS,
   SDK_LANGUAGE,
   SDK_VERSION,
+  SEND_CONTEXT_EVENT,
   URL_CAMPAIGNS
 } from '../enum/index'
 import { DecisionManager } from './DecisionManager'
 import { CampaignDTO } from './api/models'
-import { Modification } from '../model/Modification'
-import { Visitor } from '../visitor/Visitor'
 import { logError } from '../utils/utils'
+import { VisitorAbstract } from '../visitor/VisitorAbstract'
 
 export class ApiManager extends DecisionManager {
-  public async getCampaignsAsync (visitor: Visitor):Promise<CampaignDTO[]> {
-    return new Promise((resolve, reject) => {
-      const headers = {
-        [HEADER_X_API_KEY]: `${this.config.apiKey}`,
-        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
-        [HEADER_X_SDK_VERSION]: SDK_VERSION,
-        [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
-      }
+  public async getCampaignsAsync (visitor: VisitorAbstract):Promise<CampaignDTO[]> {
+    const headers = {
+      [HEADER_X_API_KEY]: `${this.config.apiKey}`,
+      [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
+      [HEADER_X_SDK_VERSION]: SDK_VERSION,
+      [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
+    }
 
-      const postData = {
-        visitorId: visitor.visitorId,
-        trigger_hit: false,
-        context: visitor.context
-      }
+    const postData = {
+      visitorId: visitor.visitorId,
+      anonymousId: visitor.anonymousId,
+      trigger_hit: false,
+      context: visitor.context
+    }
 
-      const url = `${BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
+    let url = `${BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
+    if (!visitor.hasConsented) {
+      url += `&${SEND_CONTEXT_EVENT}=false`
+    }
 
-      this._httpClient.postAsync(url, {
-        headers,
-        timeout: this.config.timeout,
-        body: postData
+    return this._httpClient.postAsync(url, {
+      headers,
+      timeout: this.config.timeout,
+      body: postData
+    })
+      .then(data => {
+        this.panic = !!data.body.panic
+        let response:CampaignDTO[] = []
+        if (data.body.campaigns) {
+          response = data.body.campaigns
+        }
+        return response
       })
-        .then(data => {
-          this.panic = false
-          if (data.body.panic) {
-            this.panic = true
-          }
-          let response:CampaignDTO[] = []
-          if (data.body.campaigns) {
-            response = data.body.campaigns
-          }
-          resolve(response)
-        })
-        .catch(error => {
-          logError(this.config, JSON.stringify(error), PROCESS_GET_CAMPAIGNS)
-          reject(error)
-        })
-    })
-  }
-
-  public getModifications (campaigns: Array<CampaignDTO>):Map<string, Modification> {
-    const modifications = new Map<string, Modification>()
-    campaigns.forEach((campaign) => {
-      const object = campaign.variation.modifications.value
-      for (const key in object) {
-        const value = object[key]
-        modifications.set(
-          key,
-          new Modification(
-            key,
-            campaign.id,
-            campaign.variationGroupId,
-            campaign.variation.id,
-            campaign.variation.reference,
-            value
-          )
-        )
-      }
-    })
-    return modifications
-  }
-
-  public async getCampaignsModificationsAsync (
-    visitor: Visitor
-  ): Promise<Map<string, Modification>> {
-    return new Promise((resolve, reject) => {
-      this.getCampaignsAsync(visitor).then(campaigns => {
-        resolve(this.getModifications(campaigns))
-      }).catch(error => {
-        console.log('campaigns', error)
-        reject(error)
+      .catch(error => {
+        logError(this.config, error.message || error, PROCESS_GET_CAMPAIGNS)
+        return []
       })
-    })
   }
 }

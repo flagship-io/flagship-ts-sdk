@@ -2,6 +2,7 @@ import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig } from '../../src/config/index'
 import {
   CUSTOMER_ENV_ID_API_ITEM,
+  CUSTOMER_UID,
   DS_API_ITEM,
   HitType,
   ICN_API_ITEM,
@@ -93,7 +94,8 @@ describe('test hit type Transaction', () => {
     [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
     [T_API_ITEM]: HitType.TRANSACTION,
     [TID_API_ITEM]: transactionId,
-    [TA_API_ITEM]: affiliation
+    [TA_API_ITEM]: affiliation,
+    [CUSTOMER_UID]: null
   }
 
   it('should ', () => {

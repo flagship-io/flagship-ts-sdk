@@ -2,7 +2,7 @@ import { expect, it, describe } from '@jest/globals'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager, DecisionApiConfig } from '../../src/config/index'
 import { ApiManager } from '../../src/decision/ApiManager'
-import { IHttpClient } from '../../src/utils/httpClient'
+import { IHttpClient } from '../../src/utils/HttpClient'
 
 describe('test ConfigManager', () => {
   const config = {} as DecisionApiConfig

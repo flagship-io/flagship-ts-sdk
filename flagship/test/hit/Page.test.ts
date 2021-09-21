@@ -2,6 +2,7 @@ import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig } from '../../src/config/index'
 import {
   CUSTOMER_ENV_ID_API_ITEM,
+  CUSTOMER_UID,
   DL_API_ITEM,
   DS_API_ITEM,
   HitType,
@@ -52,6 +53,7 @@ describe('test hit type Page', () => {
   const apiKeys: any = {
     [VISITOR_ID_API_ITEM]: visitorId,
     [DS_API_ITEM]: SDK_APP,
+    [CUSTOMER_UID]: null,
     [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
     [T_API_ITEM]: HitType.PAGE_VIEW,
     [DL_API_ITEM]: url

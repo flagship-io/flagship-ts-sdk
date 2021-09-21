@@ -1,3 +1,5 @@
+import { IEvent, IItem, IPage, IScreen, ITransaction } from './hit/index'
+
 export type modificationsRequested<T>={
     key: string,
     defaultValue: T,
@@ -5,3 +7,5 @@ export type modificationsRequested<T>={
   }
 
 export type primitive=string | number | boolean
+
+export type IHit = IPage | IScreen | IEvent | IItem | ITransaction

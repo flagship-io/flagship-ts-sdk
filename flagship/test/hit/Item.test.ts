@@ -2,6 +2,7 @@ import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig } from '../../src/config/index'
 import {
   CUSTOMER_ENV_ID_API_ITEM,
+  CUSTOMER_UID,
   DS_API_ITEM,
   HitType,
   IC_API_ITEM,
@@ -80,7 +81,8 @@ describe('test hit type Item', () => {
     [T_API_ITEM]: HitType.ITEM,
     [TID_API_ITEM]: transactionId,
     [IN_API_ITEM]: productName,
-    [IC_API_ITEM]: productSku
+    [IC_API_ITEM]: productSku,
+    [CUSTOMER_UID]: null
   }
 
   it('should ', () => {

@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  node:
+    build:
+      dockerfile: ./demo/Dockerfile
+      context: ./..
+    image: flagshipio/node-qa:node-6
+    container_name: test-node-6
+    # command: sh
+    ports:
+      - 8000:3000
+    tty: true

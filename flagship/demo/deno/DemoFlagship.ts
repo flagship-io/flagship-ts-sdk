@@ -7,96 +7,143 @@ import {
   Item,
   LogLevel,
   Transaction,
-  Modification
-} from '../../dist-deno/src/mod.ts'
-import { API_KEY, ENV_ID } from './config.js'
+  Modification,
+  DEVICE_LOCALE,
+} from "../../dist-deno/src/mod.ts";
+import { API_KEY, ENV_ID } from "./config.js";
 
-const statusChangedCallback = (status:FlagshipStatus) => {
-  console.log('status', FlagshipStatus[status])
+const statusChangedCallback = (status: FlagshipStatus) => {
+  console.log("status", FlagshipStatus[status]);
+};
+
+function sleep(ms: number): Promise<unknown> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 Flagship.start(ENV_ID, API_KEY, {
   decisionMode: DecisionMode.BUCKETING,
   statusChangedCallback,
-  logLevel: LogLevel.ERROR,
-  fetchNow: false
-})
+  logLevel: LogLevel.ALL,
+  fetchNow: false,
+  timeout:5
+});
 
-const visitor = Flagship.newVisitor('visitor_id', { key: 'value' });
+const visitor = Flagship.newVisitor({
+  visitorId: "visitor_id",
+  isAuthenticated: true,
+  context: {
+    key: "value",
+    [DEVICE_LOCALE]: "fr",
+  },
+});
 
 (async () => {
   if (visitor) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    visitor.on('ready', (err:any) => {
+    // deno-lint-ignore no-explicit-any
+    visitor.on("ready", (err: any) => {
       if (err) {
-        console.log('Flagship error:', err)
-        return
+        console.log("Flagship error:", err);
+        return;
       }
-      console.log('Flagship Ready')
-    })
+      console.log("Flagship Ready");
+    });
+    console.log(visitor);
     // clear context
-    visitor.clearContext()
+    visitor.clearContext();
 
     // Update context
-    visitor.updateContext({ isVip: true })
+    visitor.updateContext({ isOP: true });
 
-    // optional when fetchNow = true, this method is call on each newVisitor
-    await visitor.synchronizeModifications()
+    visitor.setConsent(true);
 
-    // getModification
-    visitor.getModification({ key: 'object', defaultValue: {} })
-      .then((modification) => {
-        console.log('modification:', modification)
-      })
+    await sleep(5000);
 
-    visitor.getModification([
-      { key: 'array', defaultValue: [] },
-      {
-        key: 'object',
-        defaultValue: {},
-        activate: true
-      }])
-      .then((modifications) => {
-        console.log('modifications:', modifications)
-      })
+    await visitor.synchronizeModifications();
 
-    // activateModification
-    visitor.activateModification('object')
+    const modification = await visitor.getModification({
+      key: "object",
+      defaultValue: {},
+    });
+    console.log("modification:", modification);
 
-    visitor.activateModification(['array', 'object'])
+    // Flagship.start(ENV_ID, API_KEY, {
+    //   decisionMode: DecisionMode.DECISION_API,
+    //   statusChangedCallback,
+    //   logLevel: LogLevel.ALL,
+    //   fetchNow: false,
+    // });
 
-    // getModificationInfo
-    visitor.getModificationInfo('array')
-      .then((data:Modification|null) => {
-        console.log('info', data)
-      })
+    for (let index = 0; index < 5; index++) {
+      // optional when fetchNow = true, this method is call on each newVisitor
+      await visitor.synchronizeModifications();
 
-    // send hit
+      // getModification
+      visitor
+        .getModification({ key: "object", defaultValue: {} })
+        .then((modification) => {
+          console.log("modification:", modification);
+        });
 
-    // hit type Event
-    visitor.sendHit({
-      type: HitType.EVENT,
-      category: EventCategory.ACTION_TRACKING,
-      action: 'click'
-    })
+      visitor
+        .getModifications([
+          { key: "array", defaultValue: [] },
+          {
+            key: "object",
+            defaultValue: {},
+            activate: true,
+          },
+        ])
+        .then((modifications) => {
+          console.log("modifications:", modifications);
+        });
 
-    // hit type Item
-    const item = new Item({
-      transactionId: 'transaction_1',
-      productName: 'product_name',
-      productSku: '00255578'
-    })
+      // activateModification
+      visitor.activateModification("object");
 
-    visitor.sendHit(item)
+      visitor.activateModifications(["array", "object"]);
 
-    // hit type Page
-    visitor.sendHit({ type: HitType.PAGE, documentLocation: 'https://localhost' })
+      // getModificationInfo
+      visitor.getModificationInfo("array").then((data: Modification | null) => {
+        console.log("info", data);
+      });
 
-    // hit type Screen
-    visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'https://localhost' })
+      // send hit
 
-    // hit type Transaction
-    const transaction = new Transaction({ transactionId: 'transaction_1', affiliation: 'affiliation' })
-    visitor.sendHit(transaction)
+      // hit type Event
+      visitor.sendHit({
+        type: HitType.EVENT,
+        category: EventCategory.ACTION_TRACKING,
+        action: "click",
+      });
+
+      // hit type Item
+      const item = new Item({
+        transactionId: "transaction_1",
+        productName: "product_name",
+        productSku: "00255578",
+      });
+
+      visitor.sendHit(item);
+
+      // hit type Page
+      visitor.sendHit({
+        type: HitType.PAGE,
+        documentLocation: "https://localhost",
+      });
+
+      // hit type Screen
+      visitor.sendHit({
+        type: HitType.SCREEN,
+        documentLocation: "https://localhost",
+      });
+
+      // hit type Transaction
+      const transaction = new Transaction({
+        transactionId: "transaction_1",
+        affiliation: "affiliation",
+      });
+      visitor.sendHit(transaction);
+    }
   }
-})()
+})();

@@ -1,11 +1,10 @@
 import { Visitor } from '../visitor/Visitor'
 import { FlagshipStatus } from '../enum/FlagshipStatus'
-import { FlagshipConfig, IFlagshipConfig } from '../config/FlagshipConfig'
+import { DecisionMode, FlagshipConfig, IFlagshipConfig } from '../config/FlagshipConfig'
 import { DecisionApiConfig } from '../config/DecisionApiConfig'
 import { ConfigManager, IConfigManager } from '../config/ConfigManager'
 import { ApiManager } from '../decision/ApiManager'
 import { TrackingManager } from '../api/TrackingManager'
-import { HttpClient } from '../utils/NodeHttpClient'
 import { FlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, logInfo, sprintf } from '../utils/utils'
 import {
@@ -14,6 +13,26 @@ import {
   SDK_STARTED_INFO,
   SDK_VERSION
 } from '../enum/index'
+import { VisitorDelegate } from '../visitor/VisitorDelegate'
+import { BucketingConfig } from '../config/index'
+import { BucketingManager } from '../decision/BucketingManager'
+import { MurmurHash } from '../utils/MurmurHash'
+import { primitive } from '../types'
+import { DecisionManager } from '../decision/DecisionManager'
+import { HttpClient } from '../utils/HttpClient'
+
+export interface INewVisitor{
+  /**
+   * Unique visitor identifier.
+   */
+  visitorId?:string
+  isAuthenticated?: boolean
+  /**
+   * visitor context
+   */
+  context?: Record<string, primitive>
+  hasConsented?:boolean
+}
 
 export class Flagship {
   private static _instance: Flagship;
@@ -56,6 +75,7 @@ export class Flagship {
 
   protected setStatus (status: FlagshipStatus): void {
     const statusChanged = this.config.statusChangedCallback
+
     if (this.config && statusChanged && this._status !== status) {
       this._status = status
       statusChanged(status)
@@ -78,6 +98,39 @@ export class Flagship {
     return this.getInstance()._config
   }
 
+  private buildConfig (config?: IFlagshipConfig| FlagshipConfig):FlagshipConfig {
+    if (config instanceof FlagshipConfig) {
+      return config
+    }
+    let newConfig:FlagshipConfig
+    if (config?.decisionMode === DecisionMode.BUCKETING) {
+      newConfig = new BucketingConfig(config)
+    } else {
+      newConfig = new DecisionApiConfig(config)
+    }
+    return newConfig
+  }
+
+  private buildDecisionManager (flagship:Flagship, config:FlagshipConfig, httpClient:HttpClient) : DecisionManager {
+    let decisionManager:DecisionManager
+    const setStatus = (status:FlagshipStatus) => {
+      flagship.setStatus(status)
+    }
+    if (config.decisionMode === DecisionMode.BUCKETING) {
+      decisionManager = new BucketingManager(httpClient, config, new MurmurHash())
+      const bucketingManager = decisionManager as BucketingManager
+      decisionManager.statusChangedCallback(setStatus)
+      bucketingManager.startPolling()
+    } else {
+      decisionManager = new ApiManager(
+        httpClient,
+        config
+      )
+      decisionManager.statusChangedCallback(setStatus)
+    }
+    return decisionManager
+  }
+
   /**
    * Start the flagship SDK, with a custom configuration implementation
    * @param {string} envId : Environment id provided by Flagship.
@@ -91,16 +144,14 @@ export class Flagship {
   ): void {
     const flagship = this.getInstance()
 
-    if (!(config instanceof FlagshipConfig)) {
-      config = new DecisionApiConfig(config)
-    }
+    config = flagship.buildConfig(config)
 
     config.envId = envId
     config.apiKey = apiKey
 
     flagship._config = config
 
-    flagship.setStatus(FlagshipStatus.NOT_READY)
+    flagship.setStatus(FlagshipStatus.STARTING)
 
     // check custom logger
     if (!config.logManager) {
@@ -108,46 +159,94 @@ export class Flagship {
     }
 
     if (!envId || envId === '' || !apiKey || apiKey === '') {
+      flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
       logError(config, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION)
       return
     }
 
-    const decisionManager = new ApiManager(
-      new HttpClient(),
-      flagship.config
-    )
-    const trackingManager = new TrackingManager(new HttpClient(), config)
-    flagship.configManager = new ConfigManager(
-      config,
-      decisionManager,
-      trackingManager
-    )
+    let decisionManager = flagship.configManager?.decisionManager
+
+    if (typeof decisionManager === 'object' && decisionManager instanceof BucketingManager) {
+      decisionManager.stopPolling()
+    }
+
+    const httpClient = new HttpClient()
+
+    decisionManager = flagship.buildDecisionManager(flagship, config as FlagshipConfig, httpClient)
+
+    const trackingManager = new TrackingManager(httpClient, config)
+
+    if (flagship.configManager) {
+      flagship.configManager.config = config
+      flagship.configManager.decisionManager = decisionManager
+      flagship.configManager.trackingManager = trackingManager
+    } else {
+      flagship.configManager = new ConfigManager(
+        config,
+        decisionManager,
+        trackingManager
+      )
+    }
 
     if (this.isReady()) {
-      flagship.setStatus(FlagshipStatus.READY)
+      if (flagship._status === FlagshipStatus.STARTING) {
+        flagship.setStatus(FlagshipStatus.READY)
+      }
       logInfo(
         config,
         sprintf(SDK_STARTED_INFO, SDK_VERSION),
         PROCESS_INITIALIZATION
       )
+    } else {
+      flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
     }
   }
 
   /**
    * Create a new visitor with a context.
-   * @param {string} visitorId : Unique visitor identifier.
-   * @param {Record<string, string | number | boolean>} context : visitor context. e.g: { isVip: true, country: "UK" }.
+   * @param {INewVisitor} params
    * @returns {Visitor} a new visitor instance
    */
-  public static newVisitor (
-    visitorId: string|null,
-    context: Record<string, string | number | boolean> = {}
-  ): Visitor | null {
+
+  public static newVisitor (params:INewVisitor): Visitor | null
+
+  /**
+   * Create a new visitor with a context.
+   * @param {string} visitorId : Unique visitor identifier.
+   * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
+   * @returns {Visitor} a new visitor instance
+   */
+  public static newVisitor (visitorId: string|null, context?: Record<string, primitive>): Visitor | null
+
+  public static newVisitor (params:string|INewVisitor|null, params2?:Record<string, primitive>): Visitor | null {
     if (!this.isReady()) {
       return null
     }
 
-    const visitor = new Visitor(visitorId, context, this.getInstance().configManager)
+    let visitorId:string|null
+    let context:Record<string, primitive>
+    let isAuthenticated = false
+    let hasConsented = false
+
+    if (typeof params === 'string' || params === null) {
+      visitorId = params
+      context = params2 || {}
+    } else {
+      visitorId = params.visitorId || null
+      context = params.context || {}
+      isAuthenticated = params.isAuthenticated ?? false
+      hasConsented = params.hasConsented ?? false
+    }
+
+    const visitorDelegate = new VisitorDelegate({
+      visitorId,
+      context,
+      isAuthenticated,
+      hasConsented,
+      configManager: this.getInstance().configManager
+    })
+
+    const visitor = new Visitor(visitorDelegate)
 
     if (this.getConfig().fetchNow) {
       visitor.synchronizeModifications()

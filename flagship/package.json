@@ -1,7 +1,8 @@
 {
-  "name": "flagship",
-  "version": "1.0.0",
-  "license": "MIT",
+  "name": "@flagship.io/js-sdk",
+  "version": "2.3.0-alpha.0",
+  "license": "Apache-2.0",
+  "description": "Flagship JS SDK",
   "main": "dist/index.node.js",
   "browser": "dist/index.browser.js",
   "types": "dist/index.d.ts",
@@ -11,18 +12,26 @@
   "engines": {
     "node": ">=6"
   },
+  "homepage": "https://github.com/flagship-io/flagship-ts-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flagship-io/flagship-ts-sdk.git"
+  },
   "scripts": {
     "lint:fix": "eslint . --ext .ts --fix",
     "lint": "eslint . --ext .ts",
     "test": "jest",
     "build": "webpack",
-    "postbuild": "node denoTrans.mjs"
+    "postbuild": "node denoTrans.mjs",
+    "build-prod": "NODE_ENV=production webpack",
+    "postbuild-prod": "node denoTrans.mjs"
   },
   "devDependencies": {
     "@babel/core": "^7.14.6",
     "@babel/preset-env": "^7.14.7",
     "@babel/preset-typescript": "^7.14.5",
     "@types/jest": "^26.0.24",
+    "@types/node-fetch": "2",
     "@typescript-eslint/eslint-plugin": "^4.28.3",
     "@typescript-eslint/parser": "^4.28.3",
     "babel-loader": "^8.2.2",
@@ -46,6 +55,14 @@
     "webpack-node-externals": "^3.0.0"
   },
   "dependencies": {
-    "axios": "^0.21.1"
-  }
+    "abort-controller": "^3.0.0",
+    "events": "^3.3.0",
+    "node-fetch": "2.6.2"
+  },
+  "keywords": [
+    "flagship",
+    "abtasty",
+    "node",
+    "sdk"
+  ]
 }

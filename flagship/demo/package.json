@@ -5,11 +5,11 @@
   "license": "MIT",
   "dependencies": {
     "esm": "^3.2.25",
-    "flagship": "file:../"
+    "flagship": "file:.."
   },
   "scripts": {
     "build": "babel node -d dist",
-    "start": "node dist/DemoFlagship.js"
+    "start": "babel node -d dist && node dist/DemoFlagship.js"
   },
   "devDependencies": {
     "@babel/cli": "^7.14.5",
