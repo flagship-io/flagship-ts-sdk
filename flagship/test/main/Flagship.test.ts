@@ -29,7 +29,7 @@ jest.mock('../../src/decision/ApiManager', () => {
 })
 
 describe('test newVisitor null', () => {
-  const visitor = Flagship.newVisitor('visitor')
+  const visitor = Flagship.newVisitor({ visitorId: 'visitor' })
   expect(visitor).toBeNull()
 })
 
@@ -140,15 +140,15 @@ describe('test Flagship newVisitor', () => {
       fs_version: SDK_VERSION,
       fs_users: visitorId
     }
-    let visitor = Flagship.newVisitor(visitorId, context)
+    let visitor = Flagship.newVisitor({ visitorId, context })
 
     expect(visitor?.visitorId).toBe(visitorId)
     expect(visitor?.context).toEqual({ ...context, ...predefinedContext })
 
-    const visitorNull = Flagship.newVisitor(getNull(), context)
+    const visitorNull = Flagship.newVisitor({ visitorId: getNull(), context })
     expect(visitorNull).toBeInstanceOf(Visitor)
 
-    const newVisitor = Flagship.newVisitor(visitorId)
+    const newVisitor = Flagship.newVisitor({ visitorId })
     expect(newVisitor?.context).toEqual({ ...predefinedContext })
 
     expect(getCampaignsAsync).toBeCalledTimes(3)
@@ -169,7 +169,7 @@ describe('test Flagship newVisitor', () => {
   describe('test not ready', () => {
     const visitorId = 'visitorId'
     const context = { isVip: true }
-    const visitor = Flagship.newVisitor(visitorId, context)
+    const visitor = Flagship.newVisitor({ visitorId, context })
     expect(visitor).toBeNull()
   })
 })
