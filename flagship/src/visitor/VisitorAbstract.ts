@@ -18,7 +18,7 @@ import { cacheVisitor } from './VisitorCache'
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _visitorId!: string;
     protected _context: Record<string, primitive>;
-    protected _modifications: Map<string, Modification>;
+    protected _modifications!: Map<string, Modification>;
     protected _configManager: IConfigManager;
     protected _campaigns!: CampaignDTO[];
     protected _hasConsented!:boolean;
@@ -54,12 +54,16 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
         this._anonymousId = this.uuidV4()
       }
       this.updateCache()
-      this.initializeCampaigns(initialCampaigns)
-      this._modifications = initialModifications || new Map<string, Modification>()
+      this.setInitialModifications(initialModifications)
+      this.setInitializeCampaigns(initialCampaigns, initialModifications)
     }
 
-    protected initializeCampaigns (campaigns?:CampaignDTO[]):void {
-      if (campaigns) {
+    protected setInitialModifications (modifications?:Map<string, Modification>):void {
+      this._modifications = (modifications && modifications instanceof Map) ? modifications : new Map<string, Modification>()
+    }
+
+    protected setInitializeCampaigns (campaigns?:CampaignDTO[], modifications?:Map<string, Modification>):void {
+      if (campaigns && Array.isArray(campaigns) && !modifications) {
         this.getStrategy().updateCampaigns(campaigns)
       }
     }
