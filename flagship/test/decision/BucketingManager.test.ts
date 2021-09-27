@@ -703,3 +703,29 @@ describe('test bucketing method', () => {
     expect(response).toBeFalsy()
   })
 })
+
+describe('test initBucketing', () => {
+  const config = new BucketingConfig({ pollingInterval: 0, initialBucketing: bucketing })
+  const murmurHash = new MurmurHash()
+  const httpClient = new HttpClient()
+
+  const getAsync = jest.spyOn(httpClient, 'getAsync')
+
+  const bucketingManager = new BucketingManager(httpClient, config, murmurHash)
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sendContext = jest.spyOn(bucketingManager as any, 'sendContext')
+
+  sendContext.mockReturnValue(Promise.resolve())
+
+  const visitorId = 'visitor_1'
+  const context = {
+    age: 20
+  }
+  it('should ', async () => {
+    const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager: {} as TrackingManager } })
+    const modifications = await bucketingManager.getCampaignsModificationsAsync(visitor)
+    expect(modifications.size).toBe(6)
+    expect(getAsync).toBeCalledTimes(0)
+  })
+})

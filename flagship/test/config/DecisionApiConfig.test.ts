@@ -20,6 +20,7 @@ describe('test DecisionApiConfig', () => {
     expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
     expect(config.fetchNow).toBeTruthy()
     expect(config.enableClientCache).toBeTruthy()
+    expect(config.initialBucketing).toBeUndefined()
   })
 
   it('test config constructor', () => {
@@ -27,6 +28,9 @@ describe('test DecisionApiConfig', () => {
     const envId = 'envId'
     const logManager = new FlagshipLogManager()
     const statusChang = jest.fn()
+    const initialBucketing = {
+      panic: true
+    }
 
     const config = new DecisionApiConfig({
       apiKey,
@@ -36,7 +40,8 @@ describe('test DecisionApiConfig', () => {
       logManager,
       statusChangedCallback: statusChang,
       fetchNow: false,
-      enableClientCache: false
+      enableClientCache: false,
+      initialBucketing
     })
     expect(config.apiKey).toBe(apiKey)
     expect(config.envId).toBe(envId)
@@ -46,6 +51,7 @@ describe('test DecisionApiConfig', () => {
     expect(config.timeout).toBe(5)
     expect(config.fetchNow).toBeFalsy()
     expect(config.enableClientCache).toBeFalsy()
+    expect(config.initialBucketing).toEqual(initialBucketing)
   })
 
   it('Test envId field ', () => {
@@ -58,6 +64,14 @@ describe('test DecisionApiConfig', () => {
     const apiKey = 'apiKey'
     config.apiKey = apiKey
     expect(config.apiKey).toBe(apiKey)
+  })
+
+  it('Test initialBucketing', () => {
+    const initialBucketingUpdate = {
+      panic: false
+    }
+    config.initialBucketing = initialBucketingUpdate
+    expect(config.initialBucketing).toEqual(initialBucketingUpdate)
   })
 
   it('Test logLevel', () => {
