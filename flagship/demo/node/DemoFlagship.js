@@ -6,9 +6,11 @@ import {
   HitType,
   Item,
   LogLevel,
+  Modification,
   Transaction
-} from '@flagship.io/js-sdk'
+} from '../../'
 import { API_KEY, ENV_ID } from './config.js'
+import { campaigns } from './campaigns'
 
 const sleep = (ms) => {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -25,7 +27,18 @@ Flagship.start(ENV_ID, API_KEY, {
   fetchNow: false
 })
 
-const visitor = Flagship.newVisitor('visitor_id', { key: 'value' })
+const initialModifications = new Map([[
+  'array', {
+    key: 'array',
+    campaignId: 'c3ev1afkprbg5u3burag',
+    variationGroupId: 'c3ev1afkprbg5u3burbg',
+    variationId: 'c3ev1afkprbg5u3burcg',
+    isReference: false,
+    value: [1, 1, 1]
+  }
+]])
+
+const visitor = Flagship.newVisitor({ visitorId: 'visitor_id', context: { key: 'value' }, initialModifications, initialCampaigns: campaigns.campaigns })
 
 const start = async () => {
   if (visitor) {
@@ -38,7 +51,7 @@ const start = async () => {
       console.log('Flagship Ready')
     })
 
-    await sleep(5000)
+    // await sleep(5000)
     // clear context
     visitor.clearContext()
 
@@ -46,7 +59,7 @@ const start = async () => {
     visitor.updateContext({ isVip: true })
 
     // optional when fetchNow = true, this method is call on each newVisitor
-    await visitor.synchronizeModifications()
+    // await visitor.synchronizeModifications()
     visitor.setConsent(true)
 
     // getModification
@@ -55,7 +68,7 @@ const start = async () => {
         console.log('modification:', modification)
       })
 
-    visitor.getModification([
+    visitor.getModifications([
       { key: 'array', defaultValue: [] },
       {
         key: 'object',
@@ -69,7 +82,7 @@ const start = async () => {
     // activateModification
     visitor.activateModification('object')
 
-    visitor.activateModification(['array', 'object'])
+    visitor.activateModifications(['array', 'object'])
 
     // getModificationInfo
     visitor.getModificationInfo('array')
