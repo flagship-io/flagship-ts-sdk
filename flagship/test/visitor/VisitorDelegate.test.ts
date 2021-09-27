@@ -44,6 +44,8 @@ const authenticate:Mock<void, [visitorId:string]> = jest.fn()
 const unauthenticate:Mock<void, []> = jest.fn()
 const setConsent:Mock<void, [boolean]> = jest.fn()
 
+const updateCampaigns:Mock<void, [CampaignDTO[]]> = jest.fn()
+
 jest.mock('../../src/visitor/DefaultStrategy', () => {
   return {
     DefaultStrategy: jest.fn().mockImplementation(() => {
@@ -68,7 +70,8 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         getAllModifications,
         getModificationsForCampaign,
         authenticate,
-        unauthenticate
+        unauthenticate,
+        updateCampaigns
       }
     })
   }
@@ -95,9 +98,26 @@ describe('test VisitorDelegate', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager: configManager as ConfigManager })
+  const campaigns = [{
+    id: 'c2nrh1hjg50l9thhu8bg',
+    variationGroupId: 'c2nrh1hjg50l9thhu8cg',
+    variation: {
+      id: 'c2nrh1hjg50l9thhu8dg',
+      modifications: {
+        type: 'JSON',
+        value: {
+          key: 'value'
+        }
+      },
+      reference: false
+    }
+  }]
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager: configManager as ConfigManager, initialCampaigns: campaigns })
   expect(updateContext).toBeCalledWith(context)
   expect(updateContext).toBeCalledTimes(1)
+  expect(updateCampaigns).toBeCalledTimes(1)
+  expect(updateCampaigns).toBeCalledWith(campaigns)
 
   it('test visitorId', () => {
     expect(visitorDelegate.visitorId).toBe(visitorId)

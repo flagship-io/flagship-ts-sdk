@@ -30,6 +30,12 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       this.visitor = visitor
     }
 
+    public updateCampaigns (campaigns:CampaignDTO[]):void {
+      this.visitor.campaigns = campaigns
+      this.visitor.modifications = this.decisionManager.getModifications(campaigns)
+      console.log(this.decisionManager.getModifications(campaigns))
+    }
+
     abstract setConsent (hasConsented: boolean): void
     abstract updateContext(context: Record<string, primitive>): void
     abstract clearContext (): void
