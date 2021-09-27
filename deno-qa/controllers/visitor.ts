@@ -42,7 +42,7 @@ export const putVisitor = async ({
 }: RouterContext<RouteParams, Record<string, any>>) => {
   try {
     const { visitorId, context,consent } = state.bodyValue;
-    const visitor = Flagship.newVisitor(`${visitorId}`, context );
+    const visitor = Flagship.newVisitor({visitorId: `${visitorId}`, context });
     const responseBody: Record<string, unknown> = {
       modification: [],
       context: {},
@@ -52,6 +52,7 @@ export const putVisitor = async ({
     };
     if (visitor) {
       visitor.setConsent(!!consent);
+      // deno-lint-ignore no-explicit-any
       visitor.on("ready", (error: any) => {
         if (error) {
           console.log("error ready", error);
