@@ -18,7 +18,7 @@ import { cacheVisitor } from './VisitorCache.ts'
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _visitorId!: string;
     protected _context: Record<string, primitive>;
-    protected _modifications: Map<string, Modification>;
+    protected _modifications!: Map<string, Modification>;
     protected _configManager: IConfigManager;
     protected _campaigns!: CampaignDTO[];
     protected _hasConsented!:boolean;
@@ -29,14 +29,15 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
         isAuthenticated?:boolean,
         hasConsented?: boolean
         context: Record<string, primitive>,
-        configManager: IConfigManager
+        configManager: IConfigManager,
+        initialCampaigns?: CampaignDTO[]
+        initialModifications?: Map<string, Modification>
       }) {
-      const { visitorId, configManager, context, isAuthenticated, hasConsented } = param
+      const { visitorId, configManager, context, isAuthenticated, hasConsented, initialModifications, initialCampaigns } = param
       super()
       this._configManager = configManager
       const VisitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
       this.visitorId = visitorId || VisitorCache?.visitorId || this.createVisitorId()
-      this._modifications = new Map<string, Modification>()
       this.campaigns = []
 
       this._context = {}
@@ -52,8 +53,19 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       if (!this._anonymousId && isAuthenticated && this.config.decisionMode === DecisionMode.DECISION_API) {
         this._anonymousId = this.uuidV4()
       }
-
       this.updateCache()
+      this.setInitialModifications(initialModifications)
+      this.setInitializeCampaigns(initialCampaigns, initialModifications)
+    }
+
+    protected setInitialModifications (modifications?:Map<string, Modification>):void {
+      this._modifications = (modifications && modifications instanceof Map) ? modifications : new Map<string, Modification>()
+    }
+
+    protected setInitializeCampaigns (campaigns?:CampaignDTO[], modifications?:Map<string, Modification>):void {
+      if (campaigns && Array.isArray(campaigns) && !modifications) {
+        this.getStrategy().updateCampaigns(campaigns)
+      }
     }
 
     protected updateCache ():void {

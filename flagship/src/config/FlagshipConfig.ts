@@ -73,6 +73,8 @@ export interface IFlagshipConfig {
   onBucketingFail?:(error: Error)=>void
 
   onBucketingUpdated?:(lastUpdate:Date)=>void
+
+  initialBucketing?:BucketingDTO
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -91,11 +93,12 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _onBucketingSuccess?: (param:{ status: number; payload: BucketingDTO })=>void;
   private _onBucketingUpdated?: (lastUpdate:Date)=>void;
   private _enableClientCache! : boolean;
+  private _initialBucketing?:BucketingDTO
 
   protected constructor (param: IFlagshipConfig) {
     const {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
-      fetchNow, decisionMode, enableClientCache
+      fetchNow, decisionMode, enableClientCache, initialBucketing
     } = param
 
     this._envId = envId
@@ -105,10 +108,19 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this.fetchNow = typeof fetchNow === 'undefined' || fetchNow
     this.enableClientCache = typeof enableClientCache === 'undefined' || enableClientCache
     this._decisionMode = decisionMode || DecisionMode.DECISION_API
+    this._initialBucketing = initialBucketing
     if (logManager) {
       this.logManager = logManager
     }
     this.statusChangedCallback = statusChangedCallback
+  }
+
+  public get initialBucketing () : BucketingDTO|undefined {
+    return this._initialBucketing
+  }
+
+  public set initialBucketing (v : BucketingDTO|undefined) {
+    this._initialBucketing = v
   }
 
   public get enableClientCache () : boolean {

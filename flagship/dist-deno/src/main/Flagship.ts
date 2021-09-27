@@ -20,6 +20,8 @@ import { MurmurHash } from '../utils/MurmurHash.ts'
 import { primitive } from '../types.ts'
 import { DecisionManager } from '../decision/DecisionManager.ts'
 import { HttpClient } from '../utils/HttpClient.ts'
+import { CampaignDTO } from '../decision/api/models.ts'
+import { Modification } from '../model/Modification.ts'
 
 export interface INewVisitor{
   /**
@@ -31,7 +33,11 @@ export interface INewVisitor{
    * visitor context
    */
   context?: Record<string, primitive>
-  hasConsented?:boolean
+  hasConsented?:boolean,
+
+   initialCampaigns?: CampaignDTO[]
+   initialModifications?: Map<string, Modification>
+
 }
 
 export class Flagship {
@@ -216,34 +222,25 @@ export class Flagship {
    * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
    * @returns {Visitor} a new visitor instance
    */
-  public static newVisitor (visitorId: string|null, context?: Record<string, primitive>): Visitor | null
 
-  public static newVisitor (params:string|INewVisitor|null, params2?:Record<string, primitive>): Visitor | null {
+  public static newVisitor (params:INewVisitor|null): Visitor | null {
     if (!this.isReady()) {
       return null
     }
 
-    let visitorId:string|null
-    let context:Record<string, primitive>
-    let isAuthenticated = false
-    let hasConsented = false
-
-    if (typeof params === 'string' || params === null) {
-      visitorId = params
-      context = params2 || {}
-    } else {
-      visitorId = params.visitorId || null
-      context = params.context || {}
-      isAuthenticated = params.isAuthenticated ?? false
-      hasConsented = params.hasConsented ?? false
-    }
+    const visitorId = params?.visitorId || null
+    const context = params?.context || {}
+    const isAuthenticated = params?.isAuthenticated ?? false
+    const hasConsented = params?.hasConsented ?? false
 
     const visitorDelegate = new VisitorDelegate({
       visitorId,
       context,
       isAuthenticated,
       hasConsented,
-      configManager: this.getInstance().configManager
+      configManager: this.getInstance().configManager,
+      initialModifications: params?.initialModifications,
+      initialCampaigns: params?.initialCampaigns
     })
 
     const visitor = new Visitor(visitorDelegate)

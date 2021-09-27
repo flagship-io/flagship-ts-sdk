@@ -741,6 +741,51 @@ describe('test DefaultStrategy ', () => {
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBeNull()
   })
+
+  it('test updateCampaigns', () => {
+    const modifications = new Map<string, Modification>([['key', new Modification('', '', '', '', false, '')]])
+    getModifications.mockReturnValue(modifications)
+    const campaigns = [{
+      id: 'c2nrh1hjg50l9thhu8bg',
+      variationGroupId: 'c2nrh1hjg50l9thhu8cg',
+      variation: {
+        id: 'c2nrh1hjg50l9thhu8dg',
+        modifications: {
+          type: 'JSON',
+          value: {
+            key: 'value'
+          }
+        },
+        reference: false
+      }
+    }]
+    defaultStrategy.updateCampaigns(campaigns)
+    expect(visitorDelegate.campaigns).toEqual(campaigns)
+    expect(visitorDelegate.modifications).toEqual(modifications)
+  })
+
+  it('test updateCampaigns throw error', () => {
+    const error = 'error'
+    getModifications.mockImplementation(() => {
+      throw error
+    })
+    const campaigns = [{
+      id: 'c2nrh1hjg50l9thhu8bg',
+      variationGroupId: 'c2nrh1hjg50l9thhu8cg',
+      variation: {
+        id: 'c2nrh1hjg50l9thhu8dg',
+        modifications: {
+          type: 'JSON',
+          value: {
+            key: 'value'
+          }
+        },
+        reference: false
+      }
+    }]
+    defaultStrategy.updateCampaigns(campaigns)
+    expect(logError).toBeCalledTimes(1)
+  })
 })
 
 describe('test authenticate on bucketing mode', () => {

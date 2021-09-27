@@ -7,6 +7,7 @@ import { IConfigManager, IFlagshipConfig } from '../config/index'
 import { CampaignDTO } from '../decision/api/models'
 import { ITrackingManager } from '../api/TrackingManagerAbstract'
 import { IDecisionManager } from '../decision/IDecisionManager'
+import { logError } from '../utils/utils'
 export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'modifications'|'context'|'hasConsented'> {
     protected visitor:VisitorAbstract;
 
@@ -28,6 +29,16 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
     public constructor (visitor:VisitorAbstract) {
       this.visitor = visitor
+    }
+
+    public updateCampaigns (campaigns:CampaignDTO[]):void {
+      try {
+        this.visitor.campaigns = campaigns
+        this.visitor.modifications = this.decisionManager.getModifications(campaigns)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error:any) {
+        logError(this.config, error.message || error, 'updateCampaigns')
+      }
     }
 
     abstract setConsent (hasConsented: boolean): void
