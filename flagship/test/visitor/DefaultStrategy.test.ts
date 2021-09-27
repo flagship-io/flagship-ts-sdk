@@ -763,6 +763,29 @@ describe('test DefaultStrategy ', () => {
     expect(visitorDelegate.campaigns).toEqual(campaigns)
     expect(visitorDelegate.modifications).toEqual(modifications)
   })
+
+  it('test updateCampaigns throw error', () => {
+    const error = 'error'
+    getModifications.mockImplementation(() => {
+      throw error
+    })
+    const campaigns = [{
+      id: 'c2nrh1hjg50l9thhu8bg',
+      variationGroupId: 'c2nrh1hjg50l9thhu8cg',
+      variation: {
+        id: 'c2nrh1hjg50l9thhu8dg',
+        modifications: {
+          type: 'JSON',
+          value: {
+            key: 'value'
+          }
+        },
+        reference: false
+      }
+    }]
+    defaultStrategy.updateCampaigns(campaigns)
+    expect(logError).toBeCalledTimes(1)
+  })
 })
 
 describe('test authenticate on bucketing mode', () => {
