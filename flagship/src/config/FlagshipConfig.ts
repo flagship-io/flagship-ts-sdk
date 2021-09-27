@@ -1,6 +1,4 @@
-import { Modification } from '..'
 import { BucketingDTO } from '../decision/api/bucketingDTO'
-import { CampaignDTO } from '../decision/api/models'
 import { FlagshipStatus, LogLevel, REQUEST_TIME_OUT } from '../enum/index'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError } from '../utils/utils'
