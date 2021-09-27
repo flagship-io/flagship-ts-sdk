@@ -22,6 +22,9 @@ export class BucketingManager extends DecisionManager {
     super(httpClient, config)
     this._murmurHash = murmurHash
     this._isFirstPooling = true
+    if (config.initialBucketing) {
+      this._bucketingContent = config.initialBucketing
+    }
   }
 
   private finishLoop (response: IHttpResponse) {
@@ -127,20 +130,20 @@ export class BucketingManager extends DecisionManager {
     }
   }
 
-  getCampaignsAsync (visitor: VisitorAbstract): Promise<CampaignDTO[]> {
+  async getCampaignsAsync (visitor: VisitorAbstract): Promise<CampaignDTO[]> {
     this.sendContext(visitor)
 
     if (!this._bucketingContent) {
-      return Promise.resolve([])
+      return []
     }
     if (this._bucketingContent.panic) {
       this.panic = true
-      return Promise.resolve([])
+      return []
     }
     this.panic = false
 
     if (!this._bucketingContent.campaigns) {
-      return Promise.resolve([])
+      return []
     }
 
     const visitorCampaigns:CampaignDTO[] = []
@@ -151,7 +154,7 @@ export class BucketingManager extends DecisionManager {
         visitorCampaigns.push(currentCampaigns)
       }
     })
-    return Promise.resolve(visitorCampaigns)
+    return visitorCampaigns
   }
 
   private getVisitorCampaigns (variationGroups : VariationGroupDTO[], campaignId: string, visitor: VisitorAbstract) :CampaignDTO|null {
