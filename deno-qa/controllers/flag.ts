@@ -16,8 +16,8 @@ export const getFlagValidation = async (
   let parseDefaultValue = defaultValue
   try {
      parseDefaultValue =defaultValue ? JSON.parse(defaultValue):"";
-  } catch (error) {
-    
+  } catch (_error) {
+    //
   }
   
   switch (type) {
