@@ -2,9 +2,13 @@
 
 var _ = require('../../');
 
+var _2 = _interopRequireDefault(_);
+
 var _config = require('./config.js');
 
 var _campaigns = require('./campaigns');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 const sleep = ms => {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -14,7 +18,7 @@ const statusChangedCallback = status => {
   console.log('status', _.FlagshipStatus[status]);
 };
 
-_.Flagship.start(_config.ENV_ID, _config.API_KEY, {
+_2.default.start(_config.ENV_ID, _config.API_KEY, {
   decisionMode: _.DecisionMode.DECISION_API,
   statusChangedCallback,
   logLevel: _.LogLevel.ERROR,
@@ -30,7 +34,7 @@ const initialModifications = new Map([['array', {
   value: [1, 1, 1]
 }]]);
 
-const visitor = _.Flagship.newVisitor({ visitorId: 'visitor_id', context: { key: 'value' }, initialModifications, initialCampaigns: _campaigns.campaigns.campaigns });
+const visitor = _2.default.newVisitor({ visitorId: 'visitor_id', context: { key: 'value' }, initialModifications, initialCampaigns: _campaigns.campaigns.campaigns });
 
 const start = async () => {
   if (visitor) {
