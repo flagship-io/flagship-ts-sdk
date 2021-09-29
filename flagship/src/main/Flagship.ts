@@ -58,7 +58,8 @@ export class Flagship {
   private static isReady (): boolean {
     const apiKey = this._instance?.config?.apiKey
     const envId = this._instance?.config?.envId
-    return (!!this._instance && !!apiKey && !!envId)
+    const configManager = this._instance?.configManager
+    return (!!this._instance && !!apiKey && !!envId && !!configManager)
   }
 
   protected setStatus (status: FlagshipStatus): void {
@@ -154,8 +155,6 @@ export class Flagship {
 
     let decisionManager = flagship.configManager?.decisionManager
 
-    console.log(decisionManager)
-
     if (typeof decisionManager === 'object' && decisionManager instanceof BucketingManager) {
       decisionManager.stopPolling()
     }
@@ -244,6 +243,7 @@ export class Flagship {
       initialModifications = param1?.initialModifications
       initialCampaigns = param1?.initialCampaigns
     }
+
     const visitorDelegate = new VisitorDelegate({
       visitorId,
       context,
