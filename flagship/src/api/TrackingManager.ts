@@ -26,8 +26,7 @@ import {
 import { HitType } from '../enum/HitType'
 import { EventCategory } from '../hit/index'
 import { HitAbstract } from '../hit/HitAbstract'
-import { Modification } from '../model/Modification'
-import { primitive } from '../types'
+import { Modification, primitive } from '../types'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { TrackingManagerAbstract } from './TrackingManagerAbstract'
 

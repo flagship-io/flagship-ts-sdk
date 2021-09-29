@@ -2,7 +2,6 @@ import { jest, expect, it, describe } from '@jest/globals'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager, DecisionApiConfig } from '../../src/config/index'
 import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
-import { Modification } from '../../src/model/Modification'
 import {
   ANONYMOUS_ID,
   BASE_API_URL,
@@ -59,14 +58,14 @@ describe('test TrackingManager sendActive ', () => {
     [HEADER_X_SDK_VERSION]: SDK_VERSION,
     [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
   }
-  const modification = new Modification(
-    'key',
-    'campaignId',
-    'variationGroupId',
-    'variationId',
-    false,
-    'value'
-  )
+  const modification = {
+    key: 'key',
+    campaignId: 'campaignId',
+    variationGroupId: 'variationGroupId',
+    variationId: 'variationId',
+    isReference: false,
+    value: 'value'
+  }
 
   const postResponse: IHttpResponse = { status: 204, body: null }
   const postResponseError: IHttpResponse = { status: 400, body: null }

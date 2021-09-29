@@ -1,6 +1,6 @@
 import { IFlagshipConfig } from '../config/index'
 import { FlagshipStatus } from '../enum/index'
-import { Modification } from '../model/Modification'
+import { Modification } from '../types'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { CampaignDTO } from './api/models'
 

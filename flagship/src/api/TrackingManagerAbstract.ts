@@ -1,6 +1,6 @@
 import { IFlagshipConfig } from '../config/FlagshipConfig'
 import { HitAbstract } from '../hit/HitAbstract'
-import { Modification } from '../model/Modification'
+import { Modification } from '../types'
 import { IHttpClient } from '../utils/HttpClient'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 
