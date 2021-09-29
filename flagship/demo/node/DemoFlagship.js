@@ -1,12 +1,10 @@
-import {
+import Flagship, {
   DecisionMode,
   EventCategory,
-  Flagship,
   FlagshipStatus,
   HitType,
   Item,
   LogLevel,
-  Modification,
   Transaction
 } from '../../'
 import { API_KEY, ENV_ID } from './config.js'

@@ -1,5 +1,4 @@
-import { Modification } from '../model/Modification.ts'
-import { IHit, modificationsRequested, primitive } from '../types.ts'
+import { IHit, Modification, modificationsRequested, primitive } from '../types.ts'
 import { EventEmitter } from '../deps.ts'
 import { IVisitor } from './IVisitor.ts'
 import { IFlagshipConfig } from '../config/index.ts'
@@ -17,6 +16,10 @@ export class Visitor extends EventEmitter implements IVisitor {
     this.visitorDelegate.on(EMIT_READY, (err:any) => {
       this.emit(EMIT_READY, err)
     })
+  }
+
+  getModificationsArray (): Modification[] {
+    return this.visitorDelegate.getModificationsArray()
   }
 
   public get visitorId () : string {

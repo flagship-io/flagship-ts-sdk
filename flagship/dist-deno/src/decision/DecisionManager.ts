@@ -1,11 +1,11 @@
 import { IDecisionManager } from './IDecisionManager.ts'
-import { Modification } from '../model/Modification.ts'
 import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
 import { IHttpClient } from '../utils/HttpClient.ts'
 import { CampaignDTO } from './api/models.ts'
 import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 import { FlagshipStatus } from '../enum/index.ts'
 import { logError } from '../utils/utils.ts'
+import { Modification } from '../types.ts'
 
 export abstract class DecisionManager implements IDecisionManager {
   protected _config: IFlagshipConfig;
@@ -46,14 +46,14 @@ export abstract class DecisionManager implements IDecisionManager {
         const value = object[key]
         modifications.set(
           key,
-          new Modification(
+          {
             key,
-            campaign.id,
-            campaign.variationGroupId,
-            campaign.variation.id,
-            campaign.variation.reference,
+            campaignId: campaign.id,
+            variationGroupId: campaign.variationGroupId,
+            variationId: campaign.variation.id,
+            isReference: campaign.variation.reference,
             value
-          )
+          }
         )
       }
     })

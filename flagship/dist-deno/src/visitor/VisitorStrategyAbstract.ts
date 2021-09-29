@@ -8,7 +8,7 @@ import { CampaignDTO } from '../decision/api/models.ts'
 import { ITrackingManager } from '../api/TrackingManagerAbstract.ts'
 import { IDecisionManager } from '../decision/IDecisionManager.ts'
 import { logError } from '../utils/utils.ts'
-export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'modifications'|'context'|'hasConsented'> {
+export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'modifications'|'context'|'hasConsented'|'getModificationsArray'> {
     protected visitor:VisitorAbstract;
 
     protected get configManager ():IConfigManager {

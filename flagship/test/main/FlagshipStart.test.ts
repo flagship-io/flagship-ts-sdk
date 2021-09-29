@@ -9,8 +9,9 @@ describe('test not ready', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const FlagshipAny = Flagship as any
   FlagshipAny.isReady = jest.fn().mockReturnValue(false)
-  FlagshipAny.start(envId, apiKey, { decisionMode: DecisionMode.DECISION_API, logManager })
+  const instance = FlagshipAny.start(envId, apiKey, { decisionMode: DecisionMode.DECISION_API, logManager })
   it('should ', () => {
+    expect(instance).toBeNull()
     expect(Flagship.getStatus()).toBe(FlagshipStatus.NOT_INITIALIZED)
   })
 })

@@ -17,28 +17,10 @@ import { VisitorDelegate } from '../visitor/VisitorDelegate.ts'
 import { BucketingConfig } from '../config/index.ts'
 import { BucketingManager } from '../decision/BucketingManager.ts'
 import { MurmurHash } from '../utils/MurmurHash.ts'
-import { primitive } from '../types.ts'
 import { DecisionManager } from '../decision/DecisionManager.ts'
 import { HttpClient } from '../utils/HttpClient.ts'
+import { Modification, NewVisitor, primitive } from '../types.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
-import { Modification } from '../model/Modification.ts'
-
-export interface INewVisitor{
-  /**
-   * Unique visitor identifier.
-   */
-  visitorId?:string
-  isAuthenticated?: boolean
-  /**
-   * visitor context
-   */
-  context?: Record<string, primitive>
-  hasConsented?:boolean,
-
-   initialCampaigns?: CampaignDTO[]
-   initialModifications?: Map<string, Modification>
-
-}
 
 export class Flagship {
   private static _instance: Flagship;
@@ -76,7 +58,8 @@ export class Flagship {
   private static isReady (): boolean {
     const apiKey = this._instance?.config?.apiKey
     const envId = this._instance?.config?.envId
-    return (!!this._instance && !!apiKey && !!envId)
+    const configManager = this._instance?.configManager
+    return (!!this._instance && !!apiKey && !!envId && !!configManager)
   }
 
   protected setStatus (status: FlagshipStatus): void {
@@ -147,7 +130,7 @@ export class Flagship {
     envId: string,
     apiKey: string,
     config?: IFlagshipConfig| FlagshipConfig
-  ): void {
+  ): Flagship|null {
     const flagship = this.getInstance()
 
     config = flagship.buildConfig(config)
@@ -164,10 +147,10 @@ export class Flagship {
       config.logManager = new FlagshipLogManager()
     }
 
-    if (!envId || envId === '' || !apiKey || apiKey === '') {
+    if (!envId || !apiKey) {
       flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
       logError(config, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION)
-      return
+      return null
     }
 
     let decisionManager = flagship.configManager?.decisionManager
@@ -194,27 +177,21 @@ export class Flagship {
       )
     }
 
-    if (this.isReady()) {
-      if (flagship._status === FlagshipStatus.STARTING) {
-        flagship.setStatus(FlagshipStatus.READY)
-      }
-      logInfo(
-        config,
-        sprintf(SDK_STARTED_INFO, SDK_VERSION),
-        PROCESS_INITIALIZATION
-      )
-    } else {
+    if (!this.isReady()) {
       flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
+      return null
     }
+
+    if (flagship._status === FlagshipStatus.STARTING) {
+      flagship.setStatus(FlagshipStatus.READY)
+    }
+    logInfo(
+      config,
+      sprintf(SDK_STARTED_INFO, SDK_VERSION),
+      PROCESS_INITIALIZATION
+    )
+    return flagship
   }
-
-  /**
-   * Create a new visitor with a context.
-   * @param {INewVisitor} params
-   * @returns {Visitor} a new visitor instance
-   */
-
-  public static newVisitor (params:INewVisitor): Visitor | null
 
   /**
    * Create a new visitor with a context.
@@ -222,16 +199,50 @@ export class Flagship {
    * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
    * @returns {Visitor} a new visitor instance
    */
+  public newVisitor (visitorId?: string|null, context?: Record<string, primitive>): Visitor | null
+  public newVisitor (params?:NewVisitor): Visitor | null
+  public newVisitor (param1?:NewVisitor|string|null, param2?:Record<string, primitive>):Visitor | null {
+    return Flagship.newVisitor(param1, param2)
+  }
 
-  public static newVisitor (params:INewVisitor|null): Visitor | null {
+  /**
+   * Create a new visitor with a context.
+   * @param {string} visitorId : Unique visitor identifier.
+   * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
+   * @returns {Visitor} a new visitor instance
+   */
+  public static newVisitor (visitorId?: string|null, context?: Record<string, primitive>): Visitor | null
+  /**
+   * Create a new visitor with a context.
+   * @param {string} visitorId : Unique visitor identifier.
+   * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
+   * @returns {Visitor} a new visitor instance
+   */
+  public static newVisitor (params?:NewVisitor): Visitor | null
+  public static newVisitor (param1?:NewVisitor|string|null, param2?:Record<string, primitive>):Visitor | null
+  public static newVisitor (param1?:NewVisitor|string|null, param2?:Record<string, primitive>):Visitor | null {
     if (!this.isReady()) {
       return null
     }
 
-    const visitorId = params?.visitorId || null
-    const context = params?.context || {}
-    const isAuthenticated = params?.isAuthenticated ?? false
-    const hasConsented = params?.hasConsented ?? false
+    let visitorId:string|null
+    let context:Record<string, primitive>
+    let isAuthenticated = false
+    let hasConsented = false
+    let initialModifications:Map<string, Modification>|Modification[]|undefined
+    let initialCampaigns:CampaignDTO[]|undefined
+
+    if (typeof param1 === 'string' || param1 === null) {
+      visitorId = param1
+      context = param2 || {}
+    } else {
+      visitorId = param1?.visitorId || null
+      context = param1?.context || {}
+      isAuthenticated = param1?.isAuthenticated ?? false
+      hasConsented = param1?.hasConsented ?? false
+      initialModifications = param1?.initialModifications
+      initialCampaigns = param1?.initialCampaigns
+    }
 
     const visitorDelegate = new VisitorDelegate({
       visitorId,
@@ -239,8 +250,8 @@ export class Flagship {
       isAuthenticated,
       hasConsented,
       configManager: this.getInstance().configManager,
-      initialModifications: params?.initialModifications,
-      initialCampaigns: params?.initialCampaigns
+      initialModifications: initialModifications,
+      initialCampaigns: initialCampaigns
     })
 
     const visitor = new Visitor(visitorDelegate)

@@ -26,8 +26,7 @@ import {
 import { HitType } from '../enum/HitType.ts'
 import { EventCategory } from '../hit/index.ts'
 import { HitAbstract } from '../hit/HitAbstract.ts'
-import { Modification } from '../model/Modification.ts'
-import { primitive } from '../types.ts'
+import { Modification, primitive } from '../types.ts'
 import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 import { TrackingManagerAbstract } from './TrackingManagerAbstract.ts'
 

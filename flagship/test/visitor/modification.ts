@@ -1,92 +1,103 @@
-import { Modification } from '../../src/model/Modification'
+import { Modification } from '../../src/types'
 
 export const returnModification = new Map<string, Modification>([
   [
     'keyNull',
-    new Modification(
-      'keyNull',
-      'c2nrh1hjg50l9thhu8bg',
-      'c2nrh1hjg50l9thhu8cg',
-      'c2nrh1hjg50l9thhu8dg',
-      false,
-      null
-    )
+
+    {
+      key: 'keyNull',
+      campaignId: 'c2nrh1hjg50l9thhu8bg',
+      variationGroupId: 'c2nrh1hjg50l9thhu8cg',
+      variationId: 'c2nrh1hjg50l9thhu8dg',
+      isReference: false,
+      value: null
+    }
+
   ],
   [
     'keyString',
-    new Modification(
-      'keyString',
-      'c2nrh1hjg50l9stringu8bg',
-      'c2nrh1hjg50l9thhu8cg',
-      'c2nrh1hjg50l9thhu8dg',
-      false,
-      'value'
-    )
+    {
+      key: 'keyString',
+      campaignId: 'c2nrh1hjg50l9stringu8bg',
+      variationGroupId: 'c2nrh1hjg50l9thhu8cg',
+      variationId: 'c2nrh1hjg50l9thhu8dg',
+      isReference: false,
+      value: 'value'
+    }
   ],
   [
     'keyNumber',
-    new Modification(
-      'keyNumber',
-      'c2nrh1hjg50l9thhu8bg',
-      'c2nrh1hjg50l9thhu8cg',
-      'c2nrh1hjg50l9thhu8dg',
-      false,
-      52
-    )
+    {
+      key: 'keyNumber',
+      campaignId: 'c2nrh1hjg50l9thhu8bg',
+      variationGroupId: 'c2nrh1hjg50l9thhu8cg',
+      variationId: 'c2nrh1hjg50l9thhu8dg',
+      isReference: false,
+      value: 52
+    }
   ],
   [
     'keyBoolean',
-    new Modification(
-      'keyBoolean',
-      'c2nrh1hjg50l9thhu8bg',
-      'c2nrh1hjg50l9thhu8cg',
-      'c2nrh1hjg50l9thhu8dg',
-      false,
-      true
-    )
+
+    {
+      key: 'keyBoolean',
+      campaignId: 'c2nrh1hjg50l9thhu8bg',
+      variationGroupId: 'c2nrh1hjg50l9thhu8cg',
+      variationId: 'c2nrh1hjg50l9thhu8dg',
+      isReference: false,
+      value: true
+    }
+
   ],
   [
     'key',
-    new Modification(
-      'key',
-      'c2nrh1hjg50l9thhu8bg',
-      'c2nrh1hjg50l9thhu8cg',
-      'c2nrh1hjg50l9thhu8dg',
-      false,
-      'value'
-    )
+
+    {
+      key: 'key',
+      campaignId: 'c2nrh1hjg50l9thhu8bg',
+      variationGroupId: 'c2nrh1hjg50l9thhu8cg',
+      variationId: 'c2nrh1hjg50l9thhu8dg',
+      isReference: false,
+      value: 'value'
+    }
+
   ],
   [
     'array',
-    new Modification(
-      'array',
-      'c3ev1afkprbg5u3burag',
-      'c3ev1afkprbg5u3burbg',
-      'c3ev1afkprbg5u3burcg',
-      false,
-      [1, 1, 1]
-    )
+
+    {
+      key: 'array',
+      campaignId: 'c3ev1afkprbg5u3burag',
+      variationGroupId: 'c3ev1afkprbg5u3burbg',
+      variationId: 'c3ev1afkprbg5u3burcg',
+      isReference: false,
+      value: [1, 1, 1]
+    }
+
   ],
   [
     'complex',
-    new Modification(
-      'complex',
-      'c3ev1afkprbg5u3burag',
-      'c3ev1afkprbg5u3burbg',
-      'c3ev1afkprbg5u3burcg',
-      false,
-      { carray: [] }
-    )
+
+    {
+      key: 'complex',
+      campaignId: 'c3ev1afkprbg5u3burag',
+      variationGroupId: 'c3ev1afkprbg5u3burbg',
+      variationId: 'c3ev1afkprbg5u3burcg',
+      isReference: false,
+      value: { carray: [] }
+    }
+
   ],
   [
     'object',
-    new Modification(
-      'object',
-      'c3ev1afkprbg5u3burag',
-      'c3ev1afkprbg5u3burbg',
-      'c3ev1afkprbg5u3burcg',
-      false,
-      { value: 123456 }
-    )
+
+    {
+      key: 'object',
+      campaignId: 'c3ev1afkprbg5u3burag',
+      variationGroupId: 'c3ev1afkprbg5u3burbg',
+      variationId: 'c3ev1afkprbg5u3burcg',
+      isReference: false,
+      value: { value: 123456 }
+    }
   ]
 ])

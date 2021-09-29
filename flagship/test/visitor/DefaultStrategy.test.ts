@@ -743,7 +743,7 @@ describe('test DefaultStrategy ', () => {
   })
 
   it('test updateCampaigns', () => {
-    const modifications = new Map<string, Modification>([['key', new Modification('', '', '', '', false, '')]])
+    const modifications = new Map<string, Modification>([['key', { key: '', campaignId: '', variationGroupId: '', variationId: '', isReference: false, value: '' }]])
     getModifications.mockReturnValue(modifications)
     const campaigns = [{
       id: 'c2nrh1hjg50l9thhu8bg',

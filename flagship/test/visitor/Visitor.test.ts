@@ -68,7 +68,14 @@ describe('test visitor', () => {
 
     expect(visitor.context).toEqual({ ...context, ...predefinedContext })
 
-    visitorDelegate.modifications.set('newKey', new Modification('newKey', 'cma', 'var', 'varId', true, 'value'))
+    visitorDelegate.modifications.set('newKey', {
+      key: 'newKey',
+      campaignId: 'cma',
+      variationGroupId: 'var',
+      variationId: 'varId',
+      isReference: true,
+      value: 'value'
+    })
 
     expect(visitor.modifications).toBe(visitorDelegate.modifications)
   })
@@ -110,6 +117,13 @@ describe('test visitor', () => {
       .catch((error) => {
         console.log(error)
       })
+  })
+
+  it('test getModificationsArray', () => {
+    const getModifications = jest.spyOn(visitorDelegate, 'getModificationsArray')
+    getModifications.mockReturnValue([])
+    visitor.getModificationsArray()
+    expect(getModifications).toBeCalledTimes(1)
   })
 
   it('test getModifications', () => {
@@ -227,7 +241,12 @@ describe('test visitor', () => {
     const getAllModifications = jest.spyOn(visitorDelegate, 'getAllModifications')
     getAllModifications.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
     visitor.getAllModifications().then(() => {
-      expect(getAllModifications).toBeCalledTimes(1)
+      expect(getAllModifications).toBeCalledTimes(2)
+      expect(getAllModifications).toBeCalledWith(false)
+    })
+    visitor.getAllModifications(true).then(() => {
+      expect(getAllModifications).toBeCalledTimes(2)
+      expect(getAllModifications).toBeCalledWith(true)
     })
   })
 
@@ -236,8 +255,13 @@ describe('test visitor', () => {
     getModificationsForCampaign.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
     const campaignId = 'campaignId'
     visitor.getModificationsForCampaign(campaignId).then(() => {
-      expect(getModificationsForCampaign).toBeCalledTimes(1)
+      expect(getModificationsForCampaign).toBeCalledTimes(2)
       expect(getModificationsForCampaign).toBeCalledWith(campaignId, false)
+    })
+
+    visitor.getModificationsForCampaign(campaignId, true).then(() => {
+      expect(getModificationsForCampaign).toBeCalledTimes(2)
+      expect(getModificationsForCampaign).toBeCalledWith(campaignId, true)
     })
   })
 
