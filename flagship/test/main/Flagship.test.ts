@@ -98,7 +98,7 @@ describe('test Flagship with custom config', () => {
   config.logManager = logManager
 
   it('should ', () => {
-    Flagship.start(envId, apiKey, config)
+    const instance = Flagship.start(envId, apiKey, config)
     expect(Flagship.getConfig()).toBeDefined()
     expect(Flagship.getConfig()).toBe(config)
     expect(Flagship.getConfig().envId).toBe(envId)
@@ -112,16 +112,18 @@ describe('test Flagship with custom config', () => {
       sprintf(SDK_STARTED_INFO, SDK_VERSION),
       PROCESS_INITIALIZATION
     )
+    expect(instance).toBeInstanceOf(Flagship)
   })
 
   it('should ', () => {
-    Flagship.start('', '', config)
+    const instance = Flagship.start('', '', config)
     expect(Flagship.getStatus()).toBe(FlagshipStatus.NOT_INITIALIZED)
     expect(errorLog).toBeCalledTimes(1)
     expect(errorLog).toBeCalledWith(
       INITIALIZATION_PARAM_ERROR,
       PROCESS_INITIALIZATION
     )
+    expect(instance).toBeNull()
   })
 })
 

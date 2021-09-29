@@ -1,3 +1,5 @@
+import { Flagship } from './main/Flagship.ts'
+
 export { Flagship } from './main/Flagship.ts'
 export { DecisionApiConfig, DecisionMode } from './config/index.ts'
 export type { IFlagshipConfig } from './config/index.ts'
@@ -10,3 +12,5 @@ export { Visitor } from './visitor/index.ts'
 export type { IFlagshipLogManager } from './utils/FlagshipLogManager.ts'
 export type { BucketingDTO } from './decision/api/bucketingDTO.ts'
 export type { CampaignDTO } from './decision/api/models.ts'
+
+export default Flagship
