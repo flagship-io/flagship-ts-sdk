@@ -1,3 +1,4 @@
+import { CampaignDTO } from './decision/api/models'
 import { IEvent, IItem, IPage, IScreen, ITransaction } from './hit/index'
 
 export type modificationsRequested<T>={
@@ -18,4 +19,21 @@ export type Modification= {
   isReference: boolean;
  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
+}
+
+export type NewVisitor={
+  /**
+   * Unique visitor identifier.
+   */
+  visitorId?:string
+  isAuthenticated?: boolean
+  /**
+   * visitor context
+   */
+  context?: Record<string, primitive>
+  hasConsented?:boolean,
+
+   initialCampaigns?: CampaignDTO[]
+   initialModifications?: Map<string, Modification>|Modification[]
+
 }
