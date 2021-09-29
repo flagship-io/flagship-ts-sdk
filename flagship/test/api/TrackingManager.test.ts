@@ -206,7 +206,7 @@ describe('test TrackingManager sendConsentHit ', () => {
     const postBody:Record<string, unknown> = {
       [T_API_ITEM]: HitType.EVENT,
       [EVENT_LABEL_API_ITEM]: `${SDK_LANGUAGE}:${visitor.hasConsented}`,
-      [EVENT_ACTION_API_ITEM]: 'fs_content',
+      [EVENT_ACTION_API_ITEM]: 'fs_consent',
       [EVENT_CATEGORY_API_ITEM]: EventCategory.USER_ENGAGEMENT,
       [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
       [DS_API_ITEM]: SDK_APP,
@@ -215,29 +215,31 @@ describe('test TrackingManager sendConsentHit ', () => {
     }
 
     postAsync.mockResolvedValue(postResponse)
-    trackingManager.sendConsentHit(visitor).then(() => {
-      expect(postAsync).toBeCalledWith(HIT_CONSENT_URL, {
-        headers: headers,
-        timeout: config.timeout,
-        body: postBody
-      })
+
+    await trackingManager.sendConsentHit(visitor)
+
+    expect(postAsync).toBeCalledWith(HIT_CONSENT_URL, {
+      headers: headers,
+      timeout: config.timeout,
+      body: postBody
     })
 
     postAsync.mockRejectedValue(postResponseError)
-    trackingManager.sendConsentHit(visitor).catch(error => {
+    try {
+      await trackingManager.sendConsentHit(visitor)
+    } catch (error) {
       expect(error).toBe(postResponseError)
-    })
+    }
 
     visitor.authenticate('visitorIdAuth')
     postBody[VISITOR_ID_API_ITEM] = visitor.anonymousId
     postBody[CUSTOMER_UID] = visitor.visitorId
     postAsync.mockResolvedValue(postResponse)
-    trackingManager.sendConsentHit(visitor).then(() => {
-      expect(postAsync).toBeCalledWith(HIT_CONSENT_URL, {
-        headers: headers,
-        timeout: config.timeout,
-        body: postBody
-      })
+    await trackingManager.sendConsentHit(visitor)
+    expect(postAsync).toBeCalledWith(HIT_CONSENT_URL, {
+      headers: headers,
+      timeout: config.timeout,
+      body: postBody
     })
     expect(postAsync).toHaveBeenCalledTimes(3)
   })
