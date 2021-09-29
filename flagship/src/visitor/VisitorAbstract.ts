@@ -46,9 +46,9 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this.loadPredefinedContext()
 
       if (!hasConsented) {
-        this.setConsent(hasConsented ?? false)
+        this.setConsent(false)
       }
-      this.hasConsented = hasConsented ?? false
+      this.hasConsented = hasConsented ?? true
 
       if (!this._anonymousId && isAuthenticated && this.config.decisionMode === DecisionMode.DECISION_API) {
         this._anonymousId = this.uuidV4()

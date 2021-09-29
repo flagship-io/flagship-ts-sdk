@@ -44,8 +44,6 @@ describe('test Post method NOdeHttpClient', () => {
       await nodeHttpClient.postAsync(url, options)
       expect(fetch).toBeCalledTimes(1)
     } catch (err) {
-      console.log(error)
-
       expect(err).toEqual(error)
     }
   })
