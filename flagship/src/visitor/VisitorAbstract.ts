@@ -31,7 +31,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
         context: Record<string, primitive>,
         configManager: IConfigManager,
         initialCampaigns?: CampaignDTO[]
-        initialModifications?: Map<string, Modification>
+        initialModifications?: Map<string, Modification>| Modification[]
       }) {
       const { visitorId, configManager, context, isAuthenticated, hasConsented, initialModifications, initialCampaigns } = param
       super()
@@ -55,15 +55,26 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       }
       this.updateCache()
       this.setInitialModifications(initialModifications)
-      this.setInitializeCampaigns(initialCampaigns, initialModifications)
+      this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
     }
 
-    protected setInitialModifications (modifications?:Map<string, Modification>):void {
-      this._modifications = (modifications && modifications instanceof Map) ? modifications : new Map<string, Modification>()
+    public getModificationsArray (): Modification[] {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      return Array.from(this._modifications, ([_key, item]) => item)
     }
 
-    protected setInitializeCampaigns (campaigns?:CampaignDTO[], modifications?:Map<string, Modification>):void {
-      if (campaigns && Array.isArray(campaigns) && !modifications) {
+    protected setInitialModifications (modifications?:Map<string, Modification>| Modification[]):void {
+      this._modifications = new Map<string, Modification>()
+      if (!modifications || (!(modifications instanceof Map) && !Array.isArray(modifications))) {
+        return
+      }
+      modifications.forEach(item => {
+        this._modifications.set(item.key, item)
+      })
+    }
+
+    protected setInitializeCampaigns (campaigns?:CampaignDTO[], hasModifications?:boolean):void {
+      if (campaigns && Array.isArray(campaigns) && !hasModifications) {
         this.getStrategy().updateCampaigns(campaigns)
       }
     }

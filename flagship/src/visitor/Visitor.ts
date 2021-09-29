@@ -1,5 +1,4 @@
-import { Modification } from '../model/Modification'
-import { IHit, modificationsRequested, primitive } from '../types'
+import { IHit, Modification, modificationsRequested, primitive } from '../types'
 import { EventEmitter } from '../nodeDeps'
 import { IVisitor } from './IVisitor'
 import { IFlagshipConfig } from '../config/index'
@@ -17,6 +16,10 @@ export class Visitor extends EventEmitter implements IVisitor {
     this.visitorDelegate.on(EMIT_READY, (err:any) => {
       this.emit(EMIT_READY, err)
     })
+  }
+
+  getModificationsArray (): Modification[] {
+    return this.visitorDelegate.getModificationsArray()
   }
 
   public get visitorId () : string {

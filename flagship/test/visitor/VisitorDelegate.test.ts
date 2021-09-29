@@ -149,9 +149,18 @@ describe('test VisitorDelegate', () => {
 
   it('test modification', () => {
     expect(visitorDelegate.modifications.size).toBe(0)
-    const newModification = new Map([['key', new Modification('newKey', 'cma', 'var', 'varId', true, 'value')]])
+    const modification = {
+      key: 'newKey',
+      campaignId: 'cma',
+      variationGroupId: 'var',
+      variationId: 'varId',
+      isReference: true,
+      value: 'value'
+    }
+    const newModification = new Map([['key', modification]])
     visitorDelegate.modifications = newModification
     expect(visitorDelegate.modifications).toEqual(newModification)
+    expect(visitorDelegate.getModificationsArray()).toEqual([modification])
   })
 
   it('test campaigns', () => {
@@ -185,7 +194,14 @@ describe('test VisitorDelegate', () => {
 
     expect(visitorDelegate.anonymousId).toBeNull()
 
-    visitorDelegate.modifications.set('newKey', new Modification('newKey', 'cma', 'var', 'varId', true, 'value'))
+    visitorDelegate.modifications.set('newKey', {
+      key: 'newKey',
+      campaignId: 'cma',
+      variationGroupId: 'var',
+      variationId: 'varId',
+      isReference: true,
+      value: 'value'
+    })
   })
 
   it('test anonymous', () => {
@@ -393,5 +409,115 @@ describe('Name of the group', () => {
     })
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBe(anonymousId)
+  })
+})
+
+describe('test initialModifications', () => {
+  const visitorId = 'visitorId'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const context: any = {
+    isVip: true
+  }
+
+  const logManager = new FlagshipLogManager()
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
+  config.logManager = logManager
+
+  const httpClient = new HttpClient()
+
+  const apiManager = new ApiManager(httpClient, config)
+
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  const configManager = new ConfigManager(config, apiManager, trackingManager)
+
+  const campaigns = [{
+    id: 'c2nrh1hjg50l9thhu8bg',
+    variationGroupId: 'c2nrh1hjg50l9thhu8cg',
+    variation: {
+      id: 'c2nrh1hjg50l9thhu8dg',
+      modifications: {
+        type: 'JSON',
+        value: {
+          key: 'value'
+        }
+      },
+      reference: false
+    }
+  }]
+
+  it('should initialModifications with Map', () => {
+    const newModification = new Map([['newKey', {
+      key: 'newKey',
+      campaignId: 'cma',
+      variationGroupId: 'var',
+      variationId: 'varId',
+      isReference: true,
+      value: 'value'
+    }]])
+    const visitorDelegate = new VisitorDelegate({
+      visitorId,
+      context,
+      configManager: configManager as ConfigManager,
+      initialCampaigns: campaigns,
+      initialModifications: newModification
+    })
+
+    expect(visitorDelegate.modifications).toEqual(newModification)
+  })
+
+  it('should initialModifications with Array', () => {
+    const modification = {
+      key: 'newKey',
+      campaignId: 'cma',
+      variationGroupId: 'var',
+      variationId: 'varId',
+      isReference: true,
+      value: 'value'
+    }
+    const newModification = new Map([['newKey', modification]])
+    const visitorDelegate = new VisitorDelegate({
+      visitorId,
+      context,
+      configManager: configManager as ConfigManager,
+      initialCampaigns: campaigns,
+      initialModifications: [modification]
+    })
+
+    expect(visitorDelegate.modifications).toEqual(newModification)
+  })
+
+  it('should initialModifications with plain objet', () => {
+    const modification = {
+      key: 'newKey',
+      campaignId: 'cma',
+      variationGroupId: 'var',
+      variationId: 'varId',
+      isReference: true,
+      value: 'value'
+    }
+    const newModification = new Map([['newKey', modification]])
+    const visitorDelegate = new VisitorDelegate({
+      visitorId,
+      context,
+      configManager: configManager as ConfigManager,
+      initialCampaigns: campaigns,
+      initialModifications: [modification]
+    })
+
+    expect(visitorDelegate.modifications).toEqual(newModification)
+  })
+
+  it('should initialModifications with Array', () => {
+    const visitorDelegate = new VisitorDelegate({
+      visitorId,
+      context,
+      configManager: configManager as ConfigManager,
+      initialCampaigns: campaigns,
+      initialModifications: {} as []
+    })
+
+    expect(visitorDelegate.modifications.size).toBe(0)
   })
 })
