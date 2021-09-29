@@ -17,11 +17,10 @@ import { VisitorDelegate } from '../visitor/VisitorDelegate.ts'
 import { BucketingConfig } from '../config/index.ts'
 import { BucketingManager } from '../decision/BucketingManager.ts'
 import { MurmurHash } from '../utils/MurmurHash.ts'
-import { primitive } from '../types.ts'
+import { Modification, primitive } from '../types.ts'
 import { DecisionManager } from '../decision/DecisionManager.ts'
 import { HttpClient } from '../utils/HttpClient.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
-import { Modification } from '../model/Modification.ts'
 
 export interface INewVisitor{
   /**

@@ -9,3 +9,13 @@ export type modificationsRequested<T>={
 export type primitive=string | number | boolean
 
 export type IHit = IPage | IScreen | IEvent | IItem | ITransaction
+
+export type Modification= {
+  key: string;
+  campaignId: string;
+  variationGroupId: string;
+  variationId: string;
+  isReference: boolean;
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  value: any;
+}

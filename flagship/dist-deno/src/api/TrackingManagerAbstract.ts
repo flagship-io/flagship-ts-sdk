@@ -1,6 +1,6 @@
 import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
 import { HitAbstract } from '../hit/HitAbstract.ts'
-import { Modification } from '../model/Modification.ts'
+import { Modification } from '../types.ts'
 import { IHttpClient } from '../utils/HttpClient.ts'
 import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 

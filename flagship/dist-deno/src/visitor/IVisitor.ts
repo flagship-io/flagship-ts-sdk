@@ -1,13 +1,14 @@
 import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { HitAbstract } from '../hit/index.ts'
-import { Modification } from '../model/Modification.ts'
-import { IHit, modificationsRequested, primitive } from '../types.ts'
+import { IHit, Modification, modificationsRequested, primitive } from '../types.ts'
 
 export interface IVisitor {
   visitorId: string;
   modifications: Map<string, Modification>;
   context: Record<string, primitive>;
+
+  getModificationsArray():Modification[]
 
   /**
    * Return True or False if the visitor has consented for protected data usage.
@@ -128,7 +129,6 @@ export interface IVisitor {
 
   /**
    * returns a Promise<object> containing all the data for all the campaigns associated with the current visitor.
-   *@deprecated
    */
   getAllModifications(activate: boolean): Promise<{
     visitorId: string;
@@ -139,7 +139,6 @@ export interface IVisitor {
    * Get data for a specific campaign.
    * @param campaignId Identifies the campaign whose modifications you want to retrieve.
    * @param activate
-   * @deprecated
    */
   getModificationsForCampaign(
     campaignId: string,
