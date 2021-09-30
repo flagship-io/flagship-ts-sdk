@@ -228,7 +228,7 @@ export class Flagship {
     let visitorId:string|null
     let context:Record<string, primitive>
     let isAuthenticated = false
-    let hasConsented = false
+    let hasConsented = true
     let initialModifications:Map<string, Modification>|Modification[]|undefined
     let initialCampaigns:CampaignDTO[]|undefined
 
@@ -239,7 +239,7 @@ export class Flagship {
       visitorId = param1?.visitorId || null
       context = param1?.context || {}
       isAuthenticated = param1?.isAuthenticated ?? false
-      hasConsented = param1?.hasConsented ?? false
+      hasConsented = param1?.hasConsented ?? true
       initialModifications = param1?.initialModifications
       initialCampaigns = param1?.initialCampaigns
     }

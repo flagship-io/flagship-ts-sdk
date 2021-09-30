@@ -186,7 +186,7 @@ describe('test VisitorDelegate', () => {
   })
 
   it('test property', () => {
-    expect(visitorDelegate.hasConsented).toBeFalsy()
+    expect(visitorDelegate.hasConsented).toBeTruthy()
 
     expect(visitorDelegate.config).toBe(config)
 

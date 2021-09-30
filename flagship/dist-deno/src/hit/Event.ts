@@ -13,8 +13,8 @@ export const CATEGORY_ERROR =
   'The category value must be either EventCategory::ACTION_TRACKING or EventCategory::ACTION_TRACKING'
 
 export enum EventCategory {
-  ACTION_TRACKING = 'ACTION_TRACKING',
-  USER_ENGAGEMENT = 'USER_ENGAGEMENT',
+  ACTION_TRACKING = 'ACTION TRACKING',
+  USER_ENGAGEMENT = 'USER ENGAGEMENT',
 }
 
 export interface IEvent extends IHitAbstract{
@@ -38,7 +38,7 @@ export class Event extends HitAbstract implements IEvent {
    * Specify Action Tracking or User Engagement.
    */
   public set category (v: EventCategory) {
-    if (!(v in EventCategory)) {
+    if (!(Object.values(EventCategory).includes(v))) {
       logError(this.config, CATEGORY_ERROR, 'category')
       return
     }

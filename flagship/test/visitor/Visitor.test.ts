@@ -57,7 +57,7 @@ describe('test visitor', () => {
 
     expect(visitor.anonymousId).toBe(visitorDelegate.anonymousId)
 
-    expect(visitor.hasConsented).toBeFalsy()
+    expect(visitor.hasConsented).toBeTruthy()
     expect(visitor.hasConsented).toBe(visitorDelegate.hasConsented)
 
     visitor.setConsent(true)

@@ -35,7 +35,7 @@ export class TrackingManager extends TrackingManagerAbstract {
     const postBody:Record<string, unknown> = {
       [T_API_ITEM]: HitType.EVENT,
       [EVENT_LABEL_API_ITEM]: `${SDK_LANGUAGE}:${visitor.hasConsented}`,
-      [EVENT_ACTION_API_ITEM]: 'fs_content',
+      [EVENT_ACTION_API_ITEM]: 'fs_consent',
       [EVENT_CATEGORY_API_ITEM]: EventCategory.USER_ENGAGEMENT,
       [CUSTOMER_ENV_ID_API_ITEM]: this.config.envId,
       [DS_API_ITEM]: SDK_APP
