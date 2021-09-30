@@ -18,11 +18,13 @@ export class NotReadyStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getModificationsSync<T> (params: modificationsRequested<T>[], _activateAll?: boolean): T[] {
+  getModificationsSync<T> (params: modificationsRequested<T>[], _activateAll?: boolean): Record<string, T> {
     this.log('getModifications')
-    return params.map(item => {
-      return item.defaultValue
+    const flags:Record<string, T> = {}
+    params.forEach(item => {
+      flags[item.key] = item.defaultValue
     })
+    return flags
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

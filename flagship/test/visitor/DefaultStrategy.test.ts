@@ -191,9 +191,12 @@ describe('test DefaultStrategy ', () => {
     activate? :boolean}[], activateAll = false
   ) => {
     try {
-      const returnMod = params.map(item => returnModification.get(item.key) as Modification)
+      const returnMod:Record<string, T> = {}
+      params.forEach(item => {
+        returnMod[item.key] = (returnModification.get(item.key) as Modification).value
+      })
       const modifications = await defaultStrategy.getModifications(params, activateAll)
-      expect<T[]>(modifications).toEqual(returnMod.map(item => item.value))
+      expect<Record<string, T>>(modifications).toEqual(returnMod)
     } catch (error) {
       expect(logError).toBeCalled()
     }

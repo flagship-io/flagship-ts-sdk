@@ -128,7 +128,7 @@ describe('test visitor', () => {
 
   it('test getModifications', () => {
     const getModifications = jest.spyOn(visitorDelegate, 'getModifications')
-    getModifications.mockResolvedValue([])
+    getModifications.mockResolvedValue({})
     const param = [{ key: 'key', defaultValue: 'value' }]
     visitor.getModifications(param)
       .then(() => {
@@ -163,7 +163,7 @@ describe('test visitor', () => {
 
   it('test getModificationsSync', () => {
     const getModificationsSync = jest.spyOn(visitorDelegate, 'getModificationsSync')
-    getModificationsSync.mockReturnValue([])
+    getModificationsSync.mockReturnValue({})
     const param = [{ key: 'key', defaultValue: 'value' }]
     visitor.getModificationsSync(param)
     expect(getModificationsSync).toBeCalledTimes(1)
