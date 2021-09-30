@@ -172,8 +172,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return modification.value
   }
 
-  getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<Record<string, T>> {
-    return Promise.resolve(this.getModificationsSync(params, activateAll))
+  async getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<Record<string, T>> {
+    return this.getModificationsSync(params, activateAll)
   }
 
   getModificationsSync<T> (params: modificationsRequested<T>[], activateAll?: boolean): Record<string, T> {
@@ -184,16 +184,16 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return flags
   }
 
-  getModification<T> (params: modificationsRequested<T>): Promise<T> {
-    return Promise.resolve(this.getModificationSync(params))
+  async getModification<T> (params: modificationsRequested<T>): Promise<T> {
+    return this.getModificationSync(params)
   }
 
   getModificationSync<T> (params: modificationsRequested<T>): T {
     return this.checkAndGetModification(params)
   }
 
-  getModificationInfo (key: string): Promise<Modification | null> {
-    return Promise.resolve(this.getModificationInfoSync(key))
+  async getModificationInfo (key: string): Promise<Modification | null> {
+    return this.getModificationInfoSync(key)
   }
 
   public getModificationInfoSync (key: string): Modification | null {
@@ -307,7 +307,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   sendHits(hits: IHit[]): Promise<void>;
   async sendHits (hits: HitAbstract[] | IHit[]): Promise<void> {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
-      return Promise.resolve()
+      return
     }
     hits.forEach((hit) => {
       this.prepareAndSendHit(hit)
@@ -372,7 +372,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
    * returns a Promise<object> containing all the data for all the campaigns associated with the current visitor.
    *@deprecated
    */
-  public getAllModifications (activate = false): Promise<{
+  public async getAllModifications (activate = false): Promise<{
     visitorId: string;
     campaigns: CampaignDTO[];
     }> {
@@ -381,10 +381,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         this.activateModification(key)
       })
     }
-    return Promise.resolve({
+    return {
       visitorId: this.visitor.visitorId,
       campaigns: this.visitor.campaigns
-    })
+    }
   }
 
   /**
@@ -394,7 +394,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
    * @deprecated
    * @returns
    */
-  public getModificationsForCampaign (campaignId:string, activate = false):Promise<{
+  public async getModificationsForCampaign (campaignId:string, activate = false):Promise<{
     visitorId: string;
     campaigns: CampaignDTO[];
     }> {
@@ -406,10 +406,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       })
     }
 
-    return Promise.resolve({
+    return {
       visitorId: this.visitor.visitorId,
       campaigns: this.visitor.campaigns.filter(x => x.id === campaignId)
-    })
+    }
   }
 
   authenticate (visitorId: string): void {
