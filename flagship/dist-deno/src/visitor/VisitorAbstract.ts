@@ -208,8 +208,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     abstract getModification<T>(params: modificationsRequested<T>): Promise<T>;
     abstract getModificationSync<T>(params: modificationsRequested<T>): T
 
-    abstract getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<T[]>
-    abstract getModificationsSync<T> (params: modificationsRequested<T>[], activateAll?: boolean): T[]
+    abstract getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<Record<string, T>>
+    abstract getModificationsSync<T> (params: modificationsRequested<T>[], activateAll?: boolean): Record<string, T>
 
     abstract getModificationInfo (key: string): Promise<Modification | null>
 

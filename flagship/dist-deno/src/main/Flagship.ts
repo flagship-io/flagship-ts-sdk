@@ -238,7 +238,7 @@ export class Flagship {
     } else {
       visitorId = param1?.visitorId || null
       context = param1?.context || {}
-      isAuthenticated = param1?.isAuthenticated ?? false
+      isAuthenticated = !!param1?.isAuthenticated
       hasConsented = param1?.hasConsented ?? true
       initialModifications = param1?.initialModifications
       initialCampaigns = param1?.initialCampaigns

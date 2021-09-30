@@ -172,14 +172,16 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return modification.value
   }
 
-  getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<T[]> {
+  getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<Record<string, T>> {
     return Promise.resolve(this.getModificationsSync(params, activateAll))
   }
 
-  getModificationsSync<T> (params: modificationsRequested<T>[], activateAll?: boolean): T[] {
-    return params.map(item => {
-      return this.checkAndGetModification(item, activateAll)
+  getModificationsSync<T> (params: modificationsRequested<T>[], activateAll?: boolean): Record<string, T> {
+    const flags:Record<string, T> = {}
+    params.forEach(item => {
+      flags[item.key] = this.checkAndGetModification(item, activateAll)
     })
+    return flags
   }
 
   getModification<T> (params: modificationsRequested<T>): Promise<T> {
