@@ -17,7 +17,7 @@ const updateContext = jest.fn()
 const clearContext = jest.fn()
 const getModification:Mock<Promise<unknown>, [params: modificationsRequested<unknown>, activateAll?: boolean]> = jest.fn()
 const getModificationSync = jest.fn()
-const getModifications:Mock<Promise<unknown[]>, [params: modificationsRequested<unknown>[], activateAll?: boolean]> = jest.fn()
+const getModifications:Mock<Promise<Record<string, unknown>>, [params: modificationsRequested<unknown>[], activateAll?: boolean]> = jest.fn()
 const getModificationsSync = jest.fn()
 const getModificationInfo:Mock<Promise<Modification>, [key: string]> = jest.fn()
 const getModificationInfoSync = jest.fn()
@@ -257,7 +257,7 @@ describe('test VisitorDelegate methods', () => {
   })
 
   it('test getModifications', () => {
-    getModifications.mockResolvedValue([])
+    getModifications.mockResolvedValue({})
     const param = [{ key: 'key', defaultValue: 'value' }]
     visitorDelegate.getModifications(param)
       .then(() => {

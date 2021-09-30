@@ -55,7 +55,7 @@ export interface IVisitor {
   getModifications<T>(
     params: modificationsRequested<T>[],
     activateAll?: boolean
-  ): Promise<T[]>;
+  ): Promise<Record<string, T>>;
 
   /**
    * Retrieve a modification value by key. If no modification match the given
@@ -74,7 +74,7 @@ export interface IVisitor {
   getModificationsSync<T>(
     params: modificationsRequested<T>[],
     activateAll?: boolean
-  ): T[];
+  ): Record<string, T>;
 
   /**
    * Get the campaign modification information value matching the given key.

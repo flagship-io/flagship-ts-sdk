@@ -70,11 +70,11 @@ export class Visitor extends EventEmitter implements IVisitor {
     return this.visitorDelegate.getModificationSync(params)
   }
 
-  getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<T[]> {
+  getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<Record<string, T>> {
     return this.visitorDelegate.getModifications(params, activateAll)
   }
 
-  getModificationsSync<T> (params: modificationsRequested<T>[], activateAll?: boolean): T[] {
+  getModificationsSync<T> (params: modificationsRequested<T>[], activateAll?: boolean): Record<string, T> {
     return this.visitorDelegate.getModificationsSync(params, activateAll)
   }
 

@@ -49,7 +49,7 @@ describe('test NotReadyStrategy', () => {
     notReadyStrategy.getModifications([{ key: 'key', defaultValue }]).then((value) => {
       const methodName = 'getModifications'
 
-      expect(value).toEqual([defaultValue])
+      expect(value).toEqual({ key: defaultValue })
       expect(logError).toBeCalledTimes(1)
       expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
     })
