@@ -480,15 +480,15 @@ describe('test bucketing method', () => {
   })
 
   it('test testOperator CONTAINS Test contextValue not contains targetingValue', () => {
-    const contextValue = 5
-    const targetingValue = [8, 7, 4, 1]
+    const contextValue = 'a'
+    const targetingValue = 'b'
     const response = bucketingManagerAny.testOperator('CONTAINS', contextValue, targetingValue)
     expect(response).toBeFalsy()
   })
 
   it('test testOperator CONTAINS Test contextValue contains targetingValue', () => {
-    const contextValue = 5
-    const targetingValue = [8, 7, 5, 1]
+    const contextValue = 'abc'
+    const targetingValue = 'b'
     const response = bucketingManagerAny.testOperator('CONTAINS', contextValue, targetingValue)
     expect(response).toBeTruthy()
   })
@@ -501,22 +501,15 @@ describe('test bucketing method', () => {
   })
 
   it('test testOperator NOT_CONTAINS Test contextValue not contains targetingValue', () => {
-    const contextValue = 5
-    const targetingValue = [8, 7, 4, 1]
+    const contextValue = 'abc'
+    const targetingValue = 'd'
     const response = bucketingManagerAny.testOperator('NOT_CONTAINS', contextValue, targetingValue)
     expect(response).toBeTruthy()
   })
 
   it('test testOperator NOT_CONTAINS Test contextValue contains targetingValue', () => {
-    const contextValue = 5
-    const targetingValue = [8, 7, 5, 1]
-    const response = bucketingManagerAny.testOperator('NOT_CONTAINS', contextValue, targetingValue)
-    expect(response).toBeFalsy()
-  })
-
-  it('test testOperator NOT_CONTAINS Test contextValue contains targetingValue', () => {
-    const contextValue = 'nopq_hij'
-    const targetingValue = ['abc', 'dfg', 'hij', 'klm']
+    const contextValue = 'abc'
+    const targetingValue = 'b'
     const response = bucketingManagerAny.testOperator('NOT_CONTAINS', contextValue, targetingValue)
     expect(response).toBeFalsy()
   })
@@ -693,6 +686,62 @@ describe('test bucketing method', () => {
     const contextValue = 'abcd'
     const targetingValue = 'bd'
     const response = bucketingManagerAny.testOperator('ENDS_WITH', contextValue, targetingValue)
+    expect(response).toBeFalsy()
+  })
+
+  it('test testOperator CONTAINS Test contextValue CONTAINS targetingValue list', () => {
+    const contextValue = 'abcd'
+    const targetingValue = ['a', 'e']
+    const response = bucketingManagerAny.testOperator('CONTAINS', contextValue, targetingValue)
+    expect(response).toBeTruthy()
+  })
+
+  it('test testOperator EQUALS Test contextValue EQUALS targetingValue list', () => {
+    const contextValue = 'a'
+    const targetingValue = ['a', 'b', 'c']
+    const response = bucketingManagerAny.testOperator('EQUALS', contextValue, targetingValue)
+    expect(response).toBeTruthy()
+  })
+
+  it('test testOperator CONTAINS Test contextValue not CONTAINS targetingValue list', () => {
+    const contextValue = 'abcd'
+    const targetingValue = ['e', 'f']
+    const response = bucketingManagerAny.testOperator('CONTAINS', contextValue, targetingValue)
+    expect(response).toBeFalsy()
+  })
+
+  it('test testOperator EQUALS Test contextValue EQUALS targetingValue list', () => {
+    const contextValue = 'a'
+    const targetingValue = ['b', 'c', 'd']
+    const response = bucketingManagerAny.testOperator('EQUALS', contextValue, targetingValue)
+    expect(response).toBeFalsy()
+  })
+
+  it('test testOperator NOT_CONTAINS Test contextValue NOT_CONTAINS targetingValue list', () => {
+    const contextValue = 'abcd'
+    const targetingValue = ['e', 'f']
+    const response = bucketingManagerAny.testOperator('NOT_CONTAINS', contextValue, targetingValue)
+    expect(response).toBeTruthy()
+  })
+
+  it('test testOperator NOT_EQUALS Test contextValue NOT_EQUALS targetingValue list', () => {
+    const contextValue = 'a'
+    const targetingValue = ['b', 'c', 'd']
+    const response = bucketingManagerAny.testOperator('NOT_EQUALS', contextValue, targetingValue)
+    expect(response).toBeTruthy()
+  })
+
+  it('test testOperator NOT_CONTAINS Test contextValue not NOT_CONTAINS targetingValue list', () => {
+    const contextValue = 'abcd'
+    const targetingValue = ['a', 'e']
+    const response = bucketingManagerAny.testOperator('NOT_CONTAINS', contextValue, targetingValue)
+    expect(response).toBeFalsy()
+  })
+
+  it('test testOperator NOT_EQUALS Test contextValue NOT_EQUALS targetingValue list', () => {
+    const contextValue = 'a'
+    const targetingValue = ['a', 'b', 'c']
+    const response = bucketingManagerAny.testOperator('NOT_EQUALS', contextValue, targetingValue)
     expect(response).toBeFalsy()
   })
 
