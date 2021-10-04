@@ -27,6 +27,7 @@ describe('test DefaultStrategy ', () => {
 
   const logManager = new FlagshipLogManager()
   const logError = jest.spyOn(logManager, 'error')
+  const logInfo = jest.spyOn(logManager, 'info')
 
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
@@ -299,8 +300,8 @@ describe('test DefaultStrategy ', () => {
   const notExitKey = 'notExitKey'
   it('test getModification test key not exist', () => {
     testModificationWithDefault(notExitKey, 'defaultValue')
-    expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(
+    expect(logInfo).toBeCalledTimes(1)
+    expect(logInfo).toBeCalledWith(
       sprintf(GET_MODIFICATION_MISSING_ERROR, notExitKey),
       PROCESS_GET_MODIFICATION
     )

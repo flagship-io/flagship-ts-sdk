@@ -20,7 +20,7 @@ import {
 } from '../enum/index'
 import { HitAbstract, IPage, IScreen, IEvent, Event, Screen, IItem, ITransaction, Item, Page, Transaction } from '../hit/index'
 import { primitive, modificationsRequested, IHit } from '../types'
-import { logError, sprintf } from '../utils/utils'
+import { logError, logInfo, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
 import { DecisionMode } from '../config/index'
@@ -131,7 +131,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     const modification = this.visitor.modifications.get(key)
     if (!modification) {
-      logError(
+      logInfo(
         this.config,
         sprintf(GET_MODIFICATION_MISSING_ERROR, key),
         PROCESS_GET_MODIFICATION
