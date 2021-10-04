@@ -1,7 +1,7 @@
 import { CampaignDTO } from './decision/api/models'
 import { IEvent, IItem, IPage, IScreen, ITransaction } from './hit/index'
 
-export type modificationsRequested<T>={
+export type modificationsRequested<T> = {
     key: string,
     defaultValue: T,
     activate? :boolean

@@ -14,17 +14,28 @@ const config = {
   module: {
     rules: [
       {
-        test: /\.(ts|tsx)$/i,
-        loader: 'ts-loader',
-        exclude: ['/node_modules/']
-      },
-      {
-        test: /\.(js|jsx)$/,
+        test: /\.(js|ts)$/,
         exclude: /node_modules/,
         use: [{
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/preset-env']
+            targets: '> 0.5%, last 2 versions, ie >= 10, node >= 6',
+            assumptions: {
+              noDocumentAll: true,
+              noClassCalls: true,
+              constantSuper: true,
+              enumerableModuleMeta: true,
+              noNewArrows: true
+            },
+            presets: [
+              ['@babel/preset-env',
+                {
+                  useBuiltIns: 'usage',
+                  corejs: '3.18'
+                }
+              ],
+              ['@babel/preset-typescript', { allowNamespaces: true }]
+            ]
           }
         }]
       }
