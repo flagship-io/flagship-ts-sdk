@@ -31,10 +31,15 @@ const config = {
               ['@babel/preset-env',
                 {
                   useBuiltIns: 'usage',
-                  corejs: '3.18'
+                  corejs: 3
                 }
               ],
               ['@babel/preset-typescript', { allowNamespaces: true }]
+            ],
+            plugins: [
+              [
+                '@babel/plugin-transform-runtime'
+              ]
             ]
           }
         }]

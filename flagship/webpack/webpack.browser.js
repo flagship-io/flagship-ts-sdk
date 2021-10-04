@@ -23,7 +23,11 @@ module.exports = merge(common(), {
   externals: [
     nodeExternals({
       importType: 'umd',
-      allowlist: ['events']
+      allowlist: [
+        'events',
+        /@babel\/runtime/,
+        /regenerator-runtime/
+      ]
     })
   ]
 })
