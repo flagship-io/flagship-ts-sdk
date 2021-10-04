@@ -1,8 +1,8 @@
 'use strict';
 
-var _ = require('../../');
+var _jsSdk = require('@flagship.io/js-sdk');
 
-var _2 = _interopRequireDefault(_);
+var _jsSdk2 = _interopRequireDefault(_jsSdk);
 
 var _config = require('./config.js');
 
@@ -15,13 +15,13 @@ const sleep = ms => {
 };
 
 const statusChangedCallback = status => {
-  console.log('status', _.FlagshipStatus[status]);
+  console.log('status', _jsSdk.FlagshipStatus[status]);
 };
 
-_2.default.start(_config.ENV_ID, _config.API_KEY, {
-  decisionMode: _.DecisionMode.DECISION_API,
+_jsSdk2.default.start(_config.ENV_ID, _config.API_KEY, {
+  decisionMode: _jsSdk.DecisionMode.DECISION_API,
   statusChangedCallback,
-  logLevel: _.LogLevel.ERROR,
+  logLevel: _jsSdk.LogLevel.ERROR,
   fetchNow: false
 });
 
@@ -34,7 +34,7 @@ const initialModifications = new Map([['array', {
   value: [1, 1, 1]
 }]]);
 
-const visitor = _2.default.newVisitor({ visitorId: 'visitor_id', context: { key: 'value' }, initialModifications, initialCampaigns: _campaigns.campaigns.campaigns });
+const visitor = _jsSdk2.default.newVisitor({ visitorId: 'visitor_id', context: { key: 'value' }, initialModifications, initialCampaigns: _campaigns.campaigns.campaigns });
 
 const start = async () => {
   if (visitor) {
@@ -85,13 +85,13 @@ const start = async () => {
 
     // hit type Event
     visitor.sendHit({
-      type: _.HitType.EVENT,
-      category: _.EventCategory.ACTION_TRACKING,
+      type: _jsSdk.HitType.EVENT,
+      category: _jsSdk.EventCategory.ACTION_TRACKING,
       action: 'click'
     });
 
     // hit type Item
-    const item = new _.Item({
+    const item = new _jsSdk.Item({
       transactionId: 'transaction_1',
       productName: 'product_name',
       productSku: '00255578'
@@ -100,13 +100,13 @@ const start = async () => {
     visitor.sendHit(item);
 
     // hit type Page
-    visitor.sendHit({ type: _.HitType.PAGE, documentLocation: 'https://localhost' });
+    visitor.sendHit({ type: _jsSdk.HitType.PAGE, documentLocation: 'https://localhost' });
 
     // hit type Screen
-    visitor.sendHit({ type: _.HitType.SCREEN, documentLocation: 'https://localhost' });
+    visitor.sendHit({ type: _jsSdk.HitType.SCREEN, documentLocation: 'https://localhost' });
 
     // hit type Transaction
-    const transaction = new _.Transaction({ transactionId: 'transaction_1', affiliation: 'affiliation' });
+    const transaction = new _jsSdk.Transaction({ transactionId: 'transaction_1', affiliation: 'affiliation' });
     visitor.sendHit(transaction);
   }
 };

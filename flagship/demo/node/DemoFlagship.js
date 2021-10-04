@@ -6,7 +6,7 @@ import Flagship, {
   Item,
   LogLevel,
   Transaction
-} from '../../'
+} from '@flagship.io/js-sdk'
 import { API_KEY, ENV_ID } from './config.js'
 import { campaigns } from './campaigns'
 

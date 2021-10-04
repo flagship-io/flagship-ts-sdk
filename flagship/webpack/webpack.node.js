@@ -36,7 +36,7 @@ module.exports = merge(common(), {
   ],
   externals: [
     nodeExternals({
-      allowlist: ['node-fetch', 'abort-controller', 'follow-redirects']
+      allowlist: ['follow-redirects']
     })
   ]
 })

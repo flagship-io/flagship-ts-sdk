@@ -21,6 +21,10 @@ EXPOSE 8000
 
 WORKDIR /app/demo
 
+RUN rm -rf node_modules
+
+RUN rm yarn.lock
+
 RUN yarn install
 
 CMD ["yarn","run","start"]
