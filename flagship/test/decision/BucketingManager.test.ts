@@ -433,7 +433,7 @@ describe('test bucketing method', () => {
       value: 21
     }
     const response = bucketingManagerAny.checkAndTargeting([targetingKeyContext, targetingAllUsers], visitor)
-    expect(response).toBeTruthy()
+    expect(response).toBeFalsy()
     expect(testOperator).toBeCalledTimes(0)
   })
 

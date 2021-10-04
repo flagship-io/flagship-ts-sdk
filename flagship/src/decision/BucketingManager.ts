@@ -213,10 +213,6 @@ export class BucketingManager extends DecisionManager {
     return ['NOT_EQUALS', 'NOT_CONTAINS'].includes(operator)
   }
 
-  private isORListOperator (operator: string): boolean {
-    return ['EQUALS', 'CONTAINS'].includes(operator)
-  }
-
   private checkAndTargeting (targetings:Targetings[], visitor: VisitorAbstract) : boolean {
     let contextValue:primitive
     let check = false
@@ -229,7 +225,8 @@ export class BucketingManager extends DecisionManager {
         contextValue = visitor.visitorId
       } else {
         if (!(key in visitor.context)) {
-          continue
+          check = false
+          break
         }
         contextValue = visitor.context[key]
       }
@@ -243,20 +240,28 @@ export class BucketingManager extends DecisionManager {
     return check
   }
 
-  private testListOperator (operator: string, contextValue : primitive, value: any[]): boolean {
-    let match = this.isANDListOperator(operator)
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private testListOperatorLoop (operator: string, contextValue : primitive, value: any[], initialCheck:boolean) {
+    let check = initialCheck
     for (const v of value) {
-      const subValueMatch = this.testOperator(operator, contextValue, v)
-
-      if (this.isANDListOperator(operator)) {
-        match = match && subValueMatch
-      }
-      if (this.isORListOperator(operator)) {
-        match = match || subValueMatch
+      check = this.testOperator(operator, contextValue, v)
+      if (check !== initialCheck) {
+        break
       }
     }
-    return match
+    return check
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private testListOperator (operator: string, contextValue : primitive, value: any[]): boolean {
+    const andOperator = this.isANDListOperator(operator)
+    let check:boolean
+    if (andOperator) {
+      check = this.testListOperatorLoop(operator, contextValue, value, true)
+    } else {
+      check = this.testListOperatorLoop(operator, contextValue, value, false)
+    }
+    return check
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -264,7 +269,7 @@ export class BucketingManager extends DecisionManager {
     let check:boolean
     if (Array.isArray(value)) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return this.testListOperator(operator, contextValue, value as any[])
+      return this.testListOperator(operator, contextValue, value)
     }
     switch (operator) {
       case 'EQUALS':
