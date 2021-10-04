@@ -209,6 +209,14 @@ export class BucketingManager extends DecisionManager {
     )
   }
 
+  private isANDListOperator (operator: string): boolean {
+    return ['NOT_EQUALS', 'NOT_CONTAINS'].includes(operator)
+  }
+
+  private isORListOperator (operator: string): boolean {
+    return ['EQUALS', 'CONTAINS'].includes(operator)
+  }
+
   private checkAndTargeting (targetings:Targetings[], visitor: VisitorAbstract) : boolean {
     let contextValue:primitive
     let check = false
@@ -235,9 +243,29 @@ export class BucketingManager extends DecisionManager {
     return check
   }
 
+  private testListOperator (operator: string, contextValue : primitive, value: any[]): boolean {
+    let match = this.isANDListOperator(operator)
+
+    for (const v of value) {
+      const subValueMatch = this.testOperator(operator, contextValue, v)
+
+      if (this.isANDListOperator(operator)) {
+        match = match && subValueMatch
+      }
+      if (this.isORListOperator(operator)) {
+        match = match || subValueMatch
+      }
+    }
+    return match
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private testOperator (operator: string, contextValue : primitive, value: any): boolean {
     let check:boolean
+    if (Array.isArray(value)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return this.testListOperator(operator, contextValue, value as any[])
+    }
     switch (operator) {
       case 'EQUALS':
         check = contextValue === value
@@ -246,10 +274,10 @@ export class BucketingManager extends DecisionManager {
         check = contextValue !== value
         break
       case 'CONTAINS':
-        check = new RegExp(`${value.join('|')}`).test(contextValue.toString())
+        check = contextValue.toString().includes(value.toString())
         break
       case 'NOT_CONTAINS':
-        check = !(new RegExp(`${value.join('|')}`).test(contextValue.toString()))
+        check = !contextValue.toString().includes(value.toString())
         break
       case 'GREATER_THAN':
         check = contextValue > value
@@ -264,10 +292,10 @@ export class BucketingManager extends DecisionManager {
         check = contextValue <= value
         break
       case 'STARTS_WITH':
-        check = new RegExp(`^${value}`).test(contextValue.toString())
+        check = contextValue.toString().startsWith(value.toString())
         break
       case 'ENDS_WITH':
-        check = new RegExp(`${value}$`).test(contextValue.toString())
+        check = contextValue.toString().endsWith(value.toString())
         break
       default:
         check = false
