@@ -98,6 +98,8 @@ describe('test ApiManager', () => {
   })
 
   it('test campaign with consent false', async () => {
+    config.decisionApiUrl = 'http://new_decision_api_url'
+    const url = `${config.decisionApiUrl}${config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
     postAsync.mockResolvedValue(campaignResponse)
 
     visitor.setConsent(false)
