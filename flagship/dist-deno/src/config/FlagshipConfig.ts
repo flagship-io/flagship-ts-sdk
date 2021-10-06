@@ -1,7 +1,7 @@
 import { BucketingDTO } from '../decision/api/bucketingDTO.ts'
-import { FlagshipStatus, LogLevel, REQUEST_TIME_OUT } from '../enum/index.ts'
+import { BASE_API_URL, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, TYPE_ERROR } from '../enum/index.ts'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager.ts'
-import { logError } from '../utils/utils.ts'
+import { logError, sprintf } from '../utils/utils.ts'
 
 export enum DecisionMode {
   /**
@@ -75,6 +75,8 @@ export interface IFlagshipConfig {
   onBucketingUpdated?:(lastUpdate:Date)=>void
 
   initialBucketing?:BucketingDTO
+
+  decisionApiUrl?: string
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -94,13 +96,15 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _onBucketingUpdated?: (lastUpdate:Date)=>void;
   private _enableClientCache! : boolean;
   private _initialBucketing?:BucketingDTO
+  private _decisionApiUrl!: string
 
   protected constructor (param: IFlagshipConfig) {
     const {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
-      fetchNow, decisionMode, enableClientCache, initialBucketing
+      fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl
     } = param
 
+    this.decisionApiUrl = decisionApiUrl || BASE_API_URL
     this._envId = envId
     this._apiKey = apiKey
     this.logLevel = logLevel || LogLevel.ALL
@@ -225,5 +229,17 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
 
   public set logManager (value: IFlagshipLogManager) {
     this._logManager = value
+  }
+
+  public get decisionApiUrl () : string {
+    return this._decisionApiUrl
+  }
+
+  public set decisionApiUrl (v : string) {
+    if (typeof v !== 'string') {
+      logError(this, sprintf(TYPE_ERROR, 'decisionApiUrl', 'string'), 'decisionApiUrl')
+      return
+    }
+    this._decisionApiUrl = v
   }
 }
