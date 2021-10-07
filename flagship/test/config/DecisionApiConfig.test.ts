@@ -1,6 +1,7 @@
 import { expect, it, describe, jest } from '@jest/globals'
 import { DecisionApiConfig, DecisionMode } from '../../src/config/index'
 import {
+  BASE_API_URL,
   FlagshipStatus,
   LogLevel,
   REQUEST_TIME_OUT
@@ -21,6 +22,7 @@ describe('test DecisionApiConfig', () => {
     expect(config.fetchNow).toBeTruthy()
     expect(config.enableClientCache).toBeTruthy()
     expect(config.initialBucketing).toBeUndefined()
+    expect(config.decisionApiUrl).toBe(BASE_API_URL)
   })
 
   it('test config constructor', () => {
@@ -83,6 +85,18 @@ describe('test DecisionApiConfig', () => {
     const logManager = {} as IFlagshipLogManager
     config.logManager = logManager
     expect(config.logManager).toBe(logManager)
+  })
+
+  it('Test decisionApiUrl log Error', () => {
+    const url = {} as string
+    config.decisionApiUrl = url
+    expect(config.decisionApiUrl).toBe(BASE_API_URL)
+  })
+
+  it('Test decisionApiUrl', () => {
+    const url = 'https://decision.flagship.io/v2/?l=4'
+    config.decisionApiUrl = url
+    expect(config.decisionApiUrl).toBe(url)
   })
 
   it('test statusChangedCallback', () => {
