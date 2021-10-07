@@ -146,6 +146,7 @@ describe('test Flagship newVisitor', () => {
 
     expect(visitor?.visitorId).toBe(visitorId)
     expect(visitor?.context).toEqual({ ...context, ...predefinedContext })
+    expect(Flagship.getVisitor()).toBeUndefined()
 
     const visitorNull = Flagship.newVisitor({ visitorId: getNull(), context })
     expect(visitorNull).toBeInstanceOf(Visitor)
@@ -166,6 +167,29 @@ describe('test Flagship newVisitor', () => {
     expect(visitor?.visitorId).toBeDefined()
     expect(visitor?.context).toEqual(expect.objectContaining({ ...predefinedContext, fs_users: expect.anything() }))
     expect(visitor?.anonymousId).toBeNull()
+
+    visitor = Flagship.newVisitor({ isNewInstance: true })
+    expect(Flagship.getVisitor()).toBeUndefined()
+
+    // test isNewInstance false and server side true
+    visitor = Flagship.newVisitor({ isNewInstance: false })
+    expect(Flagship.getVisitor()).toBeUndefined()
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    global.window = jest.fn() as any
+
+    // test client side true and isNewInstance to false
+    visitor = Flagship.newVisitor({ isNewInstance: false, hasConsented: false })
+    expect(Flagship.getVisitor()).toBeDefined()
+    expect(visitor).toBe(Flagship.getVisitor())
+
+    visitor = Flagship.newVisitor()
+    expect(Flagship.getVisitor()).toBeDefined()
+    expect(visitor).toBe(Flagship.getVisitor())
+
+    // test client side true and isNewInstance to true
+    visitor = Flagship.newVisitor({ isNewInstance: true })
+    expect(Flagship.getVisitor()).toBeUndefined()
   })
 
   describe('test not ready', () => {
