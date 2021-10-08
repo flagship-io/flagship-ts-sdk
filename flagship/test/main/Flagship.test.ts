@@ -146,6 +146,7 @@ describe('test Flagship newVisitor', () => {
 
     expect(visitor?.visitorId).toBe(visitorId)
     expect(visitor?.context).toEqual({ ...context, ...predefinedContext })
+    expect(Flagship.getVisitor()).toBeUndefined()
 
     const visitorNull = Flagship.newVisitor({ visitorId: getNull(), context })
     expect(visitorNull).toBeInstanceOf(Visitor)
@@ -166,6 +167,54 @@ describe('test Flagship newVisitor', () => {
     expect(visitor?.visitorId).toBeDefined()
     expect(visitor?.context).toEqual(expect.objectContaining({ ...predefinedContext, fs_users: expect.anything() }))
     expect(visitor?.anonymousId).toBeNull()
+
+    visitor = Flagship.newVisitor({ isNewInstance: true })
+    expect(Flagship.getVisitor()).toBeUndefined()
+
+    // test isNewInstance false and server side true
+    visitor = Flagship.newVisitor({ isNewInstance: false })
+    expect(Flagship.getVisitor()).toBeUndefined()
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    global.window = jest.fn() as any
+
+    // test client side true and isNewInstance to false
+    visitor = Flagship.newVisitor({ isNewInstance: false, hasConsented: false })
+    expect(Flagship.getVisitor()).toBeDefined()
+    expect(visitor).toBe(Flagship.getVisitor())
+
+    visitor = Flagship.newVisitor()
+    expect(Flagship.getVisitor()).toBeDefined()
+    expect(visitor).toBe(Flagship.getVisitor())
+
+    // test client side true and isNewInstance to true
+    // Create a visitor: "visitor_1" as NEW_INSTANCE
+    visitor = Flagship.newVisitor({ visitorId: 'visitor_1', isNewInstance: true })
+    expect(Flagship.getVisitor()).toBeUndefined()
+
+    // scenario 2
+    visitor = Flagship.newVisitor({ visitorId: 'visitor_2', isNewInstance: false })
+    expect(Flagship.getVisitor()).toBeDefined()
+    expect(Flagship.getVisitor()?.visitorId).toBe('visitor_2')
+
+    // scenario 3
+    visitor = Flagship.newVisitor({ visitorId: 'visitor_3', isNewInstance: false })
+    expect(Flagship.getVisitor()).toBeDefined()
+    expect(Flagship.getVisitor()?.visitorId).toBe('visitor_3')
+
+    // scenario 4
+
+    const visitor1 = Flagship.newVisitor({ visitorId: 'visitor_1', isNewInstance: false })
+    visitor1?.updateContext({ color: 'blue' })
+    expect(Flagship.getVisitor()?.context.color).toBe('blue')
+
+    const visitor2 = Flagship.newVisitor({ visitorId: 'visitor_2', isNewInstance: false })
+    expect(Flagship.getVisitor()?.context.color).toBeUndefined()
+    Flagship.getVisitor()?.updateContext({ color: 'red' })
+
+    expect(visitor1?.context.color).toBe('blue')
+    expect(visitor2?.context.color).toBe('red')
+    expect(Flagship.getVisitor()?.context.color).toBe('red')
   })
 
   describe('test not ready', () => {

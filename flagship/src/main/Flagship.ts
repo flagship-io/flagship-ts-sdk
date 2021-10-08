@@ -27,6 +27,7 @@ export class Flagship {
   private _configManger!: IConfigManager;
   private _config!: IFlagshipConfig;
   private _status!: FlagshipStatus;
+  private _visitorInstance?: Visitor
 
   get config (): IFlagshipConfig {
     return this._config
@@ -85,6 +86,20 @@ export class Flagship {
    */
   public static getConfig (): IFlagshipConfig {
     return this.getInstance()._config
+  }
+
+  /**
+   * Return any previous visitor created with isNewInstance key to false. Return undefined otherwise.
+   */
+  public getVisitor ():Visitor|undefined {
+    return this._visitorInstance
+  }
+
+  /**
+   * Return any previous visitor created with isNewInstance key to false. Return undefined otherwise.
+   */
+  public static getVisitor ():Visitor|undefined {
+    return this.getInstance().getVisitor()
   }
 
   private buildConfig (config?: IFlagshipConfig| FlagshipConfig):FlagshipConfig {
@@ -231,6 +246,8 @@ export class Flagship {
     let hasConsented = true
     let initialModifications:Map<string, Modification>|Modification[]|undefined
     let initialCampaigns:CampaignDTO[]|undefined
+    const isServerSide = typeof window === 'undefined'
+    let isNewInstance = isServerSide
 
     if (typeof param1 === 'string' || param1 === null) {
       visitorId = param1
@@ -242,6 +259,7 @@ export class Flagship {
       hasConsented = param1?.hasConsented ?? true
       initialModifications = param1?.initialModifications
       initialCampaigns = param1?.initialCampaigns
+      isNewInstance = param1?.isNewInstance ?? isNewInstance
     }
 
     const visitorDelegate = new VisitorDelegate({
@@ -255,6 +273,8 @@ export class Flagship {
     })
 
     const visitor = new Visitor(visitorDelegate)
+
+    this.getInstance()._visitorInstance = !isServerSide && !isNewInstance ? visitor : undefined
 
     if (this.getConfig().fetchNow) {
       visitor.synchronizeModifications()
