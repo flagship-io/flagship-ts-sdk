@@ -246,8 +246,8 @@ export class Flagship {
     let hasConsented = true
     let initialModifications:Map<string, Modification>|Modification[]|undefined
     let initialCampaigns:CampaignDTO[]|undefined
-    const isServeSide = typeof window === 'undefined'
-    let isNewInstance = isServeSide
+    const isServerSide = typeof window === 'undefined'
+    let isNewInstance = isServerSide
 
     if (typeof param1 === 'string' || param1 === null) {
       visitorId = param1
@@ -274,7 +274,7 @@ export class Flagship {
 
     const visitor = new Visitor(visitorDelegate)
 
-    this.getInstance()._visitorInstance = !isServeSide && !isNewInstance ? visitor : undefined
+    this.getInstance()._visitorInstance = !isServerSide && !isNewInstance ? visitor : undefined
 
     if (this.getConfig().fetchNow) {
       visitor.synchronizeModifications()
