@@ -12,6 +12,7 @@ import { CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTIC
 import { sprintf } from '../../src/utils/utils'
 import { returnModification } from './modification'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
+import { HitShape } from '../../src/hit/Legacy'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getNull = (): any => {
@@ -685,6 +686,64 @@ describe('test DefaultStrategy ', () => {
     // await sleep(4000)
     expect(sendHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ ...hits[0], visitorId, ds: SDK_APP, config }))
     expect(sendHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ ...hits[1], visitorId, ds: SDK_APP, config }))
+    expect(sendHit).toBeCalledTimes(2)
+  })
+
+  it('test sendHitAsync with literal legacy object TRANSACTION ', async () => {
+    const hit1: HitShape = {
+      type: 'Transaction',
+      data: {
+        transactionId: 'transactionId',
+        affiliation: 'affiliation'
+      }
+    }
+    const hit2: HitShape = {
+      type: 'Transaction',
+      data: {
+        transactionId: 'transactionId_2',
+        affiliation: 'affiliation_2'
+      }
+    }
+    const hits: HitShape[] = [hit1, hit2]
+    try {
+      await defaultStrategy.sendHits(hits)
+    } catch (error) {
+      expect(logError).toBeCalled()
+    }
+    // await sleep(4000)
+    expect(sendHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ _transactionId: hit1.data.transactionId, _affiliation: hit1.data.affiliation, visitorId, ds: SDK_APP, config }))
+    expect(sendHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ _transactionId: hit2.data.transactionId, _affiliation: hit2.data.affiliation, visitorId, ds: SDK_APP, config }))
+    expect(sendHit).toBeCalledTimes(2)
+  })
+
+  it('test sendHitAsync with literal legacy object EVENT', async () => {
+    const hit1: HitShape = {
+      type: 'Event',
+      data: {
+        category: 'Action Tracking',
+        action: 'action',
+        label: 'label',
+        value: 1
+      }
+    }
+    const hit2: HitShape = {
+      type: 'Event',
+      data: {
+        category: 'Action Tracking',
+        action: 'action2',
+        label: 'label2',
+        value: 2
+      }
+    }
+    const hits: HitShape[] = [hit1, hit2]
+    try {
+      await defaultStrategy.sendHits(hits)
+    } catch (error) {
+      expect(logError).toBeCalled()
+    }
+    // await sleep(4000)
+    expect(sendHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ _action: hit1.data.action, _category: hit1.data.category, _label: hit1.data.label, visitorId, ds: SDK_APP, config }))
+    expect(sendHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ _action: hit2.data.action, _category: hit2.data.category, _label: hit2.data.label, visitorId, ds: SDK_APP, config }))
     expect(sendHit).toBeCalledTimes(2)
   })
 

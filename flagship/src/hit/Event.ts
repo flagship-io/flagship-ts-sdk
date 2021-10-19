@@ -13,22 +13,22 @@ export const CATEGORY_ERROR =
   'The category value must be either EventCategory::ACTION_TRACKING or EventCategory::ACTION_TRACKING'
 
 export enum EventCategory {
-  ACTION_TRACKING = 'ACTION TRACKING',
-  USER_ENGAGEMENT = 'USER ENGAGEMENT',
+  ACTION_TRACKING = 'Action Tracking',
+  USER_ENGAGEMENT = 'User Engagement',
 }
 
 export interface IEvent extends IHitAbstract{
   category: EventCategory
   action: string
-  eventLabel?: string
-  eventValue?: number
+  label?: string
+  value?: number
 }
 
 export class Event extends HitAbstract implements IEvent {
   private _category!: EventCategory;
   private _action!: string;
-  private _eventLabel!: string;
-  private _eventValue!: number;
+  private _label!: string;
+  private _value!: number;
 
   public get category (): EventCategory {
     return this._category
@@ -60,22 +60,22 @@ export class Event extends HitAbstract implements IEvent {
     this._action = v
   }
 
-  public get eventLabel (): string {
-    return this._eventLabel
+  public get label (): string {
+    return this._label
   }
 
   /**
    * Specify additional description of event.
    */
-  public set eventLabel (v: string) {
-    if (!this.isNotEmptyString(v, 'eventLabel')) {
+  public set label (v: string) {
+    if (!this.isNotEmptyString(v, 'label')) {
       return
     }
-    this._eventLabel = v
+    this._label = v
   }
 
-  public get eventValue (): number {
-    return this._eventValue
+  public get value (): number {
+    return this._value
   }
 
   /**
@@ -84,23 +84,23 @@ export class Event extends HitAbstract implements IEvent {
    *
    * <br/> NOTE: this value must be non-negative.
    */
-  public set eventValue (v: number) {
-    if (!this.isNumeric(v, 'eventValue')) {
+  public set value (v: number) {
+    if (!this.isNumeric(v, 'value')) {
       return
     }
-    this._eventValue = v
+    this._value = v
   }
 
   public constructor (event:Omit<IEvent, 'type'>) {
     super(HitType.EVENT)
-    const { category, action, eventLabel, eventValue } = event
+    const { category, action, label, value } = event
     this.category = category
     this.action = action
-    if (eventLabel) {
-      this.eventLabel = eventLabel
+    if (label) {
+      this.label = label
     }
-    if (eventValue) {
-      this.eventValue = eventValue
+    if (value) {
+      this.value = value
     }
   }
 
@@ -110,12 +110,12 @@ export class Event extends HitAbstract implements IEvent {
     apiKeys[EVENT_CATEGORY_API_ITEM] = this.category
     apiKeys[EVENT_ACTION_API_ITEM] = this.action
 
-    if (this.eventLabel) {
-      apiKeys[EVENT_LABEL_API_ITEM] = this.eventLabel
+    if (this.label) {
+      apiKeys[EVENT_LABEL_API_ITEM] = this.label
     }
 
-    if (this.eventValue) {
-      apiKeys[EVENT_VALUE_API_ITEM] = this.eventValue
+    if (this.value) {
+      apiKeys[EVENT_VALUE_API_ITEM] = this.value
     }
     return apiKeys
   }
