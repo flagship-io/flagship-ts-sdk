@@ -59,6 +59,10 @@ export type PageViewHit = CommonHit & {
   pageTitle: string
 }
 
+/**
+ * @deprecated This hit model will be removed on next major version.
+ * Please use IHit types instead
+ */
 export type HitShape =
   | { type: 'Screen'; data: ScreenViewHit }
   | { type: 'Page'; data: PageViewHit }
