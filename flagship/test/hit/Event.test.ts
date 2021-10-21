@@ -34,8 +34,8 @@ describe('test hit type Event', () => {
     expect(event.action).toBe(action)
     expect(event.config).toBeUndefined()
     expect(event.ds).toBeUndefined()
-    expect(event.eventLabel).toBeUndefined()
-    expect(event.eventValue).toBeUndefined()
+    expect(event.label).toBeUndefined()
+    expect(event.value).toBeUndefined()
     expect(event.visitorId).toBeUndefined()
     expect(event.anonymousId).toBeNull()
     expect(event.getErrorMessage()).toBe(ERROR_MESSAGE)
@@ -45,15 +45,15 @@ describe('test hit type Event', () => {
     const params = {
       action: 'action',
       category: EventCategory.ACTION_TRACKING,
-      eventLabel: 'label',
-      eventValue: 12
+      label: 'label',
+      value: 12
     }
 
     const event = new Event(params)
     expect(event.category).toBe(params.category)
     expect(event.action).toBe(params.action)
-    expect(event.eventLabel).toBe(params.eventLabel)
-    expect(event.eventValue).toBe(params.eventValue)
+    expect(event.label).toBe(params.label)
+    expect(event.value).toBe(params.value)
   })
 
   it('test isReady method ', () => {
@@ -121,40 +121,40 @@ describe('test hit type Event', () => {
     expect(event.toApiKeys()).toEqual(apiKeys)
   })
 
-  // test eventLabel
-  it('test eventLabel ', () => {
+  // test label
+  it('test label ', () => {
     const label = 'label'
-    event.eventLabel = label
-    expect(event.eventLabel).toBe(label)
+    event.label = label
+    expect(event.label).toBe(label)
     apiKeys[EVENT_LABEL_API_ITEM] = label
 
     expect(event.toApiKeys()).toEqual(apiKeys)
 
-    event.eventLabel = getNull()
+    event.label = getNull()
 
     expect(logError).toHaveBeenCalledWith(
-      sprintf(TYPE_ERROR, 'eventLabel', 'string'),
-      'eventLabel'
+      sprintf(TYPE_ERROR, 'label', 'string'),
+      'label'
     )
-    expect(event.eventLabel).toBe(label)
+    expect(event.label).toBe(label)
     expect(logError).toHaveBeenCalledTimes(1)
   })
 
-  // test set eventValue
-  it('test set eventValue', () => {
+  // test set value
+  it('test set value', () => {
     const value = 122
-    event.eventValue = value
-    expect(event.eventValue).toBe(value)
+    event.value = value
+    expect(event.value).toBe(value)
     apiKeys[EVENT_VALUE_API_ITEM] = value
 
     expect(event.toApiKeys()).toEqual(apiKeys)
 
-    event.eventValue = {} as number
+    event.value = {} as number
     expect(logError).toBeCalledWith(
-      sprintf(TYPE_ERROR, 'eventValue', 'number'),
-      'eventValue'
+      sprintf(TYPE_ERROR, 'value', 'number'),
+      'value'
     )
-    expect(event.eventValue).toBe(value)
+    expect(event.value).toBe(value)
     expect(logError).toHaveBeenCalledTimes(1)
   })
 

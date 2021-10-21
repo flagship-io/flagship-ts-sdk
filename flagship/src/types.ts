@@ -1,5 +1,6 @@
 import { CampaignDTO } from './decision/api/models'
 import { IEvent, IItem, IPage, IScreen, ITransaction } from './hit/index'
+import { HitShape } from './hit/Legacy'
 
 export type modificationsRequested<T> = {
     key: string,
@@ -9,7 +10,7 @@ export type modificationsRequested<T> = {
 
 export type primitive=string | number | boolean
 
-export type IHit = IPage | IScreen | IEvent | IItem | ITransaction
+export type IHit = IPage | IScreen | IEvent | IItem | ITransaction | HitShape
 
 export type Modification= {
   key: string;
