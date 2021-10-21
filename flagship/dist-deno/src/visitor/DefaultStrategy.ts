@@ -1,11 +1,14 @@
 import { Modification } from '../index.ts'
 import {
-  CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR,
+  CONTEXT_NULL_ERROR,
+  CONTEXT_PARAM_ERROR,
   EMIT_READY,
   FLAGSHIP_VISITOR_NOT_AUTHENTICATE,
   GET_MODIFICATION_CAST_ERROR,
-  GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR,
-  GET_MODIFICATION_MISSING_ERROR, HitType,
+  GET_MODIFICATION_ERROR,
+  GET_MODIFICATION_KEY_ERROR,
+  GET_MODIFICATION_MISSING_ERROR,
+  HitType,
   METHOD_DEACTIVATED_BUCKETING_ERROR,
   PREDEFINED_CONTEXT_TYPE_ERROR,
   PROCESS_ACTIVE_MODIFICATION,
@@ -18,7 +21,21 @@ import {
   TRACKER_MANAGER_MISSING_ERROR,
   VISITOR_ID_ERROR
 } from '../enum/index.ts'
-import { HitAbstract, IPage, IScreen, IEvent, Event, Screen, IItem, ITransaction, Item, Page, Transaction } from '../hit/index.ts'
+import {
+  HitAbstract,
+  IPage,
+  IScreen,
+  IEvent,
+  Event,
+  Screen,
+  IItem,
+  ITransaction,
+  Item,
+  Page,
+  Transaction,
+  IHitAbstract
+} from '../hit/index.ts'
+import { HitShape } from '../hit/Legacy.ts'
 import { primitive, modificationsRequested, IHit } from '../types.ts'
 import { logError, logInfo, sprintf } from '../utils/utils.ts'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract.ts'
@@ -35,13 +52,15 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     if (!this.hasTrackingManager(method)) {
       return
     }
-    this.trackingManager.sendConsentHit(this.visitor)
-      .catch((error) => {
-        logError(this.config, error.message || error, method)
-      })
+    this.trackingManager.sendConsentHit(this.visitor).catch((error) => {
+      logError(this.config, error.message || error, method)
+    })
   }
 
-  private checkPredefinedContext (key:string, value:primitive):boolean|null {
+  private checkPredefinedContext (
+    key: string,
+    value: primitive
+  ): boolean | null {
     const type = FLAGSHIP_CONTEXT[key]
     if (!type) {
       return null
@@ -56,10 +75,11 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
 
     if (!check) {
-      logError(this.config, sprintf(
-        PREDEFINED_CONTEXT_TYPE_ERROR,
-        key,
-        type), PROCESS_UPDATE_CONTEXT)
+      logError(
+        this.config,
+        sprintf(PREDEFINED_CONTEXT_TYPE_ERROR, key, type),
+        PROCESS_UPDATE_CONTEXT
+      )
     }
     return check
   }
@@ -72,15 +92,14 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
    * @param {string} key : context key.
    * @param {primitive} value : context value.
    */
-  private updateContextKeyValue (
-    key: string,
-    value: primitive
-  ): void {
+  private updateContextKeyValue (key: string, value: primitive): void {
     const valueType = typeof value
     if (
       typeof key !== 'string' ||
       key === '' ||
-      (valueType !== 'string' && valueType !== 'number' && valueType !== 'boolean')
+      (valueType !== 'string' &&
+        valueType !== 'number' &&
+        valueType !== 'boolean')
     ) {
       logError(
         this.visitor.config,
@@ -118,7 +137,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     this.visitor.context = {}
   }
 
-  private checkAndGetModification<T> (params:modificationsRequested<T>, activateAll?:boolean) :T {
+  private checkAndGetModification<T> (
+    params: modificationsRequested<T>,
+    activateAll?: boolean
+  ): T {
     const { key, defaultValue, activate } = params
     if (!key || typeof key !== 'string') {
       logError(
@@ -172,13 +194,19 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return modification.value
   }
 
-  async getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<Record<string, T>> {
+  async getModifications<T> (
+    params: modificationsRequested<T>[],
+    activateAll?: boolean
+  ): Promise<Record<string, T>> {
     return this.getModificationsSync(params, activateAll)
   }
 
-  getModificationsSync<T> (params: modificationsRequested<T>[], activateAll?: boolean): Record<string, T> {
-    const flags:Record<string, T> = {}
-    params.forEach(item => {
+  getModificationsSync<T> (
+    params: modificationsRequested<T>[],
+    activateAll?: boolean
+  ): Record<string, T> {
+    const flags: Record<string, T> = {}
+    params.forEach((item) => {
       flags[item.key] = this.checkAndGetModification(item, activateAll)
     })
     return flags
@@ -221,14 +249,22 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   async synchronizeModifications (): Promise<void> {
     try {
-      const campaigns = await this.decisionManager.getCampaignsAsync(this.visitor)
+      const campaigns = await this.decisionManager.getCampaignsAsync(
+        this.visitor
+      )
       this.visitor.campaigns = campaigns
-      this.visitor.modifications = this.decisionManager.getModifications(this.visitor.campaigns)
+      this.visitor.modifications = this.decisionManager.getModifications(
+        this.visitor.campaigns
+      )
       this.visitor.emit(EMIT_READY)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
       this.visitor.emit(EMIT_READY, error)
-      logError(this.config, error.message || error, PROCESS_SYNCHRONIZED_MODIFICATION)
+      logError(
+        this.config,
+        error.message || error,
+        PROCESS_SYNCHRONIZED_MODIFICATION
+      )
     }
   }
 
@@ -244,9 +280,11 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return this.activate(params)
   }
 
-  activateModifications(keys: { key: string; }[]): Promise<void>;
-  activateModifications(keys: string[]): Promise<void>;
-  async activateModifications (params: string[] | { key: string; }[]): Promise<void> {
+  activateModifications(keys: { key: string }[]): Promise<void>
+  activateModifications(keys: string[]): Promise<void>
+  async activateModifications (
+    params: string[] | { key: string }[]
+  ): Promise<void> {
     if (!params || !Array.isArray(params)) {
       logError(
         this.config,
@@ -288,33 +326,69 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       }
 
       await this.trackingManager.sendActive(this.visitor, modification)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
       logError(this.config, error.message || error, PROCESS_ACTIVE_MODIFICATION)
     }
   }
 
-  sendHit(hit: HitAbstract): Promise<void>;
-  sendHit(hit: IHit): Promise<void>;
-  sendHit (hit: IHit|HitAbstract): Promise<void> {
+  sendHit(hit: HitAbstract): Promise<void>
+  sendHit(hit: IHit): Promise<void>
+  sendHit (hit: IHit | HitAbstract): Promise<void> {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
       return Promise.resolve()
     }
     return this.prepareAndSendHit(hit)
   }
 
-  sendHits(hits: HitAbstract[]): Promise<void>;
-  sendHits(hits: IHit[]): Promise<void>;
+  sendHits(hits: HitAbstract[]): Promise<void>
+  sendHits(hits: IHit[]): Promise<void>
   async sendHits (hits: HitAbstract[] | IHit[]): Promise<void> {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
       return
     }
-    hits.forEach((hit) => {
-      this.prepareAndSendHit(hit)
-    })
+    hits.forEach((hit) => this.prepareAndSendHit(hit))
   }
 
-  private getHit (hit:IHit) {
+  private getHitLegacy (hit: HitShape) {
+    let newHit = null
+
+    const hitTypeToEnum: Record<string, HitType> = {
+      Screen: HitType.SCREEN_VIEW,
+      ScreenView: HitType.SCREEN_VIEW,
+      Transaction: HitType.TRANSACTION,
+      Page: HitType.PAGE_VIEW,
+      PageView: HitType.PAGE_VIEW,
+      Item: HitType.ITEM,
+      Event: HitType.EVENT
+    }
+    const commonProperties: IHitAbstract = {
+      type: hitTypeToEnum[hit.type]
+    }
+
+    const hitData: IHitAbstract = { ...commonProperties, ...hit.data }
+
+    switch (hit.type.toUpperCase()) {
+      case HitType.EVENT:
+        newHit = new Event(hitData as IEvent)
+        break
+      case HitType.ITEM:
+        newHit = new Item(hitData as IItem)
+        break
+      case HitType.PAGE_VIEW:
+        newHit = new Page(hitData as IPage)
+        break
+      case HitType.SCREEN_VIEW:
+        newHit = new Screen(hitData as IScreen)
+        break
+      case HitType.TRANSACTION:
+        newHit = new Transaction(hit.data as ITransaction)
+        break
+    }
+    return newHit
+  }
+
+  private getHit (hit: IHit) {
     let newHit = null
 
     switch (hit.type.toUpperCase()) {
@@ -324,11 +398,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       case HitType.ITEM:
         newHit = new Item(hit as IItem)
         break
-      case HitType.PAGE:
       case HitType.PAGE_VIEW:
         newHit = new Page(hit as IPage)
         break
-      case HitType.SCREEN:
       case HitType.SCREEN_VIEW:
         newHit = new Screen(hit as IScreen)
         break
@@ -339,13 +411,21 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return newHit
   }
 
-  private async prepareAndSendHit (hit:IHit|HitAbstract) {
+  private async prepareAndSendHit (hit: IHit | HitShape | HitAbstract) {
     try {
-      let hitInstance:HitAbstract
+      let hitInstance: HitAbstract
       if (hit instanceof HitAbstract) {
         hitInstance = hit
+      } else if ('data' in hit) {
+        const hitShape = hit as HitShape
+        const hitFromInt = this.getHitLegacy(hitShape)
+        if (!hitFromInt) {
+          logError(this.config, TYPE_HIT_REQUIRED_ERROR, PROCESS_SEND_HIT)
+          return
+        }
+        hitInstance = hitFromInt
       } else {
-        const hitFromInt = this.getHit(hit)
+        const hitFromInt = this.getHit(hit as IHit)
         if (!hitFromInt) {
           logError(this.config, TYPE_HIT_REQUIRED_ERROR, PROCESS_SEND_HIT)
           return
@@ -362,8 +442,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         return
       }
       await this.trackingManager.sendHit(hitInstance)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
       logError(this.config, error.message || error, PROCESS_SEND_HIT)
     }
   }
@@ -373,9 +453,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
    *@deprecated
    */
   public async getAllModifications (activate = false): Promise<{
-    visitorId: string;
-    campaigns: CampaignDTO[];
-    }> {
+    visitorId: string
+    campaigns: CampaignDTO[]
+  }> {
     if (activate) {
       this.visitor.modifications.forEach((_, key) => {
         this.activateModification(key)
@@ -394,12 +474,15 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
    * @deprecated
    * @returns
    */
-  public async getModificationsForCampaign (campaignId:string, activate = false):Promise<{
-    visitorId: string;
-    campaigns: CampaignDTO[];
-    }> {
+  public async getModificationsForCampaign (
+    campaignId: string,
+    activate = false
+  ): Promise<{
+    visitorId: string
+    campaigns: CampaignDTO[]
+  }> {
     if (activate) {
-      this.visitor.modifications.forEach(value => {
+      this.visitor.modifications.forEach((value) => {
         if (value.campaignId === campaignId) {
           this.activateModification(value.key)
         }
@@ -408,7 +491,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     return {
       visitorId: this.visitor.visitorId,
-      campaigns: this.visitor.campaigns.filter(x => x.id === campaignId)
+      campaigns: this.visitor.campaigns.filter((x) => x.id === campaignId)
     }
   }
 
@@ -441,7 +524,11 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     this.visitor.anonymousId = null
   }
 
-  protected logDeactivateOnBucketing (functionName:string):void {
-    logError(this.config, sprintf(METHOD_DEACTIVATED_BUCKETING_ERROR, functionName), functionName)
+  protected logDeactivateOnBucketing (functionName: string): void {
+    logError(
+      this.config,
+      sprintf(METHOD_DEACTIVATED_BUCKETING_ERROR, functionName),
+      functionName
+    )
   }
 }

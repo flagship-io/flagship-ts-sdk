@@ -1,5 +1,5 @@
 import { CampaignDTO } from './decision/api/models.ts'
-import { IEvent, IItem, IPage, IScreen, ITransaction } from './hit/index.ts'
+import { IEvent, IItem, IPage, IScreen, ITransaction, HitShape } from './hit/index.ts'
 
 export type modificationsRequested<T> = {
     key: string,
@@ -9,7 +9,8 @@ export type modificationsRequested<T> = {
 
 export type primitive=string | number | boolean
 
-export type IHit = IPage | IScreen | IEvent | IItem | ITransaction
+export type { HitShape }
+export type IHit = IPage | IScreen | IEvent | IItem | ITransaction | HitShape
 
 export type Modification= {
   key: string;
@@ -35,5 +36,13 @@ export type NewVisitor={
 
    initialCampaigns?: CampaignDTO[]
    initialModifications?: Map<string, Modification>|Modification[]
+
+   /**
+    * If true The newly created visitor instance won't be saved and will simply be returned otherwise
+    * the  newly created visitor instance will be returned and saved into the Flagship
+    *
+    * Note: will be default true on server-side and false on client-side
+    */
+   isNewInstance?:boolean
 
 }
