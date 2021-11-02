@@ -171,10 +171,6 @@ describe('test Flagship newVisitor', () => {
     visitor = Flagship.newVisitor({ isNewInstance: true })
     expect(Flagship.getVisitor()).toBeUndefined()
 
-    // test isNewInstance false and server side true
-    visitor = Flagship.newVisitor({ isNewInstance: false })
-    expect(Flagship.getVisitor()).toBeUndefined()
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     global.window = jest.fn() as any
 
