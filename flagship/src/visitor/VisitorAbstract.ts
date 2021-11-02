@@ -23,6 +23,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _campaigns!: CampaignDTO[];
     protected _hasConsented!:boolean;
     protected _anonymousId!:string|null;
+    public deDuplicationCache:Record<string, number>
 
     constructor (param: {
         visitorId?: string|null,
@@ -35,6 +36,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       }) {
       const { visitorId, configManager, context, isAuthenticated, hasConsented, initialModifications, initialCampaigns } = param
       super()
+      this.deDuplicationCache = {}
       this._configManager = configManager
       const VisitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
       this.visitorId = visitorId || VisitorCache?.visitorId || this.createVisitorId()

@@ -308,7 +308,23 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return !!check
   }
 
+  private isDeDuplicated (key:string):boolean {
+    if (this.config.deDuplicationTime === 0) {
+      return false
+    }
+    const deDuplicationCache = this.visitor.deDuplicationCache[key]
+    if (deDuplicationCache && (Date.now() - deDuplicationCache) <= (this.config.deDuplicationTime as number) * 1000) {
+      return true
+    }
+    this.visitor.deDuplicationCache[key] = Date.now()
+    return false
+  }
+
   private async activate (key: string) {
+    if (this.isDeDuplicated(key)) {
+      return
+    }
+
     try {
       const modification = this.visitor.modifications.get(key)
 
