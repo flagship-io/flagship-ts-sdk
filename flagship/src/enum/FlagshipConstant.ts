@@ -9,6 +9,8 @@ export const SDK_LANGUAGE = 'TypeScript'
  */
 export const REQUEST_TIME_OUT = 2
 
+export const DEFAULT_DE_DUPLICATION_TIME = 2.5
+
 /**
  * Decision api base url
  */
