@@ -25,4 +25,8 @@ jobs:
       - run: yarn install
       - run: yarn lint
       - run: yarn test --silent=true
+      - run: yarn test --coverage
+      - uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repository
 
