@@ -30,7 +30,7 @@ describe('test DefaultStrategy ', () => {
   const logError = jest.spyOn(logManager, 'error')
   const logInfo = jest.spyOn(logManager, 'info')
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', deDuplicationTime: 0 })
   config.logManager = logManager
 
   const httpClient = new HttpClient()

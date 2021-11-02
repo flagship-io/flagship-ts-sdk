@@ -453,6 +453,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       hitInstance.config = this.config
       hitInstance.anonymousId = this.visitor.anonymousId
 
+      if (this.isDeDuplicated(JSON.stringify(hitInstance))) {
+        return
+      }
+
       if (!hitInstance.isReady()) {
         logError(this.config, hitInstance.getErrorMessage(), PROCESS_SEND_HIT)
         return
