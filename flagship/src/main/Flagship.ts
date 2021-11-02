@@ -274,7 +274,7 @@ export class Flagship {
 
     const visitor = new Visitor(visitorDelegate)
 
-    this.getInstance()._visitorInstance = !isServerSide && !isNewInstance ? visitor : undefined
+    this.getInstance()._visitorInstance = !isNewInstance ? visitor : undefined
 
     if (this.getConfig().fetchNow) {
       visitor.synchronizeModifications()
