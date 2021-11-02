@@ -1,5 +1,5 @@
 import { BucketingDTO } from '../decision/api/bucketingDTO'
-import { BASE_API_URL, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, TYPE_ERROR } from '../enum/index'
+import { BASE_API_URL, DEFAULT_DE_DUPLICATION_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, TYPE_ERROR } from '../enum/index'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, sprintf } from '../utils/utils'
 
@@ -77,6 +77,8 @@ export interface IFlagshipConfig {
   initialBucketing?:BucketingDTO
 
   decisionApiUrl?: string
+
+  deDuplicationTime?: number
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -97,11 +99,12 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _enableClientCache! : boolean;
   private _initialBucketing?:BucketingDTO
   private _decisionApiUrl!: string
+  private _deDuplicationTime! : number;
 
   protected constructor (param: IFlagshipConfig) {
     const {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
-      fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl
+      fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl, deDuplicationTime
     } = param
 
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
@@ -113,6 +116,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this.enableClientCache = typeof enableClientCache === 'undefined' || enableClientCache
     this._decisionMode = decisionMode || DecisionMode.DECISION_API
     this._initialBucketing = initialBucketing
+    this.deDuplicationTime = deDuplicationTime ?? DEFAULT_DE_DUPLICATION_TIME
     if (logManager) {
       this.logManager = logManager
     }
@@ -209,6 +213,18 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
 
   public set pollingInterval (v : number) {
     this._pollingInterval = v
+  }
+
+  public get deDuplicationTime () : number {
+    return this._deDuplicationTime
+  }
+
+  public set deDuplicationTime (v : number) {
+    if (typeof v !== 'number') {
+      logError(this, sprintf(TYPE_ERROR, 'deDuplicationTime', 'number'), 'deDuplicationTime')
+      return
+    }
+    this._deDuplicationTime = v
   }
 
   public get statusChangedCallback () :((status: FlagshipStatus) => void)|undefined {
