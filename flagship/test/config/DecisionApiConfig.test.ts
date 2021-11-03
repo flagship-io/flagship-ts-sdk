@@ -24,7 +24,8 @@ describe('test DecisionApiConfig', () => {
     expect(config.enableClientCache).toBeTruthy()
     expect(config.initialBucketing).toBeUndefined()
     expect(config.decisionApiUrl).toBe(BASE_API_URL)
-    expect(config.deDuplicationTime).toBe(DEFAULT_DE_DUPLICATION_TIME)
+    expect(config.activateDeDuplicationTime).toBe(DEFAULT_DE_DUPLICATION_TIME)
+    expect(config.hitDeDuplicationTime).toBe(DEFAULT_DE_DUPLICATION_TIME)
   })
 
   it('test config constructor', () => {
@@ -102,11 +103,19 @@ describe('test DecisionApiConfig', () => {
   })
 
   it('Test deDuplicationTime', () => {
-    config.deDuplicationTime = {} as number
-    expect(config.deDuplicationTime).toBe(DEFAULT_DE_DUPLICATION_TIME)
-    const deDuplicationTime = 3
-    config.deDuplicationTime = deDuplicationTime
-    expect(config.deDuplicationTime).toBe(deDuplicationTime)
+    config.activateDeDuplicationTime = {} as number
+    expect(config.activateDeDuplicationTime).toBe(DEFAULT_DE_DUPLICATION_TIME)
+    const activateDeDuplicationTime = 3
+    config.activateDeDuplicationTime = activateDeDuplicationTime
+    expect(config.activateDeDuplicationTime).toBe(activateDeDuplicationTime)
+  })
+
+  it('Test deDuplicationTime', () => {
+    config.hitDeDuplicationTime = {} as number
+    expect(config.hitDeDuplicationTime).toBe(DEFAULT_DE_DUPLICATION_TIME)
+    const hitDeDuplicationTime = 3
+    config.hitDeDuplicationTime = hitDeDuplicationTime
+    expect(config.hitDeDuplicationTime).toBe(hitDeDuplicationTime)
   })
 
   it('test statusChangedCallback', () => {
