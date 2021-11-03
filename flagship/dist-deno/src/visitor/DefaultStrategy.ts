@@ -308,7 +308,26 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return !!check
   }
 
+  private isDeDuplicated (key:string, deDuplicationTime:number):boolean {
+    if (deDuplicationTime === 0) {
+      return false
+    }
+
+    const deDuplicationCache = this.visitor.deDuplicationCache[key]
+    if (deDuplicationCache && (Date.now() - deDuplicationCache) <= (deDuplicationTime * 1000)) {
+      return true
+    }
+    this.visitor.deDuplicationCache[key] = Date.now()
+
+    this.visitor.clearDeDuplicationCache(deDuplicationTime)
+    return false
+  }
+
   private async activate (key: string) {
+    if (this.isDeDuplicated(key, this.config.activateDeDuplicationTime as number)) {
+      return
+    }
+
     try {
       const modification = this.visitor.modifications.get(key)
 
@@ -436,6 +455,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       hitInstance.ds = SDK_APP
       hitInstance.config = this.config
       hitInstance.anonymousId = this.visitor.anonymousId
+
+      if (this.isDeDuplicated(JSON.stringify(hitInstance), this.config.hitDeDuplicationTime as number)) {
+        return
+      }
 
       if (!hitInstance.isReady()) {
         logError(this.config, hitInstance.getErrorMessage(), PROCESS_SEND_HIT)
