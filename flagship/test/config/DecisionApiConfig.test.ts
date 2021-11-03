@@ -2,6 +2,7 @@ import { expect, it, describe, jest } from '@jest/globals'
 import { DecisionApiConfig, DecisionMode } from '../../src/config/index'
 import {
   BASE_API_URL,
+  DEFAULT_DE_DUPLICATION_TIME,
   FlagshipStatus,
   LogLevel,
   REQUEST_TIME_OUT
@@ -23,6 +24,7 @@ describe('test DecisionApiConfig', () => {
     expect(config.enableClientCache).toBeTruthy()
     expect(config.initialBucketing).toBeUndefined()
     expect(config.decisionApiUrl).toBe(BASE_API_URL)
+    expect(config.deDuplicationTime).toBe(DEFAULT_DE_DUPLICATION_TIME)
   })
 
   it('test config constructor', () => {
@@ -97,6 +99,14 @@ describe('test DecisionApiConfig', () => {
     const url = 'https://decision.flagship.io/v2/?l=4'
     config.decisionApiUrl = url
     expect(config.decisionApiUrl).toBe(url)
+  })
+
+  it('Test deDuplicationTime', () => {
+    config.deDuplicationTime = {} as number
+    expect(config.deDuplicationTime).toBe(DEFAULT_DE_DUPLICATION_TIME)
+    const deDuplicationTime = 3
+    config.deDuplicationTime = deDuplicationTime
+    expect(config.deDuplicationTime).toBe(deDuplicationTime)
   })
 
   it('test statusChangedCallback', () => {
