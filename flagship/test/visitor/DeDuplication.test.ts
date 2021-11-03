@@ -91,7 +91,7 @@ describe('Name of the group', () => {
   })
 
   it('test activation ', async () => {
-    config.deDuplicationTime = 1
+    config.activateDeDuplicationTime = 1
     const key = 'keyBoolean'
     await defaultStrategy.activateModification(key)
     await defaultStrategy.activateModification(key)
@@ -99,5 +99,63 @@ describe('Name of the group', () => {
     await sleep(1200)
     await defaultStrategy.activateModification(key)
     expect(sendActive).toBeCalledTimes(2)
+  })
+})
+
+describe('Clean cache', () => {
+  const visitorId = 'visitorId'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const context: any = {
+    isVip: true
+  }
+
+  const logManager = new FlagshipLogManager()
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', activateDeDuplicationTime: 1, hitDeDuplicationTime: 1 })
+  config.logManager = logManager
+
+  const httpClient = new HttpClient()
+
+  const post: Mock<
+      Promise<IHttpResponse>,
+      [url: string, options: IHttpOptions]
+    > = jest.fn()
+  httpClient.postAsync = post
+  post.mockResolvedValue({} as IHttpResponse)
+
+  const apiManager = new ApiManager(httpClient, config)
+
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  const sendActive = jest.spyOn(trackingManager, 'sendActive')
+
+  const configManager = new ConfigManager(config, apiManager, trackingManager)
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
+  const defaultStrategy = new DefaultStrategy(visitorDelegate)
+
+  const getModifications = jest.spyOn(
+    apiManager,
+    'getModifications'
+  )
+
+  const getCampaignsAsync = jest.spyOn(
+    apiManager,
+    'getCampaignsAsync'
+  )
+
+  it('should ', async () => {
+    getCampaignsAsync.mockResolvedValue([])
+    getModifications.mockReturnValue(returnModification)
+    await defaultStrategy.synchronizeModifications()
+  })
+  it('test clean cache ', async () => {
+    const keyBoolean = 'keyBoolean'
+    defaultStrategy.activateModification(keyBoolean)
+    defaultStrategy.activateModification('key')
+    defaultStrategy.activateModification('array')
+    await sleep(1200)
+    await defaultStrategy.activateModification(keyBoolean)
+    expect(sendActive).toBeCalledTimes(4)
   })
 })
