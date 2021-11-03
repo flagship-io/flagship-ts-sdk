@@ -9,6 +9,7 @@ import { HttpClient, IHttpResponse, IHttpOptions } from '../../src/utils/HttpCli
 import { VisitorDelegate, DefaultStrategy } from '../../src/visitor'
 import { Mock } from 'jest-mock'
 import { returnModification } from './modification'
+import { sleep } from '../../src/utils/utils'
 
 describe('Name of the group', () => {
   const visitorId = 'visitorId'
@@ -60,7 +61,7 @@ describe('Name of the group', () => {
     await defaultStrategy.synchronizeModifications()
   })
 
-  it('should ', async () => {
+  it('test activation ', async () => {
     const key = 'keyString'
     await defaultStrategy.activateModification(key)
     await defaultStrategy.activateModification(key)
@@ -87,5 +88,16 @@ describe('Name of the group', () => {
       console.log(error)
       expect(logError).toBeCalled()
     }
+  })
+
+  it('test activation ', async () => {
+    config.deDuplicationTime = 1
+    const key = 'keyBoolean'
+    await defaultStrategy.activateModification(key)
+    await defaultStrategy.activateModification(key)
+    await defaultStrategy.activateModification(key)
+    await sleep(1200)
+    await defaultStrategy.activateModification(key)
+    expect(sendActive).toBeCalledTimes(2)
   })
 })
