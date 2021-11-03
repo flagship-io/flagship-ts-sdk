@@ -308,20 +308,23 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return !!check
   }
 
-  private isDeDuplicated (key:string):boolean {
-    if (this.config.deDuplicationTime === 0) {
+  private isDeDuplicated (key:string, deDuplicationTime:number):boolean {
+    if (deDuplicationTime === 0) {
       return false
     }
+
     const deDuplicationCache = this.visitor.deDuplicationCache[key]
-    if (deDuplicationCache && (Date.now() - deDuplicationCache) <= (this.config.deDuplicationTime as number) * 1000) {
+    if (deDuplicationCache && (Date.now() - deDuplicationCache) <= (deDuplicationTime * 1000)) {
       return true
     }
     this.visitor.deDuplicationCache[key] = Date.now()
+
+    this.visitor.clearDeDuplicationCache(deDuplicationTime)
     return false
   }
 
   private async activate (key: string) {
-    if (this.isDeDuplicated(key)) {
+    if (this.isDeDuplicated(key, this.config.activateDeDuplicationTime as number)) {
       return
     }
 
@@ -453,7 +456,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       hitInstance.config = this.config
       hitInstance.anonymousId = this.visitor.anonymousId
 
-      if (this.isDeDuplicated(JSON.stringify(hitInstance))) {
+      if (this.isDeDuplicated(JSON.stringify(hitInstance), this.config.hitDeDuplicationTime as number)) {
         return
       }
 
