@@ -1,4 +1,4 @@
-import { RouterContext, RouteParams, HitType, EventCategory } from "../deps.ts";
+import { RouterContext, RouteParams, HitType, EventCategory, Visitor } from "../deps.ts";
 
 export const sendHit = async ({
   request,
@@ -6,8 +6,15 @@ export const sendHit = async ({
   state,
 // deno-lint-ignore no-explicit-any
 }: RouterContext<RouteParams, Record<string, any>>) => {
-  const visitor = await state.session.get("visitor");
+  const visitor:Visitor = await state.session.get("visitor");
   const hit = await request.body().value;  
+
+  const commonParams = {
+    local: hit.ul,
+    userIp: hit.uip,
+    sessionNumber: hit.sn,
+    screenResolution: `${hit.re_he}X${hit.re_wi}`
+  }
 
   switch (hit.t) {
     case "EVENT": {
@@ -18,8 +25,9 @@ export const sendHit = async ({
             ? EventCategory.ACTION_TRACKING
             : EventCategory.USER_ENGAGEMENT,
         action: hit.ea,
-        eventLabel: hit.el,
-        eventValue: hit.ev,
+        label: hit.el,
+        value: hit.ev,
+        ...commonParams
       });
       break;
     }
@@ -32,6 +40,7 @@ export const sendHit = async ({
         itemPrice: hit.ip,
         itemQuantity: hit.iq,
         itemCategory: hit.iv,
+        ...commonParams
       });
       break;
     }
@@ -39,6 +48,7 @@ export const sendHit = async ({
       visitor.sendHit({
         type: HitType.SCREEN,
         documentLocation: hit.dl,
+        ...commonParams
       });
       break;
     }
@@ -46,6 +56,7 @@ export const sendHit = async ({
       visitor.sendHit({
         type: HitType.PAGE,
         documentLocation: hit.dl,
+        ...commonParams
       });
       break;
     }
@@ -63,6 +74,7 @@ export const sendHit = async ({
           paymentMethod: hit.pm,
           totalRevenue: hit.tr,
           shippingCosts: hit.ts,
+          ...commonParams
         });
       }
       break;
