@@ -39,6 +39,10 @@ describe('test hit type Event', () => {
     expect(event.visitorId).toBeUndefined()
     expect(event.anonymousId).toBeNull()
     expect(event.getErrorMessage()).toBe(ERROR_MESSAGE)
+    expect(event.userIp).toBeUndefined()
+    expect(event.screenResolution).toBeUndefined()
+    expect(event.local).toBeUndefined()
+    expect(event.sessionNumber).toBeUndefined()
   })
 
   it('test constructor', () => {
@@ -46,7 +50,11 @@ describe('test hit type Event', () => {
       action: 'action',
       category: EventCategory.ACTION_TRACKING,
       label: 'label',
-      value: 12
+      value: 12,
+      userIp: '127.0.0.1',
+      screenResolution: '800X600',
+      local: 'fr',
+      sessionNumber: '12345'
     }
 
     const event = new Event(params)
@@ -54,6 +62,10 @@ describe('test hit type Event', () => {
     expect(event.action).toBe(params.action)
     expect(event.label).toBe(params.label)
     expect(event.value).toBe(params.value)
+    expect(event.userIp).toBe(params.userIp)
+    expect(event.screenResolution).toBe(params.screenResolution)
+    expect(event.local).toBe(params.local)
+    expect(event.sessionNumber).toBe(params.sessionNumber)
   })
 
   it('test isReady method ', () => {

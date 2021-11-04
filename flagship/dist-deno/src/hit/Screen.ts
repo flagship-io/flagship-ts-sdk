@@ -22,7 +22,13 @@ export class Screen extends HitAbstract implements IScreen {
   }
 
   public constructor (screen: Omit<IScreen, 'type'>) {
-    super(HitType.SCREEN_VIEW)
+    super({
+      type: HitType.SCREEN_VIEW,
+      userIp: screen?.userIp,
+      screenResolution: screen?.screenResolution,
+      local: screen?.local,
+      sessionNumber: screen?.sessionNumber
+    })
     this.documentLocation = screen?.documentLocation
   }
 

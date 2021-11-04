@@ -155,7 +155,13 @@ export class Transaction extends HitAbstract implements ITransaction {
   }
 
   public constructor (transaction: Omit<ITransaction, 'type'>) {
-    super(HitType.TRANSACTION)
+    super({
+      type: HitType.TRANSACTION,
+      userIp: transaction?.userIp,
+      screenResolution: transaction?.screenResolution,
+      local: transaction?.local,
+      sessionNumber: transaction?.sessionNumber
+    })
     const {
       transactionId,
       affiliation, taxes,
