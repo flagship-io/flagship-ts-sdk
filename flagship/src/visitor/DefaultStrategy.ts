@@ -324,7 +324,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   private async activate (key: string) {
-    if (this.isDeDuplicated(key, this.config.activateDeDuplicationTime as number)) {
+    if (this.isDeDuplicated(key, this.config.activateDeduplicationTime as number)) {
       return
     }
 
@@ -456,7 +456,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       hitInstance.config = this.config
       hitInstance.anonymousId = this.visitor.anonymousId
 
-      if (this.isDeDuplicated(JSON.stringify(hitInstance), this.config.hitDeDuplicationTime as number)) {
+      if (this.isDeDuplicated(JSON.stringify(hitInstance), this.config.hitDeduplicationTime as number)) {
         return
       }
 

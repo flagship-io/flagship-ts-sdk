@@ -91,7 +91,7 @@ describe('Name of the group', () => {
   })
 
   it('test activation ', async () => {
-    config.activateDeDuplicationTime = 1
+    config.activateDeduplicationTime = 1
     const key = 'keyBoolean'
     await defaultStrategy.activateModification(key)
     await defaultStrategy.activateModification(key)
@@ -111,7 +111,7 @@ describe('Clean cache', () => {
 
   const logManager = new FlagshipLogManager()
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', activateDeDuplicationTime: 1, hitDeDuplicationTime: 1 })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', activateDeduplicationTime: 1, hitDeduplicationTime: 1 })
   config.logManager = logManager
 
   const httpClient = new HttpClient()

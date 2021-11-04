@@ -78,9 +78,9 @@ export interface IFlagshipConfig {
 
   decisionApiUrl?: string
 
-  activateDeDuplicationTime?: number
+  activateDeduplicationTime?: number
 
-  hitDeDuplicationTime?:number
+  hitDeduplicationTime?:number
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -101,13 +101,13 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _enableClientCache! : boolean;
   private _initialBucketing?:BucketingDTO
   private _decisionApiUrl!: string
-  private _activateDeDuplicationTime! : number;
-  private _hitDeDuplicationTime! : number;
+  private _activateDeduplicationTime! : number;
+  private _hitDeduplicationTime! : number;
 
   protected constructor (param: IFlagshipConfig) {
     const {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
-      fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl, activateDeDuplicationTime, hitDeDuplicationTime
+      fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl, activateDeduplicationTime: activateDeDuplicationTime, hitDeduplicationTime: hitDeDuplicationTime
     } = param
 
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
@@ -119,8 +119,8 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this.enableClientCache = typeof enableClientCache === 'undefined' || enableClientCache
     this._decisionMode = decisionMode || DecisionMode.DECISION_API
     this._initialBucketing = initialBucketing
-    this.activateDeDuplicationTime = activateDeDuplicationTime ?? DEFAULT_DE_DUPLICATION_TIME
-    this.hitDeDuplicationTime = hitDeDuplicationTime ?? DEFAULT_DE_DUPLICATION_TIME
+    this.activateDeduplicationTime = activateDeDuplicationTime ?? DEFAULT_DE_DUPLICATION_TIME
+    this.hitDeduplicationTime = hitDeDuplicationTime ?? DEFAULT_DE_DUPLICATION_TIME
 
     if (logManager) {
       this.logManager = logManager
@@ -220,28 +220,28 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._pollingInterval = v
   }
 
-  public get activateDeDuplicationTime () : number {
-    return this._activateDeDuplicationTime
+  public get activateDeduplicationTime () : number {
+    return this._activateDeduplicationTime
   }
 
-  public set activateDeDuplicationTime (v : number) {
+  public set activateDeduplicationTime (v : number) {
     if (typeof v !== 'number') {
-      logError(this, sprintf(TYPE_ERROR, 'activateDeDuplicationTime', 'number'), 'activateDeDuplicationTime')
+      logError(this, sprintf(TYPE_ERROR, 'activateDeduplicationTime', 'number'), 'activateDeduplicationTime')
       return
     }
-    this._activateDeDuplicationTime = v
+    this._activateDeduplicationTime = v
   }
 
-  public get hitDeDuplicationTime () : number {
-    return this._hitDeDuplicationTime
+  public get hitDeduplicationTime () : number {
+    return this._hitDeduplicationTime
   }
 
-  public set hitDeDuplicationTime (v : number) {
+  public set hitDeduplicationTime (v : number) {
     if (typeof v !== 'number') {
-      logError(this, sprintf(TYPE_ERROR, 'hitDeDuplicationTime', 'number'), 'hitDeDuplicationTime')
+      logError(this, sprintf(TYPE_ERROR, 'hitDeduplicationTime', 'number'), 'hitDeduplicationTime')
       return
     }
-    this._hitDeDuplicationTime = v
+    this._hitDeduplicationTime = v
   }
 
   public get statusChangedCallback () :((status: FlagshipStatus) => void)|undefined {
