@@ -1,5 +1,5 @@
 import { BucketingDTO } from '../decision/api/bucketingDTO'
-import { BASE_API_URL, DEFAULT_DE_DUPLICATION_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, TYPE_ERROR } from '../enum/index'
+import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, TYPE_ERROR } from '../enum/index'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, sprintf } from '../utils/utils'
 
@@ -119,8 +119,8 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this.enableClientCache = typeof enableClientCache === 'undefined' || enableClientCache
     this._decisionMode = decisionMode || DecisionMode.DECISION_API
     this._initialBucketing = initialBucketing
-    this.activateDeduplicationTime = activateDeDuplicationTime ?? DEFAULT_DE_DUPLICATION_TIME
-    this.hitDeduplicationTime = hitDeDuplicationTime ?? DEFAULT_DE_DUPLICATION_TIME
+    this.activateDeduplicationTime = activateDeDuplicationTime ?? DEFAULT_DEDUPLICATION_TIME
+    this.hitDeduplicationTime = hitDeDuplicationTime ?? DEFAULT_DEDUPLICATION_TIME
 
     if (logManager) {
       this.logManager = logManager
