@@ -22,7 +22,13 @@ export class Page extends HitAbstract implements IPage {
   }
 
   public constructor (page:Omit<IPage, 'type'>) {
-    super(HitType.PAGE_VIEW)
+    super({
+      type: HitType.PAGE_VIEW,
+      userIp: page?.userIp,
+      screenResolution: page?.screenResolution,
+      local: page?.local,
+      sessionNumber: page?.sessionNumber
+    })
     this.documentLocation = page?.documentLocation
   }
 

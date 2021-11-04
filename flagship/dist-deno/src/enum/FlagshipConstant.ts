@@ -9,6 +9,8 @@ export const SDK_LANGUAGE = 'TypeScript'
  */
 export const REQUEST_TIME_OUT = 2
 
+export const DEFAULT_POLLING_INTERVAL = 1
+
 /**
  * Decision api base url
  */
@@ -115,6 +117,10 @@ export const EVENT_CATEGORY_API_ITEM = 'ec'
 export const EVENT_ACTION_API_ITEM = 'ea'
 export const EVENT_LABEL_API_ITEM = 'el'
 export const EVENT_VALUE_API_ITEM = 'ev'
+export const USER_IP_API_ITEM = 'uip'
+export const SCREEN_RESOLUTION_API_ITEM = 'sr'
+export const USER_LANGUAGE = 'ul'
+export const SESSION_NUMBER = 'sn'
 
 export const HEADER_X_API_KEY = 'x-api-key'
 export const HEADER_CONTENT_TYPE = 'Content-Type'

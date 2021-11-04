@@ -6,7 +6,11 @@ import {
   TYPE_ERROR,
   VISITOR_ID_API_ITEM,
   TYPE_INTEGER_ERROR,
-  CUSTOMER_UID
+  CUSTOMER_UID,
+  USER_IP_API_ITEM,
+  SCREEN_RESOLUTION_API_ITEM,
+  SESSION_NUMBER,
+  USER_LANGUAGE
 } from '../enum/FlagshipConstant.ts'
 import { HitType } from '../enum/HitType.ts'
 import { primitive } from '../types.ts'
@@ -16,6 +20,10 @@ export interface IHitAbstract{
   visitorId?:string
   ds?: string
   type: HitType
+  userIp?: string
+  screenResolution?: string
+  local?: string
+  sessionNumber?: string
 }
 
 export abstract class HitAbstract implements IHitAbstract {
@@ -24,6 +32,42 @@ export abstract class HitAbstract implements IHitAbstract {
   private _type!: HitType;
   private _ds!: string;
   private _anonymousId! : string|null;
+  private _userIp! : string;
+  private _screenResolution! : string;
+  private _local! : string;
+  private _sessionNumber! : string;
+
+  public get sessionNumber () : string {
+    return this._sessionNumber
+  }
+
+  public set sessionNumber (v : string) {
+    this._sessionNumber = v
+  }
+
+  public get local () : string {
+    return this._local
+  }
+
+  public set local (v : string) {
+    this._local = v
+  }
+
+  public get screenResolution () : string {
+    return this._screenResolution
+  }
+
+  public set screenResolution (v : string) {
+    this._screenResolution = v
+  }
+
+  public get userIp () : string {
+    return this._userIp
+  }
+
+  public set userIp (v : string) {
+    this._userIp = v
+  }
 
   public get anonymousId () : string|null {
     return this._anonymousId
@@ -65,8 +109,21 @@ export abstract class HitAbstract implements IHitAbstract {
     this._config = v
   }
 
-  protected constructor (type: HitType) {
+  protected constructor (hit: IHitAbstract) {
+    const { type, userIp, screenResolution, local, sessionNumber } = hit
     this.type = type
+    if (userIp) {
+      this.userIp = userIp
+    }
+    if (screenResolution) {
+      this.screenResolution = screenResolution
+    }
+    if (local) {
+      this.local = local
+    }
+    if (sessionNumber) {
+      this.sessionNumber = sessionNumber
+    }
     this._anonymousId = null
   }
 
@@ -121,7 +178,11 @@ export abstract class HitAbstract implements IHitAbstract {
       [VISITOR_ID_API_ITEM]: this.visitorId,
       [DS_API_ITEM]: this.ds,
       [CUSTOMER_ENV_ID_API_ITEM]: `${this.config.envId}`,
-      [T_API_ITEM]: this.type
+      [T_API_ITEM]: this.type,
+      [USER_IP_API_ITEM]: this.userIp,
+      [SCREEN_RESOLUTION_API_ITEM]: this.screenResolution,
+      [USER_LANGUAGE]: this.local,
+      [SESSION_NUMBER]: this.sessionNumber
     }
     if (this.visitorId && this._anonymousId) {
       apiKeys[VISITOR_ID_API_ITEM] = this._anonymousId
