@@ -5,6 +5,13 @@ export const sendHit = (req: Request, res: Response):void => {
   const visitor = sessionVisitors[req.session.id]
   const hit = req.body
 
+  const commonParams = {
+    local: hit.ul,
+    userIp: hit.uip,
+    sessionNumber: hit.sn,
+    screenResolution: `${hit.re_he}X${hit.re_wi}`
+  }
+
   switch (hit.t) {
     case 'EVENT': {
       visitor.sendHit({
@@ -14,8 +21,9 @@ export const sendHit = (req: Request, res: Response):void => {
             ? EventCategory.ACTION_TRACKING
             : EventCategory.USER_ENGAGEMENT,
         action: hit.ea,
-        eventLabel: hit.el,
-        eventValue: hit.ev
+        label: hit.el,
+        value: hit.ev,
+        ...commonParams
       })
       break
     }
@@ -27,21 +35,24 @@ export const sendHit = (req: Request, res: Response):void => {
         productSku: hit.ic,
         itemPrice: hit.ip,
         itemQuantity: hit.iq,
-        itemCategory: hit.iv
+        itemCategory: hit.iv,
+        ...commonParams
       })
       break
     }
     case 'SCREEN': {
       visitor.sendHit({
         type: HitType.SCREEN,
-        documentLocation: hit.dl
+        documentLocation: hit.dl,
+        ...commonParams
       })
       break
     }
     case 'PAGE': {
       visitor.sendHit({
         type: HitType.PAGE,
-        documentLocation: hit.dl
+        documentLocation: hit.dl,
+        ...commonParams
       })
       break
     }
@@ -58,9 +69,12 @@ export const sendHit = (req: Request, res: Response):void => {
           shippingMethod: hit.sm,
           paymentMethod: hit.pm,
           totalRevenue: hit.tr,
-          shippingCosts: hit.ts
+          shippingCosts: hit.ts,
+          ...commonParams
         })
       }
+      break
+    default:
       break
   }
 
