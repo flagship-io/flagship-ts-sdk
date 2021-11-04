@@ -119,7 +119,13 @@ export class Item extends HitAbstract implements IItem {
    * @param productSku : The SKU or item code.
    */
   public constructor (item:Omit<IItem, 'type'>) {
-    super(HitType.ITEM)
+    super({
+      type: HitType.ITEM,
+      userIp: item?.userIp,
+      screenResolution: item?.screenResolution,
+      local: item?.local,
+      sessionNumber: item?.sessionNumber
+    })
     const {
       transactionId, productName, productSku,
       itemCategory, itemPrice, itemQuantity

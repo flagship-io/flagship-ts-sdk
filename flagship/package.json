@@ -21,6 +21,7 @@
     "lint:fix": "eslint . --ext .ts --fix",
     "lint": "eslint . --ext .ts",
     "test": "jest",
+    "test:coverage": "jest --coverage",
     "prebuild": "tsc --emitDeclarationOnly",
     "build": "webpack",
     "postbuild": "node denoTrans.mjs",

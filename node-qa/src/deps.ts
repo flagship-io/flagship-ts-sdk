@@ -1,4 +1,4 @@
-import { Visitor } from 'flagship'
+import { Visitor } from '@flagship.io/js-sdk'
 
 export {
   DecisionMode,
@@ -8,13 +8,13 @@ export {
   HitType,
   EventCategory,
   Visitor, Modification
-} from 'flagship'
+} from '@flagship.io/js-sdk'
 
 export { Request, Response, NextFunction } from 'express'
 
 export { SessionData } from 'express-session'
 
-export type { IFlagshipLogManager } from 'flagship'
+export type { IFlagshipLogManager } from '@flagship.io/js-sdk'
 
 declare module 'express-session' {
   interface SessionData {

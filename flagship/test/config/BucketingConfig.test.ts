@@ -1,12 +1,12 @@
 import { expect, it, describe } from '@jest/globals'
 import { BucketingConfig } from '../../src/config'
-import { REQUEST_TIME_OUT } from '../../src/enum'
+import { DEFAULT_POLLING_INTERVAL, REQUEST_TIME_OUT } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 
 describe('test BucketingConfig', () => {
   it('should ', () => {
     const config = new BucketingConfig()
-    expect(config.pollingInterval).toBe(REQUEST_TIME_OUT)
+    expect(config.pollingInterval).toBe(DEFAULT_POLLING_INTERVAL)
     expect(config.onBucketingSuccess).toBeUndefined()
     expect(config.onBucketingFail).toBeUndefined()
     expect(config.onBucketingUpdated).toBeUndefined()
@@ -34,6 +34,6 @@ describe('test BucketingConfig', () => {
     const config = new BucketingConfig({ fetchNow: true, logManager: logManager })
     expect(config.logManager).toBeInstanceOf(FlagshipLogManager)
     expect(config.logManager).toBe(logManager)
-    expect(config.pollingInterval).toBe(REQUEST_TIME_OUT)
+    expect(config.pollingInterval).toBe(DEFAULT_POLLING_INTERVAL)
   })
 })
