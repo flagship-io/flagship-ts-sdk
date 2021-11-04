@@ -2,6 +2,7 @@ import { expect, it, describe, jest } from '@jest/globals'
 import { DecisionApiConfig, DecisionMode } from '../../src/config/index'
 import {
   BASE_API_URL,
+  DEFAULT_DEDUPLICATION_TIME,
   FlagshipStatus,
   LogLevel,
   REQUEST_TIME_OUT
@@ -23,6 +24,8 @@ describe('test DecisionApiConfig', () => {
     expect(config.enableClientCache).toBeTruthy()
     expect(config.initialBucketing).toBeUndefined()
     expect(config.decisionApiUrl).toBe(BASE_API_URL)
+    expect(config.activateDeduplicationTime).toBe(DEFAULT_DEDUPLICATION_TIME)
+    expect(config.hitDeduplicationTime).toBe(DEFAULT_DEDUPLICATION_TIME)
   })
 
   it('test config constructor', () => {
@@ -97,6 +100,22 @@ describe('test DecisionApiConfig', () => {
     const url = 'https://decision.flagship.io/v2/?l=4'
     config.decisionApiUrl = url
     expect(config.decisionApiUrl).toBe(url)
+  })
+
+  it('Test deDuplicationTime', () => {
+    config.activateDeduplicationTime = {} as number
+    expect(config.activateDeduplicationTime).toBe(DEFAULT_DEDUPLICATION_TIME)
+    const activateDeduplicationTime = 3
+    config.activateDeduplicationTime = activateDeduplicationTime
+    expect(config.activateDeduplicationTime).toBe(activateDeduplicationTime)
+  })
+
+  it('Test deDuplicationTime', () => {
+    config.hitDeduplicationTime = {} as number
+    expect(config.hitDeduplicationTime).toBe(DEFAULT_DEDUPLICATION_TIME)
+    const hitDeduplicationTime = 3
+    config.hitDeduplicationTime = hitDeduplicationTime
+    expect(config.hitDeduplicationTime).toBe(hitDeduplicationTime)
   })
 
   it('test statusChangedCallback', () => {

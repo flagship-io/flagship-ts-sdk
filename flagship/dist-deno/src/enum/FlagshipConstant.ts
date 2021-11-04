@@ -9,6 +9,7 @@ export const SDK_LANGUAGE = 'TypeScript'
  */
 export const REQUEST_TIME_OUT = 2
 
+export const DEFAULT_DEDUPLICATION_TIME = 2.5
 export const DEFAULT_POLLING_INTERVAL = 1
 
 /**

@@ -1,5 +1,5 @@
 import { BucketingDTO } from '../decision/api/bucketingDTO'
-import { BASE_API_URL, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, TYPE_ERROR } from '../enum/index'
+import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, TYPE_ERROR } from '../enum/index'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, sprintf } from '../utils/utils'
 
@@ -77,6 +77,10 @@ export interface IFlagshipConfig {
   initialBucketing?:BucketingDTO
 
   decisionApiUrl?: string
+
+  activateDeduplicationTime?: number
+
+  hitDeduplicationTime?:number
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -97,11 +101,13 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _enableClientCache! : boolean;
   private _initialBucketing?:BucketingDTO
   private _decisionApiUrl!: string
+  private _activateDeduplicationTime! : number;
+  private _hitDeduplicationTime! : number;
 
   protected constructor (param: IFlagshipConfig) {
     const {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
-      fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl
+      fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl, activateDeduplicationTime: activateDeDuplicationTime, hitDeduplicationTime: hitDeDuplicationTime
     } = param
 
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
@@ -113,6 +119,9 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this.enableClientCache = typeof enableClientCache === 'undefined' || enableClientCache
     this._decisionMode = decisionMode || DecisionMode.DECISION_API
     this._initialBucketing = initialBucketing
+    this.activateDeduplicationTime = activateDeDuplicationTime ?? DEFAULT_DEDUPLICATION_TIME
+    this.hitDeduplicationTime = hitDeDuplicationTime ?? DEFAULT_DEDUPLICATION_TIME
+
     if (logManager) {
       this.logManager = logManager
     }
@@ -209,6 +218,30 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
 
   public set pollingInterval (v : number) {
     this._pollingInterval = v
+  }
+
+  public get activateDeduplicationTime () : number {
+    return this._activateDeduplicationTime
+  }
+
+  public set activateDeduplicationTime (v : number) {
+    if (typeof v !== 'number') {
+      logError(this, sprintf(TYPE_ERROR, 'activateDeduplicationTime', 'number'), 'activateDeduplicationTime')
+      return
+    }
+    this._activateDeduplicationTime = v
+  }
+
+  public get hitDeduplicationTime () : number {
+    return this._hitDeduplicationTime
+  }
+
+  public set hitDeduplicationTime (v : number) {
+    if (typeof v !== 'number') {
+      logError(this, sprintf(TYPE_ERROR, 'hitDeduplicationTime', 'number'), 'hitDeduplicationTime')
+      return
+    }
+    this._hitDeduplicationTime = v
   }
 
   public get statusChangedCallback () :((status: FlagshipStatus) => void)|undefined {

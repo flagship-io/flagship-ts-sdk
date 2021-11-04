@@ -23,6 +23,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _campaigns!: CampaignDTO[];
     protected _hasConsented!:boolean;
     protected _anonymousId!:string|null;
+    public deDuplicationCache:Record<string, number>
+    protected _isCleaningDeDuplicationCache:boolean
 
     constructor (param: {
         visitorId?: string|null,
@@ -35,6 +37,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       }) {
       const { visitorId, configManager, context, isAuthenticated, hasConsented, initialModifications, initialCampaigns } = param
       super()
+      this._isCleaningDeDuplicationCache = false
+      this.deDuplicationCache = {}
       this._configManager = configManager
       const VisitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
       this.visitorId = visitorId || VisitorCache?.visitorId || this.createVisitorId()
@@ -56,6 +60,21 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this.updateCache()
       this.setInitialModifications(initialModifications)
       this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
+    }
+
+    public clearDeDuplicationCache (deDuplicationTime:number):void {
+      if (this._isCleaningDeDuplicationCache) {
+        return
+      }
+      this._isCleaningDeDuplicationCache = true
+      const entries = Object.entries(this.deDuplicationCache)
+
+      for (const [key, value] of entries) {
+        if ((Date.now() - value) > (deDuplicationTime * 1000)) {
+          delete this.deDuplicationCache[key]
+        }
+      }
+      this._isCleaningDeDuplicationCache = false
     }
 
     public getModificationsArray (): Modification[] {
