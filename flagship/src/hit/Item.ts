@@ -123,7 +123,7 @@ export class Item extends HitAbstract implements IItem {
       type: HitType.ITEM,
       userIp: item?.userIp,
       screenResolution: item?.screenResolution,
-      local: item?.local,
+      locale: item?.locale,
       sessionNumber: item?.sessionNumber
     })
     const {

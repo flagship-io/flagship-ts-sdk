@@ -159,7 +159,7 @@ export class Transaction extends HitAbstract implements ITransaction {
       type: HitType.TRANSACTION,
       userIp: transaction?.userIp,
       screenResolution: transaction?.screenResolution,
-      local: transaction?.local,
+      locale: transaction?.locale,
       sessionNumber: transaction?.sessionNumber
     })
     const {

@@ -26,7 +26,7 @@ export class Screen extends HitAbstract implements IScreen {
       type: HitType.SCREEN_VIEW,
       userIp: screen?.userIp,
       screenResolution: screen?.screenResolution,
-      local: screen?.local,
+      locale: screen?.locale,
       sessionNumber: screen?.sessionNumber
     })
     this.documentLocation = screen?.documentLocation

@@ -96,7 +96,7 @@ export class Event extends HitAbstract implements IEvent {
       type: HitType.EVENT,
       userIp: event?.userIp,
       screenResolution: event?.screenResolution,
-      local: event?.local,
+      locale: event?.locale,
       sessionNumber: event?.sessionNumber
     })
     const { category, action, label, value } = event

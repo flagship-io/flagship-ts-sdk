@@ -41,7 +41,7 @@ describe('test hit type Event', () => {
     expect(event.getErrorMessage()).toBe(ERROR_MESSAGE)
     expect(event.userIp).toBeUndefined()
     expect(event.screenResolution).toBeUndefined()
-    expect(event.local).toBeUndefined()
+    expect(event.locale).toBeUndefined()
     expect(event.sessionNumber).toBeUndefined()
   })
 
@@ -53,7 +53,7 @@ describe('test hit type Event', () => {
       value: 12,
       userIp: '127.0.0.1',
       screenResolution: '800X600',
-      local: 'fr',
+      locale: 'fr',
       sessionNumber: '12345'
     }
 
@@ -64,7 +64,7 @@ describe('test hit type Event', () => {
     expect(event.value).toBe(params.value)
     expect(event.userIp).toBe(params.userIp)
     expect(event.screenResolution).toBe(params.screenResolution)
-    expect(event.local).toBe(params.local)
+    expect(event.locale).toBe(params.locale)
     expect(event.sessionNumber).toBe(params.sessionNumber)
   })
 
