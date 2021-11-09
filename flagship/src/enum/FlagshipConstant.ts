@@ -31,6 +31,8 @@ export const SEND_CONTEXT_EVENT = 'sendContextEvent'
  */
 export const SDK_VERSION = 'v2'
 
+export const VISITOR_CACHE_VERSION = 1
+
 /**
  * Message Info
  */
