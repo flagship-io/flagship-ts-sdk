@@ -76,4 +76,8 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
     abstract authenticate(visitorId: string): void
     abstract unauthenticate(): void
+
+    abstract lookupVisitor (): Promise<void>
+
+    protected abstract cacheVisitor ():Promise<void>
 }

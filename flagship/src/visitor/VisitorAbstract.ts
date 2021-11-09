@@ -14,6 +14,7 @@ import { NotReadyStrategy } from './NotReadyStrategy'
 import { PanicStrategy } from './PanicStrategy'
 import { NoConsentStrategy } from './NoConsentStrategy'
 import { cacheVisitor } from './VisitorCache'
+import { VisitorLookupCacheDTO } from '../models/visitorDTO'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _visitorId!: string;
@@ -25,6 +26,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _anonymousId!:string|null;
     public deDuplicationCache:Record<string, number>
     protected _isCleaningDeDuplicationCache:boolean
+    public visitorCache!: VisitorLookupCacheDTO
 
     constructor (param: {
         visitorId?: string|null,
@@ -60,6 +62,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this.updateCache()
       this.setInitialModifications(initialModifications)
       this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
+
+      this.getStrategy().lookupVisitor()
     }
 
     public clearDeDuplicationCache (deDuplicationTime:number):void {

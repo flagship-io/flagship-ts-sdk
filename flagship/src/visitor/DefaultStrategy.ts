@@ -19,6 +19,7 @@ import {
   PROCESS_UPDATE_CONTEXT,
   SDK_APP,
   TRACKER_MANAGER_MISSING_ERROR,
+  VISITOR_CACHE_VERSION,
   VISITOR_ID_ERROR
 } from '../enum/index'
 import {
@@ -40,8 +41,10 @@ import { primitive, modificationsRequested, IHit } from '../types'
 import { logError, logInfo, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
-import { DecisionMode } from '../config/index'
+import { DecisionMode, IFlagshipConfig } from '../config/index'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
+import { VisitorSaveCacheDTO } from '../models/visitorDTO'
+import { VisitorDelegate } from '.'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 
@@ -247,11 +250,72 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return modification
   }
 
+  public async lookupVisitor ():Promise<void> {
+    const visitorCacheInstance = this.config.visitorCacheImplementation
+    if (!visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
+      return
+    }
+
+    this.visitor.visitorCache = visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
+  }
+
+  protected async cacheVisitor ():Promise<void> {
+    const visitorCacheInstance = this.config.visitorCacheImplementation
+    if (!visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.cacheVisitor !== 'function') {
+      return
+    }
+    const data: VisitorSaveCacheDTO = {
+      version: VISITOR_CACHE_VERSION,
+      data: {
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        consent: this.visitor.hasConsented,
+        context: this.visitor.context,
+        campaigns: this.visitor.campaigns.map(campaign => {
+          return {
+            campaignId: campaign.id,
+            variationGroupId: campaign.variationGroupId,
+            variationId: campaign.variation.id,
+            isReference: campaign.variation.reference,
+            type: campaign.variation.modifications.type,
+            activated: false,
+            flags: campaign.variation.modifications.value
+          }
+        })
+      }
+    }
+    visitorCacheInstance.cacheVisitor(this.visitor.visitorId, data)
+  }
+
+  protected fetchVisitorCampaigns (visitor: VisitorDelegate) :CampaignDTO[] {
+    if (!visitor.visitorCache || !visitor.visitorCache.data ||
+      !visitor.visitorCache.data.campaigns) {
+      return []
+    }
+    return visitor.visitorCache.data.campaigns.map(campaign => {
+      return {
+        id: campaign.campaignId,
+        variationGroupId: campaign.variationGroupId,
+        variation: {
+          id: campaign.variationId,
+          reference: campaign.isReference,
+          modifications: {
+            type: campaign.type,
+            value: campaign.flags
+          }
+        }
+      }
+    })
+  }
+
   async synchronizeModifications (): Promise<void> {
     try {
-      const campaigns = await this.decisionManager.getCampaignsAsync(
+      let campaigns = await this.decisionManager.getCampaignsAsync(
         this.visitor
       )
+      if (!campaigns.length) {
+        campaigns = this.fetchVisitorCampaigns(this.visitor)
+      }
       this.visitor.campaigns = campaigns
       this.visitor.modifications = this.decisionManager.getModifications(
         this.visitor.campaigns
