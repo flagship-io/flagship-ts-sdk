@@ -126,6 +126,16 @@ export class Event extends HitAbstract implements IEvent {
     return apiKeys
   }
 
+  public toObject ():Record<string, unknown> {
+    return {
+      ...super.toObject(),
+      category: this.category,
+      action: this.action,
+      label: this.label,
+      value: this.value
+    }
+  }
+
   public isReady (): boolean {
     return !!(super.isReady() && this.category && this.action)
   }

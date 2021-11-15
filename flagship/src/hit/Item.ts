@@ -155,7 +155,7 @@ export class Item extends HitAbstract implements IItem {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public toApiKeys ():any {
+  public toApiKeys ():Record<string, unknown> {
     const apiKeys = super.toApiKeys()
     apiKeys[TID_API_ITEM] = this.transactionId
     apiKeys[IN_API_ITEM] = this.productName
@@ -171,6 +171,18 @@ export class Item extends HitAbstract implements IItem {
       apiKeys[IV_API_ITEM] = this.itemCategory
     }
     return apiKeys
+  }
+
+  public toObject ():Record<string, unknown> {
+    return {
+      ...super.toObject(),
+      transactionId: this.transactionId,
+      productName: this.productName,
+      productSku: this.productSku,
+      itemPrice: this.itemPrice,
+      itemQuantity: this.itemCategory,
+      itemCategory: this.itemCategory
+    }
   }
 
   public getErrorMessage (): string {

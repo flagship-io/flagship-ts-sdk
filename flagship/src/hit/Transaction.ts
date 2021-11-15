@@ -241,6 +241,22 @@ export class Transaction extends HitAbstract implements ITransaction {
     return apiKeys
   }
 
+  public toObject ():Record<string, unknown> {
+    return {
+      ...super.toObject(),
+      transactionId: this.transactionId,
+      affiliation: this.affiliation,
+      taxes: this.taxes,
+      currency: this.currency,
+      couponCode: this.couponCode,
+      itemCount: this.itemCount,
+      shippingMethod: this.shippingMethod,
+      paymentMethod: this.paymentMethod,
+      totalRevenue: this.totalRevenue,
+      shippingCosts: this.shippingCosts
+    }
+  }
+
   public getErrorMessage (): string {
     return ERROR_MESSAGE
   }

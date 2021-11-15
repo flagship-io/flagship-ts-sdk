@@ -43,6 +43,13 @@ export class Screen extends HitAbstract implements IScreen {
     return apiKeys
   }
 
+  public toObject ():Record<string, unknown> {
+    return {
+      ...super.toObject(),
+      documentLocation: this.documentLocation
+    }
+  }
+
   public getErrorMessage (): string {
     return ERROR_MESSAGE
   }

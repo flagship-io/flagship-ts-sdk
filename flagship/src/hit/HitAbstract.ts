@@ -173,7 +173,7 @@ export abstract class HitAbstract implements IHitAbstract {
    */
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public toApiKeys (): any {
+  public toApiKeys (): Record<string, unknown> {
     const apiKeys:Record<string, primitive|null> = {
       [VISITOR_ID_API_ITEM]: this.visitorId,
       [DS_API_ITEM]: this.ds,
@@ -192,6 +192,19 @@ export abstract class HitAbstract implements IHitAbstract {
       apiKeys[CUSTOMER_UID] = null
     }
     return apiKeys
+  }
+
+  toObject ():Record<string, unknown> {
+    return {
+      visitorId: this.visitorId,
+      ds: this.ds,
+      type: this.type,
+      userIp: this.userIp,
+      screenResolution: this.screenResolution,
+      locale: this.locale,
+      sessionNumber: this.sessionNumber,
+      anonymousId: this.anonymousId
+    }
   }
 
   /**
