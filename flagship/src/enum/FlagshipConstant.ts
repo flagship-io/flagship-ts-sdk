@@ -32,6 +32,7 @@ export const SEND_CONTEXT_EVENT = 'sendContextEvent'
 export const SDK_VERSION = 'v2'
 
 export const VISITOR_CACHE_VERSION = 1
+export const HIT_CACHE_VERSION = 1
 
 /**
  * Message Info
@@ -88,6 +89,7 @@ export const PROCESS_SEND_ACTIVATE = 'SEND ACTIVATE'
 export const PROCESS_GET_CAMPAIGNS = 'GET CAMPAIGNS'
 export const PROCESS_GET_ALL_MODIFICATION = 'GET ALL MODIFICATIONS'
 export const PROCESS_MODIFICATIONS_FOR_CAMPAIGN = 'GET MODIFICATION FOR CAMPAIGN'
+export const PROCESS_CACHE_HIT = 'cacheHit'
 
 // Api items
 
