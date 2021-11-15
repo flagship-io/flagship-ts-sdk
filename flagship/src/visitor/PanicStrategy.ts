@@ -3,7 +3,7 @@ import { FlagshipStatus, METHOD_DEACTIVATED_ERROR, METHOD_DEACTIVATED_SEND_CONSE
 import { IHit, modificationsRequested, primitive } from '../types'
 import { logError, sprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
-import { HitAbstract } from '../hit/index'
+import { HitAbstract, HitShape } from '../hit/index'
 
 export class PanicStrategy extends DefaultStrategy {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -55,13 +55,13 @@ export class PanicStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  sendHit (_hit: HitAbstract | IHit): Promise<void> {
+  sendHit (_hit: HitAbstract | IHit| HitShape): Promise<void> {
     this.log('sendHit')
     return Promise.resolve()
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  sendHits (_hits: HitAbstract[] | IHit[]): Promise<void> {
+  sendHits (_hits: HitAbstract[] | IHit[]|HitShape[]): Promise<void> {
     this.log('sendHits')
     return Promise.resolve()
   }

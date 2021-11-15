@@ -5,7 +5,7 @@ import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
 import { FlagshipStatus, SDK_LANGUAGE, SDK_VERSION, VISITOR_ID_ERROR } from '../enum/index'
 import { logError } from '../utils/utils'
-import { HitAbstract } from '../hit/index'
+import { HitAbstract, HitShape } from '../hit/index'
 import { DefaultStrategy } from './DefaultStrategy'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { EventEmitter } from '../nodeDeps'
@@ -64,6 +64,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
 
       this.getStrategy().lookupVisitor()
+      this.getStrategy().lookupHit()
     }
 
     public clearDeDuplicationCache (deDuplicationTime:number):void {
@@ -222,6 +223,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
         strategy = new DefaultStrategy(this)
       }
 
+      console.log('strategy:', strategy)
+
       return strategy
     }
 
@@ -248,11 +251,13 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     abstract sendHit(hit: HitAbstract): Promise<void>;
     abstract sendHit(hit: IHit): Promise<void>;
-    abstract sendHit(hit: IHit|HitAbstract): Promise<void>;
+    abstract sendHit(hit: HitShape): Promise<void>;
+    abstract sendHit(hit: IHit|HitAbstract|HitShape): Promise<void>;
 
     abstract sendHits(hit: HitAbstract[]): Promise<void>;
     abstract sendHits(hit: IHit[]): Promise<void>;
-    abstract sendHits (hit: HitAbstract[]|IHit[]): Promise<void>
+    abstract sendHits(hit: HitShape[]): Promise<void>;
+    abstract sendHits (hit: HitAbstract[]|IHit[]|HitShape[]): Promise<void>
 
     abstract getAllModifications (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 

@@ -5,7 +5,6 @@ export type HitCache ={
     data: {
         visitorId: string,
         anonymousId: string|null,
-        url: string,
         type: HitType
     }
 }
