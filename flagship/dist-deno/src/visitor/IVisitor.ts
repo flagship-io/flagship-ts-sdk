@@ -1,6 +1,6 @@
 import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
-import { HitAbstract } from '../hit/index.ts'
+import { HitAbstract, HitShape } from '../hit/index.ts'
 import { IHit, Modification, modificationsRequested, primitive } from '../types.ts'
 
 export interface IVisitor {
@@ -119,6 +119,12 @@ export interface IVisitor {
    */
   sendHit(hit: HitAbstract): Promise<void>;
   sendHit(hit: IHit): Promise<void>;
+  /**
+   * Send a Hit to Flagship servers for reporting.
+   * @deprecated
+   * @param hit
+   */
+  sendHit(hit: HitShape): Promise<void>;
 
   /**
    * Send Hits to Flagship servers for reporting.
@@ -126,6 +132,12 @@ export interface IVisitor {
    */
   sendHits(hit: Array<HitAbstract>): Promise<void>;
   sendHits(hit: Array<IHit>): Promise<void>;
+  /**
+   * Send Hits to Flagship servers for reporting.
+   * @deprecated
+   * @param hit
+   */
+  sendHits(hit: Array<HitShape>): Promise<void>;
 
   /**
    * returns a Promise<object> containing all the data for all the campaigns associated with the current visitor.

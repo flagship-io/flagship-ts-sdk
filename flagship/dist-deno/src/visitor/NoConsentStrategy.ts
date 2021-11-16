@@ -1,6 +1,6 @@
 import { IHit } from '../types.ts'
 import { METHOD_DEACTIVATED_CONSENT_ERROR } from '../enum/index.ts'
-import { HitAbstract } from '../hit/index.ts'
+import { HitAbstract, HitShape } from '../hit/index.ts'
 import { logError, sprintf } from '../utils/utils.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
 
@@ -16,13 +16,13 @@ export class NoConsentStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  sendHit (_hit: HitAbstract | IHit): Promise<void> {
+  sendHit (_hit: HitAbstract | IHit| HitShape): Promise<void> {
     this.log('sendHit')
     return Promise.resolve()
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  sendHits (_hits: HitAbstract[] | IHit[]): Promise<void> {
+  sendHits (_hits: HitAbstract[] | IHit[] | HitShape[]): Promise<void> {
     this.log('sendHits')
     return Promise.resolve()
   }

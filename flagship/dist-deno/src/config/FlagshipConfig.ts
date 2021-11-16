@@ -1,7 +1,9 @@
 import { BucketingDTO } from '../decision/api/bucketingDTO.ts'
 import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, TYPE_ERROR } from '../enum/index.ts'
+import { IHitCache } from '../hit/IHitCache.ts'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager.ts'
 import { logError, sprintf } from '../utils/utils.ts'
+import { IVisitorCache } from '../visitor/IVisitorCache.ts'
 
 export enum DecisionMode {
   /**
@@ -81,6 +83,10 @@ export interface IFlagshipConfig {
   activateDeduplicationTime?: number
 
   hitDeduplicationTime?:number
+
+  visitorCacheImplementation?: IVisitorCache
+
+  hitCacheImplementation?: IHitCache
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -103,11 +109,14 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _decisionApiUrl!: string
   private _activateDeduplicationTime! : number;
   private _hitDeduplicationTime! : number;
+  private _visitorCacheImplementation! : IVisitorCache;
+  private _hitCacheImplementation! : IHitCache;
 
   protected constructor (param: IFlagshipConfig) {
     const {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
-      fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl, activateDeduplicationTime: activateDeDuplicationTime, hitDeduplicationTime: hitDeDuplicationTime
+      fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
+      activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation
     } = param
 
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
@@ -119,8 +128,14 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this.enableClientCache = typeof enableClientCache === 'undefined' || enableClientCache
     this._decisionMode = decisionMode || DecisionMode.DECISION_API
     this._initialBucketing = initialBucketing
-    this.activateDeduplicationTime = activateDeDuplicationTime ?? DEFAULT_DEDUPLICATION_TIME
-    this.hitDeduplicationTime = hitDeDuplicationTime ?? DEFAULT_DEDUPLICATION_TIME
+    this.activateDeduplicationTime = activateDeduplicationTime ?? DEFAULT_DEDUPLICATION_TIME
+    this.hitDeduplicationTime = hitDeduplicationTime ?? DEFAULT_DEDUPLICATION_TIME
+    if (visitorCacheImplementation) {
+      this.visitorCacheImplementation = visitorCacheImplementation
+    }
+    if (hitCacheImplementation) {
+      this.hitCacheImplementation = hitCacheImplementation
+    }
 
     if (logManager) {
       this.logManager = logManager
@@ -242,6 +257,23 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       return
     }
     this._hitDeduplicationTime = v
+  }
+
+  public get visitorCacheImplementation () : IVisitorCache {
+    return this._visitorCacheImplementation
+  }
+
+  public set visitorCacheImplementation (v : IVisitorCache) {
+    this._visitorCacheImplementation = v
+  }
+
+  public get hitCacheImplementation () : IHitCache {
+    return this._hitCacheImplementation
+  }
+
+  public set hitCacheImplementation (v : IHitCache
+  ) {
+    this._hitCacheImplementation = v
   }
 
   public get statusChangedCallback () :((status: FlagshipStatus) => void)|undefined {

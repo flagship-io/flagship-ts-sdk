@@ -1,5 +1,5 @@
 import { Modification } from '../index.ts'
-import { HitAbstract } from '../hit/index.ts'
+import { HitAbstract, HitShape } from '../hit/index.ts'
 import { primitive, modificationsRequested, IHit } from '../types.ts'
 import { IVisitor } from './IVisitor.ts'
 import { VisitorAbstract } from './VisitorAbstract.ts'
@@ -64,11 +64,13 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
     abstract sendHit(hit: HitAbstract): Promise<void>;
     abstract sendHit(hit: IHit): Promise<void>;
-    abstract sendHit(hit: IHit|HitAbstract): Promise<void>;
+    abstract sendHit(hit: HitShape): Promise<void>;
+    abstract sendHit(hit: IHit|HitAbstract|HitShape): Promise<void>;
 
     abstract sendHits(hit: HitAbstract[]): Promise<void>;
     abstract sendHits(hit: IHit[]): Promise<void>;
-    abstract sendHits (hit: HitAbstract[]|IHit[]): Promise<void>
+    abstract sendHits(hit: HitShape[]): Promise<void>;
+    abstract sendHits (hit: HitAbstract[]|IHit[]|HitShape[]): Promise<void>
 
     abstract getAllModifications (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 
@@ -76,4 +78,12 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
     abstract authenticate(visitorId: string): void
     abstract unauthenticate(): void
+
+    abstract lookupVisitor (): Promise<void>
+
+    protected abstract cacheVisitor ():Promise<void>
+
+    abstract lookupHits (): Promise<void>
+
+    protected abstract cacheHit (hitInstance: HitAbstract):Promise<void>
 }

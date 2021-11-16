@@ -5,7 +5,7 @@ import { IVisitor } from './IVisitor.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { FlagshipStatus, SDK_LANGUAGE, SDK_VERSION, VISITOR_ID_ERROR } from '../enum/index.ts'
 import { logError } from '../utils/utils.ts'
-import { HitAbstract } from '../hit/index.ts'
+import { HitAbstract, HitShape } from '../hit/index.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract.ts'
 import { EventEmitter } from '../deps.ts'
@@ -14,6 +14,7 @@ import { NotReadyStrategy } from './NotReadyStrategy.ts'
 import { PanicStrategy } from './PanicStrategy.ts'
 import { NoConsentStrategy } from './NoConsentStrategy.ts'
 import { cacheVisitor } from './VisitorCache.ts'
+import { VisitorLookupCacheDTO } from '../models/visitorDTO.ts'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _visitorId!: string;
@@ -25,6 +26,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _anonymousId!:string|null;
     public deDuplicationCache:Record<string, number>
     protected _isCleaningDeDuplicationCache:boolean
+    public visitorCache!: VisitorLookupCacheDTO
 
     constructor (param: {
         visitorId?: string|null,
@@ -60,6 +62,9 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this.updateCache()
       this.setInitialModifications(initialModifications)
       this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
+
+      this.getStrategy().lookupVisitor()
+      this.getStrategy().lookupHits()
     }
 
     public clearDeDuplicationCache (deDuplicationTime:number):void {
@@ -244,11 +249,13 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     abstract sendHit(hit: HitAbstract): Promise<void>;
     abstract sendHit(hit: IHit): Promise<void>;
-    abstract sendHit(hit: IHit|HitAbstract): Promise<void>;
+    abstract sendHit(hit: HitShape): Promise<void>;
+    abstract sendHit(hit: IHit|HitAbstract|HitShape): Promise<void>;
 
     abstract sendHits(hit: HitAbstract[]): Promise<void>;
     abstract sendHits(hit: IHit[]): Promise<void>;
-    abstract sendHits (hit: HitAbstract[]|IHit[]): Promise<void>
+    abstract sendHits(hit: HitShape[]): Promise<void>;
+    abstract sendHits (hit: HitAbstract[]|IHit[]|HitShape[]): Promise<void>
 
     abstract getAllModifications (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 

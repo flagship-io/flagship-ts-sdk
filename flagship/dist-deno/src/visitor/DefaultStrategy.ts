@@ -9,9 +9,11 @@ import {
   GET_MODIFICATION_KEY_ERROR,
   GET_MODIFICATION_MISSING_ERROR,
   HitType,
+  HIT_CACHE_VERSION,
   METHOD_DEACTIVATED_BUCKETING_ERROR,
   PREDEFINED_CONTEXT_TYPE_ERROR,
   PROCESS_ACTIVE_MODIFICATION,
+  PROCESS_CACHE_HIT,
   PROCESS_GET_MODIFICATION,
   PROCESS_GET_MODIFICATION_INFO,
   PROCESS_SEND_HIT,
@@ -19,6 +21,7 @@ import {
   PROCESS_UPDATE_CONTEXT,
   SDK_APP,
   TRACKER_MANAGER_MISSING_ERROR,
+  VISITOR_CACHE_VERSION,
   VISITOR_ID_ERROR
 } from '../enum/index.ts'
 import {
@@ -42,6 +45,9 @@ import { VisitorStrategyAbstract } from './VisitorStrategyAbstract.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { DecisionMode } from '../config/index.ts'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext.ts'
+import { VisitorSaveCacheDTO } from '../models/visitorDTO.ts'
+import { VisitorDelegate } from '..ts'
+import { HitCacheSaveDTO } from '../models/HitDTO.ts'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 
@@ -51,6 +57,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     this.visitor.hasConsented = hasConsented
     if (!this.hasTrackingManager(method)) {
       return
+    }
+    if (!hasConsented) {
+      this.flushHits()
     }
     this.trackingManager.sendConsentHit(this.visitor).catch((error) => {
       logError(this.config, error.message || error, method)
@@ -247,11 +256,72 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return modification
   }
 
+  public async lookupVisitor ():Promise<void> {
+    const visitorCacheInstance = this.config.visitorCacheImplementation
+    if (!visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
+      return
+    }
+
+    this.visitor.visitorCache = visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
+  }
+
+  protected async cacheVisitor ():Promise<void> {
+    const visitorCacheInstance = this.config.visitorCacheImplementation
+    if (!visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.cacheVisitor !== 'function') {
+      return
+    }
+    const data: VisitorSaveCacheDTO = {
+      version: VISITOR_CACHE_VERSION,
+      data: {
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        consent: this.visitor.hasConsented,
+        context: this.visitor.context,
+        campaigns: this.visitor.campaigns.map(campaign => {
+          return {
+            campaignId: campaign.id,
+            variationGroupId: campaign.variationGroupId,
+            variationId: campaign.variation.id,
+            isReference: campaign.variation.reference,
+            type: campaign.variation.modifications.type,
+            activated: false,
+            flags: campaign.variation.modifications.value
+          }
+        })
+      }
+    }
+    visitorCacheInstance.cacheVisitor(this.visitor.visitorId, data)
+  }
+
+  protected fetchVisitorCampaigns (visitor: VisitorDelegate) :CampaignDTO[] {
+    if (!visitor.visitorCache || !visitor.visitorCache.data ||
+      !visitor.visitorCache.data.campaigns) {
+      return []
+    }
+    return visitor.visitorCache.data.campaigns.map(campaign => {
+      return {
+        id: campaign.campaignId,
+        variationGroupId: campaign.variationGroupId,
+        variation: {
+          id: campaign.variationId,
+          reference: campaign.isReference,
+          modifications: {
+            type: campaign.type,
+            value: campaign.flags
+          }
+        }
+      }
+    })
+  }
+
   async synchronizeModifications (): Promise<void> {
     try {
-      const campaigns = await this.decisionManager.getCampaignsAsync(
+      let campaigns = await this.decisionManager.getCampaignsAsync(
         this.visitor
       )
+      if (!campaigns.length) {
+        campaigns = this.fetchVisitorCampaigns(this.visitor)
+      }
       this.visitor.campaigns = campaigns
       this.visitor.modifications = this.decisionManager.getModifications(
         this.visitor.campaigns
@@ -353,7 +423,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   sendHit(hit: HitAbstract): Promise<void>
   sendHit(hit: IHit): Promise<void>
-  sendHit (hit: IHit | HitAbstract): Promise<void> {
+  sendHit(hit: HitShape): Promise<void>
+  sendHit (hit: IHit | HitAbstract | HitShape): Promise<void> {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
       return Promise.resolve()
     }
@@ -362,7 +433,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   sendHits(hits: HitAbstract[]): Promise<void>
   sendHits(hits: IHit[]): Promise<void>
-  async sendHits (hits: HitAbstract[] | IHit[]): Promise<void> {
+  sendHits(hits: HitShape[]): Promise<void>
+  async sendHits (hits: HitAbstract[] | IHit[]|HitShape[]): Promise<void> {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
       return
     }
@@ -430,44 +502,104 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return newHit
   }
 
-  private async prepareAndSendHit (hit: IHit | HitShape | HitAbstract) {
+  async lookupHits ():Promise<void> {
     try {
-      let hitInstance: HitAbstract
-      if (hit instanceof HitAbstract) {
-        hitInstance = hit
-      } else if ('data' in hit) {
-        const hitShape = hit as HitShape
-        const hitFromInt = this.getHitLegacy(hitShape)
-        if (!hitFromInt) {
-          logError(this.config, TYPE_HIT_REQUIRED_ERROR, PROCESS_SEND_HIT)
-          return
-        }
-        hitInstance = hitFromInt
-      } else {
-        const hitFromInt = this.getHit(hit as IHit)
-        if (!hitFromInt) {
-          logError(this.config, TYPE_HIT_REQUIRED_ERROR, PROCESS_SEND_HIT)
-          return
-        }
-        hitInstance = hitFromInt
-      }
-      hitInstance.visitorId = this.visitor.visitorId
-      hitInstance.ds = SDK_APP
-      hitInstance.config = this.config
-      hitInstance.anonymousId = this.visitor.anonymousId
-
-      if (this.isDeDuplicated(JSON.stringify(hitInstance), this.config.hitDeduplicationTime as number)) {
+      const hitCacheImplementation = this.config.hitCacheImplementation
+      if (!hitCacheImplementation || typeof hitCacheImplementation.lookupHits !== 'function') {
         return
       }
 
-      if (!hitInstance.isReady()) {
-        logError(this.config, hitInstance.getErrorMessage(), PROCESS_SEND_HIT)
+      const hitsCache = hitCacheImplementation.lookupHits(this.visitor.visitorId)
+      hitsCache?.forEach(item => {
+        const hit:IHit = {
+          type: item.data.type,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ...item.data.content as any
+        }
+        this.sendHit(hit)
+      })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      logError(this.config, error.message || error, 'lookupHits')
+    }
+  }
+
+  protected async cacheHit (hitInstance: HitAbstract):Promise<void> {
+    try {
+      const hitCacheImplementation = this.config.hitCacheImplementation
+      if (!hitCacheImplementation || typeof hitCacheImplementation.cacheHit !== 'function') {
         return
       }
+      const hitData: HitCacheSaveDTO = {
+        version: HIT_CACHE_VERSION,
+        data: {
+          visitorId: this.visitor.visitorId,
+          anonymousId: this.visitor.anonymousId,
+          type: hitInstance.type,
+          content: hitInstance.toObject()
+        }
+      }
+      hitCacheImplementation.cacheHit(this.visitor.visitorId, hitData)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      logError(this.config, error.message || error, PROCESS_CACHE_HIT)
+    }
+  }
+
+  protected async flushHits (): Promise<void> {
+    try {
+      const hitCacheImplementation = this.config.hitCacheImplementation
+      if (!hitCacheImplementation || typeof hitCacheImplementation.flushHits !== 'function') {
+        return
+      }
+
+      hitCacheImplementation.flushHits(this.visitor.visitorId)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      logError(this.config, error.message || error, 'flushHits')
+    }
+  }
+
+  private async prepareAndSendHit (hit: IHit | HitShape | HitAbstract) {
+    let hitInstance: HitAbstract
+    if (hit instanceof HitAbstract) {
+      hitInstance = hit
+    } else if ('data' in hit) {
+      const hitShape = hit as HitShape
+      const hitFromInt = this.getHitLegacy(hitShape)
+      if (!hitFromInt) {
+        logError(this.config, TYPE_HIT_REQUIRED_ERROR, PROCESS_SEND_HIT)
+        return
+      }
+      hitInstance = hitFromInt
+    } else {
+      const hitFromInt = this.getHit(hit as IHit)
+      if (!hitFromInt) {
+        logError(this.config, TYPE_HIT_REQUIRED_ERROR, PROCESS_SEND_HIT)
+        return
+      }
+      hitInstance = hitFromInt
+    }
+    hitInstance.visitorId = this.visitor.visitorId
+    hitInstance.ds = SDK_APP
+    hitInstance.config = this.config
+    hitInstance.anonymousId = this.visitor.anonymousId
+
+    if (this.isDeDuplicated(JSON.stringify(hitInstance), this.config.hitDeduplicationTime as number)) {
+      return
+    }
+
+    if (!hitInstance.isReady()) {
+      logError(this.config, hitInstance.getErrorMessage(), PROCESS_SEND_HIT)
+      return
+    }
+
+    try {
       await this.trackingManager.sendHit(hitInstance)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logError(this.config, error.message || error, PROCESS_SEND_HIT)
+      this.cacheHit(hitInstance)
     }
   }
 

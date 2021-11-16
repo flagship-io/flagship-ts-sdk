@@ -22,7 +22,7 @@ export interface IHitAbstract{
   type: HitType
   userIp?: string
   screenResolution?: string
-  local?: string
+  locale?: string
   sessionNumber?: string
 }
 
@@ -34,7 +34,7 @@ export abstract class HitAbstract implements IHitAbstract {
   private _anonymousId! : string|null;
   private _userIp! : string;
   private _screenResolution! : string;
-  private _local! : string;
+  private _locale! : string;
   private _sessionNumber! : string;
 
   public get sessionNumber () : string {
@@ -45,12 +45,12 @@ export abstract class HitAbstract implements IHitAbstract {
     this._sessionNumber = v
   }
 
-  public get local () : string {
-    return this._local
+  public get locale () : string {
+    return this._locale
   }
 
-  public set local (v : string) {
-    this._local = v
+  public set locale (v : string) {
+    this._locale = v
   }
 
   public get screenResolution () : string {
@@ -110,7 +110,7 @@ export abstract class HitAbstract implements IHitAbstract {
   }
 
   protected constructor (hit: IHitAbstract) {
-    const { type, userIp, screenResolution, local, sessionNumber } = hit
+    const { type, userIp, screenResolution, locale, sessionNumber } = hit
     this.type = type
     if (userIp) {
       this.userIp = userIp
@@ -118,8 +118,8 @@ export abstract class HitAbstract implements IHitAbstract {
     if (screenResolution) {
       this.screenResolution = screenResolution
     }
-    if (local) {
-      this.local = local
+    if (locale) {
+      this.locale = locale
     }
     if (sessionNumber) {
       this.sessionNumber = sessionNumber
@@ -173,7 +173,7 @@ export abstract class HitAbstract implements IHitAbstract {
    */
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public toApiKeys (): any {
+  public toApiKeys (): Record<string, unknown> {
     const apiKeys:Record<string, primitive|null> = {
       [VISITOR_ID_API_ITEM]: this.visitorId,
       [DS_API_ITEM]: this.ds,
@@ -181,7 +181,7 @@ export abstract class HitAbstract implements IHitAbstract {
       [T_API_ITEM]: this.type,
       [USER_IP_API_ITEM]: this.userIp,
       [SCREEN_RESOLUTION_API_ITEM]: this.screenResolution,
-      [USER_LANGUAGE]: this.local,
+      [USER_LANGUAGE]: this.locale,
       [SESSION_NUMBER]: this.sessionNumber
     }
     if (this.visitorId && this._anonymousId) {
@@ -192,6 +192,19 @@ export abstract class HitAbstract implements IHitAbstract {
       apiKeys[CUSTOMER_UID] = null
     }
     return apiKeys
+  }
+
+  toObject ():Record<string, unknown> {
+    return {
+      visitorId: this.visitorId,
+      ds: this.ds,
+      type: this.type,
+      userIp: this.userIp,
+      screenResolution: this.screenResolution,
+      locale: this.locale,
+      sessionNumber: this.sessionNumber,
+      anonymousId: this.anonymousId
+    }
   }
 
   /**
