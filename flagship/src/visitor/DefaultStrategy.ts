@@ -58,6 +58,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     if (!this.hasTrackingManager(method)) {
       return
     }
+    if (!hasConsented) {
+      this.flushHits()
+    }
     this.trackingManager.sendConsentHit(this.visitor).catch((error) => {
       logError(this.config, error.message || error, method)
     })
@@ -499,7 +502,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return newHit
   }
 
-  async lookupHit ():Promise<void> {
+  async lookupHits ():Promise<void> {
     try {
       const hitCacheImplementation = this.config.hitCacheImplementation
       if (!hitCacheImplementation || typeof hitCacheImplementation.lookupHits !== 'function') {
@@ -517,7 +520,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       })
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      logError(this.config, error.message || error, PROCESS_CACHE_HIT)
+      logError(this.config, error.message || error, 'lookupHits')
     }
   }
 
@@ -540,6 +543,20 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logError(this.config, error.message || error, PROCESS_CACHE_HIT)
+    }
+  }
+
+  protected async flushHits (): Promise<void> {
+    try {
+      const hitCacheImplementation = this.config.hitCacheImplementation
+      if (!hitCacheImplementation || typeof hitCacheImplementation.flushHits !== 'function') {
+        return
+      }
+
+      hitCacheImplementation.flushHits(this.visitor.visitorId)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      logError(this.config, error.message || error, 'flushHits')
     }
   }
 

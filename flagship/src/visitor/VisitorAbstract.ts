@@ -64,7 +64,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
 
       this.getStrategy().lookupVisitor()
-      this.getStrategy().lookupHit()
+      this.getStrategy().lookupHits()
     }
 
     public clearDeDuplicationCache (deDuplicationTime:number):void {

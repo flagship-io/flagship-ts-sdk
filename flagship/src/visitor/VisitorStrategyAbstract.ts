@@ -83,7 +83,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
     protected abstract cacheVisitor ():Promise<void>
 
-    abstract lookupHit (): Promise<void>
+    abstract lookupHits (): Promise<void>
 
     protected abstract cacheHit (hitInstance: HitAbstract):Promise<void>
 }
