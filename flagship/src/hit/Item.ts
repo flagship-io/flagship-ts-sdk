@@ -180,7 +180,7 @@ export class Item extends HitAbstract implements IItem {
       productName: this.productName,
       productSku: this.productSku,
       itemPrice: this.itemPrice,
-      itemQuantity: this.itemCategory,
+      itemQuantity: this.itemQuantity,
       itemCategory: this.itemCategory
     }
   }

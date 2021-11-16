@@ -133,9 +133,9 @@ describe('test hit type Event', () => {
     expect(event.toApiKeys()).toEqual(apiKeys)
   })
 
+  const label = 'label'
   // test label
   it('test label ', () => {
-    const label = 'label'
     event.label = label
     expect(event.label).toBe(label)
     apiKeys[EVENT_LABEL_API_ITEM] = label
@@ -152,9 +152,9 @@ describe('test hit type Event', () => {
     expect(logError).toHaveBeenCalledTimes(1)
   })
 
+  const value = 122
   // test set value
   it('test set value', () => {
-    const value = 122
     event.value = value
     expect(event.value).toBe(value)
     apiKeys[EVENT_VALUE_API_ITEM] = value
@@ -168,6 +168,18 @@ describe('test hit type Event', () => {
     )
     expect(event.value).toBe(value)
     expect(logError).toHaveBeenCalledTimes(1)
+  })
+
+  it('test toObject', () => {
+    const userIp = '127.0.0.1'
+    const screenResolution = '800X600'
+    const locale = 'fr'
+    const sessionNumber = '12345'
+    event.userIp = userIp
+    event.screenResolution = screenResolution
+    event.locale = locale
+    event.sessionNumber = sessionNumber
+    expect(event.toObject()).toEqual({ action, userIp, screenResolution, locale, sessionNumber, label, value, anonymousId: null, category, ds: SDK_APP, type: HitType.EVENT, visitorId })
   })
 
   it('test log category', () => {

@@ -54,6 +54,28 @@ describe('test hit type Page', () => {
     expect(screen.toApiKeys()).toEqual(apiKeys)
   })
 
+  it('test toObject method', () => {
+    const userIp = '127.0.0.1'
+    const screenResolution = '800X600'
+    const locale = 'fr'
+    const sessionNumber = '12345'
+    screen.userIp = userIp
+    screen.screenResolution = screenResolution
+    screen.locale = locale
+    screen.sessionNumber = sessionNumber
+    expect(screen.toObject()).toEqual({
+      userIp,
+      screenResolution,
+      locale,
+      sessionNumber,
+      anonymousId: null,
+      visitorId,
+      ds: SDK_APP,
+      type: HitType.SCREEN,
+      documentLocation
+    })
+  })
+
   it('test log documentLocation url', () => {
     screen.documentLocation = ''
     expect(screen.documentLocation).toBe(documentLocation)

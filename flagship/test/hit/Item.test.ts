@@ -89,8 +89,8 @@ describe('test hit type Item', () => {
     expect(item.toApiKeys()).toEqual(apiKeys)
   })
 
+  const itemCategory = 'itemCategory'
   it('test set itemCategory', () => {
-    const itemCategory = 'itemCategory'
     item.itemCategory = itemCategory
     expect(item.itemCategory).toBe(itemCategory)
 
@@ -107,8 +107,8 @@ describe('test hit type Item', () => {
     expect(item.itemCategory).toBe(itemCategory)
   })
 
+  const itemPrice = 200.5
   it('test set itemPrice', () => {
-    const itemPrice = 200.5
     item.itemPrice = itemPrice
     expect(item.itemPrice).toBe(itemPrice)
 
@@ -124,8 +124,8 @@ describe('test hit type Item', () => {
     expect(item.itemPrice).toBe(itemPrice)
   })
 
+  const itemQuantity = 5
   it('test set itemQuantity', () => {
-    const itemQuantity = 5
     item.itemQuantity = itemQuantity
     expect(item.itemQuantity).toBe(itemQuantity)
 
@@ -146,6 +146,35 @@ describe('test hit type Item', () => {
       sprintf(TYPE_ERROR, 'itemQuantity', 'integer'),
       'itemQuantity'
     )
+  })
+
+  it('test toObject', () => {
+    const userIp = '127.0.0.1'
+    const screenResolution = '800X600'
+    const locale = 'fr'
+    const sessionNumber = '12345'
+    item.userIp = userIp
+    item.screenResolution = screenResolution
+    item.locale = locale
+    item.sessionNumber = sessionNumber
+    expect(item.toObject())
+      .toEqual({
+        userIp,
+        screenResolution,
+        locale,
+        sessionNumber,
+        anonymousId: null,
+        visitorId,
+        ds: SDK_APP,
+        type: HitType.ITEM,
+
+        transactionId,
+        productName,
+        productSku,
+        itemCategory,
+        itemPrice,
+        itemQuantity
+      })
   })
 
   it('log transactionId', () => {

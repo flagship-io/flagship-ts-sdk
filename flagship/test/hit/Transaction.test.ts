@@ -102,8 +102,8 @@ describe('test hit type Transaction', () => {
     expect(transaction.toApiKeys()).toEqual(apiKeys)
   })
 
+  const couponCode = 'couponCode'
   it('test set couponCode', () => {
-    const couponCode = 'couponCode'
     transaction.couponCode = couponCode
     expect(transaction.couponCode).toBe(couponCode)
 
@@ -277,6 +277,37 @@ describe('test hit type Transaction', () => {
       sprintf(TYPE_ERROR, 'totalRevenue', 'number'),
       'totalRevenue'
     )
+  })
+
+  it('test toObject method', () => {
+    const userIp = '127.0.0.1'
+    const screenResolution = '800X600'
+    const locale = 'fr'
+    const sessionNumber = '12345'
+    transaction.userIp = userIp
+    transaction.screenResolution = screenResolution
+    transaction.locale = locale
+    transaction.sessionNumber = sessionNumber
+    expect(transaction.toObject()).toEqual({
+      userIp,
+      screenResolution,
+      locale,
+      sessionNumber,
+      anonymousId: null,
+      visitorId,
+      ds: SDK_APP,
+      type: HitType.TRANSACTION,
+      transactionId,
+      affiliation,
+      currency,
+      itemCount,
+      paymentMethod,
+      shippingMethod,
+      shippingCosts,
+      taxes,
+      totalRevenue,
+      couponCode
+    })
   })
 
   it('test log transactionId ', () => {
