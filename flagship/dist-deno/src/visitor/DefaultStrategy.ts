@@ -47,10 +47,11 @@ import { DecisionMode } from '../config/index.ts'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext.ts'
 import { VisitorSaveCacheDTO } from '../models/visitorDTO.ts'
 import { VisitorDelegate } from '..ts'
-import { HitCacheSaveDTO } from '../models/HitDTO.ts'
+import { HitCacheLookupDTO, HitCacheSaveDTO } from '../models/HitDTO.ts'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
-
+export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
+export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheLookupDTO'
 export class DefaultStrategy extends VisitorStrategyAbstract {
   setConsent (hasConsented: boolean): void {
     const method = 'setConsent'
@@ -502,6 +503,14 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return newHit
   }
 
+  protected checKLookupHitData (item:HitCacheLookupDTO):boolean {
+    if (item && item.version === 1 && item.data && item.data.type && item.data.visitorId) {
+      return true
+    }
+    logError(this.config, LOOKUP_HITS_JSON_OBJECT_ERROR, 'lookupHits')
+    return false
+  }
+
   async lookupHits ():Promise<void> {
     try {
       const hitCacheImplementation = this.config.hitCacheImplementation
@@ -509,8 +518,19 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         return
       }
 
-      const hitsCache = hitCacheImplementation.lookupHits(this.visitor.visitorId)
-      hitsCache?.forEach(item => {
+      const hitsCacheJson = hitCacheImplementation.lookupHits(this.visitor.visitorId)
+      if (!hitsCacheJson) {
+        return
+      }
+      const hitsCache:HitCacheLookupDTO[] = JSON.parse(hitsCacheJson)
+      if (!Array.isArray(hitsCache)) {
+        throw Error(LOOKUP_HITS_JSON_ERROR)
+      }
+
+      hitsCache.forEach(item => {
+        if (!this.checKLookupHitData(item)) {
+          return
+        }
         const hit:IHit = {
           type: item.data.type,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -539,7 +559,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
           content: hitInstance.toObject()
         }
       }
-      hitCacheImplementation.cacheHit(this.visitor.visitorId, hitData)
+      hitCacheImplementation.cacheHit(this.visitor.visitorId, JSON.stringify(hitData))
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logError(this.config, error.message || error, PROCESS_CACHE_HIT)

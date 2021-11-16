@@ -519,6 +519,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       }
 
       const hitsCacheJson = hitCacheImplementation.lookupHits(this.visitor.visitorId)
+      if (!hitsCacheJson) {
+        return
+      }
       const hitsCache:HitCacheLookupDTO[] = JSON.parse(hitsCacheJson)
       if (!Array.isArray(hitsCache)) {
         throw Error(LOOKUP_HITS_JSON_ERROR)

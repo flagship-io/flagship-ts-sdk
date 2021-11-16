@@ -172,6 +172,15 @@ describe('test visitor hit cache', () => {
     expect(logError).toBeCalledWith(LOOKUP_HITS_JSON_OBJECT_ERROR, 'lookupHits')
   })
 
+  it('test lookupHit failed', async () => {
+    sendHit.mockResolvedValue()
+    config.hitCacheImplementation = hitCacheImplementation
+    lookupHits.mockReturnValue('')
+    await defaultStrategy.lookupHits()
+    expect(lookupHits).toBeCalledTimes(1)
+    expect(sendHit).toBeCalledTimes(0)
+  })
+
   it('test lookupHit', async () => {
     sendHit.mockResolvedValue()
     config.hitCacheImplementation = getUndefined()
