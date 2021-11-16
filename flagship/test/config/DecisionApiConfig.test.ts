@@ -60,11 +60,11 @@ describe('test DecisionApiConfig', () => {
 
     const hitCacheImplementation:IHitCache = {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      cacheHit: function (_visitorId: string, _data: HitCacheSaveDTO): void {
+      cacheHit: function (_visitorId: string, _data: string): void {
         throw new Error('Function not implemented.')
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      lookupHits: function (_visitorId: string): HitCacheLookupDTO[] {
+      lookupHits: function (_visitorId: string): string {
         throw new Error('Function not implemented.')
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars

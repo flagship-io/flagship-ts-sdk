@@ -9,7 +9,8 @@ import { VisitorDelegate, DefaultStrategy } from '../../src/visitor'
 import { Mock } from 'jest-mock'
 import { IHitCache } from '../../src/hit/IHitCache'
 import { HitCacheSaveDTO, HitCacheLookupDTO } from '../../src/models/HitDTO'
-import { HIT_CACHE_VERSION } from '../../src/enum'
+import { HIT_CACHE_VERSION, SDK_APP } from '../../src/enum'
+import { LOOKUP_HITS_JSON_ERROR, LOOKUP_HITS_JSON_OBJECT_ERROR } from '../../src/visitor/DefaultStrategy'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getUndefined = ():any => undefined
@@ -24,8 +25,8 @@ describe('test visitor hit cache', () => {
   const logManager = new FlagshipLogManager()
   const logError = jest.spyOn(logManager, 'error')
 
-  const cacheHit:Mock<void, [visitorId: string, data: HitCacheSaveDTO]> = jest.fn()
-  const lookupHits:Mock<HitCacheLookupDTO[], [visitorId: string]> = jest.fn()
+  const cacheHit:Mock<void, [visitorId: string, data: string]> = jest.fn()
+  const lookupHits:Mock<string, [visitorId: string]> = jest.fn()
   const flushHits:Mock<void, [visitorId: string]> = jest.fn()
   const hitCacheImplementation:IHitCache = {
     cacheHit,
@@ -68,11 +69,17 @@ describe('test visitor hit cache', () => {
         visitorId: visitorId,
         anonymousId: visitorDelegate.anonymousId,
         type: HitType.SCREEN,
-        content: expect.objectContaining({ type: HitType.SCREEN, documentLocation })
+        content: {
+          visitorId,
+          ds: SDK_APP,
+          type: HitType.SCREEN,
+          anonymousId: visitorDelegate.anonymousId,
+          documentLocation
+        }
       }
     }
     expect(cacheHit).toBeCalledTimes(1)
-    expect(cacheHit).toBeCalledWith(visitorId, hitData)
+    expect(cacheHit).toBeCalledWith(visitorId, JSON.stringify(hitData))
   })
 
   it('test saveCache failed', async () => {
@@ -123,14 +130,14 @@ describe('test visitor hit cache', () => {
         }
       }
     ]
-    lookupHits.mockReturnValue(hits)
+    lookupHits.mockReturnValue(JSON.stringify(hits))
     await defaultStrategy.lookupHits()
     expect(lookupHits).toBeCalledTimes(1)
     expect(lookupHits).toBeCalledWith(visitorDelegate.visitorId)
     expect(sendHit).toBeCalledTimes(2)
   })
 
-  it('test lookupHit', async () => {
+  it('test lookupHit failed', async () => {
     sendHit.mockResolvedValue()
     config.hitCacheImplementation = hitCacheImplementation
     const lookupError = 'error lookup'
@@ -142,6 +149,27 @@ describe('test visitor hit cache', () => {
     expect(sendHit).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(lookupError, 'lookupHits')
+  })
+
+  it('test lookupHit failed', async () => {
+    sendHit.mockResolvedValue()
+    config.hitCacheImplementation = hitCacheImplementation
+    lookupHits.mockReturnValue('{}')
+    await defaultStrategy.lookupHits()
+    expect(lookupHits).toBeCalledTimes(1)
+    expect(sendHit).toBeCalledTimes(0)
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(LOOKUP_HITS_JSON_ERROR, 'lookupHits')
+  })
+  it('test lookupHit failed', async () => {
+    sendHit.mockResolvedValue()
+    config.hitCacheImplementation = hitCacheImplementation
+    lookupHits.mockReturnValue('[{}]')
+    await defaultStrategy.lookupHits()
+    expect(lookupHits).toBeCalledTimes(1)
+    expect(sendHit).toBeCalledTimes(0)
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(LOOKUP_HITS_JSON_OBJECT_ERROR, 'lookupHits')
   })
 
   it('test lookupHit', async () => {
