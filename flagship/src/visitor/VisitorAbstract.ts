@@ -223,8 +223,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
         strategy = new DefaultStrategy(this)
       }
 
-      console.log('strategy:', strategy)
-
       return strategy
     }
 

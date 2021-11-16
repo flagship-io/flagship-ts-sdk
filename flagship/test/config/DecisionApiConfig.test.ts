@@ -7,7 +7,11 @@ import {
   LogLevel,
   REQUEST_TIME_OUT
 } from '../../src/enum/index'
+import { IHitCache } from '../../src/hit/IHitCache'
+import { HitCacheSaveDTO, HitCacheLookupDTO } from '../../src/models/HitDTO'
+import { VisitorSaveCacheDTO, VisitorLookupCacheDTO } from '../../src/models/visitorDTO'
 import { FlagshipLogManager, IFlagshipLogManager } from '../../src/utils/FlagshipLogManager'
+import { IVisitorCache } from '../../src/visitor/IVisitorCache'
 
 describe('test DecisionApiConfig', () => {
   const config = new DecisionApiConfig()
@@ -26,6 +30,8 @@ describe('test DecisionApiConfig', () => {
     expect(config.decisionApiUrl).toBe(BASE_API_URL)
     expect(config.activateDeduplicationTime).toBe(DEFAULT_DEDUPLICATION_TIME)
     expect(config.hitDeduplicationTime).toBe(DEFAULT_DEDUPLICATION_TIME)
+    expect(config.hitCacheImplementation).toBeUndefined()
+    expect(config.visitorCacheImplementation).toBeUndefined()
   })
 
   it('test config constructor', () => {
@@ -37,6 +43,30 @@ describe('test DecisionApiConfig', () => {
       panic: true
     }
 
+    const visitorCacheImplementation:IVisitorCache = {
+      cacheVisitor: function (visitorId: string, Data: VisitorSaveCacheDTO): void {
+        throw new Error('Function not implemented.')
+      },
+      lookupVisitor: function (visitorId: string): VisitorLookupCacheDTO {
+        throw new Error('Function not implemented.')
+      },
+      flushVisitor: function (visitorId: string): void {
+        throw new Error('Function not implemented.')
+      }
+    }
+
+    const hitCacheImplementation:IHitCache = {
+      cacheHit: function (visitorId: string, data: HitCacheSaveDTO): void {
+        throw new Error('Function not implemented.')
+      },
+      lookupHits: function (visitorId: string): HitCacheLookupDTO[] {
+        throw new Error('Function not implemented.')
+      },
+      flushHits: function (visitorId: string): void {
+        throw new Error('Function not implemented.')
+      }
+    }
+
     const config = new DecisionApiConfig({
       apiKey,
       envId,
@@ -46,7 +76,9 @@ describe('test DecisionApiConfig', () => {
       statusChangedCallback: statusChang,
       fetchNow: false,
       enableClientCache: false,
-      initialBucketing
+      initialBucketing,
+      visitorCacheImplementation,
+      hitCacheImplementation
     })
     expect(config.apiKey).toBe(apiKey)
     expect(config.envId).toBe(envId)

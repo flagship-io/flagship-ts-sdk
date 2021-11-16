@@ -45,6 +45,8 @@ const unauthenticate:Mock<void, []> = jest.fn()
 const setConsent:Mock<void, [boolean]> = jest.fn()
 
 const updateCampaigns:Mock<void, [CampaignDTO[]]> = jest.fn()
+const lookupVisitor:Mock<void, []> = jest.fn()
+const lookupHit:Mock<void, []> = jest.fn()
 
 jest.mock('../../src/visitor/DefaultStrategy', () => {
   return {
@@ -71,7 +73,9 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         getModificationsForCampaign,
         authenticate,
         unauthenticate,
-        updateCampaigns
+        updateCampaigns,
+        lookupVisitor,
+        lookupHit
       }
     })
   }
