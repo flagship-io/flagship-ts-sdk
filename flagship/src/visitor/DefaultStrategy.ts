@@ -45,13 +45,14 @@ import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
 import { DecisionMode } from '../config/index'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
-import { VisitorSaveCacheDTO } from '../models/visitorDTO'
+import { VisitorLookupCacheDTO, VisitorSaveCacheDTO } from '../models/visitorDTO'
 import { VisitorDelegate } from '.'
 import { HitCacheLookupDTO, HitCacheSaveDTO } from '../models/HitDTO'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheLookupDTO'
+export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheLookupDTO'
 export class DefaultStrategy extends VisitorStrategyAbstract {
   setConsent (hasConsented: boolean): void {
     const method = 'setConsent'
@@ -257,13 +258,49 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return modification
   }
 
-  public async lookupVisitor ():Promise<void> {
-    const visitorCacheInstance = this.config.visitorCacheImplementation
-    if (!visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
-      return
+  protected checKLookupVisitorDataV1 (item:VisitorLookupCacheDTO):boolean {
+    const log = () => logError(this.config, LOOKUP_VISITOR_JSON_OBJECT_ERROR, 'lookupHits')
+    if (!item || !item.data || !item.data.visitorId) {
+      return false
     }
+    const campaigns = item.data.campaigns
+    if (!campaigns) {
+      return true
+    }
+    if (!Array.isArray(campaigns)) {
+      log()
+      return false
+    }
+    const check = campaigns.every(x => x.campaignId && x.type && x.variationGroupId && x.variationId)
+    if (!check) {
+      log()
+    }
+    return check
+  }
 
-    this.visitor.visitorCache = visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
+  protected checKLookupVisitorData (item:VisitorLookupCacheDTO):boolean {
+    if (item.version === 1) {
+      return this.checKLookupVisitorDataV1(item)
+    }
+    return false
+  }
+
+  public async lookupVisitor ():Promise<void> {
+    try {
+      const visitorCacheInstance = this.config.visitorCacheImplementation
+      if (!visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
+        return
+      }
+      const visitorCacheJson = visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
+      const visitorCache:VisitorLookupCacheDTO = JSON.parse(visitorCacheJson)
+      if (!this.checKLookupVisitorData(visitorCache)) {
+        throw new Error(LOOKUP_VISITOR_JSON_OBJECT_ERROR)
+      }
+      this.visitor.visitorCache = visitorCache
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      logError(this.config, error.message || error, 'lookupVisitor')
+    }
   }
 
   protected async cacheVisitor ():Promise<void> {
@@ -291,7 +328,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         })
       }
     }
-    visitorCacheInstance.cacheVisitor(this.visitor.visitorId, data)
+    visitorCacheInstance.cacheVisitor(this.visitor.visitorId, JSON.stringify(data))
   }
 
   protected fetchVisitorCampaigns (visitor: VisitorDelegate) :CampaignDTO[] {
@@ -327,6 +364,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       this.visitor.modifications = this.decisionManager.getModifications(
         this.visitor.campaigns
       )
+      this.cacheVisitor()
       this.visitor.emit(EMIT_READY)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {

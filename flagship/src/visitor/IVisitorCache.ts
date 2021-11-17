@@ -1,7 +1,5 @@
-import { VisitorLookupCacheDTO, VisitorSaveCacheDTO } from '../models/visitorDTO'
-
 export interface IVisitorCache {
-    cacheVisitor:(visitorId: string, Data: VisitorSaveCacheDTO)=>void
-    lookupVisitor(visitorId: string): VisitorLookupCacheDTO
+    cacheVisitor:(visitorId: string, Data: string)=>void
+    lookupVisitor(visitorId: string): string
     flushVisitor(visitorId: string):void
 }
