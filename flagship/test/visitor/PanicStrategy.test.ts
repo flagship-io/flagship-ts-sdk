@@ -2,11 +2,13 @@ import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
-import { DecisionManager } from '../../src/decision/DecisionManager'
-import { FlagshipStatus, HitType, METHOD_DEACTIVATED_ERROR, METHOD_DEACTIVATED_SEND_CONSENT_ERROR } from '../../src/enum'
+import { ApiManager } from '../../src/decision/ApiManager'
+import { FlagshipStatus, HitType, METHOD_DEACTIVATED_ERROR, METHOD_DEACTIVATED_SEND_CONSENT_ERROR, VISITOR_CACHE_VERSION } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
+import { HttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
 import { VisitorDelegate, PanicStrategy } from '../../src/visitor'
+import { campaigns } from '../decision/campaigns'
 
 describe('test NotReadyStrategy', () => {
   const visitorId = 'visitorId'
@@ -21,7 +23,11 @@ describe('test NotReadyStrategy', () => {
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
 
-  const configManager = new ConfigManager(config, {} as DecisionManager, {} as TrackingManager)
+  const apiManager = new ApiManager({} as HttpClient, config)
+
+  const getCampaignsAsync = jest.spyOn(apiManager, 'getCampaignsAsync')
+
+  const configManager = new ConfigManager(config, apiManager, {} as TrackingManager)
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
   const panicStrategy = new PanicStrategy(visitorDelegate)
 
@@ -75,6 +81,34 @@ describe('test NotReadyStrategy', () => {
       expect(logError).toBeCalledTimes(1)
       expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
     })
+  })
+
+  it('test fetchVisitorCacheCampaigns', async () => {
+    getCampaignsAsync.mockResolvedValue([])
+    visitorDelegate.visitorCache = {
+      version: VISITOR_CACHE_VERSION,
+      data: {
+        visitorId: visitorDelegate.visitorId,
+        anonymousId: visitorDelegate.anonymousId,
+        consent: visitorDelegate.hasConsented,
+        context: visitorDelegate.context,
+        campaigns: campaigns.campaigns.map(campaign => {
+          return {
+            campaignId: campaign.id,
+            variationGroupId: campaign.variationGroupId,
+            variationId: campaign.variation.id,
+            isReference: campaign.variation.reference,
+            type: campaign.variation.modifications.type,
+            activated: false,
+            flags: campaign.variation.modifications.value
+          }
+        })
+      }
+    }
+    await panicStrategy.synchronizeModifications()
+    expect(visitorDelegate.campaigns).toEqual([])
+    await panicStrategy.lookupHits()
+    await panicStrategy.lookupVisitor()
   })
 
   it('test activateModification', () => {

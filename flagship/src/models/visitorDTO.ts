@@ -28,7 +28,7 @@ export type VisitorLookupCacheDTO = {
           campaignId: string,
           variationGroupId: string,
           variationId: string,
-          isReference:true
+          isReference:boolean
           type: string,
           activated?: boolean,
           flags?: Record<string, unknown>

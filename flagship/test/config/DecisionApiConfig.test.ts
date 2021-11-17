@@ -8,8 +8,6 @@ import {
   REQUEST_TIME_OUT
 } from '../../src/enum/index'
 import { IHitCache } from '../../src/hit/IHitCache'
-import { HitCacheSaveDTO, HitCacheLookupDTO } from '../../src/models/HitDTO'
-import { VisitorSaveCacheDTO, VisitorLookupCacheDTO } from '../../src/models/visitorDTO'
 import { FlagshipLogManager, IFlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { IVisitorCache } from '../../src/visitor/IVisitorCache'
 
@@ -45,11 +43,11 @@ describe('test DecisionApiConfig', () => {
 
     const visitorCacheImplementation:IVisitorCache = {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      cacheVisitor: function (_visitorId: string, _Data: VisitorSaveCacheDTO): void {
+      cacheVisitor: function (_visitorId: string, _Data: string): void {
         throw new Error('Function not implemented.')
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      lookupVisitor: function (_visitorId: string): VisitorLookupCacheDTO {
+      lookupVisitor: function (_visitorId: string): string {
         throw new Error('Function not implemented.')
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
