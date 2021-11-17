@@ -1,4 +1,4 @@
-import { Modification } from '../index'
+import { CampaignDTO, Modification } from '../index'
 import { FlagshipStatus, METHOD_DEACTIVATED_ERROR, METHOD_DEACTIVATED_SEND_CONSENT_ERROR } from '../enum/index'
 import { IHit, modificationsRequested, primitive } from '../types'
 import { logError, sprintf } from '../utils/utils'
@@ -26,6 +26,18 @@ export class PanicStrategy extends DefaultStrategy {
   getModificationSync<T> (params: modificationsRequested<T>): T {
     this.log('getModification')
     return params.defaultValue
+  }
+
+  async lookupHits (): Promise<void> {
+    //
+  }
+
+  async lookupVisitor (): Promise<void> {
+    //
+  }
+
+  protected fetchVisitorCampaigns (): CampaignDTO[] {
+    return []
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
