@@ -27,6 +27,18 @@ export class NotReadyStrategy extends DefaultStrategy {
     return flags
   }
 
+  async lookupHits (): Promise<void> {
+    //
+  }
+
+  async lookupVisitor (): Promise<void> {
+    //
+  }
+
+  protected async cacheVisitor ():Promise<void> {
+    //
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public getModificationInfoSync (_key: string): Modification | null {
     this.log('getModificationInfo')

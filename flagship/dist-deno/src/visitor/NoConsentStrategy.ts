@@ -3,6 +3,7 @@ import { METHOD_DEACTIVATED_CONSENT_ERROR } from '../enum/index.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
 import { logError, sprintf } from '../utils/utils.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
+import { CampaignDTO } from '../decision/api/models.ts'
 
 export class NoConsentStrategy extends DefaultStrategy {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -13,6 +14,26 @@ export class NoConsentStrategy extends DefaultStrategy {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async activateModifications (_params: string[] | { key: string }[]): Promise<void> {
     this.log('activateModifications')
+  }
+
+  async lookupHits (): Promise<void> {
+    //
+  }
+
+  async lookupVisitor (): Promise<void> {
+    //
+  }
+
+  protected async cacheVisitor ():Promise<void> {
+    //
+  }
+
+  protected async cacheHit ():Promise<void> {
+    //
+  }
+
+  protected fetchVisitorCampaigns (): CampaignDTO[] {
+    return []
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

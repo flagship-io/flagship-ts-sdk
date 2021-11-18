@@ -45,23 +45,26 @@ import { VisitorStrategyAbstract } from './VisitorStrategyAbstract.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { DecisionMode } from '../config/index.ts'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext.ts'
-import { VisitorSaveCacheDTO } from '../models/visitorDTO.ts'
+import { VisitorLookupCacheDTO, VisitorSaveCacheDTO } from '../models/visitorDTO.ts'
 import { VisitorDelegate } from '..ts'
 import { HitCacheLookupDTO, HitCacheSaveDTO } from '../models/HitDTO.ts'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheLookupDTO'
+export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheLookupDTO'
 export class DefaultStrategy extends VisitorStrategyAbstract {
   setConsent (hasConsented: boolean): void {
     const method = 'setConsent'
     this.visitor.hasConsented = hasConsented
+    if (!hasConsented) {
+      this.flushHits()
+      this.flushVisitor()
+    }
     if (!this.hasTrackingManager(method)) {
       return
     }
-    if (!hasConsented) {
-      this.flushHits()
-    }
+
     this.trackingManager.sendConsentHit(this.visitor).catch((error) => {
       logError(this.config, error.message || error, method)
     })
@@ -257,41 +260,101 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return modification
   }
 
-  public async lookupVisitor ():Promise<void> {
-    const visitorCacheInstance = this.config.visitorCacheImplementation
-    if (!visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
-      return
+  protected checKLookupVisitorDataV1 (item:VisitorLookupCacheDTO):boolean {
+    if (!item || !item.data || !item.data.visitorId) {
+      return false
+    }
+    const campaigns = item.data.campaigns
+    if (!campaigns) {
+      return true
+    }
+    if (!Array.isArray(campaigns)) {
+      return false
     }
 
-    this.visitor.visitorCache = visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
+    return campaigns.every(x => x.campaignId && x.type && x.variationGroupId && x.variationId)
+  }
+
+  protected checKLookupVisitorData (item:VisitorLookupCacheDTO):boolean {
+    if (item.version === 1) {
+      return this.checKLookupVisitorDataV1(item)
+    }
+    return false
+  }
+
+  public async lookupVisitor ():Promise<void> {
+    try {
+      const visitorCacheInstance = this.config.visitorCacheImplementation
+      if (!visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
+        return
+      }
+      const visitorCacheJson = visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
+      if (!visitorCacheJson) {
+        return
+      }
+      const visitorCache:VisitorLookupCacheDTO = JSON.parse(visitorCacheJson)
+      if (!this.checKLookupVisitorData(visitorCache)) {
+        throw new Error(LOOKUP_VISITOR_JSON_OBJECT_ERROR)
+      }
+      this.visitor.visitorCache = visitorCache
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      logError(this.config, error.message || error, 'lookupVisitor')
+    }
   }
 
   protected async cacheVisitor ():Promise<void> {
-    const visitorCacheInstance = this.config.visitorCacheImplementation
-    if (!visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.cacheVisitor !== 'function') {
-      return
-    }
-    const data: VisitorSaveCacheDTO = {
-      version: VISITOR_CACHE_VERSION,
-      data: {
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
-        consent: this.visitor.hasConsented,
-        context: this.visitor.context,
-        campaigns: this.visitor.campaigns.map(campaign => {
-          return {
-            campaignId: campaign.id,
-            variationGroupId: campaign.variationGroupId,
-            variationId: campaign.variation.id,
-            isReference: campaign.variation.reference,
-            type: campaign.variation.modifications.type,
-            activated: false,
-            flags: campaign.variation.modifications.value
-          }
-        })
+    try {
+      const visitorCacheInstance = this.config.visitorCacheImplementation
+      if (this.decisionManager.isPanic() || !visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.cacheVisitor !== 'function') {
+        return
       }
+      const data: VisitorSaveCacheDTO = {
+        version: VISITOR_CACHE_VERSION,
+        data: {
+          visitorId: this.visitor.visitorId,
+          anonymousId: this.visitor.anonymousId,
+          consent: this.visitor.hasConsented,
+          context: this.visitor.context,
+          campaigns: this.visitor.campaigns.map(campaign => {
+            return {
+              campaignId: campaign.id,
+              variationGroupId: campaign.variationGroupId,
+              variationId: campaign.variation.id,
+              isReference: campaign.variation.reference,
+              type: campaign.variation.modifications.type,
+              activated: false,
+              flags: campaign.variation.modifications.value
+            }
+          })
+        }
+      }
+      visitorCacheInstance.cacheVisitor(this.visitor.visitorId, JSON.stringify(data))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      logError(
+        this.config,
+        error.message || error,
+        'cacheVisitor'
+      )
     }
-    visitorCacheInstance.cacheVisitor(this.visitor.visitorId, data)
+  }
+
+  protected async flushVisitor ():Promise<void> {
+    try {
+      const visitorCacheInstance = this.config.visitorCacheImplementation
+      if (!visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.flushVisitor !== 'function') {
+        return
+      }
+      visitorCacheInstance.flushVisitor(this.visitor.visitorId)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      logError(
+        this.config,
+        error.message || error,
+        'flushVisitor'
+      )
+    }
   }
 
   protected fetchVisitorCampaigns (visitor: VisitorDelegate) :CampaignDTO[] {
@@ -299,6 +362,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       !visitor.visitorCache.data.campaigns) {
       return []
     }
+    this.setConsent(!!visitor.visitorCache.data.consent)
+    visitor.updateContext(visitor.visitorCache.data.context || {})
     return visitor.visitorCache.data.campaigns.map(campaign => {
       return {
         id: campaign.campaignId,
@@ -327,6 +392,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       this.visitor.modifications = this.decisionManager.getModifications(
         this.visitor.campaigns
       )
+      this.cacheVisitor()
       this.visitor.emit(EMIT_READY)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {

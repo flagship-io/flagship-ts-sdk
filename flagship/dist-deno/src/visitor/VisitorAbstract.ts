@@ -27,6 +27,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     public deDuplicationCache:Record<string, number>
     protected _isCleaningDeDuplicationCache:boolean
     public visitorCache!: VisitorLookupCacheDTO
+    protected _strategy!:VisitorStrategyAbstract
 
     constructor (param: {
         visitorId?: string|null,
@@ -42,6 +43,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this._isCleaningDeDuplicationCache = false
       this.deDuplicationCache = {}
       this._configManager = configManager
+      if (!hasConsented) {
+        this.setConsent(false)
+      }
+      this.hasConsented = hasConsented ?? true
       const VisitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
       this.visitorId = visitorId || VisitorCache?.visitorId || this.createVisitorId()
       this.campaigns = []
@@ -50,11 +55,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this.updateContext(context)
       this._anonymousId = VisitorCache?.anonymousId || null
       this.loadPredefinedContext()
-
-      if (!hasConsented) {
-        this.setConsent(false)
-      }
-      this.hasConsented = hasConsented ?? true
 
       if (!this._anonymousId && isAuthenticated && this.config.decisionMode === DecisionMode.DECISION_API) {
         this._anonymousId = this.uuidV4()
@@ -212,18 +212,18 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     }
 
     protected getStrategy (): VisitorStrategyAbstract {
-      let strategy:VisitorStrategyAbstract
+      const isSameType = (strategy: VisitorStrategyAbstract, className:string) => strategy && strategy.constructor.name === className
       if (!Flagship.getStatus() || Flagship.getStatus() === FlagshipStatus.NOT_INITIALIZED) {
-        strategy = new NotReadyStrategy(this)
+        this._strategy = isSameType(this._strategy, NotReadyStrategy.name) ? this._strategy : new NotReadyStrategy(this)
       } else if (Flagship.getStatus() === FlagshipStatus.READY_PANIC_ON) {
-        strategy = new PanicStrategy(this)
+        this._strategy = isSameType(this._strategy, PanicStrategy.name) ? this._strategy : new PanicStrategy(this)
       } else if (!this.hasConsented) {
-        strategy = new NoConsentStrategy(this)
+        this._strategy = isSameType(this._strategy, NoConsentStrategy.name) ? this._strategy : new NoConsentStrategy(this)
       } else {
-        strategy = new DefaultStrategy(this)
+        this._strategy = isSameType(this._strategy, DefaultStrategy.name) ? this._strategy : new DefaultStrategy(this)
       }
 
-      return strategy
+      return this._strategy
     }
 
     abstract updateContext(context: Record<string, primitive>): void
