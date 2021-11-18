@@ -206,3 +206,52 @@ scenario1Action7.addEventListener('click', async () => {
   console.log('synchronize OK')
   printLocalStorage()
 })
+
+const scenario1Action8 = document.getElementById('scenario-1-action-8')
+scenario1Action8.addEventListener('click', async () => {
+  printMessage(1, 8)
+  visitor = Flagship.newVisitor({
+    visitorId: 'visitor_AAAA',
+    hasConsented: true,
+    context: {
+      cacheEnabled: true
+    }
+  })
+  await visitor.synchronizeModifications()
+  console.log('synchronize OK')
+  const flag = visitor.getModificationSync({ key: 'cache', defaultValue: 0, activate: true })
+  console.log('flag cache :', flag)
+
+  printLocalStorage()
+})
+
+const scenario1Action9 = document.getElementById('scenario-1-action-9')
+scenario1Action9.addEventListener('click', async () => {
+  printMessage(1, 9)
+
+  await visitor.synchronizeModifications()
+  console.log('synchronize OK')
+  const flag = visitor.getModificationSync({ key: 'cache', defaultValue: 0, activate: true })
+  console.log('flag cache :', flag)
+
+  printLocalStorage()
+})
+
+const scenario1Action10 = document.getElementById('scenario-1-action-10')
+scenario1Action10.addEventListener('click', async () => {
+  printMessage(1, 10)
+
+  visitor = Flagship.newVisitor({
+    visitorId: 'visitor_BBBB',
+    hasConsented: true,
+    context: {
+      cacheEnabled: true
+    }
+  })
+  await visitor.synchronizeModifications()
+  console.log('synchronize OK')
+  const flag = visitor.getModificationSync({ key: 'cache', defaultValue: 0, activate: true })
+  console.log('flag cache :', flag)
+
+  printLocalStorage()
+})

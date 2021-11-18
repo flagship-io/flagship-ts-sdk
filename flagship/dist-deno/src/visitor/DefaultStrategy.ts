@@ -330,6 +330,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         }
       }
       visitorCacheInstance.cacheVisitor(this.visitor.visitorId, JSON.stringify(data))
+      this.visitor.visitorCache = data
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logError(
@@ -370,7 +371,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         variationGroupId: campaign.variationGroupId,
         variation: {
           id: campaign.variationId,
-          reference: campaign.isReference,
+          reference: !!campaign.isReference,
           modifications: {
             type: campaign.type,
             value: campaign.flags
@@ -382,6 +383,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   async synchronizeModifications (): Promise<void> {
     try {
+      await this.lookupVisitor()
       let campaigns = await this.decisionManager.getCampaignsAsync(
         this.visitor
       )

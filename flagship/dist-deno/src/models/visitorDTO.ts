@@ -11,7 +11,7 @@ export type VisitorSaveCacheDTO = {
         campaignId: string,
         variationGroupId: string,
         variationId: string,
-        isReference:boolean,
+        isReference?:boolean,
         type: string,
         activated: boolean,
         flags: Record<string, unknown>
@@ -30,7 +30,7 @@ export type VisitorLookupCacheDTO = {
           campaignId: string,
           variationGroupId: string,
           variationId: string,
-          isReference:boolean
+          isReference?:boolean
           type: string,
           activated?: boolean,
           flags?: Record<string, unknown>
