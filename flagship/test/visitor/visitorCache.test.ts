@@ -203,6 +203,16 @@ describe('test visitor cache', () => {
   it('test lookupVisitor', async () => {
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
     const defaultStrategy = new DefaultStrategy(visitorDelegate)
+
+    lookupVisitor.mockReturnValue(getUndefined())
+    await defaultStrategy.lookupVisitor()
+    expect(lookupVisitor).toBeCalledTimes(1)
+    expect(visitorDelegate.visitorCache).toBeUndefined()
+  })
+
+  it('test lookupVisitor', async () => {
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+    const defaultStrategy = new DefaultStrategy(visitorDelegate)
     const data = {
       version: VISITOR_CACHE_VERSION,
       data: {

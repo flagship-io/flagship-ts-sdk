@@ -57,13 +57,14 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   setConsent (hasConsented: boolean): void {
     const method = 'setConsent'
     this.visitor.hasConsented = hasConsented
-    if (!this.hasTrackingManager(method)) {
-      return
-    }
     if (!hasConsented) {
       this.flushHits()
       this.flushVisitor()
     }
+    if (!this.hasTrackingManager(method)) {
+      return
+    }
+
     this.trackingManager.sendConsentHit(this.visitor).catch((error) => {
       logError(this.config, error.message || error, method)
     })
@@ -288,6 +289,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         return
       }
       const visitorCacheJson = visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
+      if (!visitorCacheJson) {
+        return
+      }
       const visitorCache:VisitorLookupCacheDTO = JSON.parse(visitorCacheJson)
       if (!this.checKLookupVisitorData(visitorCache)) {
         throw new Error(LOOKUP_VISITOR_JSON_OBJECT_ERROR)
@@ -302,7 +306,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   protected async cacheVisitor ():Promise<void> {
     try {
       const visitorCacheInstance = this.config.visitorCacheImplementation
-      if (!visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.cacheVisitor !== 'function') {
+      if (this.decisionManager.isPanic() || !visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.cacheVisitor !== 'function') {
         return
       }
       const data: VisitorSaveCacheDTO = {
@@ -358,6 +362,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       !visitor.visitorCache.data.campaigns) {
       return []
     }
+    this.setConsent(!!visitor.visitorCache.data.consent)
+    visitor.updateContext(visitor.visitorCache.data.context || {})
     return visitor.visitorCache.data.campaigns.map(campaign => {
       return {
         id: campaign.campaignId,
