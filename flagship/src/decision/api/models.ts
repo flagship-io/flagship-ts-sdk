@@ -6,7 +6,7 @@ export class ModificationsDTO {
 
 export class VariationDTO {
   public id = '';
-  public reference = false;
+  public reference? = false;
   public modifications: ModificationsDTO = new ModificationsDTO();
 }
 

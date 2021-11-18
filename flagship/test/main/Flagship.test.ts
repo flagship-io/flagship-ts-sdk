@@ -11,7 +11,7 @@ import {
 } from '../../src/enum/index'
 import { Flagship } from '../../src/main/Flagship'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { sprintf } from '../../src/utils/utils'
+import { sleep, sprintf } from '../../src/utils/utils'
 import { Visitor } from '../../src/visitor/Visitor'
 
 const getCampaignsAsync = jest.fn().mockReturnValue(Promise.resolve([]))
@@ -133,7 +133,7 @@ const getNull = (): any => {
 }
 
 describe('test Flagship newVisitor', () => {
-  it('should ', () => {
+  it('should ', async () => {
     Flagship.start('envId', 'apiKey')
     const visitorId = 'visitorId'
     const context = { isVip: true }
@@ -154,6 +154,7 @@ describe('test Flagship newVisitor', () => {
     const newVisitor = Flagship.newVisitor({ visitorId })
     expect(newVisitor?.context).toEqual({ ...predefinedContext })
 
+    await sleep(500)
     expect(getCampaignsAsync).toBeCalledTimes(3)
     expect(getCampaignsAsync).toBeCalledWith(expect.objectContaining({ visitorId: visitor?.visitorId, context: visitor?.context }))
 

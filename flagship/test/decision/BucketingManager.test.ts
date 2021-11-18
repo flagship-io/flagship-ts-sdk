@@ -289,9 +289,30 @@ describe('test bucketing method', () => {
     variations
   }
   it('test getVariation ', () => {
-    const response = bucketingManagerAny.getVariation(variationGroups, visitorId)
+    const response = bucketingManagerAny.getVariation(variationGroups, visitor)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { allocation, ...variation } = variations[0]
+    expect(response).toEqual(variation)
+  })
+
+  it('test getVariation visitorCache ', () => {
+    visitor.visitorCache = {
+      version: 1,
+      data: {
+        visitorId: visitor.visitorId,
+        anonymousId: null,
+        campaigns: [{
+          campaignId: '',
+          variationGroupId: variationGroups.id,
+          variationId: variations[1].id,
+          type: variations[1].modifications.type,
+          flags: variations[1].modifications.value
+        }]
+      }
+    }
+    const response = bucketingManagerAny.getVariation(variationGroups, visitor)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { allocation, ...variation } = variations[1]
     expect(response).toEqual(variation)
   })
 

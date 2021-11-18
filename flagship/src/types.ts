@@ -17,7 +17,7 @@ export type Modification= {
   campaignId: string;
   variationGroupId: string;
   variationId: string;
-  isReference: boolean;
+  isReference?: boolean;
  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
 }
