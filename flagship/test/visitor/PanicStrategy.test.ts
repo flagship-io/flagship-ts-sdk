@@ -10,6 +10,9 @@ import { sprintf } from '../../src/utils/utils'
 import { VisitorDelegate, PanicStrategy } from '../../src/visitor'
 import { campaigns } from '../decision/campaigns'
 
+import { Mock } from 'jest-mock'
+import { IVisitorCache } from '../../src/visitor/IVisitorCache'
+
 describe('test NotReadyStrategy', () => {
   const visitorId = 'visitorId'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -17,10 +20,19 @@ describe('test NotReadyStrategy', () => {
     isVip: true
   }
 
+  const cacheVisitor:Mock<void, [visitorId: string, data: string]> = jest.fn()
+  const lookupVisitor:Mock<string, [visitorId: string]> = jest.fn()
+  const flushVisitor:Mock<void, [visitorId: string]> = jest.fn()
+  const visitorCacheImplementation:IVisitorCache = {
+    cacheVisitor,
+    lookupVisitor,
+    flushVisitor
+  }
+
   const logManager = new FlagshipLogManager()
   const logError = jest.spyOn(logManager, 'error')
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', visitorCacheImplementation })
   config.logManager = logManager
 
   const apiManager = new ApiManager({} as HttpClient, config)
@@ -107,6 +119,7 @@ describe('test NotReadyStrategy', () => {
     }
     await panicStrategy.synchronizeModifications()
     expect(visitorDelegate.campaigns).toEqual([])
+    expect(cacheVisitor).toBeCalledTimes(0)
     await panicStrategy.lookupHits()
     await panicStrategy.lookupVisitor()
   })

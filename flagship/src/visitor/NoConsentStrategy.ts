@@ -24,6 +24,14 @@ export class NoConsentStrategy extends DefaultStrategy {
     //
   }
 
+  protected async cacheVisitor ():Promise<void> {
+    //
+  }
+
+  protected async cacheHit ():Promise<void> {
+    //
+  }
+
   protected fetchVisitorCampaigns (): CampaignDTO[] {
     return []
   }

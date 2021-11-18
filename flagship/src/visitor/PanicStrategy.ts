@@ -36,6 +36,10 @@ export class PanicStrategy extends DefaultStrategy {
     //
   }
 
+  protected async cacheVisitor ():Promise<void> {
+    //
+  }
+
   protected fetchVisitorCampaigns (): CampaignDTO[] {
     return []
   }
