@@ -93,7 +93,7 @@ export class BucketingManager extends DecisionManager {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       this._isPooling = false
-      logError(this.config, error, 'startPolling dd')
+      logError(this.config, error, 'startPolling')
       if (this._isFirstPooling) {
         this.updateFlagshipStatus(FlagshipStatus.NOT_INITIALIZED)
       }
