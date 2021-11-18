@@ -1,10 +1,12 @@
+import { primitive } from '..'
+
 export type VisitorSaveCacheDTO = {
     version: number,
     data: {
       visitorId: string,
       anonymousId: string|null,
       consent: boolean,
-      context: Record<string, unknown>,
+      context: Record<string, primitive>,
       campaigns: Array<{
         campaignId: string,
         variationGroupId: string,
@@ -23,7 +25,7 @@ export type VisitorLookupCacheDTO = {
       visitorId: string,
       anonymousId: string|null,
       consent?: boolean,
-      context?: Record<string, unknown>,
+      context?: Record<string, primitive>,
       campaigns?: Array<{
           campaignId: string,
           variationGroupId: string,
