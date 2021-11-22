@@ -9,7 +9,7 @@ import { DefaultStrategy, TYPE_HIT_REQUIRED_ERROR } from '../../src/visitor/Defa
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { Mock } from 'jest-mock'
 import { CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, METHOD_DEACTIVATED_BUCKETING_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_SYNCHRONIZED_MODIFICATION, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_LANGUAGE, SDK_VERSION, TRACKER_MANAGER_MISSING_ERROR, VISITOR_ID_ERROR } from '../../src/enum'
-import { sprintf } from '../../src/utils/utils'
+import { sleep, sprintf } from '../../src/utils/utils'
 import { returnModification } from './modification'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 import { HitShape } from '../../src/hit/Legacy'
@@ -727,24 +727,47 @@ describe('test DefaultStrategy ', () => {
       }
     }
     const hit2: HitShape = {
-      type: 'Event',
+      type: 'Page',
       data: {
-        category: 'Action Tracking',
-        action: 'action2',
-        label: 'label2',
-        value: 2
+        documentLocation: 'http://localhost',
+        pageTitle: 'title'
       }
     }
-    const hits: HitShape[] = [hit1, hit2]
+    const hit3: HitShape = {
+      type: 'Screen',
+      data: {
+        documentLocation: 'home',
+        pageTitle: 'title'
+      }
+    }
+    const hit4: HitShape = {
+      type: 'Item',
+      data: {
+        transactionId: 'transactionId',
+        name: 'name',
+        code: 'code'
+      }
+    }
+    const hit5 = {
+      data: {
+        transactionId: 'transactionId',
+        name: 'name',
+        code: 'code'
+      }
+    }
+    const hits: HitShape[] = [hit1, hit2, hit3, hit4, hit5 as HitShape]
     try {
       await defaultStrategy.sendHits(hits)
     } catch (error) {
       expect(logError).toBeCalled()
     }
-    // await sleep(4000)
+    await sleep(1000)
+    expect(logError).toBeCalledTimes(1)
     expect(sendHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ _action: hit1.data.action, _category: hit1.data.category, _label: hit1.data.label, visitorId, ds: SDK_APP, config }))
-    expect(sendHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ _action: hit2.data.action, _category: hit2.data.category, _label: hit2.data.label, visitorId, ds: SDK_APP, config }))
-    expect(sendHit).toBeCalledTimes(2)
+    expect(sendHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ documentLocation: hit2.data.documentLocation, visitorId, ds: SDK_APP, config }))
+    expect(sendHit).toHaveBeenNthCalledWith(3, expect.objectContaining({ documentLocation: hit3.data.documentLocation, visitorId, ds: SDK_APP, config }))
+    expect(sendHit).toHaveBeenNthCalledWith(4, expect.objectContaining({ transactionId: hit4.data.transactionId, productName: hit4.data.name, productSku: hit4.data.code, visitorId, ds: SDK_APP, config }))
+    expect(sendHit).toBeCalledTimes(4)
   })
 
   it('test sendHitAsync with literal object type NotEXIST ', async () => {

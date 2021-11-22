@@ -39,7 +39,7 @@ import {
   Transaction,
   IHitAbstract
 } from '../hit/index'
-import { HitShape } from '../hit/Legacy'
+import { HitShape, ItemHit } from '../hit/Legacy'
 import { primitive, modificationsRequested, IHit } from '../types'
 import { logError, logInfo, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
@@ -515,7 +515,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   private getHitLegacy (hit: HitShape) {
     let newHit = null
-
+    if (!hit || !hit.type) {
+      return null
+    }
     const hitTypeToEnum: Record<string, HitType> = {
       Screen: HitType.SCREEN_VIEW,
       ScreenView: HitType.SCREEN_VIEW,
@@ -531,12 +533,22 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     const hitData: IHitAbstract = { ...commonProperties, ...hit.data }
 
-    switch (hit.type.toUpperCase()) {
+    switch (commonProperties.type.toUpperCase()) {
       case HitType.EVENT:
         newHit = new Event(hitData as IEvent)
         break
       case HitType.ITEM:
-        newHit = new Item(hitData as IItem)
+        // eslint-disable-next-line no-case-declarations
+        const data = hit.data as ItemHit
+        newHit = new Item({
+          ...hitData,
+          productName: data.name,
+          productSku: data.code,
+          transactionId: data.transactionId,
+          itemCategory: data.category,
+          itemPrice: data.price,
+          itemQuantity: data.quantity
+        } as IItem)
         break
       case HitType.PAGE_VIEW:
         newHit = new Page(hitData as IPage)
