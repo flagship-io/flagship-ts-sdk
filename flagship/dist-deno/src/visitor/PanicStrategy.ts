@@ -4,6 +4,7 @@ import { IHit, modificationsRequested, primitive } from '../types.ts'
 import { logError, sprintf } from '../utils/utils.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
+import { BatchDTO } from '../hit/Batch.ts'
 
 export class PanicStrategy extends DefaultStrategy {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -71,7 +72,7 @@ export class PanicStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  sendHit (_hit: HitAbstract | IHit| HitShape): Promise<void> {
+  sendHit (_hit: HitAbstract | IHit| HitShape| BatchDTO): Promise<void> {
     this.log('sendHit')
     return Promise.resolve()
   }

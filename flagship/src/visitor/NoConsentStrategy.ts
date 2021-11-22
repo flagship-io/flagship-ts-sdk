@@ -4,6 +4,7 @@ import { HitAbstract, HitShape } from '../hit/index'
 import { logError, sprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
 import { CampaignDTO } from '../decision/api/models'
+import { BatchDTO } from '../hit/Batch'
 
 export class NoConsentStrategy extends DefaultStrategy {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -37,7 +38,7 @@ export class NoConsentStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  sendHit (_hit: HitAbstract | IHit| HitShape): Promise<void> {
+  sendHit (_hit: HitAbstract | IHit| HitShape| BatchDTO): Promise<void> {
     this.log('sendHit')
     return Promise.resolve()
   }

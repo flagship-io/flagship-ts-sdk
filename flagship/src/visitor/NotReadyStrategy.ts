@@ -4,6 +4,7 @@ import { IHit, modificationsRequested } from '../types'
 import { logError, sprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
 import { HitAbstract, HitShape } from '../hit/index'
+import { BatchDTO } from '../hit/Batch'
 
 export class NotReadyStrategy extends DefaultStrategy {
   synchronizeModifications (): Promise<void> {
@@ -56,7 +57,7 @@ export class NotReadyStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  sendHit (_hit: HitAbstract | IHit| HitShape): Promise<void> {
+  sendHit (_hit: HitAbstract | IHit| HitShape| BatchDTO): Promise<void> {
     this.log('sendHit')
     return Promise.resolve()
   }
