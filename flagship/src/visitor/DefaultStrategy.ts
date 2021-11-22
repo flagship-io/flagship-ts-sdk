@@ -503,10 +503,11 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return this.prepareAndSendHit(hit)
   }
 
+  sendHits(hits: BatchDTO[]): Promise<void>
   sendHits(hits: HitAbstract[]): Promise<void>
   sendHits(hits: IHit[]): Promise<void>
   sendHits(hits: HitShape[]): Promise<void>
-  async sendHits (hits: HitAbstract[] | IHit[]|HitShape[]): Promise<void> {
+  async sendHits (hits: HitAbstract[] | IHit[]|HitShape[]|BatchDTO[]): Promise<void> {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
       return
     }
@@ -620,18 +621,28 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       }
 
       const checkHitTime = (time:number) => (((Date.now() - time) / 1000) <= DEFAULT_HIT_CACHE_TIME)
-      const batch:BatchDTO = {
+
+      const batches:BatchDTO[] = [{
         type: 'BATCH',
-        hits: hitsCache.filter(item => this.checKLookupHitData(item) && checkHitTime(item.data.time)).map(item => {
-          return item.data.content
-        })
-      }
+        hits: []
+      }]
+      let batchSize = 0
+      let count = 0
 
-      if (!batch.hits.length) {
-        return
-      }
+      hitsCache.filter(item => this.checKLookupHitData(item) && checkHitTime(item.data.time)).forEach((item) => {
+        batchSize = JSON.stringify(batches[count]).length
+        if (batchSize > 2500) {
+          count++
+          batches[count] = {
+            type: 'BATCH',
+            hits: [item.data.content]
+          }
+        } else {
+          batches[count].hits.push(item.data.content)
+        }
+      })
 
-      this.sendHit(batch)
+      this.sendHits(batches)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logError(this.config, error.message || error, 'lookupHits')

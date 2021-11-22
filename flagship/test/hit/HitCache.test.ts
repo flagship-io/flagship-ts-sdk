@@ -1,5 +1,5 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { DecisionApiConfig, HitType, Page, Screen } from '../../src'
+import { DecisionApiConfig, HitType, IScreen, Screen } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
@@ -108,58 +108,65 @@ describe('test visitor hit cache', () => {
     expect(cacheHit).toBeCalledTimes(0)
   })
 
-  const hits:HitCacheLookupDTO[] = [
-    {
-      version: HIT_CACHE_VERSION,
-      data: {
-        visitorId: 'visitor1',
-        anonymousId: null,
-        type: HitType.SCREEN,
-        time: Date.now(),
-        content: {
-          type: HitType.SCREEN,
-          documentLocation: 'screenName2'
-        }
-      }
-    },
-    {
-      version: HIT_CACHE_VERSION,
-      data: {
-        visitorId: 'visitor2',
-        anonymousId: null,
-        type: HitType.PAGE,
-        time: Date.now(),
-        content: {
-          type: HitType.PAGE,
-          documentLocation: 'http://localhost'
-        }
-      }
-    }
-  ]
-
   it('test lookupHit', async () => {
+    const hits:HitCacheLookupDTO[] = []
+
+    for (let index = 0; index < 100; index++) {
+      hits.push({
+        version: HIT_CACHE_VERSION,
+        data: {
+          visitorId: 'visitor1',
+          anonymousId: null,
+          type: HitType.SCREEN,
+          time: Date.now(),
+          content: {
+            type: HitType.SCREEN,
+            documentLocation: `screenName${index}`
+          }
+        }
+      })
+    }
     config.hitCacheImplementation = hitCacheImplementation
     lookupHits.mockReturnValue(JSON.stringify(hits))
     await defaultStrategy.lookupHits()
     expect(lookupHits).toBeCalledTimes(1)
     expect(lookupHits).toBeCalledWith(visitorDelegate.visitorId)
-    expect(sendHit).toBeCalledTimes(1)
-    expect(sendHit).toBeCalledWith({
+    expect(sendHit).toHaveBeenNthCalledWith(1, {
       _anonymousId: null,
       _config: expect.anything(),
-      _hits: [
-        new Screen({ documentLocation: 'screenName2' }),
-        new Page({ documentLocation: 'http://localhost' })
-      ],
+      _hits: hits.slice(0, 45).map(item => {
+        const data = item.data.content as IScreen
+        return new Screen({ documentLocation: data.documentLocation })
+      }),
       _ds: 'APP',
       _type: 'BATCH',
       _visitorId: visitorId
     })
-
-    await defaultStrategy.lookupHits()
-    expect(lookupHits).toBeCalledTimes(2)
+    expect(sendHit).toHaveBeenNthCalledWith(2, {
+      _anonymousId: null,
+      _config: expect.anything(),
+      _hits: hits.slice(45, 90).map(item => {
+        const data = item.data.content as IScreen
+        return new Screen({ documentLocation: data.documentLocation })
+      }),
+      _ds: 'APP',
+      _type: 'BATCH',
+      _visitorId: visitorId
+    })
+    expect(sendHit).toHaveBeenNthCalledWith(3, {
+      _anonymousId: null,
+      _config: expect.anything(),
+      _hits: hits.slice(90, 100).map(item => {
+        const data = item.data.content as IScreen
+        return new Screen({ documentLocation: data.documentLocation })
+      }),
+      _ds: 'APP',
+      _type: 'BATCH',
+      _visitorId: visitorId
+    })
+    expect(sendHit).toBeCalledTimes(3)
     await sleep(100)
-    expect(cacheHit).toBeCalledTimes(2)
+    expect(cacheHit).toBeCalledTimes(100)
   })
 
   it('test lookupHit', async () => {
