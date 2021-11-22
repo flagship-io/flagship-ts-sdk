@@ -21,6 +21,8 @@ import { DecisionManager } from '../decision/DecisionManager'
 import { HttpClient } from '../utils/HttpClient'
 import { Modification, NewVisitor, primitive } from '../types'
 import { CampaignDTO } from '../decision/api/models'
+import { DefaultHitCache } from '../hit/DefaultHitCache'
+import { DefaultVisitorCache } from '../visitor/DefaultVisitorCache'
 
 export class Flagship {
   private static _instance: Flagship;
@@ -190,6 +192,14 @@ export class Flagship {
         decisionManager,
         trackingManager
       )
+    }
+
+    if (!config.hitCacheImplementation && typeof window !== 'undefined') {
+      config.hitCacheImplementation = new DefaultHitCache()
+    }
+
+    if (!config.visitorCacheImplementation && typeof window !== 'undefined') {
+      config.visitorCacheImplementation = new DefaultVisitorCache()
     }
 
     if (!this.isReady()) {
