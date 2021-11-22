@@ -24,6 +24,11 @@ describe('test BucketingManager', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sendContext = jest.spyOn(bucketingManager as any, 'sendContext')
 
+  const trackingManager = new TrackingManager(httpClient, config)
+  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+
+  sendConsentHit.mockResolvedValue()
+
   sendContext.mockReturnValue(Promise.resolve())
 
   const visitorId = 'visitor_1'
@@ -31,7 +36,7 @@ describe('test BucketingManager', () => {
     age: 20
   }
 
-  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager: {} as TrackingManager } })
+  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager } })
 
   it('test getCampaignsAsync empty', async () => {
     const campaigns = await bucketingManager.getCampaignsAsync(visitor)
@@ -198,7 +203,12 @@ describe('test sendContext', () => {
   const context = {
     age: 20
   }
-  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: {} as DecisionManager, trackingManager: {} as TrackingManager } })
+
+  const trackingManager = new TrackingManager({} as HttpClient, config)
+  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+  sendConsentHit.mockResolvedValue()
+
+  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: {} as DecisionManager, trackingManager } })
 
   it('should ', () => {
     const url = sprintf(BUCKETING_API_CONTEXT_URL, config.envId)
@@ -249,7 +259,11 @@ describe('test bucketing method', () => {
     age: 20
   }
 
-  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager: {} as TrackingManager } })
+  const trackingManager = new TrackingManager({} as HttpClient, config)
+  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+  sendConsentHit.mockResolvedValue()
+
+  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager } })
 
   const variations = [
     {
@@ -793,7 +807,10 @@ describe('test initBucketing', () => {
     age: 20
   }
   it('should ', async () => {
-    const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager: {} as TrackingManager } })
+    const trackingManager = new TrackingManager({} as HttpClient, config)
+    const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+    sendConsentHit.mockResolvedValue()
+    const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager } })
     const modifications = await bucketingManager.getCampaignsModificationsAsync(visitor)
     expect(modifications.size).toBe(6)
     expect(getAsync).toBeCalledTimes(0)

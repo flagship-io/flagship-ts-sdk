@@ -43,10 +43,9 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this._isCleaningDeDuplicationCache = false
       this.deDuplicationCache = {}
       this._configManager = configManager
-      if (!hasConsented) {
-        this.setConsent(false)
-      }
-      this.hasConsented = hasConsented ?? true
+
+      this.setConsent(hasConsented ?? true)
+
       const VisitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
       this.visitorId = visitorId || VisitorCache?.visitorId || this.createVisitorId()
       this.campaigns = []
@@ -164,6 +163,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       * @param {boolean} hasConsented True if the visitor has consented false otherwise.
       */
     public setConsent (hasConsented:boolean):void {
+      this.hasConsented = hasConsented
       this.getStrategy().setConsent(hasConsented)
     }
 

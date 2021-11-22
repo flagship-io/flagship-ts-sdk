@@ -39,7 +39,11 @@ describe('test NotReadyStrategy', () => {
 
   const getCampaignsAsync = jest.spyOn(apiManager, 'getCampaignsAsync')
 
-  const configManager = new ConfigManager(config, apiManager, {} as TrackingManager)
+  const trackingManager = new TrackingManager({} as HttpClient, config)
+  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+  sendConsentHit.mockResolvedValue()
+
+  const configManager = new ConfigManager(config, apiManager, trackingManager)
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
   const panicStrategy = new PanicStrategy(visitorDelegate)
 

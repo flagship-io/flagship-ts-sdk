@@ -46,6 +46,10 @@ describe('test TrackingManager sendActive ', () => {
 
   const trackingManager = new TrackingManager(httpClient, config)
 
+  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+
+  sendConsentHit.mockResolvedValue()
+
   const visitorId = 'visitorId'
   const context = { age: 20 }
 
@@ -199,7 +203,7 @@ describe('test TrackingManager sendConsentHit ', () => {
 
     const postResponseError: IHttpResponse = { status: 400, body: null }
 
-    const configManager = new ConfigManager(config, {} as DecisionManager, {} as TrackingManager)
+    const configManager = new ConfigManager(config, {} as DecisionManager, trackingManager)
 
     const visitor = new VisitorDelegate({ visitorId: 'visitorId', hasConsented: true, context: {}, configManager })
 
@@ -241,6 +245,6 @@ describe('test TrackingManager sendConsentHit ', () => {
       timeout: config.timeout,
       body: postBody
     })
-    expect(postAsync).toHaveBeenCalledTimes(3)
+    expect(postAsync).toHaveBeenCalledTimes(4)
   })
 })

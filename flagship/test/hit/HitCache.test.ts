@@ -11,6 +11,7 @@ import { IHitCache } from '../../src/hit/IHitCache'
 import { HitCacheSaveDTO, HitCacheLookupDTO } from '../../src/models/HitDTO'
 import { HIT_CACHE_VERSION, SDK_APP } from '../../src/enum'
 import { LOOKUP_HITS_JSON_ERROR, LOOKUP_HITS_JSON_OBJECT_ERROR } from '../../src/visitor/DefaultStrategy'
+import { sleep } from '../../src/utils/utils'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getUndefined = ():any => undefined
@@ -107,37 +108,37 @@ describe('test visitor hit cache', () => {
     expect(cacheHit).toBeCalledTimes(0)
   })
 
-  it('test lookupHit', async () => {
-    sendHit.mockResolvedValue()
-    config.hitCacheImplementation = hitCacheImplementation
-    const hits:HitCacheLookupDTO[] = [
-      {
-        version: HIT_CACHE_VERSION,
-        data: {
-          visitorId: 'visitor1',
-          anonymousId: null,
+  const hits:HitCacheLookupDTO[] = [
+    {
+      version: HIT_CACHE_VERSION,
+      data: {
+        visitorId: 'visitor1',
+        anonymousId: null,
+        type: HitType.SCREEN,
+        time: Date.now(),
+        content: {
           type: HitType.SCREEN,
-          time: Date.now(),
-          content: {
-            type: HitType.SCREEN,
-            documentLocation: 'screenName2'
-          }
-        }
-      },
-      {
-        version: HIT_CACHE_VERSION,
-        data: {
-          visitorId: 'visitor2',
-          anonymousId: null,
-          type: HitType.PAGE,
-          time: Date.now(),
-          content: {
-            type: HitType.PAGE,
-            documentLocation: 'http://localhost'
-          }
+          documentLocation: 'screenName2'
         }
       }
-    ]
+    },
+    {
+      version: HIT_CACHE_VERSION,
+      data: {
+        visitorId: 'visitor2',
+        anonymousId: null,
+        type: HitType.PAGE,
+        time: Date.now(),
+        content: {
+          type: HitType.PAGE,
+          documentLocation: 'http://localhost'
+        }
+      }
+    }
+  ]
+
+  it('test lookupHit', async () => {
+    config.hitCacheImplementation = hitCacheImplementation
     lookupHits.mockReturnValue(JSON.stringify(hits))
     await defaultStrategy.lookupHits()
     expect(lookupHits).toBeCalledTimes(1)
@@ -154,6 +155,34 @@ describe('test visitor hit cache', () => {
       _type: 'BATCH',
       _visitorId: visitorId
     })
+
+    await defaultStrategy.lookupHits()
+    expect(lookupHits).toBeCalledTimes(2)
+    await sleep(100)
+    expect(cacheHit).toBeCalledTimes(2)
+  })
+
+  it('test lookupHit', async () => {
+    const hits = [
+      {
+        version: HIT_CACHE_VERSION,
+        data: {
+          visitorId: 'visitor1',
+          anonymousId: null,
+          type: HitType.SCREEN,
+          time: Date.now(),
+          content: {
+
+          }
+        }
+      }
+    ]
+    config.hitCacheImplementation = hitCacheImplementation
+    lookupHits.mockReturnValue(JSON.stringify(hits))
+    await defaultStrategy.lookupHits()
+    expect(lookupHits).toBeCalledTimes(1)
+    expect(lookupHits).toBeCalledWith(visitorDelegate.visitorId)
+    expect(sendHit).toBeCalledTimes(0)
   })
 
   it('test lookupHit failed', async () => {
