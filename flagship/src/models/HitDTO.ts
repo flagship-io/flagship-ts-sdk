@@ -1,3 +1,4 @@
+import { IHit } from '..'
 import { HitType } from '../enum/index'
 
 export type HitCache ={
@@ -5,7 +6,8 @@ export type HitCache ={
     data: {
         visitorId: string,
         anonymousId: string|null,
-        type: HitType
+        type: HitType|'BATCH',
+        time: number
     }
 }
 
@@ -17,6 +19,6 @@ export type HitCacheSaveDTO = HitCache & {
 
 export type HitCacheLookupDTO = HitCache & {
     data:{
-        content?:Record<string, unknown>
+        content?:IHit
     }
 }

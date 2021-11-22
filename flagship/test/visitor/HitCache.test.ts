@@ -1,5 +1,5 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { DecisionApiConfig, HitType } from '../../src'
+import { DecisionApiConfig, HitType, Page, Screen } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
@@ -61,6 +61,8 @@ describe('test visitor hit cache', () => {
   sendHit.mockRejectedValue(new Error())
 
   it('test saveCache', async () => {
+    const dateNow = Date.now
+    Date.now = jest.fn()
     const documentLocation = 'screenName'
     await defaultStrategy.sendHit({ type: HitType.SCREEN, documentLocation })
     const hitData: HitCacheSaveDTO = {
@@ -75,11 +77,13 @@ describe('test visitor hit cache', () => {
           type: HitType.SCREEN,
           anonymousId: visitorDelegate.anonymousId,
           documentLocation
-        }
+        },
+        time: Date.now()
       }
     }
     expect(cacheHit).toBeCalledTimes(1)
     expect(cacheHit).toBeCalledWith(visitorId, JSON.stringify(hitData))
+    Date.now = dateNow
   })
 
   it('test saveCache failed', async () => {
@@ -113,7 +117,9 @@ describe('test visitor hit cache', () => {
           visitorId: 'visitor1',
           anonymousId: null,
           type: HitType.SCREEN,
+          time: Date.now(),
           content: {
+            type: HitType.SCREEN,
             documentLocation: 'screenName2'
           }
         }
@@ -124,7 +130,9 @@ describe('test visitor hit cache', () => {
           visitorId: 'visitor2',
           anonymousId: null,
           type: HitType.PAGE,
+          time: Date.now(),
           content: {
+            type: HitType.PAGE,
             documentLocation: 'http://localhost'
           }
         }
@@ -134,7 +142,18 @@ describe('test visitor hit cache', () => {
     await defaultStrategy.lookupHits()
     expect(lookupHits).toBeCalledTimes(1)
     expect(lookupHits).toBeCalledWith(visitorDelegate.visitorId)
-    expect(sendHit).toBeCalledTimes(2)
+    expect(sendHit).toBeCalledTimes(1)
+    expect(sendHit).toBeCalledWith({
+      _anonymousId: null,
+      _config: expect.anything(),
+      _hits: [
+        new Screen({ documentLocation: 'screenName2' }),
+        new Page({ documentLocation: 'http://localhost' })
+      ],
+      _ds: 'APP',
+      _type: 'BATCH',
+      _visitorId: visitorId
+    })
   })
 
   it('test lookupHit failed', async () => {
