@@ -19,7 +19,7 @@ import { logError, sprintf } from '../utils/utils.ts'
 export interface IHitAbstract{
   visitorId?:string
   ds?: string
-  type: HitType
+  type: HitType|'BATCH'
   userIp?: string
   screenResolution?: string
   locale?: string
@@ -29,7 +29,7 @@ export interface IHitAbstract{
 export abstract class HitAbstract implements IHitAbstract {
   private _visitorId!: string;
   private _config!: IFlagshipConfig;
-  private _type!: HitType;
+  private _type!: HitType|'BATCH';
   private _ds!: string;
   private _anonymousId! : string|null;
   private _userIp! : string;
@@ -93,11 +93,11 @@ export abstract class HitAbstract implements IHitAbstract {
     this._ds = v
   }
 
-  public get type (): HitType {
+  public get type (): HitType|'BATCH' {
     return this._type
   }
 
-  protected set type (v: HitType) {
+  protected set type (v: HitType|'BATCH') {
     this._type = v
   }
 
@@ -177,7 +177,7 @@ export abstract class HitAbstract implements IHitAbstract {
     const apiKeys:Record<string, primitive|null> = {
       [VISITOR_ID_API_ITEM]: this.visitorId,
       [DS_API_ITEM]: this.ds,
-      [CUSTOMER_ENV_ID_API_ITEM]: `${this.config.envId}`,
+      [CUSTOMER_ENV_ID_API_ITEM]: `${this.config?.envId}`,
       [T_API_ITEM]: this.type,
       [USER_IP_API_ITEM]: this.userIp,
       [SCREEN_RESOLUTION_API_ITEM]: this.screenResolution,
@@ -210,7 +210,8 @@ export abstract class HitAbstract implements IHitAbstract {
   /**
    * Return true if all required attributes are given, otherwise return false
    */
-  public isReady (): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public isReady (_checkParent = true): boolean {
     return !!(
       this.visitorId &&
       this.ds &&

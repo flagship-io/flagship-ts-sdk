@@ -145,9 +145,9 @@ export class Item extends HitAbstract implements IItem {
     }
   }
 
-  public isReady (): boolean {
+  public isReady (checkParent = true): boolean {
     return !!(
-      super.isReady() &&
+      (!checkParent || super.isReady()) &&
       this.transactionId &&
       this.productName &&
       this.productSku

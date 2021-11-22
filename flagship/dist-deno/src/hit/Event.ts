@@ -136,8 +136,8 @@ export class Event extends HitAbstract implements IEvent {
     }
   }
 
-  public isReady (): boolean {
-    return !!(super.isReady() && this.category && this.action)
+  public isReady (checkParent = true): boolean {
+    return !!((!checkParent || super.isReady()) && this.category && this.action)
   }
 
   public getErrorMessage (): string {

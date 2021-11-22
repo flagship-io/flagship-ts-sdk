@@ -2,6 +2,7 @@ import { Modification } from '../index.ts'
 import {
   CONTEXT_NULL_ERROR,
   CONTEXT_PARAM_ERROR,
+  DEFAULT_HIT_CACHE_TIME,
   EMIT_READY,
   FLAGSHIP_VISITOR_NOT_AUTHENTICATE,
   GET_MODIFICATION_CAST_ERROR,
@@ -48,6 +49,7 @@ import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext.ts'
 import { VisitorLookupCacheDTO, VisitorSaveCacheDTO } from '../models/visitorDTO.ts'
 import { VisitorDelegate } from '..ts'
 import { HitCacheLookupDTO, HitCacheSaveDTO } from '../models/HitDTO.ts'
+import { Batch, BATCH, BatchDTO } from '../hit/Batch.ts'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
@@ -490,10 +492,11 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
   }
 
+  sendHit(hit: BatchDTO): Promise<void>
   sendHit(hit: HitAbstract): Promise<void>
   sendHit(hit: IHit): Promise<void>
   sendHit(hit: HitShape): Promise<void>
-  sendHit (hit: IHit | HitAbstract | HitShape): Promise<void> {
+  sendHit (hit: IHit | HitAbstract | HitShape|BatchDTO): Promise<void> {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
       return Promise.resolve()
     }
@@ -548,9 +551,11 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return newHit
   }
 
-  private getHit (hit: IHit) {
+  private getHit (hit: IHit|BatchDTO):HitAbstract|null {
     let newHit = null
-
+    if (!hit || !hit.type) {
+      return newHit
+    }
     switch (hit.type.toUpperCase()) {
       case HitType.EVENT:
         newHit = new Event(hit as IEvent)
@@ -566,6 +571,13 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         break
       case HitType.TRANSACTION:
         newHit = new Transaction(hit as ITransaction)
+        break
+      case BATCH:
+        newHit = new Batch({
+          hits: (hit as BatchDTO)?.hits?.map((item) => {
+            return this.getHit(item as IHit)
+          }).filter(item => item) as HitAbstract[]
+        })
         break
     }
     return newHit
@@ -595,17 +607,19 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         throw Error(LOOKUP_HITS_JSON_ERROR)
       }
 
-      hitsCache.forEach(item => {
-        if (!this.checKLookupHitData(item)) {
-          return
-        }
-        const hit:IHit = {
-          type: item.data.type,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ...item.data.content as any
-        }
-        this.sendHit(hit)
-      })
+      const checkHitTime = (time:number) => (((Date.now() - time) / 1000) <= DEFAULT_HIT_CACHE_TIME)
+      const batch:BatchDTO = {
+        type: 'BATCH',
+        hits: hitsCache.filter(item => this.checKLookupHitData(item) && checkHitTime(item.data.time)).map(item => {
+          return item.data.content
+        })
+      }
+
+      if (!batch.hits.length) {
+        return
+      }
+
+      this.sendHit(batch)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logError(this.config, error.message || error, 'lookupHits')
@@ -624,7 +638,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
           visitorId: this.visitor.visitorId,
           anonymousId: this.visitor.anonymousId,
           type: hitInstance.type,
-          content: hitInstance.toObject()
+          content: hitInstance.toObject(),
+          time: Date.now()
         }
       }
       hitCacheImplementation.cacheHit(this.visitor.visitorId, JSON.stringify(hitData))
@@ -648,7 +663,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
   }
 
-  private async prepareAndSendHit (hit: IHit | HitShape | HitAbstract) {
+  private async prepareAndSendHit (hit: IHit | HitShape | HitAbstract|BatchDTO) {
     let hitInstance: HitAbstract
     if (hit instanceof HitAbstract) {
       hitInstance = hit
@@ -661,7 +676,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       }
       hitInstance = hitFromInt
     } else {
-      const hitFromInt = this.getHit(hit as IHit)
+      const hitFromInt = this.getHit(hit)
       if (!hitFromInt) {
         logError(this.config, TYPE_HIT_REQUIRED_ERROR, PROCESS_SEND_HIT)
         return
@@ -687,6 +702,12 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logError(this.config, error.message || error, PROCESS_SEND_HIT)
+      if (hitInstance instanceof Batch) {
+        hitInstance.hits?.forEach(item => {
+          this.cacheHit(item)
+        })
+        return
+      }
       this.cacheHit(hitInstance)
     }
   }
