@@ -32,8 +32,8 @@ export class Screen extends HitAbstract implements IScreen {
     this.documentLocation = screen?.documentLocation
   }
 
-  public isReady ():boolean {
-    return !!(super.isReady() && this.documentLocation)
+  public isReady (checkParent = true):boolean {
+    return !!((!checkParent || super.isReady()) && this.documentLocation)
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

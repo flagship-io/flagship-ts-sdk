@@ -32,8 +32,8 @@ export class Page extends HitAbstract implements IPage {
     this.documentLocation = page?.documentLocation
   }
 
-  public isReady ():boolean {
-    return !!(super.isReady() && this.documentLocation)
+  public isReady (checkParent = true):boolean {
+    return !!((!checkParent || super.isReady()) && this.documentLocation)
   }
 
   public toApiKeys ():Record<string, unknown> {

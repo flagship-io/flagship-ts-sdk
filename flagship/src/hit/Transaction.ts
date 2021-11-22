@@ -198,8 +198,8 @@ export class Transaction extends HitAbstract implements ITransaction {
     }
   }
 
-  public isReady ():boolean {
-    return !!(super.isReady() && this.transactionId && this.affiliation)
+  public isReady (checkParent = true):boolean {
+    return !!((!checkParent || super.isReady()) && this.transactionId && this.affiliation)
   }
 
   public toApiKeys ():any {
