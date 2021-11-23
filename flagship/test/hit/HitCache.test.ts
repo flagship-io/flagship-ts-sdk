@@ -49,9 +49,16 @@ describe('test visitor hit cache', () => {
 
   const apiManager = new ApiManager(httpClient, config)
 
+  const getCampaignsAsync = jest.spyOn(
+    apiManager,
+    'getCampaignsAsync'
+  )
+
   const trackingManager = new TrackingManager(httpClient, config)
 
   const sendHit = jest.spyOn(trackingManager, 'sendHit')
+
+  const sendActive = jest.spyOn(trackingManager, 'sendActive')
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
@@ -59,14 +66,54 @@ describe('test visitor hit cache', () => {
 
   const defaultStrategy = new DefaultStrategy(visitorDelegate)
 
+  sendActive.mockRejectedValue(new Error())
   sendHit.mockRejectedValue(new Error())
 
+  const campaignDTO = [
+    {
+      id: 'c2nrh1hjg50l9stringu8bg',
+      variationGroupId: 'id',
+      variation: {
+        id: '1dl',
+        reference: false,
+        modifications: {
+          type: 'number',
+          value: {
+            key: 'value'
+          }
+        }
+      }
+    }
+  ]
+  getCampaignsAsync.mockResolvedValue(campaignDTO)
+
   it('test saveCache', async () => {
+    await defaultStrategy.synchronizeModifications()
     const dateNow = Date.now
     Date.now = jest.fn()
     const documentLocation = 'screenName'
+    await defaultStrategy.activateModification('key')
     await defaultStrategy.sendHit({ type: HitType.SCREEN, documentLocation })
-    const hitData: HitCacheSaveDTO = {
+
+    const hitData1: HitCacheSaveDTO = {
+      version: HIT_CACHE_VERSION,
+      data: {
+        visitorId: visitorId,
+        anonymousId: visitorDelegate.anonymousId,
+        type: 'ACTIVATE',
+        content: {
+          key: 'key',
+          campaignId: campaignDTO[0].id,
+          variationGroupId: campaignDTO[0].variationGroupId,
+          variationId: campaignDTO[0].variation.id,
+          isReference: campaignDTO[0].variation.reference,
+          value: campaignDTO[0].variation.modifications.value.key
+
+        },
+        time: Date.now()
+      }
+    }
+    const hitData2: HitCacheSaveDTO = {
       version: HIT_CACHE_VERSION,
       data: {
         visitorId: visitorId,
@@ -82,8 +129,9 @@ describe('test visitor hit cache', () => {
         time: Date.now()
       }
     }
-    expect(cacheHit).toBeCalledTimes(1)
-    expect(cacheHit).toBeCalledWith(visitorId, JSON.stringify(hitData))
+    expect(cacheHit).toBeCalledTimes(2)
+    expect(cacheHit).toHaveBeenNthCalledWith(1, visitorId, JSON.stringify(hitData1))
+    expect(cacheHit).toHaveBeenNthCalledWith(2, visitorId, JSON.stringify(hitData2))
     Date.now = dateNow
   })
 
@@ -126,11 +174,30 @@ describe('test visitor hit cache', () => {
         }
       })
     }
+    for (let index = 100; index < 110; index++) {
+      hits.push({
+        version: HIT_CACHE_VERSION,
+        data: {
+          visitorId: 'visitor1',
+          anonymousId: null,
+          type: 'ACTIVATE',
+          time: Date.now(),
+          content: {
+            key: `key_${index}`,
+            campaignId: `campaignId${index}`,
+            variationGroupId: `variationGroupId${index}`,
+            variationId: `variationId${index}`,
+            value: `value_${index}`
+          }
+        }
+      })
+    }
     config.hitCacheImplementation = hitCacheImplementation
     lookupHits.mockReturnValue(JSON.stringify(hits))
     await defaultStrategy.lookupHits()
     expect(lookupHits).toBeCalledTimes(1)
     expect(lookupHits).toBeCalledWith(visitorDelegate.visitorId)
+    expect(sendActive).toBeCalledTimes(10)
     expect(sendHit).toHaveBeenNthCalledWith(1, {
       _anonymousId: null,
       _config: expect.anything(),
@@ -166,7 +233,7 @@ describe('test visitor hit cache', () => {
     })
     expect(sendHit).toBeCalledTimes(3)
     await sleep(100)
-    expect(cacheHit).toBeCalledTimes(100)
+    expect(cacheHit).toBeCalledTimes(110)
   })
 
   it('test lookupHit', async () => {

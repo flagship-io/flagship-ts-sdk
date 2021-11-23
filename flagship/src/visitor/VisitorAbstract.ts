@@ -44,10 +44,11 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this.deDuplicationCache = {}
       this._configManager = configManager
 
-      this.setConsent(hasConsented ?? true)
-
       const VisitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
       this.visitorId = visitorId || VisitorCache?.visitorId || this.createVisitorId()
+
+      this.setConsent(hasConsented ?? true)
+
       this.campaigns = []
 
       this._context = {}

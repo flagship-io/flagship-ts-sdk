@@ -389,6 +389,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       let campaigns = await this.decisionManager.getCampaignsAsync(
         this.visitor
       )
+
       if (!campaigns.length) {
         campaigns = this.fetchVisitorCampaigns(this.visitor)
       }
@@ -464,32 +465,37 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return false
   }
 
+  private async sendActivate (modification: Modification) {
+    try {
+      await this.trackingManager.sendActive(this.visitor, modification)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      logError(this.config, error.message || error, PROCESS_ACTIVE_MODIFICATION)
+      this.cacheHit(modification)
+    }
+  }
+
   private async activate (key: string) {
     if (this.isDeDuplicated(key, this.config.activateDeduplicationTime as number)) {
       return
     }
 
-    try {
-      const modification = this.visitor.modifications.get(key)
+    const modification = this.visitor.modifications.get(key)
 
-      if (!modification) {
-        logError(
-          this.visitor.config,
-          sprintf(GET_MODIFICATION_ERROR, key),
-          PROCESS_ACTIVE_MODIFICATION
-        )
-        return
-      }
-
-      if (!this.hasTrackingManager(PROCESS_ACTIVE_MODIFICATION)) {
-        return
-      }
-
-      await this.trackingManager.sendActive(this.visitor, modification)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      logError(this.config, error.message || error, PROCESS_ACTIVE_MODIFICATION)
+    if (!modification) {
+      logError(
+        this.visitor.config,
+        sprintf(GET_MODIFICATION_ERROR, key),
+        PROCESS_ACTIVE_MODIFICATION
+      )
+      return
     }
+
+    if (!this.hasTrackingManager(PROCESS_ACTIVE_MODIFICATION)) {
+      return
+    }
+
+    await this.sendActivate(modification)
   }
 
   sendHit(hit: BatchDTO): Promise<void>
@@ -630,17 +636,25 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       let count = 0
 
       hitsCache.filter(item => this.checKLookupHitData(item) && checkHitTime(item.data.time)).forEach((item) => {
+        if (item.data.type === 'ACTIVATE') {
+          this.sendActivate(item.data.content as Modification)
+          return
+        }
         batchSize = JSON.stringify(batches[count]).length
         if (batchSize > 2500) {
           count++
           batches[count] = {
             type: 'BATCH',
-            hits: [item.data.content]
+            hits: [item.data.content as IHit]
           }
         } else {
-          batches[count].hits.push(item.data.content)
+          batches[count].hits.push(item.data.content as IHit)
         }
       })
+
+      if (batches.length === 1 && !batches[0].hits.length) {
+        return
+      }
 
       this.sendHits(batches)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -649,7 +663,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
   }
 
-  protected async cacheHit (hitInstance: HitAbstract):Promise<void> {
+  protected async cacheHit (hitInstance: HitAbstract|Modification):Promise<void> {
     try {
       const hitCacheImplementation = this.config.hitCacheImplementation
       if (!hitCacheImplementation || typeof hitCacheImplementation.cacheHit !== 'function') {
@@ -660,8 +674,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         data: {
           visitorId: this.visitor.visitorId,
           anonymousId: this.visitor.anonymousId,
-          type: hitInstance.type,
-          content: hitInstance.toObject(),
+          type: hitInstance instanceof HitAbstract ? hitInstance.type : 'ACTIVATE',
+          content: hitInstance instanceof HitAbstract ? hitInstance.toObject() : hitInstance,
           time: Date.now()
         }
       }
