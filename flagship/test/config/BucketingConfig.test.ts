@@ -1,6 +1,6 @@
 import { expect, it, describe } from '@jest/globals'
 import { BucketingConfig } from '../../src/config'
-import { DEFAULT_POLLING_INTERVAL, REQUEST_TIME_OUT } from '../../src/enum'
+import { DEFAULT_POLLING_INTERVAL } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 
 describe('test BucketingConfig', () => {
