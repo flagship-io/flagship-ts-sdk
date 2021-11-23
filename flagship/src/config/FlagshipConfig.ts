@@ -1,6 +1,6 @@
 import { BucketingDTO } from '../decision/api/bucketingDTO'
 import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, TYPE_ERROR } from '../enum/index'
-import { IHitCache } from '../hit/IHitCache'
+import { IHitCacheImplementation } from '../hit/IHitCacheImplementation'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, sprintf } from '../utils/utils'
 import { IVisitorCacheImplementation } from '../visitor/IVisitorCacheImplementation '
@@ -86,7 +86,7 @@ export interface IFlagshipConfig {
 
   visitorCacheImplementation?: IVisitorCacheImplementation
 
-  hitCacheImplementation?: IHitCache
+  hitCacheImplementation?: IHitCacheImplementation
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -110,7 +110,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _activateDeduplicationTime! : number;
   private _hitDeduplicationTime! : number;
   private _visitorCacheImplementation! : IVisitorCacheImplementation ;
-  private _hitCacheImplementation! : IHitCache;
+  private _hitCacheImplementation! : IHitCacheImplementation;
 
   protected constructor (param: IFlagshipConfig) {
     const {
@@ -267,11 +267,11 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._visitorCacheImplementation = v
   }
 
-  public get hitCacheImplementation () : IHitCache {
+  public get hitCacheImplementation () : IHitCacheImplementation {
     return this._hitCacheImplementation
   }
 
-  public set hitCacheImplementation (v : IHitCache
+  public set hitCacheImplementation (v : IHitCacheImplementation
   ) {
     this._hitCacheImplementation = v
   }

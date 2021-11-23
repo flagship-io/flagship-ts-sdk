@@ -1,5 +1,5 @@
 
-export interface IHitCache {
+export interface IHitCacheImplementation {
     /**
      * This method will be called when a hit has failed to be sent if there is no internet, there has been a timeout or if the request responded with something > 2XX
      * @param visitorId visitor ID

@@ -7,7 +7,7 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient, IHttpResponse, IHttpOptions } from '../../src/utils/HttpClient'
 import { VisitorDelegate, DefaultStrategy } from '../../src/visitor'
 import { Mock } from 'jest-mock'
-import { IHitCache } from '../../src/hit/IHitCache'
+import { IHitCacheImplementation } from '../../src/hit/IHitCacheImplementation'
 import { HitCacheSaveDTO, HitCacheLookupDTO } from '../../src/models/HitDTO'
 import { HIT_CACHE_VERSION, SDK_APP } from '../../src/enum'
 import { LOOKUP_HITS_JSON_ERROR, LOOKUP_HITS_JSON_OBJECT_ERROR } from '../../src/visitor/DefaultStrategy'
@@ -29,7 +29,7 @@ describe('test visitor hit cache', () => {
   const cacheHit:Mock<void, [visitorId: string, data: string]> = jest.fn()
   const lookupHits:Mock<string, [visitorId: string]> = jest.fn()
   const flushHits:Mock<void, [visitorId: string]> = jest.fn()
-  const hitCacheImplementation:IHitCache = {
+  const hitCacheImplementation:IHitCacheImplementation = {
     cacheHit,
     lookupHits,
     flushHits

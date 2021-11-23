@@ -7,7 +7,7 @@ import {
   LogLevel,
   REQUEST_TIME_OUT
 } from '../../src/enum/index'
-import { IHitCache } from '../../src/hit/IHitCache'
+import { IHitCacheImplementation } from '../../src/hit/IHitCacheImplementation'
 import { FlagshipLogManager, IFlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { IVisitorCacheImplementation } from '../../src/visitor/IVisitorCacheImplementation '
 
@@ -56,7 +56,7 @@ describe('test DecisionApiConfig', () => {
       }
     }
 
-    const hitCacheImplementation:IHitCache = {
+    const hitCacheImplementation:IHitCacheImplementation = {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       cacheHit: function (_visitorId: string, _data: string): void {
         throw new Error('Function not implemented.')
