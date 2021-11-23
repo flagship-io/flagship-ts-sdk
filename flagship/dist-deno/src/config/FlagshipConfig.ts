@@ -1,9 +1,9 @@
 import { BucketingDTO } from '../decision/api/bucketingDTO.ts'
 import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, TYPE_ERROR } from '../enum/index.ts'
-import { IHitCache } from '../hit/IHitCache.ts'
+import { IHitCacheImplementation } from '../hit/IHitCacheImplementation.ts'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager.ts'
 import { logError, sprintf } from '../utils/utils.ts'
-import { IVisitorCache } from '../visitor/IVisitorCache.ts'
+import { IVisitorCacheImplementation } from '../visitor/IVisitorCacheImplementation .ts'
 
 export enum DecisionMode {
   /**
@@ -84,9 +84,9 @@ export interface IFlagshipConfig {
 
   hitDeduplicationTime?:number
 
-  visitorCacheImplementation?: IVisitorCache
+  visitorCacheImplementation?: IVisitorCacheImplementation
 
-  hitCacheImplementation?: IHitCache
+  hitCacheImplementation?: IHitCacheImplementation
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -109,8 +109,8 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _decisionApiUrl!: string
   private _activateDeduplicationTime! : number;
   private _hitDeduplicationTime! : number;
-  private _visitorCacheImplementation! : IVisitorCache;
-  private _hitCacheImplementation! : IHitCache;
+  private _visitorCacheImplementation! : IVisitorCacheImplementation ;
+  private _hitCacheImplementation! : IHitCacheImplementation;
 
   protected constructor (param: IFlagshipConfig) {
     const {
@@ -259,19 +259,19 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._hitDeduplicationTime = v
   }
 
-  public get visitorCacheImplementation () : IVisitorCache {
+  public get visitorCacheImplementation () : IVisitorCacheImplementation {
     return this._visitorCacheImplementation
   }
 
-  public set visitorCacheImplementation (v : IVisitorCache) {
+  public set visitorCacheImplementation (v : IVisitorCacheImplementation) {
     this._visitorCacheImplementation = v
   }
 
-  public get hitCacheImplementation () : IHitCache {
+  public get hitCacheImplementation () : IHitCacheImplementation {
     return this._hitCacheImplementation
   }
 
-  public set hitCacheImplementation (v : IHitCache
+  public set hitCacheImplementation (v : IHitCacheImplementation
   ) {
     this._hitCacheImplementation = v
   }

@@ -1,6 +1,6 @@
-import { IHitCache } from './IHitCache.ts'
+import { IHitCacheImplementation } from './IHitCacheImplementation.ts'
 export const FS_HIT_PREFIX = 'FS_DEFAULT_HIT_CACHE_'
-export class DefaultHitCache implements IHitCache {
+export class DefaultHitCache implements IHitCacheImplementation {
   cacheHit (visitorId: string, data: string):void {
     const localDatabase = localStorage.getItem(FS_HIT_PREFIX + visitorId)
     let dataJson = ''
