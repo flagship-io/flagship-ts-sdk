@@ -33,7 +33,7 @@ export const SDK_VERSION = 'v2'
 
 export const VISITOR_CACHE_VERSION = 1
 export const HIT_CACHE_VERSION = 1
-export const DEFAULT_HIT_CACHE_TIME = 1800
+export const DEFAULT_HIT_CACHE_TIME = 14400000
 
 /**
  * Message Info
