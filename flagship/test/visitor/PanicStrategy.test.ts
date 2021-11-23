@@ -11,7 +11,7 @@ import { VisitorDelegate, PanicStrategy } from '../../src/visitor'
 import { campaigns } from '../decision/campaigns'
 
 import { Mock } from 'jest-mock'
-import { IVisitorCache } from '../../src/visitor/IVisitorCache'
+import { IVisitorCacheImplementation } from '../../src/visitor/IVisitorCacheImplementation '
 
 describe('test NotReadyStrategy', () => {
   const visitorId = 'visitorId'
@@ -23,7 +23,7 @@ describe('test NotReadyStrategy', () => {
   const cacheVisitor:Mock<void, [visitorId: string, data: string]> = jest.fn()
   const lookupVisitor:Mock<string, [visitorId: string]> = jest.fn()
   const flushVisitor:Mock<void, [visitorId: string]> = jest.fn()
-  const visitorCacheImplementation:IVisitorCache = {
+  const visitorCacheImplementation:IVisitorCacheImplementation = {
     cacheVisitor,
     lookupVisitor,
     flushVisitor

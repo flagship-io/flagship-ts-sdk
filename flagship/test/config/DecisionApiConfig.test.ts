@@ -9,7 +9,7 @@ import {
 } from '../../src/enum/index'
 import { IHitCache } from '../../src/hit/IHitCache'
 import { FlagshipLogManager, IFlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { IVisitorCache } from '../../src/visitor/IVisitorCache'
+import { IVisitorCacheImplementation } from '../../src/visitor/IVisitorCacheImplementation '
 
 describe('test DecisionApiConfig', () => {
   const config = new DecisionApiConfig()
@@ -41,7 +41,7 @@ describe('test DecisionApiConfig', () => {
       panic: true
     }
 
-    const visitorCacheImplementation:IVisitorCache = {
+    const visitorCacheImplementation:IVisitorCacheImplementation = {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       cacheVisitor: function (_visitorId: string, _Data: string): void {
         throw new Error('Function not implemented.')

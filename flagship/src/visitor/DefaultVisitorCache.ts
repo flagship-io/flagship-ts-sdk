@@ -1,7 +1,7 @@
-import { IVisitorCache } from './IVisitorCache'
+import { IVisitorCacheImplementation } from './IVisitorCacheImplementation '
 
 export const VISITOR_PREFIX = 'FS_VISITOR_CACHE_'
-export class DefaultVisitorCache implements IVisitorCache {
+export class DefaultVisitorCache implements IVisitorCacheImplementation {
   cacheVisitor (visitorId: string, data: string):void {
     localStorage.setItem(VISITOR_PREFIX + visitorId, data)
   }

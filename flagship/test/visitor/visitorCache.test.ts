@@ -8,7 +8,7 @@ import { HttpClient, IHttpResponse, IHttpOptions } from '../../src/utils/HttpCli
 import { VisitorDelegate, DefaultStrategy } from '../../src/visitor'
 import { Mock } from 'jest-mock'
 import { VISITOR_CACHE_VERSION } from '../../src/enum'
-import { IVisitorCache } from '../../src/visitor/IVisitorCache'
+import { IVisitorCacheImplementation } from '../../src/visitor/IVisitorCacheImplementation '
 import { campaigns } from '../decision/campaigns'
 import { VisitorLookupCacheDTO, VisitorSaveCacheDTO } from '../../src/models/visitorDTO'
 import { LOOKUP_VISITOR_JSON_OBJECT_ERROR } from '../../src/visitor/DefaultStrategy'
@@ -29,7 +29,7 @@ describe('test visitor cache', () => {
   const cacheVisitor:Mock<void, [visitorId: string, data: string]> = jest.fn()
   const lookupVisitor:Mock<string, [visitorId: string]> = jest.fn()
   const flushVisitor:Mock<void, [visitorId: string]> = jest.fn()
-  const visitorCacheImplementation:IVisitorCache = {
+  const visitorCacheImplementation:IVisitorCacheImplementation = {
     cacheVisitor,
     lookupVisitor,
     flushVisitor

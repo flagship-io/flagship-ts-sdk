@@ -3,7 +3,7 @@ import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FlagshipStatus, LogLevel, REQ
 import { IHitCache } from '../hit/IHitCache'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, sprintf } from '../utils/utils'
-import { IVisitorCache } from '../visitor/IVisitorCache'
+import { IVisitorCacheImplementation } from '../visitor/IVisitorCacheImplementation '
 
 export enum DecisionMode {
   /**
@@ -84,7 +84,7 @@ export interface IFlagshipConfig {
 
   hitDeduplicationTime?:number
 
-  visitorCacheImplementation?: IVisitorCache
+  visitorCacheImplementation?: IVisitorCacheImplementation
 
   hitCacheImplementation?: IHitCache
 }
@@ -109,7 +109,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _decisionApiUrl!: string
   private _activateDeduplicationTime! : number;
   private _hitDeduplicationTime! : number;
-  private _visitorCacheImplementation! : IVisitorCache;
+  private _visitorCacheImplementation! : IVisitorCacheImplementation ;
   private _hitCacheImplementation! : IHitCache;
 
   protected constructor (param: IFlagshipConfig) {
@@ -259,11 +259,11 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._hitDeduplicationTime = v
   }
 
-  public get visitorCacheImplementation () : IVisitorCache {
+  public get visitorCacheImplementation () : IVisitorCacheImplementation {
     return this._visitorCacheImplementation
   }
 
-  public set visitorCacheImplementation (v : IVisitorCache) {
+  public set visitorCacheImplementation (v : IVisitorCacheImplementation) {
     this._visitorCacheImplementation = v
   }
 

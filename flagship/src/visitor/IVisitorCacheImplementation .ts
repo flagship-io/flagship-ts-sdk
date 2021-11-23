@@ -1,4 +1,4 @@
-export interface IVisitorCache {
+export interface IVisitorCacheImplementation {
     /**
      * This method will be called after synchronization in order to cache visitor data
      * @param {string} visitorId visitor ID
