@@ -253,6 +253,8 @@ describe('test visitor cache', () => {
   it('test flushVisitor ', async () => {
     visitorDelegate.setConsent(false)
     expect(flushVisitor).toBeCalledTimes(1)
+    visitorDelegate.setConsent(true)
+    expect(flushVisitor).toBeCalledTimes(1)
   })
 
   it('test flushVisitor ', async () => {
@@ -271,5 +273,66 @@ describe('test visitor cache', () => {
     visitorDelegate.setConsent(false)
     expect(flushVisitor).toBeCalledTimes(0)
     config.visitorCacheImplementation = visitorCacheImplementation
+  })
+})
+
+describe('test visitorCache with disabledCache', () => {
+  const visitorId = 'visitorId'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const context: any = {
+    isVip: true
+  }
+
+  const logManager = new FlagshipLogManager()
+
+  const cacheVisitor:Mock<void, [visitorId: string, data: string]> = jest.fn()
+  const lookupVisitor:Mock<string, [visitorId: string]> = jest.fn()
+  const flushVisitor:Mock<void, [visitorId: string]> = jest.fn()
+  const visitorCacheImplementation:IVisitorCacheImplementation = {
+    cacheVisitor,
+    lookupVisitor,
+    flushVisitor
+  }
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', visitorCacheImplementation, disableCache: true })
+  config.logManager = logManager
+
+  const httpClient = new HttpClient()
+
+  const post: Mock<
+      Promise<IHttpResponse>,
+      [url: string, options: IHttpOptions]
+    > = jest.fn()
+  httpClient.postAsync = post
+  post.mockResolvedValue({} as IHttpResponse)
+
+  const apiManager = new ApiManager(httpClient, config)
+
+  const getCampaignsAsync = jest.spyOn(apiManager, 'getCampaignsAsync')
+
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  const configManager = new ConfigManager(config, apiManager, trackingManager)
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+
+  const defaultStrategy = new DefaultStrategy(visitorDelegate)
+
+  it('test saveCache', async () => {
+    getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
+    await defaultStrategy.synchronizeModifications()
+    expect(cacheVisitor).toBeCalledTimes(0)
+  })
+
+  it('test lookupVisitor ', async () => {
+    await defaultStrategy.lookupVisitor()
+    expect(lookupVisitor).toBeCalledTimes(0)
+  })
+
+  it('test flushVisitor ', async () => {
+    visitorDelegate.setConsent(false)
+    expect(flushVisitor).toBeCalledTimes(0)
+    visitorDelegate.setConsent(true)
+    expect(flushVisitor).toBeCalledTimes(0)
   })
 })

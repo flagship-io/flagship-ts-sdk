@@ -30,6 +30,7 @@ describe('test DecisionApiConfig', () => {
     expect(config.hitDeduplicationTime).toBe(DEFAULT_DEDUPLICATION_TIME)
     expect(config.hitCacheImplementation).toBeUndefined()
     expect(config.visitorCacheImplementation).toBeUndefined()
+    expect(config.disableCache).toBeFalsy()
   })
 
   it('test config constructor', () => {
@@ -82,7 +83,8 @@ describe('test DecisionApiConfig', () => {
       enableClientCache: false,
       initialBucketing,
       visitorCacheImplementation,
-      hitCacheImplementation
+      hitCacheImplementation,
+      disableCache: true
     })
     expect(config.apiKey).toBe(apiKey)
     expect(config.envId).toBe(envId)
@@ -93,6 +95,9 @@ describe('test DecisionApiConfig', () => {
     expect(config.fetchNow).toBeFalsy()
     expect(config.enableClientCache).toBeFalsy()
     expect(config.initialBucketing).toEqual(initialBucketing)
+    expect(config.visitorCacheImplementation).toBe(visitorCacheImplementation)
+    expect(config.hitCacheImplementation).toBe(hitCacheImplementation)
+    expect(config.disableCache).toBeTruthy()
   })
 
   it('Test envId field ', () => {

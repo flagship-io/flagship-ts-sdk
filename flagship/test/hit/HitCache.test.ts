@@ -337,3 +337,95 @@ describe('test visitor hit cache', () => {
     config.hitCacheImplementation = hitCacheImplementation
   })
 })
+
+describe('test HitCache disabledCache', () => {
+  const visitorId = 'visitorId'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const context: any = {
+    isVip: true
+  }
+
+  const logManager = new FlagshipLogManager()
+
+  const cacheHit:Mock<void, [visitorId: string, data: string]> = jest.fn()
+  const lookupHits:Mock<string, [visitorId: string]> = jest.fn()
+  const flushHits:Mock<void, [visitorId: string]> = jest.fn()
+  const hitCacheImplementation:IHitCacheImplementation = {
+    cacheHit,
+    lookupHits,
+    flushHits
+  }
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitCacheImplementation, disableCache: true })
+  config.logManager = logManager
+
+  const httpClient = new HttpClient()
+
+  const post: Mock<
+      Promise<IHttpResponse>,
+      [url: string, options: IHttpOptions]
+    > = jest.fn()
+  httpClient.postAsync = post
+  post.mockResolvedValue({} as IHttpResponse)
+
+  const apiManager = new ApiManager(httpClient, config)
+
+  const getCampaignsAsync = jest.spyOn(
+    apiManager,
+    'getCampaignsAsync'
+  )
+
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  const sendHit = jest.spyOn(trackingManager, 'sendHit')
+
+  const sendActive = jest.spyOn(trackingManager, 'sendActive')
+
+  const configManager = new ConfigManager(config, apiManager, trackingManager)
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+
+  const defaultStrategy = new DefaultStrategy(visitorDelegate)
+
+  sendActive.mockRejectedValue(new Error())
+  sendHit.mockRejectedValue(new Error())
+
+  const campaignDTO = [
+    {
+      id: 'c2nrh1hjg50l9stringu8bg',
+      variationGroupId: 'id',
+      variation: {
+        id: '1dl',
+        reference: false,
+        modifications: {
+          type: 'number',
+          value: {
+            key: 'value'
+          }
+        }
+      }
+    }
+  ]
+  getCampaignsAsync.mockResolvedValue(campaignDTO)
+
+  it('test saveCache', async () => {
+    await defaultStrategy.synchronizeModifications()
+    const documentLocation = 'screenName'
+    await defaultStrategy.activateModification('key')
+    await defaultStrategy.sendHit({ type: HitType.SCREEN, documentLocation })
+
+    expect(cacheHit).toBeCalledTimes(0)
+  })
+
+  it('test lookupHit', async () => {
+    await defaultStrategy.lookupHits()
+    expect(lookupHits).toBeCalledTimes(0)
+  })
+
+  it('test flushHits ', () => {
+    visitorDelegate.setConsent(false)
+    expect(flushHits).toBeCalledTimes(0)
+    visitorDelegate.setConsent(true)
+    expect(flushHits).toBeCalledTimes(0)
+  })
+})

@@ -287,7 +287,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   public async lookupVisitor ():Promise<void> {
     try {
       const visitorCacheInstance = this.config.visitorCacheImplementation
-      if (!visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
+      if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
         return
       }
       const visitorCacheJson = visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
@@ -308,7 +308,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   protected async cacheVisitor ():Promise<void> {
     try {
       const visitorCacheInstance = this.config.visitorCacheImplementation
-      if (this.decisionManager.isPanic() || !visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.cacheVisitor !== 'function') {
+      if (this.config.disableCache || this.decisionManager.isPanic() || !visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.cacheVisitor !== 'function') {
         return
       }
       const data: VisitorSaveCacheDTO = {
@@ -346,7 +346,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   protected async flushVisitor ():Promise<void> {
     try {
       const visitorCacheInstance = this.config.visitorCacheImplementation
-      if (!visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.flushVisitor !== 'function') {
+      if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.flushVisitor !== 'function') {
         return
       }
       visitorCacheInstance.flushVisitor(this.visitor.visitorId)
@@ -613,7 +613,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   async lookupHits ():Promise<void> {
     try {
       const hitCacheImplementation = this.config.hitCacheImplementation
-      if (!hitCacheImplementation || typeof hitCacheImplementation.lookupHits !== 'function') {
+      if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.lookupHits !== 'function') {
         return
       }
 
@@ -666,7 +666,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   protected async cacheHit (hitInstance: HitAbstract|Modification):Promise<void> {
     try {
       const hitCacheImplementation = this.config.hitCacheImplementation
-      if (!hitCacheImplementation || typeof hitCacheImplementation.cacheHit !== 'function') {
+      if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.cacheHit !== 'function') {
         return
       }
       const hitData: HitCacheSaveDTO = {
@@ -689,7 +689,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   protected async flushHits (): Promise<void> {
     try {
       const hitCacheImplementation = this.config.hitCacheImplementation
-      if (!hitCacheImplementation || typeof hitCacheImplementation.flushHits !== 'function') {
+      if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.flushHits !== 'function') {
         return
       }
 
