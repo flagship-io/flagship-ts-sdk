@@ -2,6 +2,7 @@ const ENV_ID = ''
 const API_KEY = ''
 
 const lookupHits = (visitorId) => {
+  console.log('lookupHits', hitPrefix + visitorId)
   const dataArray = localStorage.getItem(hitPrefix + visitorId)
   localStorage.removeItem(hitPrefix + visitorId)
   return dataArray
@@ -9,6 +10,7 @@ const lookupHits = (visitorId) => {
 const hitPrefix = 'fs_hit_'
 const hitCacheImplementation = {
   cacheHit (visitorId, data) {
+    console.log('cacheHit', hitPrefix + visitorId)
     const localDatabase = localStorage.getItem(hitPrefix + visitorId)
     let dataJson = ''
     if (localDatabase) {
@@ -21,6 +23,7 @@ const hitCacheImplementation = {
   },
   lookupHits,
   flushHits (visitorId) {
+    console.log('flushHits', hitPrefix + visitorId)
     localStorage.removeItem(hitPrefix + visitorId)
   }
 }
@@ -28,14 +31,17 @@ const hitCacheImplementation = {
 const visitorPrefix = 'fs_visitor_'
 const visitorCacheImplementation = {
   cacheVisitor (visitorId, data) {
+    console.log('cacheVisitor', hitPrefix + visitorId)
     localStorage.setItem(visitorPrefix + visitorId, data)
   },
   lookupVisitor (visitorId) {
+    console.log('lookupVisitor', hitPrefix + visitorId)
     const dataArray = localStorage.getItem(visitorPrefix + visitorId)
     localStorage.removeItem(visitorPrefix + visitorId)
     return dataArray
   },
   flushVisitor (visitorId) {
+    console.log('flushVisitor', hitPrefix + visitorId)
     localStorage.removeItem(visitorPrefix + visitorId)
   }
 }
@@ -44,7 +50,8 @@ Flagship.start(ENV_ID, API_KEY, {
   fetchNow: false,
   timeout: 10,
   pollingInterval: 20,
-  hitCacheImplementation
+  hitCacheImplementation,
+  visitorCacheImplementation
 })
 
 const currentVisitorId = 'visitor_5678'
@@ -317,6 +324,7 @@ scenario1Action14.addEventListener('click', async () => {
   printLocalStorage()
 })
 
+// scenario 4
 const scenario1Action15 = document.getElementById('scenario-1-action-15')
 scenario1Action15.addEventListener('click', async () => {
   printMessage(1, 15)
@@ -369,5 +377,105 @@ scenario1Action17.addEventListener('click', async () => {
 
   await visitor.synchronizeModifications()
   console.log('synchronized ok')
+  printLocalStorage()
+})
+
+const scenario1Action18 = document.getElementById('scenario-1-action-18')
+scenario1Action18.addEventListener('click', async () => {
+  printMessage(1, 18)
+
+  visitor.setConsent(true)
+
+  console.log('setConsent true')
+
+  await visitor.synchronizeModifications()
+  console.log('synchronized ok')
+  printLocalStorage()
+})
+
+const scenario7Action1 = document.getElementById('scenario-7-action-1')
+scenario7Action1.addEventListener('click', async () => {
+  printMessage(7, 1)
+
+  visitor = Flagship.newVisitor({
+    visitorId: 'V1111'
+  })
+
+  await visitor.synchronizeModifications()
+  console.log('synchronized ok')
+  printLocalStorage()
+})
+
+const scenario7Action2 = document.getElementById('scenario-7-action-2')
+scenario7Action2.addEventListener('click', async () => {
+  printMessage(7, 2)
+
+  await visitor.synchronizeModifications()
+  console.log('synchronized ok')
+  printLocalStorage()
+})
+
+const scenario8Action1 = document.getElementById('scenario-8-action-1')
+scenario8Action1.addEventListener('click', async () => {
+  printMessage(8, 1)
+
+  visitor = Flagship.newVisitor({
+    visitorId: 'V2222'
+  })
+  const screen5 = { type: HitType.SCREEN, documentLocation: 'Screen 5' }
+  const screen6 = { type: HitType.SCREEN, documentLocation: 'Screen 6' }
+  const screen7 = { type: HitType.SCREEN, documentLocation: 'Screen 7' }
+  await visitor.sendHits([screen5, screen6, screen7])
+  console.log('3 hit screen  sent')
+
+  printLocalStorage()
+})
+
+const scenario8Action2 = document.getElementById('scenario-8-action-2')
+scenario8Action2.addEventListener('click', async () => {
+  printMessage(8, 2)
+
+  visitor = Flagship.newVisitor({
+    visitorId: 'V2222'
+  })
+
+  printLocalStorage()
+})
+
+const scenario11Action1 = document.getElementById('scenario-11-action-1')
+scenario11Action1.addEventListener('click', async () => {
+  printMessage(11, 1)
+
+  visitor = Flagship.newVisitor({
+    visitorId: 'V3333'
+  })
+
+  await visitor.synchronizeModifications()
+
+  printLocalStorage()
+})
+
+const scenario11Action2 = document.getElementById('scenario-11-action-2')
+scenario11Action2.addEventListener('click', async () => {
+  printMessage(11, 2)
+
+  const screen = { type: HitType.SCREEN, documentLocation: 'Screen 5' }
+  const event = { type: HitType.EVENT, action: 'Event 1', category: EventCategory.ACTION_TRACKING }
+
+  await visitor.activateModifications(['array', 'object'])
+  await visitor.sendHits([screen, event])
+  await visitor.synchronizeModifications()
+
+  printLocalStorage()
+})
+
+const scenario11Action3 = document.getElementById('scenario-11-action-3')
+scenario11Action3.addEventListener('click', async () => {
+  printMessage(11, 3)
+
+  visitor = Flagship.newVisitor({
+    visitorId: 'V3333'
+  })
+
   printLocalStorage()
 })

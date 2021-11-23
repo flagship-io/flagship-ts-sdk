@@ -39,7 +39,7 @@ import {
   Transaction,
   IHitAbstract
 } from '../hit/index.ts'
-import { HitShape } from '../hit/Legacy.ts'
+import { HitShape, ItemHit } from '../hit/Legacy.ts'
 import { primitive, modificationsRequested, IHit } from '../types.ts'
 import { logError, logInfo, sprintf } from '../utils/utils.ts'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract.ts'
@@ -389,6 +389,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       let campaigns = await this.decisionManager.getCampaignsAsync(
         this.visitor
       )
+
       if (!campaigns.length) {
         campaigns = this.fetchVisitorCampaigns(this.visitor)
       }
@@ -464,32 +465,37 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return false
   }
 
+  private async sendActivate (modification: Modification) {
+    try {
+      await this.trackingManager.sendActive(this.visitor, modification)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      logError(this.config, error.message || error, PROCESS_ACTIVE_MODIFICATION)
+      this.cacheHit(modification)
+    }
+  }
+
   private async activate (key: string) {
     if (this.isDeDuplicated(key, this.config.activateDeduplicationTime as number)) {
       return
     }
 
-    try {
-      const modification = this.visitor.modifications.get(key)
+    const modification = this.visitor.modifications.get(key)
 
-      if (!modification) {
-        logError(
-          this.visitor.config,
-          sprintf(GET_MODIFICATION_ERROR, key),
-          PROCESS_ACTIVE_MODIFICATION
-        )
-        return
-      }
-
-      if (!this.hasTrackingManager(PROCESS_ACTIVE_MODIFICATION)) {
-        return
-      }
-
-      await this.trackingManager.sendActive(this.visitor, modification)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      logError(this.config, error.message || error, PROCESS_ACTIVE_MODIFICATION)
+    if (!modification) {
+      logError(
+        this.visitor.config,
+        sprintf(GET_MODIFICATION_ERROR, key),
+        PROCESS_ACTIVE_MODIFICATION
+      )
+      return
     }
+
+    if (!this.hasTrackingManager(PROCESS_ACTIVE_MODIFICATION)) {
+      return
+    }
+
+    await this.sendActivate(modification)
   }
 
   sendHit(hit: BatchDTO): Promise<void>
@@ -503,10 +509,11 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return this.prepareAndSendHit(hit)
   }
 
+  sendHits(hits: BatchDTO[]): Promise<void>
   sendHits(hits: HitAbstract[]): Promise<void>
   sendHits(hits: IHit[]): Promise<void>
   sendHits(hits: HitShape[]): Promise<void>
-  async sendHits (hits: HitAbstract[] | IHit[]|HitShape[]): Promise<void> {
+  async sendHits (hits: HitAbstract[] | IHit[]|HitShape[]|BatchDTO[]): Promise<void> {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
       return
     }
@@ -515,7 +522,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   private getHitLegacy (hit: HitShape) {
     let newHit = null
-
+    if (!hit || !hit.type) {
+      return null
+    }
     const hitTypeToEnum: Record<string, HitType> = {
       Screen: HitType.SCREEN_VIEW,
       ScreenView: HitType.SCREEN_VIEW,
@@ -531,12 +540,22 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     const hitData: IHitAbstract = { ...commonProperties, ...hit.data }
 
-    switch (hit.type.toUpperCase()) {
+    switch (commonProperties.type.toUpperCase()) {
       case HitType.EVENT:
         newHit = new Event(hitData as IEvent)
         break
       case HitType.ITEM:
-        newHit = new Item(hitData as IItem)
+        // eslint-disable-next-line no-case-declarations
+        const data = hit.data as ItemHit
+        newHit = new Item({
+          ...hitData,
+          productName: data.name,
+          productSku: data.code,
+          transactionId: data.transactionId,
+          itemCategory: data.category,
+          itemPrice: data.price,
+          itemQuantity: data.quantity
+        } as IItem)
         break
       case HitType.PAGE_VIEW:
         newHit = new Page(hitData as IPage)
@@ -608,25 +627,43 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       }
 
       const checkHitTime = (time:number) => (((Date.now() - time) / 1000) <= DEFAULT_HIT_CACHE_TIME)
-      const batch:BatchDTO = {
-        type: 'BATCH',
-        hits: hitsCache.filter(item => this.checKLookupHitData(item) && checkHitTime(item.data.time)).map(item => {
-          return item.data.content
-        })
-      }
 
-      if (!batch.hits.length) {
+      const batches:BatchDTO[] = [{
+        type: 'BATCH',
+        hits: []
+      }]
+      let batchSize = 0
+      let count = 0
+
+      hitsCache.filter(item => this.checKLookupHitData(item) && checkHitTime(item.data.time)).forEach((item) => {
+        if (item.data.type === 'ACTIVATE') {
+          this.sendActivate(item.data.content as Modification)
+          return
+        }
+        batchSize = JSON.stringify(batches[count]).length
+        if (batchSize > 2500) {
+          count++
+          batches[count] = {
+            type: 'BATCH',
+            hits: [item.data.content as IHit]
+          }
+        } else {
+          batches[count].hits.push(item.data.content as IHit)
+        }
+      })
+
+      if (batches.length === 1 && !batches[0].hits.length) {
         return
       }
 
-      this.sendHit(batch)
+      this.sendHits(batches)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logError(this.config, error.message || error, 'lookupHits')
     }
   }
 
-  protected async cacheHit (hitInstance: HitAbstract):Promise<void> {
+  protected async cacheHit (hitInstance: HitAbstract|Modification):Promise<void> {
     try {
       const hitCacheImplementation = this.config.hitCacheImplementation
       if (!hitCacheImplementation || typeof hitCacheImplementation.cacheHit !== 'function') {
@@ -637,8 +674,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         data: {
           visitorId: this.visitor.visitorId,
           anonymousId: this.visitor.anonymousId,
-          type: hitInstance.type,
-          content: hitInstance.toObject(),
+          type: hitInstance instanceof HitAbstract ? hitInstance.type : 'ACTIVATE',
+          content: hitInstance instanceof HitAbstract ? hitInstance.toObject() : hitInstance,
           time: Date.now()
         }
       }
