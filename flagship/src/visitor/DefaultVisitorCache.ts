@@ -8,7 +8,6 @@ export class DefaultVisitorCache implements IVisitorCacheImplementation {
 
   lookupVisitor (visitorId: string):string {
     const data = localStorage.getItem(VISITOR_PREFIX + visitorId)
-    localStorage.removeItem(VISITOR_PREFIX + visitorId)
     return data || ''
   }
 

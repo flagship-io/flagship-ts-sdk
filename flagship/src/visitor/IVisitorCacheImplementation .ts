@@ -1,18 +1,19 @@
 export interface IVisitorCacheImplementation {
     /**
-     * This method will be called after synchronization in order to cache visitor data
+     * This method is called when the SDK needs to cache visitor information in your database.
      * @param {string} visitorId visitor ID
      * @param {string} data visitor data JSON
      */
     cacheVisitor:(visitorId: string, Data: string)=>void
+
     /**
-     * This method will be called to load visitor cache data corresponding to visitor
+     * This method is called when the SDK needs to get the visitor information corresponding to visitor ID from your database.
      * @param visitorId visitor ID
      */
     lookupVisitor(visitorId: string): string
 
     /**
-     * This method will be called to erase the visitor cache data
+     * This method is called when the SDK needs to erase the visitor information corresponding to visitor ID in your database.
      * @param visitorId
      */
     flushVisitor(visitorId: string):void

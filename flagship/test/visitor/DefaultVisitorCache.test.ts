@@ -29,6 +29,5 @@ describe('Test DefaultVisitorCache', () => {
     storageMock.getItem.mockReturnValue(visitorData)
     const data = defaultVisitorCache.lookupVisitor(visitorId)
     expect(data).toBe(visitorData)
-    expect(global.localStorage.removeItem).toBeCalledTimes(1)
   })
 })
