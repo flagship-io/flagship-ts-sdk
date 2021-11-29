@@ -241,6 +241,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     abstract getModificationInfoSync (key: string): Modification | null
 
     abstract synchronizeModifications (): Promise<void>
+    abstract fetchFlags(): Promise<void>
 
     abstract activateModification(key: string): Promise<void>;
 

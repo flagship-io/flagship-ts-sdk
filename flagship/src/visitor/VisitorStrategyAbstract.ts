@@ -7,7 +7,15 @@ import { IConfigManager, IFlagshipConfig } from '../config/index'
 import { CampaignDTO } from '../decision/api/models'
 import { ITrackingManager } from '../api/TrackingManagerAbstract'
 import { IDecisionManager } from '../decision/IDecisionManager'
-import { logError } from '../utils/utils'
+import { logError, sprintf } from '../utils/utils'
+import { DEFAULT_HIT_CACHE_TIME, HIT_CACHE_VERSION, PROCESS_CACHE_HIT, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index'
+import { VisitorLookupCacheDTO, VisitorSaveCacheDTO } from '../models/visitorDTO'
+import { BatchDTO } from '../hit/Batch'
+import { HitCacheLookupDTO, HitCacheSaveDTO } from '../models/HitDTO'
+
+export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
+export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheLookupDTO'
+export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheLookupDTO'
 export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'modifications'|'context'|'hasConsented'|'getModificationsArray'> {
     protected visitor:VisitorAbstract;
 
@@ -41,7 +49,226 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       }
     }
 
-    abstract setConsent (hasConsented: boolean): void
+    protected hasTrackingManager (process: string): boolean {
+      const check = this.trackingManager
+      if (!check) {
+        logError(this.config, sprintf(TRACKER_MANAGER_MISSING_ERROR), process)
+      }
+      return !!check
+    }
+
+    setConsent (hasConsented: boolean): void {
+      const method = 'setConsent'
+      this.visitor.hasConsented = hasConsented
+      if (!hasConsented) {
+        this.flushHits()
+        this.flushVisitor()
+      }
+      if (!this.hasTrackingManager(method)) {
+        return
+      }
+
+      this.trackingManager.sendConsentHit(this.visitor).catch((error) => {
+        logError(this.config, error.message || error, method)
+      })
+    }
+
+    protected checKLookupVisitorDataV1 (item:VisitorLookupCacheDTO):boolean {
+      if (!item || !item.data || !item.data.visitorId) {
+        return false
+      }
+      const campaigns = item.data.campaigns
+      if (!campaigns) {
+        return true
+      }
+      if (!Array.isArray(campaigns)) {
+        return false
+      }
+
+      return campaigns.every(x => x.campaignId && x.type && x.variationGroupId && x.variationId)
+    }
+
+    protected checKLookupVisitorData (item:VisitorLookupCacheDTO):boolean {
+      if (item.version === 1) {
+        return this.checKLookupVisitorDataV1(item)
+      }
+      return false
+    }
+
+    public async lookupVisitor ():Promise<void> {
+      try {
+        const visitorCacheInstance = this.config.visitorCacheImplementation
+        if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
+          return
+        }
+        const visitorCacheJson = visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
+        if (!visitorCacheJson) {
+          return
+        }
+        const visitorCache:VisitorLookupCacheDTO = JSON.parse(visitorCacheJson)
+        if (!this.checKLookupVisitorData(visitorCache)) {
+          throw new Error(LOOKUP_VISITOR_JSON_OBJECT_ERROR)
+        }
+        this.visitor.visitorCache = visitorCache
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error:any) {
+        logError(this.config, error.message || error, 'lookupVisitor')
+      }
+    }
+
+    protected async cacheVisitor ():Promise<void> {
+      try {
+        const visitorCacheInstance = this.config.visitorCacheImplementation
+        if (this.config.disableCache || this.decisionManager.isPanic() || !visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.cacheVisitor !== 'function') {
+          return
+        }
+        const data: VisitorSaveCacheDTO = {
+          version: VISITOR_CACHE_VERSION,
+          data: {
+            visitorId: this.visitor.visitorId,
+            anonymousId: this.visitor.anonymousId,
+            consent: this.visitor.hasConsented,
+            context: this.visitor.context,
+            campaigns: this.visitor.campaigns.map(campaign => {
+              return {
+                campaignId: campaign.id,
+                variationGroupId: campaign.variationGroupId,
+                variationId: campaign.variation.id,
+                isReference: campaign.variation.reference,
+                type: campaign.variation.modifications.type,
+                activated: false,
+                flags: campaign.variation.modifications.value
+              }
+            })
+          }
+        }
+        visitorCacheInstance.cacheVisitor(this.visitor.visitorId, JSON.stringify(data))
+        this.visitor.visitorCache = data
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error:any) {
+        logError(
+          this.config,
+          error.message || error,
+          'cacheVisitor'
+        )
+      }
+    }
+
+    protected async flushVisitor ():Promise<void> {
+      try {
+        const visitorCacheInstance = this.config.visitorCacheImplementation
+        if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.flushVisitor !== 'function') {
+          return
+        }
+        visitorCacheInstance.flushVisitor(this.visitor.visitorId)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error:any) {
+        logError(
+          this.config,
+          error.message || error,
+          'flushVisitor'
+        )
+      }
+    }
+
+    protected checKLookupHitData (item:HitCacheLookupDTO):boolean {
+      if (item && item.version === 1 && item.data && item.data.type && item.data.visitorId) {
+        return true
+      }
+      logError(this.config, LOOKUP_HITS_JSON_OBJECT_ERROR, 'lookupHits')
+      return false
+    }
+
+    async lookupHits ():Promise<void> {
+      try {
+        const hitCacheImplementation = this.config.hitCacheImplementation
+        if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.lookupHits !== 'function') {
+          return
+        }
+
+        const hitsCacheJson = hitCacheImplementation.lookupHits(this.visitor.visitorId)
+        if (!hitsCacheJson) {
+          return
+        }
+        const hitsCache:HitCacheLookupDTO[] = JSON.parse(hitsCacheJson)
+        if (!Array.isArray(hitsCache)) {
+          throw Error(LOOKUP_HITS_JSON_ERROR)
+        }
+
+        const checkHitTime = (time:number) => (((Date.now() - time) / 1000) <= DEFAULT_HIT_CACHE_TIME)
+
+        const batches:BatchDTO[] = [{
+          type: 'BATCH',
+          hits: []
+        }]
+        let batchSize = 0
+        let count = 0
+
+        hitsCache.filter(item => this.checKLookupHitData(item) && checkHitTime(item.data.time)).forEach((item) => {
+          if (item.data.type === 'ACTIVATE') {
+            this.sendActivate(item.data.content as Modification)
+            return
+          }
+          batchSize = JSON.stringify(batches[count]).length
+          if (batchSize > 2500) {
+            count++
+            batches[count] = {
+              type: 'BATCH',
+              hits: [item.data.content as IHit]
+            }
+          } else {
+            batches[count].hits.push(item.data.content as IHit)
+          }
+        })
+
+        if (batches.length === 1 && !batches[0].hits.length) {
+          return
+        }
+
+        this.sendHits(batches)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error:any) {
+        logError(this.config, error.message || error, 'lookupHits')
+      }
+    }
+
+    protected async cacheHit (hitInstance: HitAbstract|Modification):Promise<void> {
+      try {
+        const hitCacheImplementation = this.config.hitCacheImplementation
+        if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.cacheHit !== 'function') {
+          return
+        }
+        const hitData: HitCacheSaveDTO = {
+          version: HIT_CACHE_VERSION,
+          data: {
+            visitorId: this.visitor.visitorId,
+            anonymousId: this.visitor.anonymousId,
+            type: hitInstance instanceof HitAbstract ? hitInstance.type : 'ACTIVATE',
+            content: hitInstance instanceof HitAbstract ? hitInstance.toObject() : hitInstance,
+            time: Date.now()
+          }
+        }
+        hitCacheImplementation.cacheHit(this.visitor.visitorId, JSON.stringify(hitData))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error:any) {
+        logError(this.config, error.message || error, PROCESS_CACHE_HIT)
+      }
+    }
+
+    protected async flushHits (): Promise<void> {
+      try {
+        const hitCacheImplementation = this.config.hitCacheImplementation
+        if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.flushHits !== 'function') {
+          return
+        }
+
+        hitCacheImplementation.flushHits(this.visitor.visitorId)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error:any) {
+        logError(this.config, error.message || error, 'flushHits')
+      }
+    }
+
     abstract updateContext(context: Record<string, primitive>): void
     abstract clearContext (): void
 
@@ -55,22 +282,26 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     abstract getModificationInfoSync(key: string): Modification | null
 
     abstract synchronizeModifications (): Promise<void>
+    abstract fetchFlags(): Promise<void>
 
     abstract activateModification(key: string): Promise<void>;
 
     abstract activateModifications(keys: { key: string; }[]): Promise<void>;
     abstract activateModifications(keys: string[]): Promise<void>;
     abstract activateModifications (params: Array<{ key: string }> | Array<string>): Promise<void>
+    protected abstract sendActivate (modification: Modification): Promise<void>
 
+    abstract sendHit(hit: BatchDTO): Promise<void>
     abstract sendHit(hit: HitAbstract): Promise<void>;
     abstract sendHit(hit: IHit): Promise<void>;
     abstract sendHit(hit: HitShape): Promise<void>;
-    abstract sendHit(hit: IHit|HitAbstract|HitShape): Promise<void>;
+    abstract sendHit(hit: IHit | HitAbstract | HitShape|BatchDTO): Promise<void>;
 
+    abstract sendHits(hits: BatchDTO[]): Promise<void>
     abstract sendHits(hit: HitAbstract[]): Promise<void>;
     abstract sendHits(hit: IHit[]): Promise<void>;
     abstract sendHits(hit: HitShape[]): Promise<void>;
-    abstract sendHits (hit: HitAbstract[]|IHit[]|HitShape[]): Promise<void>
+    abstract sendHits (hits: HitAbstract[] | IHit[]|HitShape[]|BatchDTO[]): Promise<void>
 
     abstract getAllModifications (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 
@@ -78,12 +309,4 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
     abstract authenticate(visitorId: string): void
     abstract unauthenticate(): void
-
-    abstract lookupVisitor (): Promise<void>
-
-    protected abstract cacheVisitor ():Promise<void>
-
-    abstract lookupHits (): Promise<void>
-
-    protected abstract cacheHit (hitInstance: HitAbstract):Promise<void>
 }

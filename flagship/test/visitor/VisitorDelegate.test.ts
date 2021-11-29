@@ -22,6 +22,7 @@ const getModificationsSync = jest.fn()
 const getModificationInfo:Mock<Promise<Modification>, [key: string]> = jest.fn()
 const getModificationInfoSync = jest.fn()
 const synchronizeModifications:Mock<Promise<void>, []> = jest.fn()
+const fetchFlags:Mock<Promise<void>, []> = jest.fn()
 const activateModification:Mock<Promise<void>, [keys: string]> = jest.fn()
 const activateModifications:Mock<Promise<void>, [keys: string[]]> = jest.fn()
 const activateModificationSync:Mock<void, [keys: string]> = jest.fn()
@@ -75,7 +76,8 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         unauthenticate,
         updateCampaigns,
         lookupVisitor,
-        lookupHits
+        lookupHits,
+        fetchFlags
       }
     })
   }
@@ -324,6 +326,14 @@ describe('test VisitorDelegate methods', () => {
     visitorDelegate.synchronizeModifications()
       .then(() => {
         expect(synchronizeModifications).toBeCalledTimes(1)
+      })
+  })
+
+  it('test synchronizeModifications', () => {
+    fetchFlags.mockResolvedValue()
+    visitorDelegate.fetchFlags()
+      .then(() => {
+        expect(fetchFlags).toBeCalledTimes(1)
       })
   })
 

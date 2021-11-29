@@ -93,8 +93,15 @@ export interface IVisitor {
   /**
    * This function calls the decision api and update all the campaigns modifications
    * from the server according to the visitor context.
+   * @deprecated use fetchFlags instead
    */
   synchronizeModifications(): Promise<void>;
+
+   /**
+   * This function calls the decision api and update all the campaigns modifications
+   * from the server according to the visitor context.
+   */
+  fetchFlags(): Promise<void>;
 
   /**
    * Report this user has seen this modification.

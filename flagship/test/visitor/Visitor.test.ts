@@ -199,6 +199,15 @@ describe('test visitor', () => {
       })
   })
 
+  it('test fetchFlags', () => {
+    const fetchFlags = jest.spyOn(visitorDelegate, 'fetchFlags')
+    fetchFlags.mockResolvedValue()
+    visitor.fetchFlags()
+      .then(() => {
+        expect(fetchFlags).toBeCalledTimes(1)
+      })
+  })
+
   it('test activateModification', () => {
     const activateModification = jest.spyOn(visitorDelegate, 'activateModification')
     activateModification.mockResolvedValue()

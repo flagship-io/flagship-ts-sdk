@@ -10,8 +10,8 @@ import { Mock } from 'jest-mock'
 import { IHitCacheImplementation } from '../../src/hit/IHitCacheImplementation'
 import { HitCacheSaveDTO, HitCacheLookupDTO } from '../../src/models/HitDTO'
 import { HIT_CACHE_VERSION, SDK_APP } from '../../src/enum'
-import { LOOKUP_HITS_JSON_ERROR, LOOKUP_HITS_JSON_OBJECT_ERROR } from '../../src/visitor/DefaultStrategy'
 import { sleep } from '../../src/utils/utils'
+import { LOOKUP_HITS_JSON_ERROR, LOOKUP_HITS_JSON_OBJECT_ERROR } from '../../src/visitor/VisitorStrategyAbstract'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getUndefined = ():any => undefined

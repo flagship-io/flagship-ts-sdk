@@ -41,6 +41,10 @@ export class VisitorDelegate extends VisitorAbstract {
     return this.getStrategy().synchronizeModifications()
   }
 
+  fetchFlags ():Promise<void> {
+    return this.getStrategy().fetchFlags()
+  }
+
   activateModification (key: string): Promise<void> {
     return this.getStrategy().activateModification(key)
   }

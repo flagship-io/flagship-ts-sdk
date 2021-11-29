@@ -90,6 +90,10 @@ export class Visitor extends EventEmitter implements IVisitor {
     return this.visitorDelegate.synchronizeModifications()
   }
 
+  fetchFlags ():Promise<void> {
+    return this.visitorDelegate.fetchFlags()
+  }
+
   activateModification (key: string): Promise<void> {
     return this.visitorDelegate.activateModification(key)
   }

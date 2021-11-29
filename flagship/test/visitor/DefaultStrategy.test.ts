@@ -167,6 +167,23 @@ describe('test DefaultStrategy ', () => {
     }
   })
 
+  it('test fetchFlags', async () => {
+    try {
+      visitorDelegate.on('ready', (err) => {
+        expect(err).toBeUndefined()
+      })
+      getCampaignsAsync.mockResolvedValue(campaignDTO)
+      getModifications.mockReturnValue(returnModification)
+      await defaultStrategy.fetchFlags()
+      expect(getCampaignsAsync).toBeCalledTimes(1)
+      expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
+      expect(getModifications).toBeCalledTimes(1)
+      expect(getModifications).toBeCalledWith(campaignDTO)
+    } catch (error) {
+      expect(logError).toBeCalled()
+    }
+  })
+
   const testModificationType = async <T>(
     key: string,
     defaultValue: T,
