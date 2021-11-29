@@ -1,4 +1,4 @@
-import { IHit, Modification } from '..'
+import { IHit, FlagDTO } from '..'
 import { HitType } from '../enum/index'
 
 export type HitCache ={
@@ -19,6 +19,6 @@ export type HitCacheSaveDTO = HitCache & {
 
 export type HitCacheLookupDTO = HitCache & {
     data:{
-        content?:IHit|Modification
+        content?:IHit|FlagDTO
     }
 }

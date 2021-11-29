@@ -1,6 +1,6 @@
 import { IFlagshipConfig } from '../config/FlagshipConfig'
 import { HitAbstract } from '../hit/HitAbstract'
-import { Modification } from '../types'
+import { FlagDTO } from '../types'
 import { IHttpClient } from '../utils/HttpClient'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 
@@ -10,7 +10,7 @@ export interface ITrackingManager {
    * @param visitor
    * @param modification
    */
-  sendActive(visitor: VisitorAbstract, modification: Modification): Promise<void>;
+  sendActive(visitor: VisitorAbstract, modification: FlagDTO): Promise<void>;
   /**
    *Send a Hit to Flagship servers for reporting.
    * @param hit
@@ -40,7 +40,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
   public abstract sendActive(
     visitor: VisitorAbstract,
-    modification: Modification
+    modification: FlagDTO
   ): Promise<void>;
 
   public abstract sendHit(hit: HitAbstract): Promise<void>;
