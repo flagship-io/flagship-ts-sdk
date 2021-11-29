@@ -1,8 +1,10 @@
-import { Modification } from '../index'
+import { FlagDTO } from '../index'
 import { HitAbstract, HitShape } from '../hit/index'
 import { primitive, modificationsRequested, IHit } from '../types'
 import { VisitorAbstract } from './VisitorAbstract'
 import { CampaignDTO } from '../decision/api/models'
+import { Flag, IFlag } from '../Flag/Flags'
+import { IFlagMetadata } from '../Flag/FlagMetadata'
 
 export class VisitorDelegate extends VisitorAbstract {
   updateContext (context: Record<string, primitive>): void {
@@ -11,6 +13,11 @@ export class VisitorDelegate extends VisitorAbstract {
 
   clearContext (): void {
     this.getStrategy().clearContext()
+  }
+
+  getFlag (key:string):IFlag {
+    const flag = this.flags.get(key)
+    return new Flag(key, this, flag)
   }
 
   getModification<T> (params: modificationsRequested<T>): Promise<T> {
@@ -29,20 +36,16 @@ export class VisitorDelegate extends VisitorAbstract {
     return this.getStrategy().getModificationsSync(params, activateAll)
   }
 
-  getModificationInfo (key: string): Promise<Modification | null> {
+  getModificationInfo (key: string): Promise<FlagDTO | null> {
     return this.getStrategy().getModificationInfo(key)
   }
 
-  getModificationInfoSync (key: string): Modification | null {
+  getModificationInfoSync (key: string): FlagDTO | null {
     return this.getStrategy().getModificationInfoSync(key)
   }
 
   synchronizeModifications (): Promise<void> {
     return this.getStrategy().synchronizeModifications()
-  }
-
-  fetchFlags ():Promise<void> {
-    return this.getStrategy().fetchFlags()
   }
 
   activateModification (key: string): Promise<void> {
@@ -75,8 +78,16 @@ export class VisitorDelegate extends VisitorAbstract {
     return this.getStrategy().getAllModifications(activate)
   }
 
+  getAllFlags (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+    return this.getStrategy().getAllFlags(activate)
+  }
+
   getModificationsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
     return this.getStrategy().getModificationsForCampaign(campaignId, activate)
+  }
+
+  getFlatsForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+    return this.getStrategy().getFlatsForCampaign(campaignId, activate)
   }
 
   authenticate (visitorId: string): void {
@@ -87,5 +98,21 @@ export class VisitorDelegate extends VisitorAbstract {
   unauthenticate (): void {
     this.getStrategy().unauthenticate()
     this.updateCache()
+  }
+
+  fetchFlags ():Promise<void> {
+    return this.getStrategy().fetchFlags()
+  }
+
+  userExposed (key:string, flag?: FlagDTO): Promise<void> {
+    return this.getStrategy().userExposed(key, flag)
+  }
+
+  getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}):T {
+    return this.getStrategy().getFlagValue(param)
+  }
+
+  getFlagMetadata (metadata:IFlagMetadata):IFlagMetadata|null {
+    return this.getStrategy().getFlagMetadata(metadata)
   }
 }

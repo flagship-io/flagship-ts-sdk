@@ -1,6 +1,6 @@
-import { Modification } from '../index'
+import { FlagDTO } from '../index'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
-import { IHit, modificationsRequested, primitive } from '../types'
+import { IHit, Modification, modificationsRequested, NewVisitor, primitive } from '../types'
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
 import { FlagshipStatus, SDK_LANGUAGE, SDK_VERSION, VISITOR_ID_ERROR } from '../enum/index'
@@ -15,11 +15,13 @@ import { PanicStrategy } from './PanicStrategy'
 import { NoConsentStrategy } from './NoConsentStrategy'
 import { cacheVisitor } from './VisitorCache'
 import { VisitorLookupCacheDTO } from '../models/visitorDTO'
+import { IFlag } from '../Flag/Flags'
+import { IFlagMetadata } from '../Flag/FlagMetadata'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _visitorId!: string;
     protected _context: Record<string, primitive>;
-    protected _modifications!: Map<string, Modification>;
+    protected _flags!: Map<string, FlagDTO>;
     protected _configManager: IConfigManager;
     protected _campaigns!: CampaignDTO[];
     protected _hasConsented!:boolean;
@@ -29,16 +31,12 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     public visitorCache!: VisitorLookupCacheDTO
     protected _strategy!:VisitorStrategyAbstract
 
-    constructor (param: {
-        visitorId?: string|null,
-        isAuthenticated?:boolean,
-        hasConsented?: boolean
-        context: Record<string, primitive>,
-        configManager: IConfigManager,
-        initialCampaigns?: CampaignDTO[]
-        initialModifications?: Map<string, Modification>| Modification[]
-      }) {
-      const { visitorId, configManager, context, isAuthenticated, hasConsented, initialModifications, initialCampaigns } = param
+    constructor (param: NewVisitor& {
+      visitorId?: string
+      configManager: IConfigManager
+      context: Record<string, primitive>
+    }) {
+      const { visitorId, configManager, context, isAuthenticated, hasConsented, initialModifications, initialFlags, initialCampaigns } = param
       super()
       this._isCleaningDeDuplicationCache = false
       this.deDuplicationCache = {}
@@ -60,7 +58,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
         this._anonymousId = this.uuidV4()
       }
       this.updateCache()
-      this.setInitialModifications(initialModifications)
+      this.setInitialFlags(initialFlags || initialModifications)
       this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
 
       this.getStrategy().lookupVisitor()
@@ -84,16 +82,21 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     public getModificationsArray (): Modification[] {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      return Array.from(this._modifications, ([_key, item]) => item)
+      return Array.from(this._flags, ([_, item]) => item)
     }
 
-    protected setInitialModifications (modifications?:Map<string, Modification>| Modification[]):void {
-      this._modifications = new Map<string, Modification>()
+    public getFlagsArray (): FlagDTO[] {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      return Array.from(this._flags, ([_, item]) => item)
+    }
+
+    protected setInitialFlags (modifications?:Map<string, FlagDTO>| FlagDTO[]):void {
+      this._flags = new Map<string, FlagDTO>()
       if (!modifications || (!(modifications instanceof Map) && !Array.isArray(modifications))) {
         return
       }
       modifications.forEach(item => {
-        this._modifications.set(item.key, item)
+        this._flags.set(item.key, item)
       })
     }
 
@@ -180,12 +183,20 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this.updateContext(v)
     }
 
+    public get flags (): Map<string, FlagDTO> {
+      return this._flags
+    }
+
+    public set flags (v:Map<string, FlagDTO>) {
+      this._flags = v
+    }
+
     public get modifications (): Map<string, Modification> {
-      return this._modifications
+      return this._flags
     }
 
     public set modifications (v:Map<string, Modification>) {
-      this._modifications = v
+      this._flags = v
     }
 
     get configManager (): IConfigManager {
@@ -233,6 +244,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     abstract getModification<T>(params: modificationsRequested<T>): Promise<T>;
     abstract getModificationSync<T>(params: modificationsRequested<T>): T
 
+    abstract getFlag(key:string):IFlag
+
     abstract getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<Record<string, T>>
     abstract getModificationsSync<T> (params: modificationsRequested<T>[], activateAll?: boolean): Record<string, T>
 
@@ -241,7 +254,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     abstract getModificationInfoSync (key: string): Modification | null
 
     abstract synchronizeModifications (): Promise<void>
-    abstract fetchFlags(): Promise<void>
 
     abstract activateModification(key: string): Promise<void>;
 
@@ -263,6 +275,15 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     abstract getModificationsForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 
+    abstract getAllFlags (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
+
+    abstract getFlatsForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
+
     abstract authenticate(visitorId: string): void
     abstract unauthenticate(): void
+
+    abstract userExposed(key:string, flag?:FlagDTO):Promise<void>
+    abstract getFlagValue<T>(param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}):T
+    abstract fetchFlags(): Promise<void>
+    abstract getFlagMetadata(metadata:IFlagMetadata):IFlagMetadata|null
 }

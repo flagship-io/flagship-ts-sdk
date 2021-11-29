@@ -1,5 +1,5 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { Modification } from '../../src'
+import { FlagDTO } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager, DecisionApiConfig, FlagshipConfig } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
@@ -19,7 +19,7 @@ const getModification:Mock<Promise<unknown>, [params: modificationsRequested<unk
 const getModificationSync = jest.fn()
 const getModifications:Mock<Promise<Record<string, unknown>>, [params: modificationsRequested<unknown>[], activateAll?: boolean]> = jest.fn()
 const getModificationsSync = jest.fn()
-const getModificationInfo:Mock<Promise<Modification>, [key: string]> = jest.fn()
+const getModificationInfo:Mock<Promise<FlagDTO>, [key: string]> = jest.fn()
 const getModificationInfoSync = jest.fn()
 const synchronizeModifications:Mock<Promise<void>, []> = jest.fn()
 const fetchFlags:Mock<Promise<void>, []> = jest.fn()
@@ -138,7 +138,7 @@ describe('test VisitorDelegate', () => {
   })
 
   it('test empty visitorId', () => {
-    const visitorDelegate = new VisitorDelegate({ visitorId: null, context, configManager })
+    const visitorDelegate = new VisitorDelegate({ context, configManager })
     expect(visitorDelegate.visitorId).toBeDefined()
     expect(visitorDelegate.visitorId).toHaveLength(17)
   })
@@ -154,7 +154,7 @@ describe('test VisitorDelegate', () => {
   })
 
   it('test modification', () => {
-    expect(visitorDelegate.modifications.size).toBe(0)
+    expect(visitorDelegate.flags.size).toBe(0)
     const modification = {
       key: 'newKey',
       campaignId: 'cma',
@@ -164,8 +164,8 @@ describe('test VisitorDelegate', () => {
       value: 'value'
     }
     const newModification = new Map([['key', modification]])
-    visitorDelegate.modifications = newModification
-    expect(visitorDelegate.modifications).toEqual(newModification)
+    visitorDelegate.flags = newModification
+    expect(visitorDelegate.flags).toEqual(newModification)
     expect(visitorDelegate.getModificationsArray()).toEqual([modification])
   })
 
@@ -200,7 +200,7 @@ describe('test VisitorDelegate', () => {
 
     expect(visitorDelegate.anonymousId).toBeNull()
 
-    visitorDelegate.modifications.set('newKey', {
+    visitorDelegate.flags.set('newKey', {
       key: 'newKey',
       campaignId: 'cma',
       variationGroupId: 'var',
@@ -307,7 +307,7 @@ describe('test VisitorDelegate methods', () => {
   })
 
   it('test getModificationInfo', () => {
-    getModificationInfo.mockResolvedValue({} as Modification)
+    getModificationInfo.mockResolvedValue({} as FlagDTO)
     visitorDelegate.getModificationInfo('key').then(() => {
       expect(getModificationInfo).toBeCalledTimes(1)
       expect(getModificationInfo).toBeCalledWith('key')
@@ -315,7 +315,7 @@ describe('test VisitorDelegate methods', () => {
   })
 
   it('test getModificationInfoSync', () => {
-    getModificationInfoSync.mockReturnValue({} as Modification)
+    getModificationInfoSync.mockReturnValue({} as FlagDTO)
     visitorDelegate.getModificationInfoSync('key')
     expect(getModificationInfoSync).toBeCalledTimes(1)
     expect(getModificationInfoSync).toBeCalledWith('key')
@@ -478,7 +478,7 @@ describe('test initialModifications', () => {
       initialModifications: newModification
     })
 
-    expect(visitorDelegate.modifications).toEqual(newModification)
+    expect(visitorDelegate.flags).toEqual(newModification)
   })
 
   it('should initialModifications with Array', () => {
@@ -499,7 +499,7 @@ describe('test initialModifications', () => {
       initialModifications: [modification]
     })
 
-    expect(visitorDelegate.modifications).toEqual(newModification)
+    expect(visitorDelegate.flags).toEqual(newModification)
   })
 
   it('should initialModifications with plain objet', () => {
@@ -520,7 +520,7 @@ describe('test initialModifications', () => {
       initialModifications: [modification]
     })
 
-    expect(visitorDelegate.modifications).toEqual(newModification)
+    expect(visitorDelegate.flags).toEqual(newModification)
   })
 
   it('should initialModifications with Array', () => {
@@ -532,6 +532,6 @@ describe('test initialModifications', () => {
       initialModifications: {} as []
     })
 
-    expect(visitorDelegate.modifications.size).toBe(0)
+    expect(visitorDelegate.flags.size).toBe(0)
   })
 })

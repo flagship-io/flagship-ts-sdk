@@ -7,7 +7,7 @@ import { IHttpResponse, IHttpOptions, HttpClient } from '../../src/utils/HttpCli
 import { Mock } from 'jest-mock'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { Visitor } from '../../src/visitor/Visitor'
-import { HitType, Modification } from '../../src'
+import { HitType, FlagDTO } from '../../src'
 import { EMIT_READY, SDK_LANGUAGE, SDK_VERSION } from '../../src/enum'
 import { CampaignDTO } from '../../src/decision/api/models'
 
@@ -68,7 +68,7 @@ describe('test visitor', () => {
 
     expect(visitor.context).toEqual({ ...context, ...predefinedContext })
 
-    visitorDelegate.modifications.set('newKey', {
+    visitorDelegate.flags.set('newKey', {
       key: 'newKey',
       campaignId: 'cma',
       variationGroupId: 'var',
@@ -77,7 +77,7 @@ describe('test visitor', () => {
       value: 'value'
     })
 
-    expect(visitor.modifications).toBe(visitorDelegate.modifications)
+    expect(visitor.flags).toBe(visitorDelegate.flags)
   })
 
   it('test updateContext', () => {
@@ -175,7 +175,7 @@ describe('test visitor', () => {
 
   it('test getModificationInfo', () => {
     const getModificationInfo = jest.spyOn(visitorDelegate, 'getModificationInfo')
-    getModificationInfo.mockResolvedValue({} as Modification)
+    getModificationInfo.mockResolvedValue({} as FlagDTO)
     visitor.getModificationInfo('key').then(() => {
       expect(getModificationInfo).toBeCalledTimes(1)
       expect(getModificationInfo).toBeCalledWith('key')
@@ -184,7 +184,7 @@ describe('test visitor', () => {
 
   it('test getModificationInfoSync', () => {
     const getModificationInfoSync = jest.spyOn(visitorDelegate, 'getModificationInfoSync')
-    getModificationInfoSync.mockReturnValue({} as Modification)
+    getModificationInfoSync.mockReturnValue({} as FlagDTO)
     visitor.getModificationInfoSync('key')
     expect(getModificationInfoSync).toBeCalledTimes(1)
     expect(getModificationInfoSync).toBeCalledWith('key')

@@ -1,4 +1,4 @@
-import { HitShape, IHit, Modification, modificationsRequested, primitive } from '../types'
+import { HitShape, IHit, FlagDTO, modificationsRequested, primitive } from '../types'
 import { EventEmitter } from '../nodeDeps'
 import { IVisitor } from './IVisitor'
 import { IFlagshipConfig } from '../config/index'
@@ -6,6 +6,7 @@ import { EMIT_READY } from '../enum/index'
 import { CampaignDTO } from '../decision/api/models'
 import { HitAbstract } from '../hit/HitAbstract'
 import { VisitorAbstract } from './VisitorAbstract'
+import { IFlag } from '../Flag/Flags'
 
 export class Visitor extends EventEmitter implements IVisitor {
   private visitorDelegate:VisitorAbstract
@@ -18,8 +19,12 @@ export class Visitor extends EventEmitter implements IVisitor {
     })
   }
 
-  getModificationsArray (): Modification[] {
+  getModificationsArray (): FlagDTO[] {
     return this.visitorDelegate.getModificationsArray()
+  }
+
+  getFlagsArray (): FlagDTO[] {
+    return this.visitorDelegate.getFlagsArray()
   }
 
   public get visitorId () : string {
@@ -50,8 +55,12 @@ export class Visitor extends EventEmitter implements IVisitor {
     return this.visitorDelegate.context
   }
 
-  public get modifications (): Map<string, Modification> {
-    return this.visitorDelegate.modifications
+  public get flags (): Map<string, FlagDTO> {
+    return this.visitorDelegate.flags
+  }
+
+  public get modifications (): Map<string, FlagDTO> {
+    return this.visitorDelegate.flags
   }
 
   public updateContext (context: Record<string, primitive>): void {
@@ -60,6 +69,10 @@ export class Visitor extends EventEmitter implements IVisitor {
 
   public clearContext (): void {
     this.visitorDelegate.clearContext()
+  }
+
+  getFlag (key:string):IFlag {
+    return this.visitorDelegate.getFlag(key)
   }
 
   getModification<T> (params: modificationsRequested<T>): Promise<T> {
@@ -78,11 +91,11 @@ export class Visitor extends EventEmitter implements IVisitor {
     return this.visitorDelegate.getModificationsSync(params, activateAll)
   }
 
-  getModificationInfo (key: string): Promise<Modification | null> {
+  getModificationInfo (key: string): Promise<FlagDTO | null> {
     return this.visitorDelegate.getModificationInfo(key)
   }
 
-  getModificationInfoSync (key: string): Modification | null {
+  getModificationInfoSync (key: string): FlagDTO | null {
     return this.visitorDelegate.getModificationInfoSync(key)
   }
 
@@ -127,6 +140,14 @@ export class Visitor extends EventEmitter implements IVisitor {
 
   getModificationsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
     return this.visitorDelegate.getModificationsForCampaign(campaignId, activate)
+  }
+
+  getAllFlags (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+    return this.visitorDelegate.getAllFlags(activate)
+  }
+
+  getFlatsForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+    return this.visitorDelegate.getFlatsForCampaign(campaignId, activate)
   }
 
   authenticate (visitorId: string): void {
