@@ -1,15 +1,15 @@
-import { Modification } from '../index'
+import { FlagDTO } from '../index'
 import { FlagshipStatus, METHOD_DEACTIVATED_ERROR } from '../enum/index'
 import { IHit, modificationsRequested } from '../types'
 import { logError, sprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
 import { HitAbstract, HitShape } from '../hit/index'
 import { BatchDTO } from '../hit/Batch'
+import { IFlagMetadata } from '../Flag/FlagMetadata'
 
 export class NotReadyStrategy extends DefaultStrategy {
-  synchronizeModifications (): Promise<void> {
+  async synchronizeModifications (): Promise<void> {
     this.log('synchronizeModifications')
-    return Promise.resolve()
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -41,7 +41,7 @@ export class NotReadyStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getModificationInfoSync (_key: string): Modification | null {
+  public getModificationInfoSync (_key: string): FlagDTO | null {
     this.log('getModificationInfo')
     return null
   }
@@ -66,6 +66,24 @@ export class NotReadyStrategy extends DefaultStrategy {
   sendHits (_hits: HitAbstract[] | IHit[] | HitShape[]|BatchDTO[]): Promise<void> {
     this.log('sendHits')
     return Promise.resolve()
+  }
+
+  async fetchFlags ():Promise<void> {
+    this.log('fetchFlags')
+  }
+
+  getFlagValue <T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}): T {
+    this.log('Flag.value')
+    return param.defaultValue
+  }
+
+  async userExposed (): Promise<void> {
+    this.log('userExposed')
+  }
+
+  getFlagMetadata ():IFlagMetadata|null {
+    this.log('flag.metadata')
+    return null
   }
 
   private log (methodName:string) {

@@ -1,6 +1,6 @@
-import { Modification } from '../../src/types'
+import { FlagDTO } from '../../src/types'
 
-export const returnModification = new Map<string, Modification>([
+export const returnModification = new Map<string, FlagDTO>([
   [
     'keyNull',
 

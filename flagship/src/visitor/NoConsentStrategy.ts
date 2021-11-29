@@ -49,6 +49,10 @@ export class NoConsentStrategy extends DefaultStrategy {
     return Promise.resolve()
   }
 
+  async userExposed (): Promise<void> {
+    this.log('userExposed')
+  }
+
   private log (methodName:string) {
     logError(this.config, sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, this.visitor.visitorId), methodName)
   }

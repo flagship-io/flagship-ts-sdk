@@ -1,9 +1,12 @@
-import { Modification } from '../index'
+import { FlagDTO } from '../index'
 import {
   CONTEXT_NULL_ERROR,
   CONTEXT_PARAM_ERROR,
   EMIT_READY,
   FLAGSHIP_VISITOR_NOT_AUTHENTICATE,
+  GET_FLAG_CAST_ERROR,
+  GET_FLAG_ERROR,
+  GET_FLAG_MISSING_ERROR,
   GET_MODIFICATION_CAST_ERROR,
   GET_MODIFICATION_ERROR,
   GET_MODIFICATION_KEY_ERROR,
@@ -43,6 +46,7 @@ import { DecisionMode } from '../config/index'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
 import { VisitorDelegate } from '.'
 import { Batch, BATCH, BatchDTO } from '../hit/Batch'
+import { IFlagMetadata } from '../Flag/FlagMetadata'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 
@@ -141,7 +145,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return defaultValue
     }
 
-    const modification = this.visitor.modifications.get(key)
+    const modification = this.visitor.flags.get(key)
     if (!modification) {
       logInfo(
         this.config,
@@ -210,11 +214,11 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return this.checkAndGetModification(params)
   }
 
-  async getModificationInfo (key: string): Promise<Modification | null> {
+  async getModificationInfo (key: string): Promise<FlagDTO | null> {
     return this.getModificationInfoSync(key)
   }
 
-  public getModificationInfoSync (key: string): Modification | null {
+  public getModificationInfoSync (key: string): FlagDTO | null {
     if (!key || typeof key !== 'string') {
       logError(
         this.visitor.config,
@@ -224,7 +228,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return null
     }
 
-    const modification = this.visitor.modifications.get(key)
+    const modification = this.visitor.flags.get(key)
 
     if (!modification) {
       logError(
@@ -271,7 +275,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         campaigns = this.fetchVisitorCampaigns(this.visitor)
       }
       this.visitor.campaigns = campaigns
-      this.visitor.modifications = this.decisionManager.getModifications(
+      this.visitor.flags = this.decisionManager.getModifications(
         this.visitor.campaigns
       )
       this.cacheVisitor()
@@ -295,6 +299,73 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return this.globalFetchFlags('fetchFlags')
   }
 
+  async userExposed (key:string, flag?: FlagDTO): Promise<void> {
+    const functionName = 'userExposed'
+    if (!flag) {
+      logError(
+        this.visitor.config,
+        sprintf(GET_FLAG_ERROR, key),
+        functionName
+      )
+      return
+    }
+
+    if (this.isDeDuplicated(key, this.config.activateDeduplicationTime as number)) {
+      return
+    }
+
+    if (!this.hasTrackingManager(functionName)) {
+      return
+    }
+
+    return this.sendActivate(flag, functionName)
+  }
+
+  getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}): T {
+    const { key, defaultValue, flag, userExposed } = param
+    const functionName = 'getFlag value'
+    if (!flag) {
+      logInfo(
+        this.config,
+        sprintf(GET_FLAG_MISSING_ERROR, key),
+        functionName
+      )
+      return defaultValue
+    }
+    const castError = () => {
+      logInfo(
+        this.config,
+        sprintf(GET_FLAG_CAST_ERROR, key),
+        functionName
+      )
+
+      if (!flag.value && userExposed) {
+        this.userExposed(key, flag)
+      }
+    }
+
+    if (typeof flag.value === 'object' && typeof defaultValue === 'object' &&
+      Array.isArray(flag.value) !== Array.isArray(defaultValue)
+    ) {
+      castError()
+      return defaultValue
+    }
+
+    if (typeof flag.value !== typeof defaultValue) {
+      castError()
+      return defaultValue
+    }
+
+    if (userExposed) {
+      this.userExposed(key, flag)
+    }
+    return flag.value
+  }
+
+  getFlagMetadata (metadata:IFlagMetadata):IFlagMetadata|null {
+    return metadata
+  }
+
   async activateModification (params: string): Promise<void> {
     if (!params || typeof params !== 'string') {
       logError(
@@ -309,9 +380,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   activateModifications(keys: { key: string }[]): Promise<void>
   activateModifications(keys: string[]): Promise<void>
-  async activateModifications (
-    params: string[] | { key: string }[]
-  ): Promise<void> {
+  async activateModifications (params: string[] | { key: string }[]): Promise<void> {
     if (!params || !Array.isArray(params)) {
       logError(
         this.config,
@@ -333,6 +402,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
 
     const deDuplicationCache = this.visitor.deDuplicationCache[key]
+
     if (deDuplicationCache && (Date.now() - deDuplicationCache) <= (deDuplicationTime * 1000)) {
       return true
     }
@@ -342,12 +412,12 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return false
   }
 
-  protected async sendActivate (modification: Modification):Promise<void> {
+  protected async sendActivate (modification: FlagDTO, functionName = PROCESS_ACTIVE_MODIFICATION):Promise<void> {
     try {
       await this.trackingManager.sendActive(this.visitor, modification)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logError(this.config, error.message || error, PROCESS_ACTIVE_MODIFICATION)
+      logError(this.config, error.message || error, functionName)
       this.cacheHit(modification)
     }
   }
@@ -357,9 +427,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
-    const modification = this.visitor.modifications.get(key)
+    const flag = this.visitor.flags.get(key)
 
-    if (!modification) {
+    if (!flag) {
       logError(
         this.visitor.config,
         sprintf(GET_MODIFICATION_ERROR, key),
@@ -372,7 +442,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
-    await this.sendActivate(modification)
+    await this.sendActivate(flag)
   }
 
   sendHit(hit: BatchDTO): Promise<void>
@@ -536,8 +606,12 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     visitorId: string
     campaigns: CampaignDTO[]
   }> {
+    return this.getAllFlags(activate)
+  }
+
+  async getAllFlags (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
     if (activate) {
-      this.visitor.modifications.forEach((_, key) => {
+      this.visitor.flags.forEach((_, key) => {
         this.activateModification(key)
       })
     }
@@ -554,15 +628,13 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
    * @deprecated
    * @returns
    */
-  public async getModificationsForCampaign (
-    campaignId: string,
-    activate = false
-  ): Promise<{
-    visitorId: string
-    campaigns: CampaignDTO[]
-  }> {
+  public async getModificationsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[]}> {
+    return this.getFlatsForCampaign(campaignId, activate)
+  }
+
+  async getFlatsForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
     if (activate) {
-      this.visitor.modifications.forEach((value) => {
+      this.visitor.flags.forEach((value) => {
         if (value.campaignId === campaignId) {
           this.activateModification(value.key)
         }

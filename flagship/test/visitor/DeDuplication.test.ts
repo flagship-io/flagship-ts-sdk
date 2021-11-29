@@ -71,6 +71,31 @@ describe('Name of the group', () => {
     expect(sendActive).toBeCalledTimes(2)
   })
 
+  it('test userExposed ', async () => {
+    const flag = {
+      key: 'keyNull',
+      campaignId: 'c2nrh1hjg50l9thhu8bg',
+      variationGroupId: 'c2nrh1hjg50l9thhu8cg',
+      variationId: 'c2nrh1hjg50l9thhu8dg',
+      isReference: false,
+      value: null
+    }
+    const flag2 = {
+      key: 'keyNumber2',
+      campaignId: 'c2nrh1hjg50l9thhu8bg',
+      variationGroupId: 'c2nrh1hjg50l9thhu8cg',
+      variationId: 'c2nrh1hjg50l9thhu8dg',
+      isReference: false,
+      value: null
+    }
+    await defaultStrategy.userExposed(flag.key, flag)
+    await defaultStrategy.userExposed(flag.key, flag)
+    await defaultStrategy.userExposed(flag.key, flag)
+    await defaultStrategy.userExposed(flag2.key, flag2)
+    await defaultStrategy.userExposed(flag2.key, flag2)
+    expect(sendActive).toBeCalledTimes(2)
+  })
+
   it('test sendHitAsync with literal object Event ', async () => {
     try {
       const hit = {
