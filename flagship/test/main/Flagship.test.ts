@@ -9,9 +9,11 @@ import {
   SDK_STARTED_INFO,
   SDK_VERSION
 } from '../../src/enum/index'
+import { DefaultHitCache } from '../../src/hit/DefaultHitCache'
 import { Flagship } from '../../src/main/Flagship'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { sprintf } from '../../src/utils/utils'
+import { sleep, sprintf } from '../../src/utils/utils'
+import { DefaultVisitorCache } from '../../src/visitor/DefaultVisitorCache'
 import { Visitor } from '../../src/visitor/Visitor'
 
 const getCampaignsAsync = jest.fn().mockReturnValue(Promise.resolve([]))
@@ -38,6 +40,9 @@ describe('test Flagship class', () => {
   const apiKey = 'apiKey'
 
   it('should ', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    global.window = global.window = jest.fn() as any
+
     Flagship.start(envId, apiKey)
 
     expect(Flagship.getConfig()).toBeDefined()
@@ -49,6 +54,11 @@ describe('test Flagship class', () => {
     expect(Flagship.getStatus()).toBe(FlagshipStatus.READY)
     expect(Flagship.getConfig().logManager).toBeInstanceOf(FlagshipLogManager)
     expect(Flagship.getConfig().decisionMode).toBe(DecisionMode.DECISION_API)
+    expect(Flagship.getConfig().visitorCacheImplementation).toBeInstanceOf(DefaultVisitorCache)
+    expect(Flagship.getConfig().hitCacheImplementation).toBeInstanceOf(DefaultHitCache)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    global.window = (() => undefined)() as any
   })
 })
 
@@ -133,7 +143,7 @@ const getNull = (): any => {
 }
 
 describe('test Flagship newVisitor', () => {
-  it('should ', () => {
+  it('should ', async () => {
     Flagship.start('envId', 'apiKey')
     const visitorId = 'visitorId'
     const context = { isVip: true }
@@ -154,6 +164,7 @@ describe('test Flagship newVisitor', () => {
     const newVisitor = Flagship.newVisitor({ visitorId })
     expect(newVisitor?.context).toEqual({ ...predefinedContext })
 
+    await sleep(500)
     expect(getCampaignsAsync).toBeCalledTimes(3)
     expect(getCampaignsAsync).toBeCalledWith(expect.objectContaining({ visitorId: visitor?.visitorId, context: visitor?.context }))
 

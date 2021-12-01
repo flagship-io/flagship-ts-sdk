@@ -30,12 +30,17 @@ export class HttpClient implements IHttpClient {
       body = JSON.parse(body)
     }
 
-    if (!response.ok) {
+    if (response.status >= 400) {
       throw new Error(body || response.statusText)
     }
+    const headers:Record<string, string> = {}
+    response.headers.forEach((value, key) => {
+      headers[key] = value
+    })
     return {
       status: response.status,
-      body: body
+      body: body,
+      headers
     }
   }
 

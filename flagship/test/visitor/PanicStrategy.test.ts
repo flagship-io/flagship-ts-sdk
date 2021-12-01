@@ -1,12 +1,17 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { DecisionApiConfig } from '../../src'
+import { DecisionApiConfig, VisitorLookupCacheDTO, VisitorSaveCacheDTO } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
-import { DecisionManager } from '../../src/decision/DecisionManager'
-import { FlagshipStatus, HitType, METHOD_DEACTIVATED_ERROR, METHOD_DEACTIVATED_SEND_CONSENT_ERROR } from '../../src/enum'
+import { ApiManager } from '../../src/decision/ApiManager'
+import { FlagshipStatus, HitType, METHOD_DEACTIVATED_ERROR, METHOD_DEACTIVATED_SEND_CONSENT_ERROR, VISITOR_CACHE_VERSION } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
+import { HttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
 import { VisitorDelegate, PanicStrategy } from '../../src/visitor'
+import { campaigns } from '../decision/campaigns'
+
+import { Mock } from 'jest-mock'
+import { IVisitorCacheImplementation } from '../../src/visitor/IVisitorCacheImplementation '
 
 describe('test NotReadyStrategy', () => {
   const visitorId = 'visitorId'
@@ -15,13 +20,30 @@ describe('test NotReadyStrategy', () => {
     isVip: true
   }
 
+  const cacheVisitor:Mock<void, [visitorId: string, data: VisitorSaveCacheDTO]> = jest.fn()
+  const lookupVisitor:Mock<VisitorLookupCacheDTO, [visitorId: string]> = jest.fn()
+  const flushVisitor:Mock<void, [visitorId: string]> = jest.fn()
+  const visitorCacheImplementation:IVisitorCacheImplementation = {
+    cacheVisitor,
+    lookupVisitor,
+    flushVisitor
+  }
+
   const logManager = new FlagshipLogManager()
   const logError = jest.spyOn(logManager, 'error')
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', visitorCacheImplementation })
   config.logManager = logManager
 
-  const configManager = new ConfigManager(config, {} as DecisionManager, {} as TrackingManager)
+  const apiManager = new ApiManager({} as HttpClient, config)
+
+  const getCampaignsAsync = jest.spyOn(apiManager, 'getCampaignsAsync')
+
+  const trackingManager = new TrackingManager({} as HttpClient, config)
+  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+  sendConsentHit.mockResolvedValue()
+
+  const configManager = new ConfigManager(config, apiManager, trackingManager)
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
   const panicStrategy = new PanicStrategy(visitorDelegate)
 
@@ -75,6 +97,35 @@ describe('test NotReadyStrategy', () => {
       expect(logError).toBeCalledTimes(1)
       expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
     })
+  })
+
+  it('test fetchVisitorCacheCampaigns', async () => {
+    getCampaignsAsync.mockResolvedValue([])
+    visitorDelegate.visitorCache = {
+      version: VISITOR_CACHE_VERSION,
+      data: {
+        visitorId: visitorDelegate.visitorId,
+        anonymousId: visitorDelegate.anonymousId,
+        consent: visitorDelegate.hasConsented,
+        context: visitorDelegate.context,
+        campaigns: campaigns.campaigns.map(campaign => {
+          return {
+            campaignId: campaign.id,
+            variationGroupId: campaign.variationGroupId,
+            variationId: campaign.variation.id,
+            isReference: campaign.variation.reference,
+            type: campaign.variation.modifications.type,
+            activated: false,
+            flags: campaign.variation.modifications.value
+          }
+        })
+      }
+    }
+    await panicStrategy.synchronizeModifications()
+    expect(visitorDelegate.campaigns).toEqual([])
+    expect(cacheVisitor).toBeCalledTimes(0)
+    await panicStrategy.lookupHits()
+    await panicStrategy.lookupVisitor()
   })
 
   it('test activateModification', () => {

@@ -7,6 +7,7 @@ import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { NoConsentStrategy } from '../../src/visitor/index'
 import { HitType, METHOD_DEACTIVATED_CONSENT_ERROR } from '../../src/enum/index'
 import { sprintf } from '../../src/utils/utils'
+import { HttpClient } from '../../src/utils/HttpClient'
 
 describe('test NoConsentStrategy', () => {
   const visitorId = 'visitorId'
@@ -21,7 +22,11 @@ describe('test NoConsentStrategy', () => {
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
 
-  const configManager = new ConfigManager(config, {} as DecisionManager, {} as TrackingManager)
+  const trackingManager = new TrackingManager({} as HttpClient, config)
+  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+  sendConsentHit.mockResolvedValue()
+
+  const configManager = new ConfigManager(config, {} as DecisionManager, trackingManager)
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
   const noConsentStrategy = new NoConsentStrategy(visitorDelegate)
 

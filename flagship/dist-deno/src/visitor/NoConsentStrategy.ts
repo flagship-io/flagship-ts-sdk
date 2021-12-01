@@ -1,8 +1,10 @@
 import { IHit } from '../types.ts'
 import { METHOD_DEACTIVATED_CONSENT_ERROR } from '../enum/index.ts'
-import { HitAbstract } from '../hit/index.ts'
+import { HitAbstract, HitShape } from '../hit/index.ts'
 import { logError, sprintf } from '../utils/utils.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
+import { CampaignDTO } from '../decision/api/models.ts'
+import { BatchDTO } from '../hit/Batch.ts'
 
 export class NoConsentStrategy extends DefaultStrategy {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -15,14 +17,34 @@ export class NoConsentStrategy extends DefaultStrategy {
     this.log('activateModifications')
   }
 
+  async lookupHits (): Promise<void> {
+    //
+  }
+
+  async lookupVisitor (): Promise<void> {
+    //
+  }
+
+  protected async cacheVisitor ():Promise<void> {
+    //
+  }
+
+  protected async cacheHit ():Promise<void> {
+    //
+  }
+
+  protected fetchVisitorCampaigns (): CampaignDTO[] {
+    return []
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  sendHit (_hit: HitAbstract | IHit): Promise<void> {
+  sendHit (_hit: HitAbstract | IHit| HitShape| BatchDTO): Promise<void> {
     this.log('sendHit')
     return Promise.resolve()
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  sendHits (_hits: HitAbstract[] | IHit[]): Promise<void> {
+  sendHits (_hits: HitAbstract[] | IHit[] | HitShape[]|BatchDTO[]): Promise<void> {
     this.log('sendHits')
     return Promise.resolve()
   }

@@ -1,11 +1,11 @@
 import { Modification } from '../index'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
-import { IHit, modificationsRequested, primitive } from '../types'
+import { IHit, modificationsRequested, primitive, VisitorLookupCacheDTO } from '../types'
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
 import { FlagshipStatus, SDK_LANGUAGE, SDK_VERSION, VISITOR_ID_ERROR } from '../enum/index'
 import { logError } from '../utils/utils'
-import { HitAbstract } from '../hit/index'
+import { HitAbstract, HitShape } from '../hit/index'
 import { DefaultStrategy } from './DefaultStrategy'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { EventEmitter } from '../nodeDeps'
@@ -25,6 +25,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _anonymousId!:string|null;
     public deDuplicationCache:Record<string, number>
     protected _isCleaningDeDuplicationCache:boolean
+    public visitorCache!: VisitorLookupCacheDTO
+    protected _strategy!:VisitorStrategyAbstract
 
     constructor (param: {
         visitorId?: string|null,
@@ -40,8 +42,12 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this._isCleaningDeDuplicationCache = false
       this.deDuplicationCache = {}
       this._configManager = configManager
+
       const VisitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
       this.visitorId = visitorId || VisitorCache?.visitorId || this.createVisitorId()
+
+      this.setConsent(hasConsented ?? true)
+
       this.campaigns = []
 
       this._context = {}
@@ -49,17 +55,15 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this._anonymousId = VisitorCache?.anonymousId || null
       this.loadPredefinedContext()
 
-      if (!hasConsented) {
-        this.setConsent(false)
-      }
-      this.hasConsented = hasConsented ?? true
-
       if (!this._anonymousId && isAuthenticated && this.config.decisionMode === DecisionMode.DECISION_API) {
         this._anonymousId = this.uuidV4()
       }
       this.updateCache()
       this.setInitialModifications(initialModifications)
       this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
+
+      this.getStrategy().lookupVisitor()
+      this.getStrategy().lookupHits()
     }
 
     public clearDeDuplicationCache (deDuplicationTime:number):void {
@@ -159,6 +163,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       * @param {boolean} hasConsented True if the visitor has consented false otherwise.
       */
     public setConsent (hasConsented:boolean):void {
+      this.hasConsented = hasConsented
       this.getStrategy().setConsent(hasConsented)
     }
 
@@ -207,18 +212,18 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     }
 
     protected getStrategy (): VisitorStrategyAbstract {
-      let strategy:VisitorStrategyAbstract
+      const isSameType = (strategy: VisitorStrategyAbstract, className:string) => strategy && strategy.constructor.name === className
       if (!Flagship.getStatus() || Flagship.getStatus() === FlagshipStatus.NOT_INITIALIZED) {
-        strategy = new NotReadyStrategy(this)
+        this._strategy = isSameType(this._strategy, NotReadyStrategy.name) ? this._strategy : new NotReadyStrategy(this)
       } else if (Flagship.getStatus() === FlagshipStatus.READY_PANIC_ON) {
-        strategy = new PanicStrategy(this)
+        this._strategy = isSameType(this._strategy, PanicStrategy.name) ? this._strategy : new PanicStrategy(this)
       } else if (!this.hasConsented) {
-        strategy = new NoConsentStrategy(this)
+        this._strategy = isSameType(this._strategy, NoConsentStrategy.name) ? this._strategy : new NoConsentStrategy(this)
       } else {
-        strategy = new DefaultStrategy(this)
+        this._strategy = isSameType(this._strategy, DefaultStrategy.name) ? this._strategy : new DefaultStrategy(this)
       }
 
-      return strategy
+      return this._strategy
     }
 
     abstract updateContext(context: Record<string, primitive>): void
@@ -244,11 +249,13 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     abstract sendHit(hit: HitAbstract): Promise<void>;
     abstract sendHit(hit: IHit): Promise<void>;
-    abstract sendHit(hit: IHit|HitAbstract): Promise<void>;
+    abstract sendHit(hit: HitShape): Promise<void>;
+    abstract sendHit(hit: IHit|HitAbstract|HitShape): Promise<void>;
 
     abstract sendHits(hit: HitAbstract[]): Promise<void>;
     abstract sendHits(hit: IHit[]): Promise<void>;
-    abstract sendHits (hit: HitAbstract[]|IHit[]): Promise<void>
+    abstract sendHits(hit: HitShape[]): Promise<void>;
+    abstract sendHits (hit: HitAbstract[]|IHit[]|HitShape[]): Promise<void>
 
     abstract getAllModifications (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 

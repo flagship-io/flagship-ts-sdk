@@ -1,4 +1,5 @@
 import { CampaignDTO } from './decision/api/models'
+import { HitType } from './enum/index'
 import { IEvent, IItem, IPage, IScreen, ITransaction, HitShape } from './hit/index'
 
 export type modificationsRequested<T> = {
@@ -10,14 +11,14 @@ export type modificationsRequested<T> = {
 export type primitive=string | number | boolean
 
 export type { HitShape }
-export type IHit = IPage | IScreen | IEvent | IItem | ITransaction | HitShape
+export type IHit = IPage | IScreen | IEvent | IItem | ITransaction
 
 export type Modification= {
   key: string;
   campaignId: string;
   variationGroupId: string;
   variationId: string;
-  isReference: boolean;
+  isReference?: boolean;
  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
 }
@@ -45,4 +46,64 @@ export type NewVisitor={
     */
    isNewInstance?:boolean
 
+}
+
+export type HitCache ={
+  version: number,
+  data: {
+      visitorId: string,
+      anonymousId: string|null,
+      type: HitType|'BATCH'|'ACTIVATE',
+      time: number
+  }
+}
+
+export type HitCacheSaveDTO = HitCache & {
+  data: {
+      content: Record<string, unknown>
+  }
+}
+
+export type HitCacheLookupDTO = HitCache & {
+  data:{
+      content?:IHit|Modification
+  }
+}
+
+export type VisitorSaveCacheDTO = {
+  version: number,
+  data: {
+    visitorId: string,
+    anonymousId: string|null,
+    consent: boolean,
+    context: Record<string, primitive>,
+    campaigns: Array<{
+      campaignId: string,
+      variationGroupId: string,
+      variationId: string,
+      isReference?:boolean,
+      type: string,
+      activated: boolean,
+      flags: Record<string, unknown>
+    }>
+}
+}
+
+export type VisitorLookupCacheDTO = {
+  version: number,
+  data: {
+    visitorId: string,
+    anonymousId: string|null,
+    consent?: boolean,
+    context?: Record<string, primitive>,
+    campaigns?: Array<{
+        campaignId: string,
+        variationGroupId: string,
+        variationId: string,
+        isReference?:boolean
+        type: string,
+        activated?: boolean,
+        flags?: Record<string, unknown>
+      }>
+}
 }

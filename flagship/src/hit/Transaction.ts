@@ -198,8 +198,8 @@ export class Transaction extends HitAbstract implements ITransaction {
     }
   }
 
-  public isReady ():boolean {
-    return !!(super.isReady() && this.transactionId && this.affiliation)
+  public isReady (checkParent = true):boolean {
+    return !!((!checkParent || super.isReady()) && this.transactionId && this.affiliation)
   }
 
   public toApiKeys ():any {
@@ -239,6 +239,22 @@ export class Transaction extends HitAbstract implements ITransaction {
       apiKeys[TS_API_ITEM] = this.shippingCosts
     }
     return apiKeys
+  }
+
+  public toObject ():Record<string, unknown> {
+    return {
+      ...super.toObject(),
+      transactionId: this.transactionId,
+      affiliation: this.affiliation,
+      taxes: this.taxes,
+      currency: this.currency,
+      couponCode: this.couponCode,
+      itemCount: this.itemCount,
+      shippingMethod: this.shippingMethod,
+      paymentMethod: this.paymentMethod,
+      totalRevenue: this.totalRevenue,
+      shippingCosts: this.shippingCosts
+    }
   }
 
   public getErrorMessage (): string {

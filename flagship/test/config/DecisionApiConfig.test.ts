@@ -7,7 +7,10 @@ import {
   LogLevel,
   REQUEST_TIME_OUT
 } from '../../src/enum/index'
+import { IHitCacheImplementation } from '../../src/hit/IHitCacheImplementation'
+import { HitCacheLookupDTO, HitCacheSaveDTO, VisitorLookupCacheDTO, VisitorSaveCacheDTO } from '../../src/types'
 import { FlagshipLogManager, IFlagshipLogManager } from '../../src/utils/FlagshipLogManager'
+import { IVisitorCacheImplementation } from '../../src/visitor/IVisitorCacheImplementation '
 
 describe('test DecisionApiConfig', () => {
   const config = new DecisionApiConfig()
@@ -26,6 +29,9 @@ describe('test DecisionApiConfig', () => {
     expect(config.decisionApiUrl).toBe(BASE_API_URL)
     expect(config.activateDeduplicationTime).toBe(DEFAULT_DEDUPLICATION_TIME)
     expect(config.hitDeduplicationTime).toBe(DEFAULT_DEDUPLICATION_TIME)
+    expect(config.hitCacheImplementation).toBeUndefined()
+    expect(config.visitorCacheImplementation).toBeUndefined()
+    expect(config.disableCache).toBeFalsy()
   })
 
   it('test config constructor', () => {
@@ -37,6 +43,36 @@ describe('test DecisionApiConfig', () => {
       panic: true
     }
 
+    const visitorCacheImplementation:IVisitorCacheImplementation = {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      cacheVisitor: function (_visitorId: string, _Data: VisitorSaveCacheDTO): void {
+        throw new Error('Function not implemented.')
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      lookupVisitor: function (_visitorId: string): VisitorLookupCacheDTO {
+        throw new Error('Function not implemented.')
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      flushVisitor: function (_visitorId: string): void {
+        throw new Error('Function not implemented.')
+      }
+    }
+
+    const hitCacheImplementation:IHitCacheImplementation = {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      cacheHit: function (_visitorId: string, _data: HitCacheSaveDTO): void {
+        throw new Error('Function not implemented.')
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      lookupHits: function (_visitorId: string): HitCacheLookupDTO[] {
+        throw new Error('Function not implemented.')
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      flushHits: function (_visitorId: string): void {
+        throw new Error('Function not implemented.')
+      }
+    }
+
     const config = new DecisionApiConfig({
       apiKey,
       envId,
@@ -46,7 +82,10 @@ describe('test DecisionApiConfig', () => {
       statusChangedCallback: statusChang,
       fetchNow: false,
       enableClientCache: false,
-      initialBucketing
+      initialBucketing,
+      visitorCacheImplementation,
+      hitCacheImplementation,
+      disableCache: true
     })
     expect(config.apiKey).toBe(apiKey)
     expect(config.envId).toBe(envId)
@@ -57,6 +96,9 @@ describe('test DecisionApiConfig', () => {
     expect(config.fetchNow).toBeFalsy()
     expect(config.enableClientCache).toBeFalsy()
     expect(config.initialBucketing).toEqual(initialBucketing)
+    expect(config.visitorCacheImplementation).toBe(visitorCacheImplementation)
+    expect(config.hitCacheImplementation).toBe(hitCacheImplementation)
+    expect(config.disableCache).toBeTruthy()
   })
 
   it('Test envId field ', () => {

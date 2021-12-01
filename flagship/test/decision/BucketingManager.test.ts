@@ -13,7 +13,7 @@ import { DecisionManager } from '../../src/decision/DecisionManager'
 import { TrackingManager } from '../../src/api/TrackingManager'
 
 describe('test BucketingManager', () => {
-  const config = new BucketingConfig({ pollingInterval: 0 })
+  const config = new BucketingConfig({ pollingInterval: 0, envId: 'envID', apiKey: 'apiKey' })
   const murmurHash = new MurmurHash()
   const httpClient = new HttpClient()
 
@@ -24,6 +24,11 @@ describe('test BucketingManager', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sendContext = jest.spyOn(bucketingManager as any, 'sendContext')
 
+  const trackingManager = new TrackingManager(httpClient, config)
+  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+
+  sendConsentHit.mockResolvedValue()
+
   sendContext.mockReturnValue(Promise.resolve())
 
   const visitorId = 'visitor_1'
@@ -31,7 +36,7 @@ describe('test BucketingManager', () => {
     age: 20
   }
 
-  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager: {} as TrackingManager } })
+  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager } })
 
   it('test getCampaignsAsync empty', async () => {
     const campaigns = await bucketingManager.getCampaignsAsync(visitor)
@@ -80,7 +85,8 @@ describe('test BucketingManager', () => {
         [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
         [HEADER_X_SDK_VERSION]: SDK_VERSION,
         [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
-      }
+      },
+      timeout: config.timeout
     })
     expect(sendContext).toBeCalledTimes(1)
   })
@@ -99,7 +105,8 @@ describe('test BucketingManager', () => {
         [HEADER_X_SDK_VERSION]: SDK_VERSION,
         [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON,
         'if-modified-since': 'Fri, 06 Aug 2021 11:16:19 GMT'
-      }
+      },
+      timeout: config.timeout
     })
   })
 })
@@ -182,7 +189,7 @@ describe('test error', () => {
 })
 
 describe('test sendContext', () => {
-  const config = new BucketingConfig({ pollingInterval: 0 })
+  const config = new BucketingConfig({ pollingInterval: 0, envId: 'envID', apiKey: 'apiKey' })
   const murmurHash = new MurmurHash()
   const httpClient = new HttpClient()
   const logManager = new FlagshipLogManager()
@@ -198,7 +205,12 @@ describe('test sendContext', () => {
   const context = {
     age: 20
   }
-  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: {} as DecisionManager, trackingManager: {} as TrackingManager } })
+
+  const trackingManager = new TrackingManager({} as HttpClient, config)
+  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+  sendConsentHit.mockResolvedValue()
+
+  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: {} as DecisionManager, trackingManager } })
 
   it('should ', () => {
     const url = sprintf(BUCKETING_API_CONTEXT_URL, config.envId)
@@ -218,7 +230,7 @@ describe('test sendContext', () => {
     bucketingManager.sendContext(visitor).then(() => {
       expect(postAsync).toBeCalledTimes(1)
       expect(postAsync).toBeCalledWith(url, {
-        headers, body
+        headers, body, timeout: config.timeout
       })
     })
   })
@@ -249,7 +261,11 @@ describe('test bucketing method', () => {
     age: 20
   }
 
-  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager: {} as TrackingManager } })
+  const trackingManager = new TrackingManager({} as HttpClient, config)
+  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+  sendConsentHit.mockResolvedValue()
+
+  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager } })
 
   const variations = [
     {
@@ -289,9 +305,30 @@ describe('test bucketing method', () => {
     variations
   }
   it('test getVariation ', () => {
-    const response = bucketingManagerAny.getVariation(variationGroups, visitorId)
+    const response = bucketingManagerAny.getVariation(variationGroups, visitor)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { allocation, ...variation } = variations[0]
+    expect(response).toEqual(variation)
+  })
+
+  it('test getVariation visitorCache ', () => {
+    visitor.visitorCache = {
+      version: 1,
+      data: {
+        visitorId: visitor.visitorId,
+        anonymousId: null,
+        campaigns: [{
+          campaignId: '',
+          variationGroupId: variationGroups.id,
+          variationId: variations[1].id,
+          type: variations[1].modifications.type,
+          flags: variations[1].modifications.value
+        }]
+      }
+    }
+    const response = bucketingManagerAny.getVariation(variationGroups, visitor)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { allocation, ...variation } = variations[1]
     expect(response).toEqual(variation)
   })
 
@@ -772,7 +809,10 @@ describe('test initBucketing', () => {
     age: 20
   }
   it('should ', async () => {
-    const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager: {} as TrackingManager } })
+    const trackingManager = new TrackingManager({} as HttpClient, config)
+    const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+    sendConsentHit.mockResolvedValue()
+    const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager } })
     const modifications = await bucketingManager.getCampaignsModificationsAsync(visitor)
     expect(modifications.size).toBe(6)
     expect(getAsync).toBeCalledTimes(0)

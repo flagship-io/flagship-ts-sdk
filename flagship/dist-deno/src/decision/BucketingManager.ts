@@ -86,14 +86,14 @@ export class BucketingManager extends DecisionManager {
         headers['if-modified-since'] = this._lastModified
       }
 
-      const response = await this._httpClient.getAsync(url, { headers })
+      const response = await this._httpClient.getAsync(url, { headers, timeout: this.config.timeout })
 
       this.finishLoop(response)
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       this._isPooling = false
-      logError(this.config, error, 'startPolling dd')
+      logError(this.config, error, 'startPolling')
       if (this._isFirstPooling) {
         this.updateFlagshipStatus(FlagshipStatus.NOT_INITIALIZED)
       }
@@ -123,7 +123,7 @@ export class BucketingManager extends DecisionManager {
         type: 'CONTEXT',
         data: visitor.context
       }
-      await this._httpClient.postAsync(url, { headers, body })
+      await this._httpClient.postAsync(url, { headers, body, timeout: this.config.timeout })
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logError(this.config, error.message || error, 'sendContext')
@@ -163,7 +163,7 @@ export class BucketingManager extends DecisionManager {
       if (check) {
         const variation = this.getVariation(
           variationGroup,
-          visitor.visitorId
+          visitor
         )
         if (!variation) {
           return null
@@ -178,22 +178,33 @@ export class BucketingManager extends DecisionManager {
     return null
   }
 
-  private getVariation (variationGroup:VariationGroupDTO, visitorId:string): VariationDTO|null {
-    const hash = this._murmurHash.murmurHash3Int32(variationGroup.id + visitorId)
+  private getVariation (variationGroup:VariationGroupDTO, visitor:VisitorAbstract): VariationDTO|null {
+    const hash = this._murmurHash.murmurHash3Int32(variationGroup.id + visitor.visitorId)
     const hashAllocation = hash % 100
     let totalAllocation = 0
 
     for (const variation of variationGroup.variations) {
+      const cacheVariation = visitor.visitorCache?.data?.campaigns?.find(x => x.variationGroupId === variationGroup.id)
+      if (cacheVariation) {
+        return {
+          id: cacheVariation.variationId,
+          modifications: {
+            type: cacheVariation.type,
+            value: cacheVariation.flags
+          },
+          reference: cacheVariation.isReference
+        }
+      }
       if (variation.allocation === undefined) {
         continue
       }
       totalAllocation += variation.allocation
 
-      if (hashAllocation < totalAllocation) {
+      if (hashAllocation <= totalAllocation) {
         return {
           id: variation.id,
           modifications: variation.modifications,
-          reference: !!variation.reference
+          reference: variation.reference
         }
       }
     }

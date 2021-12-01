@@ -5,6 +5,7 @@ import { ConfigManager } from '../../src/config'
 import { DecisionManager } from '../../src/decision/DecisionManager'
 import { FlagshipStatus, HitType, METHOD_DEACTIVATED_ERROR } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
+import { HttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
 import { VisitorDelegate, NotReadyStrategy } from '../../src/visitor'
 
@@ -21,7 +22,11 @@ describe('test NotReadyStrategy', () => {
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
 
-  const configManager = new ConfigManager(config, {} as DecisionManager, {} as TrackingManager)
+  const trackingManager = new TrackingManager({} as HttpClient, config)
+  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+  sendConsentHit.mockResolvedValue()
+
+  const configManager = new ConfigManager(config, {} as DecisionManager, trackingManager)
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
   const notReadyStrategy = new NotReadyStrategy(visitorDelegate)
 

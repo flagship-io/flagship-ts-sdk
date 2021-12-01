@@ -5,6 +5,7 @@ import { ApiManager } from '../../src/decision/ApiManager'
 import { PREDEFINED_CONTEXT_TYPE_ERROR, PROCESS_UPDATE_CONTEXT, SDK_LANGUAGE, SDK_VERSION } from '../../src/enum'
 import { APP_VERSION_CODE, APP_VERSION_NAME, FLAGSHIP_VISITOR, INTERNET_CONNECTION } from '../../src/enum/FlagshipContext'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
+import { HttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
 import { DefaultStrategy } from '../../src/visitor/DefaultStrategy'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
@@ -22,6 +23,10 @@ describe('test DefaultStrategy ', () => {
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
 
+  const trackingManager = new TrackingManager({} as HttpClient, config)
+  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+  sendConsentHit.mockResolvedValue()
+
   const visitorDelegate = new VisitorDelegate({
     visitorId,
     context,
@@ -29,7 +34,7 @@ describe('test DefaultStrategy ', () => {
     configManager: {
       config,
       decisionManager: {} as ApiManager,
-      trackingManager: {} as TrackingManager
+      trackingManager
     }
   })
   const defaultStrategy = new DefaultStrategy(visitorDelegate)

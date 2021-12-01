@@ -26,21 +26,27 @@ export class Page extends HitAbstract implements IPage {
       type: HitType.PAGE_VIEW,
       userIp: page?.userIp,
       screenResolution: page?.screenResolution,
-      local: page?.local,
+      locale: page?.locale,
       sessionNumber: page?.sessionNumber
     })
     this.documentLocation = page?.documentLocation
   }
 
-  public isReady ():boolean {
-    return !!(super.isReady() && this.documentLocation)
+  public isReady (checkParent = true):boolean {
+    return !!((!checkParent || super.isReady()) && this.documentLocation)
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public toApiKeys ():any {
+  public toApiKeys ():Record<string, unknown> {
     const apiKeys = super.toApiKeys()
     apiKeys[DL_API_ITEM] = this.documentLocation
     return apiKeys
+  }
+
+  public toObject ():Record<string, unknown> {
+    return {
+      ...super.toObject(),
+      documentLocation: this.documentLocation
+    }
   }
 
   public getErrorMessage (): string {

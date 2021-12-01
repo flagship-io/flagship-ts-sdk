@@ -50,7 +50,8 @@ describe('test getStrategy', () => {
     })
     const methodName = 'activateModification'
     await visitorDelegate.activateModification('key')
-    expect(logError).toBeCalledTimes(1)
+    await visitorDelegate.activateModification('key')
+    expect(logError).toBeCalledTimes(2)
     expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
   })
 

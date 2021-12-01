@@ -26,14 +26,14 @@ export class Screen extends HitAbstract implements IScreen {
       type: HitType.SCREEN_VIEW,
       userIp: screen?.userIp,
       screenResolution: screen?.screenResolution,
-      local: screen?.local,
+      locale: screen?.locale,
       sessionNumber: screen?.sessionNumber
     })
     this.documentLocation = screen?.documentLocation
   }
 
-  public isReady ():boolean {
-    return !!(super.isReady() && this.documentLocation)
+  public isReady (checkParent = true):boolean {
+    return !!((!checkParent || super.isReady()) && this.documentLocation)
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -41,6 +41,13 @@ export class Screen extends HitAbstract implements IScreen {
     const apiKeys = super.toApiKeys()
     apiKeys[DL_API_ITEM] = this.documentLocation
     return apiKeys
+  }
+
+  public toObject ():Record<string, unknown> {
+    return {
+      ...super.toObject(),
+      documentLocation: this.documentLocation
+    }
   }
 
   public getErrorMessage (): string {

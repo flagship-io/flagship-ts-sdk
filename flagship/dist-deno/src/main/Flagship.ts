@@ -6,7 +6,7 @@ import { ConfigManager, IConfigManager } from '../config/ConfigManager.ts'
 import { ApiManager } from '../decision/ApiManager.ts'
 import { TrackingManager } from '../api/TrackingManager.ts'
 import { FlagshipLogManager } from '../utils/FlagshipLogManager.ts'
-import { logError, logInfo, sprintf } from '../utils/utils.ts'
+import { isBrowser, logError, logInfo, sprintf } from '../utils/utils.ts'
 import {
   INITIALIZATION_PARAM_ERROR,
   PROCESS_INITIALIZATION,
@@ -21,6 +21,8 @@ import { DecisionManager } from '../decision/DecisionManager.ts'
 import { HttpClient } from '../utils/HttpClient.ts'
 import { Modification, NewVisitor, primitive } from '../types.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
+import { DefaultHitCache } from '../hit/DefaultHitCache.ts'
+import { DefaultVisitorCache } from '../visitor/DefaultVisitorCache.ts'
 
 export class Flagship {
   private static _instance: Flagship;
@@ -192,6 +194,16 @@ export class Flagship {
       )
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!config.hitCacheImplementation && isBrowser()) {
+      config.hitCacheImplementation = new DefaultHitCache()
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!config.visitorCacheImplementation && isBrowser()) {
+      config.visitorCacheImplementation = new DefaultVisitorCache()
+    }
+
     if (!this.isReady()) {
       flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
       return null
@@ -246,7 +258,7 @@ export class Flagship {
     let hasConsented = true
     let initialModifications:Map<string, Modification>|Modification[]|undefined
     let initialCampaigns:CampaignDTO[]|undefined
-    const isServerSide = typeof window === 'undefined'
+    const isServerSide = !isBrowser()
     let isNewInstance = isServerSide
 
     if (typeof param1 === 'string' || param1 === null) {

@@ -1,4 +1,4 @@
-import { IHit, Modification, modificationsRequested, primitive } from '../types'
+import { HitShape, IHit, Modification, modificationsRequested, primitive } from '../types'
 import { EventEmitter } from '../nodeDeps'
 import { IVisitor } from './IVisitor'
 import { IFlagshipConfig } from '../config/index'
@@ -103,15 +103,17 @@ export class Visitor extends EventEmitter implements IVisitor {
 
   sendHit(hit: HitAbstract): Promise<void>;
   sendHit(hit: IHit): Promise<void>;
-  sendHit (hit: IHit|HitAbstract): Promise<void>
-  sendHit (hit: IHit|HitAbstract): Promise<void> {
+  sendHit(hit: HitShape): Promise<void>;
+  sendHit (hit: IHit|HitAbstract|HitShape): Promise<void>
+  sendHit (hit: IHit|HitAbstract|HitShape): Promise<void> {
     return this.visitorDelegate.sendHit(hit)
   }
 
   sendHits(hits: HitAbstract[]): Promise<void>;
   sendHits(hits: IHit[]): Promise<void>;
-  sendHits (hits: HitAbstract[]|IHit[]): Promise<void>
-  sendHits (hits: HitAbstract[]|IHit[]): Promise<void> {
+  sendHits(hit: HitShape[]): Promise<void>;
+  sendHits(hits: HitAbstract[] | IHit[]|HitShape[]): Promise<void>
+  sendHits (hits: HitAbstract[]|IHit[]|HitShape[]): Promise<void> {
     return this.visitorDelegate.sendHits(hits)
   }
 

@@ -1,5 +1,5 @@
 import { Modification } from '../index'
-import { HitAbstract } from '../hit/index'
+import { HitAbstract, HitShape } from '../hit/index'
 import { primitive, modificationsRequested, IHit } from '../types'
 import { VisitorAbstract } from './VisitorAbstract'
 import { CampaignDTO } from '../decision/api/models'
@@ -53,15 +53,17 @@ export class VisitorDelegate extends VisitorAbstract {
 
   sendHit(hit: HitAbstract): Promise<void>
   sendHit(hit: IHit): Promise<void>
-  sendHit(hit: HitAbstract | IHit): Promise<void>
-  sendHit (hit: HitAbstract | IHit): Promise<void> {
+  sendHit(hit: HitShape): Promise<void>
+  sendHit(hit: HitAbstract | IHit|HitShape): Promise<void>
+  sendHit (hit: HitAbstract | IHit|HitShape): Promise<void> {
     return this.getStrategy().sendHit(hit)
   }
 
   sendHits(hits: HitAbstract[]): Promise<void>
   sendHits(hits: IHit[]): Promise<void>
-  sendHits(hits: HitAbstract[] | IHit[]): Promise<void>
-  sendHits (hits: HitAbstract[] | IHit[]): Promise<void> {
+  sendHits(hit: HitShape[]): Promise<void>;
+  sendHits(hits: HitAbstract[] | IHit[]|HitShape[]): Promise<void>
+  sendHits (hits: HitAbstract[] | IHit[]|HitShape[]): Promise<void> {
     return this.getStrategy().sendHits(hits)
   }
 

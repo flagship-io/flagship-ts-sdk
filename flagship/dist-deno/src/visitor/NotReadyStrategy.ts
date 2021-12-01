@@ -3,7 +3,8 @@ import { FlagshipStatus, METHOD_DEACTIVATED_ERROR } from '../enum/index.ts'
 import { IHit, modificationsRequested } from '../types.ts'
 import { logError, sprintf } from '../utils/utils.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
-import { HitAbstract } from '../hit/index.ts'
+import { HitAbstract, HitShape } from '../hit/index.ts'
+import { BatchDTO } from '../hit/Batch.ts'
 
 export class NotReadyStrategy extends DefaultStrategy {
   synchronizeModifications (): Promise<void> {
@@ -27,6 +28,18 @@ export class NotReadyStrategy extends DefaultStrategy {
     return flags
   }
 
+  async lookupHits (): Promise<void> {
+    //
+  }
+
+  async lookupVisitor (): Promise<void> {
+    //
+  }
+
+  protected async cacheVisitor ():Promise<void> {
+    //
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public getModificationInfoSync (_key: string): Modification | null {
     this.log('getModificationInfo')
@@ -44,13 +57,13 @@ export class NotReadyStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  sendHit (_hit: HitAbstract | IHit): Promise<void> {
+  sendHit (_hit: HitAbstract | IHit| HitShape| BatchDTO): Promise<void> {
     this.log('sendHit')
     return Promise.resolve()
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  sendHits (_hits: HitAbstract[] | IHit[]): Promise<void> {
+  sendHits (_hits: HitAbstract[] | IHit[] | HitShape[]|BatchDTO[]): Promise<void> {
     this.log('sendHits')
     return Promise.resolve()
   }

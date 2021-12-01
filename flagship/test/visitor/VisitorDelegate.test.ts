@@ -45,6 +45,8 @@ const unauthenticate:Mock<void, []> = jest.fn()
 const setConsent:Mock<void, [boolean]> = jest.fn()
 
 const updateCampaigns:Mock<void, [CampaignDTO[]]> = jest.fn()
+const lookupVisitor:Mock<void, []> = jest.fn()
+const lookupHits:Mock<void, []> = jest.fn()
 
 jest.mock('../../src/visitor/DefaultStrategy', () => {
   return {
@@ -71,7 +73,9 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         getModificationsForCampaign,
         authenticate,
         unauthenticate,
-        updateCampaigns
+        updateCampaigns,
+        lookupVisitor,
+        lookupHits
       }
     })
   }
@@ -357,20 +361,24 @@ describe('test VisitorDelegate methods', () => {
     })
   })
 
-  it('test getAllModifications', () => {
+  it('test getAllModifications', async () => {
     getAllModifications.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
-    visitorDelegate.getAllModifications().then(() => {
-      expect(getAllModifications).toBeCalledTimes(1)
-    })
+    await visitorDelegate.getAllModifications()
+    expect(getAllModifications).toBeCalledTimes(1)
+    await visitorDelegate.getAllModifications(false)
+    expect(getAllModifications).toBeCalledTimes(2)
   })
 
-  it('test getModificationsForCampaign', () => {
+  it('test getModificationsForCampaign', async () => {
     getModificationsForCampaign.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
     const campaignId = 'campaignId'
-    visitorDelegate.getModificationsForCampaign(campaignId).then(() => {
-      expect(getModificationsForCampaign).toBeCalledTimes(1)
-      expect(getModificationsForCampaign).toBeCalledWith(campaignId, false)
-    })
+    await visitorDelegate.getModificationsForCampaign(campaignId)
+    expect(getModificationsForCampaign).toBeCalledTimes(1)
+    expect(getModificationsForCampaign).toBeCalledWith(campaignId, false)
+
+    await visitorDelegate.getModificationsForCampaign(campaignId, true)
+    expect(getModificationsForCampaign).toBeCalledTimes(2)
+    expect(getModificationsForCampaign).toBeCalledWith(campaignId, true)
   })
 
   it('test authenticate', () => {
