@@ -87,6 +87,8 @@ export interface IFlagshipConfig {
   visitorCacheImplementation?: IVisitorCacheImplementation
 
   hitCacheImplementation?: IHitCacheImplementation
+
+  disableCache?: boolean
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -111,12 +113,14 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _hitDeduplicationTime! : number;
   private _visitorCacheImplementation! : IVisitorCacheImplementation ;
   private _hitCacheImplementation! : IHitCacheImplementation;
+  private _disableCache! : boolean;
 
   protected constructor (param: IFlagshipConfig) {
     const {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
-      activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation
+      activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
+      disableCache
     } = param
 
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
@@ -130,6 +134,8 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._initialBucketing = initialBucketing
     this.activateDeduplicationTime = activateDeduplicationTime ?? DEFAULT_DEDUPLICATION_TIME
     this.hitDeduplicationTime = hitDeduplicationTime ?? DEFAULT_DEDUPLICATION_TIME
+    this.disableCache = !!disableCache
+
     if (visitorCacheImplementation) {
       this.visitorCacheImplementation = visitorCacheImplementation
     }
@@ -271,9 +277,16 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     return this._hitCacheImplementation
   }
 
-  public set hitCacheImplementation (v : IHitCacheImplementation
-  ) {
+  public set hitCacheImplementation (v : IHitCacheImplementation) {
     this._hitCacheImplementation = v
+  }
+
+  public get disableCache () : boolean {
+    return this._disableCache
+  }
+
+  public set disableCache (v : boolean) {
+    this._disableCache = v
   }
 
   public get statusChangedCallback () :((status: FlagshipStatus) => void)|undefined {

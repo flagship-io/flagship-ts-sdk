@@ -7,9 +7,9 @@ export class DefaultHitCache implements IHitCacheImplementation {
     let dataJson = ''
     if (localDatabase) {
       const localData = localDatabase.slice(0, -1)
-      dataJson = `${localData},${data}]`
+      dataJson = `${localData},${JSON.stringify(data)}]`
     } else {
-      dataJson = `[${data}]`
+      dataJson = `[${JSON.stringify(data)}]`
     }
     localStorage.setItem(FS_HIT_PREFIX + visitorId, dataJson)
   }
