@@ -11,6 +11,7 @@ import { VISITOR_CACHE_VERSION } from '../../src/enum'
 import { IVisitorCacheImplementation } from '../../src/visitor/IVisitorCacheImplementation '
 import { campaigns } from '../decision/campaigns'
 import { VisitorLookupCacheDTO, VisitorSaveCacheDTO } from '../../src/types'
+import { LOOKUP_VISITOR_JSON_OBJECT_ERROR } from '../../src/visitor/VisitorStrategyAbstract'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getUndefined = ():any => undefined

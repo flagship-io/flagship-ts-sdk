@@ -1,6 +1,5 @@
-import { FlagDTO } from '../index'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
-import { IHit, Modification, modificationsRequested, NewVisitor, primitive, IHit, modificationsRequested, primitive, VisitorLookupCacheDTO } from '../types'
+import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorLookupCacheDTO, FlagDTO } from '../types'
 
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
@@ -15,8 +14,8 @@ import { NotReadyStrategy } from './NotReadyStrategy'
 import { PanicStrategy } from './PanicStrategy'
 import { NoConsentStrategy } from './NoConsentStrategy'
 import { cacheVisitor } from './VisitorCache'
-import { IFlag } from '../Flag/Flags'
-import { IFlagMetadata } from '../Flag/FlagMetadata'
+import { IFlag } from '../flag/Flags'
+import { IFlagMetadata } from '../flag/FlagMetadata'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _visitorId!: string;

@@ -6,7 +6,7 @@ import { EMIT_READY } from '../enum/index'
 import { CampaignDTO } from '../decision/api/models'
 import { HitAbstract } from '../hit/HitAbstract'
 import { VisitorAbstract } from './VisitorAbstract'
-import { IFlag } from '../Flag/Flags'
+import { IFlag } from '../flag/Flags'
 
 export class Visitor extends EventEmitter implements IVisitor {
   private visitorDelegate:VisitorAbstract

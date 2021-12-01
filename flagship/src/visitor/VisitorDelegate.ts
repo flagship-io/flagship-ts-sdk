@@ -3,8 +3,8 @@ import { HitAbstract, HitShape } from '../hit/index'
 import { primitive, modificationsRequested, IHit } from '../types'
 import { VisitorAbstract } from './VisitorAbstract'
 import { CampaignDTO } from '../decision/api/models'
-import { Flag, IFlag } from '../Flag/Flags'
-import { IFlagMetadata } from '../Flag/FlagMetadata'
+import { Flag, IFlag } from '../flag/Flags'
+import { IFlagMetadata } from '../flag/FlagMetadata'
 
 export class VisitorDelegate extends VisitorAbstract {
   updateContext (context: Record<string, primitive>): void {

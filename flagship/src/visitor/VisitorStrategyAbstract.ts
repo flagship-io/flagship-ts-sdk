@@ -1,6 +1,6 @@
 import { FlagDTO } from '../index'
 import { HitAbstract, HitShape } from '../hit/index'
-import { primitive, modificationsRequested, IHit } from '../types'
+import { primitive, modificationsRequested, IHit, VisitorLookupCacheDTO, VisitorSaveCacheDTO, HitCacheLookupDTO, HitCacheSaveDTO } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
@@ -9,10 +9,10 @@ import { ITrackingManager } from '../api/TrackingManagerAbstract'
 import { IDecisionManager } from '../decision/IDecisionManager'
 import { logError, sprintf } from '../utils/utils'
 import { DEFAULT_HIT_CACHE_TIME, HIT_CACHE_VERSION, PROCESS_CACHE_HIT, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index'
-import { VisitorLookupCacheDTO, VisitorSaveCacheDTO } from '../models/visitorDTO'
+
 import { BatchDTO } from '../hit/Batch'
-import { HitCacheLookupDTO, HitCacheSaveDTO } from '../models/HitDTO'
-import { IFlagMetadata } from '../Flag/FlagMetadata'
+
+import { IFlagMetadata } from '../flag/FlagMetadata'
 
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheLookupDTO'
@@ -102,11 +102,10 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
         return
       }
-      const visitorCacheJson = visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
-      if (!visitorCacheJson) {
+      const visitorCache = visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
+      if (!visitorCache) {
         return
       }
-      const visitorCache:VisitorLookupCacheDTO = JSON.parse(visitorCacheJson)
       if (!this.checKLookupVisitorData(visitorCache)) {
         throw new Error(LOOKUP_VISITOR_JSON_OBJECT_ERROR)
       }
@@ -143,7 +142,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
           })
         }
       }
-      visitorCacheInstance.cacheVisitor(this.visitor.visitorId, JSON.stringify(data))
+      visitorCacheInstance.cacheVisitor(this.visitor.visitorId, data)
       this.visitor.visitorCache = data
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
@@ -187,11 +186,10 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         return
       }
 
-      const hitsCacheJson = hitCacheImplementation.lookupHits(this.visitor.visitorId)
-      if (!hitsCacheJson) {
+      const hitsCache = hitCacheImplementation.lookupHits(this.visitor.visitorId)
+      if (!hitsCache) {
         return
       }
-      const hitsCache:HitCacheLookupDTO[] = JSON.parse(hitsCacheJson)
       if (!Array.isArray(hitsCache)) {
         throw Error(LOOKUP_HITS_JSON_ERROR)
       }
@@ -249,7 +247,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
           time: Date.now()
         }
       }
-      hitCacheImplementation.cacheHit(this.visitor.visitorId, JSON.stringify(hitData))
+      hitCacheImplementation.cacheHit(this.visitor.visitorId, hitData)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logError(this.config, error.message || error, PROCESS_CACHE_HIT)

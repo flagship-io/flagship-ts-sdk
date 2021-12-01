@@ -5,7 +5,7 @@ import { logError, sprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
 import { HitAbstract, HitShape } from '../hit/index'
 import { BatchDTO } from '../hit/Batch'
-import { IFlagMetadata } from '../Flag/FlagMetadata'
+import { IFlagMetadata } from '../flag/FlagMetadata'
 
 export class NotReadyStrategy extends DefaultStrategy {
   async synchronizeModifications (): Promise<void> {
