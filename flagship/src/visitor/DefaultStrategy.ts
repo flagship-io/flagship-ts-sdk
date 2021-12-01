@@ -38,13 +38,15 @@ import {
   IHitAbstract
 } from '../hit/index'
 import { HitShape, ItemHit } from '../hit/Legacy'
-import { primitive, modificationsRequested, IHit } from '../types'
+import { primitive, modificationsRequested, IHit, VisitorLookupCacheDTO, VisitorSaveCacheDTO, HitCacheLookupDTO, HitCacheSaveDTO } from '../types'
 import { logError, logInfo, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
 import { DecisionMode } from '../config/index'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
-import { VisitorDelegate } from '.'
+
+import { VisitorDelegate } from './index'
+
 import { Batch, BATCH, BatchDTO } from '../hit/Batch'
 import { IFlagMetadata } from '../Flag/FlagMetadata'
 
@@ -239,6 +241,104 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return null
     }
     return modification
+  }
+
+  protected checkLookupVisitorDataV1 (item:VisitorLookupCacheDTO):boolean {
+    if (!item || !item.data || !item.data.visitorId) {
+      return false
+    }
+    const campaigns = item.data.campaigns
+    if (!campaigns) {
+      return true
+    }
+    if (!Array.isArray(campaigns)) {
+      return false
+    }
+
+    return campaigns.every(x => x.campaignId && x.type && x.variationGroupId && x.variationId)
+  }
+
+  protected checKLookupVisitorData (item:VisitorLookupCacheDTO):boolean {
+    if (item.version === 1) {
+      return this.checkLookupVisitorDataV1(item)
+    }
+    return false
+  }
+
+  public async lookupVisitor ():Promise<void> {
+    try {
+      const visitorCacheInstance = this.config.visitorCacheImplementation
+      if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
+        return
+      }
+      const visitorCacheJson = visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
+      if (!visitorCacheJson) {
+        return
+      }
+      const visitorCache:VisitorLookupCacheDTO = visitorCacheJson
+      if (!this.checKLookupVisitorData(visitorCache)) {
+        throw new Error(LOOKUP_VISITOR_JSON_OBJECT_ERROR)
+      }
+      this.visitor.visitorCache = visitorCache
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      logError(this.config, error.message || error, 'lookupVisitor')
+    }
+  }
+
+  protected async cacheVisitor ():Promise<void> {
+    try {
+      const visitorCacheInstance = this.config.visitorCacheImplementation
+      if (this.config.disableCache || this.decisionManager.isPanic() || !visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.cacheVisitor !== 'function') {
+        return
+      }
+      const data: VisitorSaveCacheDTO = {
+        version: VISITOR_CACHE_VERSION,
+        data: {
+          visitorId: this.visitor.visitorId,
+          anonymousId: this.visitor.anonymousId,
+          consent: this.visitor.hasConsented,
+          context: this.visitor.context,
+          campaigns: this.visitor.campaigns.map(campaign => {
+            return {
+              campaignId: campaign.id,
+              variationGroupId: campaign.variationGroupId,
+              variationId: campaign.variation.id,
+              isReference: campaign.variation.reference,
+              type: campaign.variation.modifications.type,
+              activated: false,
+              flags: campaign.variation.modifications.value
+            }
+          })
+        }
+      }
+      visitorCacheInstance.cacheVisitor(this.visitor.visitorId, data)
+      this.visitor.visitorCache = data
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      logError(
+        this.config,
+        error.message || error,
+        'cacheVisitor'
+      )
+    }
+  }
+
+  protected async flushVisitor ():Promise<void> {
+    try {
+      const visitorCacheInstance = this.config.visitorCacheImplementation
+      if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.flushVisitor !== 'function') {
+        return
+      }
+      visitorCacheInstance.flushVisitor(this.visitor.visitorId)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      logError(
+        this.config,
+        error.message || error,
+        'flushVisitor'
+      )
+    }
   }
 
   protected fetchVisitorCampaigns (visitor: VisitorDelegate) :CampaignDTO[] {
@@ -476,6 +576,104 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         break
     }
     return newHit
+  }
+
+  protected checKLookupHitData (item:HitCacheLookupDTO):boolean {
+    if (item && item.version === 1 && item.data && item.data.type && item.data.visitorId) {
+      return true
+    }
+    logError(this.config, LOOKUP_HITS_JSON_OBJECT_ERROR, 'lookupHits')
+    return false
+  }
+
+  async lookupHits ():Promise<void> {
+    try {
+      const hitCacheImplementation = this.config.hitCacheImplementation
+      if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.lookupHits !== 'function') {
+        return
+      }
+
+      const hitsCacheJson = hitCacheImplementation.lookupHits(this.visitor.visitorId)
+      if (!hitsCacheJson) {
+        return
+      }
+      const hitsCache = hitsCacheJson
+      if (!Array.isArray(hitsCache)) {
+        throw Error(LOOKUP_HITS_JSON_ERROR)
+      }
+
+      const checkHitTime = (time:number) => (((Date.now() - time) / 1000) <= DEFAULT_HIT_CACHE_TIME)
+
+      const batches:BatchDTO[] = [{
+        type: 'BATCH',
+        hits: []
+      }]
+      let batchSize = 0
+      let count = 0
+
+      hitsCache.filter(item => this.checKLookupHitData(item) && checkHitTime(item.data.time)).forEach((item) => {
+        if (item.data.type === 'ACTIVATE') {
+          this.sendActivate(item.data.content as Modification)
+          return
+        }
+        batchSize = JSON.stringify(batches[count]).length
+        if (batchSize > 2500) {
+          count++
+          batches[count] = {
+            type: 'BATCH',
+            hits: [item.data.content as IHit]
+          }
+        } else {
+          batches[count].hits.push(item.data.content as IHit)
+        }
+      })
+
+      if (batches.length === 1 && !batches[0].hits.length) {
+        return
+      }
+
+      this.sendHits(batches)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      logError(this.config, error.message || error, 'lookupHits')
+    }
+  }
+
+  protected async cacheHit (hitInstance: HitAbstract|Modification):Promise<void> {
+    try {
+      const hitCacheImplementation = this.config.hitCacheImplementation
+      if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.cacheHit !== 'function') {
+        return
+      }
+      const hitData: HitCacheSaveDTO = {
+        version: HIT_CACHE_VERSION,
+        data: {
+          visitorId: this.visitor.visitorId,
+          anonymousId: this.visitor.anonymousId,
+          type: hitInstance instanceof HitAbstract ? hitInstance.type : 'ACTIVATE',
+          content: hitInstance instanceof HitAbstract ? hitInstance.toObject() : hitInstance,
+          time: Date.now()
+        }
+      }
+      hitCacheImplementation.cacheHit(this.visitor.visitorId, hitData)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      logError(this.config, error.message || error, PROCESS_CACHE_HIT)
+    }
+  }
+
+  protected async flushHits (): Promise<void> {
+    try {
+      const hitCacheImplementation = this.config.hitCacheImplementation
+      if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.flushHits !== 'function') {
+        return
+      }
+
+      hitCacheImplementation.flushHits(this.visitor.visitorId)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      logError(this.config, error.message || error, 'flushHits')
+    }
   }
 
   private async prepareAndSendHit (hit: IHit | HitShape | HitAbstract|BatchDTO) {

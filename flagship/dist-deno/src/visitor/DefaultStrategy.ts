@@ -40,15 +40,15 @@ import {
   IHitAbstract
 } from '../hit/index.ts'
 import { HitShape, ItemHit } from '../hit/Legacy.ts'
-import { primitive, modificationsRequested, IHit } from '../types.ts'
+import { primitive, modificationsRequested, IHit, VisitorLookupCacheDTO, VisitorSaveCacheDTO, HitCacheLookupDTO, HitCacheSaveDTO } from '../types.ts'
 import { logError, logInfo, sprintf } from '../utils/utils.ts'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { DecisionMode } from '../config/index.ts'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext.ts'
-import { VisitorLookupCacheDTO, VisitorSaveCacheDTO } from '../models/visitorDTO.ts'
-import { VisitorDelegate } from '..ts'
-import { HitCacheLookupDTO, HitCacheSaveDTO } from '../models/HitDTO.ts'
+
+import { VisitorDelegate } from './index.ts'
+
 import { Batch, BATCH, BatchDTO } from '../hit/Batch.ts'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
@@ -262,7 +262,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return modification
   }
 
-  protected checKLookupVisitorDataV1 (item:VisitorLookupCacheDTO):boolean {
+  protected checkLookupVisitorDataV1 (item:VisitorLookupCacheDTO):boolean {
     if (!item || !item.data || !item.data.visitorId) {
       return false
     }
@@ -279,7 +279,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   protected checKLookupVisitorData (item:VisitorLookupCacheDTO):boolean {
     if (item.version === 1) {
-      return this.checKLookupVisitorDataV1(item)
+      return this.checkLookupVisitorDataV1(item)
     }
     return false
   }
@@ -287,14 +287,14 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   public async lookupVisitor ():Promise<void> {
     try {
       const visitorCacheInstance = this.config.visitorCacheImplementation
-      if (!visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
+      if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
         return
       }
       const visitorCacheJson = visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
       if (!visitorCacheJson) {
         return
       }
-      const visitorCache:VisitorLookupCacheDTO = JSON.parse(visitorCacheJson)
+      const visitorCache:VisitorLookupCacheDTO = visitorCacheJson
       if (!this.checKLookupVisitorData(visitorCache)) {
         throw new Error(LOOKUP_VISITOR_JSON_OBJECT_ERROR)
       }
@@ -308,7 +308,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   protected async cacheVisitor ():Promise<void> {
     try {
       const visitorCacheInstance = this.config.visitorCacheImplementation
-      if (this.decisionManager.isPanic() || !visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.cacheVisitor !== 'function') {
+      if (this.config.disableCache || this.decisionManager.isPanic() || !visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.cacheVisitor !== 'function') {
         return
       }
       const data: VisitorSaveCacheDTO = {
@@ -331,7 +331,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
           })
         }
       }
-      visitorCacheInstance.cacheVisitor(this.visitor.visitorId, JSON.stringify(data))
+      visitorCacheInstance.cacheVisitor(this.visitor.visitorId, data)
       this.visitor.visitorCache = data
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
@@ -346,7 +346,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   protected async flushVisitor ():Promise<void> {
     try {
       const visitorCacheInstance = this.config.visitorCacheImplementation
-      if (!visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.flushVisitor !== 'function') {
+      if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.flushVisitor !== 'function') {
         return
       }
       visitorCacheInstance.flushVisitor(this.visitor.visitorId)
@@ -613,7 +613,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   async lookupHits ():Promise<void> {
     try {
       const hitCacheImplementation = this.config.hitCacheImplementation
-      if (!hitCacheImplementation || typeof hitCacheImplementation.lookupHits !== 'function') {
+      if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.lookupHits !== 'function') {
         return
       }
 
@@ -621,7 +621,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       if (!hitsCacheJson) {
         return
       }
-      const hitsCache:HitCacheLookupDTO[] = JSON.parse(hitsCacheJson)
+      const hitsCache = hitsCacheJson
       if (!Array.isArray(hitsCache)) {
         throw Error(LOOKUP_HITS_JSON_ERROR)
       }
@@ -666,7 +666,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   protected async cacheHit (hitInstance: HitAbstract|Modification):Promise<void> {
     try {
       const hitCacheImplementation = this.config.hitCacheImplementation
-      if (!hitCacheImplementation || typeof hitCacheImplementation.cacheHit !== 'function') {
+      if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.cacheHit !== 'function') {
         return
       }
       const hitData: HitCacheSaveDTO = {
@@ -679,7 +679,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
           time: Date.now()
         }
       }
-      hitCacheImplementation.cacheHit(this.visitor.visitorId, JSON.stringify(hitData))
+      hitCacheImplementation.cacheHit(this.visitor.visitorId, hitData)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logError(this.config, error.message || error, PROCESS_CACHE_HIT)
@@ -689,7 +689,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   protected async flushHits (): Promise<void> {
     try {
       const hitCacheImplementation = this.config.hitCacheImplementation
-      if (!hitCacheImplementation || typeof hitCacheImplementation.flushHits !== 'function') {
+      if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.flushHits !== 'function') {
         return
       }
 

@@ -1,6 +1,6 @@
 import { Modification } from '../index.ts'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index.ts'
-import { IHit, modificationsRequested, primitive } from '../types.ts'
+import { IHit, modificationsRequested, primitive, VisitorLookupCacheDTO } from '../types.ts'
 import { IVisitor } from './IVisitor.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { FlagshipStatus, SDK_LANGUAGE, SDK_VERSION, VISITOR_ID_ERROR } from '../enum/index.ts'
@@ -14,7 +14,6 @@ import { NotReadyStrategy } from './NotReadyStrategy.ts'
 import { PanicStrategy } from './PanicStrategy.ts'
 import { NoConsentStrategy } from './NoConsentStrategy.ts'
 import { cacheVisitor } from './VisitorCache.ts'
-import { VisitorLookupCacheDTO } from '../models/visitorDTO.ts'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _visitorId!: string;

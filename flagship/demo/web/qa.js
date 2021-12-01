@@ -15,9 +15,9 @@ const hitCacheImplementation = {
     let dataJson = ''
     if (localDatabase) {
       const localData = localDatabase.slice(0, -1)
-      dataJson = `${localData},${data}]`
+      dataJson = `${localData},${JSON.stringify(data)}]`
     } else {
-      dataJson = `[${data}]`
+      dataJson = `[${JSON.stringify(data)}]`
     }
     localStorage.setItem(hitPrefix + visitorId, dataJson)
   },
@@ -47,11 +47,10 @@ const visitorCacheImplementation = {
 }
 
 Flagship.start(ENV_ID, API_KEY, {
+  decisionMode: DecisionMode.BUCKETING,
   fetchNow: false,
   timeout: 10,
-  pollingInterval: 20,
-  hitCacheImplementation,
-  visitorCacheImplementation
+  pollingInterval: 5
 })
 
 const currentVisitorId = 'visitor_5678'

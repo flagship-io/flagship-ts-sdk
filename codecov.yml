@@ -1,0 +1,2 @@
+ignore:
+  - "flagship/test"  # ignore folders and all its contents

@@ -1,5 +1,5 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { DecisionApiConfig } from '../../src'
+import { DecisionApiConfig, VisitorLookupCacheDTO, VisitorSaveCacheDTO } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
@@ -20,8 +20,8 @@ describe('test NotReadyStrategy', () => {
     isVip: true
   }
 
-  const cacheVisitor:Mock<void, [visitorId: string, data: string]> = jest.fn()
-  const lookupVisitor:Mock<string, [visitorId: string]> = jest.fn()
+  const cacheVisitor:Mock<void, [visitorId: string, data: VisitorSaveCacheDTO]> = jest.fn()
+  const lookupVisitor:Mock<VisitorLookupCacheDTO, [visitorId: string]> = jest.fn()
   const flushVisitor:Mock<void, [visitorId: string]> = jest.fn()
   const visitorCacheImplementation:IVisitorCacheImplementation = {
     cacheVisitor,

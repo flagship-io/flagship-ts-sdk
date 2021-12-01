@@ -6,7 +6,7 @@ import { ConfigManager, IConfigManager } from '../config/ConfigManager.ts'
 import { ApiManager } from '../decision/ApiManager.ts'
 import { TrackingManager } from '../api/TrackingManager.ts'
 import { FlagshipLogManager } from '../utils/FlagshipLogManager.ts'
-import { logError, logInfo, sprintf } from '../utils/utils.ts'
+import { isBrowser, logError, logInfo, sprintf } from '../utils/utils.ts'
 import {
   INITIALIZATION_PARAM_ERROR,
   PROCESS_INITIALIZATION,
@@ -194,11 +194,13 @@ export class Flagship {
       )
     }
 
-    if (!config.hitCacheImplementation && typeof window !== 'undefined') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!config.hitCacheImplementation && isBrowser()) {
       config.hitCacheImplementation = new DefaultHitCache()
     }
 
-    if (!config.visitorCacheImplementation && typeof window !== 'undefined') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!config.visitorCacheImplementation && isBrowser()) {
       config.visitorCacheImplementation = new DefaultVisitorCache()
     }
 
@@ -256,7 +258,7 @@ export class Flagship {
     let hasConsented = true
     let initialModifications:Map<string, Modification>|Modification[]|undefined
     let initialCampaigns:CampaignDTO[]|undefined
-    const isServerSide = typeof window === 'undefined'
+    const isServerSide = !isBrowser()
     let isNewInstance = isServerSide
 
     if (typeof param1 === 'string' || param1 === null) {

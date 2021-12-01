@@ -1,6 +1,7 @@
 import { FlagDTO } from '../index'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
-import { IHit, Modification, modificationsRequested, NewVisitor, primitive } from '../types'
+import { IHit, Modification, modificationsRequested, NewVisitor, primitive, IHit, modificationsRequested, primitive, VisitorLookupCacheDTO } from '../types'
+
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
 import { FlagshipStatus, SDK_LANGUAGE, SDK_VERSION, VISITOR_ID_ERROR } from '../enum/index'
@@ -14,7 +15,6 @@ import { NotReadyStrategy } from './NotReadyStrategy'
 import { PanicStrategy } from './PanicStrategy'
 import { NoConsentStrategy } from './NoConsentStrategy'
 import { cacheVisitor } from './VisitorCache'
-import { VisitorLookupCacheDTO } from '../models/visitorDTO'
 import { IFlag } from '../Flag/Flags'
 import { IFlagMetadata } from '../Flag/FlagMetadata'
 

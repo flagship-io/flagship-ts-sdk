@@ -47,3 +47,7 @@ export function logInfo (config: IFlagshipConfig, message: string, tag: string):
 export function sleep (ms:number) :Promise<unknown> {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
+
+export function isBrowser ():boolean {
+  return typeof window !== 'undefined' && !('Deno' in window)
+}

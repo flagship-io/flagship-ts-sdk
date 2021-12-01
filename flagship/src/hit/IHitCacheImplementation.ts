@@ -1,3 +1,4 @@
+import { HitCacheLookupDTO, HitCacheSaveDTO } from '../types'
 
 export interface IHitCacheImplementation {
     /**
@@ -5,13 +6,13 @@ export interface IHitCacheImplementation {
      * @param visitorId visitor ID
      * @param data hit data
      */
-    cacheHit(visitorId:string, data: string):void
+    cacheHit(visitorId:string, data: HitCacheSaveDTO):void
     /**
      * This method will be called to load hits corresponding to visitor ID from your database and trying to send them again in the background.
      * Note: Hits older than 4H will be ignored
      * @param visitorId Visitor
      */
-    lookupHits(visitorId: string): string
+    lookupHits(visitorId: string): HitCacheLookupDTO[]
     /**
      * This method will be called to erase the visitor hits cache corresponding to visitor ID from your database.
      * @param visitorId visitor ID
