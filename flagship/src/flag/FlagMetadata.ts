@@ -26,10 +26,8 @@ export class FlagMetadata implements IFlagMetadata {
     }
 
     toJSON ():string {
-      try {
-        return JSON.stringify(this)
-      } catch (error) {
-        return JSON.stringify({})
-      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { toJSON, ...metadata } = this
+      return JSON.stringify(metadata)
     }
 }
