@@ -1,5 +1,5 @@
 import { CampaignDTO } from './decision/api/models'
-import { HitType } from './enum'
+import { HitType } from './enum/index'
 import { IEvent, IItem, IPage, IScreen, ITransaction, HitShape } from './hit/index'
 
 export type modificationsRequested<T> = {

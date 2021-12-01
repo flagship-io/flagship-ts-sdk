@@ -47,7 +47,7 @@ import { CampaignDTO } from '../decision/api/models.ts'
 import { DecisionMode } from '../config/index.ts'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext.ts'
 
-import { VisitorDelegate } from '..ts'
+import { VisitorDelegate } from './index.ts'
 
 import { Batch, BATCH, BatchDTO } from '../hit/Batch.ts'
 

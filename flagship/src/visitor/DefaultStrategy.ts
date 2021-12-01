@@ -47,7 +47,7 @@ import { CampaignDTO } from '../decision/api/models'
 import { DecisionMode } from '../config/index'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
 
-import { VisitorDelegate } from '.'
+import { VisitorDelegate } from './index'
 
 import { Batch, BATCH, BatchDTO } from '../hit/Batch'
 

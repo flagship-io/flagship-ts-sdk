@@ -33,9 +33,14 @@ export class HttpClient implements IHttpClient {
     if (!response.ok) {
       throw new Error(body || response.statusText)
     }
+    const headers:Record<string, string> = {}
+    response.headers.forEach((value, key) => {
+      headers[key] = value
+    })
     return {
       status: response.status,
-      body: body
+      body: body,
+      headers
     }
   }
 

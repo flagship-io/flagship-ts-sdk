@@ -47,9 +47,10 @@ const visitorCacheImplementation = {
 }
 
 Flagship.start(ENV_ID, API_KEY, {
+  decisionMode: DecisionMode.BUCKETING,
   fetchNow: false,
   timeout: 10,
-  pollingInterval: 20
+  pollingInterval: 5
 })
 
 const currentVisitorId = 'visitor_5678'
