@@ -10,7 +10,7 @@ import { Mock } from 'jest-mock'
 import { VISITOR_CACHE_VERSION } from '../../src/enum'
 import { IVisitorCacheImplementation } from '../../src/visitor/IVisitorCacheImplementation '
 import { campaigns } from '../decision/campaigns'
-import { VisitorLookupCacheDTO, VisitorSaveCacheDTO } from '../../src/models/visitorDTO'
+import { VisitorLookupCacheDTO, VisitorSaveCacheDTO } from '../../src/types'
 import { LOOKUP_VISITOR_JSON_OBJECT_ERROR } from '../../src/visitor/DefaultStrategy'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -26,8 +26,8 @@ describe('test visitor cache', () => {
   const logManager = new FlagshipLogManager()
   const logError = jest.spyOn(logManager, 'error')
 
-  const cacheVisitor:Mock<void, [visitorId: string, data: string]> = jest.fn()
-  const lookupVisitor:Mock<string, [visitorId: string]> = jest.fn()
+  const cacheVisitor:Mock<void, [visitorId: string, data: VisitorSaveCacheDTO]> = jest.fn()
+  const lookupVisitor:Mock<VisitorLookupCacheDTO, [visitorId: string]> = jest.fn()
   const flushVisitor:Mock<void, [visitorId: string]> = jest.fn()
   const visitorCacheImplementation:IVisitorCacheImplementation = {
     cacheVisitor,
@@ -85,7 +85,7 @@ describe('test visitor cache', () => {
     await defaultStrategy.synchronizeModifications()
     expect(cacheVisitor).toBeCalledTimes(1)
 
-    expect(cacheVisitor).toBeCalledWith(visitorId, JSON.stringify(data))
+    expect(cacheVisitor).toBeCalledWith(visitorId, (data))
   })
 
   it('test saveCache', async () => {
@@ -139,7 +139,7 @@ describe('test visitor cache', () => {
   })
 
   it('test lookupVisitor', async () => {
-    lookupVisitor.mockReturnValue(JSON.stringify(data))
+    lookupVisitor.mockReturnValue((data))
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(1)
     expect(visitorDelegate.visitorCache).toEqual(data)
@@ -155,7 +155,7 @@ describe('test visitor cache', () => {
         context: visitorDelegate.context
       }
     }
-    lookupVisitor.mockReturnValue(JSON.stringify(data))
+    lookupVisitor.mockReturnValue((data))
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(1)
     expect(visitorDelegate.visitorCache).toEqual(data)
@@ -173,7 +173,7 @@ describe('test visitor cache', () => {
       }
     }
 
-    lookupVisitor.mockReturnValue(JSON.stringify(data))
+    lookupVisitor.mockReturnValue(data as VisitorLookupCacheDTO)
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(1)
     expect(visitorDelegate.visitorCache).toBeUndefined()
@@ -192,7 +192,7 @@ describe('test visitor cache', () => {
       }
     }
 
-    lookupVisitor.mockReturnValue(JSON.stringify(data))
+    lookupVisitor.mockReturnValue(data as VisitorLookupCacheDTO)
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(1)
     expect(visitorDelegate.visitorCache).toBeUndefined()
@@ -224,7 +224,7 @@ describe('test visitor cache', () => {
       }
     }
 
-    lookupVisitor.mockReturnValue(JSON.stringify(data))
+    lookupVisitor.mockReturnValue(data as VisitorLookupCacheDTO)
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(1)
     expect(visitorDelegate.visitorCache).toBeUndefined()
@@ -285,8 +285,8 @@ describe('test visitorCache with disabledCache', () => {
 
   const logManager = new FlagshipLogManager()
 
-  const cacheVisitor:Mock<void, [visitorId: string, data: string]> = jest.fn()
-  const lookupVisitor:Mock<string, [visitorId: string]> = jest.fn()
+  const cacheVisitor:Mock<void, [visitorId: string, data: VisitorSaveCacheDTO]> = jest.fn()
+  const lookupVisitor:Mock<VisitorLookupCacheDTO, [visitorId: string]> = jest.fn()
   const flushVisitor:Mock<void, [visitorId: string]> = jest.fn()
   const visitorCacheImplementation:IVisitorCacheImplementation = {
     cacheVisitor,

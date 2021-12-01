@@ -40,15 +40,15 @@ import {
   IHitAbstract
 } from '../hit/index'
 import { HitShape, ItemHit } from '../hit/Legacy'
-import { primitive, modificationsRequested, IHit } from '../types'
+import { primitive, modificationsRequested, IHit, VisitorLookupCacheDTO, VisitorSaveCacheDTO, HitCacheLookupDTO, HitCacheSaveDTO } from '../types'
 import { logError, logInfo, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
 import { DecisionMode } from '../config/index'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
-import { VisitorLookupCacheDTO, VisitorSaveCacheDTO } from '../models/visitorDTO'
+
 import { VisitorDelegate } from '.'
-import { HitCacheLookupDTO, HitCacheSaveDTO } from '../models/HitDTO'
+
 import { Batch, BATCH, BatchDTO } from '../hit/Batch'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
@@ -262,7 +262,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return modification
   }
 
-  protected checKLookupVisitorDataV1 (item:VisitorLookupCacheDTO):boolean {
+  protected checkLookupVisitorDataV1 (item:VisitorLookupCacheDTO):boolean {
     if (!item || !item.data || !item.data.visitorId) {
       return false
     }
@@ -279,7 +279,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   protected checKLookupVisitorData (item:VisitorLookupCacheDTO):boolean {
     if (item.version === 1) {
-      return this.checKLookupVisitorDataV1(item)
+      return this.checkLookupVisitorDataV1(item)
     }
     return false
   }
@@ -294,7 +294,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       if (!visitorCacheJson) {
         return
       }
-      const visitorCache:VisitorLookupCacheDTO = JSON.parse(visitorCacheJson)
+      const visitorCache:VisitorLookupCacheDTO = visitorCacheJson
       if (!this.checKLookupVisitorData(visitorCache)) {
         throw new Error(LOOKUP_VISITOR_JSON_OBJECT_ERROR)
       }
@@ -331,7 +331,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
           })
         }
       }
-      visitorCacheInstance.cacheVisitor(this.visitor.visitorId, JSON.stringify(data))
+      visitorCacheInstance.cacheVisitor(this.visitor.visitorId, data)
       this.visitor.visitorCache = data
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
@@ -621,7 +621,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       if (!hitsCacheJson) {
         return
       }
-      const hitsCache:HitCacheLookupDTO[] = JSON.parse(hitsCacheJson)
+      const hitsCache = hitsCacheJson
       if (!Array.isArray(hitsCache)) {
         throw Error(LOOKUP_HITS_JSON_ERROR)
       }
@@ -679,7 +679,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
           time: Date.now()
         }
       }
-      hitCacheImplementation.cacheHit(this.visitor.visitorId, JSON.stringify(hitData))
+      hitCacheImplementation.cacheHit(this.visitor.visitorId, hitData)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logError(this.config, error.message || error, PROCESS_CACHE_HIT)

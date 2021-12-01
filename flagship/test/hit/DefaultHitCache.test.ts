@@ -1,4 +1,6 @@
 import { jest, expect, it, describe } from '@jest/globals'
+import { HitCacheSaveDTO, HitType } from '../../src'
+import { HIT_CACHE_VERSION, SDK_APP } from '../../src/enum'
 import { DefaultHitCache, FS_HIT_PREFIX } from '../../src/hit/DefaultHitCache'
 
 describe('Test DefaultHitCache', () => {
@@ -12,7 +14,22 @@ describe('Test DefaultHitCache', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   global.localStorage = storageMock as any
   const visitorId = 'visitorId'
-  const visitorData = 'visitorData'
+  const visitorData : HitCacheSaveDTO = {
+    version: HIT_CACHE_VERSION,
+    data: {
+      visitorId: visitorId,
+      anonymousId: null,
+      type: HitType.SCREEN,
+      content: {
+        visitorId,
+        ds: SDK_APP,
+        type: HitType.SCREEN,
+        anonymousId: null,
+        documentLocation: 'home'
+      },
+      time: Date.now()
+    }
+  }
 
   it('should ', () => {
     defaultHitCache.cacheHit(visitorId, visitorData)
@@ -32,9 +49,9 @@ describe('Test DefaultHitCache', () => {
   })
 
   it('should ', () => {
-    storageMock.getItem.mockReturnValue(visitorData)
+    storageMock.getItem.mockReturnValue(JSON.stringify(visitorData))
     const data = defaultHitCache.lookupHits(visitorId)
-    expect(data).toBe(visitorData)
+    expect(data).toEqual(visitorData)
     expect(global.localStorage.removeItem).toBeCalledTimes(1)
   })
 })
