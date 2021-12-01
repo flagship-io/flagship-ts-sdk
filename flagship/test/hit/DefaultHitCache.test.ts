@@ -34,13 +34,13 @@ describe('Test DefaultHitCache', () => {
   it('should ', () => {
     defaultHitCache.cacheHit(visitorId, visitorData)
     expect(global.localStorage.setItem).toBeCalledTimes(1)
-    expect(global.localStorage.setItem).toHaveBeenCalledWith(`${FS_HIT_PREFIX}${visitorId}`, `[${visitorData}]`)
+    expect(global.localStorage.setItem).toHaveBeenCalledWith(`${FS_HIT_PREFIX}${visitorId}`, JSON.stringify([visitorData]))
   })
   it('should ', () => {
-    storageMock.getItem.mockReturnValue(`[${visitorData}]`)
+    storageMock.getItem.mockReturnValue(JSON.stringify([visitorData]))
     defaultHitCache.cacheHit(visitorId, visitorData)
     expect(global.localStorage.setItem).toBeCalledTimes(1)
-    expect(global.localStorage.setItem).toHaveBeenCalledWith(`${FS_HIT_PREFIX}${visitorId}`, `[${visitorData},${visitorData}]`)
+    expect(global.localStorage.setItem).toHaveBeenCalledWith(`${FS_HIT_PREFIX}${visitorId}`, JSON.stringify([visitorData, visitorData]))
   })
   it('should ', () => {
     defaultHitCache.flushHits(visitorId)
