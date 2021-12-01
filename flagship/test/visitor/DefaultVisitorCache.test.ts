@@ -52,4 +52,10 @@ describe('Test DefaultVisitorCache', () => {
     const data = defaultVisitorCache.lookupVisitor(visitorId)
     expect(data).toEqual(visitorData)
   })
+
+  it('should ', () => {
+    storageMock.getItem.mockReturnValue(null)
+    const data = defaultVisitorCache.lookupVisitor(visitorId)
+    expect(data).toBeNull()
+  })
 })

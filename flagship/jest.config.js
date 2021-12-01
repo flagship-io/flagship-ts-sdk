@@ -24,9 +24,10 @@ module.exports = {
 
   // An array of regexp pattern strings used to skip coverage collection
   coveragePathIgnorePatterns: [
-    "test/decision/bucketing.ts",
-    "test/decision/campaigns.ts",
-    "test/visitor/modification.ts"
+    'test/decision/bucketing.ts',
+    'test/decision/campaigns.ts',
+    'test/visitor/modification.ts',
+    'src/index.ts'
   ],
 
   // Indicates which provider should be used to instrument code for coverage
@@ -152,10 +153,11 @@ module.exports = {
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
   testPathIgnorePatterns: [
-    "test/decision/bucketing.ts",
-    "test/decision/campaigns.ts",
-    "test/visitor/modification.ts"
-  ],
+    'test/decision/bucketing.ts',
+    'test/decision/campaigns.ts',
+    'test/visitor/modification.ts',
+    'src/index.ts'
+  ]
 
   // The regexp pattern or array of patterns that Jest uses to detect test files
   // testRegex: [],
