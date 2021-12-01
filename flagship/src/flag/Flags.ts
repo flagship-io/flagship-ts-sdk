@@ -20,7 +20,7 @@ export interface IFlag{
     /**
      * Return The campaign metadata object.
      */
-    metadata():IFlagMetadata|null
+    metadata:IFlagMetadata|null
 }
 
 export class Flag implements IFlag {
@@ -46,7 +46,7 @@ export class Flag implements IFlag {
       return !!this._flagDTO
     }
 
-    metadata ():IFlagMetadata|null {
+    get metadata ():IFlagMetadata|null {
       return this.exists() ? this._visitor.getFlagMetadata(this._metadata) : null
     }
 
@@ -54,7 +54,7 @@ export class Flag implements IFlag {
       return this._visitor.userExposed(this._key, this._flagDTO)
     }
 
-    value<T> (defaultValue: T, userExposed?: boolean): T {
+    value<T> (defaultValue: T, userExposed = true): T {
       return this._visitor.getFlagValue({ key: this._key, defaultValue, flag: this._flagDTO, userExposed })
     }
 }
