@@ -295,77 +295,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return this.globalFetchFlags(PROCESS_SYNCHRONIZED_MODIFICATION)
   }
 
-  async fetchFlags (): Promise<void> {
-    return this.globalFetchFlags('fetchFlags')
-  }
-
-  async userExposed (key:string, flag?: FlagDTO): Promise<void> {
-    const functionName = 'userExposed'
-    if (!flag) {
-      logError(
-        this.visitor.config,
-        sprintf(GET_FLAG_ERROR, key),
-        functionName
-      )
-      return
-    }
-
-    if (this.isDeDuplicated(key, this.config.activateDeduplicationTime as number)) {
-      return
-    }
-
-    if (!this.hasTrackingManager(functionName)) {
-      return
-    }
-
-    return this.sendActivate(flag, functionName)
-  }
-
-  getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}): T {
-    const { key, defaultValue, flag, userExposed } = param
-    const functionName = 'getFlag value'
-    if (!flag) {
-      logInfo(
-        this.config,
-        sprintf(GET_FLAG_MISSING_ERROR, key),
-        functionName
-      )
-      return defaultValue
-    }
-    const castError = () => {
-      logInfo(
-        this.config,
-        sprintf(GET_FLAG_CAST_ERROR, key),
-        functionName
-      )
-
-      if (!flag.value && userExposed) {
-        this.userExposed(key, flag)
-      }
-    }
-
-    if (typeof flag.value === 'object' && typeof defaultValue === 'object' &&
-      Array.isArray(flag.value) !== Array.isArray(defaultValue)
-    ) {
-      castError()
-      return defaultValue
-    }
-
-    if (typeof flag.value !== typeof defaultValue) {
-      castError()
-      return defaultValue
-    }
-
-    if (userExposed) {
-      this.userExposed(key, flag)
-    }
-    return flag.value
-  }
-
-  getFlagMetadata (metadata:IFlagMetadata):IFlagMetadata|null {
-    return metadata
-  }
-
   async activateModification (params: string): Promise<void> {
     if (!params || typeof params !== 'string') {
       logError(
@@ -636,7 +565,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     if (activate) {
       this.visitor.flags.forEach((value) => {
         if (value.campaignId === campaignId) {
-          this.activateModification(value.key)
+          this.userExposed(value.key, value)
         }
       })
     }
@@ -674,6 +603,77 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
     this.visitor.visitorId = this.visitor.anonymousId
     this.visitor.anonymousId = null
+  }
+
+  async fetchFlags (): Promise<void> {
+    return this.globalFetchFlags('fetchFlags')
+  }
+
+  async userExposed (key:string, flag?: FlagDTO): Promise<void> {
+    const functionName = 'userExposed'
+    if (!flag) {
+      logError(
+        this.visitor.config,
+        sprintf(GET_FLAG_ERROR, key),
+        functionName
+      )
+      return
+    }
+
+    if (this.isDeDuplicated(key, this.config.activateDeduplicationTime as number)) {
+      return
+    }
+
+    if (!this.hasTrackingManager(functionName)) {
+      return
+    }
+
+    return this.sendActivate(flag, functionName)
+  }
+
+  getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}): T {
+    const { key, defaultValue, flag, userExposed } = param
+    const functionName = 'getFlag value'
+    if (!flag) {
+      logInfo(
+        this.config,
+        sprintf(GET_FLAG_MISSING_ERROR, key),
+        functionName
+      )
+      return defaultValue
+    }
+    const castError = () => {
+      logInfo(
+        this.config,
+        sprintf(GET_FLAG_CAST_ERROR, key),
+        functionName
+      )
+
+      if (!flag.value && userExposed) {
+        this.userExposed(key, flag)
+      }
+    }
+
+    if (typeof flag.value === 'object' && typeof defaultValue === 'object' &&
+      Array.isArray(flag.value) !== Array.isArray(defaultValue)
+    ) {
+      castError()
+      return defaultValue
+    }
+
+    if (typeof flag.value !== typeof defaultValue) {
+      castError()
+      return defaultValue
+    }
+
+    if (userExposed) {
+      this.userExposed(key, flag)
+    }
+    return flag.value
+  }
+
+  getFlagMetadata (metadata:IFlagMetadata):IFlagMetadata|null {
+    return metadata
   }
 
   protected logDeactivateOnBucketing (functionName: string): void {
