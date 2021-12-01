@@ -86,7 +86,7 @@ export class BucketingManager extends DecisionManager {
         headers['if-modified-since'] = this._lastModified
       }
 
-      const response = await this._httpClient.getAsync(url, { headers })
+      const response = await this._httpClient.getAsync(url, { headers, timeout: this.config.timeout })
 
       this.finishLoop(response)
 
@@ -123,7 +123,7 @@ export class BucketingManager extends DecisionManager {
         type: 'CONTEXT',
         data: visitor.context
       }
-      await this._httpClient.postAsync(url, { headers, body })
+      await this._httpClient.postAsync(url, { headers, body, timeout: this.config.timeout })
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logError(this.config, error.message || error, 'sendContext')

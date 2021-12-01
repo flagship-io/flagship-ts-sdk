@@ -13,7 +13,7 @@ import { DecisionManager } from '../../src/decision/DecisionManager'
 import { TrackingManager } from '../../src/api/TrackingManager'
 
 describe('test BucketingManager', () => {
-  const config = new BucketingConfig({ pollingInterval: 0 })
+  const config = new BucketingConfig({ pollingInterval: 0, envId: 'envID', apiKey: 'apiKey' })
   const murmurHash = new MurmurHash()
   const httpClient = new HttpClient()
 
@@ -85,7 +85,8 @@ describe('test BucketingManager', () => {
         [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
         [HEADER_X_SDK_VERSION]: SDK_VERSION,
         [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
-      }
+      },
+      timeout: config.timeout
     })
     expect(sendContext).toBeCalledTimes(1)
   })
@@ -104,7 +105,8 @@ describe('test BucketingManager', () => {
         [HEADER_X_SDK_VERSION]: SDK_VERSION,
         [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON,
         'if-modified-since': 'Fri, 06 Aug 2021 11:16:19 GMT'
-      }
+      },
+      timeout: config.timeout
     })
   })
 })
@@ -187,7 +189,7 @@ describe('test error', () => {
 })
 
 describe('test sendContext', () => {
-  const config = new BucketingConfig({ pollingInterval: 0 })
+  const config = new BucketingConfig({ pollingInterval: 0, envId: 'envID', apiKey: 'apiKey' })
   const murmurHash = new MurmurHash()
   const httpClient = new HttpClient()
   const logManager = new FlagshipLogManager()
@@ -228,7 +230,7 @@ describe('test sendContext', () => {
     bucketingManager.sendContext(visitor).then(() => {
       expect(postAsync).toBeCalledTimes(1)
       expect(postAsync).toBeCalledWith(url, {
-        headers, body
+        headers, body, timeout: config.timeout
       })
     })
   })
