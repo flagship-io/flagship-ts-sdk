@@ -3,7 +3,6 @@ import Flagship, { DecisionApiConfig, FlagDTO, FlagshipStatus } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
-import { FlagMetadata, IFlagMetadata } from '../../src/flag/FlagMetadata'
 import { Flag } from '../../src/flag/Flags'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient, IHttpOptions, IHttpResponse } from '../../src/utils/HttpClient'
@@ -107,6 +106,14 @@ describe('test Flag', () => {
   it('should ', () => {
     const flag = new Flag(flagDto.key, visitorDelegate)
     expect(flag.exists()).toBeFalsy()
-    expect(flag.metadata).toBeNull()
+    expect(flag.metadata).toEqual(
+      {
+        campaignId: '',
+        customId: '',
+        campaignType: '',
+        variationId: '',
+        scenarioId: '',
+        isReference: false
+      })
   })
 })

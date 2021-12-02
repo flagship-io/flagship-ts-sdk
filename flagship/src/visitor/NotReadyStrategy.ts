@@ -81,9 +81,16 @@ export class NotReadyStrategy extends DefaultStrategy {
     this.log('userExposed')
   }
 
-  getFlagMetadata ():IFlagMetadata|null {
+  getFlagMetadata ():IFlagMetadata {
     this.log('flag.metadata')
-    return null
+    return {
+      campaignId: '',
+      customId: '',
+      campaignType: '',
+      variationId: '',
+      scenarioId: '',
+      isReference: false
+    }
   }
 
   private log (methodName:string) {

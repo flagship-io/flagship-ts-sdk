@@ -671,7 +671,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return flag.value
   }
 
-  getFlagMetadata (metadata:IFlagMetadata):IFlagMetadata|null {
+  getFlagMetadata (metadata:IFlagMetadata):IFlagMetadata {
     return metadata
   }
 

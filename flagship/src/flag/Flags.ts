@@ -20,7 +20,7 @@ export interface IFlag{
     /**
      * Return The campaign metadata object.
      */
-    metadata:IFlagMetadata|null
+    metadata:IFlagMetadata
 }
 
 export class Flag implements IFlag {
@@ -46,8 +46,8 @@ export class Flag implements IFlag {
       return !!this._flagDTO
     }
 
-    get metadata ():IFlagMetadata|null {
-      return this.exists() ? this._visitor.getFlagMetadata(this._metadata) : null
+    get metadata ():IFlagMetadata {
+      return this._visitor.getFlagMetadata(this._metadata)
     }
 
     userExposed ():Promise<void> {

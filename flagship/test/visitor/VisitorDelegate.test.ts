@@ -12,6 +12,8 @@ import { IHit, modificationsRequested } from '../../src/types'
 import { CampaignDTO } from '../../src/decision/api/models'
 import { DecisionManager } from '../../src/decision/DecisionManager'
 import { cacheVisitor, VisitorProfil } from '../../src/visitor/VisitorCache'
+import { IFlag } from '../../src/flag/Flags'
+import { IFlagMetadata } from '../../src/flag/FlagMetadata'
 
 const updateContext = jest.fn()
 const clearContext = jest.fn()
@@ -27,6 +29,8 @@ const activateModification:Mock<Promise<void>, [keys: string]> = jest.fn()
 const activateModifications:Mock<Promise<void>, [keys: string[]]> = jest.fn()
 const activateModificationSync:Mock<void, [keys: string]> = jest.fn()
 const activateModificationsSync:Mock<void, [keys: string[]]> = jest.fn()
+
+const getFlagMetadata:Mock<IFlagMetadata, [metadata:IFlagMetadata]> = jest.fn()
 const sendHit:Mock<Promise<void>, [hit: IHit]> = jest.fn()
 
 const sendHits:Mock<Promise<void>, [hit: IHit[]]> = jest.fn()
@@ -36,7 +40,18 @@ const getAllModifications:Mock<Promise<{
   visitorId: string;
   campaigns: CampaignDTO[];
 }>, [activate: boolean]> = jest.fn()
+
+const getAllFlags:Mock<Promise<{
+  visitorId: string;
+  campaigns: CampaignDTO[];
+}>, [activate: boolean]> = jest.fn()
+
 const getModificationsForCampaign:Mock<Promise<{
+  visitorId: string;
+  campaigns: CampaignDTO[];
+}>, [campaignId: string, activate?: boolean]> = jest.fn()
+
+const getFlatsForCampaign:Mock<Promise<{
   visitorId: string;
   campaigns: CampaignDTO[];
 }>, [campaignId: string, activate?: boolean]> = jest.fn()
@@ -71,13 +86,16 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         sendHits,
         sendHitsSync,
         getAllModifications,
+        getAllFlags,
         getModificationsForCampaign,
+        getFlatsForCampaign,
         authenticate,
         unauthenticate,
         updateCampaigns,
         lookupVisitor,
         lookupHits,
-        fetchFlags
+        fetchFlags,
+        getFlagMetadata
       }
     })
   }
@@ -153,6 +171,23 @@ describe('test VisitorDelegate', () => {
     expect(updateContext).toBeCalledWith(newContext)
   })
 
+  it('test flags', () => {
+    expect(visitorDelegate.flags.size).toBe(0)
+    const flag = {
+      key: 'newKey',
+      campaignId: 'cma',
+      variationGroupId: 'var',
+      variationId: 'varId',
+      isReference: true,
+      value: 'value'
+    }
+    const newFlag = new Map([['key', flag]])
+    visitorDelegate.flags = newFlag
+    expect(visitorDelegate.flags).toEqual(newFlag)
+    expect(visitorDelegate.getFlagsArray()).toEqual([flag])
+    visitorDelegate.flags.clear()
+  })
+
   it('test modification', () => {
     expect(visitorDelegate.flags.size).toBe(0)
     const modification = {
@@ -164,8 +199,8 @@ describe('test VisitorDelegate', () => {
       value: 'value'
     }
     const newModification = new Map([['key', modification]])
-    visitorDelegate.flags = newModification
-    expect(visitorDelegate.flags).toEqual(newModification)
+    visitorDelegate.modifications = newModification
+    expect(visitorDelegate.modifications).toEqual(newModification)
     expect(visitorDelegate.getModificationsArray()).toEqual([modification])
   })
 
@@ -238,6 +273,38 @@ describe('test VisitorDelegate methods', () => {
   it('test clear', () => {
     visitorDelegate.clearContext()
     expect(clearContext).toBeCalledTimes(1)
+  })
+
+  it('test getFlag', () => {
+    const flagDTO = {
+      key: 'newKey',
+      campaignId: 'cma',
+      variationGroupId: 'var',
+      variationId: 'varId',
+      isReference: true,
+      value: 'value'
+    }
+    getFlagMetadata.mockReturnValue({
+      campaignId: flagDTO.campaignId,
+      scenarioId: '',
+      variationId: flagDTO.variationId,
+      customId: '',
+      isReference: flagDTO.isReference,
+      campaignType: ''
+    })
+    visitorDelegate.flags.set('newKey', flagDTO)
+    const flag = visitorDelegate.getFlag('newKey')
+
+    expect(flag).toBeDefined()
+    expect(flag.exists()).toBeTruthy()
+    expect(flag.metadata).toEqual(expect.objectContaining({
+      campaignId: flagDTO.campaignId,
+      scenarioId: '',
+      variationId: flagDTO.variationId,
+      customId: '',
+      isReference: flagDTO.isReference,
+      campaignType: ''
+    }))
   })
 
   it('test getModification', () => {
@@ -379,6 +446,14 @@ describe('test VisitorDelegate methods', () => {
     expect(getAllModifications).toBeCalledTimes(2)
   })
 
+  it('test getAllFlags', async () => {
+    getAllFlags.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
+    await visitorDelegate.getAllFlags()
+    expect(getAllFlags).toBeCalledTimes(1)
+    await visitorDelegate.getAllFlags(false)
+    expect(getAllFlags).toBeCalledTimes(2)
+  })
+
   it('test getModificationsForCampaign', async () => {
     getModificationsForCampaign.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
     const campaignId = 'campaignId'
@@ -389,6 +464,18 @@ describe('test VisitorDelegate methods', () => {
     await visitorDelegate.getModificationsForCampaign(campaignId, true)
     expect(getModificationsForCampaign).toBeCalledTimes(2)
     expect(getModificationsForCampaign).toBeCalledWith(campaignId, true)
+  })
+
+  it('test getFlatsForCampaign', async () => {
+    getFlatsForCampaign.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
+    const campaignId = 'campaignId'
+    await visitorDelegate.getFlatsForCampaign(campaignId)
+    expect(getFlatsForCampaign).toBeCalledTimes(1)
+    expect(getFlatsForCampaign).toBeCalledWith(campaignId, false)
+
+    await visitorDelegate.getFlatsForCampaign(campaignId, true)
+    expect(getFlatsForCampaign).toBeCalledTimes(2)
+    expect(getFlatsForCampaign).toBeCalledWith(campaignId, true)
   })
 
   it('test authenticate', () => {

@@ -82,4 +82,17 @@ describe('test Get method NOdeHttpClient', () => {
       expect(error).toEqual(error)
     }
   })
+
+  it('should ', async () => {
+    const error = 'error'
+    fetch.mockRejectedValue(new Response(JSON.stringify(error),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }))
+    try {
+      options.timeout = undefined
+      await nodeHttpClient.getAsync(url, options)
+      expect(fetch).toBeCalledTimes(1)
+    } catch (err) {
+      expect(error).toEqual(error)
+    }
+  })
 })

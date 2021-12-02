@@ -78,7 +78,7 @@ export class VisitorDelegate extends VisitorAbstract {
     return this.getStrategy().getAllModifications(activate)
   }
 
-  getAllFlags (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+  getAllFlags (activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
     return this.getStrategy().getAllFlags(activate)
   }
 
@@ -86,7 +86,7 @@ export class VisitorDelegate extends VisitorAbstract {
     return this.getStrategy().getModificationsForCampaign(campaignId, activate)
   }
 
-  getFlatsForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+  getFlatsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
     return this.getStrategy().getFlatsForCampaign(campaignId, activate)
   }
 
@@ -112,7 +112,7 @@ export class VisitorDelegate extends VisitorAbstract {
     return this.getStrategy().getFlagValue(param)
   }
 
-  getFlagMetadata (metadata:IFlagMetadata):IFlagMetadata|null {
+  getFlagMetadata (metadata:IFlagMetadata):IFlagMetadata {
     return this.getStrategy().getFlagMetadata(metadata)
   }
 }
