@@ -5,7 +5,7 @@ import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient, IHttpResponse, IHttpOptions } from '../../src/utils/HttpClient'
-import { VisitorDelegate, DefaultStrategy } from '../../src/visitor'
+import { VisitorDelegate, DefaultStrategy, NoConsentStrategy } from '../../src/visitor'
 import { Mock } from 'jest-mock'
 import { IHitCacheImplementation } from '../../src/hit/IHitCacheImplementation'
 import { HitCacheSaveDTO, HitCacheLookupDTO, IHit } from '../../src/types'
@@ -68,6 +68,8 @@ describe('test visitor hit cache', () => {
 
   const defaultStrategy = new DefaultStrategy(visitorDelegate)
 
+  const noConsentStrategy = new NoConsentStrategy(visitorDelegate)
+
   sendActive.mockRejectedValue(new Error())
   sendHit.mockRejectedValue(new Error())
 
@@ -89,7 +91,7 @@ describe('test visitor hit cache', () => {
   ]
   getCampaignsAsync.mockResolvedValue(campaignDTO)
 
-  it('test saveCache', async () => {
+  it('test saveCache defaultStrategy', async () => {
     await defaultStrategy.synchronizeModifications()
     const dateNow = Date.now
     Date.now = jest.fn()
@@ -137,6 +139,15 @@ describe('test visitor hit cache', () => {
     Date.now = dateNow
   })
 
+  it('test saveCache noConsentStrategy', async () => {
+    await defaultStrategy.synchronizeModifications()
+    const documentLocation = 'screenName'
+    await noConsentStrategy.activateModification('key')
+    await noConsentStrategy.sendHit({ type: HitType.SCREEN, documentLocation })
+
+    expect(cacheHit).toBeCalledTimes(0)
+  })
+
   it('test saveCache failed', async () => {
     const cacheHitError = 'error'
     cacheHit.mockImplementation(() => {
@@ -158,7 +169,7 @@ describe('test visitor hit cache', () => {
     expect(cacheHit).toBeCalledTimes(0)
   })
 
-  it('test lookupHit', async () => {
+  it('test lookupHit defaultStrategy', async () => {
     const hits:HitCacheLookupDTO[] = []
 
     for (let index = 0; index < 100; index++) {
@@ -236,6 +247,11 @@ describe('test visitor hit cache', () => {
     expect(sendHit).toBeCalledTimes(3)
     await sleep(100)
     expect(cacheHit).toBeCalledTimes(110)
+  })
+
+  it('test lookupHit noConsentStrategy', async () => {
+    await noConsentStrategy.lookupHits()
+    expect(lookupHits).toBeCalledTimes(0)
   })
 
   it('test lookupHit', async () => {
