@@ -142,11 +142,11 @@ export class Visitor extends EventEmitter implements IVisitor {
     return this.visitorDelegate.getModificationsForCampaign(campaignId, activate)
   }
 
-  getAllFlags (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+  getAllFlags (activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
     return this.visitorDelegate.getAllFlags(activate)
   }
 
-  getFlatsForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+  getFlatsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
     return this.visitorDelegate.getFlatsForCampaign(campaignId, activate)
   }
 

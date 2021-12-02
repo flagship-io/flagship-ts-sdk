@@ -10,6 +10,7 @@ import { Visitor } from '../../src/visitor/Visitor'
 import { HitType, FlagDTO } from '../../src'
 import { EMIT_READY, SDK_LANGUAGE, SDK_VERSION } from '../../src/enum'
 import { CampaignDTO } from '../../src/decision/api/models'
+import { IFlag } from '../../src/flag/Flags'
 
 describe('test visitor', () => {
   const visitorId = 'visitorId'
@@ -78,6 +79,7 @@ describe('test visitor', () => {
     })
 
     expect(visitor.flags).toBe(visitorDelegate.flags)
+    expect(visitor.modifications).toBe(visitorDelegate.flags)
   })
 
   it('test updateContext', () => {
@@ -94,6 +96,14 @@ describe('test visitor', () => {
     visitor.clearContext()
     expect(visitor.context).toEqual({})
     expect(visitor.context).toEqual(visitorDelegate.context)
+  })
+
+  it('test getFlag', () => {
+    const getFlag = jest.spyOn(visitorDelegate, 'getFlag')
+    getFlag.mockReturnValue({} as IFlag)
+    visitor.getFlag('key')
+    expect(getFlag).toBeCalledTimes(1)
+    expect(getFlag).toBeCalledWith('key')
   })
 
   it('test getModification', () => {
@@ -124,6 +134,13 @@ describe('test visitor', () => {
     getModifications.mockReturnValue([])
     visitor.getModificationsArray()
     expect(getModifications).toBeCalledTimes(1)
+  })
+
+  it('test getFlagsArray', () => {
+    const getFlagsArray = jest.spyOn(visitorDelegate, 'getFlagsArray')
+    getFlagsArray.mockReturnValue([])
+    visitor.getFlagsArray()
+    expect(getFlagsArray).toBeCalledTimes(1)
   })
 
   it('test getModifications', () => {
@@ -259,6 +276,19 @@ describe('test visitor', () => {
     })
   })
 
+  it('test getAllFlags', () => {
+    const getAllFlags = jest.spyOn(visitorDelegate, 'getAllFlags')
+    getAllFlags.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
+    visitor.getAllFlags().then(() => {
+      expect(getAllFlags).toBeCalledTimes(2)
+      expect(getAllFlags).toBeCalledWith(false)
+    })
+    visitor.getAllFlags(true).then(() => {
+      expect(getAllFlags).toBeCalledTimes(2)
+      expect(getAllFlags).toBeCalledWith(true)
+    })
+  })
+
   it('test getModificationsForCampaign', () => {
     const getModificationsForCampaign = jest.spyOn(visitorDelegate, 'getModificationsForCampaign')
     getModificationsForCampaign.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
@@ -271,6 +301,21 @@ describe('test visitor', () => {
     visitor.getModificationsForCampaign(campaignId, true).then(() => {
       expect(getModificationsForCampaign).toBeCalledTimes(2)
       expect(getModificationsForCampaign).toBeCalledWith(campaignId, true)
+    })
+  })
+
+  it('test getFlatsForCampaign', () => {
+    const getFlatsForCampaign = jest.spyOn(visitorDelegate, 'getFlatsForCampaign')
+    getFlatsForCampaign.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
+    const campaignId = 'campaignId'
+    visitor.getFlatsForCampaign(campaignId).then(() => {
+      expect(getFlatsForCampaign).toBeCalledTimes(2)
+      expect(getFlatsForCampaign).toBeCalledWith(campaignId, false)
+    })
+
+    visitor.getFlatsForCampaign(campaignId, true).then(() => {
+      expect(getFlatsForCampaign).toBeCalledTimes(2)
+      expect(getFlatsForCampaign).toBeCalledWith(campaignId, true)
     })
   })
 
