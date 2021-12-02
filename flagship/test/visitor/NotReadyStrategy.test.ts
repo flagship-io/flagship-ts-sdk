@@ -38,6 +38,14 @@ describe('test NotReadyStrategy', () => {
     })
   })
 
+  it('test fetchFlags', () => {
+    notReadyStrategy.fetchFlags().then(() => {
+      const methodName = 'fetchFlags'
+      expect(logError).toBeCalledTimes(1)
+      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
+    })
+  })
+
   it('test getModification', () => {
     const defaultValue = 'value'
     notReadyStrategy.getModification({ key: 'key', defaultValue }).then((value) => {
@@ -47,6 +55,15 @@ describe('test NotReadyStrategy', () => {
       expect(logError).toBeCalledTimes(1)
       expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
     })
+  })
+
+  it('test getFlagValue', () => {
+    const defaultValue = 'value'
+    const flagValue = notReadyStrategy.getFlagValue({ key: 'key', defaultValue })
+    const methodName = 'Flag.value'
+    expect(flagValue).toBe(defaultValue)
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
   })
 
   it('test getModification array', () => {
@@ -70,12 +87,27 @@ describe('test NotReadyStrategy', () => {
     })
   })
 
+  it('test getModificationInfo', () => {
+    const metadata = notReadyStrategy.getFlagMetadata()
+    const methodName = 'flag.metadata'
+    expect(metadata).toBeNull()
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
+  })
+
   it('test activateModification', () => {
     notReadyStrategy.activateModification('key').then(() => {
       const methodName = 'activateModification'
       expect(logError).toBeCalledTimes(1)
       expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
     })
+  })
+
+  it('test userExposed', async () => {
+    await notReadyStrategy.userExposed()
+    const methodName = 'userExposed'
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
   })
 
   it('test activateModifications', () => {

@@ -5,7 +5,7 @@ import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient, IHttpResponse, IHttpOptions } from '../../src/utils/HttpClient'
-import { VisitorDelegate, DefaultStrategy, NoConsentStrategy } from '../../src/visitor'
+import { VisitorDelegate, DefaultStrategy, NoConsentStrategy, NotReadyStrategy } from '../../src/visitor'
 import { Mock } from 'jest-mock'
 import { VISITOR_CACHE_VERSION } from '../../src/enum'
 import { IVisitorCacheImplementation } from '../../src/visitor/IVisitorCacheImplementation '
@@ -61,6 +61,8 @@ describe('test visitor cache', () => {
 
   const noConsentStrategy = new NoConsentStrategy(visitorDelegate)
 
+  const notReadyStrategy = new NotReadyStrategy(visitorDelegate)
+
   const data: VisitorSaveCacheDTO = {
     version: VISITOR_CACHE_VERSION,
     data: {
@@ -93,6 +95,12 @@ describe('test visitor cache', () => {
   it('test saveCache noConsentStrategy', async () => {
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
     await noConsentStrategy.synchronizeModifications()
+    expect(cacheVisitor).toBeCalledTimes(0)
+  })
+
+  it('test saveCache notReadyStrategy', async () => {
+    getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
+    await notReadyStrategy.synchronizeModifications()
     expect(cacheVisitor).toBeCalledTimes(0)
   })
 
@@ -167,6 +175,12 @@ describe('test visitor cache', () => {
   it('test lookupVisitor noConsentStrategy', async () => {
     lookupVisitor.mockReturnValue((data))
     await noConsentStrategy.lookupVisitor()
+    expect(lookupVisitor).toBeCalledTimes(0)
+  })
+
+  it('test lookupVisitor notReadyStrategy', async () => {
+    lookupVisitor.mockReturnValue((data))
+    await notReadyStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(0)
   })
 
