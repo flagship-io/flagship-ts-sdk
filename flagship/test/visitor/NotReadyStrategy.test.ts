@@ -87,7 +87,7 @@ describe('test NotReadyStrategy', () => {
     })
   })
 
-  it('test getModificationInfo', () => {
+  it('test getFlagMetadata', () => {
     const metadata = notReadyStrategy.getFlagMetadata()
     const methodName = 'flag.metadata'
     expect(metadata).toBeNull()
