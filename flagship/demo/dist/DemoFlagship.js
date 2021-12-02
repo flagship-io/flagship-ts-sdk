@@ -19,7 +19,7 @@ const statusChangedCallback = status => {
 };
 
 _jsSdk2.default.start(_config.ENV_ID, _config.API_KEY, {
-  decisionMode: _jsSdk.DecisionMode.DECISION_API,
+  decisionMode: _jsSdk.DecisionMode.BUCKETING,
   statusChangedCallback,
   logLevel: _jsSdk.LogLevel.ERROR,
   fetchNow: false

@@ -19,7 +19,7 @@ const statusChangedCallback = (status) => {
 }
 
 Flagship.start(ENV_ID, API_KEY, {
-  decisionMode: DecisionMode.DECISION_API,
+  decisionMode: DecisionMode.BUCKETING,
   statusChangedCallback,
   logLevel: LogLevel.ERROR,
   fetchNow: false
