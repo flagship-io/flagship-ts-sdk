@@ -61,4 +61,12 @@ describe('test NoConsentStrategy', () => {
       expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
     })
   })
+
+  it('test userExposed', () => {
+    noConsentStrategy.userExposed().then(() => {
+      const methodName = 'userExposed'
+      expect(logError).toBeCalledTimes(1)
+      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
+    })
+  })
 })
