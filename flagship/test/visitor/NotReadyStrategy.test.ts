@@ -90,7 +90,14 @@ describe('test NotReadyStrategy', () => {
   it('test getFlagMetadata', () => {
     const metadata = notReadyStrategy.getFlagMetadata()
     const methodName = 'flag.metadata'
-    expect(metadata).toBeNull()
+    expect(metadata).toEqual({
+      campaignId: '',
+      customId: '',
+      campaignType: '',
+      variationId: '',
+      scenarioId: '',
+      isReference: false
+    })
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
   })
