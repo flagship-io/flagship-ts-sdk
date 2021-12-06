@@ -47,10 +47,11 @@ describe('test visitor', () => {
     fs_version: SDK_VERSION,
     fs_users: visitor.visitorId
   }
+  const newVisitorId = 'newVisitorId'
 
   it('test property', () => {
     expect(visitor.visitorId).toBe(visitorId)
-    const newVisitorId = 'newVisitorId'
+
     visitor.visitorId = newVisitorId
     expect(visitor.visitorId).toBe(visitorDelegate.visitorId)
     expect(visitorDelegate.visitorId).toBe(newVisitorId)
@@ -86,13 +87,13 @@ describe('test visitor', () => {
       hasChild: true
     }
     visitor.updateContext(newContexts)
-    expect(visitor.context).toEqual({ ...newContexts, ...predefinedContext })
+    expect(visitor.context).toEqual({ ...newContexts, ...predefinedContext, fs_users: newVisitorId })
     expect(visitor.context).toEqual(visitorDelegate.context)
   })
 
   it('test clear context', () => {
     visitor.clearContext()
-    expect(visitor.context).toEqual({})
+    expect(visitor.context).toEqual({ ...predefinedContext, fs_users: newVisitorId })
     expect(visitor.context).toEqual(visitorDelegate.context)
   })
 

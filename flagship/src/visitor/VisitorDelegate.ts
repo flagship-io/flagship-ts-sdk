@@ -7,6 +7,7 @@ import { CampaignDTO } from '../decision/api/models'
 export class VisitorDelegate extends VisitorAbstract {
   updateContext (context: Record<string, primitive>): void {
     this.getStrategy().updateContext(context)
+    this.loadPredefinedContext()
   }
 
   clearContext (): void {
