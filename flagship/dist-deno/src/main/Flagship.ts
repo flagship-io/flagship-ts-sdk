@@ -19,7 +19,7 @@ import { BucketingManager } from '../decision/BucketingManager.ts'
 import { MurmurHash } from '../utils/MurmurHash.ts'
 import { DecisionManager } from '../decision/DecisionManager.ts'
 import { HttpClient } from '../utils/HttpClient.ts'
-import { Modification, NewVisitor, primitive } from '../types.ts'
+import { FlagDTO, NewVisitor, primitive } from '../types.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { DefaultHitCache } from '../hit/DefaultHitCache.ts'
 import { DefaultVisitorCache } from '../visitor/DefaultVisitorCache.ts'
@@ -252,20 +252,20 @@ export class Flagship {
       return null
     }
 
-    let visitorId:string|null
+    let visitorId:string|undefined
     let context:Record<string, primitive>
     let isAuthenticated = false
     let hasConsented = true
-    let initialModifications:Map<string, Modification>|Modification[]|undefined
+    let initialModifications:Map<string, FlagDTO>|FlagDTO[]|undefined
     let initialCampaigns:CampaignDTO[]|undefined
     const isServerSide = !isBrowser()
     let isNewInstance = isServerSide
 
     if (typeof param1 === 'string' || param1 === null) {
-      visitorId = param1
+      visitorId = param1 || undefined
       context = param2 || {}
     } else {
-      visitorId = param1?.visitorId || null
+      visitorId = param1?.visitorId
       context = param1?.context || {}
       isAuthenticated = !!param1?.isAuthenticated
       hasConsented = param1?.hasConsented ?? true
@@ -289,7 +289,7 @@ export class Flagship {
     this.getInstance()._visitorInstance = !isNewInstance ? visitor : undefined
 
     if (this.getConfig().fetchNow) {
-      visitor.synchronizeModifications()
+      visitor.fetchFlags()
     }
     return visitor
   }

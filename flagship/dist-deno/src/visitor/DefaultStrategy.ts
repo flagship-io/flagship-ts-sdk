@@ -1,28 +1,27 @@
-import { Modification } from '../index.ts'
 import {
   CONTEXT_NULL_ERROR,
   CONTEXT_PARAM_ERROR,
-  DEFAULT_HIT_CACHE_TIME,
   EMIT_READY,
   FLAGSHIP_VISITOR_NOT_AUTHENTICATE,
+  GET_FLAG_CAST_ERROR,
+  GET_FLAG_ERROR,
+  GET_FLAG_MISSING_ERROR,
+  GET_METADATA_CAST_ERROR,
   GET_MODIFICATION_CAST_ERROR,
   GET_MODIFICATION_ERROR,
   GET_MODIFICATION_KEY_ERROR,
   GET_MODIFICATION_MISSING_ERROR,
   HitType,
-  HIT_CACHE_VERSION,
   METHOD_DEACTIVATED_BUCKETING_ERROR,
   PREDEFINED_CONTEXT_TYPE_ERROR,
   PROCESS_ACTIVE_MODIFICATION,
-  PROCESS_CACHE_HIT,
   PROCESS_GET_MODIFICATION,
   PROCESS_GET_MODIFICATION_INFO,
   PROCESS_SEND_HIT,
   PROCESS_SYNCHRONIZED_MODIFICATION,
   PROCESS_UPDATE_CONTEXT,
   SDK_APP,
-  TRACKER_MANAGER_MISSING_ERROR,
-  VISITOR_CACHE_VERSION,
+  USER_EXPOSED_CAST_ERROR,
   VISITOR_ID_ERROR
 } from '../enum/index.ts'
 import {
@@ -40,38 +39,19 @@ import {
   IHitAbstract
 } from '../hit/index.ts'
 import { HitShape, ItemHit } from '../hit/Legacy.ts'
-import { primitive, modificationsRequested, IHit, VisitorLookupCacheDTO, VisitorSaveCacheDTO, HitCacheLookupDTO, HitCacheSaveDTO } from '../types.ts'
-import { logError, logInfo, sprintf } from '../utils/utils.ts'
+import { primitive, modificationsRequested, IHit, FlagDTO } from '../types.ts'
+import { hasSameType, logError, logInfo, sprintf } from '../utils/utils.ts'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { DecisionMode } from '../config/index.ts'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext.ts'
-
-import { VisitorDelegate } from './index.ts'
-
+import { VisitorDelegate } from '..ts'
 import { Batch, BATCH, BatchDTO } from '../hit/Batch.ts'
+import { IFlagMetadata } from '../flag/FlagMetadata.ts'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
-export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
-export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheLookupDTO'
-export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheLookupDTO'
+
 export class DefaultStrategy extends VisitorStrategyAbstract {
-  setConsent (hasConsented: boolean): void {
-    const method = 'setConsent'
-    this.visitor.hasConsented = hasConsented
-    if (!hasConsented) {
-      this.flushHits()
-      this.flushVisitor()
-    }
-    if (!this.hasTrackingManager(method)) {
-      return
-    }
-
-    this.trackingManager.sendConsentHit(this.visitor).catch((error) => {
-      logError(this.config, error.message || error, method)
-    })
-  }
-
   private checkPredefinedContext (
     key: string,
     value: primitive
@@ -166,7 +146,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return defaultValue
     }
 
-    const modification = this.visitor.modifications.get(key)
+    const modification = this.visitor.flags.get(key)
     if (!modification) {
       logInfo(
         this.config,
@@ -235,11 +215,11 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return this.checkAndGetModification(params)
   }
 
-  async getModificationInfo (key: string): Promise<Modification | null> {
+  async getModificationInfo (key: string): Promise<FlagDTO | null> {
     return this.getModificationInfoSync(key)
   }
 
-  public getModificationInfoSync (key: string): Modification | null {
+  public getModificationInfoSync (key: string): FlagDTO | null {
     if (!key || typeof key !== 'string') {
       logError(
         this.visitor.config,
@@ -249,7 +229,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return null
     }
 
-    const modification = this.visitor.modifications.get(key)
+    const modification = this.visitor.flags.get(key)
 
     if (!modification) {
       logError(
@@ -260,104 +240,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return null
     }
     return modification
-  }
-
-  protected checkLookupVisitorDataV1 (item:VisitorLookupCacheDTO):boolean {
-    if (!item || !item.data || !item.data.visitorId) {
-      return false
-    }
-    const campaigns = item.data.campaigns
-    if (!campaigns) {
-      return true
-    }
-    if (!Array.isArray(campaigns)) {
-      return false
-    }
-
-    return campaigns.every(x => x.campaignId && x.type && x.variationGroupId && x.variationId)
-  }
-
-  protected checKLookupVisitorData (item:VisitorLookupCacheDTO):boolean {
-    if (item.version === 1) {
-      return this.checkLookupVisitorDataV1(item)
-    }
-    return false
-  }
-
-  public async lookupVisitor ():Promise<void> {
-    try {
-      const visitorCacheInstance = this.config.visitorCacheImplementation
-      if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
-        return
-      }
-      const visitorCacheJson = visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
-      if (!visitorCacheJson) {
-        return
-      }
-      const visitorCache:VisitorLookupCacheDTO = visitorCacheJson
-      if (!this.checKLookupVisitorData(visitorCache)) {
-        throw new Error(LOOKUP_VISITOR_JSON_OBJECT_ERROR)
-      }
-      this.visitor.visitorCache = visitorCache
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
-      logError(this.config, error.message || error, 'lookupVisitor')
-    }
-  }
-
-  protected async cacheVisitor ():Promise<void> {
-    try {
-      const visitorCacheInstance = this.config.visitorCacheImplementation
-      if (this.config.disableCache || this.decisionManager.isPanic() || !visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.cacheVisitor !== 'function') {
-        return
-      }
-      const data: VisitorSaveCacheDTO = {
-        version: VISITOR_CACHE_VERSION,
-        data: {
-          visitorId: this.visitor.visitorId,
-          anonymousId: this.visitor.anonymousId,
-          consent: this.visitor.hasConsented,
-          context: this.visitor.context,
-          campaigns: this.visitor.campaigns.map(campaign => {
-            return {
-              campaignId: campaign.id,
-              variationGroupId: campaign.variationGroupId,
-              variationId: campaign.variation.id,
-              isReference: campaign.variation.reference,
-              type: campaign.variation.modifications.type,
-              activated: false,
-              flags: campaign.variation.modifications.value
-            }
-          })
-        }
-      }
-      visitorCacheInstance.cacheVisitor(this.visitor.visitorId, data)
-      this.visitor.visitorCache = data
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
-      logError(
-        this.config,
-        error.message || error,
-        'cacheVisitor'
-      )
-    }
-  }
-
-  protected async flushVisitor ():Promise<void> {
-    try {
-      const visitorCacheInstance = this.config.visitorCacheImplementation
-      if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.flushVisitor !== 'function') {
-        return
-      }
-      visitorCacheInstance.flushVisitor(this.visitor.visitorId)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
-      logError(
-        this.config,
-        error.message || error,
-        'flushVisitor'
-      )
-    }
   }
 
   protected fetchVisitorCampaigns (visitor: VisitorDelegate) :CampaignDTO[] {
@@ -383,7 +265,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     })
   }
 
-  async synchronizeModifications (): Promise<void> {
+  protected async globalFetchFlags (functionName:string): Promise<void> {
     try {
       await this.lookupVisitor()
       let campaigns = await this.decisionManager.getCampaignsAsync(
@@ -394,7 +276,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         campaigns = this.fetchVisitorCampaigns(this.visitor)
       }
       this.visitor.campaigns = campaigns
-      this.visitor.modifications = this.decisionManager.getModifications(
+      this.visitor.flags = this.decisionManager.getModifications(
         this.visitor.campaigns
       )
       this.cacheVisitor()
@@ -405,9 +287,13 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       logError(
         this.config,
         error.message || error,
-        PROCESS_SYNCHRONIZED_MODIFICATION
+        functionName
       )
     }
+  }
+
+  async synchronizeModifications (): Promise<void> {
+    return this.globalFetchFlags(PROCESS_SYNCHRONIZED_MODIFICATION)
   }
 
   async activateModification (params: string): Promise<void> {
@@ -424,9 +310,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   activateModifications(keys: { key: string }[]): Promise<void>
   activateModifications(keys: string[]): Promise<void>
-  async activateModifications (
-    params: string[] | { key: string }[]
-  ): Promise<void> {
+  async activateModifications (params: string[] | { key: string }[]): Promise<void> {
     if (!params || !Array.isArray(params)) {
       logError(
         this.config,
@@ -442,20 +326,13 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     })
   }
 
-  private hasTrackingManager (process: string): boolean {
-    const check = this.trackingManager
-    if (!check) {
-      logError(this.config, sprintf(TRACKER_MANAGER_MISSING_ERROR), process)
-    }
-    return !!check
-  }
-
   private isDeDuplicated (key:string, deDuplicationTime:number):boolean {
     if (deDuplicationTime === 0) {
       return false
     }
 
     const deDuplicationCache = this.visitor.deDuplicationCache[key]
+
     if (deDuplicationCache && (Date.now() - deDuplicationCache) <= (deDuplicationTime * 1000)) {
       return true
     }
@@ -465,12 +342,12 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return false
   }
 
-  private async sendActivate (modification: Modification) {
+  protected async sendActivate (modification: FlagDTO, functionName = PROCESS_ACTIVE_MODIFICATION):Promise<void> {
     try {
       await this.trackingManager.sendActive(this.visitor, modification)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logError(this.config, error.message || error, PROCESS_ACTIVE_MODIFICATION)
+      logError(this.config, error.message || error, functionName)
       this.cacheHit(modification)
     }
   }
@@ -480,9 +357,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
-    const modification = this.visitor.modifications.get(key)
+    const flag = this.visitor.flags.get(key)
 
-    if (!modification) {
+    if (!flag) {
       logError(
         this.visitor.config,
         sprintf(GET_MODIFICATION_ERROR, key),
@@ -495,7 +372,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
-    await this.sendActivate(modification)
+    await this.sendActivate(flag)
   }
 
   sendHit(hit: BatchDTO): Promise<void>
@@ -602,104 +479,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return newHit
   }
 
-  protected checKLookupHitData (item:HitCacheLookupDTO):boolean {
-    if (item && item.version === 1 && item.data && item.data.type && item.data.visitorId) {
-      return true
-    }
-    logError(this.config, LOOKUP_HITS_JSON_OBJECT_ERROR, 'lookupHits')
-    return false
-  }
-
-  async lookupHits ():Promise<void> {
-    try {
-      const hitCacheImplementation = this.config.hitCacheImplementation
-      if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.lookupHits !== 'function') {
-        return
-      }
-
-      const hitsCacheJson = hitCacheImplementation.lookupHits(this.visitor.visitorId)
-      if (!hitsCacheJson) {
-        return
-      }
-      const hitsCache = hitsCacheJson
-      if (!Array.isArray(hitsCache)) {
-        throw Error(LOOKUP_HITS_JSON_ERROR)
-      }
-
-      const checkHitTime = (time:number) => (((Date.now() - time) / 1000) <= DEFAULT_HIT_CACHE_TIME)
-
-      const batches:BatchDTO[] = [{
-        type: 'BATCH',
-        hits: []
-      }]
-      let batchSize = 0
-      let count = 0
-
-      hitsCache.filter(item => this.checKLookupHitData(item) && checkHitTime(item.data.time)).forEach((item) => {
-        if (item.data.type === 'ACTIVATE') {
-          this.sendActivate(item.data.content as Modification)
-          return
-        }
-        batchSize = JSON.stringify(batches[count]).length
-        if (batchSize > 2500) {
-          count++
-          batches[count] = {
-            type: 'BATCH',
-            hits: [item.data.content as IHit]
-          }
-        } else {
-          batches[count].hits.push(item.data.content as IHit)
-        }
-      })
-
-      if (batches.length === 1 && !batches[0].hits.length) {
-        return
-      }
-
-      this.sendHits(batches)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
-      logError(this.config, error.message || error, 'lookupHits')
-    }
-  }
-
-  protected async cacheHit (hitInstance: HitAbstract|Modification):Promise<void> {
-    try {
-      const hitCacheImplementation = this.config.hitCacheImplementation
-      if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.cacheHit !== 'function') {
-        return
-      }
-      const hitData: HitCacheSaveDTO = {
-        version: HIT_CACHE_VERSION,
-        data: {
-          visitorId: this.visitor.visitorId,
-          anonymousId: this.visitor.anonymousId,
-          type: hitInstance instanceof HitAbstract ? hitInstance.type : 'ACTIVATE',
-          content: hitInstance instanceof HitAbstract ? hitInstance.toObject() : hitInstance,
-          time: Date.now()
-        }
-      }
-      hitCacheImplementation.cacheHit(this.visitor.visitorId, hitData)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
-      logError(this.config, error.message || error, PROCESS_CACHE_HIT)
-    }
-  }
-
-  protected async flushHits (): Promise<void> {
-    try {
-      const hitCacheImplementation = this.config.hitCacheImplementation
-      if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.flushHits !== 'function') {
-        return
-      }
-
-      hitCacheImplementation.flushHits(this.visitor.visitorId)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
-      logError(this.config, error.message || error, 'flushHits')
-    }
-  }
-
   private async prepareAndSendHit (hit: IHit | HitShape | HitAbstract|BatchDTO) {
     let hitInstance: HitAbstract
     if (hit instanceof HitAbstract) {
@@ -757,8 +536,12 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     visitorId: string
     campaigns: CampaignDTO[]
   }> {
+    return this.getAllFlags(activate)
+  }
+
+  async getAllFlags (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
     if (activate) {
-      this.visitor.modifications.forEach((_, key) => {
+      this.visitor.flags.forEach((_, key) => {
         this.activateModification(key)
       })
     }
@@ -775,17 +558,15 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
    * @deprecated
    * @returns
    */
-  public async getModificationsForCampaign (
-    campaignId: string,
-    activate = false
-  ): Promise<{
-    visitorId: string
-    campaigns: CampaignDTO[]
-  }> {
+  public async getModificationsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[]}> {
+    return this.getFlatsForCampaign(campaignId, activate)
+  }
+
+  async getFlatsForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
     if (activate) {
-      this.visitor.modifications.forEach((value) => {
+      this.visitor.flags.forEach((value) => {
         if (value.campaignId === campaignId) {
-          this.activateModification(value.key)
+          this.userExposed({ key: value.key, flag: value, defaultValue: value.value })
         }
       })
     }
@@ -823,6 +604,93 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
     this.visitor.visitorId = this.visitor.anonymousId
     this.visitor.anonymousId = null
+  }
+
+  async fetchFlags (): Promise<void> {
+    return this.globalFetchFlags('fetchFlags')
+  }
+
+  async userExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T}): Promise<void> {
+    const { key, flag, defaultValue } = param
+    const functionName = 'userExposed'
+    if (!flag) {
+      logError(
+        this.visitor.config,
+        sprintf(GET_FLAG_ERROR, key),
+        functionName
+      )
+      return
+    }
+
+    if (flag.value && !hasSameType(flag.value, defaultValue)) {
+      logError(
+        this.visitor.config,
+        sprintf(USER_EXPOSED_CAST_ERROR, key),
+        functionName
+      )
+      return
+    }
+
+    if (this.isDeDuplicated(key, this.config.activateDeduplicationTime as number)) {
+      return
+    }
+
+    if (!this.hasTrackingManager(functionName)) {
+      return
+    }
+
+    return this.sendActivate(flag, functionName)
+  }
+
+  getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}): T {
+    const { key, defaultValue, flag, userExposed } = param
+    const functionName = 'getFlag value'
+    if (!flag) {
+      logInfo(
+        this.config,
+        sprintf(GET_FLAG_MISSING_ERROR, key),
+        functionName
+      )
+      return defaultValue
+    }
+
+    if (!hasSameType(flag.value, defaultValue)) {
+      logInfo(
+        this.config,
+        sprintf(GET_FLAG_CAST_ERROR, key),
+        functionName
+      )
+
+      if (!flag.value && userExposed) {
+        this.userExposed({ key, flag, defaultValue })
+      }
+      return defaultValue
+    }
+
+    if (userExposed) {
+      this.userExposed({ key, flag, defaultValue })
+    }
+    return flag.value
+  }
+
+  getFlagMetadata (param:{metadata:IFlagMetadata, key:string, hasSameType:boolean}):IFlagMetadata {
+    const { metadata, hasSameType: checkType, key } = param
+    const functionName = 'flag.metadata'
+    if (!checkType) {
+      logError(
+        this.visitor.config,
+        sprintf(GET_METADATA_CAST_ERROR, key),
+        functionName
+      )
+      return {
+        campaignId: '',
+        campaignType: '',
+        variationId: '',
+        variationGroupId: '',
+        isReference: false
+      }
+    }
+    return metadata
   }
 
   protected logDeactivateOnBucketing (functionName: string): void {

@@ -1,8 +1,10 @@
-import { Modification } from '../index.ts'
+import { FlagDTO } from '../index.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
 import { primitive, modificationsRequested, IHit } from '../types.ts'
 import { VisitorAbstract } from './VisitorAbstract.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
+import { Flag, IFlag } from '../flag/Flags.ts'
+import { IFlagMetadata } from '../flag/FlagMetadata.ts'
 
 export class VisitorDelegate extends VisitorAbstract {
   updateContext (context: Record<string, primitive>): void {
@@ -12,6 +14,11 @@ export class VisitorDelegate extends VisitorAbstract {
 
   clearContext (): void {
     this.getStrategy().clearContext()
+  }
+
+  getFlag<T> (key:string, defaultValue: T):IFlag<T> {
+    const flag = this.flags.get(key)
+    return new Flag({ key, visitor: this, flagDTO: flag, defaultValue })
   }
 
   getModification<T> (params: modificationsRequested<T>): Promise<T> {
@@ -30,11 +37,11 @@ export class VisitorDelegate extends VisitorAbstract {
     return this.getStrategy().getModificationsSync(params, activateAll)
   }
 
-  getModificationInfo (key: string): Promise<Modification | null> {
+  getModificationInfo (key: string): Promise<FlagDTO | null> {
     return this.getStrategy().getModificationInfo(key)
   }
 
-  getModificationInfoSync (key: string): Modification | null {
+  getModificationInfoSync (key: string): FlagDTO | null {
     return this.getStrategy().getModificationInfoSync(key)
   }
 
@@ -72,8 +79,16 @@ export class VisitorDelegate extends VisitorAbstract {
     return this.getStrategy().getAllModifications(activate)
   }
 
+  getAllFlags (activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+    return this.getStrategy().getAllFlags(activate)
+  }
+
   getModificationsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
     return this.getStrategy().getModificationsForCampaign(campaignId, activate)
+  }
+
+  getFlatsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+    return this.getStrategy().getFlatsForCampaign(campaignId, activate)
   }
 
   authenticate (visitorId: string): void {
@@ -84,5 +99,21 @@ export class VisitorDelegate extends VisitorAbstract {
   unauthenticate (): void {
     this.getStrategy().unauthenticate()
     this.updateCache()
+  }
+
+  fetchFlags ():Promise<void> {
+    return this.getStrategy().fetchFlags()
+  }
+
+  userExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T}): Promise<void> {
+    return this.getStrategy().userExposed(param)
+  }
+
+  getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}):T {
+    return this.getStrategy().getFlagValue(param)
+  }
+
+  getFlagMetadata (param:{metadata:IFlagMetadata, hasSameType:boolean}):IFlagMetadata {
+    return this.getStrategy().getFlagMetadata(param)
   }
 }

@@ -14,4 +14,6 @@ export type { IFlagshipLogManager } from './utils/FlagshipLogManager'
 export type { BucketingDTO } from './decision/api/bucketingDTO'
 export type { CampaignDTO } from './decision/api/models'
 
+export * from './flag/index'
+
 export default Flagship
