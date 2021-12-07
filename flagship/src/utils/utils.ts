@@ -51,3 +51,15 @@ export function sleep (ms:number) :Promise<unknown> {
 export function isBrowser ():boolean {
   return typeof window !== 'undefined' && !('Deno' in window)
 }
+
+export function hasSameType (flagValue:unknown, defaultValue:unknown):boolean {
+  if (typeof flagValue !== typeof defaultValue) {
+    return false
+  }
+  if (typeof flagValue === 'object' && typeof defaultValue === 'object' &&
+  Array.isArray(flagValue) !== Array.isArray(defaultValue)
+  ) {
+    return false
+  }
+  return true
+}
