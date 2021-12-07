@@ -85,10 +85,9 @@ export class NotReadyStrategy extends DefaultStrategy {
     this.log('flag.metadata')
     return {
       campaignId: '',
-      customId: '',
       campaignType: '',
       variationId: '',
-      scenarioId: '',
+      variationGroupId: '',
       isReference: false
     }
   }

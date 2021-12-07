@@ -92,10 +92,9 @@ describe('test NotReadyStrategy', () => {
     const methodName = 'flag.metadata'
     expect(metadata).toEqual({
       campaignId: '',
-      customId: '',
+      variationGroupId: '',
       campaignType: '',
       variationId: '',
-      scenarioId: '',
       isReference: false
     })
     expect(logError).toBeCalledTimes(1)

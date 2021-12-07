@@ -35,6 +35,7 @@ export class Flag<T> implements IFlag<T> {
     private _flagDTO?: FlagDTO
     private _metadata:IFlagMetadata
     private _key:string
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private _defaultValue:any
     constructor (param: {key:string, visitor:VisitorDelegate, flagDTO?:FlagDTO, defaultValue:T}) {
       const { key, visitor, flagDTO, defaultValue } = param
@@ -44,9 +45,8 @@ export class Flag<T> implements IFlag<T> {
       this._defaultValue = defaultValue
       this._metadata = new FlagMetadata({
         campaignId: flagDTO?.campaignId || '',
-        scenarioId: '',
+        variationGroupId: flagDTO?.variationGroupId || '',
         variationId: flagDTO?.variationId || '',
-        customId: '',
         isReference: !!flagDTO?.isReference,
         campaignType: ''
       })

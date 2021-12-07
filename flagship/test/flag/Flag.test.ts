@@ -69,9 +69,8 @@ describe('test Flag', () => {
     getStatus.mockReturnValue(FlagshipStatus.READY)
     expect(flag.metadata).toEqual({
       campaignId: 'campaignID',
-      scenarioId: '',
+      variationGroupId: 'variationGroupID',
       variationId: 'variationID',
-      customId: '',
       isReference: true,
       campaignType: ''
     })
@@ -119,10 +118,9 @@ describe('test Flag', () => {
     expect(flag.metadata).toEqual(
       {
         campaignId: '',
-        customId: '',
+        variationGroupId: '',
         campaignType: '',
         variationId: '',
-        scenarioId: '',
         isReference: false
       })
     expect(logError).toBeCalledTimes(1)
@@ -135,10 +133,9 @@ describe('test Flag', () => {
     expect(flag.metadata).toEqual(
       {
         campaignId: '',
-        customId: '',
+        variationGroupId: '',
         campaignType: '',
         variationId: '',
-        scenarioId: '',
         isReference: false
       })
   })

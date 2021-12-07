@@ -684,10 +684,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       )
       return {
         campaignId: '',
-        customId: '',
         campaignType: '',
         variationId: '',
-        scenarioId: '',
+        variationGroupId: '',
         isReference: false
       }
     }

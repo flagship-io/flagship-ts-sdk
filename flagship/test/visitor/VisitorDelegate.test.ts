@@ -285,9 +285,8 @@ describe('test VisitorDelegate methods', () => {
     }
     getFlagMetadata.mockReturnValue({
       campaignId: flagDTO.campaignId,
-      scenarioId: '',
+      variationGroupId: flagDTO.variationGroupId,
       variationId: flagDTO.variationId,
-      customId: '',
       isReference: flagDTO.isReference,
       campaignType: ''
     })
@@ -298,9 +297,8 @@ describe('test VisitorDelegate methods', () => {
     expect(flag.exists()).toBeTruthy()
     expect(flag.metadata).toEqual(expect.objectContaining({
       campaignId: flagDTO.campaignId,
-      scenarioId: '',
+      variationGroupId: flagDTO.variationGroupId,
       variationId: flagDTO.variationId,
-      customId: '',
       isReference: flagDTO.isReference,
       campaignType: ''
     }))

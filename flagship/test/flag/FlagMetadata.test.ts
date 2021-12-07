@@ -4,9 +4,8 @@ import { FlagMetadata, IFlagMetadata } from '../../src/flag/FlagMetadata'
 describe('test FlagMetadata', () => {
   const metadata:IFlagMetadata = {
     campaignId: 'campaignID',
-    scenarioId: 'scenario',
+    variationGroupId: 'variationGroupID',
     variationId: 'variationID',
-    customId: 'customID',
     isReference: true,
     campaignType: 'type'
   }
