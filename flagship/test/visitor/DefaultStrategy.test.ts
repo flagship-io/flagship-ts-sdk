@@ -130,7 +130,11 @@ describe('test DefaultStrategy ', () => {
 
   it('test clear Context', () => {
     defaultStrategy.clearContext()
-    expect(visitorDelegate.context).toEqual({})
+    expect(visitorDelegate.context).toEqual({
+      fs_client: SDK_LANGUAGE,
+      fs_version: SDK_VERSION,
+      fs_users: visitorId
+    })
   })
 
   const campaignDtoId = 'c2nrh1hjg50l9stringu8bg'
