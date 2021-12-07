@@ -16,9 +16,9 @@ export class VisitorDelegate extends VisitorAbstract {
     this.getStrategy().clearContext()
   }
 
-  getFlag (key:string):IFlag {
+  getFlag<T> (key:string, defaultValue: T):IFlag<T> {
     const flag = this.flags.get(key)
-    return new Flag(key, this, flag)
+    return new Flag({ key, visitor: this, flagDTO: flag, defaultValue })
   }
 
   getModification<T> (params: modificationsRequested<T>): Promise<T> {
@@ -105,15 +105,15 @@ export class VisitorDelegate extends VisitorAbstract {
     return this.getStrategy().fetchFlags()
   }
 
-  userExposed (key:string, flag?: FlagDTO): Promise<void> {
-    return this.getStrategy().userExposed(key, flag)
+  userExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T}): Promise<void> {
+    return this.getStrategy().userExposed(param)
   }
 
   getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}):T {
     return this.getStrategy().getFlagValue(param)
   }
 
-  getFlagMetadata (metadata:IFlagMetadata):IFlagMetadata {
-    return this.getStrategy().getFlagMetadata(metadata)
+  getFlagMetadata (param:{metadata:IFlagMetadata, hasSameType:boolean}):IFlagMetadata {
+    return this.getStrategy().getFlagMetadata(param)
   }
 }

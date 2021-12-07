@@ -6,6 +6,7 @@ import {
   GET_FLAG_CAST_ERROR,
   GET_FLAG_ERROR,
   GET_FLAG_MISSING_ERROR,
+  GET_METADATA_CAST_ERROR,
   GET_MODIFICATION_CAST_ERROR,
   GET_MODIFICATION_ERROR,
   GET_MODIFICATION_KEY_ERROR,
@@ -20,6 +21,7 @@ import {
   PROCESS_SYNCHRONIZED_MODIFICATION,
   PROCESS_UPDATE_CONTEXT,
   SDK_APP,
+  USER_EXPOSED_CAST_ERROR,
   VISITOR_ID_ERROR
 } from '../enum/index'
 import {
@@ -38,7 +40,7 @@ import {
 } from '../hit/index'
 import { HitShape, ItemHit } from '../hit/Legacy'
 import { primitive, modificationsRequested, IHit, FlagDTO } from '../types'
-import { logError, logInfo, sprintf } from '../utils/utils'
+import { hasSameType, logError, logInfo, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
 import { DecisionMode } from '../config/index'
@@ -564,7 +566,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     if (activate) {
       this.visitor.flags.forEach((value) => {
         if (value.campaignId === campaignId) {
-          this.userExposed(value.key, value)
+          this.userExposed({ key: value.key, flag: value, defaultValue: value.value })
         }
       })
     }
@@ -608,12 +610,22 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return this.globalFetchFlags('fetchFlags')
   }
 
-  async userExposed (key:string, flag?: FlagDTO): Promise<void> {
+  async userExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T}): Promise<void> {
+    const { key, flag, defaultValue } = param
     const functionName = 'userExposed'
     if (!flag) {
       logError(
         this.visitor.config,
         sprintf(GET_FLAG_ERROR, key),
+        functionName
+      )
+      return
+    }
+
+    if (flag.value && !hasSameType(flag.value, defaultValue)) {
+      logError(
+        this.visitor.config,
+        sprintf(USER_EXPOSED_CAST_ERROR, key),
         functionName
       )
       return
@@ -641,7 +653,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       )
       return defaultValue
     }
-    const castError = () => {
+
+    if (!hasSameType(flag.value, defaultValue)) {
       logInfo(
         this.config,
         sprintf(GET_FLAG_CAST_ERROR, key),
@@ -649,29 +662,35 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       )
 
       if (!flag.value && userExposed) {
-        this.userExposed(key, flag)
+        this.userExposed({ key, flag, defaultValue })
       }
-    }
-
-    if (typeof flag.value === 'object' && typeof defaultValue === 'object' &&
-      Array.isArray(flag.value) !== Array.isArray(defaultValue)
-    ) {
-      castError()
-      return defaultValue
-    }
-
-    if (typeof flag.value !== typeof defaultValue) {
-      castError()
       return defaultValue
     }
 
     if (userExposed) {
-      this.userExposed(key, flag)
+      this.userExposed({ key, flag, defaultValue })
     }
     return flag.value
   }
 
-  getFlagMetadata (metadata:IFlagMetadata):IFlagMetadata {
+  getFlagMetadata (param:{metadata:IFlagMetadata, key:string, hasSameType:boolean}):IFlagMetadata {
+    const { metadata, hasSameType: checkType, key } = param
+    const functionName = 'flag.metadata'
+    if (!checkType) {
+      logError(
+        this.visitor.config,
+        sprintf(GET_METADATA_CAST_ERROR, key),
+        functionName
+      )
+      return {
+        campaignId: '',
+        customId: '',
+        campaignType: '',
+        variationId: '',
+        scenarioId: '',
+        isReference: false
+      }
+    }
     return metadata
   }
 

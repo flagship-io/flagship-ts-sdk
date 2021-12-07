@@ -243,7 +243,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     abstract getModification<T>(params: modificationsRequested<T>): Promise<T>;
     abstract getModificationSync<T>(params: modificationsRequested<T>): T
 
-    abstract getFlag(key:string):IFlag
+    abstract getFlag<T>(key:string, defaultValue: T):IFlag<T>
 
     abstract getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<Record<string, T>>
     abstract getModificationsSync<T> (params: modificationsRequested<T>[], activateAll?: boolean): Record<string, T>
@@ -281,8 +281,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     abstract authenticate(visitorId: string): void
     abstract unauthenticate(): void
 
-    abstract userExposed(key:string, flag?:FlagDTO):Promise<void>
+    abstract userExposed<T>(param:{key:string, flag?:FlagDTO, defaultValue:T}):Promise<void>
     abstract getFlagValue<T>(param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}):T
     abstract fetchFlags(): Promise<void>
-    abstract getFlagMetadata(metadata:IFlagMetadata):IFlagMetadata
+    abstract getFlagMetadata(param:{metadata:IFlagMetadata, hasSameType:boolean}):IFlagMetadata
 }

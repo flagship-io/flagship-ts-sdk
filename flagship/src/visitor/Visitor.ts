@@ -71,8 +71,8 @@ export class Visitor extends EventEmitter implements IVisitor {
     this.visitorDelegate.clearContext()
   }
 
-  getFlag (key:string):IFlag {
-    return this.visitorDelegate.getFlag(key)
+  getFlag<T> (key:string, defaultValue:T):IFlag<T> {
+    return this.visitorDelegate.getFlag(key, defaultValue)
   }
 
   getModification<T> (params: modificationsRequested<T>): Promise<T> {

@@ -12,7 +12,6 @@ import { IHit, modificationsRequested } from '../../src/types'
 import { CampaignDTO } from '../../src/decision/api/models'
 import { DecisionManager } from '../../src/decision/DecisionManager'
 import { cacheVisitor, VisitorProfil } from '../../src/visitor/VisitorCache'
-import { IFlag } from '../../src/flag/Flags'
 import { IFlagMetadata } from '../../src/flag/FlagMetadata'
 
 const updateContext = jest.fn()
@@ -293,7 +292,7 @@ describe('test VisitorDelegate methods', () => {
       campaignType: ''
     })
     visitorDelegate.flags.set('newKey', flagDTO)
-    const flag = visitorDelegate.getFlag('newKey')
+    const flag = visitorDelegate.getFlag('newKey', 'defaultValue')
 
     expect(flag).toBeDefined()
     expect(flag.exists()).toBeTruthy()

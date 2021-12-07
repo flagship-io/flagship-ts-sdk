@@ -101,10 +101,10 @@ describe('test visitor', () => {
 
   it('test getFlag', () => {
     const getFlag = jest.spyOn(visitorDelegate, 'getFlag')
-    getFlag.mockReturnValue({} as IFlag)
-    visitor.getFlag('key')
+    getFlag.mockReturnValue({} as IFlag<string>)
+    visitor.getFlag('key', 'defaultValue')
     expect(getFlag).toBeCalledTimes(1)
-    expect(getFlag).toBeCalledWith('key')
+    expect(getFlag).toBeCalledWith('key', 'defaultValue')
   })
 
   it('test getModification', () => {

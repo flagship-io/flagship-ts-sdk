@@ -8,7 +8,7 @@ import { IHttpResponse, IHttpOptions, HttpClient } from '../../src/utils/HttpCli
 import { DefaultStrategy, TYPE_HIT_REQUIRED_ERROR } from '../../src/visitor/DefaultStrategy'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { Mock } from 'jest-mock'
-import { CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, GET_FLAG_CAST_ERROR, GET_FLAG_ERROR, GET_FLAG_MISSING_ERROR, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, METHOD_DEACTIVATED_BUCKETING_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_SYNCHRONIZED_MODIFICATION, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_LANGUAGE, SDK_VERSION, TRACKER_MANAGER_MISSING_ERROR, VISITOR_ID_ERROR } from '../../src/enum'
+import { CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, GET_FLAG_CAST_ERROR, GET_FLAG_ERROR, GET_FLAG_MISSING_ERROR, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, METHOD_DEACTIVATED_BUCKETING_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_SYNCHRONIZED_MODIFICATION, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_LANGUAGE, SDK_VERSION, TRACKER_MANAGER_MISSING_ERROR, USER_EXPOSED_CAST_ERROR, VISITOR_ID_ERROR } from '../../src/enum'
 import { sleep, sprintf } from '../../src/utils/utils'
 import { returnModification } from './modification'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
@@ -543,7 +543,7 @@ describe('test DefaultStrategy ', () => {
   })
 
   it('test userExposed', async () => {
-    await defaultStrategy.userExposed(returnMod.key, returnMod)
+    await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
     expect(sendActive).toBeCalledTimes(1)
     expect(sendActive).toBeCalledWith(
       visitorDelegate,
@@ -551,8 +551,18 @@ describe('test DefaultStrategy ', () => {
     )
   })
 
+  it('test userExposed with different type', async () => {
+    await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: true })
+    expect(sendActive).toBeCalledTimes(0)
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(
+      sprintf(USER_EXPOSED_CAST_ERROR, returnMod.key),
+      'userExposed'
+    )
+  })
+
   it('test userExposed flag undefined', async () => {
-    await defaultStrategy.userExposed(notExitKey, undefined)
+    await defaultStrategy.userExposed({ key: notExitKey, flag: undefined, defaultValue: false })
     expect(sendActive).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(
@@ -564,7 +574,7 @@ describe('test DefaultStrategy ', () => {
   it('test hasTrackingManager userExposed', async () => {
     configManager.trackingManager = getNull()
 
-    await defaultStrategy.userExposed(returnMod.key, returnMod)
+    await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
 
     expect(sendActive).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
@@ -580,7 +590,7 @@ describe('test DefaultStrategy ', () => {
     try {
       const error = 'Error'
       sendActive.mockRejectedValue(error)
-      await defaultStrategy.userExposed(returnMod.key, returnMod)
+      await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
       expect(sendActive).toBeCalledTimes(1)
       expect(sendActive).toBeCalledWith(
         visitorDelegate,

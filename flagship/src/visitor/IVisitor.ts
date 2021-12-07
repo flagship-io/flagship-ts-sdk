@@ -1,7 +1,7 @@
 import { IFlagshipConfig } from '../config/FlagshipConfig'
 import { CampaignDTO } from '../decision/api/models'
 import { HitAbstract, HitShape } from '../hit/index'
-import { IFlag } from '../Flag/Flags'
+import { IFlag } from '../flag/Flags'
 import { IHit, FlagDTO, modificationsRequested, primitive, Modification } from '../types'
 
 export interface IVisitor {
@@ -57,7 +57,7 @@ export interface IVisitor {
    */
   getModification<T>(params: modificationsRequested<T>): Promise<T>;
 
-  getFlag(key:string):IFlag
+  getFlag<T>(key:string, defaultValue: T):IFlag<T>
 
   /**
    * Retrieve an array of modification value by keys. If no modification match the given

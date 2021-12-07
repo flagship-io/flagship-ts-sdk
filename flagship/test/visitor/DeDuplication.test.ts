@@ -88,11 +88,11 @@ describe('Name of the group', () => {
       isReference: false,
       value: null
     }
-    await defaultStrategy.userExposed(flag.key, flag)
-    await defaultStrategy.userExposed(flag.key, flag)
-    await defaultStrategy.userExposed(flag.key, flag)
-    await defaultStrategy.userExposed(flag2.key, flag2)
-    await defaultStrategy.userExposed(flag2.key, flag2)
+    await defaultStrategy.userExposed({ key: flag.key, flag, defaultValue: flag.value })
+    await defaultStrategy.userExposed({ key: flag.key, flag, defaultValue: flag.value })
+    await defaultStrategy.userExposed({ key: flag.key, flag, defaultValue: flag.value })
+    await defaultStrategy.userExposed({ key: flag2.key, flag: flag2, defaultValue: flag2.value })
+    await defaultStrategy.userExposed({ key: flag2.key, flag: flag2, defaultValue: flag2.value })
     expect(sendActive).toBeCalledTimes(2)
   })
 
