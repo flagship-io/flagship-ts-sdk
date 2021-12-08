@@ -25,6 +25,6 @@ export class FlagMetadata implements IFlagMetadata {
     toJSON ():string {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { toJSON, ...metadata } = this
-      return JSON.stringify(metadata)
+      return JSON.stringify(metadata.campaignId ? metadata : {})
     }
 }

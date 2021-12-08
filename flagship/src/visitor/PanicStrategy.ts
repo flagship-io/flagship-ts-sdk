@@ -5,7 +5,7 @@ import { logError, sprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
 import { HitAbstract, HitShape } from '../hit/index'
 import { BatchDTO } from '../hit/Batch'
-import { IFlagMetadata } from '../flag/FlagMetadata'
+import { FlagMetadata, IFlagMetadata } from '../flag/FlagMetadata'
 
 export class PanicStrategy extends DefaultStrategy {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -95,13 +95,13 @@ export class PanicStrategy extends DefaultStrategy {
 
   getFlagMetadata ():IFlagMetadata {
     this.log('flag.metadata')
-    return {
+    return new FlagMetadata({
       campaignId: '',
       campaignType: '',
       variationId: '',
       variationGroupId: '',
       isReference: false
-    }
+    })
   }
 
   private log (methodName:string) {

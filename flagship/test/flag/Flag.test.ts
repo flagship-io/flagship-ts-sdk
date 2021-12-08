@@ -87,8 +87,7 @@ describe('test Flag', () => {
   })
 
   it('test value', () => {
-    const defaultValue = '4'
-    const value = flag.value({ defaultValue })
+    const value = flag.value()
     expect(value).toBe(flagDto.value)
     expect(getFlagValue).toBeCalledTimes(1)
     expect(getFlagValue).toBeCalledWith({
@@ -101,7 +100,7 @@ describe('test Flag', () => {
 
   it('test value', () => {
     const defaultValue = 'defaultValue'
-    const value = flag.value({ defaultValue, userExposed: false })
+    const value = flag.value(false)
     expect(value).toBe(flagDto.value)
     expect(getFlagValue).toBeCalledTimes(1)
     expect(getFlagValue).toBeCalledWith({
@@ -142,12 +141,12 @@ describe('test Flag', () => {
 
   it('should ', () => {
     const flag = new Flag({ key: flagDto.key, visitor: visitorDelegate, flagDTO: flagDto, defaultValue: true })
-    const value = flag.value({ defaultValue: false, userExposed: false })
-    expect(value).toBe(false)
+    const value = flag.value(false)
+    expect(value).toBe(true)
     expect(getFlagValue).toBeCalledTimes(1)
     expect(getFlagValue).toBeCalledWith({
       key: flagDto.key,
-      defaultValue: false,
+      defaultValue: true,
       flag: expect.objectContaining(flagDto),
       userExposed: false
     })

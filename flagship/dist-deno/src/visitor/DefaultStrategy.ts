@@ -47,7 +47,7 @@ import { DecisionMode } from '../config/index.ts'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext.ts'
 import { VisitorDelegate } from '..ts'
 import { Batch, BATCH, BatchDTO } from '../hit/Batch.ts'
-import { IFlagMetadata } from '../flag/FlagMetadata.ts'
+import { FlagMetadata, IFlagMetadata } from '../flag/FlagMetadata.ts'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 
@@ -673,22 +673,22 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return flag.value
   }
 
-  getFlagMetadata (param:{metadata:IFlagMetadata, key:string, hasSameType:boolean}):IFlagMetadata {
+  getFlagMetadata (param:{metadata:IFlagMetadata, key?:string, hasSameType:boolean}):IFlagMetadata {
     const { metadata, hasSameType: checkType, key } = param
     const functionName = 'flag.metadata'
-    if (!checkType) {
+    if (!checkType && metadata.campaignId) {
       logError(
         this.visitor.config,
         sprintf(GET_METADATA_CAST_ERROR, key),
         functionName
       )
-      return {
+      return new FlagMetadata({
         campaignId: '',
         campaignType: '',
         variationId: '',
         variationGroupId: '',
         isReference: false
-      }
+      })
     }
     return metadata
   }

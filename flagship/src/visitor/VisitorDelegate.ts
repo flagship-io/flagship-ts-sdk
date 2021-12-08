@@ -113,7 +113,7 @@ export class VisitorDelegate extends VisitorAbstract {
     return this.getStrategy().getFlagValue(param)
   }
 
-  getFlagMetadata (param:{metadata:IFlagMetadata, hasSameType:boolean}):IFlagMetadata {
+  getFlagMetadata (param:{metadata:IFlagMetadata, key?:string, hasSameType:boolean}):IFlagMetadata {
     return this.getStrategy().getFlagMetadata(param)
   }
 }

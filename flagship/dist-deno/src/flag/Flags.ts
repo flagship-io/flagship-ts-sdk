@@ -14,8 +14,7 @@ export interface IFlag<T>{
    * @param defaultValue
    * @param userExposed
    */
-    value():T
-    value<S> (param:FlagValue<S>) : S
+    value(userExposed:boolean):T
     /**
      * Return true if the flag exists, false otherwise.
      */
@@ -59,7 +58,8 @@ export class Flag<T> implements IFlag<T> {
     get metadata ():IFlagMetadata {
       return this._visitor.getFlagMetadata({
         metadata: this._metadata,
-        hasSameType: hasSameType(this._flagDTO?.value, this._defaultValue)
+        hasSameType: hasSameType(this._flagDTO?.value, this._defaultValue),
+        key: this._flagDTO?.key
       })
     }
 
@@ -67,17 +67,12 @@ export class Flag<T> implements IFlag<T> {
       return this._visitor.userExposed({ key: this._key, flag: this._flagDTO, defaultValue: this._defaultValue })
     }
 
-    value():T
-    value<S> (param:FlagValue<S>) : S
-    value<S> (param?:FlagValue<S>) : S|T {
-      this._defaultValue = param?.defaultValue ?? this._defaultValue
-      const userExposed = param?.userExposed ?? true
-
+    value (userExposed = true) : T {
       return this._visitor.getFlagValue({
         key: this._key,
         defaultValue: this._defaultValue,
         flag: this._flagDTO,
-        userExposed: userExposed
+        userExposed
       })
     }
 }
