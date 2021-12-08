@@ -29,14 +29,47 @@ module.exports = merge(common(), {
       })
     ]
   },
+  module: {
+    rules: [
+      {
+        test: /\.(js|ts)$/,
+        exclude: /node_modules/,
+        use: [{
+          loader: 'babel-loader',
+          options: {
+            targets: 'node >= 6',
+            assumptions: {
+              noDocumentAll: true,
+              noClassCalls: true,
+              constantSuper: true,
+              enumerableModuleMeta: true,
+              noNewArrows: true
+            },
+            presets: [
+              ['@babel/preset-env',
+                {
+                  useBuiltIns: 'usage',
+                  corejs: 3
+                }
+              ],
+              ['@babel/preset-typescript', { allowNamespaces: true }]
+            ],
+            plugins: [
+              [
+                '@babel/plugin-transform-runtime'
+              ]
+            ]
+          }
+        }]
+      }
+    ]
+  },
   plugins: [
     new webpack.ProvidePlugin({
       AbortController: 'abort-controller'
     })
   ],
   externals: [
-    nodeExternals({
-      allowlist: ['follow-redirects']
-    })
+    nodeExternals()
   ]
 })

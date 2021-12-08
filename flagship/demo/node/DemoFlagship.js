@@ -22,7 +22,8 @@ Flagship.start(ENV_ID, API_KEY, {
   decisionMode: DecisionMode.BUCKETING,
   statusChangedCallback,
   logLevel: LogLevel.ERROR,
-  fetchNow: false
+  fetchNow: false,
+  timeout: 10
 })
 
 const initialModifications = new Map([[

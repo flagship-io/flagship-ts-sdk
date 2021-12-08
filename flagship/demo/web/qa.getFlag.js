@@ -1,5 +1,5 @@
-const ENV_ID = ''
-const API_KEY = ''
+const ENV_ID = 'bk87t3jggr10c6l6sdog'
+const API_KEY = 'N1Rm3DsCBrahhnGTzEnha31IN4DK8tXl28IykcCX'
 
 const printMessage = (scenario, action) => {
   console.log(`########### SCENARIO ${scenario} ACTION ${action} ##############`)

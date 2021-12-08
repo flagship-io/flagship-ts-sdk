@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "@flagship.io/js-sdk": "^2.3.1-beta.9"
+    "@flagship.io/js-sdk": "../"
   },
   "scripts": {
     "build": "babel node -d dist",
