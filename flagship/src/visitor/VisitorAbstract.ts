@@ -94,7 +94,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       if (!modifications || (!(modifications instanceof Map) && !Array.isArray(modifications))) {
         return
       }
-      modifications.forEach(item => {
+      modifications.forEach((item:FlagDTO) => {
         this._flags.set(item.key, item)
       })
     }

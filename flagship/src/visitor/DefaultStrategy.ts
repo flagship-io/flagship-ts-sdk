@@ -45,7 +45,7 @@ import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
 import { DecisionMode } from '../config/index'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
-import { VisitorDelegate } from '.'
+import { VisitorDelegate } from './index'
 import { Batch, BATCH, BatchDTO } from '../hit/Batch'
 import { FlagMetadata, IFlagMetadata } from '../flag/FlagMetadata'
 
@@ -319,7 +319,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       )
       return
     }
-    params.forEach((item) => {
+    params.forEach((item:string | {key: string}) => {
       if (typeof item === 'string') {
         this.activate(item)
       } else this.activate(item.key)
@@ -394,7 +394,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
       return
     }
-    hits.forEach((hit) => this.prepareAndSendHit(hit))
+    hits.forEach((hit:HitAbstract | HitShape | IHit | BatchDTO) => this.prepareAndSendHit(hit))
   }
 
   private getHitLegacy (hit: HitShape) {
