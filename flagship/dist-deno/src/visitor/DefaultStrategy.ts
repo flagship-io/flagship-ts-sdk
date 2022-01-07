@@ -45,7 +45,7 @@ import { VisitorStrategyAbstract } from './VisitorStrategyAbstract.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { DecisionMode } from '../config/index.ts'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext.ts'
-import { VisitorDelegate } from '..ts'
+import { VisitorDelegate } from './index.ts'
 import { Batch, BATCH, BatchDTO } from '../hit/Batch.ts'
 import { FlagMetadata, IFlagMetadata } from '../flag/FlagMetadata.ts'
 
@@ -319,7 +319,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       )
       return
     }
-    params.forEach((item) => {
+    params.forEach((item:string | {key: string}) => {
       if (typeof item === 'string') {
         this.activate(item)
       } else this.activate(item.key)
@@ -394,7 +394,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
       return
     }
-    hits.forEach((hit) => this.prepareAndSendHit(hit))
+    hits.forEach((hit:HitAbstract | HitShape | IHit | BatchDTO) => this.prepareAndSendHit(hit))
   }
 
   private getHitLegacy (hit: HitShape) {
@@ -682,13 +682,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sprintf(GET_METADATA_CAST_ERROR, key),
         functionName
       )
-      return new FlagMetadata({
-        campaignId: '',
-        campaignType: '',
-        variationId: '',
-        variationGroupId: '',
-        isReference: false
-      })
+      return FlagMetadata.Empty()
     }
     return metadata
   }

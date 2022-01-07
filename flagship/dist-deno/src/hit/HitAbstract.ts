@@ -29,7 +29,7 @@ export interface IHitAbstract{
 export abstract class HitAbstract implements IHitAbstract {
   private _visitorId!: string;
   private _config!: IFlagshipConfig;
-  private _type!: HitType|'BATCH';
+  protected _type!: HitType|'BATCH';
   private _ds!: string;
   private _anonymousId! : string|null;
   private _userIp! : string;
@@ -97,10 +97,6 @@ export abstract class HitAbstract implements IHitAbstract {
     return this._type
   }
 
-  protected set type (v: HitType|'BATCH') {
-    this._type = v
-  }
-
   public get config (): IFlagshipConfig {
     return this._config
   }
@@ -111,7 +107,7 @@ export abstract class HitAbstract implements IHitAbstract {
 
   protected constructor (hit: IHitAbstract) {
     const { type, userIp, screenResolution, locale, sessionNumber } = hit
-    this.type = type
+    this._type = type
     if (userIp) {
       this.userIp = userIp
     }

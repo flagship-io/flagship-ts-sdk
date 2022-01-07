@@ -5,7 +5,7 @@ import { logError, sprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
 import { HitAbstract, HitShape } from '../hit/index'
 import { BatchDTO } from '../hit/Batch'
-import { IFlagMetadata } from '../flag/FlagMetadata'
+import { FlagMetadata, IFlagMetadata } from '../flag/FlagMetadata'
 
 export class NotReadyStrategy extends DefaultStrategy {
   async synchronizeModifications (): Promise<void> {
@@ -83,13 +83,7 @@ export class NotReadyStrategy extends DefaultStrategy {
 
   getFlagMetadata ():IFlagMetadata {
     this.log('flag.metadata')
-    return {
-      campaignId: '',
-      campaignType: '',
-      variationId: '',
-      variationGroupId: '',
-      isReference: false
-    }
+    return FlagMetadata.Empty()
   }
 
   private log (methodName:string) {

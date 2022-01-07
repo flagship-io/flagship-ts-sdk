@@ -22,6 +22,16 @@ export class FlagMetadata implements IFlagMetadata {
       this.campaignType = campaignType
     }
 
+    public static Empty ():IFlagMetadata {
+      return new FlagMetadata({
+        campaignId: '',
+        campaignType: '',
+        variationId: '',
+        variationGroupId: '',
+        isReference: false
+      })
+    }
+
     toJSON ():string {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { toJSON, ...metadata } = this

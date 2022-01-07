@@ -288,7 +288,8 @@ describe('test VisitorDelegate methods', () => {
       variationGroupId: flagDTO.variationGroupId,
       variationId: flagDTO.variationId,
       isReference: flagDTO.isReference,
-      campaignType: ''
+      campaignType: '',
+      toJSON: () => ''
     })
     visitorDelegate.flags.set('newKey', flagDTO)
     const flag = visitorDelegate.getFlag('newKey', 'defaultValue')

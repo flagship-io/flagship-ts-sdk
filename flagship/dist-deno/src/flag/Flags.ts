@@ -52,14 +52,17 @@ export class Flag<T> implements IFlag<T> {
     }
 
     exists ():boolean {
-      return !!this._flagDTO
+      return !!this._flagDTO && hasSameType(this._flagDTO.value, this._defaultValue)
     }
 
     get metadata ():IFlagMetadata {
+      if (!this._flagDTO) {
+        return this._metadata
+      }
       return this._visitor.getFlagMetadata({
         metadata: this._metadata,
-        hasSameType: hasSameType(this._flagDTO?.value, this._defaultValue),
-        key: this._flagDTO?.key
+        hasSameType: hasSameType(this._flagDTO.value, this._defaultValue),
+        key: this._flagDTO.key
       })
     }
 
