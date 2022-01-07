@@ -682,13 +682,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sprintf(GET_METADATA_CAST_ERROR, key),
         functionName
       )
-      return new FlagMetadata({
-        campaignId: '',
-        campaignType: '',
-        variationId: '',
-        variationGroupId: '',
-        isReference: false
-      })
+      return FlagMetadata.Empty()
     }
     return metadata
   }
