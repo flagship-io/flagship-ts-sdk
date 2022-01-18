@@ -95,13 +95,7 @@ export class PanicStrategy extends DefaultStrategy {
 
   getFlagMetadata ():IFlagMetadata {
     this.log('flag.metadata')
-    return new FlagMetadata({
-      campaignId: '',
-      campaignType: '',
-      variationId: '',
-      variationGroupId: '',
-      isReference: false
-    })
+    return FlagMetadata.Empty()
   }
 
   private log (methodName:string) {

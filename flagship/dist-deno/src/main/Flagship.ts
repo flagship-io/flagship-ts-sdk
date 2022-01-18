@@ -31,10 +31,6 @@ export class Flagship {
   private _status!: FlagshipStatus;
   private _visitorInstance?: Visitor
 
-  get config (): IFlagshipConfig {
-    return this._config
-  }
-
   private set configManager (value: IConfigManager) {
     this._configManger = value
   }
@@ -59,16 +55,16 @@ export class Flagship {
    * Return true if the SDK is properly initialized, otherwise return false
    */
   private static isReady (): boolean {
-    const apiKey = this._instance?.config?.apiKey
-    const envId = this._instance?.config?.envId
+    const apiKey = this._instance?.getConfig()?.apiKey
+    const envId = this._instance?.getConfig()?.envId
     const configManager = this._instance?.configManager
     return (!!this._instance && !!apiKey && !!envId && !!configManager)
   }
 
   protected setStatus (status: FlagshipStatus): void {
-    const statusChanged = this.config.statusChangedCallback
+    const statusChanged = this.getConfig().statusChangedCallback
 
-    if (this.config && statusChanged && this._status !== status) {
+    if (this.getConfig() && statusChanged && this._status !== status) {
       this._status = status
       statusChanged(status)
       return
@@ -84,6 +80,13 @@ export class Flagship {
   }
 
   /**
+   * Return current status of Flagship SDK.
+   */
+  public getStatus (): FlagshipStatus {
+    return this._status
+  }
+
+  /**
    * Return the current config set by the customer and used by the SDK.
    */
   public static getConfig (): IFlagshipConfig {
@@ -91,14 +94,21 @@ export class Flagship {
   }
 
   /**
-   * Return any previous visitor created with isNewInstance key to false. Return undefined otherwise.
+   * Return the current config set by the customer and used by the SDK.
+   */
+  public getConfig (): IFlagshipConfig {
+    return this._config
+  }
+
+  /**
+   * Return the last visitor created if isNewInstance key is false. Return undefined otherwise.
    */
   public getVisitor ():Visitor|undefined {
     return this._visitorInstance
   }
 
   /**
-   * Return any previous visitor created with isNewInstance key to false. Return undefined otherwise.
+   * Return the last visitor created if isNewInstance key is false. Return undefined otherwise.
    */
   public static getVisitor ():Visitor|undefined {
     return this.getInstance().getVisitor()
