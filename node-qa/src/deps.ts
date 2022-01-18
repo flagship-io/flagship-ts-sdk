@@ -7,7 +7,7 @@ export {
   LogLevel,
   HitType,
   EventCategory,
-  Visitor, Modification
+  Visitor, Modification, FlagDTO
 } from '@flagship.io/js-sdk'
 
 export { Request, Response, NextFunction } from 'express'

@@ -1,7 +1,7 @@
 import { Request, Response, HitType, EventCategory } from '../deps'
 import { sessionVisitors } from './visitor'
 
-export const sendHit = (req: Request, res: Response):void => {
+export const sendHit = async (req: Request, res: Response):Promise<void> => {
   const visitor = sessionVisitors[req.session.id]
   const hit = req.body
 
@@ -14,7 +14,7 @@ export const sendHit = (req: Request, res: Response):void => {
 
   switch (hit.t) {
     case 'EVENT': {
-      visitor.sendHit({
+      await visitor.sendHit({
         type: HitType.EVENT,
         category:
           hit.ec === 'ACTION_TRACKING'
@@ -28,7 +28,7 @@ export const sendHit = (req: Request, res: Response):void => {
       break
     }
     case 'ITEM': {
-      visitor.sendHit({
+      await visitor.sendHit({
         type: HitType.ITEM,
         transactionId: hit.tid,
         productName: hit.in,
@@ -41,7 +41,7 @@ export const sendHit = (req: Request, res: Response):void => {
       break
     }
     case 'SCREEN': {
-      visitor.sendHit({
+      await visitor.sendHit({
         type: HitType.SCREEN,
         documentLocation: hit.dl,
         ...commonParams
@@ -49,7 +49,7 @@ export const sendHit = (req: Request, res: Response):void => {
       break
     }
     case 'PAGE': {
-      visitor.sendHit({
+      await visitor.sendHit({
         type: HitType.PAGE,
         documentLocation: hit.dl,
         ...commonParams
@@ -57,8 +57,9 @@ export const sendHit = (req: Request, res: Response):void => {
       break
     }
     case 'TRANSACTION':
+      // eslint-disable-next-line no-lone-blocks
       {
-        visitor.sendHit({
+        await visitor.sendHit({
           type: HitType.TRANSACTION,
           affiliation: hit.ta,
           transactionId: hit.tid,

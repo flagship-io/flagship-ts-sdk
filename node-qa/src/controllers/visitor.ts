@@ -1,4 +1,4 @@
-import { Flagship, Request, Response, NextFunction, Visitor, Modification } from '../deps'
+import { Flagship, Request, Response, NextFunction, Visitor, FlagDTO } from '../deps'
 
 export const putVisitorValidation = (req: Request, res: Response, next: NextFunction):void => {
   const {
@@ -53,14 +53,16 @@ export const putVisitor = async (req: Request, res: Response):Promise<void> => {
         console.log('ready')
       })
 
-      await visitor.synchronizeModifications()
+      await visitor.fetchFlags()
 
       sessionVisitors[req.session.id] = visitor
 
-      const modifications: Modification[] = []
-      visitor.modifications.forEach((value:Modification) => {
+      const modifications: FlagDTO[] = []
+      visitor.flags.forEach((value:FlagDTO) => {
         modifications.push(value)
       })
+
+      // console.log('visitor', visitor)
 
       responseBody.modification = modifications
       responseBody.context = visitor.context
