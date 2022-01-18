@@ -15,6 +15,7 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { sleep, sprintf } from '../../src/utils/utils'
 import { DefaultVisitorCache } from '../../src/visitor/DefaultVisitorCache'
 import { Visitor } from '../../src/visitor/Visitor'
+import { Mock } from 'jest-mock'
 
 const getCampaignsAsync = jest.fn().mockReturnValue(Promise.resolve([]))
 
@@ -25,6 +26,18 @@ jest.mock('../../src/decision/ApiManager', () => {
         getCampaignsAsync,
         getModifications: jest.fn(),
         statusChangedCallback: jest.fn()
+      }
+    })
+  }
+})
+const sendConsentHit:Mock<Promise<void>, []> = jest.fn()
+sendConsentHit.mockResolvedValue()
+
+jest.mock('../../src/api/TrackingManager', () => {
+  return {
+    TrackingManager: jest.fn().mockImplementation(() => {
+      return {
+        sendConsentHit
       }
     })
   }

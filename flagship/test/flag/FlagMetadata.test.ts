@@ -3,7 +3,7 @@ import { FlagMetadata, IFlagMetadata } from '../../src/flag/FlagMetadata'
 
 describe('test FlagMetadata', () => {
   it('test property', () => {
-    const metadata:IFlagMetadata = {
+    const metadata: Omit<IFlagMetadata, 'toJSON'> = {
       campaignId: 'campaignID',
       variationGroupId: 'variationGroupID',
       variationId: 'variationID',
@@ -16,7 +16,7 @@ describe('test FlagMetadata', () => {
   })
 
   it('test empty property', () => {
-    const metadata:IFlagMetadata = {
+    const metadata:Omit<IFlagMetadata, 'toJSON'> = {
       campaignId: '',
       variationGroupId: '',
       variationId: '',

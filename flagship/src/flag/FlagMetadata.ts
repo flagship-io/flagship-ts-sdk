@@ -5,7 +5,7 @@ export interface IFlagMetadata{
     variationId: string
     isReference: boolean
     campaignType: string
-    toJSON?: ()=>string
+    toJSON: ()=>string
 }
 
 export class FlagMetadata implements IFlagMetadata {
