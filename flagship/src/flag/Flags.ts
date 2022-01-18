@@ -59,9 +59,10 @@ export class Flag<T> implements IFlag<T> {
       if (!this._flagDTO) {
         return this._metadata
       }
+
       return this._visitor.getFlagMetadata({
         metadata: this._metadata,
-        hasSameType: hasSameType(this._flagDTO.value, this._defaultValue),
+        hasSameType: !this._flagDTO.value || hasSameType(this._flagDTO.value, this._defaultValue),
         key: this._flagDTO.key
       })
     }

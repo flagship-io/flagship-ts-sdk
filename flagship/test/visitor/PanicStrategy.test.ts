@@ -55,14 +55,6 @@ describe('test NotReadyStrategy', () => {
     expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_SEND_CONSENT_ERROR, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
   })
 
-  it('test fetchFlags', () => {
-    panicStrategy.fetchFlags().then(() => {
-      const methodName = 'fetchFlags'
-      expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
-    })
-  })
-
   it('test updateContext', () => {
     const methodName = 'updateContext'
     panicStrategy.updateContext({ key: 'value' })

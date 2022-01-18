@@ -39,6 +39,9 @@ describe('Name of the group', () => {
 
   const sendActive = jest.spyOn(trackingManager, 'sendActive')
   const sendHit = jest.spyOn(trackingManager, 'sendHit')
+  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+
+  sendConsentHit.mockResolvedValue()
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
@@ -153,6 +156,9 @@ describe('Clean cache', () => {
   const trackingManager = new TrackingManager(httpClient, config)
 
   const sendActive = jest.spyOn(trackingManager, 'sendActive')
+  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+
+  sendConsentHit.mockResolvedValue()
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 

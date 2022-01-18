@@ -676,7 +676,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   getFlagMetadata (param:{metadata:IFlagMetadata, key?:string, hasSameType:boolean}):IFlagMetadata {
     const { metadata, hasSameType: checkType, key } = param
     const functionName = 'flag.metadata'
-    if (!checkType && metadata.campaignId) {
+    if (!checkType) {
       logError(
         this.visitor.config,
         sprintf(GET_METADATA_CAST_ERROR, key),
@@ -684,6 +684,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       )
       return FlagMetadata.Empty()
     }
+
     return metadata
   }
 
