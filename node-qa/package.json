@@ -12,7 +12,7 @@
     "start": "rm -rf build/ && tsc && ts-node tools/copyAssets.ts && node build/index.js"
   },
   "dependencies": {
-    "@flagship.io/js-sdk": "link:../flagship",
+    "@flagship.io/js-sdk": "file:../flagship/",
     "axios": "^0.21.4",
     "express": "^4.17.1",
     "express-session": "^1.17.2",
