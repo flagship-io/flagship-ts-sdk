@@ -12,7 +12,6 @@ describe('test FlagMetadata', () => {
     }
     const flagMetadata = new FlagMetadata(metadata)
     expect(flagMetadata).toEqual(metadata)
-    expect(flagMetadata.toJSON()).toBe(JSON.stringify(metadata))
   })
 
   it('test empty property', () => {
@@ -25,6 +24,5 @@ describe('test FlagMetadata', () => {
     }
     const flagMetadata = new FlagMetadata(metadata)
     expect(flagMetadata).toEqual(metadata)
-    expect(flagMetadata.toJSON()).toBe(JSON.stringify({}))
   })
 })

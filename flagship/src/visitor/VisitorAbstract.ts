@@ -28,7 +28,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     public deDuplicationCache:Record<string, number>
     protected _isCleaningDeDuplicationCache:boolean
     public visitorCache!: VisitorLookupCacheDTO
-    protected _strategy!:VisitorStrategyAbstract
 
     constructor (param: NewVisitor& {
       visitorId?: string
@@ -223,18 +222,18 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     }
 
     protected getStrategy (): VisitorStrategyAbstract {
-      const isSameType = (strategy: VisitorStrategyAbstract, className:string) => strategy && strategy.constructor.name === className
+      let strategy:VisitorStrategyAbstract
       if (!Flagship.getStatus() || Flagship.getStatus() === FlagshipStatus.NOT_INITIALIZED) {
-        this._strategy = isSameType(this._strategy, NotReadyStrategy.name) ? this._strategy : new NotReadyStrategy(this)
+        strategy = new NotReadyStrategy(this)
       } else if (Flagship.getStatus() === FlagshipStatus.READY_PANIC_ON) {
-        this._strategy = isSameType(this._strategy, PanicStrategy.name) ? this._strategy : new PanicStrategy(this)
+        strategy = new PanicStrategy(this)
       } else if (!this.hasConsented) {
-        this._strategy = isSameType(this._strategy, NoConsentStrategy.name) ? this._strategy : new NoConsentStrategy(this)
+        strategy = new NoConsentStrategy(this)
       } else {
-        this._strategy = isSameType(this._strategy, DefaultStrategy.name) ? this._strategy : new DefaultStrategy(this)
+        strategy = new DefaultStrategy(this)
       }
 
-      return this._strategy
+      return strategy
     }
 
     abstract updateContext(context: Record<string, primitive>): void

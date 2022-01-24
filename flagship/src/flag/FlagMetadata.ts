@@ -5,7 +5,6 @@ export interface IFlagMetadata{
     variationId: string
     isReference: boolean
     campaignType: string
-    toJSON: ()=>string
 }
 
 export class FlagMetadata implements IFlagMetadata {
@@ -31,11 +30,5 @@ export class FlagMetadata implements IFlagMetadata {
         variationGroupId: '',
         isReference: false
       })
-    }
-
-    toJSON ():string {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { toJSON, ...metadata } = this
-      return JSON.stringify(metadata.campaignId ? metadata : {})
     }
 }

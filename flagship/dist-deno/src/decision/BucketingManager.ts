@@ -149,7 +149,7 @@ export class BucketingManager extends DecisionManager {
     const visitorCampaigns:CampaignDTO[] = []
 
     this._bucketingContent.campaigns.forEach(campaign => {
-      const currentCampaigns = this.getVisitorCampaigns(campaign.variationGroups, campaign.id, visitor)
+      const currentCampaigns = this.getVisitorCampaigns(campaign.variationGroups, campaign.id, campaign.type, visitor)
       if (currentCampaigns) {
         visitorCampaigns.push(currentCampaigns)
       }
@@ -157,7 +157,7 @@ export class BucketingManager extends DecisionManager {
     return visitorCampaigns
   }
 
-  private getVisitorCampaigns (variationGroups : VariationGroupDTO[], campaignId: string, visitor: VisitorAbstract) :CampaignDTO|null {
+  private getVisitorCampaigns (variationGroups : VariationGroupDTO[], campaignId: string, campaignType:string, visitor: VisitorAbstract) :CampaignDTO|null {
     for (const variationGroup of variationGroups) {
       const check = this.isMatchTargeting(variationGroup, visitor)
       if (check) {
@@ -171,7 +171,8 @@ export class BucketingManager extends DecisionManager {
         return {
           id: campaignId,
           variation: variation,
-          variationGroupId: variationGroup.id
+          variationGroupId: variationGroup.id,
+          type: campaignType
         }
       }
     }
@@ -232,7 +233,8 @@ export class BucketingManager extends DecisionManager {
       if (key === 'fs_all_users') {
         check = true
         continue
-      } else if (key === 'fs_users') {
+      }
+      if (key === 'fs_users') {
         contextValue = visitor.visitorId
       } else {
         if (!(key in visitor.context)) {
@@ -266,13 +268,10 @@ export class BucketingManager extends DecisionManager {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private testListOperator (operator: string, contextValue : primitive, value: any[]): boolean {
     const andOperator = this.isANDListOperator(operator)
-    let check:boolean
     if (andOperator) {
-      check = this.testListOperatorLoop(operator, contextValue, value, true)
-    } else {
-      check = this.testListOperatorLoop(operator, contextValue, value, false)
+      return this.testListOperatorLoop(operator, contextValue, value, true)
     }
-    return check
+    return this.testListOperatorLoop(operator, contextValue, value, false)
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

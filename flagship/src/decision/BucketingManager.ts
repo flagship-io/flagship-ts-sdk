@@ -149,7 +149,7 @@ export class BucketingManager extends DecisionManager {
     const visitorCampaigns:CampaignDTO[] = []
 
     this._bucketingContent.campaigns.forEach(campaign => {
-      const currentCampaigns = this.getVisitorCampaigns(campaign.variationGroups, campaign.id, visitor)
+      const currentCampaigns = this.getVisitorCampaigns(campaign.variationGroups, campaign.id, campaign.type, visitor)
       if (currentCampaigns) {
         visitorCampaigns.push(currentCampaigns)
       }
@@ -157,7 +157,7 @@ export class BucketingManager extends DecisionManager {
     return visitorCampaigns
   }
 
-  private getVisitorCampaigns (variationGroups : VariationGroupDTO[], campaignId: string, visitor: VisitorAbstract) :CampaignDTO|null {
+  private getVisitorCampaigns (variationGroups : VariationGroupDTO[], campaignId: string, campaignType:string, visitor: VisitorAbstract) :CampaignDTO|null {
     for (const variationGroup of variationGroups) {
       const check = this.isMatchTargeting(variationGroup, visitor)
       if (check) {
@@ -171,7 +171,8 @@ export class BucketingManager extends DecisionManager {
         return {
           id: campaignId,
           variation: variation,
-          variationGroupId: variationGroup.id
+          variationGroupId: variationGroup.id,
+          type: campaignType
         }
       }
     }
