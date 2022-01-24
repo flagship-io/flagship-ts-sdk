@@ -14,4 +14,5 @@ export class CampaignDTO {
   public id = '';
   public variationGroupId = '';
   public variation: VariationDTO = new VariationDTO();
+  public type? =''
 }

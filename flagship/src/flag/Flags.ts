@@ -47,7 +47,7 @@ export class Flag<T> implements IFlag<T> {
         variationGroupId: flagDTO?.variationGroupId || '',
         variationId: flagDTO?.variationId || '',
         isReference: !!flagDTO?.isReference,
-        campaignType: ''
+        campaignType: flagDTO?.campaignType || ''
       })
     }
 

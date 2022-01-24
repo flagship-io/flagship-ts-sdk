@@ -154,7 +154,7 @@ export const authenticate = (req: Request, res: Response):void => {
 
   // eslint-disable-next-line camelcase
   if (!new_visitor_id) {
-    res.json({ error: 'new visitor ID is required', ok: true })
+    res.status(422).json({ error: 'new visitor ID is required', ok: true })
     return
   }
 

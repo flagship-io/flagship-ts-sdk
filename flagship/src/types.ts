@@ -19,6 +19,7 @@ export type FlagDTO= {
   variationGroupId: string;
   variationId: string;
   isReference?: boolean;
+  campaignType?: string;
  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
 }
