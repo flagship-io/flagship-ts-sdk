@@ -1,3 +1,4 @@
+
 import { RouterContext, RouteParams, helpers, Visitor } from "../deps.ts";
 
 export const getFlagValidation = async (
@@ -74,27 +75,38 @@ export const getFlag = async (
     const visitor: Visitor = await context.state.session.get("visitor");
 
     if (visitor) {
-      const modification = await visitor.getModification({
-        key: flagKey,
-        defaultValue,
-        activate,
-      });
-      context.response.body = { value: modification };
+      const flag = visitor.getFlag(flagKey, defaultValue)
+      const value = flag.value(activate)
+      context.response.body = { value };
     }
   } catch (error) {
     console.log("error", error);
   }
 };
 
+function parseType (defaultValue:unknown) {
+  let parseDefaultValue = defaultValue
+  try {
+    parseDefaultValue = defaultValue ? JSON.parse(defaultValue as string) : ''
+  } catch (err) {
+    console.log(err)
+  }
+  return parseDefaultValue
+}
+
 export const getFlagInfo = async (
   // deno-lint-ignore no-explicit-any
   context: RouterContext<RouteParams, Record<string, any>>
 ) => {
   const visitor: Visitor = await context.state.session.get("visitor");
-  const { flagKey } = context.params;
+  const { flagKey, defaultValue } =helpers.getQuery(context, {
+    mergeParams: true,
+  });
 
-  const data = await visitor.getModificationInfo(flagKey as string);
-  return (context.response.body = data);
+  const parseDefaultValue = parseType(defaultValue)
+  const flag = visitor.getFlag(flagKey, parseDefaultValue)
+
+  return (context.response.body = flag.metadata);
 };
 
 export const sendActivate = async (
@@ -102,7 +114,13 @@ export const sendActivate = async (
   context: RouterContext<RouteParams, Record<string, any>>
 ) => {
   const visitor: Visitor = await context.state.session.get("visitor");
-  const { flagKey } = context.params;
-  visitor.activateModification(flagKey as string);
+  const { flagKey, defaultValue } =helpers.getQuery(context, {
+    mergeParams: true,
+  });
+
+  const parseDefaultValue = parseType(defaultValue)
+  const flag = visitor.getFlag(flagKey, parseDefaultValue)
+  await flag.userExposed()
+  
   return (context.response.body = "successful operation");
 };
