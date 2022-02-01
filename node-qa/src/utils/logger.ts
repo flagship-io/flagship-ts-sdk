@@ -42,8 +42,10 @@ export class CustomLogAdapter implements IFlagshipLogManager {
   }
 
   log (level: LogLevel, message: string, tag: string): void {
-    this._log += `[${LogLevel[level]}] [${tag}] : ${message} \r\n`
-    this._session.logs = this._log
+    if (!this._session.logs) {
+      this._session.logs = ''
+    }
+    this._session.logs += `[${LogLevel[level]}] [${tag}] : ${message} \r\n`
     this._session.save()
   }
 }
