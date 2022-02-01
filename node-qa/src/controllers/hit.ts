@@ -3,18 +3,25 @@ import { sessionVisitors } from './visitor'
 
 export const sendHit = async (req: Request, res: Response):Promise<void> => {
   const visitor = sessionVisitors[req.session.id]
-  const hit = req.body
+  let hit = req.body
 
-  const commonParams = {
-    local: hit.ul,
-    userIp: hit.uip,
-    sessionNumber: hit.sn,
-    screenResolution: `${hit.re_he}X${hit.re_wi}`
+  const commonParams:Record<string, unknown> = {}
+  if (hit.ul) {
+    commonParams.local = hit.ul
+  }
+  if (hit.uip) {
+    commonParams.userIp = hit.uip
+  }
+  if (hit.sn) {
+    commonParams.sessionNumber = hit.sn
+  }
+  if (hit.re_he && hit.re_wi) {
+    commonParams.screenResolution = `${hit.re_he}X${hit.re_wi}`
   }
 
   switch (hit.t) {
-    case 'EVENT': {
-      await visitor.sendHit({
+    case 'EVENT':
+      hit = {
         type: HitType.EVENT,
         category:
           hit.ec === 'ACTION_TRACKING'
@@ -24,11 +31,11 @@ export const sendHit = async (req: Request, res: Response):Promise<void> => {
         label: hit.el,
         value: hit.ev,
         ...commonParams
-      })
+      }
       break
-    }
-    case 'ITEM': {
-      await visitor.sendHit({
+
+    case 'ITEM':
+      hit = {
         type: HitType.ITEM,
         transactionId: hit.tid,
         productName: hit.in,
@@ -37,47 +44,54 @@ export const sendHit = async (req: Request, res: Response):Promise<void> => {
         itemQuantity: hit.iq,
         itemCategory: hit.iv,
         ...commonParams
-      })
+      }
       break
-    }
-    case 'SCREEN': {
-      await visitor.sendHit({
+
+    case 'SCREEN':
+      hit = {
         type: HitType.SCREEN,
         documentLocation: hit.dl,
         ...commonParams
-      })
+      }
       break
-    }
-    case 'PAGE': {
-      await visitor.sendHit({
+
+    case 'PAGE':
+      hit = {
         type: HitType.PAGE,
         documentLocation: hit.dl,
         ...commonParams
-      })
-      break
-    }
-    case 'TRANSACTION':
-      // eslint-disable-next-line no-lone-blocks
-      {
-        await visitor.sendHit({
-          type: HitType.TRANSACTION,
-          affiliation: hit.ta,
-          transactionId: hit.tid,
-          taxes: hit.tt,
-          currency: hit.tc,
-          couponCode: hit.tcc,
-          itemCount: hit.icn,
-          shippingMethod: hit.sm,
-          paymentMethod: hit.pm,
-          totalRevenue: hit.tr,
-          shippingCosts: hit.ts,
-          ...commonParams
-        })
       }
       break
+
+    case 'TRANSACTION':
+      // eslint-disable-next-line no-lone-blocks
+      hit = {
+        type: HitType.TRANSACTION,
+        affiliation: hit.ta,
+        transactionId: hit.tid,
+        taxes: hit.tt,
+        currency: hit.tc,
+        couponCode: hit.tcc,
+        itemCount: hit.icn,
+        shippingMethod: hit.sm,
+        paymentMethod: hit.pm,
+        totalRevenue: hit.tr,
+        shippingCosts: hit.ts,
+        ...commonParams
+      }
+
+      break
     default:
+      console.log('Unknown hit type:', hit.t)
+      hit = null
       break
   }
+
+  if (!hit) {
+    res.status(500).json({ error: 'Unknown hit type' })
+  }
+
+  await visitor.sendHit(hit)
 
   const config = {
     // deno-lint-ignore camelcase
