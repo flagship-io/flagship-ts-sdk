@@ -14,7 +14,7 @@ export interface IFlag<T>{
    * @param defaultValue
    * @param userExposed
    */
-    value(userExposed:boolean):T
+    value(userExposed?:boolean):T
     /**
      * Return true if the flag exists, false otherwise.
      */
@@ -68,6 +68,8 @@ export class Flag<T> implements IFlag<T> {
     }
 
     userExposed ():Promise<void> {
+      console.log('Flag.userExposed()')
+
       return this._visitor.userExposed({ key: this._key, flag: this._flagDTO, defaultValue: this._defaultValue })
     }
 
