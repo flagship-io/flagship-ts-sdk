@@ -174,11 +174,19 @@ export abstract class HitAbstract implements IHitAbstract {
       [VISITOR_ID_API_ITEM]: this.visitorId,
       [DS_API_ITEM]: this.ds,
       [CUSTOMER_ENV_ID_API_ITEM]: `${this.config?.envId}`,
-      [T_API_ITEM]: this.type,
-      [USER_IP_API_ITEM]: this.userIp,
-      [SCREEN_RESOLUTION_API_ITEM]: this.screenResolution,
-      [USER_LANGUAGE]: this.locale,
-      [SESSION_NUMBER]: this.sessionNumber
+      [T_API_ITEM]: this.type
+    }
+    if (this.userIp) {
+      apiKeys[USER_IP_API_ITEM] = this.userIp
+    }
+    if (this.screenResolution) {
+      apiKeys[SCREEN_RESOLUTION_API_ITEM] = this.screenResolution
+    }
+    if (this.locale) {
+      apiKeys[USER_LANGUAGE] = this.locale
+    }
+    if (this.sessionNumber) {
+      apiKeys[SESSION_NUMBER] = this.sessionNumber
     }
     if (this.visitorId && this._anonymousId) {
       apiKeys[VISITOR_ID_API_ITEM] = this._anonymousId
