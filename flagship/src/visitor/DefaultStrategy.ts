@@ -562,10 +562,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
    * @returns
    */
   public async getModificationsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[]}> {
-    return this.getFlatsForCampaign(campaignId, activate)
+    return this.getFlatsDataForCampaign(campaignId, activate)
   }
 
-  async getFlatsForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+  async getFlatsDataForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
     if (activate) {
       this.visitor.flagsData.forEach((value) => {
         if (value.campaignId === campaignId) {

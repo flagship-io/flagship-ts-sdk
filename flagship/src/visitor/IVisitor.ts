@@ -8,13 +8,13 @@ export interface IVisitor {
   visitorId: string;
   flagsData: Map<string, FlagDTO>;
   /**
-   * @deprecated use flags instead
+   * @deprecated use flagsData instead
    */
   modifications: Map<string, Modification>;
   context: Record<string, primitive>;
 
   /**
-   * @deprecated use getFlagsArray instead
+   * @deprecated use getFlagsDataArray instead
    */
   getModificationsArray():FlagDTO[]
 
@@ -170,7 +170,7 @@ export interface IVisitor {
   /**
    * returns a Promise<object> containing all the data for all the campaigns associated with the current visitor.
    *
-   * @deprecated use getAllFlags instead
+   * @deprecated use getAllFlagsData instead
    */
   getAllModifications(activate: boolean): Promise<{
     visitorId: string;
@@ -189,7 +189,7 @@ export interface IVisitor {
    * Get data for a specific campaign.
    * @param campaignId Identifies the campaign whose modifications you want to retrieve.
    * @param activate
-   * @deprecated use getFlatsForCampaign instead
+   * @deprecated use getFlatsDataForCampaign instead
    */
   getModificationsForCampaign(
     campaignId: string,
@@ -204,7 +204,7 @@ export interface IVisitor {
    * @param campaignId Identifies the campaign whose modifications you want to retrieve.
    * @param activate
    */
-   getFlatsForCampaign(
+   getFlatsDataForCampaign(
     campaignId: string,
     activate: boolean
   ): Promise<{

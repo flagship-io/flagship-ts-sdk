@@ -318,7 +318,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
     abstract getModificationsForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 
-    abstract getFlatsForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
+    abstract getFlatsDataForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 
     abstract authenticate(visitorId: string): void
     abstract unauthenticate(): void

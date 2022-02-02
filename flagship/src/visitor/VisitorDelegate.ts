@@ -87,8 +87,8 @@ export class VisitorDelegate extends VisitorAbstract {
     return this.getStrategy().getModificationsForCampaign(campaignId, activate)
   }
 
-  getFlatsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
-    return this.getStrategy().getFlatsForCampaign(campaignId, activate)
+  getFlatsDataForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+    return this.getStrategy().getFlatsDataForCampaign(campaignId, activate)
   }
 
   authenticate (visitorId: string): void {

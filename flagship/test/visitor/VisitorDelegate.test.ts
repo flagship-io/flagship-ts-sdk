@@ -50,7 +50,7 @@ const getModificationsForCampaign:Mock<Promise<{
   campaigns: CampaignDTO[];
 }>, [campaignId: string, activate?: boolean]> = jest.fn()
 
-const getFlatsForCampaign:Mock<Promise<{
+const getFlatsDataForCampaign:Mock<Promise<{
   visitorId: string;
   campaigns: CampaignDTO[];
 }>, [campaignId: string, activate?: boolean]> = jest.fn()
@@ -87,7 +87,7 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         getAllModifications,
         getAllFlagsData,
         getModificationsForCampaign,
-        getFlatsForCampaign,
+        getFlatsDataForCampaign,
         authenticate,
         unauthenticate,
         updateCampaigns,
@@ -464,15 +464,15 @@ describe('test VisitorDelegate methods', () => {
   })
 
   it('test getFlatsForCampaign', async () => {
-    getFlatsForCampaign.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
+    getFlatsDataForCampaign.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
     const campaignId = 'campaignId'
-    await visitorDelegate.getFlatsForCampaign(campaignId)
-    expect(getFlatsForCampaign).toBeCalledTimes(1)
-    expect(getFlatsForCampaign).toBeCalledWith(campaignId, false)
+    await visitorDelegate.getFlatsDataForCampaign(campaignId)
+    expect(getFlatsDataForCampaign).toBeCalledTimes(1)
+    expect(getFlatsDataForCampaign).toBeCalledWith(campaignId, false)
 
-    await visitorDelegate.getFlatsForCampaign(campaignId, true)
-    expect(getFlatsForCampaign).toBeCalledTimes(2)
-    expect(getFlatsForCampaign).toBeCalledWith(campaignId, true)
+    await visitorDelegate.getFlatsDataForCampaign(campaignId, true)
+    expect(getFlatsDataForCampaign).toBeCalledTimes(2)
+    expect(getFlatsDataForCampaign).toBeCalledWith(campaignId, true)
   })
 
   it('test authenticate', () => {

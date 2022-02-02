@@ -306,17 +306,17 @@ describe('test visitor', () => {
   })
 
   it('test getFlatsForCampaign', () => {
-    const getFlatsForCampaign = jest.spyOn(visitorDelegate, 'getFlatsForCampaign')
-    getFlatsForCampaign.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
+    const getFlatsDataForCampaign = jest.spyOn(visitorDelegate, 'getFlatsDataForCampaign')
+    getFlatsDataForCampaign.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
     const campaignId = 'campaignId'
-    visitor.getFlatsForCampaign(campaignId).then(() => {
-      expect(getFlatsForCampaign).toBeCalledTimes(2)
-      expect(getFlatsForCampaign).toBeCalledWith(campaignId, false)
+    visitor.getFlatsDataForCampaign(campaignId).then(() => {
+      expect(getFlatsDataForCampaign).toBeCalledTimes(2)
+      expect(getFlatsDataForCampaign).toBeCalledWith(campaignId, false)
     })
 
-    visitor.getFlatsForCampaign(campaignId, true).then(() => {
-      expect(getFlatsForCampaign).toBeCalledTimes(2)
-      expect(getFlatsForCampaign).toBeCalledWith(campaignId, true)
+    visitor.getFlatsDataForCampaign(campaignId, true).then(() => {
+      expect(getFlatsDataForCampaign).toBeCalledTimes(2)
+      expect(getFlatsDataForCampaign).toBeCalledWith(campaignId, true)
     })
   })
 
