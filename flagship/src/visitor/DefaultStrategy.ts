@@ -24,6 +24,7 @@ import {
   PROCESS_UPDATE_CONTEXT,
   SDK_APP,
   USER_EXPOSED_CAST_ERROR,
+  USER_EXPOSED_FLAG_ERROR,
   VISITOR_ID_ERROR
 } from '../enum/index'
 import {
@@ -618,7 +619,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     if (!flag) {
       logError(
         this.visitor.config,
-        sprintf(GET_FLAG_ERROR, key),
+        sprintf(USER_EXPOSED_FLAG_ERROR, key),
         functionName
       )
       return
