@@ -183,7 +183,7 @@ describe('test VisitorDelegate', () => {
     const newFlag = new Map([['key', flag]])
     visitorDelegate.flagsData = newFlag
     expect(visitorDelegate.flagsData).toEqual(newFlag)
-    expect(visitorDelegate.getFlagsArray()).toEqual([flag])
+    expect(visitorDelegate.getFlagsDataArray()).toEqual([flag])
     visitorDelegate.flagsData.clear()
   })
 

@@ -18,7 +18,7 @@ export interface IVisitor {
    */
   getModificationsArray():FlagDTO[]
 
-  getFlagsArray():FlagDTO[]
+  getFlagsDataArray():FlagDTO[]
 
   /**
    * Return True or False if the visitor has consented for protected data usage.

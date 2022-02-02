@@ -23,8 +23,8 @@ export class Visitor extends EventEmitter implements IVisitor {
     return this.visitorDelegate.getModificationsArray()
   }
 
-  getFlagsArray (): FlagDTO[] {
-    return this.visitorDelegate.getFlagsArray()
+  getFlagsDataArray (): FlagDTO[] {
+    return this.visitorDelegate.getFlagsDataArray()
   }
 
   public get visitorId () : string {

@@ -138,9 +138,9 @@ describe('test visitor', () => {
   })
 
   it('test getFlagsArray', () => {
-    const getFlagsArray = jest.spyOn(visitorDelegate, 'getFlagsArray')
+    const getFlagsArray = jest.spyOn(visitorDelegate, 'getFlagsDataArray')
     getFlagsArray.mockReturnValue([])
-    visitor.getFlagsArray()
+    visitor.getFlagsDataArray()
     expect(getFlagsArray).toBeCalledTimes(1)
   })
 

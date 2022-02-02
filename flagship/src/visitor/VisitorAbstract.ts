@@ -83,7 +83,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       return Array.from(this._flags, ([_, item]) => item)
     }
 
-    public getFlagsArray (): FlagDTO[] {
+    public getFlagsDataArray (): FlagDTO[] {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       return Array.from(this._flags, ([_, item]) => item)
     }
