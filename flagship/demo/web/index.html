@@ -73,7 +73,7 @@
       //step 3 create a visitor
       //when fetch property is unset or true, newVisitor will call synchronizeModifications automatically
       const visitor = Flagship.newVisitor({
-        visitorId: "anonymeId",
+        visitorId: "anonymeId8",
         context: {
           timezone: new Date().getTimezoneOffset() / -60,
         },
@@ -110,17 +110,23 @@
             loginBtn.style.backgroundColor = flags[1];
           });
 
+        visitor.setConsent(true);
         // activateModification
         visitor.activateModification("object");
 
-        visitor.activateModification(["array", "object"]);
+        const flag = visitor.getFlag("array", []);
+
+        console.log("flag1", flag.value());
+
+        const flag2 = visitor.getFlag("object", {});
+
+        console.log("flag1", flag2.value());
 
         // getModificationInfo
         visitor.getModificationInfo("array").then((data) => {
           console.log("info", data);
         });
 
-        visitor.setConsent(true);
         // send hit
 
         // hit type Event
