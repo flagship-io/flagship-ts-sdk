@@ -70,7 +70,7 @@ export interface IFlagshipConfig {
    */
   enableClientCache?:boolean
 
-  onBucketingSuccess?:(param:{ status: FlagshipStatus; payload: BucketingDTO })=>void
+  onBucketingSuccess?:(param:{ status: number; payload: BucketingDTO })=>void
 
   onBucketingFail?:(error: Error)=>void
 

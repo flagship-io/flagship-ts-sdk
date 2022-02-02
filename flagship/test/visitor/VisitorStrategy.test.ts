@@ -3,7 +3,7 @@ import { DecisionApiConfig, Flagship, FlagshipStatus } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
-import { GET_MODIFICATION_ERROR, METHOD_DEACTIVATED_CONSENT_ERROR, METHOD_DEACTIVATED_ERROR, PROCESS_ACTIVE_MODIFICATION } from '../../src/enum'
+import { ACTIVATE_MODIFICATION_ERROR, GET_MODIFICATION_ERROR, METHOD_DEACTIVATED_CONSENT_ERROR, METHOD_DEACTIVATED_ERROR, PROCESS_ACTIVE_MODIFICATION } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { IHttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
@@ -72,7 +72,7 @@ describe('test getStrategy', () => {
     visitorDelegate.setConsent(true)
     await visitorDelegate.activateModification('key')
     expect(logError).toBeCalledTimes(2)
-    expect(logError).toBeCalledWith(sprintf(GET_MODIFICATION_ERROR, 'key'),
+    expect(logError).toBeCalledWith(sprintf(ACTIVATE_MODIFICATION_ERROR, 'key'),
       PROCESS_ACTIVE_MODIFICATION)
   })
 })

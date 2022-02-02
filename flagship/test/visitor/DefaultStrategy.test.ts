@@ -486,7 +486,7 @@ describe('test DefaultStrategy ', () => {
     expect(sendActive).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(
-      sprintf(GET_MODIFICATION_KEY_ERROR, getNull()),
+      sprintf(ACTIVATE_MODIFICATION_KEY_ERROR, getNull()),
       PROCESS_ACTIVE_MODIFICATION
     )
   })
@@ -506,7 +506,7 @@ describe('test DefaultStrategy ', () => {
     expect(sendActive).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(
-      sprintf(GET_MODIFICATION_ERROR, notExitKey),
+      sprintf(ACTIVATE_MODIFICATION_ERROR, notExitKey),
       PROCESS_ACTIVE_MODIFICATION
     )
   })

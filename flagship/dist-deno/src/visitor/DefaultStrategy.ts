@@ -1,4 +1,6 @@
 import {
+  ACTIVATE_MODIFICATION_ERROR,
+  ACTIVATE_MODIFICATION_KEY_ERROR,
   CONTEXT_NULL_ERROR,
   CONTEXT_PARAM_ERROR,
   EMIT_READY,
@@ -300,7 +302,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     if (!params || typeof params !== 'string') {
       logError(
         this.config,
-        sprintf(GET_MODIFICATION_KEY_ERROR, params),
+        sprintf(ACTIVATE_MODIFICATION_KEY_ERROR, params),
         PROCESS_ACTIVE_MODIFICATION
       )
       return
@@ -362,7 +364,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     if (!flag) {
       logError(
         this.visitor.config,
-        sprintf(GET_MODIFICATION_ERROR, key),
+        sprintf(ACTIVATE_MODIFICATION_ERROR, key),
         PROCESS_ACTIVE_MODIFICATION
       )
       return

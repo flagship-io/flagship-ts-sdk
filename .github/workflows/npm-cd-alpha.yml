@@ -1,4 +1,4 @@
-name: NPM CD
+name: NPM CD ALPHA
 on:
   push:
     tags: 
