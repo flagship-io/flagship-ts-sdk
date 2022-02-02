@@ -40,7 +40,7 @@ const getAllModifications:Mock<Promise<{
   campaigns: CampaignDTO[];
 }>, [activate: boolean]> = jest.fn()
 
-const getAllFlags:Mock<Promise<{
+const getAllFlagsData:Mock<Promise<{
   visitorId: string;
   campaigns: CampaignDTO[];
 }>, [activate: boolean]> = jest.fn()
@@ -85,7 +85,7 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         sendHits,
         sendHitsSync,
         getAllModifications,
-        getAllFlags,
+        getAllFlagsData,
         getModificationsForCampaign,
         getFlatsForCampaign,
         authenticate,
@@ -444,11 +444,11 @@ describe('test VisitorDelegate methods', () => {
   })
 
   it('test getAllFlags', async () => {
-    getAllFlags.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
-    await visitorDelegate.getAllFlags()
-    expect(getAllFlags).toBeCalledTimes(1)
-    await visitorDelegate.getAllFlags(false)
-    expect(getAllFlags).toBeCalledTimes(2)
+    getAllFlagsData.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
+    await visitorDelegate.getAllFlagsData()
+    expect(getAllFlagsData).toBeCalledTimes(1)
+    await visitorDelegate.getAllFlagsData(false)
+    expect(getAllFlagsData).toBeCalledTimes(2)
   })
 
   it('test getModificationsForCampaign', async () => {

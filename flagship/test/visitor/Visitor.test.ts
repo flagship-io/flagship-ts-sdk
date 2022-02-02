@@ -278,13 +278,13 @@ describe('test visitor', () => {
   })
 
   it('test getAllFlags', () => {
-    const getAllFlags = jest.spyOn(visitorDelegate, 'getAllFlags')
+    const getAllFlags = jest.spyOn(visitorDelegate, 'getAllFlagsData')
     getAllFlags.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
-    visitor.getAllFlags().then(() => {
+    visitor.getAllFlagsData().then(() => {
       expect(getAllFlags).toBeCalledTimes(2)
       expect(getAllFlags).toBeCalledWith(false)
     })
-    visitor.getAllFlags(true).then(() => {
+    visitor.getAllFlagsData(true).then(() => {
       expect(getAllFlags).toBeCalledTimes(2)
       expect(getAllFlags).toBeCalledWith(true)
     })

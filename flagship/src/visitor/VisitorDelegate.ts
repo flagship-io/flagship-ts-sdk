@@ -79,8 +79,8 @@ export class VisitorDelegate extends VisitorAbstract {
     return this.getStrategy().getAllModifications(activate)
   }
 
-  getAllFlags (activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
-    return this.getStrategy().getAllFlags(activate)
+  getAllFlagsData (activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+    return this.getStrategy().getAllFlagsData(activate)
   }
 
   getModificationsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {

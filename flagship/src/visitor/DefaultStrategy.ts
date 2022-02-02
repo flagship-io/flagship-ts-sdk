@@ -539,10 +539,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     visitorId: string
     campaigns: CampaignDTO[]
   }> {
-    return this.getAllFlags(activate)
+    return this.getAllFlagsData(activate)
   }
 
-  async getAllFlags (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+  async getAllFlagsData (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
     if (activate) {
       this.visitor.flagsData.forEach((_, key) => {
         this.activateModification(key)

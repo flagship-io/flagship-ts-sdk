@@ -180,7 +180,7 @@ export interface IVisitor {
   /**
    * returns a Promise<object> containing all the data for all the campaigns associated with the current visitor.
    */
-   getAllFlags(activate: boolean): Promise<{
+   getAllFlagsData(activate: boolean): Promise<{
     visitorId: string;
     campaigns: CampaignDTO[];
   }>;

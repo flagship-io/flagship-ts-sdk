@@ -273,7 +273,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     abstract getModificationsForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 
-    abstract getAllFlags (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
+    abstract getAllFlagsData (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 
     abstract getFlatsForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 
