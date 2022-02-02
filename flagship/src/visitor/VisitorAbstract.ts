@@ -181,11 +181,11 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this.updateContext(v)
     }
 
-    public get flags (): Map<string, FlagDTO> {
+    public get flagsData (): Map<string, FlagDTO> {
       return this._flags
     }
 
-    public set flags (v:Map<string, FlagDTO>) {
+    public set flagsData (v:Map<string, FlagDTO>) {
       this._flags = v
     }
 

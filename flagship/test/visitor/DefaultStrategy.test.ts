@@ -979,7 +979,7 @@ describe('test DefaultStrategy ', () => {
     }]
     defaultStrategy.updateCampaigns(campaigns)
     expect(visitorDelegate.campaigns).toEqual(campaigns)
-    expect(visitorDelegate.flags).toEqual(modifications)
+    expect(visitorDelegate.flagsData).toEqual(modifications)
   })
 
   it('test updateCampaigns throw error', () => {

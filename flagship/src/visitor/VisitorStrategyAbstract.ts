@@ -17,7 +17,7 @@ import { IFlagMetadata } from '../flag/FlagMetadata'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheLookupDTO'
 export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheLookupDTO'
-export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'flags'|'modifications'|'context'|'hasConsented'|'getModificationsArray'|'getFlagsArray'|'getFlag'> {
+export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'flagsData'|'modifications'|'context'|'hasConsented'|'getModificationsArray'|'getFlagsArray'|'getFlag'> {
   protected visitor:VisitorAbstract;
 
   protected get configManager ():IConfigManager {
@@ -43,7 +43,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
   public updateCampaigns (campaigns:CampaignDTO[]):void {
     try {
       this.visitor.campaigns = campaigns
-      this.visitor.flags = this.decisionManager.getModifications(campaigns)
+      this.visitor.flagsData = this.decisionManager.getModifications(campaigns)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logError(this.config, error.message || error, 'updateCampaigns')

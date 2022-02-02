@@ -70,7 +70,7 @@ describe('test visitor', () => {
 
     expect(visitor.context).toEqual({ ...context, ...predefinedContext })
 
-    visitorDelegate.flags.set('newKey', {
+    visitorDelegate.flagsData.set('newKey', {
       key: 'newKey',
       campaignId: 'cma',
       variationGroupId: 'var',
@@ -79,8 +79,8 @@ describe('test visitor', () => {
       value: 'value'
     })
 
-    expect(visitor.flags).toBe(visitorDelegate.flags)
-    expect(visitor.modifications).toBe(visitorDelegate.flags)
+    expect(visitor.flagsData).toBe(visitorDelegate.flagsData)
+    expect(visitor.modifications).toBe(visitorDelegate.flagsData)
   })
 
   it('test updateContext', () => {

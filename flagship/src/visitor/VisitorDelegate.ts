@@ -17,7 +17,7 @@ export class VisitorDelegate extends VisitorAbstract {
   }
 
   getFlag<T> (key:string, defaultValue: T):IFlag<T> {
-    const flag = this.flags.get(key)
+    const flag = this.flagsData.get(key)
     return new Flag({ key, visitor: this, flagDTO: flag, defaultValue })
   }
 

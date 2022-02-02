@@ -55,12 +55,12 @@ export class Visitor extends EventEmitter implements IVisitor {
     return this.visitorDelegate.context
   }
 
-  public get flags (): Map<string, FlagDTO> {
-    return this.visitorDelegate.flags
+  public get flagsData (): Map<string, FlagDTO> {
+    return this.visitorDelegate.flagsData
   }
 
   public get modifications (): Map<string, FlagDTO> {
-    return this.visitorDelegate.flags
+    return this.visitorDelegate.flagsData
   }
 
   public updateContext (context: Record<string, primitive>): void {
