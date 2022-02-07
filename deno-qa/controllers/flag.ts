@@ -76,7 +76,7 @@ export const getFlag = async (
 
     if (visitor) {
       const flag = visitor.getFlag(flagKey, defaultValue)
-      const value = flag.value(activate)
+      const value = flag.getValue(activate)
       context.response.body = { value };
     }
   } catch (error) {

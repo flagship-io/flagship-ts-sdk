@@ -85,7 +85,7 @@ export const getFlag = async (req: Request, res: Response):Promise<void> => {
     }
     if (visitor) {
       const flag = visitor.getFlag(flagKey, defaultValue)
-      response.value = flag.value(activate)
+      response.value = flag.getValue(activate)
     }
     res.json(response)
   } catch (error) {
