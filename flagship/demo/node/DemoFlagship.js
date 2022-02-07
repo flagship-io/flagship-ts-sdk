@@ -40,7 +40,7 @@ const start = async (visitor, index) => {
     // getFlag
     const flag = visitor.getFlag('js-qa-app', 'test')
 
-    const value = flag.value(false)
+    const value = flag.getValue(false)
 
     if (check[value]) {
       check[value] += 1
