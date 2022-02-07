@@ -23,8 +23,8 @@ export class Visitor extends EventEmitter implements IVisitor {
     return this.visitorDelegate.getModificationsArray()
   }
 
-  getFlagsArray (): FlagDTO[] {
-    return this.visitorDelegate.getFlagsArray()
+  getFlagsDataArray (): FlagDTO[] {
+    return this.visitorDelegate.getFlagsDataArray()
   }
 
   public get visitorId () : string {
@@ -55,12 +55,12 @@ export class Visitor extends EventEmitter implements IVisitor {
     return this.visitorDelegate.context
   }
 
-  public get flags (): Map<string, FlagDTO> {
-    return this.visitorDelegate.flags
+  public get flagsData (): Map<string, FlagDTO> {
+    return this.visitorDelegate.flagsData
   }
 
   public get modifications (): Map<string, FlagDTO> {
-    return this.visitorDelegate.flags
+    return this.visitorDelegate.flagsData
   }
 
   public updateContext (context: Record<string, primitive>): void {
@@ -142,12 +142,12 @@ export class Visitor extends EventEmitter implements IVisitor {
     return this.visitorDelegate.getModificationsForCampaign(campaignId, activate)
   }
 
-  getAllFlags (activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
-    return this.visitorDelegate.getAllFlags(activate)
+  getAllFlagsData (activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+    return this.visitorDelegate.getAllFlagsData(activate)
   }
 
-  getFlatsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
-    return this.visitorDelegate.getFlatsForCampaign(campaignId, activate)
+  getFlatsDataForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+    return this.visitorDelegate.getFlatsDataForCampaign(campaignId, activate)
   }
 
   authenticate (visitorId: string): void {

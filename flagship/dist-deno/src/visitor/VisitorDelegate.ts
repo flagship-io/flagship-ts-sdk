@@ -17,7 +17,7 @@ export class VisitorDelegate extends VisitorAbstract {
   }
 
   getFlag<T> (key:string, defaultValue: T):IFlag<T> {
-    const flag = this.flags.get(key)
+    const flag = this.flagsData.get(key)
     return new Flag({ key, visitor: this, flagDTO: flag, defaultValue })
   }
 
@@ -79,16 +79,16 @@ export class VisitorDelegate extends VisitorAbstract {
     return this.getStrategy().getAllModifications(activate)
   }
 
-  getAllFlags (activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
-    return this.getStrategy().getAllFlags(activate)
+  getAllFlagsData (activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+    return this.getStrategy().getAllFlagsData(activate)
   }
 
   getModificationsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
     return this.getStrategy().getModificationsForCampaign(campaignId, activate)
   }
 
-  getFlatsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
-    return this.getStrategy().getFlatsForCampaign(campaignId, activate)
+  getFlatsDataForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+    return this.getStrategy().getFlatsDataForCampaign(campaignId, activate)
   }
 
   authenticate (visitorId: string): void {

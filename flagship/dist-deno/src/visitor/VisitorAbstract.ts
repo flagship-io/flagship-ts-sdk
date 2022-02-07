@@ -83,7 +83,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       return Array.from(this._flags, ([_, item]) => item)
     }
 
-    public getFlagsArray (): FlagDTO[] {
+    public getFlagsDataArray (): FlagDTO[] {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       return Array.from(this._flags, ([_, item]) => item)
     }
@@ -181,11 +181,11 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this.updateContext(v)
     }
 
-    public get flags (): Map<string, FlagDTO> {
+    public get flagsData (): Map<string, FlagDTO> {
       return this._flags
     }
 
-    public set flags (v:Map<string, FlagDTO>) {
+    public set flagsData (v:Map<string, FlagDTO>) {
       this._flags = v
     }
 
@@ -273,9 +273,9 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     abstract getModificationsForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 
-    abstract getAllFlags (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
+    abstract getAllFlagsData (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 
-    abstract getFlatsForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
+    abstract getFlatsDataForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 
     abstract authenticate(visitorId: string): void
     abstract unauthenticate(): void

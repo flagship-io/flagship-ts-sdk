@@ -92,7 +92,7 @@ const start = async (visitor, index) => {
 async function script() {
     await sleep(2000);
     for (let index = 0; index <= 1; index++) {
-        const visitor = _jsSdk2.default.newVisitor({ visitorId: '151022-js-trans-' + index, context: { key: 'value' } });
+        const visitor = _jsSdk2.default.newVisitor({ visitorId: 'visitor_a', context: { qa_report: true } });
         await start(visitor, index);
     }
 }

@@ -24,6 +24,7 @@ import {
   PROCESS_UPDATE_CONTEXT,
   SDK_APP,
   USER_EXPOSED_CAST_ERROR,
+  USER_EXPOSED_FLAG_ERROR,
   VISITOR_ID_ERROR
 } from '../enum/index.ts'
 import {
@@ -148,7 +149,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return defaultValue
     }
 
-    const modification = this.visitor.flags.get(key)
+    const modification = this.visitor.flagsData.get(key)
     if (!modification) {
       logInfo(
         this.config,
@@ -231,7 +232,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return null
     }
 
-    const modification = this.visitor.flags.get(key)
+    const modification = this.visitor.flagsData.get(key)
 
     if (!modification) {
       logError(
@@ -278,7 +279,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         campaigns = this.fetchVisitorCampaigns(this.visitor)
       }
       this.visitor.campaigns = campaigns
-      this.visitor.flags = this.decisionManager.getModifications(
+      this.visitor.flagsData = this.decisionManager.getModifications(
         this.visitor.campaigns
       )
       this.cacheVisitor()
@@ -359,7 +360,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
-    const flag = this.visitor.flags.get(key)
+    const flag = this.visitor.flagsData.get(key)
 
     if (!flag) {
       logError(
@@ -538,12 +539,12 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     visitorId: string
     campaigns: CampaignDTO[]
   }> {
-    return this.getAllFlags(activate)
+    return this.getAllFlagsData(activate)
   }
 
-  async getAllFlags (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+  async getAllFlagsData (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
     if (activate) {
-      this.visitor.flags.forEach((_, key) => {
+      this.visitor.flagsData.forEach((_, key) => {
         this.activateModification(key)
       })
     }
@@ -561,12 +562,12 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
    * @returns
    */
   public async getModificationsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[]}> {
-    return this.getFlatsForCampaign(campaignId, activate)
+    return this.getFlatsDataForCampaign(campaignId, activate)
   }
 
-  async getFlatsForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
+  async getFlatsDataForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
     if (activate) {
-      this.visitor.flags.forEach((value) => {
+      this.visitor.flagsData.forEach((value) => {
         if (value.campaignId === campaignId) {
           this.userExposed({ key: value.key, flag: value, defaultValue: value.value })
         }
@@ -618,7 +619,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     if (!flag) {
       logError(
         this.visitor.config,
-        sprintf(GET_FLAG_ERROR, key),
+        sprintf(USER_EXPOSED_FLAG_ERROR, key),
         functionName
       )
       return
