@@ -18,6 +18,9 @@ export interface IVisitor {
    */
   getModificationsArray():FlagDTO[]
 
+  /**
+   * Return an array of all flags fetched for the current visitor
+   */
   getFlagsDataArray():FlagDTO[]
 
   /**
@@ -57,6 +60,11 @@ export interface IVisitor {
    */
   getModification<T>(params: modificationsRequested<T>): Promise<T>;
 
+  /**
+   * Return a Flag object by its key. If no flag match the given key an empty flag will be returned.
+   * @param key key associated to the flag.
+   * @param defaultValue flag default value.
+   */
   getFlag<T>(key:string, defaultValue: T):IFlag<T>
 
   /**
