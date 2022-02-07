@@ -58,7 +58,7 @@ export const putVisitor = async (req: Request, res: Response):Promise<void> => {
       sessionVisitors[req.session.id] = visitor
 
       const modifications: FlagDTO[] = []
-      visitor.flags.forEach((value:FlagDTO) => {
+      visitor.flagsData.forEach((value:FlagDTO) => {
         modifications.push(value)
       })
 

@@ -63,7 +63,7 @@ export const putVisitor = async ({
       await visitor.fetchFlags();
       await state.session.set("visitor", visitor);
       const modifications: Modification[] = [];
-      visitor.flags.forEach((value) => {
+      visitor.flagsData.forEach((value) => {
         modifications.push(value);
       });
       responseBody.modification = modifications;
