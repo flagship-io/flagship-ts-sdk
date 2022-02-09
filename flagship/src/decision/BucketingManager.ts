@@ -187,13 +187,13 @@ export class BucketingManager extends DecisionManager {
     for (const variation of variationGroup.variations) {
       const cacheVariation = visitor.visitorCache?.data?.campaigns?.find(x => x.variationGroupId === variationGroup.id)
       if (cacheVariation) {
-        return {
-          id: cacheVariation.variationId,
-          modifications: {
-            type: cacheVariation.type,
-            value: cacheVariation.flags
-          },
-          reference: cacheVariation.isReference
+        const newVariation = variationGroup.variations.find(x => x.id === cacheVariation.variationId)
+        if (newVariation) {
+          return {
+            id: newVariation.id,
+            modifications: newVariation.modifications,
+            reference: newVariation.reference
+          }
         }
       }
       if (variation.allocation === undefined) {

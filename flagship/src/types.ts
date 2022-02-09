@@ -93,7 +93,7 @@ export type VisitorSaveCacheDTO = {
       variationId: string,
       isReference?:boolean,
       type: string,
-      activated: boolean,
+      activated?: boolean,
       flags: Record<string, unknown>
     }>
 }
