@@ -22,7 +22,7 @@ import { HttpClient } from '../utils/HttpClient'
 import { FlagDTO, NewVisitor, primitive } from '../types'
 import { CampaignDTO } from '../decision/api/models'
 import { DefaultHitCache } from '../hit/DefaultHitCache'
-import { DefaultVisitorCache } from '../visitor/DefaultVisitorCache'
+import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 
 export class Flagship {
   private static _instance: Flagship;

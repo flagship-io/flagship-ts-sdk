@@ -13,9 +13,9 @@ import { DefaultHitCache } from '../../src/hit/DefaultHitCache'
 import { Flagship } from '../../src/main/Flagship'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { sleep, sprintf } from '../../src/utils/utils'
-import { DefaultVisitorCache } from '../../src/visitor/DefaultVisitorCache'
 import { Visitor } from '../../src/visitor/Visitor'
 import { Mock } from 'jest-mock'
+import { DefaultVisitorCache } from '../../src/cache/DefaultVisitorCache'
 
 const getCampaignsAsync = jest.fn().mockReturnValue(Promise.resolve([]))
 

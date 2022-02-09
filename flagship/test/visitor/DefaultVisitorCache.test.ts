@@ -1,7 +1,7 @@
 import { jest, expect, it, describe } from '@jest/globals'
 import { VisitorCacheDTO } from '../../src'
+import { DefaultVisitorCache, VISITOR_PREFIX } from '../../src/cache/DefaultVisitorCache'
 import { VISITOR_CACHE_VERSION } from '../../src/enum'
-import { DefaultVisitorCache, VISITOR_PREFIX } from '../../src/visitor/DefaultVisitorCache'
 import { campaigns } from '../decision/campaigns'
 
 describe('Test DefaultVisitorCache', () => {
