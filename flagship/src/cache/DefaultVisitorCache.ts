@@ -1,5 +1,5 @@
 import { VisitorCacheDTO } from '../types'
-import { IVisitorCacheImplementation } from './IVisitorCacheImplementation '
+import { IVisitorCacheImplementation } from './IVisitorCacheImplementation'
 
 export const VISITOR_PREFIX = 'FS_VISITOR_CACHE_'
 export class DefaultVisitorCache implements IVisitorCacheImplementation {

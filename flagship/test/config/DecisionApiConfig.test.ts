@@ -1,5 +1,5 @@
 import { expect, it, describe, jest } from '@jest/globals'
-import { IVisitorCacheImplementation } from '../../src'
+import { IHitCacheImplementation, IVisitorCacheImplementation } from '../../src'
 import { DecisionApiConfig, DecisionMode } from '../../src/config/index'
 import {
   BASE_API_URL,
@@ -8,7 +8,6 @@ import {
   LogLevel,
   REQUEST_TIME_OUT
 } from '../../src/enum/index'
-import { IHitCacheImplementation } from '../../src/hit/IHitCacheImplementation'
 import { HitCacheDTO, VisitorCacheDTO } from '../../src/types'
 import { FlagshipLogManager, IFlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 

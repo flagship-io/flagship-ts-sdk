@@ -1,7 +1,7 @@
 import { jest, expect, it, describe } from '@jest/globals'
 import { HitCacheDTO, HitType } from '../../src'
+import { DefaultHitCache, FS_HIT_PREFIX } from '../../src/cache/DefaultHitCache'
 import { HIT_CACHE_VERSION, SDK_APP } from '../../src/enum'
-import { DefaultHitCache, FS_HIT_PREFIX } from '../../src/hit/DefaultHitCache'
 
 describe('Test DefaultHitCache', () => {
   const defaultHitCache = new DefaultHitCache()
