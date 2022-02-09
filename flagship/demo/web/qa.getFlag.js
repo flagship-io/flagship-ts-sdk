@@ -1,5 +1,5 @@
-const ENV_ID = 'bk87t3jggr10c6l6sdog'
-const API_KEY = 'N1Rm3DsCBrahhnGTzEnha31IN4DK8tXl28IykcCX'
+const ENV_ID = ''
+const API_KEY = ''
 
 const printMessage = (scenario, action) => {
   console.log(`########### SCENARIO ${scenario} ACTION ${action} ##############`)
@@ -10,7 +10,7 @@ const printLocalStorage = () => {
 }
 
 Flagship.start(ENV_ID, API_KEY, {
-//   decisionMode: DecisionMode.BUCKETING,
+  // decisionMode: DecisionMode.BUCKETING,
   fetchNow: false,
   timeout: 10,
   pollingInterval: 5
@@ -154,4 +154,42 @@ btnAction35.addEventListener('click', async () => {
 
   console.log('flag:', flag.value())
   console.log('metadata', flag.metadata.toJSON())
+})
+
+const btnAction121 = document.getElementById('scenario-12-action-1')
+
+btnAction121.addEventListener('click', async () => {
+  printMessage(12, 1)
+
+  visitor = Flagship.newVisitor({
+    visitorId: 'myVisitorId',
+    context: {
+      is_scene_12: true
+    }
+  })
+
+  await visitor.fetchFlags()
+
+  flag = visitor.getFlag('scene_12', 0)
+
+  console.log('flag.value', flag.getValue())
+})
+
+const btnAction122 = document.getElementById('scenario-12-action-2')
+
+btnAction122.addEventListener('click', async () => {
+  printMessage(12, 1)
+
+  visitor = Flagship.newVisitor({
+    visitorId: 'myVisitorId',
+    context: {
+      is_scene_12: false
+    }
+  })
+
+  await visitor.fetchFlags()
+
+  flag = visitor.getFlag('scene_12', 0)
+
+  console.log('flag.value', flag.getValue())
 })

@@ -279,7 +279,7 @@ export class Flagship {
       context = param1?.context || {}
       isAuthenticated = !!param1?.isAuthenticated
       hasConsented = param1?.hasConsented ?? true
-      initialModifications = param1?.initialModifications
+      initialModifications = param1?.initialFlagsData || param1?.initialModifications
       initialCampaigns = param1?.initialCampaigns
       isNewInstance = param1?.isNewInstance ?? isNewInstance
     }
@@ -291,7 +291,8 @@ export class Flagship {
       hasConsented,
       configManager: this.getInstance().configManager,
       initialModifications: initialModifications,
-      initialCampaigns: initialCampaigns
+      initialCampaigns: initialCampaigns,
+      initialFlagsData: initialModifications
     })
 
     const visitor = new Visitor(visitorDelegate)

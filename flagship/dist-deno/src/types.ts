@@ -46,7 +46,7 @@ export type NewVisitor={
     * @deprecated use initialFlags instead
     */
    initialModifications?: Map<string, Modification>|Modification[]
-   initialFlags?: Map<string, FlagDTO>|FlagDTO[]
+   initialFlagsData?: Map<string, FlagDTO>|FlagDTO[]
 
    /**
     * If true The newly created visitor instance won't be saved and will simply be returned otherwise
