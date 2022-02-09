@@ -9,7 +9,7 @@ import {
   REQUEST_TIME_OUT
 } from '../../src/enum/index'
 import { IHitCacheImplementation } from '../../src/hit/IHitCacheImplementation'
-import { HitCacheLookupDTO, HitCacheSaveDTO, VisitorCacheDTO } from '../../src/types'
+import { HitCacheDTO, VisitorCacheDTO } from '../../src/types'
 import { FlagshipLogManager, IFlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 
 describe('test DecisionApiConfig', () => {
@@ -60,11 +60,11 @@ describe('test DecisionApiConfig', () => {
 
     const hitCacheImplementation:IHitCacheImplementation = {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      cacheHit: function (_visitorId: string, _data: HitCacheSaveDTO): void {
+      cacheHit: function (_visitorId: string, _data: HitCacheDTO): void {
         throw new Error('Function not implemented.')
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      lookupHits: function (_visitorId: string): HitCacheLookupDTO[] {
+      lookupHits: function (_visitorId: string): HitCacheDTO[] {
         throw new Error('Function not implemented.')
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars

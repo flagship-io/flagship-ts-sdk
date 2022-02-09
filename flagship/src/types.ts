@@ -58,25 +58,14 @@ export type NewVisitor={
 
 }
 
-export type HitCache ={
+export type HitCacheDTO ={
   version: number,
   data: {
       visitorId: string,
       anonymousId: string|null,
       type: HitType|'BATCH'|'ACTIVATE',
-      time: number
-  }
-}
-
-export type HitCacheSaveDTO = HitCache & {
-  data: {
-      content: Record<string, unknown>
-  }
-}
-
-export type HitCacheLookupDTO = HitCache & {
-  data:{
-      content?:IHit|Modification
+      time: number,
+      content?:IHit|FlagDTO|Record<string, unknown>
   }
 }
 

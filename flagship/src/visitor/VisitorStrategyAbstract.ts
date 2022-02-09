@@ -1,6 +1,6 @@
 import { FlagDTO } from '../index'
 import { HitAbstract, HitShape } from '../hit/index'
-import { primitive, modificationsRequested, IHit, VisitorCacheDTO, HitCacheLookupDTO, HitCacheSaveDTO } from '../types'
+import { primitive, modificationsRequested, IHit, VisitorCacheDTO, HitCacheDTO } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
@@ -15,8 +15,8 @@ import { BatchDTO } from '../hit/Batch'
 import { IFlagMetadata } from '../flag/FlagMetadata'
 
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
-export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheLookupDTO'
-export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheLookupDTO'
+export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
+export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheDTO'
 export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'flagsData'|'modifications'|'context'|'hasConsented'|'getModificationsArray'|'getFlagsDataArray'|'getFlag'> {
   protected visitor:VisitorAbstract;
 
@@ -171,7 +171,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     }
   }
 
-  protected checKLookupHitData (item:HitCacheLookupDTO):boolean {
+  protected checKLookupHitData (item:HitCacheDTO):boolean {
     if (item && item.version === 1 && item.data && item.data.type && item.data.visitorId) {
       return true
     }
@@ -237,7 +237,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.cacheHit !== 'function') {
         return
       }
-      const hitData: HitCacheSaveDTO = {
+      const hitData: HitCacheDTO = {
         version: HIT_CACHE_VERSION,
         data: {
           visitorId: this.visitor.visitorId,
