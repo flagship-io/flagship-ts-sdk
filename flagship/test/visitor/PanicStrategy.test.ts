@@ -1,5 +1,5 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { DecisionApiConfig, VisitorLookupCacheDTO, VisitorSaveCacheDTO } from '../../src'
+import { DecisionApiConfig, IVisitorCacheImplementation, VisitorCacheDTO } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
@@ -11,7 +11,6 @@ import { VisitorDelegate, PanicStrategy } from '../../src/visitor'
 import { campaigns } from '../decision/campaigns'
 
 import { Mock } from 'jest-mock'
-import { IVisitorCacheImplementation } from '../../src/visitor/IVisitorCacheImplementation '
 
 describe('test NotReadyStrategy', () => {
   const visitorId = 'visitorId'
@@ -20,8 +19,8 @@ describe('test NotReadyStrategy', () => {
     isVip: true
   }
 
-  const cacheVisitor:Mock<void, [visitorId: string, data: VisitorSaveCacheDTO]> = jest.fn()
-  const lookupVisitor:Mock<VisitorLookupCacheDTO, [visitorId: string]> = jest.fn()
+  const cacheVisitor:Mock<void, [visitorId: string, data: VisitorCacheDTO]> = jest.fn()
+  const lookupVisitor:Mock<VisitorCacheDTO, [visitorId: string]> = jest.fn()
   const flushVisitor:Mock<void, [visitorId: string]> = jest.fn()
   const visitorCacheImplementation:IVisitorCacheImplementation = {
     cacheVisitor,

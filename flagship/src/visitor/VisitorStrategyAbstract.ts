@@ -1,6 +1,6 @@
 import { FlagDTO } from '../index'
 import { HitAbstract, HitShape } from '../hit/index'
-import { primitive, modificationsRequested, IHit, VisitorLookupCacheDTO, VisitorSaveCacheDTO, HitCacheLookupDTO, HitCacheSaveDTO } from '../types'
+import { primitive, modificationsRequested, IHit, VisitorCacheDTO, HitCacheLookupDTO, HitCacheSaveDTO } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
@@ -74,7 +74,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     })
   }
 
-  protected checKLookupVisitorDataV1 (item:VisitorLookupCacheDTO):boolean {
+  protected checKLookupVisitorDataV1 (item:VisitorCacheDTO):boolean {
     if (!item || !item.data || !item.data.visitorId) {
       return false
     }
@@ -89,7 +89,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     return campaigns.every(x => x.campaignId && x.type && x.variationGroupId && x.variationId)
   }
 
-  protected checKLookupVisitorData (item:VisitorLookupCacheDTO):boolean {
+  protected checKLookupVisitorData (item:VisitorCacheDTO):boolean {
     if (item.version === 1) {
       return this.checKLookupVisitorDataV1(item)
     }
@@ -122,7 +122,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       if (this.config.disableCache || this.decisionManager.isPanic() || !visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.cacheVisitor !== 'function') {
         return
       }
-      const data: VisitorSaveCacheDTO = {
+      const data: VisitorCacheDTO = {
         version: VISITOR_CACHE_VERSION,
         data: {
           visitorId: this.visitor.visitorId,

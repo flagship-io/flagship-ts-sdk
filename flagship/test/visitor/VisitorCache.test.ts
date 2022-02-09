@@ -1,5 +1,5 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { DecisionApiConfig } from '../../src'
+import { DecisionApiConfig, IVisitorCacheImplementation } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
@@ -8,9 +8,8 @@ import { HttpClient, IHttpResponse, IHttpOptions } from '../../src/utils/HttpCli
 import { VisitorDelegate, DefaultStrategy, NoConsentStrategy, NotReadyStrategy } from '../../src/visitor'
 import { Mock } from 'jest-mock'
 import { VISITOR_CACHE_VERSION } from '../../src/enum'
-import { IVisitorCacheImplementation } from '../../src/visitor/IVisitorCacheImplementation '
 import { campaigns } from '../decision/campaigns'
-import { VisitorLookupCacheDTO, VisitorSaveCacheDTO } from '../../src/types'
+import { VisitorCacheDTO } from '../../src/types'
 import { LOOKUP_VISITOR_JSON_OBJECT_ERROR } from '../../src/visitor/VisitorStrategyAbstract'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -26,8 +25,8 @@ describe('test visitor cache', () => {
   const logManager = new FlagshipLogManager()
   const logError = jest.spyOn(logManager, 'error')
 
-  const cacheVisitor:Mock<void, [visitorId: string, data: VisitorSaveCacheDTO]> = jest.fn()
-  const lookupVisitor:Mock<VisitorLookupCacheDTO, [visitorId: string]> = jest.fn()
+  const cacheVisitor:Mock<void, [visitorId: string, data: VisitorCacheDTO]> = jest.fn()
+  const lookupVisitor:Mock<VisitorCacheDTO, [visitorId: string]> = jest.fn()
   const flushVisitor:Mock<void, [visitorId: string]> = jest.fn()
   const visitorCacheImplementation:IVisitorCacheImplementation = {
     cacheVisitor,
@@ -63,7 +62,7 @@ describe('test visitor cache', () => {
 
   const notReadyStrategy = new NotReadyStrategy(visitorDelegate)
 
-  const data: VisitorSaveCacheDTO = {
+  const data: VisitorCacheDTO = {
     version: VISITOR_CACHE_VERSION,
     data: {
       visitorId: visitorDelegate.visitorId,
@@ -130,7 +129,7 @@ describe('test visitor cache', () => {
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
     const defaultStrategy = new DefaultStrategy(visitorDelegate)
 
-    visitorDelegate.visitorCache = data as VisitorLookupCacheDTO
+    visitorDelegate.visitorCache = data as VisitorCacheDTO
     await defaultStrategy.synchronizeModifications()
     expect(visitorDelegate.campaigns).toEqual(campaigns.campaigns)
   })
@@ -212,7 +211,7 @@ describe('test visitor cache', () => {
       }
     }
 
-    lookupVisitor.mockReturnValue(data as VisitorLookupCacheDTO)
+    lookupVisitor.mockReturnValue(data as VisitorCacheDTO)
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(1)
     expect(visitorDelegate.visitorCache).toBeUndefined()
@@ -231,7 +230,7 @@ describe('test visitor cache', () => {
       }
     }
 
-    lookupVisitor.mockReturnValue(data as VisitorLookupCacheDTO)
+    lookupVisitor.mockReturnValue(data as VisitorCacheDTO)
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(1)
     expect(visitorDelegate.visitorCache).toBeUndefined()
@@ -263,7 +262,7 @@ describe('test visitor cache', () => {
       }
     }
 
-    lookupVisitor.mockReturnValue(data as VisitorLookupCacheDTO)
+    lookupVisitor.mockReturnValue(data as VisitorCacheDTO)
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(1)
     expect(visitorDelegate.visitorCache).toBeUndefined()
@@ -324,8 +323,8 @@ describe('test visitorCache with disabledCache', () => {
 
   const logManager = new FlagshipLogManager()
 
-  const cacheVisitor:Mock<void, [visitorId: string, data: VisitorSaveCacheDTO]> = jest.fn()
-  const lookupVisitor:Mock<VisitorLookupCacheDTO, [visitorId: string]> = jest.fn()
+  const cacheVisitor:Mock<void, [visitorId: string, data: VisitorCacheDTO]> = jest.fn()
+  const lookupVisitor:Mock<VisitorCacheDTO, [visitorId: string]> = jest.fn()
   const flushVisitor:Mock<void, [visitorId: string]> = jest.fn()
   const visitorCacheImplementation:IVisitorCacheImplementation = {
     cacheVisitor,

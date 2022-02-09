@@ -3,7 +3,7 @@ import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FlagshipStatus, LogLevel, REQ
 import { IHitCacheImplementation } from '../hit/IHitCacheImplementation'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, sprintf } from '../utils/utils'
-import { IVisitorCacheImplementation } from '../visitor/IVisitorCacheImplementation '
+import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation '
 
 export enum DecisionMode {
   /**
