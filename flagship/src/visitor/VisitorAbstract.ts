@@ -34,7 +34,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       configManager: IConfigManager
       context: Record<string, primitive>
     }) {
-      const { visitorId, configManager, context, isAuthenticated, hasConsented, initialModifications, initialFlags, initialCampaigns } = param
+      const { visitorId, configManager, context, isAuthenticated, hasConsented, initialModifications, initialFlagsData, initialCampaigns } = param
       super()
       this._isCleaningDeDuplicationCache = false
       this.deDuplicationCache = {}
@@ -56,7 +56,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
         this._anonymousId = this.uuidV4()
       }
       this.updateCache()
-      this.setInitialFlags(initialFlags || initialModifications)
+      this.setInitialFlags(initialFlagsData || initialModifications)
       this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
 
       this.getStrategy().lookupVisitor()
