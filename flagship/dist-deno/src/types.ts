@@ -58,48 +58,18 @@ export type NewVisitor={
 
 }
 
-export type HitCache ={
+export type HitCacheDTO ={
   version: number,
   data: {
       visitorId: string,
       anonymousId: string|null,
       type: HitType|'BATCH'|'ACTIVATE',
-      time: number
+      time: number,
+      content?:IHit|FlagDTO|Record<string, unknown>
   }
 }
 
-export type HitCacheSaveDTO = HitCache & {
-  data: {
-      content: Record<string, unknown>
-  }
-}
-
-export type HitCacheLookupDTO = HitCache & {
-  data:{
-      content?:IHit|Modification
-  }
-}
-
-export type VisitorSaveCacheDTO = {
-  version: number,
-  data: {
-    visitorId: string,
-    anonymousId: string|null,
-    consent: boolean,
-    context: Record<string, primitive>,
-    campaigns: Array<{
-      campaignId: string,
-      variationGroupId: string,
-      variationId: string,
-      isReference?:boolean,
-      type: string,
-      activated: boolean,
-      flags: Record<string, unknown>
-    }>
-}
-}
-
-export type VisitorLookupCacheDTO = {
+export type VisitorCacheDTO = {
   version: number,
   data: {
     visitorId: string,
