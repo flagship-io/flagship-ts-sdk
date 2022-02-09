@@ -564,8 +564,8 @@ describe('test DefaultStrategy ', () => {
   it('test userExposed flag undefined', async () => {
     await defaultStrategy.userExposed({ key: notExitKey, flag: undefined, defaultValue: false })
     expect(sendActive).toBeCalledTimes(0)
-    expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(
+    expect(logInfo).toBeCalledTimes(1)
+    expect(logInfo).toBeCalledWith(
       sprintf(USER_EXPOSED_FLAG_ERROR, notExitKey),
       'userExposed'
     )

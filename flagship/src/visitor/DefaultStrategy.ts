@@ -617,7 +617,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     const { key, flag, defaultValue } = param
     const functionName = 'userExposed'
     if (!flag) {
-      logError(
+      logInfo(
         this.visitor.config,
         sprintf(USER_EXPOSED_FLAG_ERROR, key),
         functionName
@@ -680,7 +680,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     const { metadata, hasSameType: checkType, key } = param
     const functionName = 'flag.metadata'
     if (!checkType) {
-      logError(
+      logInfo(
         this.visitor.config,
         sprintf(GET_METADATA_CAST_ERROR, key),
         functionName
