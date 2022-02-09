@@ -68,8 +68,6 @@ export class Flag<T> implements IFlag<T> {
     }
 
     userExposed ():Promise<void> {
-      console.log('Flag.userExposed()')
-
       return this._visitor.userExposed({ key: this._key, flag: this._flagDTO, defaultValue: this._defaultValue })
     }
 
