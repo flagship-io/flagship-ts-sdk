@@ -221,11 +221,12 @@ scenario1Action8.addEventListener('click', async () => {
       cacheEnabled: true
     }
   })
-  await visitor.synchronizeModifications()
+  await visitor.fetchFlags()
   console.log('synchronize OK')
-  const flag = visitor.getModificationSync({ key: 'cache', defaultValue: 0, activate: true })
-  console.log('flag cache :', flag)
-
+  const flag = visitor.getFlag('cache', 0)
+  console.log('flag cache :', flag.getValue())
+  const flag2 = visitor.getFlag('cache-2', 0)
+  console.log('flag cache 2:', flag2.getValue())
   printLocalStorage()
 })
 
@@ -233,9 +234,12 @@ const scenario1Action9 = document.getElementById('scenario-1-action-9')
 scenario1Action9.addEventListener('click', async () => {
   printMessage(1, 9)
 
-  await visitor.synchronizeModifications()
+  await visitor.fetchFlags()
   console.log('synchronize OK')
-  const flag = visitor.getModificationSync({ key: 'cache', defaultValue: 0, activate: true })
+  const flag = visitor.getFlag('cache', 0)
+  console.log('flag cache :', flag.getValue())
+  const flag2 = visitor.getFlag('cache-2', 0)
+  console.log('flag cache 2:', flag2.getValue())
   console.log('flag cache :', flag)
 
   printLocalStorage()

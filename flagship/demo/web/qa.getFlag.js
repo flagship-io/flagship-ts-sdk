@@ -10,7 +10,7 @@ const printLocalStorage = () => {
 }
 
 Flagship.start(ENV_ID, API_KEY, {
-  // decisionMode: DecisionMode.BUCKETING,
+  decisionMode: DecisionMode.BUCKETING,
   fetchNow: false,
   timeout: 10,
   pollingInterval: 5
