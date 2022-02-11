@@ -6,7 +6,6 @@ import {
   EMIT_READY,
   FLAGSHIP_VISITOR_NOT_AUTHENTICATE,
   GET_FLAG_CAST_ERROR,
-  GET_FLAG_ERROR,
   GET_FLAG_MISSING_ERROR,
   GET_METADATA_CAST_ERROR,
   GET_MODIFICATION_CAST_ERROR,
@@ -270,7 +269,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   protected async globalFetchFlags (functionName:string): Promise<void> {
     try {
-      await this.lookupVisitor()
       let campaigns = await this.decisionManager.getCampaignsAsync(
         this.visitor
       )
