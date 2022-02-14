@@ -1,4 +1,5 @@
 import { expect, it, describe, jest } from '@jest/globals'
+import { IHitCacheImplementation, IVisitorCacheImplementation } from '../../src'
 import { DecisionApiConfig, DecisionMode } from '../../src/config/index'
 import {
   BASE_API_URL,
@@ -7,10 +8,8 @@ import {
   LogLevel,
   REQUEST_TIME_OUT
 } from '../../src/enum/index'
-import { IHitCacheImplementation } from '../../src/hit/IHitCacheImplementation'
-import { HitCacheLookupDTO, HitCacheSaveDTO, VisitorLookupCacheDTO, VisitorSaveCacheDTO } from '../../src/types'
+import { HitCacheDTO, VisitorCacheDTO } from '../../src/types'
 import { FlagshipLogManager, IFlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { IVisitorCacheImplementation } from '../../src/visitor/IVisitorCacheImplementation '
 
 describe('test DecisionApiConfig', () => {
   const config = new DecisionApiConfig()
@@ -45,11 +44,11 @@ describe('test DecisionApiConfig', () => {
 
     const visitorCacheImplementation:IVisitorCacheImplementation = {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      cacheVisitor: function (_visitorId: string, _Data: VisitorSaveCacheDTO): void {
+      cacheVisitor: function (_visitorId: string, _Data: VisitorCacheDTO): void {
         throw new Error('Function not implemented.')
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      lookupVisitor: function (_visitorId: string): VisitorLookupCacheDTO {
+      lookupVisitor: function (_visitorId: string): VisitorCacheDTO {
         throw new Error('Function not implemented.')
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -60,11 +59,11 @@ describe('test DecisionApiConfig', () => {
 
     const hitCacheImplementation:IHitCacheImplementation = {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      cacheHit: function (_visitorId: string, _data: HitCacheSaveDTO): void {
+      cacheHit: function (_visitorId: string, _data: HitCacheDTO): void {
         throw new Error('Function not implemented.')
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      lookupHits: function (_visitorId: string): HitCacheLookupDTO[] {
+      lookupHits: function (_visitorId: string): HitCacheDTO[] {
         throw new Error('Function not implemented.')
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars

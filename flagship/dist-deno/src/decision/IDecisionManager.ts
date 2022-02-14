@@ -1,6 +1,6 @@
 import { IFlagshipConfig } from '../config/index.ts'
 import { FlagshipStatus } from '../enum/index.ts'
-import { Modification } from '../types.ts'
+import { FlagDTO } from '../types.ts'
 import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 import { CampaignDTO } from './api/models.ts'
 
@@ -9,13 +9,13 @@ export interface IDecisionManager {
 
   isPanic(): boolean
 
-  getModifications (campaigns: Array<CampaignDTO>):Map<string, Modification>
+  getModifications (campaigns: Array<CampaignDTO>):Map<string, FlagDTO>
 
   getCampaignsAsync (visitor: VisitorAbstract):Promise<CampaignDTO[]>
 
   getCampaignsModificationsAsync(
     visitor: VisitorAbstract,
-  ): Promise<Map<string, Modification>>
+  ): Promise<Map<string, FlagDTO>>
 
   config:IFlagshipConfig
 }

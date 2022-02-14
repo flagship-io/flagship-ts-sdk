@@ -1,14 +1,27 @@
 import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
-import { IHit, Modification, modificationsRequested, primitive } from '../types.ts'
+import { IFlag } from '../flag/Flags.ts'
+import { IHit, FlagDTO, modificationsRequested, primitive, Modification } from '../types.ts'
 
 export interface IVisitor {
   visitorId: string;
+  flagsData: Map<string, FlagDTO>;
+  /**
+   * @deprecated use flagsData instead
+   */
   modifications: Map<string, Modification>;
   context: Record<string, primitive>;
 
-  getModificationsArray():Modification[]
+  /**
+   * @deprecated use getFlagsDataArray instead
+   */
+  getModificationsArray():FlagDTO[]
+
+  /**
+   * Return an array of all flags fetched for the current visitor
+   */
+  getFlagsDataArray():FlagDTO[]
 
   /**
    * Return True or False if the visitor has consented for protected data usage.
@@ -43,14 +56,23 @@ export interface IVisitor {
    * key or if the stored value type and default value type do not match, default value will be returned.
    * @param {modificationsRequested<T>} params
    * @param {boolean} activateAll
+   * @deprecated use getFlag instead
    */
   getModification<T>(params: modificationsRequested<T>): Promise<T>;
+
+  /**
+   * Return a Flag object by its key. If no flag match the given key an empty flag will be returned.
+   * @param key key associated to the flag.
+   * @param defaultValue flag default value.
+   */
+  getFlag<T>(key:string, defaultValue: T):IFlag<T>
 
   /**
    * Retrieve an array of modification value by keys. If no modification match the given
    * key or if the stored value type and default value type do not match, an array of default value will be returned.
    * @param {modificationsRequested<T>[]} params
    * @param {boolean} activateAll
+   * @deprecated use getFlag instead
    */
   getModifications<T>(
     params: modificationsRequested<T>[],
@@ -62,6 +84,7 @@ export interface IVisitor {
    * key or if the stored value type and default value type do not match, default value will be returned.
    * @param {modificationsRequested<T>} params
    * @param {boolean} activateAll
+   * @deprecated use getFlag instead
    */
   getModificationSync<T>(params: modificationsRequested<T>): T;
 
@@ -70,6 +93,7 @@ export interface IVisitor {
    * key or if the stored value type and default value type do not match, an array of default value will be returned.
    * @param {modificationsRequested<T>[]} params
    * @param {boolean} activateAll
+   * @deprecated use getFlag instead
    */
   getModificationsSync<T>(
     params: modificationsRequested<T>[],
@@ -79,39 +103,51 @@ export interface IVisitor {
   /**
    * Get the campaign modification information value matching the given key.
    * @param {string} key : key which identify the modification.
-   * @returns {Modification | null}
+   * @returns {FlagDTO | null}
+   * @deprecated use getFlag instead
    */
-  getModificationInfo(key: string): Promise<Modification | null>;
+  getModificationInfo(key: string): Promise<FlagDTO | null>;
 
   /**
    * Get the campaign modification information value matching the given key.
    * @param {string} key : key which identify the modification.
-   * @returns {Modification | null}
+   * @returns {FlagDTO | null}
+   * @deprecated use getFlag instead
    */
-  getModificationInfoSync(key: string): Modification | null;
+  getModificationInfoSync(key: string): FlagDTO | null;
 
   /**
    * This function calls the decision api and update all the campaigns modifications
    * from the server according to the visitor context.
+   * @deprecated use fetchFlags instead
    */
   synchronizeModifications(): Promise<void>;
+
+   /**
+   * This function calls the decision api and update all the campaigns modifications
+   * from the server according to the visitor context.
+   */
+  fetchFlags(): Promise<void>;
 
   /**
    * Report this user has seen this modification.
    * @param key : key which identify the modification to activate.
+   *
+   * @deprecated use getFlag instead
    */
   activateModification(key: string): Promise<void>;
   /**
    * Report this user has seen these modifications.
-   * @deprecated use ["key1","key2",...] instead of
    * @param {Array<{ key: string }>} keys keys which identify the modifications to activate.
+   * @deprecated use getFlag instead
    */
-   activateModifications(keys: Array<{ key: string }>): Promise<void>;
+   activateModifications(keys: { key: string }[]): Promise<void>;
   /**
    * Report this user has seen these modifications.
    * @param keys  keys which identify the modifications to activate.
+   * @deprecated use getFlag instead
    */
-   activateModifications(keys: Array<string>): Promise<void>;
+   activateModifications(keys: string[]): Promise<void>;
 
   /**
    * Send a Hit to Flagship servers for reporting.
@@ -141,8 +177,32 @@ export interface IVisitor {
 
   /**
    * returns a Promise<object> containing all the data for all the campaigns associated with the current visitor.
+   *
+   * @deprecated use getAllFlagsData instead
    */
   getAllModifications(activate: boolean): Promise<{
+    visitorId: string;
+    campaigns: CampaignDTO[];
+  }>;
+
+  /**
+   * returns a Promise<object> containing all the data for all the campaigns associated with the current visitor.
+   */
+   getAllFlagsData(activate: boolean): Promise<{
+    visitorId: string;
+    campaigns: CampaignDTO[];
+  }>;
+
+  /**
+   * Get data for a specific campaign.
+   * @param campaignId Identifies the campaign whose modifications you want to retrieve.
+   * @param activate
+   * @deprecated use getFlatsDataForCampaign instead
+   */
+  getModificationsForCampaign(
+    campaignId: string,
+    activate: boolean
+  ): Promise<{
     visitorId: string;
     campaigns: CampaignDTO[];
   }>;
@@ -152,7 +212,7 @@ export interface IVisitor {
    * @param campaignId Identifies the campaign whose modifications you want to retrieve.
    * @param activate
    */
-  getModificationsForCampaign(
+   getFlatsDataForCampaign(
     campaignId: string,
     activate: boolean
   ): Promise<{

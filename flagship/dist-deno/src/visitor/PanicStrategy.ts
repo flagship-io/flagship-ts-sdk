@@ -1,10 +1,11 @@
-import { CampaignDTO, Modification } from '../index.ts'
+import { CampaignDTO, FlagDTO } from '../index.ts'
 import { FlagshipStatus, METHOD_DEACTIVATED_ERROR, METHOD_DEACTIVATED_SEND_CONSENT_ERROR } from '../enum/index.ts'
 import { IHit, modificationsRequested, primitive } from '../types.ts'
 import { logError, sprintf } from '../utils/utils.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
 import { BatchDTO } from '../hit/Batch.ts'
+import { FlagMetadata, IFlagMetadata } from '../flag/FlagMetadata.ts'
 
 export class PanicStrategy extends DefaultStrategy {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -56,7 +57,7 @@ export class PanicStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getModificationInfoSync (_key: string): Modification | null {
+  public getModificationInfoSync (_key: string): FlagDTO | null {
     this.log('getModificationInfo')
     return null
   }
@@ -81,6 +82,20 @@ export class PanicStrategy extends DefaultStrategy {
   sendHits (_hits: HitAbstract[] | IHit[]|HitShape[]|BatchDTO[]): Promise<void> {
     this.log('sendHits')
     return Promise.resolve()
+  }
+
+  getFlagValue <T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}): T {
+    this.log('Flag.value')
+    return param.defaultValue
+  }
+
+  async userExposed (): Promise<void> {
+    this.log('userExposed')
+  }
+
+  getFlagMetadata ():IFlagMetadata {
+    this.log('flag.metadata')
+    return FlagMetadata.Empty()
   }
 
   private log (methodName:string) {

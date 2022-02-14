@@ -39,6 +39,9 @@ describe('Name of the group', () => {
 
   const sendActive = jest.spyOn(trackingManager, 'sendActive')
   const sendHit = jest.spyOn(trackingManager, 'sendHit')
+  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+
+  sendConsentHit.mockResolvedValue()
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
@@ -68,6 +71,31 @@ describe('Name of the group', () => {
     await defaultStrategy.activateModification(key)
     await defaultStrategy.activateModification('keyNumber')
     await defaultStrategy.activateModification('keyNumber')
+    expect(sendActive).toBeCalledTimes(2)
+  })
+
+  it('test userExposed ', async () => {
+    const flag = {
+      key: 'keyNull',
+      campaignId: 'c2nrh1hjg50l9thhu8bg',
+      variationGroupId: 'c2nrh1hjg50l9thhu8cg',
+      variationId: 'c2nrh1hjg50l9thhu8dg',
+      isReference: false,
+      value: null
+    }
+    const flag2 = {
+      key: 'keyNumber2',
+      campaignId: 'c2nrh1hjg50l9thhu8bg',
+      variationGroupId: 'c2nrh1hjg50l9thhu8cg',
+      variationId: 'c2nrh1hjg50l9thhu8dg',
+      isReference: false,
+      value: null
+    }
+    await defaultStrategy.userExposed({ key: flag.key, flag, defaultValue: flag.value })
+    await defaultStrategy.userExposed({ key: flag.key, flag, defaultValue: flag.value })
+    await defaultStrategy.userExposed({ key: flag.key, flag, defaultValue: flag.value })
+    await defaultStrategy.userExposed({ key: flag2.key, flag: flag2, defaultValue: flag2.value })
+    await defaultStrategy.userExposed({ key: flag2.key, flag: flag2, defaultValue: flag2.value })
     expect(sendActive).toBeCalledTimes(2)
   })
 
@@ -128,6 +156,9 @@ describe('Clean cache', () => {
   const trackingManager = new TrackingManager(httpClient, config)
 
   const sendActive = jest.spyOn(trackingManager, 'sendActive')
+  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+
+  sendConsentHit.mockResolvedValue()
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 

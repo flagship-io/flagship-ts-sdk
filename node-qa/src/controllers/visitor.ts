@@ -1,4 +1,4 @@
-import { Flagship, Request, Response, NextFunction, Visitor, Modification } from '../deps'
+import { Flagship, Request, Response, NextFunction, Visitor, FlagDTO } from '../deps'
 
 export const putVisitorValidation = (req: Request, res: Response, next: NextFunction):void => {
   const {
@@ -53,14 +53,16 @@ export const putVisitor = async (req: Request, res: Response):Promise<void> => {
         console.log('ready')
       })
 
-      await visitor.synchronizeModifications()
+      await visitor.fetchFlags()
 
       sessionVisitors[req.session.id] = visitor
 
-      const modifications: Modification[] = []
-      visitor.modifications.forEach((value:Modification) => {
+      const modifications: FlagDTO[] = []
+      visitor.flagsData.forEach((value:FlagDTO) => {
         modifications.push(value)
       })
+
+      // console.log('visitor', visitor)
 
       responseBody.modification = modifications
       responseBody.context = visitor.context
@@ -152,7 +154,7 @@ export const authenticate = (req: Request, res: Response):void => {
 
   // eslint-disable-next-line camelcase
   if (!new_visitor_id) {
-    res.json({ error: 'new visitor ID is required', ok: true })
+    res.status(422).json({ error: 'new visitor ID is required', ok: true })
     return
   }
 

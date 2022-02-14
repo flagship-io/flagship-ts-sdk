@@ -8,16 +8,16 @@ import {
   LogLevel,
   Transaction,
   Modification,
-  DEVICE_LOCALE,
-} from "../../dist-deno/src/mod.ts";
-import { API_KEY, ENV_ID } from "./config.js";
+  DEVICE_LOCALE
+} from '../../dist-deno/src/mod.ts'
+import { API_KEY, ENV_ID } from './config.js'
 
 const statusChangedCallback = (status: FlagshipStatus) => {
-  console.log("status", FlagshipStatus[status]);
-};
+  console.log('status', FlagshipStatus[status])
+}
 
-function sleep(ms: number): Promise<unknown> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function sleep (ms: number): Promise<unknown> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 Flagship.start(ENV_ID, API_KEY, {
@@ -25,47 +25,47 @@ Flagship.start(ENV_ID, API_KEY, {
   statusChangedCallback,
   logLevel: LogLevel.ALL,
   fetchNow: false,
-  timeout:5
-});
+  timeout: 5
+})
 
 const visitor = Flagship.newVisitor({
-  visitorId: "visitor_id",
+  visitorId: 'visitor_id',
   isAuthenticated: true,
   context: {
-    key: "value",
-    [DEVICE_LOCALE]: "fr",
-  },
+    key: 'value',
+    [DEVICE_LOCALE]: 'fr'
+  }
 });
 
 (async () => {
   if (visitor) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     // deno-lint-ignore no-explicit-any
-    visitor.on("ready", (err: any) => {
+    visitor.on('ready', (err: any) => {
       if (err) {
-        console.log("Flagship error:", err);
-        return;
+        console.log('Flagship error:', err)
+        return
       }
-      console.log("Flagship Ready");
-    });
-    console.log(visitor);
+      console.log('Flagship Ready')
+    })
+    console.log(visitor)
     // clear context
-    visitor.clearContext();
+    visitor.clearContext()
 
     // Update context
-    visitor.updateContext({ isOP: true });
+    visitor.updateContext({ isOP: true })
 
-    visitor.setConsent(true);
+    visitor.setConsent(true)
 
-    await sleep(5000);
+    await sleep(5000)
 
-    await visitor.synchronizeModifications();
+    await visitor.fetchFlags()
 
     const modification = await visitor.getModification({
-      key: "object",
-      defaultValue: {},
-    });
-    console.log("modification:", modification);
+      key: 'object',
+      defaultValue: {}
+    })
+    console.log('modification:', modification)
 
     // Flagship.start(ENV_ID, API_KEY, {
     //   decisionMode: DecisionMode.DECISION_API,
@@ -76,37 +76,37 @@ const visitor = Flagship.newVisitor({
 
     for (let index = 0; index < 5; index++) {
       // optional when fetchNow = true, this method is call on each newVisitor
-      await visitor.synchronizeModifications();
+      await visitor.synchronizeModifications()
 
       // getModification
       visitor
-        .getModification({ key: "object", defaultValue: {} })
+        .getModification({ key: 'object', defaultValue: {} })
         .then((modification) => {
-          console.log("modification:", modification);
-        });
+          console.log('modification:', modification)
+        })
 
       visitor
         .getModifications([
-          { key: "array", defaultValue: [] },
+          { key: 'array', defaultValue: [] },
           {
-            key: "object",
+            key: 'object',
             defaultValue: {},
-            activate: true,
-          },
+            activate: true
+          }
         ])
         .then((modifications) => {
-          console.log("modifications:", modifications);
-        });
+          console.log('modifications:', modifications)
+        })
 
       // activateModification
-      visitor.activateModification("object");
+      visitor.activateModification('object')
 
-      visitor.activateModifications(["array", "object"]);
+      visitor.activateModifications(['array', 'object'])
 
       // getModificationInfo
-      visitor.getModificationInfo("array").then((data: Modification | null) => {
-        console.log("info", data);
-      });
+      visitor.getModificationInfo('array').then((data: Modification | null) => {
+        console.log('info', data)
+      })
 
       // send hit
 
@@ -114,36 +114,36 @@ const visitor = Flagship.newVisitor({
       visitor.sendHit({
         type: HitType.EVENT,
         category: EventCategory.ACTION_TRACKING,
-        action: "click",
-      });
+        action: 'click'
+      })
 
       // hit type Item
       const item = new Item({
-        transactionId: "transaction_1",
-        productName: "product_name",
-        productSku: "00255578",
-      });
+        transactionId: 'transaction_1',
+        productName: 'product_name',
+        productSku: '00255578'
+      })
 
-      visitor.sendHit(item);
+      visitor.sendHit(item)
 
       // hit type Page
       visitor.sendHit({
         type: HitType.PAGE,
-        documentLocation: "https://localhost",
-      });
+        documentLocation: 'https://localhost'
+      })
 
       // hit type Screen
       visitor.sendHit({
         type: HitType.SCREEN,
-        documentLocation: "https://localhost",
-      });
+        documentLocation: 'https://localhost'
+      })
 
       // hit type Transaction
       const transaction = new Transaction({
-        transactionId: "transaction_1",
-        affiliation: "affiliation",
-      });
-      visitor.sendHit(transaction);
+        transactionId: 'transaction_1',
+        affiliation: 'affiliation'
+      })
+      visitor.sendHit(transaction)
     }
   }
-})();
+})()

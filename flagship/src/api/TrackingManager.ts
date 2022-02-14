@@ -26,7 +26,7 @@ import {
 import { HitType } from '../enum/HitType'
 import { EventCategory } from '../hit/index'
 import { HitAbstract } from '../hit/HitAbstract'
-import { Modification, primitive } from '../types'
+import { FlagDTO, primitive } from '../types'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { TrackingManagerAbstract } from './TrackingManagerAbstract'
 
@@ -62,7 +62,7 @@ export class TrackingManager extends TrackingManagerAbstract {
 
   public async sendActive (
     visitor: VisitorAbstract,
-    modification: Modification
+    modification: FlagDTO
   ): Promise<void> {
     const headers = {
       [HEADER_X_API_KEY]: `${this.config.apiKey}`,

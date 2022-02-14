@@ -45,16 +45,21 @@ function checkContextKey (key:string, defaultValue:unknown, type:string):Record<
   return error
 }
 
-export const getFlagValidation = (req: Request, res: Response, next: NextFunction):void => {
-  const { flagKey } = req.params
-  const { type, activate, defaultValue } = req.query
-
+function parseType (defaultValue:unknown) {
   let parseDefaultValue = defaultValue
   try {
     parseDefaultValue = defaultValue ? JSON.parse(defaultValue as string) : ''
   } catch (err) {
     console.log(err)
   }
+  return parseDefaultValue
+}
+
+export const getFlagValidation = (req: Request, res: Response, next: NextFunction):void => {
+  const { flagKey } = req.params
+  const { type, activate, defaultValue } = req.query
+
+  const parseDefaultValue = parseType(defaultValue)
 
   const error = checkContextKey(flagKey, parseDefaultValue, type as string)
 
@@ -79,15 +84,9 @@ export const getFlag = async (req: Request, res: Response):Promise<void> => {
       value: {}
     }
     if (visitor) {
-      const modification = await visitor.getModification({
-        key: flagKey,
-        defaultValue,
-        activate
-      })
-      response.value = modification
+      const flag = visitor.getFlag(flagKey, defaultValue)
+      response.value = flag.getValue(activate)
     }
-    console.log(req.session)
-
     res.json(response)
   } catch (error) {
     console.log('error', error)
@@ -95,16 +94,21 @@ export const getFlag = async (req: Request, res: Response):Promise<void> => {
   }
 }
 
-export const getFlagInfo = async (req: Request, res: Response):Promise<void> => {
+export const getFlagInfo = (req: Request, res: Response): void => {
   const visitor: Visitor = sessionVisitors[req.session.id]
   const { flagKey } = req.params
-  const data = await visitor.getModificationInfo(flagKey)
-  res.json(data)
+  const { defaultValue } = req.query
+  const parseDefaultValue = parseType(defaultValue)
+  const flag = visitor.getFlag(flagKey, parseDefaultValue)
+  res.json(flag.metadata)
 }
 
-export const sendActivate = (req: Request, res: Response):void => {
+export const sendActivate = async (req: Request, res: Response):Promise<void> => {
   const visitor: Visitor = sessionVisitors[req.session.id]
   const { flagKey } = req.params
-  visitor.activateModification(flagKey)
+  const { defaultValue } = req.query
+  const parseDefaultValue = parseType(defaultValue)
+  const flag = visitor.getFlag(flagKey, parseDefaultValue)
+  await flag.userExposed()
   res.json('successful operation')
 }

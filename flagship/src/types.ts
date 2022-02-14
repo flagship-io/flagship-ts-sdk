@@ -13,15 +13,21 @@ export type primitive=string | number | boolean
 export type { HitShape }
 export type IHit = IPage | IScreen | IEvent | IItem | ITransaction
 
-export type Modification= {
+export type FlagDTO= {
   key: string;
   campaignId: string;
   variationGroupId: string;
   variationId: string;
   isReference?: boolean;
+  campaignType?: string;
  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
 }
+
+/**
+ * @deprecated use FlagDTO instead
+ */
+export type Modification= FlagDTO
 
 export type NewVisitor={
   /**
@@ -36,7 +42,11 @@ export type NewVisitor={
   hasConsented?:boolean,
 
    initialCampaigns?: CampaignDTO[]
+   /**
+    * @deprecated use initialFlags instead
+    */
    initialModifications?: Map<string, Modification>|Modification[]
+   initialFlagsData?: Map<string, FlagDTO>|FlagDTO[]
 
    /**
     * If true The newly created visitor instance won't be saved and will simply be returned otherwise
@@ -48,48 +58,18 @@ export type NewVisitor={
 
 }
 
-export type HitCache ={
+export type HitCacheDTO ={
   version: number,
   data: {
       visitorId: string,
       anonymousId: string|null,
       type: HitType|'BATCH'|'ACTIVATE',
-      time: number
+      time: number,
+      content?:IHit|FlagDTO|Record<string, unknown>
   }
 }
 
-export type HitCacheSaveDTO = HitCache & {
-  data: {
-      content: Record<string, unknown>
-  }
-}
-
-export type HitCacheLookupDTO = HitCache & {
-  data:{
-      content?:IHit|Modification
-  }
-}
-
-export type VisitorSaveCacheDTO = {
-  version: number,
-  data: {
-    visitorId: string,
-    anonymousId: string|null,
-    consent: boolean,
-    context: Record<string, primitive>,
-    campaigns: Array<{
-      campaignId: string,
-      variationGroupId: string,
-      variationId: string,
-      isReference?:boolean,
-      type: string,
-      activated: boolean,
-      flags: Record<string, unknown>
-    }>
-}
-}
-
-export type VisitorLookupCacheDTO = {
+export type VisitorCacheDTO = {
   version: number,
   data: {
     visitorId: string,

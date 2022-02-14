@@ -60,10 +60,10 @@ export const putVisitor = async ({
         }
         console.log("ready");
       });
-      await visitor.synchronizeModifications();
+      await visitor.fetchFlags();
       await state.session.set("visitor", visitor);
       const modifications: Modification[] = [];
-      visitor.modifications.forEach((value) => {
+      visitor.flagsData.forEach((value) => {
         modifications.push(value);
       });
       responseBody.modification = modifications;

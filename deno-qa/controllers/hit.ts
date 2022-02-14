@@ -7,32 +7,39 @@ export const sendHit = async ({
 // deno-lint-ignore no-explicit-any
 }: RouterContext<RouteParams, Record<string, any>>) => {
   const visitor:Visitor = await state.session.get("visitor");
-  const hit = await request.body().value;  
+  let hit = await request.body().value;  
 
-  const commonParams = {
-    local: hit.ul,
-    userIp: hit.uip,
-    sessionNumber: hit.sn,
-    screenResolution: `${hit.re_he}X${hit.re_wi}`
+  const commonParams:Record<string, unknown> = {}
+  if (hit.ul) {
+    commonParams.local = hit.ul
+  }
+  if (hit.uip) {
+    commonParams.userIp = hit.uip
+  }
+  if (hit.sn) {
+    commonParams.sessionNumber = hit.sn
+  }
+  if (hit.re_he && hit.re_wi) {
+    commonParams.screenResolution = `${hit.re_he}X${hit.re_wi}`
   }
 
   switch (hit.t) {
-    case "EVENT": {
-      visitor.sendHit({
+    case 'EVENT':
+      hit = {
         type: HitType.EVENT,
         category:
-          hit.ec === "ACTION_TRACKING"
+          hit.ec === 'ACTION_TRACKING'
             ? EventCategory.ACTION_TRACKING
             : EventCategory.USER_ENGAGEMENT,
         action: hit.ea,
         label: hit.el,
         value: hit.ev,
         ...commonParams
-      });
-      break;
-    }
-    case "ITEM": {
-      visitor.sendHit({
+      }
+      break
+
+    case 'ITEM':
+      hit = {
         type: HitType.ITEM,
         transactionId: hit.tid,
         productName: hit.in,
@@ -41,44 +48,56 @@ export const sendHit = async ({
         itemQuantity: hit.iq,
         itemCategory: hit.iv,
         ...commonParams
-      });
-      break;
-    }
-    case "SCREEN": {
-      visitor.sendHit({
+      }
+      break
+
+    case 'SCREEN':
+      hit = {
         type: HitType.SCREEN,
         documentLocation: hit.dl,
         ...commonParams
-      });
-      break;
-    }
-    case "PAGE": {
-      visitor.sendHit({
+      }
+      break
+
+    case 'PAGE':
+      hit = {
         type: HitType.PAGE,
         documentLocation: hit.dl,
         ...commonParams
-      });
-      break;
-    }
-    case "TRANSACTION":
-      {
-        visitor.sendHit({
-          type: HitType.TRANSACTION,
-          transactionId: hit.tid,
-          affiliation: hit.ta,
-          taxes: hit.tt,
-          currency: hit.tc,
-          couponCode: hit.tcc,
-          itemCount: hit.icn,
-          shippingMethod: hit.sm,
-          paymentMethod: hit.pm,
-          totalRevenue: hit.tr,
-          shippingCosts: hit.ts,
-          ...commonParams
-        });
       }
-      break;
+      break
+
+    case 'TRANSACTION':
+      // eslint-disable-next-line no-lone-blocks
+      hit = {
+        type: HitType.TRANSACTION,
+        affiliation: hit.ta,
+        transactionId: hit.tid,
+        taxes: hit.tt,
+        currency: hit.tc,
+        couponCode: hit.tcc,
+        itemCount: hit.icn,
+        shippingMethod: hit.sm,
+        paymentMethod: hit.pm,
+        totalRevenue: hit.tr,
+        shippingCosts: hit.ts,
+        ...commonParams
+      }
+
+      break
+    default:
+      console.log('Unknown hit type:', hit.t)
+      hit = null
+      break
   }
+
+  if (!hit) {
+    response.status = 400
+    response.body = { error: 'Unknown hit type' };
+    return response
+  }
+
+  await visitor.sendHit(hit)
 
   const config = {
     // deno-lint-ignore camelcase

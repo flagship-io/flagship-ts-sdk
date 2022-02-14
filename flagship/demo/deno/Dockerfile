@@ -1,0 +1,22 @@
+FROM node:14-alpine as builder
+
+WORKDIR /build
+
+ADD ./flagship .
+
+RUN yarn install
+RUN yarn build-prod
+
+FROM denoland/deno:alpine
+
+WORKDIR /app
+
+ADD flagship/demo/deno/. flagship/demo/deno/
+
+COPY --from=builder build/dist-deno/.  flagship/dist-deno/
+
+WORKDIR /app/flagship/demo/deno
+
+RUN deno cache DemoFlagship.ts
+
+CMD ["run", "--allow-net", "--allow-read", "DemoFlagship.ts"]

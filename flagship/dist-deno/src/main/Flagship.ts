@@ -19,10 +19,10 @@ import { BucketingManager } from '../decision/BucketingManager.ts'
 import { MurmurHash } from '../utils/MurmurHash.ts'
 import { DecisionManager } from '../decision/DecisionManager.ts'
 import { HttpClient } from '../utils/HttpClient.ts'
-import { Modification, NewVisitor, primitive } from '../types.ts'
+import { FlagDTO, NewVisitor, primitive } from '../types.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
-import { DefaultHitCache } from '../hit/DefaultHitCache.ts'
-import { DefaultVisitorCache } from '../visitor/DefaultVisitorCache.ts'
+import { DefaultHitCache } from '../cache/DefaultHitCache.ts'
+import { DefaultVisitorCache } from '../cache/DefaultVisitorCache.ts'
 
 export class Flagship {
   private static _instance: Flagship;
@@ -30,10 +30,6 @@ export class Flagship {
   private _config!: IFlagshipConfig;
   private _status!: FlagshipStatus;
   private _visitorInstance?: Visitor
-
-  get config (): IFlagshipConfig {
-    return this._config
-  }
 
   private set configManager (value: IConfigManager) {
     this._configManger = value
@@ -59,16 +55,16 @@ export class Flagship {
    * Return true if the SDK is properly initialized, otherwise return false
    */
   private static isReady (): boolean {
-    const apiKey = this._instance?.config?.apiKey
-    const envId = this._instance?.config?.envId
+    const apiKey = this._instance?.getConfig()?.apiKey
+    const envId = this._instance?.getConfig()?.envId
     const configManager = this._instance?.configManager
     return (!!this._instance && !!apiKey && !!envId && !!configManager)
   }
 
   protected setStatus (status: FlagshipStatus): void {
-    const statusChanged = this.config.statusChangedCallback
+    const statusChanged = this.getConfig().statusChangedCallback
 
-    if (this.config && statusChanged && this._status !== status) {
+    if (this.getConfig() && statusChanged && this._status !== status) {
       this._status = status
       statusChanged(status)
       return
@@ -84,6 +80,13 @@ export class Flagship {
   }
 
   /**
+   * Return current status of Flagship SDK.
+   */
+  public getStatus (): FlagshipStatus {
+    return this._status
+  }
+
+  /**
    * Return the current config set by the customer and used by the SDK.
    */
   public static getConfig (): IFlagshipConfig {
@@ -91,14 +94,21 @@ export class Flagship {
   }
 
   /**
-   * Return any previous visitor created with isNewInstance key to false. Return undefined otherwise.
+   * Return the current config set by the customer and used by the SDK.
+   */
+  public getConfig (): IFlagshipConfig {
+    return this._config
+  }
+
+  /**
+   * Return the last visitor created if isNewInstance key is false. Return undefined otherwise.
    */
   public getVisitor ():Visitor|undefined {
     return this._visitorInstance
   }
 
   /**
-   * Return any previous visitor created with isNewInstance key to false. Return undefined otherwise.
+   * Return the last visitor created if isNewInstance key is false. Return undefined otherwise.
    */
   public static getVisitor ():Visitor|undefined {
     return this.getInstance().getVisitor()
@@ -252,24 +262,24 @@ export class Flagship {
       return null
     }
 
-    let visitorId:string|null
+    let visitorId:string|undefined
     let context:Record<string, primitive>
     let isAuthenticated = false
     let hasConsented = true
-    let initialModifications:Map<string, Modification>|Modification[]|undefined
+    let initialModifications:Map<string, FlagDTO>|FlagDTO[]|undefined
     let initialCampaigns:CampaignDTO[]|undefined
     const isServerSide = !isBrowser()
     let isNewInstance = isServerSide
 
     if (typeof param1 === 'string' || param1 === null) {
-      visitorId = param1
+      visitorId = param1 || undefined
       context = param2 || {}
     } else {
-      visitorId = param1?.visitorId || null
+      visitorId = param1?.visitorId
       context = param1?.context || {}
       isAuthenticated = !!param1?.isAuthenticated
       hasConsented = param1?.hasConsented ?? true
-      initialModifications = param1?.initialModifications
+      initialModifications = param1?.initialFlagsData || param1?.initialModifications
       initialCampaigns = param1?.initialCampaigns
       isNewInstance = param1?.isNewInstance ?? isNewInstance
     }
@@ -281,7 +291,8 @@ export class Flagship {
       hasConsented,
       configManager: this.getInstance().configManager,
       initialModifications: initialModifications,
-      initialCampaigns: initialCampaigns
+      initialCampaigns: initialCampaigns,
+      initialFlagsData: initialModifications
     })
 
     const visitor = new Visitor(visitorDelegate)
@@ -289,7 +300,7 @@ export class Flagship {
     this.getInstance()._visitorInstance = !isNewInstance ? visitor : undefined
 
     if (this.getConfig().fetchNow) {
-      visitor.synchronizeModifications()
+      visitor.fetchFlags()
     }
     return visitor
   }

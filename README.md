@@ -4,7 +4,7 @@
 
 ## Docs
 
-- Coming soon
+- [docs](https://docs.developers.flagship.io/docs/js-v3)
 
 ## Licence
 

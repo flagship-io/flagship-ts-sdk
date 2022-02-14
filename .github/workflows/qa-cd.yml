@@ -6,7 +6,7 @@ name: deploy-qa
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches: [main]
+    branches: [main,feature/getFlag]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -63,6 +63,6 @@ jobs:
         uses: docker/build-push-action@v2.3.0
         with:
           push: true
-          tags: ghcr.io/${{ github.repository }}:node-qa-v2
+          tags: ghcr.io/${{ github.repository }}:node-qa-v3
           context: .
           file: ./node-qa/Dockerfile

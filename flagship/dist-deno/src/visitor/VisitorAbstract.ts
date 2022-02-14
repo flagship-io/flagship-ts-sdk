@@ -1,6 +1,6 @@
-import { Modification } from '../index.ts'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index.ts'
-import { IHit, modificationsRequested, primitive, VisitorLookupCacheDTO } from '../types.ts'
+import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO } from '../types.ts'
+
 import { IVisitor } from './IVisitor.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { FlagshipStatus, SDK_LANGUAGE, SDK_VERSION, VISITOR_ID_ERROR } from '../enum/index.ts'
@@ -14,30 +14,27 @@ import { NotReadyStrategy } from './NotReadyStrategy.ts'
 import { PanicStrategy } from './PanicStrategy.ts'
 import { NoConsentStrategy } from './NoConsentStrategy.ts'
 import { cacheVisitor } from './VisitorCache.ts'
+import { IFlag } from '../flag/Flags.ts'
+import { IFlagMetadata } from '../flag/FlagMetadata.ts'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _visitorId!: string;
     protected _context: Record<string, primitive>;
-    protected _modifications!: Map<string, Modification>;
+    protected _flags!: Map<string, FlagDTO>;
     protected _configManager: IConfigManager;
     protected _campaigns!: CampaignDTO[];
     protected _hasConsented!:boolean;
     protected _anonymousId!:string|null;
     public deDuplicationCache:Record<string, number>
     protected _isCleaningDeDuplicationCache:boolean
-    public visitorCache!: VisitorLookupCacheDTO
-    protected _strategy!:VisitorStrategyAbstract
+    public visitorCache!: VisitorCacheDTO
 
-    constructor (param: {
-        visitorId?: string|null,
-        isAuthenticated?:boolean,
-        hasConsented?: boolean
-        context: Record<string, primitive>,
-        configManager: IConfigManager,
-        initialCampaigns?: CampaignDTO[]
-        initialModifications?: Map<string, Modification>| Modification[]
-      }) {
-      const { visitorId, configManager, context, isAuthenticated, hasConsented, initialModifications, initialCampaigns } = param
+    constructor (param: NewVisitor& {
+      visitorId?: string
+      configManager: IConfigManager
+      context: Record<string, primitive>
+    }) {
+      const { visitorId, configManager, context, isAuthenticated, hasConsented, initialModifications, initialFlagsData, initialCampaigns } = param
       super()
       this._isCleaningDeDuplicationCache = false
       this.deDuplicationCache = {}
@@ -59,7 +56,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
         this._anonymousId = this.uuidV4()
       }
       this.updateCache()
-      this.setInitialModifications(initialModifications)
+      this.setInitialFlags(initialFlagsData || initialModifications)
       this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
 
       this.getStrategy().lookupVisitor()
@@ -83,16 +80,21 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     public getModificationsArray (): Modification[] {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      return Array.from(this._modifications, ([_key, item]) => item)
+      return Array.from(this._flags, ([_, item]) => item)
     }
 
-    protected setInitialModifications (modifications?:Map<string, Modification>| Modification[]):void {
-      this._modifications = new Map<string, Modification>()
+    public getFlagsDataArray (): FlagDTO[] {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      return Array.from(this._flags, ([_, item]) => item)
+    }
+
+    protected setInitialFlags (modifications?:Map<string, FlagDTO>| FlagDTO[]):void {
+      this._flags = new Map<string, FlagDTO>()
       if (!modifications || (!(modifications instanceof Map) && !Array.isArray(modifications))) {
         return
       }
-      modifications.forEach(item => {
-        this._modifications.set(item.key, item)
+      modifications.forEach((item:FlagDTO) => {
+        this._flags.set(item.key, item)
       })
     }
 
@@ -179,12 +181,20 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this.updateContext(v)
     }
 
+    public get flagsData (): Map<string, FlagDTO> {
+      return this._flags
+    }
+
+    public set flagsData (v:Map<string, FlagDTO>) {
+      this._flags = v
+    }
+
     public get modifications (): Map<string, Modification> {
-      return this._modifications
+      return this._flags
     }
 
     public set modifications (v:Map<string, Modification>) {
-      this._modifications = v
+      this._flags = v
     }
 
     get configManager (): IConfigManager {
@@ -212,18 +222,18 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     }
 
     protected getStrategy (): VisitorStrategyAbstract {
-      const isSameType = (strategy: VisitorStrategyAbstract, className:string) => strategy && strategy.constructor.name === className
+      let strategy:VisitorStrategyAbstract
       if (!Flagship.getStatus() || Flagship.getStatus() === FlagshipStatus.NOT_INITIALIZED) {
-        this._strategy = isSameType(this._strategy, NotReadyStrategy.name) ? this._strategy : new NotReadyStrategy(this)
+        strategy = new NotReadyStrategy(this)
       } else if (Flagship.getStatus() === FlagshipStatus.READY_PANIC_ON) {
-        this._strategy = isSameType(this._strategy, PanicStrategy.name) ? this._strategy : new PanicStrategy(this)
+        strategy = new PanicStrategy(this)
       } else if (!this.hasConsented) {
-        this._strategy = isSameType(this._strategy, NoConsentStrategy.name) ? this._strategy : new NoConsentStrategy(this)
+        strategy = new NoConsentStrategy(this)
       } else {
-        this._strategy = isSameType(this._strategy, DefaultStrategy.name) ? this._strategy : new DefaultStrategy(this)
+        strategy = new DefaultStrategy(this)
       }
 
-      return this._strategy
+      return strategy
     }
 
     abstract updateContext(context: Record<string, primitive>): void
@@ -231,6 +241,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     abstract getModification<T>(params: modificationsRequested<T>): Promise<T>;
     abstract getModificationSync<T>(params: modificationsRequested<T>): T
+
+    abstract getFlag<T>(key:string, defaultValue: T):IFlag<T>
 
     abstract getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<Record<string, T>>
     abstract getModificationsSync<T> (params: modificationsRequested<T>[], activateAll?: boolean): Record<string, T>
@@ -261,6 +273,15 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     abstract getModificationsForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 
+    abstract getAllFlagsData (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
+
+    abstract getFlatsDataForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
+
     abstract authenticate(visitorId: string): void
     abstract unauthenticate(): void
+
+    abstract userExposed<T>(param:{key:string, flag?:FlagDTO, defaultValue:T}):Promise<void>
+    abstract getFlagValue<T>(param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}):T
+    abstract fetchFlags(): Promise<void>
+    abstract getFlagMetadata(param:{metadata:IFlagMetadata, key?:string, hasSameType:boolean}):IFlagMetadata
 }

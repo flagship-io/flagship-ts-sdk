@@ -1,5 +1,5 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { DecisionApiConfig, VisitorLookupCacheDTO, VisitorSaveCacheDTO } from '../../src'
+import { DecisionApiConfig, IVisitorCacheImplementation, VisitorCacheDTO } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
@@ -11,7 +11,6 @@ import { VisitorDelegate, PanicStrategy } from '../../src/visitor'
 import { campaigns } from '../decision/campaigns'
 
 import { Mock } from 'jest-mock'
-import { IVisitorCacheImplementation } from '../../src/visitor/IVisitorCacheImplementation '
 
 describe('test NotReadyStrategy', () => {
   const visitorId = 'visitorId'
@@ -20,8 +19,8 @@ describe('test NotReadyStrategy', () => {
     isVip: true
   }
 
-  const cacheVisitor:Mock<void, [visitorId: string, data: VisitorSaveCacheDTO]> = jest.fn()
-  const lookupVisitor:Mock<VisitorLookupCacheDTO, [visitorId: string]> = jest.fn()
+  const cacheVisitor:Mock<void, [visitorId: string, data: VisitorCacheDTO]> = jest.fn()
+  const lookupVisitor:Mock<VisitorCacheDTO, [visitorId: string]> = jest.fn()
   const flushVisitor:Mock<void, [visitorId: string]> = jest.fn()
   const visitorCacheImplementation:IVisitorCacheImplementation = {
     cacheVisitor,
@@ -78,6 +77,15 @@ describe('test NotReadyStrategy', () => {
     expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
   })
 
+  it('test getFlagValue', () => {
+    const defaultValue = 'value'
+    const flagValue = panicStrategy.getFlagValue({ key: 'key', defaultValue })
+    const methodName = 'Flag.value'
+    expect(flagValue).toBe(defaultValue)
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+  })
+
   it('test getModification array', () => {
     const defaultValue = 'value'
     panicStrategy.getModifications([{ key: 'key', defaultValue }]).then((value) => {
@@ -97,6 +105,20 @@ describe('test NotReadyStrategy', () => {
       expect(logError).toBeCalledTimes(1)
       expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
     })
+  })
+
+  it('test getFlagMetadata', () => {
+    const metadata = panicStrategy.getFlagMetadata()
+    const methodName = 'flag.metadata'
+    expect(metadata).toEqual({
+      campaignId: '',
+      variationGroupId: '',
+      campaignType: '',
+      variationId: '',
+      isReference: false
+    })
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
   })
 
   it('test fetchVisitorCacheCampaigns', async () => {
@@ -134,6 +156,13 @@ describe('test NotReadyStrategy', () => {
       expect(logError).toBeCalledTimes(1)
       expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
     })
+  })
+
+  it('test userExposed', async () => {
+    await panicStrategy.userExposed()
+    const methodName = 'userExposed'
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
   })
 
   it('test activateModifications', () => {

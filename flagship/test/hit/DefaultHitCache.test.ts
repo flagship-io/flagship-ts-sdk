@@ -1,7 +1,7 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { HitCacheSaveDTO, HitType } from '../../src'
+import { HitCacheDTO, HitType } from '../../src'
+import { DefaultHitCache, FS_HIT_PREFIX } from '../../src/cache/DefaultHitCache'
 import { HIT_CACHE_VERSION, SDK_APP } from '../../src/enum'
-import { DefaultHitCache, FS_HIT_PREFIX } from '../../src/hit/DefaultHitCache'
 
 describe('Test DefaultHitCache', () => {
   const defaultHitCache = new DefaultHitCache()
@@ -14,7 +14,7 @@ describe('Test DefaultHitCache', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   global.localStorage = storageMock as any
   const visitorId = 'visitorId'
-  const visitorData : HitCacheSaveDTO = {
+  const visitorData : HitCacheDTO = {
     version: HIT_CACHE_VERSION,
     data: {
       visitorId: visitorId,

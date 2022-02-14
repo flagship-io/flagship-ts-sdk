@@ -149,7 +149,7 @@ export class BucketingManager extends DecisionManager {
     const visitorCampaigns:CampaignDTO[] = []
 
     this._bucketingContent.campaigns.forEach(campaign => {
-      const currentCampaigns = this.getVisitorCampaigns(campaign.variationGroups, campaign.id, visitor)
+      const currentCampaigns = this.getVisitorCampaigns(campaign.variationGroups, campaign.id, campaign.type, visitor)
       if (currentCampaigns) {
         visitorCampaigns.push(currentCampaigns)
       }
@@ -157,7 +157,7 @@ export class BucketingManager extends DecisionManager {
     return visitorCampaigns
   }
 
-  private getVisitorCampaigns (variationGroups : VariationGroupDTO[], campaignId: string, visitor: VisitorAbstract) :CampaignDTO|null {
+  private getVisitorCampaigns (variationGroups : VariationGroupDTO[], campaignId: string, campaignType:string, visitor: VisitorAbstract) :CampaignDTO|null {
     for (const variationGroup of variationGroups) {
       const check = this.isMatchTargeting(variationGroup, visitor)
       if (check) {
@@ -171,11 +171,28 @@ export class BucketingManager extends DecisionManager {
         return {
           id: campaignId,
           variation: variation,
-          variationGroupId: variationGroup.id
+          variationGroupId: variationGroup.id,
+          type: campaignType
         }
       }
     }
     return null
+  }
+
+  private checkAndGetVisitorCache (variationGroup:VariationGroupDTO, visitor:VisitorAbstract):VariationDTO|null {
+    const cacheVariation = visitor.visitorCache?.data?.campaigns?.find(x => x.variationGroupId === variationGroup.id)
+    if (!cacheVariation) {
+      return null
+    }
+    const newVariation = variationGroup.variations.find(x => x.id === cacheVariation.variationId)
+    if (!newVariation) {
+      return null
+    }
+    return {
+      id: newVariation.id,
+      modifications: newVariation.modifications,
+      reference: newVariation.reference
+    }
   }
 
   private getVariation (variationGroup:VariationGroupDTO, visitor:VisitorAbstract): VariationDTO|null {
@@ -184,16 +201,9 @@ export class BucketingManager extends DecisionManager {
     let totalAllocation = 0
 
     for (const variation of variationGroup.variations) {
-      const cacheVariation = visitor.visitorCache?.data?.campaigns?.find(x => x.variationGroupId === variationGroup.id)
+      const cacheVariation = this.checkAndGetVisitorCache(variationGroup, visitor)
       if (cacheVariation) {
-        return {
-          id: cacheVariation.variationId,
-          modifications: {
-            type: cacheVariation.type,
-            value: cacheVariation.flags
-          },
-          reference: cacheVariation.isReference
-        }
+        return cacheVariation
       }
       if (variation.allocation === undefined) {
         continue
@@ -232,7 +242,8 @@ export class BucketingManager extends DecisionManager {
       if (key === 'fs_all_users') {
         check = true
         continue
-      } else if (key === 'fs_users') {
+      }
+      if (key === 'fs_users') {
         contextValue = visitor.visitorId
       } else {
         if (!(key in visitor.context)) {
@@ -266,13 +277,10 @@ export class BucketingManager extends DecisionManager {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private testListOperator (operator: string, contextValue : primitive, value: any[]): boolean {
     const andOperator = this.isANDListOperator(operator)
-    let check:boolean
     if (andOperator) {
-      check = this.testListOperatorLoop(operator, contextValue, value, true)
-    } else {
-      check = this.testListOperatorLoop(operator, contextValue, value, false)
+      return this.testListOperatorLoop(operator, contextValue, value, true)
     }
-    return check
+    return this.testListOperatorLoop(operator, contextValue, value, false)
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

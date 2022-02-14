@@ -7,5 +7,6 @@ export const getLog = (req: Request, res: Response):void => {
 
 export const clearLog = (req: Request, res: Response):void => {
   req.session.logs = ''
+  req.session.save()
   res.json(null)
 }

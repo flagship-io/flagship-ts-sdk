@@ -18,103 +18,83 @@ const statusChangedCallback = (status) => {
   console.log('status', FlagshipStatus[status])
 }
 
+const check = {}
+
 Flagship.start(ENV_ID, API_KEY, {
-  decisionMode: DecisionMode.DECISION_API,
+  // decisionMode: DecisionMode.BUCKETING,
   statusChangedCallback,
   logLevel: LogLevel.ERROR,
-  fetchNow: false
+  fetchNow: false,
+  timeout: 10
 })
 
-const initialModifications = new Map([[
-  'array', {
-    key: 'array',
-    campaignId: 'c3ev1afkprbg5u3burag',
-    variationGroupId: 'c3ev1afkprbg5u3burbg',
-    variationId: 'c3ev1afkprbg5u3burcg',
-    isReference: false,
-    value: [1, 1, 1]
-  }
-]])
+const start = async (visitor, index) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  visitor.on('ready', async (err) => {
+    if (err) {
+      console.log('Flagship error:', err)
+      return
+    }
+    console.log('Flagship Ready')
 
-const visitor = Flagship.newVisitor({ visitorId: 'visitor_id', context: { key: 'value' }, initialModifications, initialCampaigns: campaigns.campaigns })
+    // getFlag
+    const flag = visitor.getFlag('js-qa-app', 'test')
 
-const start = async () => {
-  if (visitor) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    visitor.on('ready', async (err) => {
-      if (err) {
-        console.log('Flagship error:', err)
-        return
-      }
-      console.log('Flagship Ready')
-    })
+    const value = flag.getValue(false)
 
-    // await sleep(5000)
-    // clear context
-    visitor.clearContext()
+    if (check[value]) {
+      check[value] += 1
+    } else {
+      check[value] = 1
+    }
 
-    // Update context
-    visitor.updateContext({ isVip: true })
+    console.log('flag.value', value)
 
-    // optional when fetchNow = true, this method is call on each newVisitor
-    // await visitor.synchronizeModifications()
-    visitor.setConsent(true)
+    await flag.userExposed()
 
-    // getModification
-    visitor.getModification({ key: 'object', defaultValue: {} })
-      .then((modification) => {
-        console.log('modification:', modification)
-      })
-
-    visitor.getModifications([
-      { key: 'array', defaultValue: [] },
-      {
-        key: 'object',
-        defaultValue: {},
-        activate: true
-      }])
-      .then((modifications) => {
-        console.log('modifications:', modifications)
-      })
-
-    // activateModification
-    visitor.activateModification('object')
-
-    visitor.activateModifications(['array', 'object'])
-
-    // getModificationInfo
-    visitor.getModificationInfo('array')
-      .then((data) => {
-        console.log('info', data)
-      })
-
+    console.log('flag.userExposed')
     // send hit
 
     // hit type Event
-    visitor.sendHit({
+    await visitor.sendHit({
       type: HitType.EVENT,
       category: EventCategory.ACTION_TRACKING,
-      action: 'click'
+      action: 'KPI2',
+      value: 10
     })
 
-    // hit type Item
-    const item = new Item({
-      transactionId: 'transaction_1',
-      productName: 'product_name',
-      productSku: '00255578'
-    })
+    console.log('hit type Event')
 
-    visitor.sendHit(item)
-
+    await flag.userExposed()
     // hit type Page
-    visitor.sendHit({ type: HitType.PAGE, documentLocation: 'https://localhost' })
+    await visitor.sendHit({ type: HitType.PAGE, documentLocation: 'https://www.sdk.com/abtastylab/js/151021-' + index })
+    console.log('hit type Page')
 
+    await flag.userExposed()
     // hit type Screen
-    visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'https://localhost' })
+    await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'abtastylab-js-' + index })
 
+    console.log('hit type Screen')
+
+    await flag.userExposed()
     // hit type Transaction
-    const transaction = new Transaction({ transactionId: 'transaction_1', affiliation: 'affiliation' })
-    visitor.sendHit(transaction)
+    const transaction = new Transaction({ transactionId: visitor.visitorId, affiliation: 'KPI1' })
+    await visitor.sendHit(transaction)
+
+    console.log('hit type transaction')
+
+    console.log('check', check)
+  })
+
+  await visitor.fetchFlags()
+}
+
+async function script () {
+  await sleep(2000)
+  for (let index = 0; index <= 1; index++) {
+    const visitor = Flagship.newVisitor({ visitorId: 'visitor_a', context: { qa_report: true } })
+    await start(visitor, index)
   }
 }
-start()
+
+script()

@@ -5,7 +5,7 @@ import { CampaignDTO } from './api/models.ts'
 import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 import { FlagshipStatus } from '../enum/index.ts'
 import { logError } from '../utils/utils.ts'
-import { Modification } from '../types.ts'
+import { FlagDTO } from '../types.ts'
 
 export abstract class DecisionManager implements IDecisionManager {
   protected _config: IFlagshipConfig;
@@ -38,8 +38,8 @@ export abstract class DecisionManager implements IDecisionManager {
     }
   }
 
-  public getModifications (campaigns: Array<CampaignDTO>):Map<string, Modification> {
-    const modifications = new Map<string, Modification>()
+  public getModifications (campaigns: Array<CampaignDTO>):Map<string, FlagDTO> {
+    const modifications = new Map<string, FlagDTO>()
     campaigns.forEach((campaign) => {
       const object = campaign.variation.modifications.value
       for (const key in object) {
@@ -52,6 +52,7 @@ export abstract class DecisionManager implements IDecisionManager {
             variationGroupId: campaign.variationGroupId,
             variationId: campaign.variation.id,
             isReference: campaign.variation.reference,
+            campaignType: campaign.type,
             value
           }
         )
@@ -62,12 +63,12 @@ export abstract class DecisionManager implements IDecisionManager {
 
   abstract getCampaignsAsync(visitor: VisitorAbstract): Promise<CampaignDTO[]>
 
-  public async getCampaignsModificationsAsync (visitor: VisitorAbstract): Promise<Map<string, Modification>> {
+  public async getCampaignsModificationsAsync (visitor: VisitorAbstract): Promise<Map<string, FlagDTO>> {
     return this.getCampaignsAsync(visitor).then(campaigns => {
       return this.getModifications(campaigns)
     }).catch((error) => {
       logError(this.config, error.message || error, 'getCampaignsModificationsAsync')
-      return new Map<string, Modification>()
+      return new Map<string, FlagDTO>()
     })
   }
 
