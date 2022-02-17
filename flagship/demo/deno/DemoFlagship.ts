@@ -9,7 +9,7 @@ import {
   Transaction,
   Modification,
   DEVICE_LOCALE
-} from '../../dist-deno/src/mod.ts'
+} from 'https://deno.land/x/flagship_io_js_sdk@3.0.0/mod.ts'
 import { API_KEY, ENV_ID } from './config.js'
 
 const statusChangedCallback = (status: FlagshipStatus) => {

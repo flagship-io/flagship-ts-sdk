@@ -884,8 +884,10 @@
     "@babel/helper-validator-identifier" "^7.14.9"
     to-fast-properties "^2.0.0"
 
-"@flagship.io/js-sdk@../":
-  version "3.0.0-alpha.4"
+"@flagship.io/js-sdk@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@flagship.io/js-sdk/-/js-sdk-3.0.0.tgz#53be83f941161fb2836100ea2ed620197d11f1bf"
+  integrity sha512-9TMGJZofLCs13zdNYXE6De5ifrscXHdk1/ZuV02ETnO7JufXsroHj+TYUUtD66uz4x3MDK1OvdgBEtI/HCdTFA==
   dependencies:
     "@babel/runtime" "^7.15.4"
     abort-controller "^3.0.0"
@@ -893,10 +895,6 @@
     events "^3.3.0"
     follow-redirects "^1.14.5"
     node-fetch "2.6.2"
-
-"@flagship.io/js-sdk@link:../":
-  version "0.0.0"
-  uid ""
 
 "@nicolo-ribaudo/chokidar-2@2.1.8-no-fsevents.3":
   version "2.1.8-no-fsevents.3"
