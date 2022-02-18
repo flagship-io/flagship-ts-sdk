@@ -21,8 +21,8 @@ import { DecisionManager } from '../decision/DecisionManager.ts'
 import { HttpClient } from '../utils/HttpClient.ts'
 import { FlagDTO, NewVisitor, primitive } from '../types.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
-import { DefaultHitCache } from '../hit/DefaultHitCache.ts'
-import { DefaultVisitorCache } from '../visitor/DefaultVisitorCache.ts'
+import { DefaultHitCache } from '../cache/DefaultHitCache.ts'
+import { DefaultVisitorCache } from '../cache/DefaultVisitorCache.ts'
 
 export class Flagship {
   private static _instance: Flagship;

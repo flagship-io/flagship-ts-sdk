@@ -17,7 +17,7 @@ describe('test Flag', () => {
   }
 
   const logManager = new FlagshipLogManager()
-  const logError = jest.spyOn(logManager, 'error')
+  const logInfo = jest.spyOn(logManager, 'info')
 
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
@@ -122,7 +122,7 @@ describe('test Flag', () => {
         variationId: '',
         isReference: false
       })
-    expect(logError).toBeCalledTimes(1)
+    expect(logInfo).toBeCalledTimes(1)
   })
 
   it('test metadata with undefined flag ', () => {

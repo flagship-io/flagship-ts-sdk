@@ -179,22 +179,31 @@ export class BucketingManager extends DecisionManager {
     return null
   }
 
+  private checkAndGetVisitorCache (variationGroup:VariationGroupDTO, visitor:VisitorAbstract):VariationDTO|null {
+    const cacheVariation = visitor.visitorCache?.data?.campaigns?.find(x => x.variationGroupId === variationGroup.id)
+    if (!cacheVariation) {
+      return null
+    }
+    const newVariation = variationGroup.variations.find(x => x.id === cacheVariation.variationId)
+    if (!newVariation) {
+      return null
+    }
+    return {
+      id: newVariation.id,
+      modifications: newVariation.modifications,
+      reference: newVariation.reference
+    }
+  }
+
   private getVariation (variationGroup:VariationGroupDTO, visitor:VisitorAbstract): VariationDTO|null {
     const hash = this._murmurHash.murmurHash3Int32(variationGroup.id + visitor.visitorId)
     const hashAllocation = hash % 100
     let totalAllocation = 0
 
     for (const variation of variationGroup.variations) {
-      const cacheVariation = visitor.visitorCache?.data?.campaigns?.find(x => x.variationGroupId === variationGroup.id)
+      const cacheVariation = this.checkAndGetVisitorCache(variationGroup, visitor)
       if (cacheVariation) {
-        const newVariation = variationGroup.variations.find(x => x.id === cacheVariation.variationId)
-        if (newVariation) {
-          return {
-            id: newVariation.id,
-            modifications: newVariation.modifications,
-            reference: newVariation.reference
-          }
-        }
+        return cacheVariation
       }
       if (variation.allocation === undefined) {
         continue

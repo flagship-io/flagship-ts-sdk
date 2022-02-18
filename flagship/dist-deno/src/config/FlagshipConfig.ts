@@ -1,9 +1,9 @@
 import { BucketingDTO } from '../decision/api/bucketingDTO.ts'
 import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, TYPE_ERROR } from '../enum/index.ts'
-import { IHitCacheImplementation } from '../hit/IHitCacheImplementation.ts'
+import { IHitCacheImplementation } from '../cache/IHitCacheImplementation.ts'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager.ts'
 import { logError, sprintf } from '../utils/utils.ts'
-import { IVisitorCacheImplementation } from '../visitor/IVisitorCacheImplementation .ts'
+import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation.ts'
 
 export enum DecisionMode {
   /**

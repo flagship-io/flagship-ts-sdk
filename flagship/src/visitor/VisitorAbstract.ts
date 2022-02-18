@@ -1,5 +1,5 @@
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
-import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorLookupCacheDTO, FlagDTO } from '../types'
+import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO } from '../types'
 
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
@@ -27,7 +27,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _anonymousId!:string|null;
     public deDuplicationCache:Record<string, number>
     protected _isCleaningDeDuplicationCache:boolean
-    public visitorCache!: VisitorLookupCacheDTO
+    public visitorCache!: VisitorCacheDTO
 
     constructor (param: NewVisitor& {
       visitorId?: string

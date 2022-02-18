@@ -27,7 +27,7 @@ async function scenario1 () {
   await visitor.fetchFlags()
 
   const flag = visitor.getFlag('qa_report_var', 'test')
-  console.log('flag.value 1: ', flag.value())
+  console.log('flag.getValue 1: ', flag.getValue())
 
   await flag.userExposed()
 
@@ -58,7 +58,7 @@ async function scenario2 () {
   await visitor.fetchFlags()
 
   const flag = visitor.getFlag('qa_report_var', 'test')
-  console.log('flag.value 2: ', flag.value())
+  console.log('flag.getValue 2: ', flag.getValue())
 
   await flag.userExposed()
 
@@ -89,7 +89,7 @@ async function scenario3 () {
   await visitor.fetchFlags()
 
   const flag = visitor.getFlag('qa_report_var', 'test')
-  console.log('flag.value 3: ', flag.value(false))
+  console.log('flag.getValue 3: ', flag.getValue(false))
 
   //   await flag.userExposed()
 
@@ -118,7 +118,7 @@ async function scenario4 () {
   await visitor.fetchFlags()
 
   const flag = visitor.getFlag('qa_report_var', 'test')
-  console.log('flag.value 4: ', flag.value(false))
+  console.log('flag.getValue 4: ', flag.getValue(false))
 
   await flag.userExposed()
   await sleep(1000)
@@ -141,7 +141,7 @@ async function scenario5 () {
   await visitor.fetchFlags()
 
   const flag = visitor.getFlag('qa_report_var', 'test')
-  console.log('flag.value 5: ', flag.value(false))
+  console.log('flag.getValue 5: ', flag.getValue(false))
 
   await flag.userExposed()
 
@@ -174,7 +174,7 @@ async function scenario6 () {
   await visitor.fetchFlags()
 
   const flag = visitor.getFlag('qa_report_var', 'test')
-  console.log('flag.value 6: ', flag.value(false))
+  console.log('flag.getValue 6: ', flag.getValue(false))
 
   await flag.userExposed()
 
@@ -206,7 +206,7 @@ async function scenario7 () {
   await visitor.fetchFlags()
 
   const flag = visitor.getFlag('qa_report_var', 'test')
-  console.log('flag.value 7: ', flag.value(false))
+  console.log('flag.getValue 7: ', flag.getValue(false))
 
   await flag.userExposed()
 

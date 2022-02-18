@@ -6,7 +6,6 @@ import {
   EMIT_READY,
   FLAGSHIP_VISITOR_NOT_AUTHENTICATE,
   GET_FLAG_CAST_ERROR,
-  GET_FLAG_ERROR,
   GET_FLAG_MISSING_ERROR,
   GET_METADATA_CAST_ERROR,
   GET_MODIFICATION_CAST_ERROR,
@@ -270,7 +269,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   protected async globalFetchFlags (functionName:string): Promise<void> {
     try {
-      await this.lookupVisitor()
       let campaigns = await this.decisionManager.getCampaignsAsync(
         this.visitor
       )
@@ -617,7 +615,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     const { key, flag, defaultValue } = param
     const functionName = 'userExposed'
     if (!flag) {
-      logError(
+      logInfo(
         this.visitor.config,
         sprintf(USER_EXPOSED_FLAG_ERROR, key),
         functionName
@@ -680,7 +678,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     const { metadata, hasSameType: checkType, key } = param
     const functionName = 'flag.metadata'
     if (!checkType) {
-      logError(
+      logInfo(
         this.visitor.config,
         sprintf(GET_METADATA_CAST_ERROR, key),
         functionName

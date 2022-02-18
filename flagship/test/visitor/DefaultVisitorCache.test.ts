@@ -1,7 +1,7 @@
 import { jest, expect, it, describe } from '@jest/globals'
+import { VisitorCacheDTO } from '../../src'
+import { DefaultVisitorCache, VISITOR_PREFIX } from '../../src/cache/DefaultVisitorCache'
 import { VISITOR_CACHE_VERSION } from '../../src/enum'
-import { VisitorSaveCacheDTO } from '../../src/types'
-import { DefaultVisitorCache, VISITOR_PREFIX } from '../../src/visitor/DefaultVisitorCache'
 import { campaigns } from '../decision/campaigns'
 
 describe('Test DefaultVisitorCache', () => {
@@ -15,7 +15,7 @@ describe('Test DefaultVisitorCache', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   global.localStorage = storageMock as any
   const visitorId = 'visitorId'
-  const visitorData: VisitorSaveCacheDTO = {
+  const visitorData: VisitorCacheDTO = {
     version: VISITOR_CACHE_VERSION,
     data: {
       visitorId: 'visitorID',
