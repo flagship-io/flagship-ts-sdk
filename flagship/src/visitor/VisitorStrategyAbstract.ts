@@ -144,9 +144,9 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       }
 
       this.visitor.visitorCache.data.campaigns?.forEach(campaign => {
-        if (!data.data.campaigns.find(x => x.campaignId === campaign.campaignId)) {
+        if (!data.data.campaigns?.find(x => x.campaignId === campaign.campaignId)) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          data.data.campaigns.push(campaign as any)
+          data.data.campaigns?.push(campaign as any)
         }
       })
 
