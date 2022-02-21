@@ -119,9 +119,10 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
   protected async cacheVisitor ():Promise<void> {
     try {
       const visitorCacheInstance = this.config.visitorCacheImplementation
-      if (this.config.disableCache || this.decisionManager.isPanic() || !visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.cacheVisitor !== 'function') {
+      if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.cacheVisitor !== 'function') {
         return
       }
+
       const data: VisitorCacheDTO = {
         version: VISITOR_CACHE_VERSION,
         data: {
@@ -143,7 +144,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         }
       }
 
-      this.visitor.visitorCache.data.campaigns?.forEach(campaign => {
+      this.visitor.visitorCache?.data?.campaigns?.forEach(campaign => {
         if (!data.data.campaigns?.find(x => x.campaignId === campaign.campaignId)) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           data.data.campaigns?.push(campaign as any)
@@ -151,6 +152,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       })
 
       visitorCacheInstance.cacheVisitor(this.visitor.visitorId, data)
+
       this.visitor.visitorCache = data
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
@@ -216,6 +218,12 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
           this.sendActivate(item.data.content as FlagDTO)
           return
         }
+
+        if (item.data.type === 'BATCH') {
+          this.sendHit(item.data.content as IHit)
+          return
+        }
+
         batchSize = JSON.stringify(batches[count]).length
         if (batchSize > 2500) {
           count++

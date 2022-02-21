@@ -85,10 +85,43 @@ describe('test visitor cache', () => {
 
   it('test saveCache defaultStrategy', async () => {
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
-    await defaultStrategy.synchronizeModifications()
+    await defaultStrategy.fetchFlags()
     expect(cacheVisitor).toBeCalledTimes(1)
 
-    expect(cacheVisitor).toBeCalledWith(visitorId, (data))
+    expect(cacheVisitor).toBeCalledWith(visitorId, data)
+  })
+
+  it('test saveCache defaultStrategy', async () => {
+    getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
+
+    const cacheCampaign = {
+      campaignId: 'campaignId',
+      variationGroupId: 'variationGroupId',
+      variationId: 'variationId',
+      isReference: false,
+      type: 'ab',
+      activated: false,
+      flags: {
+        js: 'value'
+      }
+    }
+    visitorDelegate.visitorCache = {
+      version: VISITOR_CACHE_VERSION,
+      data: {
+        visitorId: visitorDelegate.visitorId,
+        anonymousId: visitorDelegate.anonymousId,
+        consent: visitorDelegate.hasConsented,
+        context: visitorDelegate.context,
+        campaigns: [cacheCampaign]
+      }
+    }
+
+    await defaultStrategy.fetchFlags()
+    expect(cacheVisitor).toBeCalledTimes(1)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const newDataTest = { ...data, data: { ...data.data, campaigns: [...data.data.campaigns as any, cacheCampaign] } }
+    expect(cacheVisitor).toBeCalledWith(visitorId, newDataTest)
   })
 
   it('test saveCache noConsentStrategy', async () => {
