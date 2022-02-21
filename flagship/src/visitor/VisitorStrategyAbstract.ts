@@ -123,6 +123,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         return
       }
 
+      const variationHistory:Record<string, string> = {}
       const data: VisitorCacheDTO = {
         version: VISITOR_CACHE_VERSION,
         data: {
@@ -131,6 +132,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
           consent: this.visitor.hasConsented,
           context: this.visitor.context,
           campaigns: this.visitor.campaigns.map(campaign => {
+            variationHistory[campaign.variationGroupId] = campaign.variation.id
             return {
               campaignId: campaign.id,
               variationGroupId: campaign.variationGroupId,
@@ -144,12 +146,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         }
       }
 
-      this.visitor.visitorCache?.data?.campaigns?.forEach(campaign => {
-        if (!data.data.campaigns?.find(x => x.campaignId === campaign.campaignId)) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          data.data.campaigns?.push(campaign as any)
-        }
-      })
+      data.data.variationHistory = { ...this.visitor.visitorCache?.data?.variationHistory, ...variationHistory }
 
       visitorCacheInstance.cacheVisitor(this.visitor.visitorId, data)
 

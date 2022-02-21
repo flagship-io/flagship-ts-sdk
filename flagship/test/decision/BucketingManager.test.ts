@@ -311,19 +311,32 @@ describe('test bucketing method', () => {
     expect(response).toEqual(variation)
   })
 
+  it('test getVariation reallocation ', () => {
+    visitor.visitorCache = {
+      version: 1,
+      data: {
+        visitorId: visitor.visitorId,
+        anonymousId: null,
+        variationHistory: {
+          [variationGroups.id]: variations[0].id
+        }
+      }
+    }
+    const localVariation = variationGroups.variations.filter(x => x.id !== 'c20j8bk3fk9hdphqtd30')
+    const response = bucketingManagerAny.getVariation({ ...variationGroups, variations: localVariation }, visitor)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    expect(response).toBeNull()
+  })
+
   it('test getVariation visitorCache ', () => {
     visitor.visitorCache = {
       version: 1,
       data: {
         visitorId: visitor.visitorId,
         anonymousId: null,
-        campaigns: [{
-          campaignId: '',
-          variationGroupId: variationGroups.id,
-          variationId: variations[1].id,
-          type: variations[1].modifications.type,
-          flags: variations[1].modifications.value
-        }]
+        variationHistory: {
+          [variationGroups.id]: variations[1].id
+        }
       }
     }
     const response = bucketingManagerAny.getVariation(variationGroups, visitor)

@@ -62,6 +62,8 @@ describe('test visitor cache', () => {
 
   const notReadyStrategy = new NotReadyStrategy(visitorDelegate)
 
+  const variationHistory:Record<string, string> = {}
+
   const data: VisitorCacheDTO = {
     version: VISITOR_CACHE_VERSION,
     data: {
@@ -70,6 +72,7 @@ describe('test visitor cache', () => {
       consent: visitorDelegate.hasConsented,
       context: visitorDelegate.context,
       campaigns: campaigns.campaigns.map(campaign => {
+        variationHistory[campaign.variationGroupId] = campaign.variation.id
         return {
           campaignId: campaign.id,
           variationGroupId: campaign.variationGroupId,
@@ -79,7 +82,8 @@ describe('test visitor cache', () => {
           activated: false,
           flags: campaign.variation.modifications.value
         }
-      })
+      }),
+      variationHistory
     }
   }
 
@@ -89,39 +93,6 @@ describe('test visitor cache', () => {
     expect(cacheVisitor).toBeCalledTimes(1)
 
     expect(cacheVisitor).toBeCalledWith(visitorId, data)
-  })
-
-  it('test saveCache defaultStrategy', async () => {
-    getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
-
-    const cacheCampaign = {
-      campaignId: 'campaignId',
-      variationGroupId: 'variationGroupId',
-      variationId: 'variationId',
-      isReference: false,
-      type: 'ab',
-      activated: false,
-      flags: {
-        js: 'value'
-      }
-    }
-    visitorDelegate.visitorCache = {
-      version: VISITOR_CACHE_VERSION,
-      data: {
-        visitorId: visitorDelegate.visitorId,
-        anonymousId: visitorDelegate.anonymousId,
-        consent: visitorDelegate.hasConsented,
-        context: visitorDelegate.context,
-        campaigns: [cacheCampaign]
-      }
-    }
-
-    await defaultStrategy.fetchFlags()
-    expect(cacheVisitor).toBeCalledTimes(1)
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const newDataTest = { ...data, data: { ...data.data, campaigns: [...data.data.campaigns as any, cacheCampaign] } }
-    expect(cacheVisitor).toBeCalledWith(visitorId, newDataTest)
   })
 
   it('test saveCache noConsentStrategy', async () => {

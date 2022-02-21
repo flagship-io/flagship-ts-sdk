@@ -185,9 +185,10 @@ export class BucketingManager extends DecisionManager {
     let totalAllocation = 0
 
     for (const variation of variationGroup.variations) {
-      const cacheVariation = visitor.visitorCache?.data?.campaigns?.find(x => x.variationGroupId === variationGroup.id)
-      if (cacheVariation) {
-        const newVariation = variationGroup.variations.find(x => x.id === cacheVariation.variationId)
+      const variationHistory = visitor.visitorCache?.data?.variationHistory
+      const cacheVariationId = variationHistory ? variationHistory[variationGroup.id] : null
+      if (cacheVariationId) {
+        const newVariation = variationGroup.variations.find(x => x.id === cacheVariationId)
         if (!newVariation) {
           continue
         }
