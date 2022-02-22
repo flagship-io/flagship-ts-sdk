@@ -128,7 +128,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         return
       }
 
-      const variationHistory:Record<string, string> = {}
+      const assignmentsHistory:Record<string, string> = {}
       const data: VisitorCacheDTO = {
         version: VISITOR_CACHE_VERSION,
         data: {
@@ -137,7 +137,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
           consent: this.visitor.hasConsented,
           context: this.visitor.context,
           campaigns: this.visitor.campaigns.map(campaign => {
-            variationHistory[campaign.variationGroupId] = campaign.variation.id
+            assignmentsHistory[campaign.variationGroupId] = campaign.variation.id
             return {
               campaignId: campaign.id,
               variationGroupId: campaign.variationGroupId,
@@ -151,7 +151,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         }
       }
 
-      data.data.variationHistory = { ...this.visitor.visitorCache?.data?.variationHistory, ...variationHistory }
+      data.data.assignmentsHistory = { ...this.visitor.visitorCache?.data?.assignmentsHistory, ...assignmentsHistory }
 
       visitorCacheInstance.cacheVisitor(this.visitor.visitorId, data)
 
