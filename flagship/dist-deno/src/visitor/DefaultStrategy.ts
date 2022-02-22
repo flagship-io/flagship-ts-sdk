@@ -618,7 +618,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
 
     if (flag.value && !hasSameType(flag.value, defaultValue)) {
-      logError(
+      logInfo(
         this.visitor.config,
         sprintf(USER_EXPOSED_CAST_ERROR, key),
         functionName
