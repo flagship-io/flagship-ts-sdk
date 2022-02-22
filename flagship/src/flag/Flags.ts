@@ -30,7 +30,6 @@ export interface IFlag<T>{
 
 export class Flag<T> implements IFlag<T> {
     private _visitor:VisitorDelegate
-    private _metadata:IFlagMetadata
     private _key:string
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private _defaultValue:any
@@ -39,14 +38,6 @@ export class Flag<T> implements IFlag<T> {
       this._key = key
       this._visitor = visitor
       this._defaultValue = defaultValue
-      const flagDTO = this._visitor.flagsData.get(this._key)
-      this._metadata = new FlagMetadata({
-        campaignId: flagDTO?.campaignId || '',
-        variationGroupId: flagDTO?.variationGroupId || '',
-        variationId: flagDTO?.variationId || '',
-        isReference: !!flagDTO?.isReference,
-        campaignType: flagDTO?.campaignType || ''
-      })
     }
 
     exists ():boolean {
@@ -56,13 +47,20 @@ export class Flag<T> implements IFlag<T> {
 
     get metadata ():IFlagMetadata {
       const flagDTO = this._visitor.flagsData.get(this._key)
+      const metadata = new FlagMetadata({
+        campaignId: flagDTO?.campaignId || '',
+        variationGroupId: flagDTO?.variationGroupId || '',
+        variationId: flagDTO?.variationId || '',
+        isReference: !!flagDTO?.isReference,
+        campaignType: flagDTO?.campaignType || ''
+      })
 
       if (!flagDTO) {
-        return this._metadata
+        return metadata
       }
 
       return this._visitor.getFlagMetadata({
-        metadata: this._metadata,
+        metadata: metadata,
         hasSameType: !flagDTO.value || hasSameType(flagDTO.value, this._defaultValue),
         key: flagDTO.key
       })
