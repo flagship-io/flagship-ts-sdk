@@ -317,7 +317,7 @@ describe('test bucketing method', () => {
       data: {
         visitorId: visitor.visitorId,
         anonymousId: null,
-        variationHistory: {
+        assignmentsHistory: {
           [variationGroups.id]: variations[0].id
         }
       }
@@ -334,7 +334,7 @@ describe('test bucketing method', () => {
       data: {
         visitorId: visitor.visitorId,
         anonymousId: null,
-        variationHistory: {
+        assignmentsHistory: {
           [variationGroups.id]: variations[1].id
         }
       }

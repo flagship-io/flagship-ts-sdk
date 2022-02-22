@@ -64,7 +64,7 @@ describe('test visitor cache', () => {
 
   const notReadyStrategy = new NotReadyStrategy(visitorDelegate)
 
-  const variationHistory:Record<string, string> = {}
+  const assignmentsHistory:Record<string, string> = {}
 
   const data: VisitorCacheDTO = {
     version: VISITOR_CACHE_VERSION,
@@ -74,7 +74,7 @@ describe('test visitor cache', () => {
       consent: visitorDelegate.hasConsented,
       context: visitorDelegate.context,
       campaigns: campaigns.campaigns.map(campaign => {
-        variationHistory[campaign.variationGroupId] = campaign.variation.id
+        assignmentsHistory[campaign.variationGroupId] = campaign.variation.id
         return {
           campaignId: campaign.id,
           variationGroupId: campaign.variationGroupId,
@@ -85,7 +85,7 @@ describe('test visitor cache', () => {
           flags: campaign.variation.modifications.value
         }
       }),
-      variationHistory
+      assignmentsHistory
     }
   }
 
@@ -186,7 +186,7 @@ describe('test visitor cache', () => {
         consent: visitorDelegate.hasConsented,
         context: visitorDelegate.context,
         campaigns: campaigns.campaigns.map(campaign => {
-          variationHistory[campaign.variationGroupId] = campaign.variation.id
+          assignmentsHistory[campaign.variationGroupId] = campaign.variation.id
           return {
             campaignId: campaign.id,
             variationGroupId: campaign.variationGroupId,
@@ -197,7 +197,7 @@ describe('test visitor cache', () => {
             flags: campaign.variation.modifications.value
           }
         }),
-        variationHistory
+        assignmentsHistory
       }
     }
     visitorDelegate.visitorCache = getUndefined()
