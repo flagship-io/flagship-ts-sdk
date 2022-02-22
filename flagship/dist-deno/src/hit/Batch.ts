@@ -54,6 +54,13 @@ export class Batch extends HitAbstract implements IBatch {
       return apiKeys
     }
 
+    public toObject ():Record<string, unknown> {
+      return {
+        ...super.toObject(),
+        hits: this.hits.map(hit => hit.toObject())
+      }
+    }
+
     public getErrorMessage (): string {
       return ERROR_MESSAGE
     }

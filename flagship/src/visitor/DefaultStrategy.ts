@@ -519,12 +519,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logError(this.config, error.message || error, PROCESS_SEND_HIT)
-      if (hitInstance instanceof Batch) {
-        hitInstance.hits?.forEach(item => {
-          this.cacheHit(item)
-        })
-        return
-      }
       this.cacheHit(hitInstance)
     }
   }

@@ -281,7 +281,7 @@ describe('test visitor hit cache', () => {
     })
 
     await sleep(100)
-    expect(cacheHit).toBeCalledTimes(111)
+    expect(cacheHit).toBeCalledTimes(14)
   })
 
   it('test lookupHit noConsentStrategy', async () => {
