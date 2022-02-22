@@ -1,4 +1,3 @@
-import { FlagDTO } from '../types.ts'
 import { hasSameType } from '../utils/utils.ts'
 import { VisitorDelegate } from '../visitor/index.ts'
 import { FlagMetadata, IFlagMetadata } from './FlagMetadata.ts'
@@ -31,17 +30,16 @@ export interface IFlag<T>{
 
 export class Flag<T> implements IFlag<T> {
     private _visitor:VisitorDelegate
-    private _flagDTO?: FlagDTO
     private _metadata:IFlagMetadata
     private _key:string
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private _defaultValue:any
-    constructor (param: {key:string, visitor:VisitorDelegate, flagDTO?:FlagDTO, defaultValue:T}) {
-      const { key, visitor, flagDTO, defaultValue } = param
+    constructor (param: {key:string, visitor:VisitorDelegate, defaultValue:T}) {
+      const { key, visitor, defaultValue } = param
       this._key = key
-      this._flagDTO = flagDTO
       this._visitor = visitor
       this._defaultValue = defaultValue
+      const flagDTO = this._visitor.flagsData.get(this._key)
       this._metadata = new FlagMetadata({
         campaignId: flagDTO?.campaignId || '',
         variationGroupId: flagDTO?.variationGroupId || '',
@@ -52,30 +50,35 @@ export class Flag<T> implements IFlag<T> {
     }
 
     exists ():boolean {
-      return !!this._flagDTO && hasSameType(this._flagDTO.value, this._defaultValue)
+      const flagDTO = this._visitor.flagsData.get(this._key)
+      return !!flagDTO && hasSameType(flagDTO.value, this._defaultValue)
     }
 
     get metadata ():IFlagMetadata {
-      if (!this._flagDTO) {
+      const flagDTO = this._visitor.flagsData.get(this._key)
+
+      if (!flagDTO) {
         return this._metadata
       }
 
       return this._visitor.getFlagMetadata({
         metadata: this._metadata,
-        hasSameType: !this._flagDTO.value || hasSameType(this._flagDTO.value, this._defaultValue),
-        key: this._flagDTO.key
+        hasSameType: !flagDTO.value || hasSameType(flagDTO.value, this._defaultValue),
+        key: flagDTO.key
       })
     }
 
     userExposed ():Promise<void> {
-      return this._visitor.userExposed({ key: this._key, flag: this._flagDTO, defaultValue: this._defaultValue })
+      const flagDTO = this._visitor.flagsData.get(this._key)
+      return this._visitor.userExposed({ key: this._key, flag: flagDTO, defaultValue: this._defaultValue })
     }
 
     getValue (userExposed = true) : T {
+      const flagDTO = this._visitor.flagsData.get(this._key)
       return this._visitor.getFlagValue({
         key: this._key,
         defaultValue: this._defaultValue,
-        flag: this._flagDTO,
+        flag: flagDTO,
         userExposed
       })
     }

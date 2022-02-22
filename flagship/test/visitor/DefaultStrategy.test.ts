@@ -137,7 +137,7 @@ describe('test DefaultStrategy ', () => {
     })
   })
 
-  const campaignDtoId = 'c2nrh1hjg50l9stringu8bg'
+  const campaignDtoId = 'c2nrh1hjg50l9stringgu8bg'
   const campaignDTO = [
     {
       id: campaignDtoId,

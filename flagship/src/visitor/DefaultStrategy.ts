@@ -354,10 +354,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   private async activate (key: string) {
-    if (this.isDeDuplicated(key, this.config.activateDeduplicationTime as number)) {
-      return
-    }
-
     const flag = this.visitor.flagsData.get(key)
 
     if (!flag) {
@@ -366,6 +362,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sprintf(ACTIVATE_MODIFICATION_ERROR, key),
         PROCESS_ACTIVE_MODIFICATION
       )
+      return
+    }
+
+    if (this.isDeDuplicated(flag.variationGroupId + this.visitor.visitorId, this.config.activateDeduplicationTime as number)) {
       return
     }
 
@@ -626,7 +626,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
-    if (this.isDeDuplicated(key, this.config.activateDeduplicationTime as number)) {
+    if (this.isDeDuplicated(flag.variationGroupId + this.visitor.visitorId, this.config.activateDeduplicationTime as number)) {
       return
     }
 

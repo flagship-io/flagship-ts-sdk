@@ -54,11 +54,13 @@ describe('test Flag', () => {
     isReference: true,
     value: 'value'
   }
+
+  visitorDelegate.flagsData.set('key', flagDto)
+
   const defaultValue = 'defaultValue'
   const flag = new Flag({
     key: flagDto.key,
     visitor: visitorDelegate,
-    flagDTO: flagDto,
     defaultValue
   })
   it('test exists', () => {
@@ -112,7 +114,7 @@ describe('test Flag', () => {
   })
 
   it('test metadata with different type ', () => {
-    const flag = new Flag({ key: flagDto.key, flagDTO: flagDto, visitor: visitorDelegate, defaultValue: false })
+    const flag = new Flag({ key: flagDto.key, visitor: visitorDelegate, defaultValue: false })
     expect(flag.exists()).toBeFalsy()
     expect(flag.metadata).toEqual(
       {
@@ -125,8 +127,22 @@ describe('test Flag', () => {
     expect(logInfo).toBeCalledTimes(1)
   })
 
+  it('should ', () => {
+    const flag = new Flag({ key: flagDto.key, visitor: visitorDelegate, defaultValue: true })
+    const value = flag.getValue(false)
+    expect(value).toBe(true)
+    expect(getFlagValue).toBeCalledTimes(1)
+    expect(getFlagValue).toBeCalledWith({
+      key: flagDto.key,
+      defaultValue: true,
+      flag: expect.objectContaining(flagDto),
+      userExposed: false
+    })
+  })
+
   it('test metadata with undefined flag ', () => {
     const defaultValue = 'defaultValue'
+    visitorDelegate.flagsData.clear()
     const flag = new Flag({ key: flagDto.key, visitor: visitorDelegate, defaultValue })
     expect(flag.exists()).toBeFalsy()
     expect(flag.metadata).toEqual(
@@ -137,18 +153,5 @@ describe('test Flag', () => {
         variationId: '',
         isReference: false
       })
-  })
-
-  it('should ', () => {
-    const flag = new Flag({ key: flagDto.key, visitor: visitorDelegate, flagDTO: flagDto, defaultValue: true })
-    const value = flag.getValue(false)
-    expect(value).toBe(true)
-    expect(getFlagValue).toBeCalledTimes(1)
-    expect(getFlagValue).toBeCalledWith({
-      key: flagDto.key,
-      defaultValue: true,
-      flag: expect.objectContaining(flagDto),
-      userExposed: false
-    })
   })
 })
