@@ -76,6 +76,7 @@ export type VisitorCacheDTO = {
     anonymousId: string|null,
     consent?: boolean,
     context?: Record<string, primitive>,
+    assignmentsHistory?: Record<string, string>,
     campaigns?: Array<{
         campaignId: string,
         variationGroupId: string,

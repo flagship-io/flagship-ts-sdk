@@ -1,5 +1,5 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { DecisionApiConfig, HitType, IHitCacheImplementation, IScreen, Screen } from '../../src'
+import { DecisionApiConfig, HitType, IHitCacheImplementation, IScreen, Page, Screen } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
@@ -204,13 +204,49 @@ describe('test visitor hit cache', () => {
         }
       })
     }
+
+    const batch = {
+      type: 'BATCH',
+      hits: [
+        {
+          type: HitType.PAGE,
+          documentLocation: 'homePage'
+        } as Page
+      ]
+    }
+
+    hits.push({
+      version: HIT_CACHE_VERSION,
+      data: {
+        visitorId: 'visitor1',
+        anonymousId: null,
+        type: 'BATCH',
+        time: Date.now(),
+        content: batch
+      }
+    })
+
     config.hitCacheImplementation = hitCacheImplementation
     lookupHits.mockReturnValue(hits)
     await defaultStrategy.lookupHits()
     expect(lookupHits).toBeCalledTimes(1)
     expect(lookupHits).toBeCalledWith(visitorDelegate.visitorId)
     expect(sendActive).toBeCalledTimes(10)
+    expect(sendHit).toBeCalledTimes(4)
+
     expect(sendHit).toHaveBeenNthCalledWith(1, {
+      _anonymousId: null,
+      _config: expect.anything(),
+      _hits: batch.hits.map(item => {
+        const data = item
+        return new Page({ documentLocation: data.documentLocation })
+      }),
+      _ds: 'APP',
+      _type: 'BATCH',
+      _visitorId: visitorId
+    })
+
+    expect(sendHit).toHaveBeenNthCalledWith(2, {
       _anonymousId: null,
       _config: expect.anything(),
       _hits: hits.slice(0, 45).map(item => {
@@ -221,7 +257,7 @@ describe('test visitor hit cache', () => {
       _type: 'BATCH',
       _visitorId: visitorId
     })
-    expect(sendHit).toHaveBeenNthCalledWith(2, {
+    expect(sendHit).toHaveBeenNthCalledWith(3, {
       _anonymousId: null,
       _config: expect.anything(),
       _hits: hits.slice(45, 90).map(item => {
@@ -232,7 +268,7 @@ describe('test visitor hit cache', () => {
       _type: 'BATCH',
       _visitorId: visitorId
     })
-    expect(sendHit).toHaveBeenNthCalledWith(3, {
+    expect(sendHit).toHaveBeenNthCalledWith(4, {
       _anonymousId: null,
       _config: expect.anything(),
       _hits: hits.slice(90, 100).map(item => {
@@ -243,9 +279,9 @@ describe('test visitor hit cache', () => {
       _type: 'BATCH',
       _visitorId: visitorId
     })
-    expect(sendHit).toBeCalledTimes(3)
+
     await sleep(100)
-    expect(cacheHit).toBeCalledTimes(110)
+    expect(cacheHit).toBeCalledTimes(14)
   })
 
   it('test lookupHit noConsentStrategy', async () => {

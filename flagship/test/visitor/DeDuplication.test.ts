@@ -78,7 +78,7 @@ describe('Name of the group', () => {
     const flag = {
       key: 'keyNull',
       campaignId: 'c2nrh1hjg50l9thhu8bg',
-      variationGroupId: 'c2nrh1hjg50l9thhu8cg',
+      variationGroupId: 'c2nrh1hjg50lf9thhu8cgkeyNull',
       variationId: 'c2nrh1hjg50l9thhu8dg',
       isReference: false,
       value: null
@@ -86,7 +86,7 @@ describe('Name of the group', () => {
     const flag2 = {
       key: 'keyNumber2',
       campaignId: 'c2nrh1hjg50l9thhu8bg',
-      variationGroupId: 'c2nrh1hjg50l9thhu8cg',
+      variationGroupId: 'c2nrh1hjg50l9thhu8cgKeyNumber2',
       variationId: 'c2nrh1hjg50l9thhu8dg',
       isReference: false,
       value: null

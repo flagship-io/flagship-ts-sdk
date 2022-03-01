@@ -6,9 +6,13 @@ import {
   DL_API_ITEM,
   DS_API_ITEM,
   HitType,
+  SCREEN_RESOLUTION_API_ITEM,
   SDK_APP,
+  SESSION_NUMBER,
   TYPE_ERROR,
   T_API_ITEM,
+  USER_IP_API_ITEM,
+  USER_LANGUAGE,
   VISITOR_ID_API_ITEM
 } from '../../src/enum/index'
 import { Page } from '../../src/hit/index'
@@ -83,6 +87,8 @@ describe('test hit type Page', () => {
       type: HitType.PAGE,
       documentLocation: url
     })
+
+    expect(page.toApiKeys()).toEqual({ ...apiKeys, [USER_IP_API_ITEM]: userIp, [SCREEN_RESOLUTION_API_ITEM]: screenResolution, [USER_LANGUAGE]: locale, [SESSION_NUMBER]: sessionNumber })
   })
 
   it('test log page url', () => {

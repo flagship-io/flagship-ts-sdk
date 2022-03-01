@@ -354,10 +354,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   private async activate (key: string) {
-    if (this.isDeDuplicated(key, this.config.activateDeduplicationTime as number)) {
-      return
-    }
-
     const flag = this.visitor.flagsData.get(key)
 
     if (!flag) {
@@ -366,6 +362,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sprintf(ACTIVATE_MODIFICATION_ERROR, key),
         PROCESS_ACTIVE_MODIFICATION
       )
+      return
+    }
+
+    if (this.isDeDuplicated(flag.variationGroupId + this.visitor.visitorId, this.config.activateDeduplicationTime as number)) {
       return
     }
 
@@ -519,12 +519,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logError(this.config, error.message || error, PROCESS_SEND_HIT)
-      if (hitInstance instanceof Batch) {
-        hitInstance.hits?.forEach(item => {
-          this.cacheHit(item)
-        })
-        return
-      }
       this.cacheHit(hitInstance)
     }
   }
@@ -624,7 +618,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
 
     if (flag.value && !hasSameType(flag.value, defaultValue)) {
-      logError(
+      logInfo(
         this.visitor.config,
         sprintf(USER_EXPOSED_CAST_ERROR, key),
         functionName
@@ -632,7 +626,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
-    if (this.isDeDuplicated(key, this.config.activateDeduplicationTime as number)) {
+    if (this.isDeDuplicated(flag.variationGroupId + this.visitor.visitorId, this.config.activateDeduplicationTime as number)) {
       return
     }
 

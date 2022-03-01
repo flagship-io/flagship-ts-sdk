@@ -18,8 +18,8 @@ export const returnModification = new Map<string, FlagDTO>([
     'keyString',
     {
       key: 'keyString',
-      campaignId: 'c2nrh1hjg50l9stringu8bg',
-      variationGroupId: 'c2nrh1hjg50l9thhu8cg',
+      campaignId: 'c2nrh1hjg50l9stringgu8bg',
+      variationGroupId: 'c2nrh1hjg50l9thhug8cg',
       variationId: 'c2nrh1hjg50l9thhu8dg',
       isReference: false,
       value: 'value'
@@ -41,8 +41,8 @@ export const returnModification = new Map<string, FlagDTO>([
 
     {
       key: 'keyBoolean',
-      campaignId: 'c2nrh1hjg50l9thhu8bg',
-      variationGroupId: 'c2nrh1hjg50l9thhu8cg',
+      campaignId: 'c2nrh1hjg50l9thhu8bgkeyB',
+      variationGroupId: 'c2nrh1hjg50l9thhu8cgKeyBoolean',
       variationId: 'c2nrh1hjg50l9thhu8dg',
       isReference: false,
       value: true

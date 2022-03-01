@@ -7,7 +7,7 @@ import { IConfigManager, IFlagshipConfig } from '../config/index.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { ITrackingManager } from '../api/TrackingManagerAbstract.ts'
 import { IDecisionManager } from '../decision/IDecisionManager.ts'
-import { logError, sprintf } from '../utils/utils.ts'
+import { logError, logInfo, sprintf } from '../utils/utils.ts'
 import { DEFAULT_HIT_CACHE_TIME, HIT_CACHE_VERSION, PROCESS_CACHE_HIT, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index.ts'
 
 import { BatchDTO } from '../hit/Batch.ts'
@@ -17,6 +17,7 @@ import { IFlagMetadata } from '../flag/FlagMetadata.ts'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheDTO'
+export const VISITOR_ID_MISMATCH_ERROR = 'Visitor ID mismatch: {0} vs {1}'
 export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'flagsData'|'modifications'|'context'|'hasConsented'|'getModificationsArray'|'getFlagsDataArray'|'getFlag'> {
   protected visitor:VisitorAbstract;
 
@@ -85,7 +86,10 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     if (!Array.isArray(campaigns)) {
       return false
     }
-
+    if (item.data.visitorId !== this.visitor.visitorId) {
+      logInfo(this.config, sprintf(VISITOR_ID_MISMATCH_ERROR, item.data.visitorId, this.visitor.visitorId), 'lookupVisitor')
+      return false
+    }
     return campaigns.every(x => x.campaignId && x.type && x.variationGroupId && x.variationId)
   }
 
@@ -109,6 +113,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       if (!this.checKLookupVisitorData(visitorCache)) {
         throw new Error(LOOKUP_VISITOR_JSON_OBJECT_ERROR)
       }
+
       this.visitor.visitorCache = visitorCache
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
@@ -119,9 +124,11 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
   protected async cacheVisitor ():Promise<void> {
     try {
       const visitorCacheInstance = this.config.visitorCacheImplementation
-      if (this.config.disableCache || this.decisionManager.isPanic() || !visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.cacheVisitor !== 'function') {
+      if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.cacheVisitor !== 'function') {
         return
       }
+
+      const assignmentsHistory:Record<string, string> = {}
       const data: VisitorCacheDTO = {
         version: VISITOR_CACHE_VERSION,
         data: {
@@ -130,6 +137,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
           consent: this.visitor.hasConsented,
           context: this.visitor.context,
           campaigns: this.visitor.campaigns.map(campaign => {
+            assignmentsHistory[campaign.variationGroupId] = campaign.variation.id
             return {
               campaignId: campaign.id,
               variationGroupId: campaign.variationGroupId,
@@ -142,7 +150,11 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
           })
         }
       }
+
+      data.data.assignmentsHistory = { ...this.visitor.visitorCache?.data?.assignmentsHistory, ...assignmentsHistory }
+
       visitorCacheInstance.cacheVisitor(this.visitor.visitorId, data)
+
       this.visitor.visitorCache = data
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
@@ -208,6 +220,12 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
           this.sendActivate(item.data.content as FlagDTO)
           return
         }
+
+        if (item.data.type === 'BATCH') {
+          this.sendHit(item.data.content as IHit)
+          return
+        }
+
         batchSize = JSON.stringify(batches[count]).length
         if (batchSize > 2500) {
           count++

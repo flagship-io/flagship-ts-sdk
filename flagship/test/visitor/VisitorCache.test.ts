@@ -10,7 +10,8 @@ import { Mock } from 'jest-mock'
 import { VISITOR_CACHE_VERSION } from '../../src/enum'
 import { campaigns } from '../decision/campaigns'
 import { VisitorCacheDTO } from '../../src/types'
-import { LOOKUP_VISITOR_JSON_OBJECT_ERROR } from '../../src/visitor/VisitorStrategyAbstract'
+import { LOOKUP_VISITOR_JSON_OBJECT_ERROR, VISITOR_ID_MISMATCH_ERROR } from '../../src/visitor/VisitorStrategyAbstract'
+import { sprintf } from '../../src/utils/utils'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getUndefined = ():any => undefined
@@ -24,6 +25,7 @@ describe('test visitor cache', () => {
 
   const logManager = new FlagshipLogManager()
   const logError = jest.spyOn(logManager, 'error')
+  const logInfo = jest.spyOn(logManager, 'info')
 
   const cacheVisitor:Mock<void, [visitorId: string, data: VisitorCacheDTO]> = jest.fn()
   const lookupVisitor:Mock<VisitorCacheDTO, [visitorId: string]> = jest.fn()
@@ -62,6 +64,8 @@ describe('test visitor cache', () => {
 
   const notReadyStrategy = new NotReadyStrategy(visitorDelegate)
 
+  const assignmentsHistory:Record<string, string> = {}
+
   const data: VisitorCacheDTO = {
     version: VISITOR_CACHE_VERSION,
     data: {
@@ -70,6 +74,7 @@ describe('test visitor cache', () => {
       consent: visitorDelegate.hasConsented,
       context: visitorDelegate.context,
       campaigns: campaigns.campaigns.map(campaign => {
+        assignmentsHistory[campaign.variationGroupId] = campaign.variation.id
         return {
           campaignId: campaign.id,
           variationGroupId: campaign.variationGroupId,
@@ -79,16 +84,17 @@ describe('test visitor cache', () => {
           activated: false,
           flags: campaign.variation.modifications.value
         }
-      })
+      }),
+      assignmentsHistory
     }
   }
 
   it('test saveCache defaultStrategy', async () => {
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
-    await defaultStrategy.synchronizeModifications()
+    await defaultStrategy.fetchFlags()
     expect(cacheVisitor).toBeCalledTimes(1)
 
-    expect(cacheVisitor).toBeCalledWith(visitorId, (data))
+    expect(cacheVisitor).toBeCalledWith(visitorId, data)
   })
 
   it('test saveCache noConsentStrategy', async () => {
@@ -169,6 +175,38 @@ describe('test visitor cache', () => {
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(1)
     expect(visitorDelegate.visitorCache).toEqual(data)
+  })
+
+  it('test lookupVisitor defaultStrategy different visitorID', async () => {
+    const data: VisitorCacheDTO = {
+      version: VISITOR_CACHE_VERSION,
+      data: {
+        visitorId: 'any',
+        anonymousId: visitorDelegate.anonymousId,
+        consent: visitorDelegate.hasConsented,
+        context: visitorDelegate.context,
+        campaigns: campaigns.campaigns.map(campaign => {
+          assignmentsHistory[campaign.variationGroupId] = campaign.variation.id
+          return {
+            campaignId: campaign.id,
+            variationGroupId: campaign.variationGroupId,
+            variationId: campaign.variation.id,
+            isReference: campaign.variation.reference,
+            type: campaign.variation.modifications.type,
+            activated: false,
+            flags: campaign.variation.modifications.value
+          }
+        }),
+        assignmentsHistory
+      }
+    }
+    visitorDelegate.visitorCache = getUndefined()
+    lookupVisitor.mockReturnValue((data))
+    await defaultStrategy.lookupVisitor()
+    expect(lookupVisitor).toBeCalledTimes(1)
+    expect(visitorDelegate.visitorCache).toBeUndefined()
+    expect(logInfo).toBeCalledTimes(1)
+    expect(logInfo).toBeCalledWith(sprintf(VISITOR_ID_MISMATCH_ERROR, 'any', visitorDelegate.visitorId), 'lookupVisitor')
   })
 
   it('test lookupVisitor noConsentStrategy', async () => {

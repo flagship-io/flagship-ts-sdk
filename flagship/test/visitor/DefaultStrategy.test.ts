@@ -137,7 +137,7 @@ describe('test DefaultStrategy ', () => {
     })
   })
 
-  const campaignDtoId = 'c2nrh1hjg50l9stringu8bg'
+  const campaignDtoId = 'c2nrh1hjg50l9stringgu8bg'
   const campaignDTO = [
     {
       id: campaignDtoId,
@@ -554,8 +554,8 @@ describe('test DefaultStrategy ', () => {
   it('test userExposed with different type', async () => {
     await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: true })
     expect(sendActive).toBeCalledTimes(0)
-    expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(
+    expect(logInfo).toBeCalledTimes(1)
+    expect(logInfo).toBeCalledWith(
       sprintf(USER_EXPOSED_CAST_ERROR, returnMod.key),
       'userExposed'
     )

@@ -482,3 +482,39 @@ scenario11Action3.addEventListener('click', async () => {
 
   printLocalStorage()
 })
+
+const scenario12Action1 = document.getElementById('scenario-12-action-1')
+scenario12Action1.addEventListener('click', async () => {
+  printMessage(12, 1)
+
+  visitor = Flagship.newVisitor({
+    visitorId: 'cacheTest2',
+    context: {
+      is_scene_12: true
+    }
+  })
+
+  await visitor.fetchFlags()
+
+  console.log('flag', visitor.getFlag('scene_12', 0).getValue())
+
+  printLocalStorage()
+})
+
+const scenario12Action2 = document.getElementById('scenario-12-action-2')
+scenario12Action2.addEventListener('click', async () => {
+  printMessage(12, 1)
+
+  visitor = Flagship.newVisitor({
+    visitorId: 'cacheTest2',
+    context: {
+      is_scene_12: false
+    }
+  })
+
+  await visitor.fetchFlags()
+
+  console.log('flag', visitor.getFlag('scene_12', 0).getValue())
+
+  printLocalStorage()
+})
