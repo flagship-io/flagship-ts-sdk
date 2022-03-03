@@ -68,7 +68,7 @@ describe('test visitor', () => {
 
     expect(visitor.config).toBe(config)
 
-    expect(visitor.context).toEqual({ ...context, ...predefinedContext })
+    expect(visitor.context).toEqual({ ...context, ...predefinedContext, fs_users: newVisitorId })
 
     visitorDelegate.flagsData.set('newKey', {
       key: 'newKey',

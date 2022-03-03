@@ -27,7 +27,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _anonymousId!:string|null;
     public deDuplicationCache:Record<string, number>
     protected _isCleaningDeDuplicationCache:boolean
-    public visitorCache!: VisitorCacheDTO
+    public visitorCache?: VisitorCacheDTO
 
     constructor (param: NewVisitor& {
       visitorId?: string
@@ -38,6 +38,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       super()
       this._isCleaningDeDuplicationCache = false
       this.deDuplicationCache = {}
+      this._context = {}
       this._configManager = configManager
 
       const VisitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
@@ -47,7 +48,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
       this.campaigns = []
 
-      this._context = {}
       this.updateContext(context)
       this._anonymousId = VisitorCache?.anonymousId || null
       this.loadPredefinedContext()
@@ -146,6 +146,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
         return
       }
       this._visitorId = v
+      this.loadPredefinedContext()
+      this.visitorCache = undefined
     }
 
     /**

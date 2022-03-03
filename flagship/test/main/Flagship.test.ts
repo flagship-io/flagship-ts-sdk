@@ -69,6 +69,7 @@ describe('test Flagship class', () => {
     expect(Flagship.getConfig().decisionMode).toBe(DecisionMode.DECISION_API)
     expect(Flagship.getConfig().visitorCacheImplementation).toBeInstanceOf(DefaultVisitorCache)
     expect(Flagship.getConfig().hitCacheImplementation).toBeInstanceOf(DefaultHitCache)
+    expect(Flagship.getStatus()).toBe(FlagshipStatus.READY)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     global.window = (() => undefined)() as any
@@ -128,7 +129,7 @@ describe('test Flagship with custom config', () => {
     expect(Flagship.getConfig().apiKey).toBe(apiKey)
     expect(Flagship.getConfig().logManager).toBe(logManager)
 
-    expect(Flagship.getStatus()).toBe(FlagshipStatus.READY)
+    expect(instance?.getStatus()).toBe(FlagshipStatus.READY)
 
     expect(infoLog).toBeCalledTimes(1)
     expect(infoLog).toBeCalledWith(

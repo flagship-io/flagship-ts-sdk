@@ -29,7 +29,7 @@ export const SEND_CONTEXT_EVENT = 'sendContextEvent'
 /**
  * SDK version
  */
-export const SDK_VERSION = 'v2'
+export const SDK_VERSION = 'v3'
 
 export const VISITOR_CACHE_VERSION = 1
 export const HIT_CACHE_VERSION = 1
