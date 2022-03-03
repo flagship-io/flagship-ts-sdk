@@ -2,7 +2,7 @@ name: NPM CD ALPHA
 on:
   push:
     tags: 
-      - 3.0.0-alpha.*
+      - *-alpha.*
 jobs:
   build:
     runs-on: ubuntu-latest
