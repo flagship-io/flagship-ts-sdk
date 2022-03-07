@@ -180,16 +180,18 @@ describe('test DecisionApiConfig', () => {
 describe('Test SDK_LANGUAGE', () => {
   it('should be reactJS', () => {
     const config = new DecisionApiConfig({ language: 1 })
-    expect(SDK_LANGUAGE.name).toBe("ReactJS")
-  });
+    expect(SDK_LANGUAGE.name).toBe('ReactJS')
+    expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
+  })
   it('should be react-native', () => {
     const config = new DecisionApiConfig({ language: 2 })
-    expect(SDK_LANGUAGE.name).toBe("React-Native")
-  });
+    expect(SDK_LANGUAGE.name).toBe('React-Native')
+    expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
+  })
 
   it('should be Typescript', () => {
     const config = new DecisionApiConfig({ language: 0 })
-    expect(SDK_LANGUAGE.name).toBe("Typescript")
-  });
-
-});
+    expect(SDK_LANGUAGE.name).toBe('Typescript')
+    expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
+  })
+})
