@@ -1,5 +1,5 @@
 import { BucketingDTO } from '../decision/api/bucketingDTO'
-import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, TYPE_ERROR } from '../enum/index'
+import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, SDK_LANGUAGE, TYPE_ERROR } from '../enum/index'
 import { IHitCacheImplementation } from '../cache/IHitCacheImplementation'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, sprintf } from '../utils/utils'
@@ -9,23 +9,23 @@ export enum DecisionMode {
   /**
    * Flagship SDK mode decision api
    */
-  DECISION_API='API',
+  DECISION_API = 'API',
   /**
    * Flagship SDK mode bucketing
    */
-  BUCKETING='BUCKETING',
+  BUCKETING = 'BUCKETING',
 }
 
 export interface IFlagshipConfig {
   /**
    * Specify the environment id provided by Flagship, to use.
    */
-  envId?:string
+  envId?: string
 
   /**
    * Specify the secure api key provided by Flagship, to use.
    */
-  apiKey?:string
+  apiKey?: string
 
   /**
    * Specify timeout in seconds for api request.
@@ -47,7 +47,7 @@ export interface IFlagshipConfig {
   /**
    * Define a callable in order to get callback when the SDK status has changed.
    */
-  statusChangedCallback?:(status: FlagshipStatus) => void;
+  statusChangedCallback?: (status: FlagshipStatus) => void;
 
   /** Specify a custom implementation of LogManager in order to receive logs from the SDK. */
   logManager?: IFlagshipLogManager;
@@ -55,40 +55,42 @@ export interface IFlagshipConfig {
   /**
    * Decide to fetch automatically modifications data when creating a new FlagshipVisitor
    */
-  fetchNow?:boolean,
+  fetchNow?: boolean,
 
   /**
    * Specify delay between two bucketing polling. Default is 2s.
    *
    * Note: If 0 is given then it should poll only once at start time.
    */
-  pollingInterval?:number
+  pollingInterval?: number
 
   /**
    * Indicates whether enables or disables the client cache manager.
    * By enabling the client cache, it will allow you to keep cross sessions visitor experience.
    */
-  enableClientCache?:boolean
+  enableClientCache?: boolean
 
-  onBucketingSuccess?:(param:{ status: number; payload: BucketingDTO })=>void
+  onBucketingSuccess?: (param: { status: number; payload: BucketingDTO }) => void
 
-  onBucketingFail?:(error: Error)=>void
+  onBucketingFail?: (error: Error) => void
 
-  onBucketingUpdated?:(lastUpdate:Date)=>void
+  onBucketingUpdated?: (lastUpdate: Date) => void
 
-  initialBucketing?:BucketingDTO
+  initialBucketing?: BucketingDTO
 
   decisionApiUrl?: string
 
   activateDeduplicationTime?: number
 
-  hitDeduplicationTime?:number
+  hitDeduplicationTime?: number
 
   visitorCacheImplementation?: IVisitorCacheImplementation
 
   hitCacheImplementation?: IHitCacheImplementation
 
   disableCache?: boolean
+
+  language?: 0 | 1 | 2
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -96,32 +98,44 @@ export const statusChangeError = 'statusChangedCallback must be a function'
 export abstract class FlagshipConfig implements IFlagshipConfig {
   private _envId?: string;
   private _apiKey?: string;
-  protected _decisionMode:DecisionMode;
-  private _timeout! : number;
+  protected _decisionMode: DecisionMode;
+  private _timeout!: number;
   private _logLevel!: LogLevel;
   private _statusChangedCallback?: (status: FlagshipStatus) => void;
   private _logManager!: IFlagshipLogManager;
-  private _fetchNow! : boolean;
+  private _fetchNow!: boolean;
   private _pollingInterval!: number
-  private _onBucketingFail?: (error: Error)=>void;
-  private _onBucketingSuccess?: (param:{ status: number; payload: BucketingDTO })=>void;
-  private _onBucketingUpdated?: (lastUpdate:Date)=>void;
-  private _enableClientCache! : boolean;
-  private _initialBucketing?:BucketingDTO
+  private _onBucketingFail?: (error: Error) => void;
+  private _onBucketingSuccess?: (param: { status: number; payload: BucketingDTO }) => void;
+  private _onBucketingUpdated?: (lastUpdate: Date) => void;
+  private _enableClientCache!: boolean;
+  private _initialBucketing?: BucketingDTO
   private _decisionApiUrl!: string
-  private _activateDeduplicationTime! : number;
-  private _hitDeduplicationTime! : number;
-  private _visitorCacheImplementation! : IVisitorCacheImplementation ;
-  private _hitCacheImplementation! : IHitCacheImplementation;
-  private _disableCache! : boolean;
+  private _activateDeduplicationTime!: number;
+  private _hitDeduplicationTime!: number;
+  private _visitorCacheImplementation!: IVisitorCacheImplementation;
+  private _hitCacheImplementation!: IHitCacheImplementation;
+  private _disableCache!: boolean;
 
-  protected constructor (param: IFlagshipConfig) {
+  protected constructor(param: IFlagshipConfig) {
     const {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
-      disableCache
+      disableCache, language
     } = param
+
+    switch (language) {
+      case 1:
+        SDK_LANGUAGE.name = "ReactJS"
+        break;
+      case 2:
+        SDK_LANGUAGE.name = "React-Native"
+        break;
+      default:
+        SDK_LANGUAGE.name = "Typescript"
+        break;
+    }
 
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
     this._envId = envId
@@ -149,103 +163,103 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this.statusChangedCallback = statusChangedCallback
   }
 
-  public get initialBucketing () : BucketingDTO|undefined {
+  public get initialBucketing(): BucketingDTO | undefined {
     return this._initialBucketing
   }
 
-  public set initialBucketing (v : BucketingDTO|undefined) {
+  public set initialBucketing(v: BucketingDTO | undefined) {
     this._initialBucketing = v
   }
 
-  public get enableClientCache () : boolean {
+  public get enableClientCache(): boolean {
     return this._enableClientCache
   }
 
-  public set enableClientCache (v : boolean) {
+  public set enableClientCache(v: boolean) {
     this._enableClientCache = v
   }
 
-  public get onBucketingSuccess () : ((param:{ status: number; payload: BucketingDTO })=>void)| undefined {
+  public get onBucketingSuccess(): ((param: { status: number; payload: BucketingDTO }) => void) | undefined {
     return this._onBucketingSuccess
   }
 
-  public set onBucketingSuccess (v : ((param:{ status: number; payload: BucketingDTO })=>void)| undefined) {
+  public set onBucketingSuccess(v: ((param: { status: number; payload: BucketingDTO }) => void) | undefined) {
     this._onBucketingSuccess = v
   }
 
-  public get onBucketingFail () : ((error: Error)=>void)| undefined {
+  public get onBucketingFail(): ((error: Error) => void) | undefined {
     return this._onBucketingFail
   }
 
-  public set onBucketingFail (v : ((error: Error)=>void)| undefined) {
+  public set onBucketingFail(v: ((error: Error) => void) | undefined) {
     this._onBucketingFail = v
   }
 
-  public get onBucketingUpdated () : ((lastUpdate:Date)=>void)|undefined {
+  public get onBucketingUpdated(): ((lastUpdate: Date) => void) | undefined {
     return this._onBucketingUpdated
   }
 
-  public set onBucketingUpdated (v : ((lastUpdate:Date)=>void)|undefined) {
+  public set onBucketingUpdated(v: ((lastUpdate: Date) => void) | undefined) {
     this._onBucketingUpdated = v
   }
 
-  public set envId (value: string | undefined) {
+  public set envId(value: string | undefined) {
     this._envId = value
   }
 
-  public get envId (): string | undefined {
+  public get envId(): string | undefined {
     return this._envId
   }
 
-  public set apiKey (value: string | undefined) {
+  public set apiKey(value: string | undefined) {
     this._apiKey = value
   }
 
-  public get apiKey (): string | undefined {
+  public get apiKey(): string | undefined {
     return this._apiKey
   }
 
-  public get decisionMode (): DecisionMode {
+  public get decisionMode(): DecisionMode {
     return this._decisionMode
   }
 
-  public get timeout (): number {
+  public get timeout(): number {
     return this._timeout
   }
 
-  public set timeout (value: number) {
+  public set timeout(value: number) {
     this._timeout = value
   }
 
-  public get logLevel (): LogLevel {
+  public get logLevel(): LogLevel {
     return this._logLevel
   }
 
-  public set logLevel (value: LogLevel) {
+  public set logLevel(value: LogLevel) {
     this._logLevel = value
   }
 
-  public get fetchNow () : boolean {
+  public get fetchNow(): boolean {
     return this._fetchNow
   }
 
-  public set fetchNow (v : boolean) {
+  public set fetchNow(v: boolean) {
     this._fetchNow = v
   }
 
-  public get pollingInterval () : number {
+  public get pollingInterval(): number {
     return this._pollingInterval
   }
 
-  public set pollingInterval (v : number) {
+  public set pollingInterval(v: number) {
     this._pollingInterval = v
   }
 
-  public get activateDeduplicationTime () : number {
+  public get activateDeduplicationTime(): number {
     return this._activateDeduplicationTime
   }
 
-  public set activateDeduplicationTime (v : number) {
+  public set activateDeduplicationTime(v: number) {
     if (typeof v !== 'number') {
       logError(this, sprintf(TYPE_ERROR, 'activateDeduplicationTime', 'number'), 'activateDeduplicationTime')
       return
@@ -253,11 +267,11 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._activateDeduplicationTime = v
   }
 
-  public get hitDeduplicationTime () : number {
+  public get hitDeduplicationTime(): number {
     return this._hitDeduplicationTime
   }
 
-  public set hitDeduplicationTime (v : number) {
+  public set hitDeduplicationTime(v: number) {
     if (typeof v !== 'number') {
       logError(this, sprintf(TYPE_ERROR, 'hitDeduplicationTime', 'number'), 'hitDeduplicationTime')
       return
@@ -265,35 +279,35 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._hitDeduplicationTime = v
   }
 
-  public get visitorCacheImplementation () : IVisitorCacheImplementation {
+  public get visitorCacheImplementation(): IVisitorCacheImplementation {
     return this._visitorCacheImplementation
   }
 
-  public set visitorCacheImplementation (v : IVisitorCacheImplementation) {
+  public set visitorCacheImplementation(v: IVisitorCacheImplementation) {
     this._visitorCacheImplementation = v
   }
 
-  public get hitCacheImplementation () : IHitCacheImplementation {
+  public get hitCacheImplementation(): IHitCacheImplementation {
     return this._hitCacheImplementation
   }
 
-  public set hitCacheImplementation (v : IHitCacheImplementation) {
+  public set hitCacheImplementation(v: IHitCacheImplementation) {
     this._hitCacheImplementation = v
   }
 
-  public get disableCache () : boolean {
+  public get disableCache(): boolean {
     return this._disableCache
   }
 
-  public set disableCache (v : boolean) {
+  public set disableCache(v: boolean) {
     this._disableCache = v
   }
 
-  public get statusChangedCallback () :((status: FlagshipStatus) => void)|undefined {
+  public get statusChangedCallback(): ((status: FlagshipStatus) => void) | undefined {
     return this._statusChangedCallback
   }
 
-  public set statusChangedCallback (fn : ((status: FlagshipStatus) => void) | undefined) {
+  public set statusChangedCallback(fn: ((status: FlagshipStatus) => void) | undefined) {
     if (typeof fn !== 'function') {
       logError(this, statusChangeError, 'statusChangedCallback')
       return
@@ -301,19 +315,19 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._statusChangedCallback = fn
   }
 
-  public get logManager (): IFlagshipLogManager {
+  public get logManager(): IFlagshipLogManager {
     return this._logManager
   }
 
-  public set logManager (value: IFlagshipLogManager) {
+  public set logManager(value: IFlagshipLogManager) {
     this._logManager = value
   }
 
-  public get decisionApiUrl () : string {
+  public get decisionApiUrl(): string {
     return this._decisionApiUrl
   }
 
-  public set decisionApiUrl (v : string) {
+  public set decisionApiUrl(v: string) {
     if (typeof v !== 'string') {
       logError(this, sprintf(TYPE_ERROR, 'decisionApiUrl', 'string'), 'decisionApiUrl')
       return
