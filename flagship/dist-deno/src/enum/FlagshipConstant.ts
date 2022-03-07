@@ -2,7 +2,9 @@
  * SDK language
  */
 
-export const SDK_LANGUAGE = 'TypeScript'
+export const SDK_LANGUAGE = {
+  name: 'TypeScript'
+}
 
 /**
  * Default request timeout in second
