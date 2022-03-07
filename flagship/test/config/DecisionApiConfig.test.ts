@@ -6,7 +6,8 @@ import {
   DEFAULT_DEDUPLICATION_TIME,
   FlagshipStatus,
   LogLevel,
-  REQUEST_TIME_OUT
+  REQUEST_TIME_OUT,
+  SDK_LANGUAGE
 } from '../../src/enum/index'
 import { HitCacheDTO, VisitorCacheDTO } from '../../src/types'
 import { FlagshipLogManager, IFlagshipLogManager } from '../../src/utils/FlagshipLogManager'
@@ -42,7 +43,7 @@ describe('test DecisionApiConfig', () => {
       panic: true
     }
 
-    const visitorCacheImplementation:IVisitorCacheImplementation = {
+    const visitorCacheImplementation: IVisitorCacheImplementation = {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       cacheVisitor: function (_visitorId: string, _Data: VisitorCacheDTO): void {
         throw new Error('Function not implemented.')
@@ -57,7 +58,7 @@ describe('test DecisionApiConfig', () => {
       }
     }
 
-    const hitCacheImplementation:IHitCacheImplementation = {
+    const hitCacheImplementation: IHitCacheImplementation = {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       cacheHit: function (_visitorId: string, _data: HitCacheDTO): void {
         throw new Error('Function not implemented.')
@@ -175,3 +176,20 @@ describe('test DecisionApiConfig', () => {
     expect(config.timeout).toBe(3000)
   })
 })
+
+describe('Test SDK_LANGUAGE', () => {
+  it('should be reactJS', () => {
+    const config = new DecisionApiConfig({ language: 1 })
+    expect(SDK_LANGUAGE.name).toBe("ReactJS")
+  });
+  it('should be react-native', () => {
+    const config = new DecisionApiConfig({ language: 2 })
+    expect(SDK_LANGUAGE.name).toBe("React-Native")
+  });
+
+  it('should be Typescript', () => {
+    const config = new DecisionApiConfig({ language: 0 })
+    expect(SDK_LANGUAGE.name).toBe("Typescript")
+  });
+
+});
