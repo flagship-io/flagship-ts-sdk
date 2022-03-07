@@ -27,7 +27,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     protected _anonymousId!:string|null;
     public deDuplicationCache:Record<string, number>
     protected _isCleaningDeDuplicationCache:boolean
-    public visitorCache!: VisitorCacheDTO
+    public visitorCache?: VisitorCacheDTO
 
     constructor (param: NewVisitor& {
       visitorId?: string
@@ -147,6 +147,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       }
       this._visitorId = v
       this.loadPredefinedContext()
+      this.visitorCache = undefined
     }
 
     /**
