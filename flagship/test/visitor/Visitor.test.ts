@@ -44,7 +44,7 @@ describe('test visitor', () => {
   const visitor = new Visitor(visitorDelegate)
 
   const predefinedContext = {
-    fs_client: SDK_LANGUAGE,
+    fs_client: SDK_LANGUAGE.name,
     fs_version: SDK_VERSION,
     fs_users: visitor.visitorId
   }
@@ -266,7 +266,7 @@ describe('test visitor', () => {
 
   it('test getAllModifications', () => {
     const getAllModifications = jest.spyOn(visitorDelegate, 'getAllModifications')
-    getAllModifications.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
+    getAllModifications.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO[] })
     visitor.getAllModifications().then(() => {
       expect(getAllModifications).toBeCalledTimes(2)
       expect(getAllModifications).toBeCalledWith(false)
@@ -279,7 +279,7 @@ describe('test visitor', () => {
 
   it('test getAllFlags', () => {
     const getAllFlags = jest.spyOn(visitorDelegate, 'getAllFlagsData')
-    getAllFlags.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
+    getAllFlags.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO[] })
     visitor.getAllFlagsData().then(() => {
       expect(getAllFlags).toBeCalledTimes(2)
       expect(getAllFlags).toBeCalledWith(false)
@@ -292,7 +292,7 @@ describe('test visitor', () => {
 
   it('test getModificationsForCampaign', () => {
     const getModificationsForCampaign = jest.spyOn(visitorDelegate, 'getModificationsForCampaign')
-    getModificationsForCampaign.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
+    getModificationsForCampaign.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO[] })
     const campaignId = 'campaignId'
     visitor.getModificationsForCampaign(campaignId).then(() => {
       expect(getModificationsForCampaign).toBeCalledTimes(2)
@@ -307,7 +307,7 @@ describe('test visitor', () => {
 
   it('test getFlatsForCampaign', () => {
     const getFlatsDataForCampaign = jest.spyOn(visitorDelegate, 'getFlatsDataForCampaign')
-    getFlatsDataForCampaign.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
+    getFlatsDataForCampaign.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO[] })
     const campaignId = 'campaignId'
     visitor.getFlatsDataForCampaign(campaignId).then(() => {
       expect(getFlatsDataForCampaign).toBeCalledTimes(2)

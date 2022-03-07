@@ -31,10 +31,10 @@ import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { TrackingManagerAbstract } from './TrackingManagerAbstract'
 
 export class TrackingManager extends TrackingManagerAbstract {
-  public async sendConsentHit (visitor: VisitorAbstract): Promise<void> {
-    const postBody:Record<string, unknown> = {
+  public async sendConsentHit(visitor: VisitorAbstract): Promise<void> {
+    const postBody: Record<string, unknown> = {
       [T_API_ITEM]: HitType.EVENT,
-      [EVENT_LABEL_API_ITEM]: `${SDK_LANGUAGE}:${visitor.hasConsented}`,
+      [EVENT_LABEL_API_ITEM]: `${SDK_LANGUAGE.name}:${visitor.hasConsented}`,
       [EVENT_ACTION_API_ITEM]: 'fs_consent',
       [EVENT_CATEGORY_API_ITEM]: EventCategory.USER_ENGAGEMENT,
       [CUSTOMER_ENV_ID_API_ITEM]: this.config.envId,
@@ -60,20 +60,20 @@ export class TrackingManager extends TrackingManagerAbstract {
     })
   }
 
-  public async sendActive (
+  public async sendActive(
     visitor: VisitorAbstract,
     modification: FlagDTO
   ): Promise<void> {
     const headers = {
       [HEADER_X_API_KEY]: `${this.config.apiKey}`,
-      [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
+      [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
       [HEADER_X_SDK_VERSION]: SDK_VERSION,
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
     const url = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
 
-    const postData:Record<string, primitive|null> = {
+    const postData: Record<string, primitive | null> = {
       [VISITOR_ID_API_ITEM]: visitor.visitorId,
       [VARIATION_ID_API_ITEM]: modification.variationId,
       [VARIATION_GROUP_ID_API_ITEM]: modification.variationGroupId,
@@ -95,7 +95,7 @@ export class TrackingManager extends TrackingManagerAbstract {
     })
   }
 
-  public async sendHit (hit: HitAbstract): Promise<void> {
+  public async sendHit(hit: HitAbstract): Promise<void> {
     const headers = {
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }

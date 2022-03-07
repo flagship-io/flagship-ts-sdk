@@ -82,7 +82,7 @@ describe('test BucketingManager', () => {
     expect(getAsync).toBeCalledWith(url, {
       headers: {
         [HEADER_X_API_KEY]: `${config.apiKey}`,
-        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
+        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
         [HEADER_X_SDK_VERSION]: SDK_VERSION,
         [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
       },
@@ -101,7 +101,7 @@ describe('test BucketingManager', () => {
     expect(getAsync).toBeCalledWith(url, {
       headers: {
         [HEADER_X_API_KEY]: `${config.apiKey}`,
-        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
+        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
         [HEADER_X_SDK_VERSION]: SDK_VERSION,
         [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON,
         'if-modified-since': 'Fri, 06 Aug 2021 11:16:19 GMT'
@@ -114,7 +114,8 @@ describe('test BucketingManager', () => {
 describe('test update', () => {
   const onBucketingSuccess = (param: {
     status: number
-    payload: BucketingDTO}) => {
+    payload: BucketingDTO
+  }) => {
     expect(param).toEqual({ status: 200, payload: bucketing })
   }
   const config = new BucketingConfig({ pollingInterval: 0, onBucketingSuccess })
@@ -214,9 +215,9 @@ describe('test sendContext', () => {
 
   it('should ', () => {
     const url = sprintf(BUCKETING_API_CONTEXT_URL, config.envId)
-    const headers:Record<string, string> = {
+    const headers: Record<string, string> = {
       [HEADER_X_API_KEY]: `${config.apiKey}`,
-      [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
+      [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
       [HEADER_X_SDK_VERSION]: SDK_VERSION,
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
@@ -244,6 +245,13 @@ describe('test sendContext', () => {
         expect(logError).toBeCalledTimes(1)
       })
   })
+
+  it('test empty context ', () => {
+    const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context: {}, configManager: { config, decisionManager: {} as DecisionManager, trackingManager } })
+    bucketingManager.sendContext(visitor).then(() => {
+      expect(postAsync).toBeCalledTimes(0)
+    })
+  });
 })
 
 describe('test bucketing method', () => {

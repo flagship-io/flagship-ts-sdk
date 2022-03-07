@@ -31,20 +31,20 @@ export class Flagship {
   private _status!: FlagshipStatus;
   private _visitorInstance?: Visitor
 
-  private set configManager (value: IConfigManager) {
+  private set configManager(value: IConfigManager) {
     this._configManger = value
   }
 
-  private get configManager (): IConfigManager {
+  private get configManager(): IConfigManager {
     return this._configManger
   }
 
   // eslint-disable-next-line no-useless-constructor
-  private constructor () {
+  private constructor() {
     // singleton
   }
 
-  protected static getInstance (): Flagship {
+  protected static getInstance(): Flagship {
     if (!this._instance) {
       this._instance = new this()
     }
@@ -54,14 +54,14 @@ export class Flagship {
   /**
    * Return true if the SDK is properly initialized, otherwise return false
    */
-  private static isReady (): boolean {
+  private static isReady(): boolean {
     const apiKey = this._instance?.getConfig()?.apiKey
     const envId = this._instance?.getConfig()?.envId
     const configManager = this._instance?.configManager
     return (!!this._instance && !!apiKey && !!envId && !!configManager)
   }
 
-  protected setStatus (status: FlagshipStatus): void {
+  protected setStatus(status: FlagshipStatus): void {
     const statusChanged = this.getConfig().statusChangedCallback
 
     if (this.getConfig() && statusChanged && this._status !== status) {
@@ -75,50 +75,51 @@ export class Flagship {
   /**
    * Return current status of Flagship SDK.
    */
-  public static getStatus (): FlagshipStatus {
+  public static getStatus(): FlagshipStatus {
     return this.getInstance()._status
   }
 
   /**
    * Return current status of Flagship SDK.
    */
-  public getStatus (): FlagshipStatus {
+  public getStatus(): FlagshipStatus {
     return this._status
   }
 
   /**
    * Return the current config set by the customer and used by the SDK.
    */
-  public static getConfig (): IFlagshipConfig {
+  public static getConfig(): IFlagshipConfig {
     return this.getInstance()._config
   }
 
   /**
    * Return the current config set by the customer and used by the SDK.
    */
-  public getConfig (): IFlagshipConfig {
+  public getConfig(): IFlagshipConfig {
     return this._config
   }
 
   /**
    * Return the last visitor created if isNewInstance key is false. Return undefined otherwise.
    */
-  public getVisitor ():Visitor|undefined {
+  public getVisitor(): Visitor | undefined {
     return this._visitorInstance
   }
 
   /**
    * Return the last visitor created if isNewInstance key is false. Return undefined otherwise.
    */
-  public static getVisitor ():Visitor|undefined {
+  public static getVisitor(): Visitor | undefined {
     return this.getInstance().getVisitor()
   }
 
-  private buildConfig (config?: IFlagshipConfig| FlagshipConfig):FlagshipConfig {
+
+  private buildConfig(config?: IFlagshipConfig | FlagshipConfig): FlagshipConfig {
     if (config instanceof FlagshipConfig) {
       return config
     }
-    let newConfig:FlagshipConfig
+    let newConfig: FlagshipConfig
     if (config?.decisionMode === DecisionMode.BUCKETING) {
       newConfig = new BucketingConfig(config)
     } else {
@@ -127,9 +128,9 @@ export class Flagship {
     return newConfig
   }
 
-  private buildDecisionManager (flagship:Flagship, config:FlagshipConfig, httpClient:HttpClient) : DecisionManager {
-    let decisionManager:DecisionManager
-    const setStatus = (status:FlagshipStatus) => {
+  private buildDecisionManager(flagship: Flagship, config: FlagshipConfig, httpClient: HttpClient): DecisionManager {
+    let decisionManager: DecisionManager
+    const setStatus = (status: FlagshipStatus) => {
       flagship.setStatus(status)
     }
     if (config.decisionMode === DecisionMode.BUCKETING) {
@@ -153,11 +154,11 @@ export class Flagship {
    * @param {string} apiKey : Secure api key provided by Flagship.
    * @param {IFlagshipConfig} config : (optional) SDK configuration.
    */
-  public static start (
+  public static start(
     envId: string,
     apiKey: string,
-    config?: IFlagshipConfig| FlagshipConfig
-  ): Flagship|null {
+    config?: IFlagshipConfig | FlagshipConfig
+  ): Flagship | null {
     const flagship = this.getInstance()
 
     config = flagship.buildConfig(config)
@@ -236,9 +237,9 @@ export class Flagship {
    * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
    * @returns {Visitor} a new visitor instance
    */
-  public newVisitor (visitorId?: string|null, context?: Record<string, primitive>): Visitor | null
-  public newVisitor (params?:NewVisitor): Visitor | null
-  public newVisitor (param1?:NewVisitor|string|null, param2?:Record<string, primitive>):Visitor | null {
+  public newVisitor(visitorId?: string | null, context?: Record<string, primitive>): Visitor | null
+  public newVisitor(params?: NewVisitor): Visitor | null
+  public newVisitor(param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor | null {
     return Flagship.newVisitor(param1, param2)
   }
 
@@ -248,26 +249,26 @@ export class Flagship {
    * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
    * @returns {Visitor} a new visitor instance
    */
-  public static newVisitor (visitorId?: string|null, context?: Record<string, primitive>): Visitor | null
+  public static newVisitor(visitorId?: string | null, context?: Record<string, primitive>): Visitor | null
   /**
    * Create a new visitor with a context.
    * @param {string} visitorId : Unique visitor identifier.
    * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
    * @returns {Visitor} a new visitor instance
    */
-  public static newVisitor (params?:NewVisitor): Visitor | null
-  public static newVisitor (param1?:NewVisitor|string|null, param2?:Record<string, primitive>):Visitor | null
-  public static newVisitor (param1?:NewVisitor|string|null, param2?:Record<string, primitive>):Visitor | null {
+  public static newVisitor(params?: NewVisitor): Visitor | null
+  public static newVisitor(param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor | null
+  public static newVisitor(param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor | null {
     if (!this.isReady()) {
       return null
     }
 
-    let visitorId:string|undefined
-    let context:Record<string, primitive>
+    let visitorId: string | undefined
+    let context: Record<string, primitive>
     let isAuthenticated = false
     let hasConsented = true
-    let initialModifications:Map<string, FlagDTO>|FlagDTO[]|undefined
-    let initialCampaigns:CampaignDTO[]|undefined
+    let initialModifications: Map<string, FlagDTO> | FlagDTO[] | undefined
+    let initialCampaigns: CampaignDTO[] | undefined
     const isServerSide = !isBrowser()
     let isNewInstance = isServerSide
 

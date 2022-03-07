@@ -40,7 +40,7 @@ describe('test DefaultStrategy ', () => {
   const defaultStrategy = new DefaultStrategy(visitorDelegate)
 
   const predefinedContext = {
-    fs_client: SDK_LANGUAGE,
+    fs_client: SDK_LANGUAGE.name,
     fs_version: SDK_VERSION,
     fs_users: visitorDelegate.visitorId
   }

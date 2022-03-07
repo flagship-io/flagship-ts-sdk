@@ -29,7 +29,7 @@ describe('test ApiManager', () => {
   const apiManager = new ApiManager(httpClient, config)
   const trackingManager = new TrackingManager(httpClient, config)
 
-  const sendConsentHit:Mock<Promise<void>, [visitor: VisitorAbstract]> = jest.fn()
+  const sendConsentHit: Mock<Promise<void>, [visitor: VisitorAbstract]> = jest.fn()
 
   sendConsentHit.mockResolvedValue()
 
@@ -47,7 +47,7 @@ describe('test ApiManager', () => {
   // Test http request data
   const headers = {
     [HEADER_X_API_KEY]: `${config.apiKey}`,
-    [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
+    [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
     [HEADER_X_SDK_VERSION]: SDK_VERSION,
     [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
   }
