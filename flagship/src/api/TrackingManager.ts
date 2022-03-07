@@ -31,7 +31,7 @@ import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { TrackingManagerAbstract } from './TrackingManagerAbstract'
 
 export class TrackingManager extends TrackingManagerAbstract {
-  public async sendConsentHit(visitor: VisitorAbstract): Promise<void> {
+  public async sendConsentHit (visitor: VisitorAbstract): Promise<void> {
     const postBody: Record<string, unknown> = {
       [T_API_ITEM]: HitType.EVENT,
       [EVENT_LABEL_API_ITEM]: `${SDK_LANGUAGE.name}:${visitor.hasConsented}`,
@@ -60,7 +60,7 @@ export class TrackingManager extends TrackingManagerAbstract {
     })
   }
 
-  public async sendActive(
+  public async sendActive (
     visitor: VisitorAbstract,
     modification: FlagDTO
   ): Promise<void> {
@@ -95,7 +95,7 @@ export class TrackingManager extends TrackingManagerAbstract {
     })
   }
 
-  public async sendHit(hit: HitAbstract): Promise<void> {
+  public async sendHit (hit: HitAbstract): Promise<void> {
     const headers = {
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }

@@ -29,7 +29,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _isCleaningDeDuplicationCache: boolean
   public visitorCache?: VisitorCacheDTO
 
-  constructor(param: NewVisitor & {
+  constructor (param: NewVisitor & {
     visitorId?: string
     configManager: IConfigManager
     context: Record<string, primitive>
@@ -63,7 +63,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.getStrategy().lookupHits()
   }
 
-  public clearDeDuplicationCache(deDuplicationTime: number): void {
+  public clearDeDuplicationCache (deDuplicationTime: number): void {
     if (this._isCleaningDeDuplicationCache) {
       return
     }
@@ -78,17 +78,17 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._isCleaningDeDuplicationCache = false
   }
 
-  public getModificationsArray(): Modification[] {
+  public getModificationsArray (): Modification[] {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return Array.from(this._flags, ([_, item]) => item)
   }
 
-  public getFlagsDataArray(): FlagDTO[] {
+  public getFlagsDataArray (): FlagDTO[] {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return Array.from(this._flags, ([_, item]) => item)
   }
 
-  protected setInitialFlags(modifications?: Map<string, FlagDTO> | FlagDTO[]): void {
+  protected setInitialFlags (modifications?: Map<string, FlagDTO> | FlagDTO[]): void {
     this._flags = new Map<string, FlagDTO>()
     if (!modifications || (!(modifications instanceof Map) && !Array.isArray(modifications))) {
       return
@@ -98,13 +98,13 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     })
   }
 
-  protected setInitializeCampaigns(campaigns?: CampaignDTO[], hasModifications?: boolean): void {
+  protected setInitializeCampaigns (campaigns?: CampaignDTO[], hasModifications?: boolean): void {
     if (campaigns && Array.isArray(campaigns) && !hasModifications) {
       this.getStrategy().updateCampaigns(campaigns)
     }
   }
 
-  protected updateCache(): void {
+  protected updateCache (): void {
     const visitorProfil = {
       visitorId: this.visitorId,
       anonymousId: this.anonymousId
@@ -112,13 +112,13 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     cacheVisitor.saveVisitorProfile(visitorProfil)
   }
 
-  protected loadPredefinedContext(): void {
+  protected loadPredefinedContext (): void {
     this.context.fs_client = SDK_LANGUAGE.name
     this.context.fs_version = SDK_VERSION
     this.context.fs_users = this.visitorId
   }
 
-  protected uuidV4(): string {
+  protected uuidV4 (): string {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (char) {
       const rand = Math.random() * 16 | 0
       const value = char === 'x' ? rand : (rand & 0x3 | 0x8)
@@ -126,7 +126,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     })
   }
 
-  protected createVisitorId(): string {
+  protected createVisitorId (): string {
     const now = new Date()
     const random = Math.floor(Math.random() * (99999 - 10000) + 10000)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -136,11 +136,11 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     )}${random}`
   }
 
-  public get visitorId(): string {
+  public get visitorId (): string {
     return this._visitorId
   }
 
-  public set visitorId(v: string) {
+  public set visitorId (v: string) {
     if (!v || typeof v !== 'string') {
       logError(this.config, VISITOR_ID_ERROR, 'VISITOR ID')
       return
@@ -154,11 +154,11 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
    * Return True or False if the visitor has consented for protected data usage.
    * @return bool
    */
-  public get hasConsented(): boolean {
+  public get hasConsented (): boolean {
     return this._hasConsented
   }
 
-  public set hasConsented(v: boolean) {
+  public set hasConsented (v: boolean) {
     this._hasConsented = v
   }
 
@@ -166,64 +166,64 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     * Set if visitor has consented for protected data usage.
     * @param {boolean} hasConsented True if the visitor has consented false otherwise.
     */
-  public setConsent(hasConsented: boolean): void {
+  public setConsent (hasConsented: boolean): void {
     this.hasConsented = hasConsented
     this.getStrategy().setConsent(hasConsented)
   }
 
-  public get context(): Record<string, primitive> {
+  public get context (): Record<string, primitive> {
     return this._context
   }
 
   /**
   * Clear the current context and set a new context value
   */
-  public set context(v: Record<string, primitive>) {
+  public set context (v: Record<string, primitive>) {
     this._context = {}
     this.updateContext(v)
   }
 
-  public get flagsData(): Map<string, FlagDTO> {
+  public get flagsData (): Map<string, FlagDTO> {
     return this._flags
   }
 
-  public set flagsData(v: Map<string, FlagDTO>) {
+  public set flagsData (v: Map<string, FlagDTO>) {
     this._flags = v
   }
 
-  public get modifications(): Map<string, Modification> {
+  public get modifications (): Map<string, Modification> {
     return this._flags
   }
 
-  public set modifications(v: Map<string, Modification>) {
+  public set modifications (v: Map<string, Modification>) {
     this._flags = v
   }
 
-  get configManager(): IConfigManager {
+  get configManager (): IConfigManager {
     return this._configManager
   }
 
-  public get config(): IFlagshipConfig {
+  public get config (): IFlagshipConfig {
     return this.configManager.config
   }
 
-  public get campaigns(): CampaignDTO[] {
+  public get campaigns (): CampaignDTO[] {
     return this._campaigns
   }
 
-  public set campaigns(v: CampaignDTO[]) {
+  public set campaigns (v: CampaignDTO[]) {
     this._campaigns = v
   }
 
-  public get anonymousId(): string | null {
+  public get anonymousId (): string | null {
     return this._anonymousId
   }
 
-  public set anonymousId(v: string | null) {
+  public set anonymousId (v: string | null) {
     this._anonymousId = v
   }
 
-  protected getStrategy(): VisitorStrategyAbstract {
+  protected getStrategy (): VisitorStrategyAbstract {
     let strategy: VisitorStrategyAbstract
     if (!Flagship.getStatus() || Flagship.getStatus() === FlagshipStatus.NOT_INITIALIZED) {
       strategy = new NotReadyStrategy(this)

@@ -251,7 +251,7 @@ describe('test sendContext', () => {
     bucketingManager.sendContext(visitor).then(() => {
       expect(postAsync).toBeCalledTimes(0)
     })
-  });
+  })
 })
 
 describe('test bucketing method', () => {

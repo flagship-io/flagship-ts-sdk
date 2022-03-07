@@ -18,7 +18,7 @@ export class BucketingManager extends DecisionManager {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _intervalID!: any
 
-  public constructor(httpClient: IHttpClient, config: IFlagshipConfig, murmurHash: MurmurHash) {
+  public constructor (httpClient: IHttpClient, config: IFlagshipConfig, murmurHash: MurmurHash) {
     super(httpClient, config)
     this._murmurHash = murmurHash
     this._isFirstPooling = true
@@ -27,7 +27,7 @@ export class BucketingManager extends DecisionManager {
     }
   }
 
-  private finishLoop(response: IHttpResponse) {
+  private finishLoop (response: IHttpResponse) {
     if (response.status === 200) {
       this._bucketingContent = response.body
     }
@@ -53,7 +53,7 @@ export class BucketingManager extends DecisionManager {
     this._isPooling = false
   }
 
-  public startPolling(): void {
+  public startPolling (): void {
     const timeout = (this.config.pollingInterval ?? REQUEST_TIME_OUT) * 1000
     logInfo(this.config, 'Bucketing polling starts', 'startPolling')
     this.polling()
@@ -65,7 +65,7 @@ export class BucketingManager extends DecisionManager {
     }, timeout)
   }
 
-  private async polling() {
+  private async polling () {
     if (this._isPooling) {
       return
     }
@@ -103,16 +103,16 @@ export class BucketingManager extends DecisionManager {
     }
   }
 
-  public stopPolling(): void {
+  public stopPolling (): void {
     clearInterval(this._intervalID)
     this._isPooling = false
     logInfo(this.config, 'Bucketing polling stopped', 'stopPolling')
   }
 
-  private async sendContext(visitor: VisitorAbstract): Promise<void> {
+  private async sendContext (visitor: VisitorAbstract): Promise<void> {
     try {
       if (Object.keys(visitor.context).length <= 3) {
-        return;
+        return
       }
       const url = sprintf(BUCKETING_API_CONTEXT_URL, this.config.envId)
       const headers: Record<string, string> = {
@@ -133,7 +133,7 @@ export class BucketingManager extends DecisionManager {
     }
   }
 
-  async getCampaignsAsync(visitor: VisitorAbstract): Promise<CampaignDTO[]> {
+  async getCampaignsAsync (visitor: VisitorAbstract): Promise<CampaignDTO[]> {
     this.sendContext(visitor)
 
     if (!this._bucketingContent) {
@@ -160,7 +160,7 @@ export class BucketingManager extends DecisionManager {
     return visitorCampaigns
   }
 
-  private getVisitorCampaigns(variationGroups: VariationGroupDTO[], campaignId: string, campaignType: string, visitor: VisitorAbstract): CampaignDTO | null {
+  private getVisitorCampaigns (variationGroups: VariationGroupDTO[], campaignId: string, campaignType: string, visitor: VisitorAbstract): CampaignDTO | null {
     for (const variationGroup of variationGroups) {
       const check = this.isMatchTargeting(variationGroup, visitor)
       if (check) {
@@ -182,7 +182,7 @@ export class BucketingManager extends DecisionManager {
     return null
   }
 
-  private getVariation(variationGroup: VariationGroupDTO, visitor: VisitorAbstract): VariationDTO | null {
+  private getVariation (variationGroup: VariationGroupDTO, visitor: VisitorAbstract): VariationDTO | null {
     const hash = this._murmurHash.murmurHash3Int32(variationGroup.id + visitor.visitorId)
     const hashAllocation = hash % 100
     let totalAllocation = 0
@@ -218,7 +218,7 @@ export class BucketingManager extends DecisionManager {
     return null
   }
 
-  private isMatchTargeting(variationGroup: VariationGroupDTO, visitor: VisitorAbstract): boolean {
+  private isMatchTargeting (variationGroup: VariationGroupDTO, visitor: VisitorAbstract): boolean {
     if (!variationGroup || !variationGroup.targeting || !variationGroup.targeting.targetingGroups) {
       return false
     }
@@ -227,11 +227,11 @@ export class BucketingManager extends DecisionManager {
     )
   }
 
-  private isANDListOperator(operator: string): boolean {
+  private isANDListOperator (operator: string): boolean {
     return ['NOT_EQUALS', 'NOT_CONTAINS'].includes(operator)
   }
 
-  private checkAndTargeting(targetings: Targetings[], visitor: VisitorAbstract): boolean {
+  private checkAndTargeting (targetings: Targetings[], visitor: VisitorAbstract): boolean {
     let contextValue: primitive
     let check = false
 
@@ -260,7 +260,7 @@ export class BucketingManager extends DecisionManager {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private testListOperatorLoop(operator: string, contextValue: primitive, value: any[], initialCheck: boolean) {
+  private testListOperatorLoop (operator: string, contextValue: primitive, value: any[], initialCheck: boolean) {
     let check = initialCheck
     for (const v of value) {
       check = this.testOperator(operator, contextValue, v)
@@ -272,7 +272,7 @@ export class BucketingManager extends DecisionManager {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private testListOperator(operator: string, contextValue: primitive, value: any[]): boolean {
+  private testListOperator (operator: string, contextValue: primitive, value: any[]): boolean {
     const andOperator = this.isANDListOperator(operator)
     if (andOperator) {
       return this.testListOperatorLoop(operator, contextValue, value, true)
@@ -281,7 +281,7 @@ export class BucketingManager extends DecisionManager {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private testOperator(operator: string, contextValue: primitive, value: any): boolean {
+  private testOperator (operator: string, contextValue: primitive, value: any): boolean {
     let check: boolean
     if (Array.isArray(value)) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
