@@ -10,11 +10,11 @@ import { CampaignDTO, VariationDTO } from './api/models'
 import { DecisionManager } from './DecisionManager'
 
 export class BucketingManager extends DecisionManager {
-  private _bucketingContent!:BucketingDTO;
-  private _lastModified!:string
-  private _isPooling!:boolean
-  private _murmurHash:MurmurHash
-  private _isFirstPooling:boolean
+  private _bucketingContent!: BucketingDTO;
+  private _lastModified!: string
+  private _isPooling!: boolean
+  private _murmurHash: MurmurHash
+  private _isFirstPooling: boolean
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _intervalID!: any
 
@@ -53,7 +53,7 @@ export class BucketingManager extends DecisionManager {
     this._isPooling = false
   }
 
-  public startPolling ():void {
+  public startPolling (): void {
     const timeout = (this.config.pollingInterval ?? REQUEST_TIME_OUT) * 1000
     logInfo(this.config, 'Bucketing polling starts', 'startPolling')
     this.polling()
@@ -75,9 +75,9 @@ export class BucketingManager extends DecisionManager {
     }
     try {
       const url = sprintf(BUCKETING_API_URL, this.config.envId)
-      const headers:Record<string, string> = {
+      const headers: Record<string, string> = {
         [HEADER_X_API_KEY]: `${this.config.apiKey}`,
-        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
+        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
         [HEADER_X_SDK_VERSION]: SDK_VERSION,
         [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
       }
@@ -91,7 +91,7 @@ export class BucketingManager extends DecisionManager {
       this.finishLoop(response)
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
+    } catch (error: any) {
       this._isPooling = false
       logError(this.config, error, 'startPolling')
       if (this._isFirstPooling) {
@@ -103,18 +103,21 @@ export class BucketingManager extends DecisionManager {
     }
   }
 
-  public stopPolling ():void {
+  public stopPolling (): void {
     clearInterval(this._intervalID)
     this._isPooling = false
     logInfo(this.config, 'Bucketing polling stopped', 'stopPolling')
   }
 
-  private async sendContext (visitor: VisitorAbstract):Promise<void> {
+  private async sendContext (visitor: VisitorAbstract): Promise<void> {
     try {
+      if (Object.keys(visitor.context).length <= 3) {
+        return
+      }
       const url = sprintf(BUCKETING_API_CONTEXT_URL, this.config.envId)
-      const headers:Record<string, string> = {
+      const headers: Record<string, string> = {
         [HEADER_X_API_KEY]: `${this.config.apiKey}`,
-        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE,
+        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
         [HEADER_X_SDK_VERSION]: SDK_VERSION,
         [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
       }
@@ -125,7 +128,7 @@ export class BucketingManager extends DecisionManager {
       }
       await this._httpClient.postAsync(url, { headers, body, timeout: this.config.timeout })
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
+    } catch (error: any) {
       logError(this.config, error.message || error, 'sendContext')
     }
   }
@@ -146,7 +149,7 @@ export class BucketingManager extends DecisionManager {
       return []
     }
 
-    const visitorCampaigns:CampaignDTO[] = []
+    const visitorCampaigns: CampaignDTO[] = []
 
     this._bucketingContent.campaigns.forEach(campaign => {
       const currentCampaigns = this.getVisitorCampaigns(campaign.variationGroups, campaign.id, campaign.type, visitor)
@@ -157,7 +160,7 @@ export class BucketingManager extends DecisionManager {
     return visitorCampaigns
   }
 
-  private getVisitorCampaigns (variationGroups : VariationGroupDTO[], campaignId: string, campaignType:string, visitor: VisitorAbstract) :CampaignDTO|null {
+  private getVisitorCampaigns (variationGroups: VariationGroupDTO[], campaignId: string, campaignType: string, visitor: VisitorAbstract): CampaignDTO | null {
     for (const variationGroup of variationGroups) {
       const check = this.isMatchTargeting(variationGroup, visitor)
       if (check) {
@@ -179,7 +182,7 @@ export class BucketingManager extends DecisionManager {
     return null
   }
 
-  private getVariation (variationGroup:VariationGroupDTO, visitor:VisitorAbstract): VariationDTO|null {
+  private getVariation (variationGroup: VariationGroupDTO, visitor: VisitorAbstract): VariationDTO | null {
     const hash = this._murmurHash.murmurHash3Int32(variationGroup.id + visitor.visitorId)
     const hashAllocation = hash % 100
     let totalAllocation = 0
@@ -215,7 +218,7 @@ export class BucketingManager extends DecisionManager {
     return null
   }
 
-  private isMatchTargeting (variationGroup:VariationGroupDTO, visitor: VisitorAbstract):boolean {
+  private isMatchTargeting (variationGroup: VariationGroupDTO, visitor: VisitorAbstract): boolean {
     if (!variationGroup || !variationGroup.targeting || !variationGroup.targeting.targetingGroups) {
       return false
     }
@@ -228,8 +231,8 @@ export class BucketingManager extends DecisionManager {
     return ['NOT_EQUALS', 'NOT_CONTAINS'].includes(operator)
   }
 
-  private checkAndTargeting (targetings:Targetings[], visitor: VisitorAbstract) : boolean {
-    let contextValue:primitive
+  private checkAndTargeting (targetings: Targetings[], visitor: VisitorAbstract): boolean {
+    let contextValue: primitive
     let check = false
 
     for (const { key, value, operator } of targetings) {
@@ -257,7 +260,7 @@ export class BucketingManager extends DecisionManager {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private testListOperatorLoop (operator: string, contextValue : primitive, value: any[], initialCheck:boolean) {
+  private testListOperatorLoop (operator: string, contextValue: primitive, value: any[], initialCheck: boolean) {
     let check = initialCheck
     for (const v of value) {
       check = this.testOperator(operator, contextValue, v)
@@ -269,7 +272,7 @@ export class BucketingManager extends DecisionManager {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private testListOperator (operator: string, contextValue : primitive, value: any[]): boolean {
+  private testListOperator (operator: string, contextValue: primitive, value: any[]): boolean {
     const andOperator = this.isANDListOperator(operator)
     if (andOperator) {
       return this.testListOperatorLoop(operator, contextValue, value, true)
@@ -278,8 +281,8 @@ export class BucketingManager extends DecisionManager {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private testOperator (operator: string, contextValue : primitive, value: any): boolean {
-    let check:boolean
+  private testOperator (operator: string, contextValue: primitive, value: any): boolean {
+    let check: boolean
     if (Array.isArray(value)) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return this.testListOperator(operator, contextValue, value)

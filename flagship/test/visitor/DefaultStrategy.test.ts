@@ -36,9 +36,9 @@ describe('test DefaultStrategy ', () => {
   const httpClient = new HttpClient()
 
   const post: Mock<
-      Promise<IHttpResponse>,
-      [url: string, options: IHttpOptions]
-    > = jest.fn()
+    Promise<IHttpResponse>,
+    [url: string, options: IHttpOptions]
+  > = jest.fn()
   httpClient.postAsync = post
   post.mockResolvedValue({} as IHttpResponse)
 
@@ -66,7 +66,7 @@ describe('test DefaultStrategy ', () => {
   const defaultStrategy = new DefaultStrategy(visitorDelegate)
 
   const predefinedContext = {
-    fs_client: SDK_LANGUAGE,
+    fs_client: SDK_LANGUAGE.name,
     fs_version: SDK_VERSION,
     fs_users: visitorDelegate.visitorId
   }
@@ -131,7 +131,7 @@ describe('test DefaultStrategy ', () => {
   it('test clear Context', () => {
     defaultStrategy.clearContext()
     expect(visitorDelegate.context).toEqual({
-      fs_client: SDK_LANGUAGE,
+      fs_client: SDK_LANGUAGE.name,
       fs_version: SDK_VERSION,
       fs_users: visitorId
     })
@@ -209,12 +209,14 @@ describe('test DefaultStrategy ', () => {
   }
 
   const testModificationTypeArray = async <T>(
-    params: {key: string,
-    defaultValue: T,
-    activate? :boolean}[], activateAll = false
+    params: {
+      key: string,
+      defaultValue: T,
+      activate?: boolean
+    }[], activateAll = false
   ) => {
     try {
-      const returnMod:Record<string, T> = {}
+      const returnMod: Record<string, T> = {}
       params.forEach(item => {
         returnMod[item.key] = (returnModification.get(item.key) as FlagDTO).value
       })
@@ -317,14 +319,14 @@ describe('test DefaultStrategy ', () => {
   })
 
   it('test getModification with array', () => {
-    testModificationTypeArray<string|number>([
+    testModificationTypeArray<string | number>([
       { key: 'keyString', defaultValue: 'defaultString' },
       { key: 'keyNumber', defaultValue: 10 }
     ])
   })
 
   it('test getModification with array and activateAll', () => {
-    testModificationTypeArray<string|number>([
+    testModificationTypeArray<string | number>([
       { key: 'keyString', defaultValue: 'defaultString' },
       { key: 'keyNumber', defaultValue: 10 },
       { key: 'keyNull', defaultValue: 10 }
@@ -1020,7 +1022,7 @@ describe('test authenticate on bucketing mode', () => {
   config.logManager = logManager
 
   const trackingManager = new TrackingManager({} as HttpClient, config)
-  const sendConsentHit:Mock<Promise<void>, [VisitorAbstract]> = jest.fn()
+  const sendConsentHit: Mock<Promise<void>, [VisitorAbstract]> = jest.fn()
   trackingManager.sendConsentHit = sendConsentHit
 
   sendConsentHit.mockResolvedValue()

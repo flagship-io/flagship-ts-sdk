@@ -103,22 +103,22 @@ export class Flagship {
   /**
    * Return the last visitor created if isNewInstance key is false. Return undefined otherwise.
    */
-  public getVisitor ():Visitor|undefined {
+  public getVisitor (): Visitor | undefined {
     return this._visitorInstance
   }
 
   /**
    * Return the last visitor created if isNewInstance key is false. Return undefined otherwise.
    */
-  public static getVisitor ():Visitor|undefined {
+  public static getVisitor (): Visitor | undefined {
     return this.getInstance().getVisitor()
   }
 
-  private buildConfig (config?: IFlagshipConfig| FlagshipConfig):FlagshipConfig {
+  private buildConfig (config?: IFlagshipConfig | FlagshipConfig): FlagshipConfig {
     if (config instanceof FlagshipConfig) {
       return config
     }
-    let newConfig:FlagshipConfig
+    let newConfig: FlagshipConfig
     if (config?.decisionMode === DecisionMode.BUCKETING) {
       newConfig = new BucketingConfig(config)
     } else {
@@ -127,9 +127,9 @@ export class Flagship {
     return newConfig
   }
 
-  private buildDecisionManager (flagship:Flagship, config:FlagshipConfig, httpClient:HttpClient) : DecisionManager {
-    let decisionManager:DecisionManager
-    const setStatus = (status:FlagshipStatus) => {
+  private buildDecisionManager (flagship: Flagship, config: FlagshipConfig, httpClient: HttpClient): DecisionManager {
+    let decisionManager: DecisionManager
+    const setStatus = (status: FlagshipStatus) => {
       flagship.setStatus(status)
     }
     if (config.decisionMode === DecisionMode.BUCKETING) {
@@ -156,8 +156,8 @@ export class Flagship {
   public static start (
     envId: string,
     apiKey: string,
-    config?: IFlagshipConfig| FlagshipConfig
-  ): Flagship|null {
+    config?: IFlagshipConfig | FlagshipConfig
+  ): Flagship | null {
     const flagship = this.getInstance()
 
     config = flagship.buildConfig(config)
@@ -236,9 +236,9 @@ export class Flagship {
    * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
    * @returns {Visitor} a new visitor instance
    */
-  public newVisitor (visitorId?: string|null, context?: Record<string, primitive>): Visitor | null
-  public newVisitor (params?:NewVisitor): Visitor | null
-  public newVisitor (param1?:NewVisitor|string|null, param2?:Record<string, primitive>):Visitor | null {
+  public newVisitor(visitorId?: string | null, context?: Record<string, primitive>): Visitor | null
+  public newVisitor(params?: NewVisitor): Visitor | null
+  public newVisitor (param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor | null {
     return Flagship.newVisitor(param1, param2)
   }
 
@@ -248,26 +248,26 @@ export class Flagship {
    * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
    * @returns {Visitor} a new visitor instance
    */
-  public static newVisitor (visitorId?: string|null, context?: Record<string, primitive>): Visitor | null
+  public static newVisitor(visitorId?: string | null, context?: Record<string, primitive>): Visitor | null
   /**
    * Create a new visitor with a context.
    * @param {string} visitorId : Unique visitor identifier.
    * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
    * @returns {Visitor} a new visitor instance
    */
-  public static newVisitor (params?:NewVisitor): Visitor | null
-  public static newVisitor (param1?:NewVisitor|string|null, param2?:Record<string, primitive>):Visitor | null
-  public static newVisitor (param1?:NewVisitor|string|null, param2?:Record<string, primitive>):Visitor | null {
+  public static newVisitor(params?: NewVisitor): Visitor | null
+  public static newVisitor(param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor | null
+  public static newVisitor (param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor | null {
     if (!this.isReady()) {
       return null
     }
 
-    let visitorId:string|undefined
-    let context:Record<string, primitive>
+    let visitorId: string | undefined
+    let context: Record<string, primitive>
     let isAuthenticated = false
     let hasConsented = true
-    let initialModifications:Map<string, FlagDTO>|FlagDTO[]|undefined
-    let initialCampaigns:CampaignDTO[]|undefined
+    let initialModifications: Map<string, FlagDTO> | FlagDTO[] | undefined
+    let initialCampaigns: CampaignDTO[] | undefined
     const isServerSide = !isBrowser()
     let isNewInstance = isServerSide
 

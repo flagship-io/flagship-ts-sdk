@@ -30,7 +30,7 @@ jest.mock('../../src/decision/ApiManager', () => {
     })
   }
 })
-const sendConsentHit:Mock<Promise<void>, []> = jest.fn()
+const sendConsentHit: Mock<Promise<void>, []> = jest.fn()
 sendConsentHit.mockResolvedValue()
 
 jest.mock('../../src/api/TrackingManager', () => {
@@ -162,7 +162,7 @@ describe('test Flagship newVisitor', () => {
     const visitorId = 'visitorId'
     const context = { isVip: true }
     const predefinedContext = {
-      fs_client: SDK_LANGUAGE,
+      fs_client: SDK_LANGUAGE.name,
       fs_version: SDK_VERSION,
       fs_users: visitorId
     }
