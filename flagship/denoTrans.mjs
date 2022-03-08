@@ -80,4 +80,4 @@ const packageResolve = {
 
 transformFromDir(src, packageResolve)
 
-copyFileSync("README.md","dist-deno/README.md")
+copyFileSync("README.md","dist-deno/src/README.md")
