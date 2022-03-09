@@ -227,7 +227,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         }
 
         batchSize = JSON.stringify(batches[count]).length
-        if (batchSize > 2500) {
+        if (batchSize > 2621440) {
           count++
           batches[count] = {
             type: 'BATCH',

@@ -181,7 +181,7 @@ describe('test visitor hit cache', () => {
           time: Date.now(),
           content: {
             type: HitType.SCREEN,
-            documentLocation: `screenName${index}`
+            documentLocation: `screenName${index}`.repeat(5000)
           }
         }
       })
@@ -260,7 +260,7 @@ describe('test visitor hit cache', () => {
     expect(sendHit).toHaveBeenNthCalledWith(3, {
       _anonymousId: null,
       _config: expect.anything(),
-      _hits: hits.slice(45, 90).map(item => {
+      _hits: hits.slice(45, 89).map(item => {
         const data = item.data.content as IScreen
         return new Screen({ documentLocation: data.documentLocation })
       }),
@@ -271,7 +271,7 @@ describe('test visitor hit cache', () => {
     expect(sendHit).toHaveBeenNthCalledWith(4, {
       _anonymousId: null,
       _config: expect.anything(),
-      _hits: hits.slice(90, 100).map(item => {
+      _hits: hits.slice(89, 100).map(item => {
         const data = item.data.content as IScreen
         return new Screen({ documentLocation: data.documentLocation })
       }),
