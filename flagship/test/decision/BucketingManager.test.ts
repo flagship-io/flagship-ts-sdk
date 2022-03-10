@@ -41,7 +41,7 @@ describe('test BucketingManager', () => {
   it('test getCampaignsAsync empty', async () => {
     const campaigns = await bucketingManager.getCampaignsAsync(visitor)
     expect(campaigns).toHaveLength(0)
-    expect(sendContext).toBeCalledTimes(1)
+    expect(sendContext).toBeCalledTimes(0)
   })
 
   it('test getCampaignsAsync panic mode', async () => {
@@ -51,7 +51,7 @@ describe('test BucketingManager', () => {
     const campaigns = await bucketingManager.getCampaignsAsync(visitor)
     expect(campaigns).toHaveLength(0)
     expect(bucketingManager.isPanic()).toBeTruthy()
-    expect(sendContext).toBeCalledTimes(1)
+    expect(sendContext).toBeCalledTimes(0)
   })
 
   it('test getCampaignsAsync campaign empty', async () => {
@@ -67,7 +67,7 @@ describe('test BucketingManager', () => {
     const campaigns = await bucketingManager.getCampaignsAsync(visitor)
     expect(campaigns).toHaveLength(0)
     bucketingManager.stopPolling()
-    expect(sendContext).toBeCalledTimes(1)
+    expect(sendContext).toBeCalledTimes(0)
   })
 
   const headers = { 'last-modified': 'Fri, 06 Aug 2021 11:16:19 GMT' }
