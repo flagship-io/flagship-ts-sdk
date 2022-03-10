@@ -197,8 +197,10 @@ describe('Test SDK_LANGUAGE', () => {
 
   it('should be Deno', () => {
     const window = globalThis.window
+
     globalThis.window = {
       Deno: expect.anything()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any
     const config = new DecisionApiConfig({ language: 0 })
     expect(SDK_LANGUAGE.name).toBe('Deno')

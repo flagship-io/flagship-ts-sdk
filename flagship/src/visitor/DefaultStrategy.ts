@@ -245,7 +245,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   protected fetchVisitorCampaigns (visitor: VisitorDelegate) :CampaignDTO[] {
-    if (!visitor?.visitorCache?.data?.campaigns ||  !Array.isArray(visitor.visitorCache.data.campaigns)) {
+    if (!visitor?.visitorCache?.data?.campaigns || !Array.isArray(visitor.visitorCache.data.campaigns)) {
       return []
     }
     visitor.updateContext(visitor.visitorCache.data.context || {})
