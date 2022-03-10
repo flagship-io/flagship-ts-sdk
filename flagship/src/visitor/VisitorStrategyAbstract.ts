@@ -124,7 +124,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
   protected async cacheVisitor ():Promise<void> {
     try {
       const visitorCacheInstance = this.config.visitorCacheImplementation
-      if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.cacheVisitor !== 'function') {
+      if (this.config.disableCache || !visitorCacheInstance || typeof visitorCacheInstance.cacheVisitor !== 'function') {
         return
       }
 
@@ -169,7 +169,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
   protected async flushVisitor ():Promise<void> {
     try {
       const visitorCacheInstance = this.config.visitorCacheImplementation
-      if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.cacheVisitor || typeof visitorCacheInstance.flushVisitor !== 'function') {
+      if (this.config.disableCache || !visitorCacheInstance || typeof visitorCacheInstance.flushVisitor !== 'function') {
         return
       }
       visitorCacheInstance.flushVisitor(this.visitor.visitorId)

@@ -245,11 +245,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   protected fetchVisitorCampaigns (visitor: VisitorDelegate) :CampaignDTO[] {
-    if (!visitor.visitorCache || !visitor.visitorCache.data ||
-      !visitor.visitorCache.data.campaigns) {
+    if (!visitor?.visitorCache?.data?.campaigns ||  !Array.isArray(visitor.visitorCache.data.campaigns)) {
       return []
     }
-    this.setConsent(!!visitor.visitorCache.data.consent)
     visitor.updateContext(visitor.visitorCache.data.context || {})
     return visitor.visitorCache.data.campaigns.map(campaign => {
       return {
