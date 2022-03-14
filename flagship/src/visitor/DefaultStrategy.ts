@@ -41,7 +41,7 @@ import {
   IHitAbstract
 } from '../hit/index'
 import { HitShape, ItemHit } from '../hit/Legacy'
-import { primitive, modificationsRequested, IHit, FlagDTO } from '../types'
+import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO } from '../types'
 import { hasSameType, logError, logInfo, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
@@ -245,13 +245,12 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   protected fetchVisitorCampaigns (visitor: VisitorDelegate) :CampaignDTO[] {
-    if (!visitor.visitorCache || !visitor.visitorCache.data ||
-      !visitor.visitorCache.data.campaigns) {
+    if (!Array.isArray(visitor?.visitorCache?.data.campaigns)) {
       return []
     }
-    this.setConsent(!!visitor.visitorCache.data.consent)
-    visitor.updateContext(visitor.visitorCache.data.context || {})
-    return visitor.visitorCache.data.campaigns.map(campaign => {
+    visitor.updateContext((visitor.visitorCache as VisitorCacheDTO).data.context || {})
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (visitor.visitorCache as any).data.campaigns.map((campaign:any) => {
       return {
         id: campaign.campaignId,
         variationGroupId: campaign.variationGroupId,

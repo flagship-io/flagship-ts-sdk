@@ -133,7 +133,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
         SDK_LANGUAGE.name = 'React-Native'
         break
       default:
-        SDK_LANGUAGE.name = 'Typescript'
+        SDK_LANGUAGE.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'Typescript'
         break
     }
 

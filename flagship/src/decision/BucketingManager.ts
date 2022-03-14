@@ -134,8 +134,6 @@ export class BucketingManager extends DecisionManager {
   }
 
   async getCampaignsAsync (visitor: VisitorAbstract): Promise<CampaignDTO[]> {
-    this.sendContext(visitor)
-
     if (!this._bucketingContent) {
       return []
     }
@@ -148,6 +146,8 @@ export class BucketingManager extends DecisionManager {
     if (!this._bucketingContent.campaigns) {
       return []
     }
+
+    this.sendContext(visitor)
 
     const visitorCampaigns: CampaignDTO[] = []
 

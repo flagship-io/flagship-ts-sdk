@@ -194,4 +194,17 @@ describe('Test SDK_LANGUAGE', () => {
     expect(SDK_LANGUAGE.name).toBe('Typescript')
     expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
   })
+
+  it('should be Deno', () => {
+    const window = globalThis.window
+
+    globalThis.window = {
+      Deno: expect.anything()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any
+    const config = new DecisionApiConfig({ language: 0 })
+    expect(SDK_LANGUAGE.name).toBe('Deno')
+    expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
+    global.window = window
+  })
 })
