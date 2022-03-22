@@ -31,26 +31,26 @@ describe('Test DefaultHitCache', () => {
     }
   }
 
-  it('should ', () => {
-    defaultHitCache.cacheHit(visitorId, visitorData)
+  it('should ', async () => {
+    await defaultHitCache.cacheHit(visitorId, visitorData)
     expect(global.localStorage.setItem).toBeCalledTimes(1)
     expect(global.localStorage.setItem).toHaveBeenCalledWith(`${FS_HIT_PREFIX}${visitorId}`, JSON.stringify([visitorData]))
   })
-  it('should ', () => {
+  it('should ',async () => {
     storageMock.getItem.mockReturnValue(JSON.stringify([visitorData]))
-    defaultHitCache.cacheHit(visitorId, visitorData)
+    await defaultHitCache.cacheHit(visitorId, visitorData)
     expect(global.localStorage.setItem).toBeCalledTimes(1)
     expect(global.localStorage.setItem).toHaveBeenCalledWith(`${FS_HIT_PREFIX}${visitorId}`, JSON.stringify([visitorData, visitorData]))
   })
-  it('should ', () => {
-    defaultHitCache.flushHits(visitorId)
+  it('should ', async () => {
+    await defaultHitCache.flushHits(visitorId)
     expect(global.localStorage.removeItem).toBeCalledTimes(1)
     expect(global.localStorage.removeItem).toHaveBeenCalledWith(`${FS_HIT_PREFIX}${visitorId}`)
   })
 
-  it('should ', () => {
+  it('should ',async () => {
     storageMock.getItem.mockReturnValue(JSON.stringify(visitorData))
-    const data = defaultHitCache.lookupHits(visitorId)
+    const data = await defaultHitCache.lookupHits(visitorId)
     expect(data).toEqual(visitorData)
     expect(global.localStorage.removeItem).toBeCalledTimes(1)
   })

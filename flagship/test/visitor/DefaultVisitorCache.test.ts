@@ -36,26 +36,26 @@ describe('Test DefaultVisitorCache', () => {
     }
   }
 
-  it('should ', () => {
-    defaultVisitorCache.cacheVisitor(visitorId, visitorData)
+  it('should ',async () => {
+    await defaultVisitorCache.cacheVisitor(visitorId, visitorData)
     expect(global.localStorage.setItem).toBeCalledTimes(1)
     expect(global.localStorage.setItem).toHaveBeenCalledWith(`${VISITOR_PREFIX}${visitorId}`, JSON.stringify(visitorData))
   })
-  it('should ', () => {
-    defaultVisitorCache.flushVisitor(visitorId)
+  it('should ', async () => {
+    await defaultVisitorCache.flushVisitor(visitorId)
     expect(global.localStorage.removeItem).toBeCalledTimes(1)
     expect(global.localStorage.removeItem).toHaveBeenCalledWith(`${VISITOR_PREFIX}${visitorId}`)
   })
 
-  it('should ', () => {
+  it('should ', async () => {
     storageMock.getItem.mockReturnValue(JSON.stringify(visitorData))
-    const data = defaultVisitorCache.lookupVisitor(visitorId)
+    const data = await defaultVisitorCache.lookupVisitor(visitorId)
     expect(data).toEqual(visitorData)
   })
 
-  it('should ', () => {
+  it('should ', async () => {
     storageMock.getItem.mockReturnValue(null)
-    const data = defaultVisitorCache.lookupVisitor(visitorId)
+    const data = await defaultVisitorCache.lookupVisitor(visitorId)
     expect(data).toBeNull()
   })
 })

@@ -106,7 +106,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
         return
       }
-      const visitorCache = visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
+      const visitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
       if (!visitorCache) {
         return
       }
@@ -153,7 +153,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
       data.data.assignmentsHistory = { ...this.visitor.visitorCache?.data?.assignmentsHistory, ...assignmentsHistory }
 
-      visitorCacheInstance.cacheVisitor(this.visitor.visitorId, data)
+      await visitorCacheInstance.cacheVisitor(this.visitor.visitorId, data)
 
       this.visitor.visitorCache = data
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -172,7 +172,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       if (this.config.disableCache || !visitorCacheInstance || typeof visitorCacheInstance.flushVisitor !== 'function') {
         return
       }
-      visitorCacheInstance.flushVisitor(this.visitor.visitorId)
+      await visitorCacheInstance.flushVisitor(this.visitor.visitorId)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logError(
@@ -198,7 +198,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         return
       }
 
-      const hitsCache = hitCacheImplementation.lookupHits(this.visitor.visitorId)
+      const hitsCache = await hitCacheImplementation.lookupHits(this.visitor.visitorId)
       if (!hitsCache) {
         return
       }
@@ -265,7 +265,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
           time: Date.now()
         }
       }
-      hitCacheImplementation.cacheHit(this.visitor.visitorId, hitData)
+      await hitCacheImplementation.cacheHit(this.visitor.visitorId, hitData)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logError(this.config, error.message || error, PROCESS_CACHE_HIT)
@@ -279,7 +279,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         return
       }
 
-      hitCacheImplementation.flushHits(this.visitor.visitorId)
+      await hitCacheImplementation.flushHits(this.visitor.visitorId)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logError(this.config, error.message || error, 'flushHits')
