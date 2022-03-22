@@ -6,16 +6,16 @@ export interface IHitCacheImplementation {
      * @param visitorId visitor ID
      * @param data hit data
      */
-    cacheHit(visitorId:string, data: HitCacheDTO):void
+    cacheHit(visitorId:string, data: HitCacheDTO):Promise<void>
     /**
      * This method will be called to load hits corresponding to visitor ID from your database and trying to send them again in the background.
      * Note: Hits older than 4H will be ignored
      * @param visitorId Visitor
      */
-    lookupHits(visitorId: string): HitCacheDTO[]
+    lookupHits(visitorId: string): Promise<HitCacheDTO[]>
     /**
      * This method will be called to erase the visitor hits cache corresponding to visitor ID from your database.
      * @param visitorId visitor ID
      */
-    flushHits(visitorId: string):void
+    flushHits(visitorId: string): Promise<void>
 }
