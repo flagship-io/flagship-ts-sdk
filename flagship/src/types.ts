@@ -13,6 +13,8 @@ export type primitive=string | number | boolean
 export type { HitShape }
 export type IHit = IPage | IScreen | IEvent | IItem | ITransaction
 
+export type SuperHitType = HitType|'BATCH'|'ACTIVATE'
+
 export type FlagDTO= {
   key: string;
   campaignId: string;

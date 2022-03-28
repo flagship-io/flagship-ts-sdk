@@ -13,13 +13,13 @@ import {
   USER_LANGUAGE
 } from '../enum/FlagshipConstant'
 import { HitType } from '../enum/HitType'
-import { primitive } from '../types'
+import { primitive, SuperHitType } from '../types'
 import { logError, sprintf } from '../utils/utils'
 
 export interface IHitAbstract{
   visitorId?:string
   ds?: string
-  type: HitType|'BATCH'
+  type: SuperHitType
   userIp?: string
   screenResolution?: string
   locale?: string
@@ -29,7 +29,7 @@ export interface IHitAbstract{
 export abstract class HitAbstract implements IHitAbstract {
   private _visitorId!: string;
   private _config!: IFlagshipConfig;
-  protected _type!: HitType|'BATCH';
+  protected _type!: SuperHitType;
   private _ds!: string;
   private _anonymousId! : string|null;
   private _userIp! : string;
@@ -93,7 +93,7 @@ export abstract class HitAbstract implements IHitAbstract {
     this._ds = v
   }
 
-  public get type (): HitType|'BATCH' {
+  public get type (): SuperHitType {
     return this._type
   }
 

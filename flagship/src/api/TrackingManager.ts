@@ -29,8 +29,49 @@ import { HitAbstract } from '../hit/HitAbstract'
 import { FlagDTO, primitive } from '../types'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { TrackingManagerAbstract } from './TrackingManagerAbstract'
+import { IFlagshipConfig } from '../config'
+import { IHttpClient } from '../utils/HttpClient'
 
 export class TrackingManager extends TrackingManagerAbstract {
+
+  private _intervalID :any;
+  private _isPooling: any;
+  private hits: HitAbstract[];
+
+  public constructor(httpClient: IHttpClient, config: IFlagshipConfig){
+    super(httpClient, config)
+    this.hits = []
+  }
+
+  public startPolling(): void {
+    throw new Error('Method not implemented.')
+  }
+  public stopPolling(): void {
+    throw new Error('Method not implemented.')
+  }
+
+  private polling(){
+
+    try {
+      this._isPooling = true
+
+      const headers = {
+        [HEADER_X_API_KEY]: `${this.config.apiKey}`,
+        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
+        [HEADER_X_SDK_VERSION]: SDK_VERSION,
+        [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
+      }
+  
+      const url = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
+
+      
+
+
+    } catch (error) {
+      
+    }
+
+  }
   public async sendConsentHit (visitor: VisitorAbstract): Promise<void> {
     const postBody: Record<string, unknown> = {
       [T_API_ITEM]: HitType.EVENT,
@@ -96,6 +137,18 @@ export class TrackingManager extends TrackingManagerAbstract {
   }
 
   public async sendHit (hit: HitAbstract): Promise<void> {
+    const headers = {
+      [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
+    }
+
+    await this.httpClient.postAsync(HIT_API_URL, {
+      headers: headers,
+      timeout: this.config.timeout,
+      body: hit.toApiKeys()
+    })
+  }
+
+  public async sendBatch (hit: HitAbstract): Promise<void> {
     const headers = {
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
