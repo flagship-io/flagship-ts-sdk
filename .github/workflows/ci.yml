@@ -24,8 +24,6 @@ jobs:
           cache: "yarn"
       - run: yarn install
       - run: yarn lint
-      - run: yarn test --silent=true
-
       - run: yarn test --coverage
       - uses: codecov/codecov-action@v2
         with:
