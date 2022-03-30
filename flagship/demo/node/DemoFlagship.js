@@ -6,7 +6,7 @@ import Flagship, {
   Item,
   LogLevel,
   Transaction
-} from '@flagship.io/js-sdk'
+} from '../../dist/index.node'
 import { API_KEY, ENV_ID } from './config.js'
 import { campaigns } from './campaigns'
 
@@ -25,7 +25,8 @@ Flagship.start(ENV_ID, API_KEY, {
   statusChangedCallback,
   logLevel: LogLevel.ERROR,
   fetchNow: false,
-  timeout: 10
+  timeout: 10,
+  activateDeduplicationTime: 0
 })
 
 const start = async (visitor, index) => {
@@ -61,25 +62,25 @@ const start = async (visitor, index) => {
       category: EventCategory.ACTION_TRACKING,
       action: 'KPI2',
       value: 10
-    })
+    }, false)
 
     console.log('hit type Event')
 
     await flag.userExposed()
     // hit type Page
-    await visitor.sendHit({ type: HitType.PAGE, documentLocation: 'https://www.sdk.com/abtastylab/js/151021-' + index })
+    await visitor.sendHit({ type: HitType.PAGE, documentLocation: 'https://www.sdk.com/abtastylab/js/151021-' + index }, false)
     console.log('hit type Page')
 
     await flag.userExposed()
     // hit type Screen
-    await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'abtastylab-js-' + index })
+    await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'abtastylab-js-' + index }, false)
 
     console.log('hit type Screen')
 
     await flag.userExposed()
     // hit type Transaction
     const transaction = new Transaction({ transactionId: visitor.visitorId, affiliation: 'KPI1' })
-    await visitor.sendHit(transaction)
+    await visitor.sendHit(transaction, false)
 
     console.log('hit type transaction')
 
@@ -91,8 +92,8 @@ const start = async (visitor, index) => {
 
 async function script () {
   await sleep(2000)
-  for (let index = 0; index <= 1; index++) {
-    const visitor = Flagship.newVisitor({ visitorId: 'visitor_a', context: { qa_report: true } })
+  for (let index = 0; index <= 2; index++) {
+    const visitor = Flagship.newVisitor({ visitorId: 'visitor_a'+index, context: { qa_report: true } })
     await start(visitor, index)
   }
 }

@@ -61,13 +61,21 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     this.getStrategy().lookupVisitor()
     this.getStrategy().lookupHits()
+
   }
 
   public clearDeDuplicationCache (deDuplicationTime: number): void {
+    console.log("visitor", this.visitorId);
+    console.log("clearDeDuplicationCache", this.deDuplicationCache);
+    
     if (this._isCleaningDeDuplicationCache) {
       return
     }
     this._isCleaningDeDuplicationCache = true
+
+    if (!this.deDuplicationCache) {
+      return
+    }
     const entries = Object.entries(this.deDuplicationCache)
 
     for (const [key, value] of entries) {
@@ -75,6 +83,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
         delete this.deDuplicationCache[key]
       }
     }
+    console.log("clearDeDuplicationCache", this.deDuplicationCache);
     this._isCleaningDeDuplicationCache = false
   }
 
@@ -261,15 +270,15 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   abstract activateModifications(keys: string[]): Promise<void>;
   abstract activateModifications(params: Array<{ key: string }> | Array<string>): Promise<void>
 
-  abstract sendHit(hit: HitAbstract): Promise<void>;
-  abstract sendHit(hit: IHit): Promise<void>;
-  abstract sendHit(hit: HitShape): Promise<void>;
-  abstract sendHit(hit: IHit | HitAbstract | HitShape): Promise<void>;
+  abstract sendHit(hit: HitAbstract, checkDeduplication?: boolean): Promise<void>;
+  abstract sendHit(hit: IHit, checkDeduplication?: boolean): Promise<void>;
+  abstract sendHit(hit: HitShape, checkDeduplication?: boolean): Promise<void>;
+  abstract sendHit(hit: IHit | HitAbstract | HitShape, checkDeduplication?: boolean): Promise<void>;
 
-  abstract sendHits(hit: HitAbstract[]): Promise<void>;
-  abstract sendHits(hit: IHit[]): Promise<void>;
-  abstract sendHits(hit: HitShape[]): Promise<void>;
-  abstract sendHits(hit: HitAbstract[] | IHit[] | HitShape[]): Promise<void>
+  abstract sendHits(hit: HitAbstract[], checkDeduplication?: boolean): Promise<void>;
+  abstract sendHits(hit: IHit[], checkDeduplication?: boolean): Promise<void>;
+  abstract sendHits(hit: HitShape[], checkDeduplication?: boolean): Promise<void>;
+  abstract sendHits(hit: HitAbstract[] | IHit[] | HitShape[], checkDeduplication?: boolean): Promise<void>
 
   abstract getAllModifications(activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 

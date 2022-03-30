@@ -58,20 +58,20 @@ export class VisitorDelegate extends VisitorAbstract {
     return this.getStrategy().activateModifications(params)
   }
 
-  sendHit(hit: HitAbstract): Promise<void>
-  sendHit(hit: IHit): Promise<void>
-  sendHit(hit: HitShape): Promise<void>
-  sendHit(hit: HitAbstract | IHit|HitShape): Promise<void>
-  sendHit (hit: HitAbstract | IHit|HitShape): Promise<void> {
-    return this.getStrategy().sendHit(hit)
+  sendHit(hit: HitAbstract, checkDeduplication?: boolean): Promise<void>
+  sendHit(hit: IHit, checkDeduplication?: boolean): Promise<void>
+  sendHit(hit: HitShape, checkDeduplication?: boolean): Promise<void>
+  sendHit(hit: HitAbstract | IHit|HitShape, checkDeduplication?: boolean): Promise<void>
+  sendHit (hit: HitAbstract | IHit|HitShape, checkDeduplication = true): Promise<void> {
+    return this.getStrategy().sendHit(hit, checkDeduplication)
   }
 
-  sendHits(hits: HitAbstract[]): Promise<void>
-  sendHits(hits: IHit[]): Promise<void>
-  sendHits(hit: HitShape[]): Promise<void>;
-  sendHits(hits: HitAbstract[] | IHit[]|HitShape[]): Promise<void>
-  sendHits (hits: HitAbstract[] | IHit[]|HitShape[]): Promise<void> {
-    return this.getStrategy().sendHits(hits)
+  sendHits(hits: HitAbstract[], checkDeduplication?: boolean): Promise<void>
+  sendHits(hits: IHit[], checkDeduplication?: boolean): Promise<void>
+  sendHits(hit: HitShape[], checkDeduplication?: boolean): Promise<void>;
+  sendHits(hits: HitAbstract[] | IHit[]|HitShape[], checkDeduplication?: boolean): Promise<void>
+  sendHits (hits: HitAbstract[] | IHit[]|HitShape[], checkDeduplication= true): Promise<void> {
+    return this.getStrategy().sendHits(hits, checkDeduplication)
   }
 
   getAllModifications (activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {

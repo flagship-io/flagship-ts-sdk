@@ -364,7 +364,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
-    if (this.isDeDuplicated(flag.variationGroupId + this.visitor.visitorId, this.config.activateDeduplicationTime as number)) {
+    if (this.isDeDuplicated(flag.variationGroupId + this.visitor.anonymousId, this.config.activateDeduplicationTime as number)) {
       return
     }
 
@@ -379,22 +379,22 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   sendHit(hit: HitAbstract): Promise<void>
   sendHit(hit: IHit): Promise<void>
   sendHit(hit: HitShape): Promise<void>
-  sendHit (hit: IHit | HitAbstract | HitShape|BatchDTO): Promise<void> {
+  sendHit (hit: IHit | HitAbstract | HitShape|BatchDTO, checkDeduplication = true): Promise<void> {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
       return Promise.resolve()
     }
-    return this.prepareAndSendHit(hit)
+    return this.prepareAndSendHit(hit, checkDeduplication)
   }
 
   sendHits(hits: BatchDTO[]): Promise<void>
   sendHits(hits: HitAbstract[]): Promise<void>
   sendHits(hits: IHit[]): Promise<void>
   sendHits(hits: HitShape[]): Promise<void>
-  async sendHits (hits: HitAbstract[] | IHit[]|HitShape[]|BatchDTO[]): Promise<void> {
+  async sendHits (hits: HitAbstract[] | IHit[]|HitShape[]|BatchDTO[], checkDeduplication = true): Promise<void> {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
       return
     }
-    hits.forEach((hit:HitAbstract | HitShape | IHit | BatchDTO) => this.prepareAndSendHit(hit))
+    hits.forEach((hit:HitAbstract | HitShape | IHit | BatchDTO) => this.prepareAndSendHit(hit, checkDeduplication))
   }
 
   private getHitLegacy (hit: HitShape) {
@@ -479,7 +479,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return newHit
   }
 
-  private async prepareAndSendHit (hit: IHit | HitShape | HitAbstract|BatchDTO) {
+  private async prepareAndSendHit (hit: IHit | HitShape | HitAbstract|BatchDTO, checkDeduplication = true) {
     let hitInstance: HitAbstract
     if (hit instanceof HitAbstract) {
       hitInstance = hit
@@ -504,7 +504,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     hitInstance.config = this.config
     hitInstance.anonymousId = this.visitor.anonymousId
 
-    if (this.isDeDuplicated(JSON.stringify(hitInstance), this.config.hitDeduplicationTime as number)) {
+    if (checkDeduplication && this.isDeDuplicated(JSON.stringify(hitInstance.toObject()), this.config.hitDeduplicationTime as number)) {
       return
     }
 

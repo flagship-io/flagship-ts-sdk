@@ -318,17 +318,17 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
     protected abstract sendActivate (modification: FlagDTO): Promise<void>
 
-    abstract sendHit(hit: BatchDTO): Promise<void>
-    abstract sendHit(hit: HitAbstract): Promise<void>;
-    abstract sendHit(hit: IHit): Promise<void>;
-    abstract sendHit(hit: HitShape): Promise<void>;
-    abstract sendHit(hit: IHit | HitAbstract | HitShape|BatchDTO): Promise<void>;
+    abstract sendHit(hit: BatchDTO, checkDeduplication?: boolean): Promise<void>
+    abstract sendHit(hit: HitAbstract, checkDeduplication?: boolean): Promise<void>;
+    abstract sendHit(hit: IHit, checkDeduplication?: boolean): Promise<void>;
+    abstract sendHit(hit: HitShape, checkDeduplication?: boolean): Promise<void>;
+    abstract sendHit(hit: IHit | HitAbstract | HitShape|BatchDTO, checkDeduplication?: boolean): Promise<void>;
 
-    abstract sendHits(hits: BatchDTO[]): Promise<void>
-    abstract sendHits(hit: HitAbstract[]): Promise<void>;
-    abstract sendHits(hit: IHit[]): Promise<void>;
-    abstract sendHits(hit: HitShape[]): Promise<void>;
-    abstract sendHits (hits: HitAbstract[] | IHit[]|HitShape[]|BatchDTO[]): Promise<void>
+    abstract sendHits(hits: BatchDTO[], checkDeduplication?: boolean): Promise<void>
+    abstract sendHits(hit: HitAbstract[], checkDeduplication?: boolean): Promise<void>;
+    abstract sendHits(hit: IHit[], checkDeduplication?: boolean): Promise<void>;
+    abstract sendHits(hit: HitShape[], checkDeduplication?: boolean): Promise<void>;
+    abstract sendHits (hits: HitAbstract[] | IHit[]|HitShape[]|BatchDTO[], checkDeduplication: boolean): Promise<void>
 
     abstract getAllModifications (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
 

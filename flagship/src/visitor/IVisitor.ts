@@ -153,27 +153,27 @@ export interface IVisitor {
    * Send a Hit to Flagship servers for reporting.
    * @param hit
    */
-  sendHit(hit: HitAbstract): Promise<void>;
-  sendHit(hit: IHit): Promise<void>;
+  sendHit(hit: HitAbstract, checkDeduplication?: boolean): Promise<void>;
+  sendHit(hit: IHit, checkDeduplication?: boolean): Promise<void>;
   /**
    * Send a Hit to Flagship servers for reporting.
    * @deprecated
    * @param hit
    */
-  sendHit(hit: HitShape): Promise<void>;
+  sendHit(hit: HitShape, checkDeduplication?: boolean): Promise<void>;
 
   /**
    * Send Hits to Flagship servers for reporting.
    * @param hit
    */
-  sendHits(hit: Array<HitAbstract>): Promise<void>;
-  sendHits(hit: Array<IHit>): Promise<void>;
+  sendHits(hit: Array<HitAbstract>, checkDeduplication?: boolean): Promise<void>;
+  sendHits(hit: Array<IHit>, checkDeduplication?: boolean): Promise<void>;
   /**
    * Send Hits to Flagship servers for reporting.
    * @deprecated
    * @param hit
    */
-  sendHits(hit: Array<HitShape>): Promise<void>;
+  sendHits(hit: Array<HitShape>, checkDeduplication?: boolean): Promise<void>;
 
   /**
    * returns a Promise<object> containing all the data for all the campaigns associated with the current visitor.

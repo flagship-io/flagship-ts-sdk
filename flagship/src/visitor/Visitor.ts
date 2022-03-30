@@ -118,20 +118,20 @@ export class Visitor extends EventEmitter implements IVisitor {
     return this.visitorDelegate.activateModifications(params)
   }
 
-  sendHit(hit: HitAbstract): Promise<void>;
-  sendHit(hit: IHit): Promise<void>;
-  sendHit(hit: HitShape): Promise<void>;
-  sendHit (hit: IHit|HitAbstract|HitShape): Promise<void>
-  sendHit (hit: IHit|HitAbstract|HitShape): Promise<void> {
-    return this.visitorDelegate.sendHit(hit)
+  sendHit(hit: HitAbstract, checkDeduplication?: boolean): Promise<void>;
+  sendHit(hit: IHit, checkDeduplication?: boolean): Promise<void>;
+  sendHit(hit: HitShape, checkDeduplication?: boolean): Promise<void>;
+  sendHit (hit: IHit|HitAbstract|HitShape, checkDeduplication?: boolean): Promise<void>
+  sendHit (hit: IHit|HitAbstract|HitShape, checkDeduplication = true): Promise<void> {
+    return this.visitorDelegate.sendHit(hit, checkDeduplication)
   }
 
-  sendHits(hits: HitAbstract[]): Promise<void>;
-  sendHits(hits: IHit[]): Promise<void>;
-  sendHits(hit: HitShape[]): Promise<void>;
-  sendHits(hits: HitAbstract[] | IHit[]|HitShape[]): Promise<void>
-  sendHits (hits: HitAbstract[]|IHit[]|HitShape[]): Promise<void> {
-    return this.visitorDelegate.sendHits(hits)
+  sendHits(hits: HitAbstract[], checkDeduplication?: boolean): Promise<void>;
+  sendHits(hits: IHit[], checkDeduplication?: boolean): Promise<void>;
+  sendHits(hit: HitShape[], checkDeduplication?: boolean): Promise<void>;
+  sendHits(hits: HitAbstract[] | IHit[]|HitShape[], checkDeduplication?: boolean): Promise<void>
+  sendHits (hits: HitAbstract[]|IHit[]|HitShape[], checkDeduplication?: boolean): Promise<void> {
+    return this.visitorDelegate.sendHits(hits, checkDeduplication)
   }
 
   getAllModifications (activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
