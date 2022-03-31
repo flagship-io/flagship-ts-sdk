@@ -13,7 +13,7 @@ export interface IFlag<T>{
    * @param defaultValue
    * @param userExposed
    */
-    getValue(userExposed?:boolean):T
+    getValue(userExposed?:boolean, checkDeduplication?:boolean):T
     /**
      * Return true if the flag exists, false otherwise.
      */
@@ -21,7 +21,7 @@ export interface IFlag<T>{
     /**
      * activate the current key
      */
-    userExposed:()=>Promise<void>
+    userExposed:(checkDeduplication?:boolean)=>Promise<void>
     /**
      * Return The campaign metadata object.
      */
@@ -66,18 +66,19 @@ export class Flag<T> implements IFlag<T> {
       })
     }
 
-    userExposed ():Promise<void> {
+    userExposed (checkDeduplication=true):Promise<void> {
       const flagDTO = this._visitor.flagsData.get(this._key)
-      return this._visitor.userExposed({ key: this._key, flag: flagDTO, defaultValue: this._defaultValue })
+      return this._visitor.userExposed({ key: this._key, flag: flagDTO, defaultValue: this._defaultValue, checkDeduplication })
     }
 
-    getValue (userExposed = true) : T {
+    getValue (userExposed = true, checkDeduplication=true) : T {
       const flagDTO = this._visitor.flagsData.get(this._key)
       return this._visitor.getFlagValue({
         key: this._key,
         defaultValue: this._defaultValue,
         flag: flagDTO,
-        userExposed
+        userExposed,
+        checkDeduplication
       })
     }
 }

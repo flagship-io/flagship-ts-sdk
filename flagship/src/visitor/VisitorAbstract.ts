@@ -65,9 +65,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   }
 
   public clearDeDuplicationCache (deDuplicationTime: number): void {
-    console.log("visitor", this.visitorId);
-    console.log("clearDeDuplicationCache", this.deDuplicationCache);
-    
+
     if (this._isCleaningDeDuplicationCache) {
       return
     }
@@ -83,7 +81,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
         delete this.deDuplicationCache[key]
       }
     }
-    console.log("clearDeDuplicationCache", this.deDuplicationCache);
     this._isCleaningDeDuplicationCache = false
   }
 
@@ -291,8 +288,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   abstract authenticate(visitorId: string): void
   abstract unauthenticate(): void
 
-  abstract userExposed<T>(param: { key: string, flag?: FlagDTO, defaultValue: T }): Promise<void>
-  abstract getFlagValue<T>(param: { key: string, defaultValue: T, flag?: FlagDTO, userExposed?: boolean }): T
+  abstract userExposed<T>(param: { key: string, flag?: FlagDTO, defaultValue: T, checkDeduplication?:boolean }): Promise<void>
+  abstract getFlagValue<T>(param: { key: string, defaultValue: T, flag?: FlagDTO, userExposed?: boolean, checkDeduplication?:boolean }): T
   abstract fetchFlags(): Promise<void>
   abstract getFlagMetadata(param: { metadata: IFlagMetadata, key?: string, hasSameType: boolean }): IFlagMetadata
 }

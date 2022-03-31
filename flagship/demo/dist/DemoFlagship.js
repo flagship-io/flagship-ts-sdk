@@ -25,8 +25,7 @@ _index2.default.start(_config.ENV_ID, _config.API_KEY, {
   statusChangedCallback,
   logLevel: _index.LogLevel.ERROR,
   fetchNow: false,
-  timeout: 10,
-  activateDeduplicationTime: 0
+  timeout: 10
 });
 
 const start = async (visitor, index) => {
@@ -51,7 +50,7 @@ const start = async (visitor, index) => {
 
     console.log('flag.value', value);
 
-    await flag.userExposed();
+    await flag.userExposed(false);
 
     console.log('flag.userExposed');
     // send hit
@@ -66,18 +65,18 @@ const start = async (visitor, index) => {
 
     console.log('hit type Event');
 
-    await flag.userExposed();
+    await flag.userExposed(false);
     // hit type Page
     await visitor.sendHit({ type: _index.HitType.PAGE, documentLocation: 'https://www.sdk.com/abtastylab/js/151021-' + index }, false);
     console.log('hit type Page');
 
-    await flag.userExposed();
+    await flag.userExposed(false);
     // hit type Screen
     await visitor.sendHit({ type: _index.HitType.SCREEN, documentLocation: 'abtastylab-js-' + index }, false);
 
     console.log('hit type Screen');
 
-    await flag.userExposed();
+    await flag.userExposed(false);
     // hit type Transaction
     const transaction = new _index.Transaction({ transactionId: visitor.visitorId, affiliation: 'KPI1' });
     await visitor.sendHit(transaction, false);
@@ -92,7 +91,7 @@ const start = async (visitor, index) => {
 
 async function script() {
   await sleep(2000);
-  for (let index = 0; index <= 2; index++) {
+  for (let index = 0; index <= 1; index++) {
     const visitor = _index2.default.newVisitor({ visitorId: 'visitor_a' + index, context: { qa_report: true } });
     await start(visitor, index);
   }

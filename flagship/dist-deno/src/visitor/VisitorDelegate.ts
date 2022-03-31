@@ -104,11 +104,11 @@ export class VisitorDelegate extends VisitorAbstract {
     return this.getStrategy().fetchFlags()
   }
 
-  userExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T}): Promise<void> {
+  userExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T, checkDeduplication?:boolean}): Promise<void> {
     return this.getStrategy().userExposed(param)
   }
 
-  getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}):T {
+  getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean, checkDeduplication?:boolean}):T {
     return this.getStrategy().getFlagValue(param)
   }
 

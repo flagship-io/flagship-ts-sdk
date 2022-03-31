@@ -26,7 +26,6 @@ Flagship.start(ENV_ID, API_KEY, {
   logLevel: LogLevel.ERROR,
   fetchNow: false,
   timeout: 10,
-  activateDeduplicationTime: 0
 })
 
 const start = async (visitor, index) => {
@@ -51,7 +50,7 @@ const start = async (visitor, index) => {
 
     console.log('flag.value', value)
 
-    await flag.userExposed()
+    await flag.userExposed(false)
 
     console.log('flag.userExposed')
     // send hit
@@ -66,18 +65,18 @@ const start = async (visitor, index) => {
 
     console.log('hit type Event')
 
-    await flag.userExposed()
+    await flag.userExposed(false)
     // hit type Page
     await visitor.sendHit({ type: HitType.PAGE, documentLocation: 'https://www.sdk.com/abtastylab/js/151021-' + index }, false)
     console.log('hit type Page')
 
-    await flag.userExposed()
+    await flag.userExposed(false)
     // hit type Screen
     await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'abtastylab-js-' + index }, false)
 
     console.log('hit type Screen')
 
-    await flag.userExposed()
+    await flag.userExposed(false)
     // hit type Transaction
     const transaction = new Transaction({ transactionId: visitor.visitorId, affiliation: 'KPI1' })
     await visitor.sendHit(transaction, false)
@@ -92,7 +91,7 @@ const start = async (visitor, index) => {
 
 async function script () {
   await sleep(2000)
-  for (let index = 0; index <= 2; index++) {
+  for (let index = 0; index <= 1; index++) {
     const visitor = Flagship.newVisitor({ visitorId: 'visitor_a'+index, context: { qa_report: true } })
     await start(visitor, index)
   }

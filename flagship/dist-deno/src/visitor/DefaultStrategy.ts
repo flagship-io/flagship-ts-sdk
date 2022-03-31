@@ -339,6 +339,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     this.visitor.deDuplicationCache[key] = Date.now()
 
     this.visitor.clearDeDuplicationCache(deDuplicationTime)
+    console.log("visitor", this.visitor.visitorId);
+    console.log("clearDeDuplicationCache", this.visitor.deDuplicationCache);
     return false
   }
 
@@ -604,8 +606,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return this.globalFetchFlags('fetchFlags')
   }
 
-  async userExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T}): Promise<void> {
-    const { key, flag, defaultValue } = param
+  async userExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T, checkDeduplication?:boolean}): Promise<void> {
+    const { key, flag, defaultValue, checkDeduplication } = param
     const functionName = 'userExposed'
     if (!flag) {
       logInfo(
@@ -625,7 +627,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
-    if (this.isDeDuplicated(flag.variationGroupId + this.visitor.visitorId, this.config.activateDeduplicationTime as number)) {
+    if (checkDeduplication && this.isDeDuplicated(flag.variationGroupId + this.visitor.visitorId, this.config.activateDeduplicationTime as number)) {
       return
     }
 
@@ -636,8 +638,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return this.sendActivate(flag, functionName)
   }
 
-  getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}): T {
-    const { key, defaultValue, flag, userExposed } = param
+  getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean, checkDeduplication?:boolean}): T {
+    const { key, defaultValue, flag, userExposed, checkDeduplication } = param
     const functionName = 'getFlag value'
     if (!flag) {
       logInfo(
@@ -656,13 +658,13 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       )
 
       if (!flag.value && userExposed) {
-        this.userExposed({ key, flag, defaultValue })
+        this.userExposed({ key, flag, defaultValue, checkDeduplication })
       }
       return defaultValue
     }
 
     if (userExposed) {
-      this.userExposed({ key, flag, defaultValue })
+      this.userExposed({ key, flag, defaultValue, checkDeduplication })
     }
     return flag.value
   }
