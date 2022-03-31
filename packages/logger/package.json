@@ -1,0 +1,6 @@
+{
+  "name": "@flagship.io/logger",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT"
+}
