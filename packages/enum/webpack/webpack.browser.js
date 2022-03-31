@@ -3,17 +3,10 @@ const { merge } = require('webpack-merge')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const nodeExternals = require('webpack-node-externals')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const common = require('./webpack.common.js')
+const common = require('../../../webpack/webpack.common')
 
 module.exports = merge(common(), {
   target: 'web',
-  resolve: {
-    alias: {
-      http: false,
-      https: false,
-      'node-fetch': false
-    }
-  },
   output: {
     filename: 'index.browser.js',
     library: {
@@ -57,9 +50,9 @@ module.exports = merge(common(), {
   },
   externals: [
     nodeExternals({
+      modulesDir: '../../node_modules',
       importType: 'umd',
       allowlist: [
-        'events',
         /@babel\/runtime/,
         /regenerator-runtime/
       ]

@@ -1,22 +1,17 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const webpack = require('webpack')
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { merge } = require('webpack-merge')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const nodeExternals = require('webpack-node-externals')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const common = require('../../../webpack/webpack.common')
+const common = require('./webpack.common')
 
 module.exports = merge(common(), {
-  target: 'node',
+  target: 'web',
   output: {
-    filename: 'index.node.js',
+    filename: 'index.browser.js',
     library: {
-      type: 'commonjs2'
+      type: 'umd'
     }
-  },
-  optimization: {
-    minimize: process.env.NODE_ENV === 'production',
   },
   module: {
     rules: [
@@ -26,7 +21,7 @@ module.exports = merge(common(), {
         use: [{
           loader: 'babel-loader',
           options: {
-            targets: 'node >= 6',
+            targets: '> 0.5%, last 2 versions, ie >= 10',
             assumptions: {
               noDocumentAll: true,
               noClassCalls: true,
@@ -54,8 +49,13 @@ module.exports = merge(common(), {
     ]
   },
   externals: [
-    nodeExternals({ 
-      modulesDir: '../../node_modules'
-     })
+    nodeExternals({
+      importType: 'umd',
+      allowlist: [
+        /@flagship\.io/,
+        /@babel\/runtime/,
+        /regenerator-runtime/
+      ]
+    })
   ]
 })

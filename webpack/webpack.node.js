@@ -5,7 +5,7 @@ const { merge } = require('webpack-merge')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const nodeExternals = require('webpack-node-externals')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const common = require('../../../webpack/webpack.common')
+const common = require('./webpack.common.js')
 
 module.exports = merge(common(), {
   target: 'node',
@@ -54,8 +54,6 @@ module.exports = merge(common(), {
     ]
   },
   externals: [
-    nodeExternals({ 
-      modulesDir: '../../node_modules'
-     })
+    nodeExternals()
   ]
 })

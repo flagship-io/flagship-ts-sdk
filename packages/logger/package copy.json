@@ -1,5 +1,5 @@
 {
-  "name": "@flagship.io/js-sdk",
+  "name": "@flagship.io/enum",
   "version": "3.0.5-alpha.0",
   "license": "Apache-2.0",
   "description": "Flagship JS SDK",
@@ -9,27 +9,22 @@
   "files": [
     "dist/*"
   ],
-  "private": "true",
-  "workspaces": [
-    "packages/**"
-  ],
   "engines": {
     "node": ">=6"
   },
-  "dependencies": {
-    "@flagship.io/enum": "3.0.5-alpha.0",
-    "@flagship.io/logger": "3.0.5-alpha.0"
+  "homepage": "https://github.com/flagship-io/flagship-ts-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flagship-io/flagship-ts-sdk.git"
   },
   "scripts": {
-    "build:logger": "yarn workspace @flagship.io/logger run build:prod",
-    "build:enum": "yarn workspace @flagship.io/enum run build:prod",
     "lint:fix": "eslint . --ext .ts --fix",
     "lint": "eslint . --ext .ts",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "prebuild": "tsc --emitDeclarationOnly",
-    "build:all": "yarn build:enum && yarn build:logger && webpack",
     "build": "webpack",
+    "postbuild": "node denoTrans.mjs",
     "build:prod": "NODE_ENV=production npm run build",
     "postbuild-prod": "node denoTrans.mjs",
     "analyze": "webpack --profile --json > stats.json && webpack-bundle-analyzer stats.json",
@@ -65,5 +60,19 @@
     "webpack-cli": "^4.7.2",
     "webpack-merge": "^5.8.0",
     "webpack-node-externals": "^3.0.0"
-  }
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.15.4",
+    "abort-controller": "^3.0.0",
+    "core-js": "^3.18.1",
+    "events": "^3.3.0",
+    "follow-redirects": "^1.14.5",
+    "node-fetch": "2.6.2"
+  },
+  "keywords": [
+    "flagship",
+    "abtasty",
+    "node",
+    "sdk"
+  ]
 }

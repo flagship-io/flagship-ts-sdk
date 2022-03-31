@@ -1,6 +1,73 @@
 {
   "name": "@flagship.io/logger",
-  "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT"
+  "version": "3.0.5-alpha.0",
+  "license": "Apache-2.0",
+  "description": "Flagship JS SDK",
+  "main": "dist/index.node.js",
+  "browser": "dist/index.browser.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/*"
+  ],
+  "engines": {
+    "node": ">=6"
+  },
+  "homepage": "https://github.com/flagship-io/flagship-ts-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flagship-io/flagship-ts-sdk.git"
+  },
+  "scripts": {
+    "lint:fix": "eslint . --ext .ts --fix",
+    "lint": "eslint . --ext .ts",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "prebuild": "tsc --emitDeclarationOnly",
+    "build": "webpack",
+    "postbuild": "node denoTrans.mjs",
+    "build:prod": "NODE_ENV=production npm run build",
+    "postbuild-prod": "node denoTrans.mjs",
+    "analyze": "webpack --profile --json > stats.json && webpack-bundle-analyzer stats.json",
+    "analyze-prod": "NODE_ENV=production webpack --profile --json > stats.json && webpack-bundle-analyzer stats.json"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.14.6",
+    "@babel/plugin-transform-runtime": "^7.15.0",
+    "@babel/preset-env": "^7.14.7",
+    "@babel/preset-typescript": "^7.14.7",
+    "@types/jest": "^26.0.24",
+    "@types/node-fetch": "2",
+    "@typescript-eslint/eslint-plugin": "^4.28.3",
+    "@typescript-eslint/parser": "^4.28.3",
+    "babel-loader": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "eslint": "^7.30.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-config-standard-with-typescript": "^20.0.0",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "eslint-plugin-promise": "^5.1.0",
+    "jest": "^27.0.6",
+    "prettier": "^2.3.2",
+    "terser-webpack-plugin": "^5.2.4",
+    "ts-jest": "^27.0.3",
+    "ts-loader": "^9.2.3",
+    "typescript": "^4.3.5",
+    "webpack": "^5.44.0",
+    "webpack-bundle-analyzer": "^4.5.0",
+    "webpack-cli": "^4.7.2",
+    "webpack-merge": "^5.8.0",
+    "webpack-node-externals": "^3.0.0"
+  },
+  "dependencies": {
+    "@flagship.io/enum": "3.0.5-alpha.0"
+  },
+  "keywords": [
+    "flagship",
+    "abtasty",
+    "node",
+    "sdk"
+  ]
 }
