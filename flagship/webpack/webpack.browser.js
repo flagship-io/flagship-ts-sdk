@@ -23,6 +23,14 @@ module.exports = merge(common(), {
   module: {
     rules: [
       {
+        test: /nodeDeps\.ts$/,
+        loader: 'string-replace-loader',
+        options: {
+          search: "require('node-fetch')",
+          replace: '{}'
+        }
+      },
+      {
         test: /\.(js|ts)$/,
         exclude: /node_modules/,
         use: [{
