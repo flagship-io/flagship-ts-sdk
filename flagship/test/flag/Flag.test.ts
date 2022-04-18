@@ -115,7 +115,7 @@ describe('test Flag', () => {
 
   it('test metadata with different type ', () => {
     const flag = new Flag({ key: flagDto.key, visitor: visitorDelegate, defaultValue: false })
-    expect(flag.exists()).toBeFalsy()
+    expect(flag.exists()).toBeTruthy()
     expect(flag.metadata).toEqual(
       {
         campaignId: '',
