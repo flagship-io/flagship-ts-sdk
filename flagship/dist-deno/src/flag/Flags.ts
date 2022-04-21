@@ -42,7 +42,7 @@ export class Flag<T> implements IFlag<T> {
 
     exists ():boolean {
       const flagDTO = this._visitor.flagsData.get(this._key)
-      return !!flagDTO && hasSameType(flagDTO.value, this._defaultValue)
+      return !!(flagDTO?.campaignId && flagDTO.variationId && flagDTO.variationGroupId)
     }
 
     get metadata ():IFlagMetadata {
