@@ -648,16 +648,19 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return defaultValue
     }
 
+    if (!flag.value) {
+      if (userExposed) {
+        this.userExposed({ key, flag, defaultValue })
+      }
+      return defaultValue
+    }
+
     if (!hasSameType(flag.value, defaultValue)) {
       logInfo(
         this.config,
         sprintf(GET_FLAG_CAST_ERROR, key),
         functionName
       )
-
-      if (!flag.value && userExposed) {
-        this.userExposed({ key, flag, defaultValue })
-      }
       return defaultValue
     }
 

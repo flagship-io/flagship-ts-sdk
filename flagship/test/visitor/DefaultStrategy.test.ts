@@ -304,8 +304,6 @@ describe('test DefaultStrategy ', () => {
     const defaultValue = 1
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue, flag: returnMod, userExposed: true })
     expect(value).toBe(defaultValue)
-    expect(logInfo).toBeCalledTimes(1)
-    expect(logInfo).toBeCalledWith(sprintf(GET_FLAG_CAST_ERROR, 'keyNull'), 'getFlag value')
     expect(sendActive).toBeCalledTimes(1)
   })
 
