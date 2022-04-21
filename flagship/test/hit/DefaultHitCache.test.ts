@@ -36,7 +36,7 @@ describe('Test DefaultHitCache', () => {
     expect(global.localStorage.setItem).toBeCalledTimes(1)
     expect(global.localStorage.setItem).toHaveBeenCalledWith(`${FS_HIT_PREFIX}${visitorId}`, JSON.stringify([visitorData]))
   })
-  it('should ',async () => {
+  it('should ', async () => {
     storageMock.getItem.mockReturnValue(JSON.stringify([visitorData]))
     await defaultHitCache.cacheHit(visitorId, visitorData)
     expect(global.localStorage.setItem).toBeCalledTimes(1)
@@ -48,7 +48,7 @@ describe('Test DefaultHitCache', () => {
     expect(global.localStorage.removeItem).toHaveBeenCalledWith(`${FS_HIT_PREFIX}${visitorId}`)
   })
 
-  it('should ',async () => {
+  it('should ', async () => {
     storageMock.getItem.mockReturnValue(JSON.stringify(visitorData))
     const data = await defaultHitCache.lookupHits(visitorId)
     expect(data).toEqual(visitorData)

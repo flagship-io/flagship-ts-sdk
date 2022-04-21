@@ -36,7 +36,7 @@ describe('Test DefaultVisitorCache', () => {
     }
   }
 
-  it('should ',async () => {
+  it('should ', async () => {
     await defaultVisitorCache.cacheVisitor(visitorId, visitorData)
     expect(global.localStorage.setItem).toBeCalledTimes(1)
     expect(global.localStorage.setItem).toHaveBeenCalledWith(`${VISITOR_PREFIX}${visitorId}`, JSON.stringify(visitorData))
