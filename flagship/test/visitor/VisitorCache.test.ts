@@ -27,9 +27,9 @@ describe('test visitor cache', () => {
   const logError = jest.spyOn(logManager, 'error')
   const logInfo = jest.spyOn(logManager, 'info')
 
-  const cacheVisitor:Mock<void, [visitorId: string, data: VisitorCacheDTO]> = jest.fn()
-  const lookupVisitor:Mock<VisitorCacheDTO, [visitorId: string]> = jest.fn()
-  const flushVisitor:Mock<void, [visitorId: string]> = jest.fn()
+  const cacheVisitor:Mock<Promise<void>, [visitorId: string, data: VisitorCacheDTO]> = jest.fn()
+  const lookupVisitor:Mock<Promise<VisitorCacheDTO>, [visitorId: string]> = jest.fn()
+  const flushVisitor:Mock<Promise<void>, [visitorId: string]> = jest.fn()
   const visitorCacheImplementation:IVisitorCacheImplementation = {
     cacheVisitor,
     lookupVisitor,
@@ -171,7 +171,7 @@ describe('test visitor cache', () => {
   })
 
   it('test lookupVisitor defaultStrategy', async () => {
-    lookupVisitor.mockReturnValue((data))
+    lookupVisitor.mockResolvedValue((data))
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(1)
     expect(visitorDelegate.visitorCache).toEqual(data)
@@ -201,7 +201,7 @@ describe('test visitor cache', () => {
       }
     }
     visitorDelegate.visitorCache = getUndefined()
-    lookupVisitor.mockReturnValue((data))
+    lookupVisitor.mockResolvedValue((data))
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(1)
     expect(visitorDelegate.visitorCache).toBeUndefined()
@@ -210,13 +210,13 @@ describe('test visitor cache', () => {
   })
 
   it('test lookupVisitor noConsentStrategy', async () => {
-    lookupVisitor.mockReturnValue((data))
+    lookupVisitor.mockResolvedValue((data))
     await noConsentStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(0)
   })
 
   it('test lookupVisitor notReadyStrategy', async () => {
-    lookupVisitor.mockReturnValue((data))
+    lookupVisitor.mockResolvedValue((data))
     await notReadyStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(0)
   })
@@ -231,7 +231,7 @@ describe('test visitor cache', () => {
         context: visitorDelegate.context
       }
     }
-    lookupVisitor.mockReturnValue((data))
+    lookupVisitor.mockResolvedValue((data))
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(1)
     expect(visitorDelegate.visitorCache).toEqual(data)
@@ -249,7 +249,7 @@ describe('test visitor cache', () => {
       }
     }
 
-    lookupVisitor.mockReturnValue(data as VisitorCacheDTO)
+    lookupVisitor.mockResolvedValue(data as VisitorCacheDTO)
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(1)
     expect(visitorDelegate.visitorCache).toBeUndefined()
@@ -268,7 +268,7 @@ describe('test visitor cache', () => {
       }
     }
 
-    lookupVisitor.mockReturnValue(data as VisitorCacheDTO)
+    lookupVisitor.mockResolvedValue(data as VisitorCacheDTO)
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(1)
     expect(visitorDelegate.visitorCache).toBeUndefined()
@@ -300,7 +300,7 @@ describe('test visitor cache', () => {
       }
     }
 
-    lookupVisitor.mockReturnValue(data as VisitorCacheDTO)
+    lookupVisitor.mockResolvedValue(data as VisitorCacheDTO)
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(1)
     expect(visitorDelegate.visitorCache).toBeUndefined()
@@ -361,9 +361,9 @@ describe('test visitorCache with disabledCache', () => {
 
   const logManager = new FlagshipLogManager()
 
-  const cacheVisitor:Mock<void, [visitorId: string, data: VisitorCacheDTO]> = jest.fn()
-  const lookupVisitor:Mock<VisitorCacheDTO, [visitorId: string]> = jest.fn()
-  const flushVisitor:Mock<void, [visitorId: string]> = jest.fn()
+  const cacheVisitor:Mock<Promise<void>, [visitorId: string, data: VisitorCacheDTO]> = jest.fn()
+  const lookupVisitor:Mock<Promise<VisitorCacheDTO>, [visitorId: string]> = jest.fn()
+  const flushVisitor:Mock<Promise<void>, [visitorId: string]> = jest.fn()
   const visitorCacheImplementation:IVisitorCacheImplementation = {
     cacheVisitor,
     lookupVisitor,

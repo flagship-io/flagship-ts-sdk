@@ -45,30 +45,30 @@ describe('test DecisionApiConfig', () => {
 
     const visitorCacheImplementation: IVisitorCacheImplementation = {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      cacheVisitor: function (_visitorId: string, _Data: VisitorCacheDTO): void {
+      cacheVisitor: function (_visitorId: string, _Data: VisitorCacheDTO):Promise<void> {
         throw new Error('Function not implemented.')
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      lookupVisitor: function (_visitorId: string): VisitorCacheDTO {
+      lookupVisitor: function (_visitorId: string): Promise<VisitorCacheDTO> {
         throw new Error('Function not implemented.')
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      flushVisitor: function (_visitorId: string): void {
+      flushVisitor: function (_visitorId: string): Promise<void> {
         throw new Error('Function not implemented.')
       }
     }
 
     const hitCacheImplementation: IHitCacheImplementation = {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      cacheHit: function (_visitorId: string, _data: HitCacheDTO): void {
+      cacheHit: function (_visitorId: string, _data: HitCacheDTO): Promise<void> {
         throw new Error('Function not implemented.')
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      lookupHits: function (_visitorId: string): HitCacheDTO[] {
+      lookupHits: function (_visitorId: string): Promise<HitCacheDTO[]> {
         throw new Error('Function not implemented.')
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      flushHits: function (_visitorId: string): void {
+      flushHits: function (_visitorId: string): Promise<void> {
         throw new Error('Function not implemented.')
       }
     }

@@ -27,9 +27,9 @@ describe('test visitor hit cache', () => {
   const logManager = new FlagshipLogManager()
   const logError = jest.spyOn(logManager, 'error')
 
-  const cacheHit:Mock<void, [visitorId: string, data: HitCacheDTO]> = jest.fn()
-  const lookupHits:Mock<HitCacheDTO[], [visitorId: string]> = jest.fn()
-  const flushHits:Mock<void, [visitorId: string]> = jest.fn()
+  const cacheHit:Mock<Promise<void>, [visitorId: string, data: HitCacheDTO]> = jest.fn()
+  const lookupHits:Mock< Promise<HitCacheDTO[]>, [visitorId: string]> = jest.fn()
+  const flushHits:Mock<Promise<void>, [visitorId: string]> = jest.fn()
   const hitCacheImplementation:IHitCacheImplementation = {
     cacheHit,
     lookupHits,
@@ -227,7 +227,7 @@ describe('test visitor hit cache', () => {
     })
 
     config.hitCacheImplementation = hitCacheImplementation
-    lookupHits.mockReturnValue(hits)
+    lookupHits.mockResolvedValue(hits)
     await defaultStrategy.lookupHits()
     expect(lookupHits).toBeCalledTimes(1)
     expect(lookupHits).toBeCalledWith(visitorDelegate.visitorId)
@@ -305,7 +305,7 @@ describe('test visitor hit cache', () => {
       }
     ]
     config.hitCacheImplementation = hitCacheImplementation
-    lookupHits.mockReturnValue(hits)
+    lookupHits.mockResolvedValue(hits)
     await defaultStrategy.lookupHits()
     expect(lookupHits).toBeCalledTimes(1)
     expect(lookupHits).toBeCalledWith(visitorDelegate.visitorId)
@@ -329,7 +329,7 @@ describe('test visitor hit cache', () => {
   it('test lookupHit failed', async () => {
     sendHit.mockResolvedValue()
     config.hitCacheImplementation = hitCacheImplementation
-    lookupHits.mockReturnValue({} as HitCacheDTO[])
+    lookupHits.mockResolvedValue({} as HitCacheDTO[])
     await defaultStrategy.lookupHits()
     expect(lookupHits).toBeCalledTimes(1)
     expect(sendHit).toBeCalledTimes(0)
@@ -339,7 +339,7 @@ describe('test visitor hit cache', () => {
   it('test lookupHit failed', async () => {
     sendHit.mockResolvedValue()
     config.hitCacheImplementation = hitCacheImplementation
-    lookupHits.mockReturnValue([{} as HitCacheDTO])
+    lookupHits.mockResolvedValue([{} as HitCacheDTO])
     await defaultStrategy.lookupHits()
     expect(lookupHits).toBeCalledTimes(1)
     expect(sendHit).toBeCalledTimes(0)
@@ -400,9 +400,9 @@ describe('test HitCache disabledCache', () => {
 
   const logManager = new FlagshipLogManager()
 
-  const cacheHit:Mock<void, [visitorId: string, data: HitCacheDTO]> = jest.fn()
-  const lookupHits:Mock<HitCacheDTO[], [visitorId: string]> = jest.fn()
-  const flushHits:Mock<void, [visitorId: string]> = jest.fn()
+  const cacheHit:Mock<Promise<void>, [visitorId: string, data: HitCacheDTO]> = jest.fn()
+  const lookupHits:Mock<Promise<HitCacheDTO[]>, [visitorId: string]> = jest.fn()
+  const flushHits:Mock<Promise<void>, [visitorId: string]> = jest.fn()
   const hitCacheImplementation:IHitCacheImplementation = {
     cacheHit,
     lookupHits,
