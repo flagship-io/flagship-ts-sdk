@@ -616,7 +616,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
-    if (flag.value && !hasSameType(flag.value, defaultValue)) {
+    if (defaultValue!==null && defaultValue!==undefined && flag.value && !hasSameType(flag.value, defaultValue)) {
       logInfo(
         this.visitor.config,
         sprintf(USER_EXPOSED_CAST_ERROR, key),
@@ -655,7 +655,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return defaultValue
     }
 
-    if (!hasSameType(flag.value, defaultValue)) {
+    if (defaultValue!==null && defaultValue !== undefined && !hasSameType(flag.value, defaultValue) ) {
       logInfo(
         this.config,
         sprintf(GET_FLAG_CAST_ERROR, key),

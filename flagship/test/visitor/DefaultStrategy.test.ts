@@ -281,6 +281,43 @@ describe('test DefaultStrategy ', () => {
     expect(sendActive).toBeCalledWith(visitorDelegate, returnMod)
   })
 
+  it('test getFlagValue with defaultValue null', () => {
+    const returnMod = returnModification.get('keyString') as FlagDTO
+    const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: null, flag: returnMod, userExposed: true })
+    expect(value).toBe(returnMod.value)
+    expect(sendActive).toBeCalledTimes(1)
+    expect(sendActive).toBeCalledWith(visitorDelegate, returnMod)
+    expect(logInfo).toBeCalledTimes(0)
+  })
+
+  it('test getFlagValue with defaultValue undefined', () => {
+    const returnMod = returnModification.get('keyString') as FlagDTO
+    const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: undefined, flag: returnMod, userExposed: true })
+    expect(value).toBe(returnMod.value)
+    expect(sendActive).toBeCalledTimes(1)
+    expect(sendActive).toBeCalledWith(visitorDelegate, returnMod)
+    expect(logInfo).toBeCalledTimes(0)
+  })
+
+  it('test getFlagValue with defaultValue undefined', () => {
+    const returnMod = returnModification.get('keyNull') as FlagDTO
+    const defaultValue = undefined
+    const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue, flag: returnMod, userExposed: true })
+    expect(value).toBe(defaultValue)
+    expect(sendActive).toBeCalledTimes(1)
+    expect(sendActive).toBeCalledWith(visitorDelegate, returnMod)
+    expect(logInfo).toBeCalledTimes(0)
+  })
+
+  it('test getFlagValue undefined flag with default value null', () => {
+    const returnMod = returnModification.get('keyString') as FlagDTO
+    const defaultValue = null
+    const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue })
+    expect(value).toBe(defaultValue)
+    expect(logInfo).toBeCalledTimes(1)
+    expect(logInfo).toBeCalledWith(sprintf(GET_FLAG_MISSING_ERROR, 'keyString'), 'getFlag value')
+  })
+
   it('test getFlagValue undefined flag', () => {
     const returnMod = returnModification.get('keyString') as FlagDTO
     const defaultValue = 'defaultValues'
