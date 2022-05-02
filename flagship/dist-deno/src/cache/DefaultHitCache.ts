@@ -15,10 +15,10 @@ export class DefaultHitCache implements IHitCacheImplementation {
     return Promise.resolve()
   }
 
-  lookupHits (visitorId: string): Promise<HitCacheDTO[]> {
+  lookupHits (visitorId: string): HitCacheDTO[] {
     const data = localStorage.getItem(FS_HIT_PREFIX + visitorId)
     localStorage.removeItem(FS_HIT_PREFIX + visitorId)
-    return Promise.resolve(data ? JSON.parse(data) : null)
+    return data ? JSON.parse(data) : null
   }
 
   flushHits (visitorId: string):Promise<void> {
