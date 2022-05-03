@@ -20,7 +20,7 @@ describe('test NotReadyStrategy', () => {
   }
 
   const cacheVisitor:Mock<Promise<void>, [visitorId: string, data: VisitorCacheDTO]> = jest.fn()
-  const lookupVisitor:Mock<Promise<VisitorCacheDTO>, [visitorId: string]> = jest.fn()
+  const lookupVisitor:Mock<VisitorCacheDTO, [visitorId: string]> = jest.fn()
   const flushVisitor:Mock<Promise<void>, [visitorId: string]> = jest.fn()
   const visitorCacheImplementation:IVisitorCacheImplementation = {
     cacheVisitor,
