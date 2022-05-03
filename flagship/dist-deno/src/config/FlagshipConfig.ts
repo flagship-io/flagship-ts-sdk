@@ -140,7 +140,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
     this._envId = envId
     this._apiKey = apiKey
-    this.logLevel = logLevel || LogLevel.ALL
+    this.logLevel = logLevel ?? LogLevel.ALL
     this.timeout = timeout || REQUEST_TIME_OUT
     this.fetchNow = typeof fetchNow === 'undefined' || fetchNow
     this.enableClientCache = typeof enableClientCache === 'undefined' || enableClientCache
