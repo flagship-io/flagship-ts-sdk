@@ -157,7 +157,7 @@ describe('test VisitorDelegate', () => {
   it('test empty visitorId', () => {
     const visitorDelegate = new VisitorDelegate({ context, configManager })
     expect(visitorDelegate.visitorId).toBeDefined()
-    expect(visitorDelegate.visitorId).toHaveLength(17)
+    expect(visitorDelegate.visitorId).toHaveLength(36)
   })
 
   it('test context', () => {
