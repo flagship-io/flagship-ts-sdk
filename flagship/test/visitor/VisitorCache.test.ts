@@ -5,7 +5,7 @@ import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient, IHttpResponse, IHttpOptions } from '../../src/utils/HttpClient'
-import { VisitorDelegate, DefaultStrategy, NoConsentStrategy, NotReadyStrategy } from '../../src/visitor'
+import { VisitorDelegate, DefaultStrategy, NoConsentStrategy, NotReadyStrategy, PanicStrategy } from '../../src/visitor'
 import { Mock } from 'jest-mock'
 import { VISITOR_CACHE_VERSION } from '../../src/enum'
 import { campaigns } from '../decision/campaigns'
@@ -130,7 +130,7 @@ describe('test visitor cache', () => {
   })
 
   it('test fetchVisitorCacheCampaigns defaultStrategy', async () => {
-    getCampaignsAsync.mockResolvedValue([])
+    getCampaignsAsync.mockResolvedValue(null)
 
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
     const defaultStrategy = new DefaultStrategy(visitorDelegate)
@@ -141,10 +141,21 @@ describe('test visitor cache', () => {
   })
 
   it('test fetchVisitorCacheCampaigns noConsentStrategy', async () => {
-    getCampaignsAsync.mockResolvedValue([])
+    getCampaignsAsync.mockResolvedValue(null)
 
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
     const noConsentStrategy = new NoConsentStrategy(visitorDelegate)
+
+    visitorDelegate.visitorCache = data
+    await noConsentStrategy.synchronizeModifications()
+    expect(visitorDelegate.campaigns).toEqual([])
+  })
+
+  it('test fetchVisitorCacheCampaigns panicStrategy', async () => {
+    getCampaignsAsync.mockResolvedValue(null)
+
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+    const noConsentStrategy = new PanicStrategy(visitorDelegate)
 
     visitorDelegate.visitorCache = data
     await noConsentStrategy.synchronizeModifications()

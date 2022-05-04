@@ -272,7 +272,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         this.visitor
       )
 
-      if (!campaigns.length) {
+      if (!campaigns) {
         campaigns = this.fetchVisitorCampaigns(this.visitor)
       }
       this.visitor.campaigns = campaigns

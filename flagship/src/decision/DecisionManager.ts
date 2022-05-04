@@ -61,16 +61,8 @@ export abstract class DecisionManager implements IDecisionManager {
     return modifications
   }
 
-  abstract getCampaignsAsync(visitor: VisitorAbstract): Promise<CampaignDTO[]>
+  abstract getCampaignsAsync(visitor: VisitorAbstract): Promise<CampaignDTO[]|null>
 
-  public async getCampaignsModificationsAsync (visitor: VisitorAbstract): Promise<Map<string, FlagDTO>> {
-    return this.getCampaignsAsync(visitor).then(campaigns => {
-      return this.getModifications(campaigns)
-    }).catch((error) => {
-      logError(this.config, error.message || error, 'getCampaignsModificationsAsync')
-      return new Map<string, FlagDTO>()
-    })
-  }
 
   public isPanic (): boolean {
     return this._panic
