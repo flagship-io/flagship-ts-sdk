@@ -25,7 +25,7 @@ export class NoConsentStrategy extends DefaultStrategy {
     //
   }
 
-  protected async cacheVisitor ():Promise<void> {
+  public async cacheVisitor ():Promise<void> {
     //
   }
 

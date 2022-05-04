@@ -62,6 +62,7 @@ const setConsent:Mock<void, [boolean]> = jest.fn()
 const updateCampaigns:Mock<void, [CampaignDTO[]]> = jest.fn()
 const lookupVisitor:Mock<void, []> = jest.fn()
 const lookupHits:Mock<void, []> = jest.fn()
+const cacheVisitorFn:Mock<Promise<void>, []> = jest.fn()
 
 jest.mock('../../src/visitor/DefaultStrategy', () => {
   return {
@@ -94,7 +95,8 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         lookupVisitor,
         lookupHits,
         fetchFlags,
-        getFlagMetadata
+        getFlagMetadata,
+        cacheVisitor:cacheVisitorFn
       }
     })
   }
@@ -387,18 +389,20 @@ describe('test VisitorDelegate methods', () => {
 
   it('test synchronizeModifications', () => {
     synchronizeModifications.mockResolvedValue()
+    cacheVisitorFn.mockResolvedValue()
     visitorDelegate.synchronizeModifications()
       .then(() => {
         expect(synchronizeModifications).toBeCalledTimes(1)
-      })
+      }).catch(err=>console.log(err))
   })
 
   it('test synchronizeModifications', () => {
     fetchFlags.mockResolvedValue()
+    cacheVisitorFn.mockResolvedValue()
     visitorDelegate.fetchFlags()
       .then(() => {
         expect(fetchFlags).toBeCalledTimes(1)
-      })
+      }).catch(err=>console.log(err))
   })
 
   it('test activateModification', () => {

@@ -58,6 +58,8 @@ describe('test visitor cache', () => {
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
 
+  const getStrategy = jest.spyOn(visitorDelegate,"getStrategy" as any)
+
   const defaultStrategy = new DefaultStrategy(visitorDelegate)
 
   const noConsentStrategy = new NoConsentStrategy(visitorDelegate)
@@ -90,40 +92,45 @@ describe('test visitor cache', () => {
   }
 
   it('test saveCache defaultStrategy', async () => {
+    getStrategy.mockReturnValue(defaultStrategy)
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
-    await defaultStrategy.fetchFlags()
+    await visitorDelegate.fetchFlags()
     expect(cacheVisitor).toBeCalledTimes(1)
 
     expect(cacheVisitor).toBeCalledWith(visitorId, data)
   })
 
   it('test saveCache noConsentStrategy', async () => {
+    getStrategy.mockReturnValue(noConsentStrategy)
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
-    await noConsentStrategy.synchronizeModifications()
+    await visitorDelegate.synchronizeModifications()
     expect(cacheVisitor).toBeCalledTimes(0)
   })
 
   it('test saveCache notReadyStrategy', async () => {
+    getStrategy.mockReturnValue(notReadyStrategy)
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
-    await notReadyStrategy.synchronizeModifications()
+    await visitorDelegate.synchronizeModifications()
     expect(cacheVisitor).toBeCalledTimes(0)
   })
 
   it('test saveCache', async () => {
+    getStrategy.mockReturnValue(defaultStrategy)
     config.visitorCacheImplementation = getUndefined()
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
-    await defaultStrategy.synchronizeModifications()
+    await visitorDelegate.synchronizeModifications()
     expect(cacheVisitor).toBeCalledTimes(0)
     config.visitorCacheImplementation = visitorCacheImplementation
   })
 
   it('test saveCache failed', async () => {
+    getStrategy.mockReturnValue(defaultStrategy)
     const saveCacheError = 'Error Cache'
     cacheVisitor.mockImplementationOnce(() => {
       throw saveCacheError
     })
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
-    await defaultStrategy.synchronizeModifications()
+    await visitorDelegate.synchronizeModifications()
     expect(cacheVisitor).toBeCalledTimes(1)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(saveCacheError, 'cacheVisitor')
