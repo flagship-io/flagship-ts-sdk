@@ -58,7 +58,8 @@ describe('test visitor cache', () => {
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
 
-  const getStrategy = jest.spyOn(visitorDelegate,"getStrategy" as any)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const getStrategy = jest.spyOn(visitorDelegate, 'getStrategy' as any)
 
   const defaultStrategy = new DefaultStrategy(visitorDelegate)
 

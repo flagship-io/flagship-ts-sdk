@@ -103,7 +103,7 @@ export class VisitorDelegate extends VisitorAbstract {
 
   async fetchFlags ():Promise<void> {
     await this.getStrategy().fetchFlags()
-    await this.getStrategy().cacheVisitor();
+    await this.getStrategy().cacheVisitor()
   }
 
   userExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T}): Promise<void> {

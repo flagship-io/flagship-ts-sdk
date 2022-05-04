@@ -96,7 +96,7 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         lookupHits,
         fetchFlags,
         getFlagMetadata,
-        cacheVisitor:cacheVisitorFn
+        cacheVisitor: cacheVisitorFn
       }
     })
   }
@@ -393,7 +393,7 @@ describe('test VisitorDelegate methods', () => {
     visitorDelegate.synchronizeModifications()
       .then(() => {
         expect(synchronizeModifications).toBeCalledTimes(1)
-      }).catch(err=>console.log(err))
+      }).catch(err => console.log(err))
   })
 
   it('test synchronizeModifications', () => {
@@ -402,7 +402,7 @@ describe('test VisitorDelegate methods', () => {
     visitorDelegate.fetchFlags()
       .then(() => {
         expect(fetchFlags).toBeCalledTimes(1)
-      }).catch(err=>console.log(err))
+      }).catch(err => console.log(err))
   })
 
   it('test activateModification', () => {
