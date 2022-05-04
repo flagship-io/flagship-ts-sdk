@@ -105,7 +105,7 @@ describe('test ApiManager', () => {
     postAsync.mockResolvedValue(campaignResponse)
 
     visitor.setConsent(false)
- 
+
     const campaigns = await apiManager.getCampaignsAsync(
       visitor
     )
@@ -121,7 +121,6 @@ describe('test ApiManager', () => {
     expect(modifications.get('array')?.value).toEqual([1, 1, 1])
     expect(modifications.get('object')?.value).toEqual({ value: 123456 })
   })
-
 
   it('Test error ', async () => {
     postAsync.mockRejectedValue(responseError)

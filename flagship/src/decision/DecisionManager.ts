@@ -4,7 +4,6 @@ import { IHttpClient } from '../utils/HttpClient'
 import { CampaignDTO } from './api/models'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { FlagshipStatus } from '../enum/index'
-import { logError } from '../utils/utils'
 import { FlagDTO } from '../types'
 
 export abstract class DecisionManager implements IDecisionManager {
@@ -62,7 +61,6 @@ export abstract class DecisionManager implements IDecisionManager {
   }
 
   abstract getCampaignsAsync(visitor: VisitorAbstract): Promise<CampaignDTO[]|null>
-
 
   public isPanic (): boolean {
     return this._panic
