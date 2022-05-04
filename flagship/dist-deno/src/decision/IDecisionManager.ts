@@ -11,11 +11,7 @@ export interface IDecisionManager {
 
   getModifications (campaigns: Array<CampaignDTO>):Map<string, FlagDTO>
 
-  getCampaignsAsync (visitor: VisitorAbstract):Promise<CampaignDTO[]>
-
-  getCampaignsModificationsAsync(
-    visitor: VisitorAbstract,
-  ): Promise<Map<string, FlagDTO>>
+  getCampaignsAsync (visitor: VisitorAbstract):Promise<CampaignDTO[]|null>
 
   config:IFlagshipConfig
 }
