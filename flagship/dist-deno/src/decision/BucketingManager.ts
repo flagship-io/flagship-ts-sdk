@@ -133,7 +133,7 @@ export class BucketingManager extends DecisionManager {
     }
   }
 
-  async getCampaignsAsync (visitor: VisitorAbstract): Promise<CampaignDTO[]|null> {    
+  async getCampaignsAsync (visitor: VisitorAbstract): Promise<CampaignDTO[]|null> {
     if (!this._bucketingContent) {
       return null
     }

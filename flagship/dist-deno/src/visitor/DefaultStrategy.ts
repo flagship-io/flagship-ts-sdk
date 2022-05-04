@@ -279,7 +279,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       this.visitor.flagsData = this.decisionManager.getModifications(
         this.visitor.campaigns
       )
-      this.cacheVisitor()
       this.visitor.emit(EMIT_READY)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {

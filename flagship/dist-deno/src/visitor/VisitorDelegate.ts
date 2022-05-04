@@ -44,8 +44,9 @@ export class VisitorDelegate extends VisitorAbstract {
     return this.getStrategy().getModificationInfoSync(key)
   }
 
-  synchronizeModifications (): Promise<void> {
-    return this.getStrategy().synchronizeModifications()
+  async synchronizeModifications (): Promise<void> {
+    await this.getStrategy().synchronizeModifications()
+    await this.getStrategy().cacheVisitor()
   }
 
   activateModification (key: string): Promise<void> {
@@ -100,8 +101,9 @@ export class VisitorDelegate extends VisitorAbstract {
     this.updateCache()
   }
 
-  fetchFlags ():Promise<void> {
-    return this.getStrategy().fetchFlags()
+  async fetchFlags ():Promise<void> {
+    await this.getStrategy().fetchFlags()
+    await this.getStrategy().cacheVisitor()
   }
 
   userExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T}): Promise<void> {
