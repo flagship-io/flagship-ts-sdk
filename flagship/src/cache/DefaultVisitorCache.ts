@@ -8,9 +8,9 @@ export class DefaultVisitorCache implements IVisitorCacheImplementation {
     return Promise.resolve()
   }
 
-  lookupVisitor (visitorId: string): VisitorCacheDTO {
+  lookupVisitor (visitorId: string): Promise<VisitorCacheDTO> {
     const data = localStorage.getItem(VISITOR_PREFIX + visitorId)
-    return data ? JSON.parse(data) : null
+    return Promise.resolve(data ? JSON.parse(data) : null)
   }
 
   flushVisitor (visitorId: string): Promise<void> {

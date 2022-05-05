@@ -12,7 +12,7 @@ export interface IHitCacheImplementation {
      * Note: Hits older than 4H will be ignored
      * @param visitorId Visitor
      */
-    lookupHits(visitorId: string): HitCacheDTO[]
+    lookupHits(visitorId: string):Promise<HitCacheDTO[]>
     /**
      * This method will be called to erase the visitor hits cache corresponding to visitor ID from your database.
      * @param visitorId visitor ID

@@ -12,7 +12,7 @@ export interface IVisitorCacheImplementation {
      * This method is called when the SDK needs to get the visitor information corresponding to visitor ID from your database.
      * @param visitorId visitor ID
      */
-    lookupVisitor(visitorId: string): VisitorCacheDTO
+    lookupVisitor(visitorId: string): Promise<VisitorCacheDTO>
 
     /**
      * This method is called when the SDK needs to erase the visitor information corresponding to visitor ID in your database.
