@@ -49,7 +49,7 @@ describe('test DecisionApiConfig', () => {
         throw new Error('Function not implemented.')
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      lookupVisitor: function (_visitorId: string): VisitorCacheDTO {
+      lookupVisitor: function (_visitorId: string): Promise<VisitorCacheDTO> {
         throw new Error('Function not implemented.')
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -64,7 +64,7 @@ describe('test DecisionApiConfig', () => {
         throw new Error('Function not implemented.')
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      lookupHits: function (_visitorId: string): HitCacheDTO[] {
+      lookupHits: function (_visitorId: string): Promise<HitCacheDTO[]> {
         throw new Error('Function not implemented.')
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars

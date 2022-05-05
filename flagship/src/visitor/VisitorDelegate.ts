@@ -45,6 +45,8 @@ export class VisitorDelegate extends VisitorAbstract {
   }
 
   async synchronizeModifications (): Promise<void> {
+    await this.getStrategy().lookupVisitor()
+    await this.getStrategy().lookupHits()
     await this.getStrategy().synchronizeModifications()
     await this.getStrategy().cacheVisitor()
   }
@@ -102,6 +104,8 @@ export class VisitorDelegate extends VisitorAbstract {
   }
 
   async fetchFlags ():Promise<void> {
+    await this.getStrategy().lookupVisitor()
+    await this.getStrategy().lookupHits()
     await this.getStrategy().fetchFlags()
     await this.getStrategy().cacheVisitor()
   }

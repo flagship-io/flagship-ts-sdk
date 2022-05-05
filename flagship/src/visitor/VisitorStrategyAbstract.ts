@@ -106,7 +106,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
         return
       }
-      const visitorCache = visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
+      const visitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
       if (!visitorCache) {
         return
       }
@@ -199,7 +199,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         return
       }
 
-      const hitsCache = hitCacheImplementation.lookupHits(this.visitor.visitorId)
+      const hitsCache = await hitCacheImplementation.lookupHits(this.visitor.visitorId)
       if (!hitsCache) {
         return
       }
