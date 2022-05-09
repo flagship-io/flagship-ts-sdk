@@ -254,6 +254,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return {
         id: campaign.campaignId,
         variationGroupId: campaign.variationGroupId,
+        slug: campaign.slug,
         variation: {
           id: campaign.variationId,
           reference: !!campaign.isReference,

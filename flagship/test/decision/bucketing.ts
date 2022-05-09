@@ -3,6 +3,7 @@ export const bucketing = {
     {
       id: 'c1ndsu87m030114t8uu0',
       type: 'toggle',
+      slug:"campaign_1",
       variationGroups: [
         {
           id: 'c1ndsu87m030114t8uv0',
@@ -80,6 +81,7 @@ export const bucketing = {
     {
       id: 'c20j8bk3fk9hdphqtd1g',
       type: 'ab',
+      slug:"campaign_1",
       variationGroups: [
         {
           id: 'c20j8bk3fk9hdphqtd2g',
@@ -135,6 +137,7 @@ export const bucketing = {
     {
       id: 'c2nreb1jg50l9nkl3hn0',
       type: 'deployment',
+      slug:"campaign_1",
       variationGroups: [
         {
           id: 'c2nreb1jg50l9nkl3ho0',
@@ -181,6 +184,7 @@ export const bucketing = {
     {
       id: 'c2nrh1hjg50l9thhu8bg',
       type: 'perso',
+      slug:"campaign_1",
       variationGroups: [
         {
           id: 'c2nrh1hjg50l9thhu8cg',

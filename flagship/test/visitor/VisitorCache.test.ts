@@ -80,6 +80,7 @@ describe('test visitor cache', () => {
         assignmentsHistory[campaign.variationGroupId] = campaign.variation.id
         return {
           campaignId: campaign.id,
+          slug: campaign.slug,
           variationGroupId: campaign.variationGroupId,
           variationId: campaign.variation.id,
           isReference: campaign.variation.reference,
@@ -209,6 +210,7 @@ describe('test visitor cache', () => {
           assignmentsHistory[campaign.variationGroupId] = campaign.variation.id
           return {
             campaignId: campaign.id,
+            slug: campaign.slug,
             variationGroupId: campaign.variationGroupId,
             variationId: campaign.variation.id,
             isReference: campaign.variation.reference,
