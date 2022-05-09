@@ -1,53 +1,8 @@
 const ENV_ID = ''
 const API_KEY = ''
 
-const lookupHits = (visitorId) => {
-  console.log('lookupHits', hitPrefix + visitorId)
-  const dataArray = localStorage.getItem(hitPrefix + visitorId)
-  localStorage.removeItem(hitPrefix + visitorId)
-  return dataArray
-}
-const hitPrefix = 'fs_hit_'
-const hitCacheImplementation = {
-  cacheHit (visitorId, data) {
-    console.log('cacheHit', hitPrefix + visitorId)
-    const localDatabase = localStorage.getItem(hitPrefix + visitorId)
-    let dataJson = ''
-    if (localDatabase) {
-      const localData = localDatabase.slice(0, -1)
-      dataJson = `${localData},${JSON.stringify(data)}]`
-    } else {
-      dataJson = `[${JSON.stringify(data)}]`
-    }
-    localStorage.setItem(hitPrefix + visitorId, dataJson)
-  },
-  lookupHits,
-  flushHits (visitorId) {
-    console.log('flushHits', hitPrefix + visitorId)
-    localStorage.removeItem(hitPrefix + visitorId)
-  }
-}
-
-const visitorPrefix = 'fs_visitor_'
-const visitorCacheImplementation = {
-  cacheVisitor (visitorId, data) {
-    console.log('cacheVisitor', hitPrefix + visitorId)
-    localStorage.setItem(visitorPrefix + visitorId, data)
-  },
-  lookupVisitor (visitorId) {
-    console.log('lookupVisitor', hitPrefix + visitorId)
-    const dataArray = localStorage.getItem(visitorPrefix + visitorId)
-    localStorage.removeItem(visitorPrefix + visitorId)
-    return dataArray
-  },
-  flushVisitor (visitorId) {
-    console.log('flushVisitor', hitPrefix + visitorId)
-    localStorage.removeItem(visitorPrefix + visitorId)
-  }
-}
-
 Flagship.start(ENV_ID, API_KEY, {
-  decisionMode: DecisionMode.BUCKETING,
+  // decisionMode: DecisionMode.BUCKETING,
   fetchNow: false,
   timeout: 10,
   pollingInterval: 5
@@ -75,11 +30,11 @@ let visitor = Flagship.newVisitor({
 // scenario 1 action 1
 btnAction1.addEventListener('click', async () => {
   printMessage(1, 1)
-  await visitor.synchronizeModifications()
+  await visitor.fetchFlags()
 
-  visitor.getModification({ key: myAwesomeFeature, defaultValue: 0, activate: true }).then((flag) => {
-    console.log('flag myAwesomeFeature :', flag)
-  })
+  const flag = visitor.getFlag( myAwesomeFeature, 0)
+
+  console.log('flag myAwesomeFeature :', flag.getValue())
 
   const screen1 = { type: HitType.SCREEN, documentLocation: 'Screen 1' }
   await visitor.sendHit(screen1)
@@ -92,9 +47,9 @@ const scenario1Action2 = document.getElementById('scenario-1-action-2')
 
 scenario1Action2.addEventListener('click', async () => {
   printMessage(1, 2)
-  visitor.getModification({ key: 'perso_value', defaultValue: 'Not found', activate: true }).then((flag) => {
-    console.log('perso_value:', flag)
-  })
+  const flag = visitor.getFlag('perso_value',  'Not found')
+
+  console.log('perso_value:', flag.getValue())
 
   const screen2 = { type: HitType.SCREEN, documentLocation: 'Screen 2' }
   await visitor.sendHit(screen2)
@@ -110,34 +65,36 @@ scenario1Action2.addEventListener('click', async () => {
 const scenario1Action3 = document.getElementById('scenario-1-action-3')
 scenario1Action3.addEventListener('click', async () => {
   printMessage(1, 3)
-  await visitor.synchronizeModifications()
-  console.log('synchronize OK')
+  await visitor.fetchFlags()
+  console.log('fetchFlags OK')
 
   visitor = Flagship.newVisitor({
     visitorId: currentVisitorId,
     context: { plan: 'premium' },
     hasConsented: true
   })
+
   console.log('new visitor created')
 
-  console.log('synchronizeModifications')
-  await visitor.synchronizeModifications()
-  console.log('synchronize OK')
+  console.log('fetchFlags')
+  await visitor.fetchFlags()
+  console.log('fetchFlags OK')
   printLocalStorage()
 
-  let flag = visitor.getModificationSync({ key: myAwesomeFeature, defaultValue: 0, activate: true })
-  console.log('flag myAwesomeFeature :', flag)
+  let flag = visitor.getFlag( myAwesomeFeature, 0)
+
+  console.log('flag myAwesomeFeature :', flag.getValue())
 
   visitor.updateContext({ plan: 'enterprise' })
   console.log('updateContext to  { plan: "enterprise" }')
 
   console.log('synchronizeModifications')
-  await visitor.synchronizeModifications()
+  await visitor.fetchFlags()
   console.log('synchronize OK')
   printLocalStorage()
 
-  flag = visitor.getModificationSync({ key: myAwesomeFeature, defaultValue: 0, activate: true })
-  console.log('flag myAwesomeFeature :', flag)
+  flag = visitor.getFlag( myAwesomeFeature, 0)
+  console.log('flag myAwesomeFeature :', flag.getValue())
 
   console.log('setConsent')
   visitor.setConsent(false)
@@ -153,7 +110,7 @@ scenario1Action3.addEventListener('click', async () => {
   console.log('setConsent true')
 
   console.log('synchronizeModifications')
-  await visitor.synchronizeModifications()
+  await visitor.fetchFlags()
   console.log('synchronize OK')
 
   console.log('LocalStorage expected must be Empty')
@@ -171,11 +128,11 @@ scenario1Action4.addEventListener('click', async () => {
   })
   printLocalStorage()
   console.log('visitor created')
-  await visitor.synchronizeModifications()
-  console.log('synchronize OK')
+  await visitor.fetchFlags()
+  console.log('fetchFlags OK')
 
-  const flag = visitor.getModificationSync({ key: myAwesomeFeature, defaultValue: 0, activate: true })
-  console.log('flag myAwesomeFeature :', flag)
+  const flag = visitor.getFlag(myAwesomeFeature, 0)
+  console.log('flag myAwesomeFeature :', flag.getValue())
 })
 
 const scenario1Action5 = document.getElementById('scenario-1-action-5')
@@ -193,8 +150,8 @@ scenario1Action5.addEventListener('click', async () => {
 const scenario1Action6 = document.getElementById('scenario-1-action-6')
 scenario1Action6.addEventListener('click', async () => {
   printMessage(1, 6)
-  await visitor.synchronizeModifications()
-  console.log('synchronize OK')
+  await visitor.fetchFlags()
+  console.log('fetchFlags OK')
   printLocalStorage()
   visitor.setConsent(true)
   console.log('setConsent true')
@@ -206,7 +163,7 @@ scenario1Action6.addEventListener('click', async () => {
 const scenario1Action7 = document.getElementById('scenario-1-action-7')
 scenario1Action7.addEventListener('click', async () => {
   printMessage(1, 7)
-  await visitor.synchronizeModifications()
+  await visitor.fetchFlags()
   console.log('synchronize OK')
   printLocalStorage()
 })
@@ -256,10 +213,10 @@ scenario1Action10.addEventListener('click', async () => {
       cacheEnabled: true
     }
   })
-  await visitor.synchronizeModifications()
+  await visitor.fetchFlags()
   console.log('synchronize OK')
-  const flag = visitor.getModificationSync({ key: 'cache', defaultValue: 0, activate: true })
-  console.log('flag cache :', flag)
+  const flag = visitor.getFlag('cache', 0)
+  console.log('flag cache :', flag.getValue())
 
   printLocalStorage()
 })
@@ -275,10 +232,10 @@ scenario1Action11.addEventListener('click', async () => {
     }
   })
 
-  await visitor.synchronizeModifications()
-  console.log('synchronize OK')
-  const flag = visitor.getModificationSync({ key: 'cache', defaultValue: 0, activate: true })
-  console.log('flag cache :', flag)
+  await visitor.fetchFlags()
+  console.log('fetchFlags OK')
+  const flag = visitor.getFlag('js-qa-app', "default")
+  console.log('flag js-qa-app :', flag.getValue())
 
   printLocalStorage()
 })
@@ -286,10 +243,10 @@ scenario1Action11.addEventListener('click', async () => {
 const scenario1Action12 = document.getElementById('scenario-1-action-12')
 scenario1Action12.addEventListener('click', async () => {
   printMessage(1, 12)
-  await visitor.synchronizeModifications()
-  console.log('synchronize OK')
-  const flag = visitor.getModificationSync({ key: 'cache', defaultValue: 0, activate: true })
-  console.log('flag cache :', flag)
+  await visitor.fetchFlags()
+  console.log('fetchFlags OK')
+  const flag = visitor.getFlag('cache', 0)
+  console.log('flag cache :', flag.getValue())
 
   printLocalStorage()
 })
@@ -348,7 +305,7 @@ scenario1Action16.addEventListener('click', async () => {
   const crashLookupHits = () => {
     throw new Error('Crash lookup hits')
   }
-  hitCacheImplementation.lookupHits = crashLookupHits
+  // hitCacheImplementation.lookupHits = crashLookupHits
   visitor = Flagship.newVisitor({
     visitorId: 'V1111'
   })
@@ -356,7 +313,7 @@ scenario1Action16.addEventListener('click', async () => {
   const BadFormatLookupHits = () => {
     return 'JSON bad formatted'
   }
-  hitCacheImplementation.lookupHits = BadFormatLookupHits
+  // hitCacheImplementation.lookupHits = BadFormatLookupHits
   visitor = Flagship.newVisitor({
     visitorId: 'V1111'
   })
@@ -391,7 +348,7 @@ scenario1Action18.addEventListener('click', async () => {
 
   console.log('setConsent true')
 
-  await visitor.synchronizeModifications()
+  await visitor.fetchFlags()
   console.log('synchronized ok')
   printLocalStorage()
 })
@@ -404,7 +361,7 @@ scenario7Action1.addEventListener('click', async () => {
     visitorId: 'V1111'
   })
 
-  await visitor.synchronizeModifications()
+  await visitor.fetchFlags()
   console.log('synchronized ok')
   printLocalStorage()
 })
@@ -413,7 +370,7 @@ const scenario7Action2 = document.getElementById('scenario-7-action-2')
 scenario7Action2.addEventListener('click', async () => {
   printMessage(7, 2)
 
-  await visitor.synchronizeModifications()
+  await visitor.fetchFlags()
   console.log('synchronized ok')
   printLocalStorage()
 })
@@ -453,7 +410,7 @@ scenario11Action1.addEventListener('click', async () => {
     visitorId: 'V3333'
   })
 
-  await visitor.synchronizeModifications()
+  await visitor.fetchFlags()
 
   printLocalStorage()
 })
@@ -467,7 +424,7 @@ scenario11Action2.addEventListener('click', async () => {
 
   await visitor.activateModifications(['array', 'object'])
   await visitor.sendHits([screen, event])
-  await visitor.synchronizeModifications()
+  await visitor.fetchFlags()
 
   printLocalStorage()
 })
