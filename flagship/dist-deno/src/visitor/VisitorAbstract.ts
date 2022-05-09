@@ -58,9 +58,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.updateCache()
     this.setInitialFlags(initialFlagsData || initialModifications)
     this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
-
-    this.getStrategy().lookupVisitor()
-    this.getStrategy().lookupHits()
   }
 
   public clearDeDuplicationCache (deDuplicationTime: number): void {

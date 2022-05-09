@@ -1,18 +1,19 @@
-export class ModificationsDTO {
-  public type = '';
+export type ModificationsDTO = {
+  type: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public value:any;
+  value:any;
 }
 
-export class VariationDTO {
-  public id = '';
-  public reference? = false;
-  public modifications: ModificationsDTO = new ModificationsDTO();
+export type VariationDTO = {
+  id: string
+  reference?:boolean;
+  modifications: ModificationsDTO
 }
 
-export class CampaignDTO {
-  public id = '';
-  public variationGroupId = '';
-  public variation: VariationDTO = new VariationDTO();
-  public type? =''
+export type CampaignDTO = {
+  id:string
+  slug?:string|null
+  variationGroupId: string;
+  variation: VariationDTO;
+  type?: string
 }
