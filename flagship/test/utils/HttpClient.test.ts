@@ -99,7 +99,7 @@ describe('test Get method NOdeHttpClient', () => {
   it('should ', async () => {
     const error = 'error'
     fetch.mockResolvedValue(new Response(undefined,
-      { statusText:JSON.stringify(error), status: 500, headers: { 'Content-Type': 'application/json' } }))
+      { statusText: JSON.stringify(error), status: 500, headers: { 'Content-Type': 'application/json' } }))
     try {
       options.timeout = undefined
       await nodeHttpClient.getAsync(url, options)

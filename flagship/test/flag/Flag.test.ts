@@ -53,8 +53,8 @@ describe('test Flag', () => {
     variationId: 'variationID',
     isReference: true,
     value: 'value',
-    slug:"campaign-slug",
-    campaignType:"ab"
+    slug: 'campaign-slug',
+    campaignType: 'ab'
   }
 
   visitorDelegate.flagsData.set('key', flagDto)
@@ -77,7 +77,7 @@ describe('test Flag', () => {
       variationId: flagDto.variationId,
       isReference: true,
       campaignType: flagDto.campaignType,
-      slug:flagDto.slug
+      slug: flagDto.slug
     })
   })
 
@@ -122,7 +122,7 @@ describe('test Flag', () => {
     expect(flag.metadata).toEqual(
       {
         campaignId: '',
-        slug:null,
+        slug: null,
         variationGroupId: '',
         campaignType: '',
         variationId: '',

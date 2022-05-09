@@ -53,7 +53,7 @@ export class Flag<T> implements IFlag<T> {
         variationId: flagDTO?.variationId || '',
         isReference: !!flagDTO?.isReference,
         campaignType: flagDTO?.campaignType || '',
-        slug:flagDTO?.slug
+        slug: flagDTO?.slug
       })
 
       if (!flagDTO) {

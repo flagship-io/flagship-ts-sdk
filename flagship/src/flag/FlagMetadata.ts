@@ -32,7 +32,7 @@ export class FlagMetadata implements IFlagMetadata {
         variationId: '',
         variationGroupId: '',
         isReference: false,
-        slug:null
+        slug: null
       })
     }
 }

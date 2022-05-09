@@ -141,7 +141,7 @@ describe('test DefaultStrategy ', () => {
   const campaignDTO = [
     {
       id: campaignDtoId,
-      slug:"slug",
+      slug: 'slug',
       variationGroupId: 'id',
       variation: {
         id: '1dl',

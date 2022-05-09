@@ -92,7 +92,7 @@ describe('test NotReadyStrategy', () => {
     const methodName = 'flag.metadata'
     expect(metadata).toEqual({
       campaignId: '',
-      slug:null,
+      slug: null,
       variationGroupId: '',
       campaignType: '',
       variationId: '',
