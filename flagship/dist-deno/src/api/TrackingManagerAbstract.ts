@@ -1,16 +1,15 @@
 import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
 import { HitAbstract } from '../hit/HitAbstract.ts'
-import { FlagDTO } from '../types.ts'
+import { FlagDTO, primitive } from '../types.ts'
 import { IHttpClient } from '../utils/HttpClient.ts'
 import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 
 export interface ITrackingManager {
-  /**
-   * Send to server that this user has seen this modification
-   * @param visitor
-   * @param modification
-   */
-  sendActive(visitor: VisitorAbstract, modification: FlagDTO): Promise<void>;
+ /**
+  * Send to server that this user has seen this modification
+  * @param flagData 
+  */
+  sendActive(flagData: Record<string, primitive | null>): Promise<void>;
   /**
    *Send a Hit to Flagship servers for reporting.
    * @param hit
@@ -39,8 +38,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   }
 
   public abstract sendActive(
-    visitor: VisitorAbstract,
-    modification: FlagDTO
+    flagData: Record<string, primitive | null>
   ): Promise<void>;
 
   public abstract sendHit(hit: HitAbstract): Promise<void>;
