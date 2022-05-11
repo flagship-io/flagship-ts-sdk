@@ -8,7 +8,7 @@ import { IHttpResponse, IHttpOptions, HttpClient } from '../../src/utils/HttpCli
 import { DefaultStrategy, TYPE_HIT_REQUIRED_ERROR } from '../../src/visitor/DefaultStrategy'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { Mock } from 'jest-mock'
-import { ACTIVATE_MODIFICATION_ERROR, ACTIVATE_MODIFICATION_KEY_ERROR, CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, GET_FLAG_CAST_ERROR, GET_FLAG_MISSING_ERROR, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, METHOD_DEACTIVATED_BUCKETING_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_SYNCHRONIZED_MODIFICATION, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_LANGUAGE, SDK_VERSION, TRACKER_MANAGER_MISSING_ERROR, USER_EXPOSED_CAST_ERROR, USER_EXPOSED_FLAG_ERROR, VISITOR_ID_ERROR } from '../../src/enum'
+import { ACTIVATE_MODIFICATION_ERROR, ACTIVATE_MODIFICATION_KEY_ERROR, ANONYMOUS_ID, CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR, CUSTOMER_ENV_ID_API_ITEM, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, GET_FLAG_CAST_ERROR, GET_FLAG_MISSING_ERROR, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, METHOD_DEACTIVATED_BUCKETING_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_SYNCHRONIZED_MODIFICATION, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_LANGUAGE, SDK_VERSION, TRACKER_MANAGER_MISSING_ERROR, USER_EXPOSED_CAST_ERROR, USER_EXPOSED_FLAG_ERROR, VARIATION_GROUP_ID_API_ITEM, VARIATION_ID_API_ITEM, VISITOR_ID_API_ITEM, VISITOR_ID_ERROR } from '../../src/enum'
 import { sleep, sprintf } from '../../src/utils/utils'
 import { returnModification } from './modification'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
@@ -64,6 +64,14 @@ describe('test DefaultStrategy ', () => {
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
   const defaultStrategy = new DefaultStrategy(visitorDelegate)
+
+  const getFlagPostData =(flag?:FlagDTO)=>({
+    [VISITOR_ID_API_ITEM]: visitorDelegate.visitorId,
+    [VARIATION_ID_API_ITEM]: flag?.variationId,
+    [VARIATION_GROUP_ID_API_ITEM]: flag?.variationGroupId,
+    [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
+    [ANONYMOUS_ID]: visitorDelegate.anonymousId
+  })
 
   const predefinedContext = {
     fs_client: SDK_LANGUAGE.name,
@@ -279,7 +287,7 @@ describe('test DefaultStrategy ', () => {
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: 'defaultValues', flag: returnMod, userExposed: true })
     expect<string>(value).toBe(returnMod.value)
     expect(sendActive).toBeCalledTimes(1)
-    expect(sendActive).toBeCalledWith(visitorDelegate, returnMod)
+    expect(sendActive).toBeCalledWith(getFlagPostData(returnMod))
   })
 
   it('test getFlagValue with defaultValue null', () => {
@@ -287,7 +295,7 @@ describe('test DefaultStrategy ', () => {
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: null, flag: returnMod, userExposed: true })
     expect(value).toBe(returnMod.value)
     expect(sendActive).toBeCalledTimes(1)
-    expect(sendActive).toBeCalledWith(visitorDelegate, returnMod)
+    expect(sendActive).toBeCalledWith(getFlagPostData(returnMod))
     expect(logInfo).toBeCalledTimes(0)
   })
 
@@ -296,7 +304,7 @@ describe('test DefaultStrategy ', () => {
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: undefined, flag: returnMod, userExposed: true })
     expect(value).toBe(returnMod.value)
     expect(sendActive).toBeCalledTimes(1)
-    expect(sendActive).toBeCalledWith(visitorDelegate, returnMod)
+    expect(sendActive).toBeCalledWith(getFlagPostData(returnMod))
     expect(logInfo).toBeCalledTimes(0)
   })
 
@@ -306,7 +314,7 @@ describe('test DefaultStrategy ', () => {
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue, flag: returnMod, userExposed: true })
     expect(value).toBe(defaultValue)
     expect(sendActive).toBeCalledTimes(1)
-    expect(sendActive).toBeCalledWith(visitorDelegate, returnMod)
+    expect(sendActive).toBeCalledWith(getFlagPostData(returnMod))
     expect(logInfo).toBeCalledTimes(0)
   })
 
@@ -403,8 +411,7 @@ describe('test DefaultStrategy ', () => {
     testModificationType('keyString', 'defaultString', true)
     expect(sendActive).toBeCalledTimes(1)
     expect(sendActive).toBeCalledWith(
-      visitorDelegate,
-      returnModification.get('keyString')
+      getFlagPostData(returnModification.get('keyString'))
     )
   })
 
@@ -438,8 +445,7 @@ describe('test DefaultStrategy ', () => {
     testModificationErrorCast('keyNull', [], true)
     expect(sendActive).toBeCalledTimes(1)
     expect(sendActive).toBeCalledWith(
-      visitorDelegate,
-      returnModification.get('keyNull')
+      getFlagPostData(returnModification.get('keyNull'))
     )
   })
 
@@ -453,6 +459,7 @@ describe('test DefaultStrategy ', () => {
   })
 
   const returnMod = returnModification.get('keyString') as FlagDTO
+
   it('test getModificationInfo', async () => {
     const modification = await defaultStrategy.getModificationInfo(returnMod.key)
     expect(logError).toBeCalledTimes(0)
@@ -484,8 +491,7 @@ describe('test DefaultStrategy ', () => {
     await defaultStrategy.activateModification(returnMod.key)
     expect(sendActive).toBeCalledTimes(1)
     expect(sendActive).toBeCalledWith(
-      visitorDelegate,
-      returnModification.get(returnMod.key)
+      getFlagPostData(returnMod)
     )
   })
 
@@ -494,28 +500,26 @@ describe('test DefaultStrategy ', () => {
     const key2 = 'keyNumber'
     await defaultStrategy.activateModifications([{ key: key1 }, { key: key2 }])
     expect(sendActive).toBeCalledTimes(2)
-    expect(sendActive).toBeCalledWith(
-      visitorDelegate,
-      returnModification.get(key1)
+    expect(sendActive).toHaveBeenNthCalledWith(
+      1,
+      getFlagPostData(returnModification.get(key1))
     )
-    expect(sendActive).toBeCalledWith(
-      visitorDelegate,
-      returnModification.get(key2)
+    expect(sendActive).toHaveBeenNthCalledWith(2,
+      getFlagPostData( returnModification.get(key2))
     )
   })
 
   it('test activateModification with array', async () => {
     const key1 = 'keyString'
     const key2 = 'keyNumber'
+    
     await defaultStrategy.activateModifications([key1, key2])
     expect(sendActive).toBeCalledTimes(2)
-    expect(sendActive).toBeCalledWith(
-      visitorDelegate,
-      returnModification.get(key1)
+    expect(sendActive).toHaveBeenNthCalledWith(1,
+      getFlagPostData(returnModification.get(key1))
     )
-    expect(sendActive).toBeCalledWith(
-      visitorDelegate,
-      returnModification.get(key2)
+    expect(sendActive).toHaveBeenNthCalledWith(2,
+      getFlagPostData(returnModification.get(key2))
     )
   })
 
@@ -571,8 +575,7 @@ describe('test DefaultStrategy ', () => {
       await defaultStrategy.activateModification(returnMod.key)
       expect(sendActive).toBeCalledTimes(1)
       expect(sendActive).toBeCalledWith(
-        visitorDelegate,
-        returnModification.get(returnMod.key)
+        getFlagPostData(returnMod)
       )
     } catch (error) {
       expect(logError).toBeCalledTimes(1)
@@ -584,9 +587,18 @@ describe('test DefaultStrategy ', () => {
     await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
     expect(sendActive).toBeCalledTimes(1)
     expect(sendActive).toBeCalledWith(
-      visitorDelegate,
-      returnModification.get(returnMod.key)
+      getFlagPostData(returnMod)
     )
+  })
+
+  it('test userExposed with XPC', async () => {
+    visitorDelegate.authenticate("newVisitor")
+    await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
+    expect(sendActive).toBeCalledTimes(1)
+    expect(sendActive).toBeCalledWith(
+      getFlagPostData(returnMod)
+    )
+    visitorDelegate.unauthenticate()
   })
 
   it('test userExposed with different type', async () => {
@@ -631,8 +643,7 @@ describe('test DefaultStrategy ', () => {
       await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
       expect(sendActive).toBeCalledTimes(1)
       expect(sendActive).toBeCalledWith(
-        visitorDelegate,
-        returnModification.get(returnMod.key)
+        getFlagPostData(returnMod)
       )
     } catch (error) {
       expect(logError).toBeCalledTimes(1)

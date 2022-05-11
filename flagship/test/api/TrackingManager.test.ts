@@ -90,7 +90,7 @@ describe('test TrackingManager sendActive ', () => {
 
     try {
       postAsync.mockResolvedValue(postResponse)
-      await trackingManager.sendActive(visitor, modification)
+      await trackingManager.sendActive(postData)
 
       expect(postAsync).toHaveBeenCalledWith(url, {
         headers: headers,
@@ -99,7 +99,7 @@ describe('test TrackingManager sendActive ', () => {
       })
 
       postAsync.mockRejectedValue(postResponseError)
-      await trackingManager.sendActive(visitor, modification)
+      await trackingManager.sendActive(postData)
       expect(postAsync).toHaveBeenCalledWith(url, {
         headers: headers,
         timeout: config.timeout,
@@ -123,7 +123,7 @@ describe('test TrackingManager sendActive ', () => {
 
     try {
       postAsync.mockResolvedValue(postResponse)
-      await trackingManager.sendActive(visitor, modification)
+      await trackingManager.sendActive(postData)
 
       expect(postAsync).toHaveBeenCalledWith(url, {
         headers: headers,
@@ -132,7 +132,7 @@ describe('test TrackingManager sendActive ', () => {
       })
 
       postAsync.mockRejectedValue(postResponseError)
-      await trackingManager.sendActive(visitor, modification)
+      await trackingManager.sendActive(postData)
       expect(postAsync).toHaveBeenCalledWith(url, {
         headers: headers,
         timeout: config.timeout,

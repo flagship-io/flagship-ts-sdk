@@ -1,8 +1,10 @@
 import {
   ACTIVATE_MODIFICATION_ERROR,
   ACTIVATE_MODIFICATION_KEY_ERROR,
+  ANONYMOUS_ID,
   CONTEXT_NULL_ERROR,
   CONTEXT_PARAM_ERROR,
+  CUSTOMER_ENV_ID_API_ITEM,
   EMIT_READY,
   FLAGSHIP_VISITOR_NOT_AUTHENTICATE,
   GET_FLAG_CAST_ERROR,
@@ -24,6 +26,9 @@ import {
   SDK_APP,
   USER_EXPOSED_CAST_ERROR,
   USER_EXPOSED_FLAG_ERROR,
+  VARIATION_GROUP_ID_API_ITEM,
+  VARIATION_ID_API_ITEM,
+  VISITOR_ID_API_ITEM,
   VISITOR_ID_ERROR
 } from '../enum/index'
 import {
@@ -342,13 +347,31 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return false
   }
 
-  protected async sendActivate (modification: FlagDTO, functionName = PROCESS_ACTIVE_MODIFICATION):Promise<void> {
+  protected async sendActivate (flag: FlagDTO, functionName = PROCESS_ACTIVE_MODIFICATION):Promise<void> {
     try {
-      await this.trackingManager.sendActive(this.visitor, modification)
+      const flagData: Record<string, primitive | null> = {
+        [VISITOR_ID_API_ITEM]: this.visitor.visitorId,
+        [VARIATION_ID_API_ITEM]: flag.variationId,
+        [VARIATION_GROUP_ID_API_ITEM]: flag.variationGroupId,
+        [CUSTOMER_ENV_ID_API_ITEM]: `${this.config.envId}`
+      }
+  
+      if (this.visitor.visitorId && this.visitor.anonymousId) {
+        flagData[VISITOR_ID_API_ITEM] = this.visitor.visitorId
+        flagData[ANONYMOUS_ID] = this.visitor.anonymousId
+      } else {
+        flagData[VISITOR_ID_API_ITEM] = this.visitor.anonymousId || this.visitor.visitorId
+        flagData[ANONYMOUS_ID] = null
+      }
+
+      if (this.isDeDuplicated(JSON.stringify(flagData), this.config.activateDeduplicationTime as number)) {
+        return
+      }
+      await this.trackingManager.sendActive(flagData)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logError(this.config, error.message || error, functionName)
-      this.cacheHit(modification)
+      this.cacheHit(flag)
     }
   }
 
@@ -361,10 +384,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sprintf(ACTIVATE_MODIFICATION_ERROR, key),
         PROCESS_ACTIVE_MODIFICATION
       )
-      return
-    }
-
-    if (this.isDeDuplicated(flag.variationGroupId + this.visitor.visitorId, this.config.activateDeduplicationTime as number)) {
       return
     }
 
@@ -622,10 +641,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sprintf(USER_EXPOSED_CAST_ERROR, key),
         functionName
       )
-      return
-    }
-
-    if (this.isDeDuplicated(flag.variationGroupId + this.visitor.visitorId, this.config.activateDeduplicationTime as number)) {
       return
     }
 
