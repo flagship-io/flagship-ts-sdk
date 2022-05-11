@@ -61,8 +61,7 @@ export class TrackingManager extends TrackingManagerAbstract {
   }
 
   public async sendActive (
-    visitor: VisitorAbstract,
-    modification: FlagDTO
+    flagData: Record<string, primitive | null|undefined>
   ): Promise<void> {
     const headers = {
       [HEADER_X_API_KEY]: `${this.config.apiKey}`,
@@ -73,25 +72,10 @@ export class TrackingManager extends TrackingManagerAbstract {
 
     const url = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
 
-    const postData: Record<string, primitive | null> = {
-      [VISITOR_ID_API_ITEM]: visitor.visitorId,
-      [VARIATION_ID_API_ITEM]: modification.variationId,
-      [VARIATION_GROUP_ID_API_ITEM]: modification.variationGroupId,
-      [CUSTOMER_ENV_ID_API_ITEM]: `${this.config.envId}`
-    }
-
-    if (visitor.visitorId && visitor.anonymousId) {
-      postData[VISITOR_ID_API_ITEM] = visitor.visitorId
-      postData[ANONYMOUS_ID] = visitor.anonymousId
-    } else {
-      postData[VISITOR_ID_API_ITEM] = visitor.anonymousId || visitor.visitorId
-      postData[ANONYMOUS_ID] = null
-    }
-
     await this.httpClient.postAsync(url, {
       headers: headers,
       timeout: this.config.timeout,
-      body: postData
+      body: flagData
     })
   }
 
