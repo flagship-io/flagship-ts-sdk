@@ -44,10 +44,10 @@ describe('test DefaultStrategy ', () => {
     fs_version: SDK_VERSION,
     fs_users: visitorDelegate.visitorId
   }
-  const expectContext = { sdk_versionCode: "5", sdk_versionName: 'name', [LOCATION_LAT]: 555.55, town: 'London', ...context, ...predefinedContext }
+  const expectContext = { sdk_versionCode: '5', sdk_versionName: 'name', [LOCATION_LAT]: 555.55, town: 'London', ...context, ...predefinedContext }
   it('should ', () => {
     const newContext = {
-      [APP_VERSION_CODE]: "5",
+      [APP_VERSION_CODE]: '5',
       [APP_VERSION_NAME]: 'name',
       [LOCATION_LAT]: 555.55,
       town: 'London'
@@ -58,7 +58,7 @@ describe('test DefaultStrategy ', () => {
 
   it('test error type', () => {
     const newContext = {
-      [APP_VERSION_CODE]: "5",
+      [APP_VERSION_CODE]: '5',
       town: 'Tokyo',
       [INTERNET_CONNECTION]: 10, // must be string
       [FLAGSHIP_VISITOR]: 'user', // start with fs
