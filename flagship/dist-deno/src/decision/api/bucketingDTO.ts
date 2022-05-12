@@ -29,6 +29,7 @@ export interface BucketingDTO {
     campaigns?: Array<{
         id: string
         type: string
+        slug?:string|null
         variationGroups:Array<VariationGroupDTO>
     }>
 }

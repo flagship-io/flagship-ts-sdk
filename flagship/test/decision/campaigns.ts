@@ -3,6 +3,7 @@ export const campaigns = {
   campaigns: [
     {
       id: 'c2nrh1hjg50l9thhu8bg',
+      slug: 'campaigns_1',
       variationGroupId: 'c2nrh1hjg50l9thhu8cg',
       variation: {
         id: 'c2nrh1hjg50l9thhu8dg',
@@ -17,6 +18,7 @@ export const campaigns = {
     },
     {
       id: 'c3ev1afkprbg5u3burag',
+      slug: 'campaigns_2',
       variationGroupId: 'c3ev1afkprbg5u3burbg',
       variation: {
         id: 'c3ev1afkprbg5u3burcg',

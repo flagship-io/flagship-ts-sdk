@@ -5,6 +5,7 @@ export interface IFlagMetadata{
     variationId: string
     isReference: boolean
     campaignType: string
+    slug?:string|null
 }
 
 export class FlagMetadata implements IFlagMetadata {
@@ -13,13 +14,15 @@ export class FlagMetadata implements IFlagMetadata {
     variationId: string
     isReference: boolean
     campaignType: string
+    slug?: string | null | undefined
     constructor (flagMetadata: Omit<IFlagMetadata, 'toJSON'>) {
-      const { campaignId, variationGroupId, variationId, isReference, campaignType } = flagMetadata
+      const { campaignId, variationGroupId, variationId, isReference, campaignType, slug } = flagMetadata
       this.campaignId = campaignId
       this.variationGroupId = variationGroupId
       this.variationId = variationId
       this.isReference = isReference
       this.campaignType = campaignType
+      this.slug = slug
     }
 
     public static Empty ():IFlagMetadata {
@@ -28,7 +31,8 @@ export class FlagMetadata implements IFlagMetadata {
         campaignType: '',
         variationId: '',
         variationGroupId: '',
-        isReference: false
+        isReference: false,
+        slug: null
       })
     }
 }

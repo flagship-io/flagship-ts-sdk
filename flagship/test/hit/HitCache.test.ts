@@ -28,7 +28,7 @@ describe('test visitor hit cache', () => {
   const logError = jest.spyOn(logManager, 'error')
 
   const cacheHit:Mock<Promise<void>, [visitorId: string, data: HitCacheDTO]> = jest.fn()
-  const lookupHits:Mock< Promise<HitCacheDTO[]>, [visitorId: string]> = jest.fn()
+  const lookupHits:Mock<Promise<HitCacheDTO[]>, [visitorId: string]> = jest.fn()
   const flushHits:Mock<Promise<void>, [visitorId: string]> = jest.fn()
   const hitCacheImplementation:IHitCacheImplementation = {
     cacheHit,

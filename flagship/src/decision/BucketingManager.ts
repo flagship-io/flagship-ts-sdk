@@ -53,10 +53,10 @@ export class BucketingManager extends DecisionManager {
     this._isPooling = false
   }
 
-  public startPolling (): void {
+  async startPolling (): Promise<void> {
     const timeout = (this.config.pollingInterval ?? REQUEST_TIME_OUT) * 1000
     logInfo(this.config, 'Bucketing polling starts', 'startPolling')
-    this.polling()
+    await this.polling()
     if (timeout === 0) {
       return
     }
@@ -133,9 +133,9 @@ export class BucketingManager extends DecisionManager {
     }
   }
 
-  async getCampaignsAsync (visitor: VisitorAbstract): Promise<CampaignDTO[]> {
+  async getCampaignsAsync (visitor: VisitorAbstract): Promise<CampaignDTO[]|null> {
     if (!this._bucketingContent) {
-      return []
+      return null
     }
     if (this._bucketingContent.panic) {
       this.panic = true
@@ -144,7 +144,7 @@ export class BucketingManager extends DecisionManager {
     this.panic = false
 
     if (!this._bucketingContent.campaigns) {
-      return []
+      return null
     }
 
     this.sendContext(visitor)
@@ -154,6 +154,7 @@ export class BucketingManager extends DecisionManager {
     this._bucketingContent.campaigns.forEach(campaign => {
       const currentCampaigns = this.getVisitorCampaigns(campaign.variationGroups, campaign.id, campaign.type, visitor)
       if (currentCampaigns) {
+        currentCampaigns.slug = campaign.slug
         visitorCampaigns.push(currentCampaigns)
       }
     })

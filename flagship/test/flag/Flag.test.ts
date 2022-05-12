@@ -52,7 +52,9 @@ describe('test Flag', () => {
     variationGroupId: 'variationGroupID',
     variationId: 'variationID',
     isReference: true,
-    value: 'value'
+    value: 'value',
+    slug: 'campaign-slug',
+    campaignType: 'ab'
   }
 
   visitorDelegate.flagsData.set('key', flagDto)
@@ -70,11 +72,12 @@ describe('test Flag', () => {
   it('test metadata', () => {
     getStatus.mockReturnValue(FlagshipStatus.READY)
     expect(flag.metadata).toEqual({
-      campaignId: 'campaignID',
-      variationGroupId: 'variationGroupID',
-      variationId: 'variationID',
+      campaignId: flagDto.campaignId,
+      variationGroupId: flagDto.variationGroupId,
+      variationId: flagDto.variationId,
       isReference: true,
-      campaignType: ''
+      campaignType: flagDto.campaignType,
+      slug: flagDto.slug
     })
   })
 
@@ -119,6 +122,7 @@ describe('test Flag', () => {
     expect(flag.metadata).toEqual(
       {
         campaignId: '',
+        slug: null,
         variationGroupId: '',
         campaignType: '',
         variationId: '',

@@ -42,7 +42,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._configManager = configManager
 
     const VisitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
-    this.visitorId = visitorId || VisitorCache?.visitorId || this.createVisitorId()
+    this.visitorId = visitorId || VisitorCache?.visitorId || this.uuidV4()
 
     this.setConsent(hasConsented ?? true)
 
@@ -58,9 +58,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.updateCache()
     this.setInitialFlags(initialFlagsData || initialModifications)
     this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
-
-    this.getStrategy().lookupVisitor()
-    this.getStrategy().lookupHits()
   }
 
   public clearDeDuplicationCache (deDuplicationTime: number): void {
@@ -124,16 +121,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       const value = char === 'x' ? rand : (rand & 0x3 | 0x8)
       return value.toString(16)
     })
-  }
-
-  protected createVisitorId (): string {
-    const now = new Date()
-    const random = Math.floor(Math.random() * (99999 - 10000) + 10000)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const twoDigits = (value: any): any => (value.toString().length === 1 ? `0${value}` : value)
-    return `${now.getFullYear()}${twoDigits(now.getMonth() + 1)}${twoDigits(now.getDate())}${twoDigits(now.getHours())}${twoDigits(
-      now.getMinutes()
-    )}${random}`
   }
 
   public get visitorId (): string {

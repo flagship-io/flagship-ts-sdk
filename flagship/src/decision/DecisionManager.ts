@@ -4,7 +4,6 @@ import { IHttpClient } from '../utils/HttpClient'
 import { CampaignDTO } from './api/models'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { FlagshipStatus } from '../enum/index'
-import { logError } from '../utils/utils'
 import { FlagDTO } from '../types'
 
 export abstract class DecisionManager implements IDecisionManager {
@@ -53,6 +52,7 @@ export abstract class DecisionManager implements IDecisionManager {
             variationId: campaign.variation.id,
             isReference: campaign.variation.reference,
             campaignType: campaign.type,
+            slug: campaign.slug,
             value
           }
         )
@@ -61,16 +61,7 @@ export abstract class DecisionManager implements IDecisionManager {
     return modifications
   }
 
-  abstract getCampaignsAsync(visitor: VisitorAbstract): Promise<CampaignDTO[]>
-
-  public async getCampaignsModificationsAsync (visitor: VisitorAbstract): Promise<Map<string, FlagDTO>> {
-    return this.getCampaignsAsync(visitor).then(campaigns => {
-      return this.getModifications(campaigns)
-    }).catch((error) => {
-      logError(this.config, error.message || error, 'getCampaignsModificationsAsync')
-      return new Map<string, FlagDTO>()
-    })
-  }
+  abstract getCampaignsAsync(visitor: VisitorAbstract): Promise<CampaignDTO[]|null>
 
   public isPanic (): boolean {
     return this._panic

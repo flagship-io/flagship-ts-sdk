@@ -11,6 +11,7 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { BucketingDTO } from '../../src/decision/api/bucketingDTO'
 import { DecisionManager } from '../../src/decision/DecisionManager'
 import { TrackingManager } from '../../src/api/TrackingManager'
+import { CampaignDTO } from '../../src'
 
 describe('test BucketingManager', () => {
   const config = new BucketingConfig({ pollingInterval: 0, envId: 'envID', apiKey: 'apiKey' })
@@ -40,7 +41,7 @@ describe('test BucketingManager', () => {
 
   it('test getCampaignsAsync empty', async () => {
     const campaigns = await bucketingManager.getCampaignsAsync(visitor)
-    expect(campaigns).toHaveLength(0)
+    expect(campaigns).toBeNull()
     expect(sendContext).toBeCalledTimes(0)
   })
 
@@ -67,7 +68,7 @@ describe('test BucketingManager', () => {
     const campaigns = await bucketingManager.getCampaignsAsync(visitor)
     expect(campaigns).toHaveLength(0)
     bucketingManager.stopPolling()
-    expect(sendContext).toBeCalledTimes(0)
+    expect(sendContext).toBeCalledTimes(1)
   })
 
   const headers = { 'last-modified': 'Fri, 06 Aug 2021 11:16:19 GMT' }
@@ -76,7 +77,7 @@ describe('test BucketingManager', () => {
     getAsync.mockResolvedValue({ body: {}, status: 200, headers })
     await bucketingManager.startPolling()
     const campaigns = await bucketingManager.getCampaignsAsync(visitor)
-    expect(campaigns).toHaveLength(0)
+    expect(campaigns).toBeNull()
     expect(bucketingManager.isPanic()).toBeFalsy()
     expect(getAsync).toBeCalledTimes(1)
     expect(getAsync).toBeCalledWith(url, {
@@ -88,14 +89,16 @@ describe('test BucketingManager', () => {
       },
       timeout: config.timeout
     })
-    expect(sendContext).toBeCalledTimes(1)
   })
 
   it('test getCampaignsAsync campaign', async () => {
     getAsync.mockResolvedValue({ body: bucketing, status: 200 })
     bucketingManager.startPolling()
     await sleep(500)
-    const modifications = await bucketingManager.getCampaignsModificationsAsync(visitor)
+    const campaigns = await bucketingManager.getCampaignsAsync(
+      visitor
+    )
+    const modifications = bucketingManager.getModifications(campaigns as CampaignDTO[])
     expect(modifications.size).toBe(6)
     expect(getAsync).toBeCalledTimes(1)
     expect(getAsync).toBeCalledWith(url, {
@@ -834,7 +837,8 @@ describe('test initBucketing', () => {
     const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
     sendConsentHit.mockResolvedValue()
     const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager } })
-    const modifications = await bucketingManager.getCampaignsModificationsAsync(visitor)
+    const campaigns = await bucketingManager.getCampaignsAsync(visitor)
+    const modifications = bucketingManager.getModifications(campaigns as CampaignDTO[])
     expect(modifications.size).toBe(6)
     expect(getAsync).toBeCalledTimes(0)
   })

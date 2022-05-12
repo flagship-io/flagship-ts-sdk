@@ -121,9 +121,10 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     }
   }
 
-  protected async cacheVisitor ():Promise<void> {
+  public async cacheVisitor ():Promise<void> {
     try {
       const visitorCacheInstance = this.config.visitorCacheImplementation
+
       if (this.config.disableCache || !visitorCacheInstance || typeof visitorCacheInstance.cacheVisitor !== 'function') {
         return
       }
@@ -140,6 +141,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
             assignmentsHistory[campaign.variationGroupId] = campaign.variation.id
             return {
               campaignId: campaign.id,
+              slug: campaign.slug,
               variationGroupId: campaign.variationGroupId,
               variationId: campaign.variation.id,
               isReference: campaign.variation.reference,

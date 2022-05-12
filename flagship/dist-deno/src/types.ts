@@ -20,6 +20,7 @@ export type FlagDTO= {
   variationId: string;
   isReference?: boolean;
   campaignType?: string;
+  slug?:string|null;
  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
 }
@@ -78,6 +79,7 @@ export type VisitorCacheDTO = {
     context?: Record<string, primitive>,
     assignmentsHistory?: Record<string, string>,
     campaigns?: Array<{
+        slug?:string|null
         campaignId: string,
         variationGroupId: string,
         variationId: string,

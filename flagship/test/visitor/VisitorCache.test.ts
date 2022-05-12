@@ -5,7 +5,7 @@ import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient, IHttpResponse, IHttpOptions } from '../../src/utils/HttpClient'
-import { VisitorDelegate, DefaultStrategy, NoConsentStrategy, NotReadyStrategy } from '../../src/visitor'
+import { VisitorDelegate, DefaultStrategy, NoConsentStrategy, NotReadyStrategy, PanicStrategy } from '../../src/visitor'
 import { Mock } from 'jest-mock'
 import { VISITOR_CACHE_VERSION } from '../../src/enum'
 import { campaigns } from '../decision/campaigns'
@@ -58,6 +58,9 @@ describe('test visitor cache', () => {
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const getStrategy = jest.spyOn(visitorDelegate, 'getStrategy' as any)
+
   const defaultStrategy = new DefaultStrategy(visitorDelegate)
 
   const noConsentStrategy = new NoConsentStrategy(visitorDelegate)
@@ -77,6 +80,7 @@ describe('test visitor cache', () => {
         assignmentsHistory[campaign.variationGroupId] = campaign.variation.id
         return {
           campaignId: campaign.id,
+          slug: campaign.slug,
           variationGroupId: campaign.variationGroupId,
           variationId: campaign.variation.id,
           isReference: campaign.variation.reference,
@@ -90,47 +94,52 @@ describe('test visitor cache', () => {
   }
 
   it('test saveCache defaultStrategy', async () => {
+    getStrategy.mockReturnValue(defaultStrategy)
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
-    await defaultStrategy.fetchFlags()
+    await visitorDelegate.fetchFlags()
     expect(cacheVisitor).toBeCalledTimes(1)
 
     expect(cacheVisitor).toBeCalledWith(visitorId, data)
   })
 
   it('test saveCache noConsentStrategy', async () => {
+    getStrategy.mockReturnValue(noConsentStrategy)
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
-    await noConsentStrategy.synchronizeModifications()
+    await visitorDelegate.synchronizeModifications()
     expect(cacheVisitor).toBeCalledTimes(0)
   })
 
   it('test saveCache notReadyStrategy', async () => {
+    getStrategy.mockReturnValue(notReadyStrategy)
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
-    await notReadyStrategy.synchronizeModifications()
+    await visitorDelegate.synchronizeModifications()
     expect(cacheVisitor).toBeCalledTimes(0)
   })
 
   it('test saveCache', async () => {
+    getStrategy.mockReturnValue(defaultStrategy)
     config.visitorCacheImplementation = getUndefined()
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
-    await defaultStrategy.synchronizeModifications()
+    await visitorDelegate.synchronizeModifications()
     expect(cacheVisitor).toBeCalledTimes(0)
     config.visitorCacheImplementation = visitorCacheImplementation
   })
 
   it('test saveCache failed', async () => {
+    getStrategy.mockReturnValue(defaultStrategy)
     const saveCacheError = 'Error Cache'
     cacheVisitor.mockImplementationOnce(() => {
       throw saveCacheError
     })
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
-    await defaultStrategy.synchronizeModifications()
+    await visitorDelegate.synchronizeModifications()
     expect(cacheVisitor).toBeCalledTimes(1)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(saveCacheError, 'cacheVisitor')
   })
 
   it('test fetchVisitorCacheCampaigns defaultStrategy', async () => {
-    getCampaignsAsync.mockResolvedValue([])
+    getCampaignsAsync.mockResolvedValue(null)
 
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
     const defaultStrategy = new DefaultStrategy(visitorDelegate)
@@ -141,10 +150,21 @@ describe('test visitor cache', () => {
   })
 
   it('test fetchVisitorCacheCampaigns noConsentStrategy', async () => {
-    getCampaignsAsync.mockResolvedValue([])
+    getCampaignsAsync.mockResolvedValue(null)
 
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
     const noConsentStrategy = new NoConsentStrategy(visitorDelegate)
+
+    visitorDelegate.visitorCache = data
+    await noConsentStrategy.synchronizeModifications()
+    expect(visitorDelegate.campaigns).toEqual([])
+  })
+
+  it('test fetchVisitorCacheCampaigns panicStrategy', async () => {
+    getCampaignsAsync.mockResolvedValue(null)
+
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+    const noConsentStrategy = new PanicStrategy(visitorDelegate)
 
     visitorDelegate.visitorCache = data
     await noConsentStrategy.synchronizeModifications()
@@ -171,6 +191,7 @@ describe('test visitor cache', () => {
   })
 
   it('test lookupVisitor defaultStrategy', async () => {
+    getStrategy.mockReturnValue(defaultStrategy)
     lookupVisitor.mockResolvedValue((data))
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(1)
@@ -189,6 +210,7 @@ describe('test visitor cache', () => {
           assignmentsHistory[campaign.variationGroupId] = campaign.variation.id
           return {
             campaignId: campaign.id,
+            slug: campaign.slug,
             variationGroupId: campaign.variationGroupId,
             variationId: campaign.variation.id,
             isReference: campaign.variation.reference,
