@@ -65,7 +65,7 @@ describe('test DefaultStrategy ', () => {
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
   const defaultStrategy = new DefaultStrategy(visitorDelegate)
 
-  const getFlagPostData =(flag?:FlagDTO)=>({
+  const getFlagPostData = (flag?:FlagDTO) => ({
     [VISITOR_ID_API_ITEM]: visitorDelegate.visitorId,
     [VARIATION_ID_API_ITEM]: flag?.variationId,
     [VARIATION_GROUP_ID_API_ITEM]: flag?.variationGroupId,
@@ -505,14 +505,14 @@ describe('test DefaultStrategy ', () => {
       getFlagPostData(returnModification.get(key1))
     )
     expect(sendActive).toHaveBeenNthCalledWith(2,
-      getFlagPostData( returnModification.get(key2))
+      getFlagPostData(returnModification.get(key2))
     )
   })
 
   it('test activateModification with array', async () => {
     const key1 = 'keyString'
     const key2 = 'keyNumber'
-    
+
     await defaultStrategy.activateModifications([key1, key2])
     expect(sendActive).toBeCalledTimes(2)
     expect(sendActive).toHaveBeenNthCalledWith(1,
@@ -592,7 +592,7 @@ describe('test DefaultStrategy ', () => {
   })
 
   it('test userExposed with XPC', async () => {
-    visitorDelegate.authenticate("newVisitor")
+    visitorDelegate.authenticate('newVisitor')
     await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
     expect(sendActive).toBeCalledTimes(1)
     expect(sendActive).toBeCalledWith(

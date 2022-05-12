@@ -1,13 +1,13 @@
 import { IFlagshipConfig } from '../config/FlagshipConfig'
 import { HitAbstract } from '../hit/HitAbstract'
-import { FlagDTO, primitive } from '../types'
+import { primitive } from '../types'
 import { IHttpClient } from '../utils/HttpClient'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 
 export interface ITrackingManager {
  /**
   * Send to server that this user has seen this modification
-  * @param flagData 
+  * @param flagData
   */
   sendActive(flagData: Record<string, primitive | null>): Promise<void>;
   /**

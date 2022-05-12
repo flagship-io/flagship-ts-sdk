@@ -355,7 +355,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         [VARIATION_GROUP_ID_API_ITEM]: flag.variationGroupId,
         [CUSTOMER_ENV_ID_API_ITEM]: `${this.config.envId}`
       }
-  
+
       if (this.visitor.visitorId && this.visitor.anonymousId) {
         flagData[VISITOR_ID_API_ITEM] = this.visitor.visitorId
         flagData[ANONYMOUS_ID] = this.visitor.anonymousId

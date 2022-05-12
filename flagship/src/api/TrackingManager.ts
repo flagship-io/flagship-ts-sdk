@@ -1,5 +1,4 @@
 import {
-  ANONYMOUS_ID,
   BASE_API_URL,
   CUSTOMER_ENV_ID_API_ITEM,
   CUSTOMER_UID,
@@ -19,14 +18,12 @@ import {
   SDK_VERSION,
   T_API_ITEM,
   URL_ACTIVATE_MODIFICATION,
-  VARIATION_GROUP_ID_API_ITEM,
-  VARIATION_ID_API_ITEM,
   VISITOR_ID_API_ITEM
 } from '../enum/FlagshipConstant'
 import { HitType } from '../enum/HitType'
 import { EventCategory } from '../hit/index'
 import { HitAbstract } from '../hit/HitAbstract'
-import { FlagDTO, primitive } from '../types'
+import { primitive } from '../types'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { TrackingManagerAbstract } from './TrackingManagerAbstract'
 
