@@ -278,7 +278,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       if (!campaigns) {
         return
       }
-      
+
       this.visitor.campaigns = campaigns
       this.visitor.flagsData = this.decisionManager.getModifications(this.visitor.campaigns)
       this.visitor.emit(EMIT_READY)
