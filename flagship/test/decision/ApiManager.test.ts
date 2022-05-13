@@ -69,7 +69,7 @@ describe('test ApiManager', () => {
       expect(status).toBe(FlagshipStatus.READY_PANIC_ON)
     })
     const campaigns = await apiManager.getCampaignsAsync(visitor)
-    
+
     expect(postAsync).toHaveBeenCalledWith(url, {
       headers: headers,
       timeout: config.timeout,
