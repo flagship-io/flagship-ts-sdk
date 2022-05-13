@@ -244,9 +244,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return modification
   }
 
-  protected fetchVisitorCampaigns (visitor: VisitorDelegate) :CampaignDTO[] {
+  protected fetchVisitorCampaigns (visitor: VisitorDelegate) :CampaignDTO[]|null {
     if (!Array.isArray(visitor?.visitorCache?.data.campaigns)) {
-      return []
+      return null
     }
     visitor.updateContext((visitor.visitorCache as VisitorCacheDTO).data.context || {})
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -269,17 +269,18 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   protected async globalFetchFlags (functionName:string): Promise<void> {
     try {
-      let campaigns = await this.decisionManager.getCampaignsAsync(
-        this.visitor
-      )
+      let campaigns = await this.decisionManager.getCampaignsAsync(this.visitor)
 
       if (!campaigns) {
         campaigns = this.fetchVisitorCampaigns(this.visitor)
       }
+
+      if (!campaigns) {
+        return
+      }
+      
       this.visitor.campaigns = campaigns
-      this.visitor.flagsData = this.decisionManager.getModifications(
-        this.visitor.campaigns
-      )
+      this.visitor.flagsData = this.decisionManager.getModifications(this.visitor.campaigns)
       this.visitor.emit(EMIT_READY)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
