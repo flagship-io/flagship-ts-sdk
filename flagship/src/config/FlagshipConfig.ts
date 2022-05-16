@@ -331,6 +331,9 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   }
 
   public set selfHostedUrl (v : string|undefined) {
+    if (v && !v.endsWith("/")) {
+      v += "/";
+    }
     this._selfHostedUrl = v
   }
 
