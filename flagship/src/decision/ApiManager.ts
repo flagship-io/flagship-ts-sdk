@@ -33,7 +33,10 @@ export class ApiManager extends DecisionManager {
       context: visitor.context
     }
 
-    let url = `${this.config.decisionApiUrl || BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
+    let url = `${BASE_API_URL}${this.config.envId}/${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
+    if (this.config.selfHostedUrl) {
+      url = `${this.config.selfHostedUrl}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
+    }
     if (!visitor.hasConsented) {
       url += `&${SEND_CONTEXT_EVENT}=false`
     }
