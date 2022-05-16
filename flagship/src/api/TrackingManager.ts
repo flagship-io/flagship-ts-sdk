@@ -71,7 +71,7 @@ export class TrackingManager extends TrackingManagerAbstract {
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
-    const url = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
+    const url = `${this.config.selfHostedUrl||BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
 
     const postData: Record<string, primitive | null> = {
       [VISITOR_ID_API_ITEM]: visitor.visitorId,
