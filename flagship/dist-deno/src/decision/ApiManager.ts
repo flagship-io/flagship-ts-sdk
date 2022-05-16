@@ -33,7 +33,10 @@ export class ApiManager extends DecisionManager {
       context: visitor.context
     }
 
-    let url = `${this.config.decisionApiUrl || BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
+    let url = `${BASE_API_URL}${this.config.envId}/${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
+    if (this.config.selfHostedUrl) {
+      url = `${this.config.selfHostedUrl}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
+    }
     if (!visitor.hasConsented) {
       url += `&${SEND_CONTEXT_EVENT}=false`
     }
@@ -45,7 +48,7 @@ export class ApiManager extends DecisionManager {
     })
       .then(data => {
         this.panic = !!data.body.panic
-        let response: CampaignDTO[] = []
+        let response: CampaignDTO[]|null = null
         if (data.body.campaigns) {
           response = data.body.campaigns
         }

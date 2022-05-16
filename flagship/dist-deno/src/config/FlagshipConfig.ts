@@ -80,6 +80,8 @@ export interface IFlagshipConfig {
 
   decisionApiUrl?: string
 
+  selfHostedUrl?:string
+
   activateDeduplicationTime?: number
 
   hitDeduplicationTime?: number
@@ -116,13 +118,14 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _visitorCacheImplementation!: IVisitorCacheImplementation;
   private _hitCacheImplementation!: IHitCacheImplementation;
   private _disableCache!: boolean;
+  private _selfHostedUrl : string|undefined;
 
   protected constructor (param: IFlagshipConfig) {
     const {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
-      disableCache, language
+      disableCache, language, selfHostedUrl
     } = param
 
     switch (language) {
@@ -136,7 +139,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
         SDK_LANGUAGE.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'Typescript'
         break
     }
-
+    this.selfHostedUrl = selfHostedUrl
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
     this._envId = envId
     this._apiKey = apiKey
@@ -321,6 +324,17 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
 
   public set logManager (value: IFlagshipLogManager) {
     this._logManager = value
+  }
+
+  public get selfHostedUrl () : string|undefined {
+    return this._selfHostedUrl
+  }
+
+  public set selfHostedUrl (v : string|undefined) {
+    if (v && !v.endsWith("/")) {
+      v += "/";
+    }
+    this._selfHostedUrl = v
   }
 
   public get decisionApiUrl (): string {
