@@ -25,6 +25,7 @@ _jsSdk2.default.start(_config.ENV_ID, _config.API_KEY, {
     statusChangedCallback,
     logLevel: _jsSdk.LogLevel.ERROR,
     fetchNow: false,
+    selfHostedUrl: "http://localhost:8080/v2",
     timeout: 10
 });
 

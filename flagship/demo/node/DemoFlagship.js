@@ -25,6 +25,7 @@ Flagship.start(ENV_ID, API_KEY, {
   statusChangedCallback,
   logLevel: LogLevel.ERROR,
   fetchNow: false,
+  selfHostedUrl:"http://localhost:8080/v2",
   timeout: 10
 })
 

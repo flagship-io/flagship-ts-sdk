@@ -1,5 +1,5 @@
-const ENV_ID = 'c1ndrd07m0300ro0jf20'
-const API_KEY = 'QzdTI1M9iqaIhnJ66a34C5xdzrrvzq6q8XSVOsS6'
+const ENV_ID = ''
+const API_KEY = ''
 
 const printMessage = (scenario, action) => {
   console.log(`########### SCENARIO ${scenario} ACTION ${action} ##############`)
@@ -10,7 +10,8 @@ const printLocalStorage = () => {
 }
 
 Flagship.start(ENV_ID, API_KEY, {
-  decisionMode: DecisionMode.BUCKETING,
+  // decisionMode: DecisionMode.BUCKETING,
+  selfHostedUrl:"http://localhost:8080/v2",
   fetchNow: false,
   timeout: 10,
   pollingInterval: 5
@@ -34,11 +35,11 @@ btnAction1.addEventListener('click', async () => {
 
   await visitor.fetchFlags()
 
-  flag = visitor.getFlag('qa_flag', 'default')
+  flag = visitor.getFlag('js-qa-app', 'default')
 
-  console.log('flag:', flag.value())
+  console.log('flag:', flag.getValue())
 
-  console.log('metadata', flag.metadata.toJSON())
+  console.log('metadata', flag.metadata)
 
   console.log('flag exist:', flag.exists())
 })
