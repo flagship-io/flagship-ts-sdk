@@ -158,7 +158,6 @@ export class Flagship {
     apiKey: string,
     config?: IFlagshipConfig | FlagshipConfig
   ): Flagship | null {
-
     const flagship = this.getInstance()
 
     config = flagship.buildConfig(config)
