@@ -158,7 +158,6 @@ export class Flagship {
     apiKey: string,
     config?: IFlagshipConfig | FlagshipConfig
   ): Flagship | null {
-    console.log('test deno auto build')
 
     const flagship = this.getInstance()
 
