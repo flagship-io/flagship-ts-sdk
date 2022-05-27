@@ -1,9 +1,10 @@
 {
   "name": "@flagship.io/js-sdk",
-  "version": "3.0.7",
+  "version": "3.0.8-alpha.0",
   "license": "Apache-2.0",
   "description": "Flagship JS SDK",
   "main": "dist/index.node.js",
+  "module": "dist/index.js",
   "browser": "dist/index.browser.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -22,7 +23,7 @@
     "lint": "eslint . --ext .ts",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "prebuild": "tsc --emitDeclarationOnly",
+    "prebuild": "tsc",
     "build": "webpack",
     "postbuild": "node denoTrans.mjs",
     "build-prod": "NODE_ENV=production npm run build",

@@ -45,7 +45,7 @@ export class ApiManager extends DecisionManager {
     })
       .then(data => {
         this.panic = !!data.body.panic
-        let response: CampaignDTO[] = []
+        let response: CampaignDTO[]|null = null
         if (data.body.campaigns) {
           response = data.body.campaigns
         }
