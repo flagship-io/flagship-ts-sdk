@@ -147,7 +147,7 @@ describe('test Flagship with custom config', () => {
       INITIALIZATION_PARAM_ERROR,
       PROCESS_INITIALIZATION
     )
-    expect(instance).toBeNull()
+    expect(instance).toBeInstanceOf(Flagship)
   })
 })
 

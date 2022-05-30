@@ -11,7 +11,7 @@ describe('test not ready', () => {
   FlagshipAny.isReady = jest.fn().mockReturnValue(false)
   const instance = FlagshipAny.start(envId, apiKey, { decisionMode: DecisionMode.DECISION_API, logManager })
   it('should ', () => {
-    expect(instance).toBeNull()
+    expect(instance).toBeInstanceOf(Flagship)
     expect(Flagship.getStatus()).toBe(FlagshipStatus.NOT_INITIALIZED)
   })
 })
