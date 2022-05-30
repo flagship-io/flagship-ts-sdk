@@ -43,11 +43,6 @@ jest.mock('../../src/api/TrackingManager', () => {
   }
 })
 
-describe('test newVisitor null', () => {
-  const visitor = Flagship.newVisitor({ visitorId: 'visitor' })
-  expect(visitor).toBeNull()
-})
-
 describe('test Flagship class', () => {
   const envId = 'envId'
   const apiKey = 'apiKey'
@@ -238,10 +233,5 @@ describe('test Flagship newVisitor', () => {
     expect(Flagship.getVisitor()?.context.color).toBe('red')
   })
 
-  describe('test not ready', () => {
-    const visitorId = 'visitorId'
-    const context = { isVip: true }
-    const visitor = Flagship.newVisitor({ visitorId, context })
-    expect(visitor).toBeNull()
-  })
+
 })

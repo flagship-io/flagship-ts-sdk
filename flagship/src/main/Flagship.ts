@@ -174,11 +174,7 @@ export class Flagship {
       config.logManager = new FlagshipLogManager()
     }
 
-    if (!envId || !apiKey) {
-      flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
-      logError(config, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION)
-      return flagship
-    }
+
 
     let decisionManager = flagship.configManager?.decisionManager
 
@@ -202,6 +198,12 @@ export class Flagship {
         decisionManager,
         trackingManager
       )
+    }
+
+    if (!envId || !apiKey) {
+      flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
+      logError(config, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION)
+      return flagship
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -259,9 +261,6 @@ export class Flagship {
   public static newVisitor(params?: NewVisitor): Visitor | null
   public static newVisitor(param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor | null
   public static newVisitor (param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor | null {
-    if (!this.isReady()) {
-      return null
-    }
 
     let visitorId: string | undefined
     let context: Record<string, primitive>
