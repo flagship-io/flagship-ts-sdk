@@ -177,7 +177,7 @@ export class Flagship {
     if (!envId || !apiKey) {
       flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
       logError(config, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION)
-      return null
+      return flagship
     }
 
     let decisionManager = flagship.configManager?.decisionManager
@@ -216,9 +216,10 @@ export class Flagship {
 
     if (!this.isReady()) {
       flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
-      return null
+      return flagship
     }
 
+    
     if (flagship._status === FlagshipStatus.STARTING) {
       flagship.setStatus(FlagshipStatus.READY)
     }
