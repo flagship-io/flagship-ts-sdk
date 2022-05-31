@@ -232,6 +232,4 @@ describe('test Flagship newVisitor', () => {
     expect(visitor2?.context.color).toBe('red')
     expect(Flagship.getVisitor()?.context.color).toBe('red')
   })
-
-
 })

@@ -174,8 +174,6 @@ export class Flagship {
       config.logManager = new FlagshipLogManager()
     }
 
-
-
     let decisionManager = flagship.configManager?.decisionManager
 
     if (typeof decisionManager === 'object' && decisionManager instanceof BucketingManager) {
@@ -221,7 +219,6 @@ export class Flagship {
       return flagship
     }
 
-    
     if (flagship._status === FlagshipStatus.STARTING) {
       flagship.setStatus(FlagshipStatus.READY)
     }
@@ -261,7 +258,6 @@ export class Flagship {
   public static newVisitor(params?: NewVisitor): Visitor | null
   public static newVisitor(param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor | null
   public static newVisitor (param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor | null {
-
     let visitorId: string | undefined
     let context: Record<string, primitive>
     let isAuthenticated = false
