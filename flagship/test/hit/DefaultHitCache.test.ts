@@ -54,4 +54,11 @@ describe('Test DefaultHitCache', () => {
     expect(data).toEqual(visitorData)
     expect(global.localStorage.removeItem).toBeCalledTimes(1)
   })
+
+  it('should ', async () => {
+    storageMock.getItem.mockReturnValue(null)
+    const data = await defaultHitCache.lookupHits(visitorId)
+    expect(data).toBeNull()
+    expect(global.localStorage.removeItem).toBeCalledTimes(1)
+  })
 })

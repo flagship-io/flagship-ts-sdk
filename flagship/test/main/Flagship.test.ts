@@ -43,11 +43,6 @@ jest.mock('../../src/api/TrackingManager', () => {
   }
 })
 
-describe('test newVisitor null', () => {
-  const visitor = Flagship.newVisitor({ visitorId: 'visitor' })
-  expect(visitor).toBeNull()
-})
-
 describe('test Flagship class', () => {
   const envId = 'envId'
   const apiKey = 'apiKey'
@@ -147,7 +142,7 @@ describe('test Flagship with custom config', () => {
       INITIALIZATION_PARAM_ERROR,
       PROCESS_INITIALIZATION
     )
-    expect(instance).toBeNull()
+    expect(instance).toBeInstanceOf(Flagship)
   })
 })
 
@@ -236,12 +231,5 @@ describe('test Flagship newVisitor', () => {
     expect(visitor1?.context.color).toBe('blue')
     expect(visitor2?.context.color).toBe('red')
     expect(Flagship.getVisitor()?.context.color).toBe('red')
-  })
-
-  describe('test not ready', () => {
-    const visitorId = 'visitorId'
-    const context = { isVip: true }
-    const visitor = Flagship.newVisitor({ visitorId, context })
-    expect(visitor).toBeNull()
   })
 })
