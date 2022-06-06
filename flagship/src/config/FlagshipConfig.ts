@@ -4,6 +4,8 @@ import { IHitCacheImplementation } from '../cache/IHitCacheImplementation'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, sprintf } from '../utils/utils'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation'
+import { ITrackingManager } from '../api/TrackingManagerAbstract'
+import { ITrackingManagerConfig, TrackingManagerConfig } from './TrackingManagerConfig'
 
 export enum DecisionMode {
   /**
@@ -91,6 +93,9 @@ export interface IFlagshipConfig {
   disableCache?: boolean
 
   language?: 0 | 1 | 2
+
+  trackingMangerConfig?: ITrackingManagerConfig
+
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -116,13 +121,18 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _visitorCacheImplementation!: IVisitorCacheImplementation;
   private _hitCacheImplementation!: IHitCacheImplementation;
   private _disableCache!: boolean;
+  private _trackingMangerConfig? : ITrackingManagerConfig;
+
+  public get trackingMangerConfig () : ITrackingManagerConfig|undefined {
+    return this._trackingMangerConfig
+  }
 
   protected constructor (param: IFlagshipConfig) {
     const {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
-      disableCache, language
+      disableCache, language, trackingMangerConfig
     } = param
 
     switch (language) {
@@ -136,6 +146,8 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
         SDK_LANGUAGE.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'Typescript'
         break
     }
+
+    this._trackingMangerConfig = trackingMangerConfig
 
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
     this._envId = envId
