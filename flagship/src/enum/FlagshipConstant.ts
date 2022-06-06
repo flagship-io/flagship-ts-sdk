@@ -14,11 +14,16 @@ export const REQUEST_TIME_OUT = 2
 export const DEFAULT_DEDUPLICATION_TIME = 2.5
 export const DEFAULT_POLLING_INTERVAL = 1
 
+export const DEFAULT_TIME_INTERVAL = 10
+export const DEFAULT_BATCH_LENGTH = 20
+export const BATCH_MAX_SIZE = 2500000
+
 /**
  * Decision api base url
  */
 export const BASE_API_URL = 'https://decision.flagship.io/v2/'
 export const HIT_API_URL = 'https://ariane.abtasty.com'
+export const HIT_EVENT_URL = 'https://events.flagship.io/v2'
 export const BUCKETING_API_URL = 'https://cdn.flagship.io/{0}/bucketing.json'
 export const BUCKETING_API_CONTEXT_URL = 'https://decision.flagship.io/v2/{0}/events'
 export const HIT_CONSENT_URL = 'https://ariane.abtasty.com'
@@ -142,6 +147,7 @@ export const USER_LANGUAGE = 'ul'
 export const SESSION_NUMBER = 'sn'
 
 export const HEADER_X_API_KEY = 'x-api-key'
+export const HEADER_X_ENV_ID = 'x-env-id'
 export const HEADER_CONTENT_TYPE = 'Content-Type'
 export const HEADER_X_SDK_CLIENT = 'x-sdk-client'
 export const HEADER_X_SDK_VERSION = 'x-sdk-version'
