@@ -7,9 +7,9 @@ import { Consent, IConsent } from '../hit/Consent'
 import { ISegment, Segment } from '../hit/Segment'
 import { IHttpClient } from '../utils/HttpClient'
 import { logError, logInfo } from '../utils/utils'
-import { CachingStrategyAbstract } from './CachingStrategyAbstract'
-import { ContinuousCachingStrategy } from './ContinuousCachingStrategy'
-import { PeriodicCachingStrategy } from './PeriodicCachingStrategy'
+import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
+import { BatchingContinuousCachingStrategy } from './BatchingContinuousCachingStrategy'
+import { BatchingPeriodicCachingStrategy } from './BatchingPeriodicCachingStrategy'
 import { HitCacheDTO } from '../types'
 
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
@@ -35,7 +35,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   private _httpClient: IHttpClient;
   private _config: IFlagshipConfig;
   private _hitsPoolQueue: Map<string, HitAbstract>;
-  protected strategy: CachingStrategyAbstract;
+  protected strategy: BatchingCachingStrategyAbstract;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected _intervalID:any;
   protected _isPooling = false
@@ -48,14 +48,14 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     this.strategy = this.initStrategy()
   }
 
-  initStrategy ():CachingStrategyAbstract {
-    let strategy:CachingStrategyAbstract = new ContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
+  initStrategy ():BatchingCachingStrategyAbstract {
+    let strategy:BatchingCachingStrategyAbstract = new BatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
     switch (this.config.trackingMangerConfig?.batchStrategy) {
       case BatchStrategy.NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY :
-        strategy = new ContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
+        strategy = new BatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
         break
       case BatchStrategy.BATCHING_WITH_PERIODIC_CACHING_STRATEGY:
-        strategy = new PeriodicCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
+        strategy = new BatchingPeriodicCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
         break
     }
     return strategy

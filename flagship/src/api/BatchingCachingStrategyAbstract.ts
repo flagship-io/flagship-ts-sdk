@@ -9,7 +9,7 @@ import { ITrackingManagerCommon } from './TrackingManagerAbstract'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheDTO'
 
-export abstract class CachingStrategyAbstract implements ITrackingManagerCommon {
+export abstract class BatchingCachingStrategyAbstract implements ITrackingManagerCommon {
     protected _config : IFlagshipConfig;
     protected _hitsPoolQueue: Map<string, HitAbstract>
     protected _httpClient: IHttpClient;

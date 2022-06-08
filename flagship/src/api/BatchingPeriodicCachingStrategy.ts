@@ -3,13 +3,13 @@ import { Batch } from '../hit/Batch'
 import { Consent } from '../hit/Consent'
 import { HitAbstract } from '../hit/index'
 import { logError } from '../utils/utils'
-import { CachingStrategyAbstract } from './CachingStrategyAbstract'
+import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
 
-export class ContinuousCachingStrategy extends CachingStrategyAbstract {
+export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbstract {
   async addHit (hit: HitAbstract): Promise<void> {
     const hitKey = `${hit.visitorId}:${Date.now()}`
     hit.key = hitKey
-    await this.addHitWithKey(hitKey, hit)
+    this._hitsPoolQueue.set(hitKey, hit)
     if (hit.type === HitType.CONSENT && !(hit as Consent).visitorConsent) {
       await this.notConsent(hit.visitorId)
     }
@@ -30,12 +30,7 @@ export class ContinuousCachingStrategy extends CachingStrategyAbstract {
       this._hitsPoolQueue.delete(key)
       keysToFlush.push(key)
     })
-    await this.flushHits(keysToFlush)
-  }
-
-  protected async addHitWithKey (hitKey:string, hit:HitAbstract):Promise<void> {
-    this._hitsPoolQueue.set(hitKey, hit)
-    await this.cacheHit(new Map<string, HitAbstract>().set(hitKey, hit))
+    await this.cacheHit(this._hitsPoolQueue)
   }
 
   async sendBatch (): Promise<void> {
@@ -62,13 +57,13 @@ export class ContinuousCachingStrategy extends CachingStrategyAbstract {
       batch.hits.push(item)
     })
 
-    batch.hits.forEach(hit => {
-      this._hitsPoolQueue.delete(hit.key)
-    })
-
     if (!batch.hits.length) {
       return
     }
+
+    batch.hits.forEach(hit => {
+      this._hitsPoolQueue.delete(hit.key)
+    })
 
     try {
       await this._httpClient.postAsync(HIT_EVENT_URL, {
@@ -77,15 +72,15 @@ export class ContinuousCachingStrategy extends CachingStrategyAbstract {
       })
 
       try {
-        await this.flushHits(batch.hits.map(item => item.key))
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await this.cacheHit(this._hitsPoolQueue)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error:any) {
         logError(this.config, error.message || error, 'sendBatch')
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       batch.hits.forEach((hit) => {
-        this.addHitWithKey(hit.key, hit)
+        this._hitsPoolQueue.set(hit.key, hit)
       })
       logError(this.config, error.message || error, 'sendBatch')
     }
