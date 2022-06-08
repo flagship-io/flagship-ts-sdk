@@ -1,15 +1,15 @@
 import { IFlagshipConfig } from '../config'
-import { PROCESS_CACHE_HIT } from '../enum/index'
-import { HitAbstract, IHitAbstract } from '../hit/index'
+import { HIT_CACHE_VERSION, PROCESS_CACHE_HIT } from '../enum/index'
+import { HitAbstract } from '../hit/index'
+import { HitCacheDTO } from '../types'
 import { IHttpClient } from '../utils/HttpClient'
 import { logError } from '../utils/utils'
-import { ITrackingManager } from './TrackingManagerAbstract'
+import { ITrackingManagerCommon } from './TrackingManagerAbstract'
 
-export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheDTO'
 
-export abstract class CachingStrategyAbstract implements ITrackingManager {
+export abstract class CachingStrategyAbstract implements ITrackingManagerCommon {
     protected _config : IFlagshipConfig;
     protected _hitsPoolQueue: Map<string, HitAbstract>
     protected _httpClient: IHttpClient;
@@ -28,38 +28,35 @@ export abstract class CachingStrategyAbstract implements ITrackingManager {
 
     abstract addHits (hits: HitAbstract[]): Promise<void>
 
-    abstract sendBatch(): Promise<string[]>
+    abstract notConsent(visitorId: string): Promise<void>
 
-    async lookupHits ():Promise<Map<string, IHitAbstract>|null> {
-      try {
-        const hitCacheImplementation = this.config.hitCacheImplementation
-        if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.lookupHits !== 'function') {
-          return null
-        }
+    abstract sendBatch(): Promise<void>
 
-        const hitsCache = await hitCacheImplementation.lookupHits()
-        if (!hitsCache) {
-          return null
-        }
-        if (!(hitsCache instanceof Map)) {
-          throw Error(LOOKUP_HITS_JSON_ERROR)
-        }
-        return hitsCache
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error:any) {
-        logError(this.config, error.message || error, 'lookupHits')
-      }
-      return null
-    }
-
-    protected async cacheHit (hits:Map<string, IHitAbstract>):Promise<void> {
+    protected async cacheHit (hits:Map<string, HitAbstract>):Promise<void> {
       try {
         const hitCacheImplementation = this.config.hitCacheImplementation
         if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.cacheHit !== 'function') {
           return
         }
 
-        await hitCacheImplementation.cacheHit(hits)
+        const data = new Map<string, HitCacheDTO>()
+
+        hits.forEach((item, key) => {
+          const hitData: HitCacheDTO = {
+            version: HIT_CACHE_VERSION,
+            data: {
+              visitorId: item.visitorId,
+              anonymousId: item.anonymousId,
+              type: item.type,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              content: item.toObject() as any,
+              time: Date.now()
+            }
+          }
+          data.set(key, hitData)
+        })
+
+        await hitCacheImplementation.cacheHit(data)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error:any) {
         logError(this.config, error.message || error, PROCESS_CACHE_HIT)
