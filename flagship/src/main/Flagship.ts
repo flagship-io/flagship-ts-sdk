@@ -174,6 +174,16 @@ export class Flagship {
       config.logManager = new FlagshipLogManager()
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!config.hitCacheImplementation && isBrowser()) {
+      config.hitCacheImplementation = new DefaultHitCache()
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!config.visitorCacheImplementation && isBrowser()) {
+      config.visitorCacheImplementation = new DefaultVisitorCache()
+    }
+
     let decisionManager = flagship.configManager?.decisionManager
 
     if (typeof decisionManager === 'object' && decisionManager instanceof BucketingManager) {
@@ -184,7 +194,11 @@ export class Flagship {
 
     decisionManager = flagship.buildDecisionManager(flagship, config as FlagshipConfig, httpClient)
 
-    const trackingManager = new TrackingManager(httpClient, config)
+    let trackingManager = flagship.configManager?.trackingManager
+    if (!trackingManager) {
+      trackingManager = new TrackingManager(httpClient, config)
+      trackingManager.startBatchingLoop()
+    }
 
     if (flagship.configManager) {
       flagship.configManager.config = config
@@ -202,16 +216,6 @@ export class Flagship {
       flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
       logError(config, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION)
       return flagship
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!config.hitCacheImplementation && isBrowser()) {
-      config.hitCacheImplementation = new DefaultHitCache()
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!config.visitorCacheImplementation && isBrowser()) {
-      config.visitorCacheImplementation = new DefaultVisitorCache()
     }
 
     if (!this.isReady()) {
