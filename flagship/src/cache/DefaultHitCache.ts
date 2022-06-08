@@ -1,28 +1,44 @@
 import { HitCacheDTO } from '../types'
 import { IHitCacheImplementation } from './IHitCacheImplementation'
-export const FS_HIT_PREFIX = 'FS_DEFAULT_HIT_CACHE_'
+export const FS_HIT_KEYS = 'FS_HIT_KEYS'
 export class DefaultHitCache implements IHitCacheImplementation {
-  cacheHit (visitorId: string, data: HitCacheDTO): Promise<void> {
-    const localDatabase = localStorage.getItem(FS_HIT_PREFIX + visitorId)
-    let dataJson = ''
-    if (localDatabase) {
-      const localData = localDatabase.slice(0, -1)
-      dataJson = `${localData},${JSON.stringify(data)}]`
-    } else {
-      dataJson = `[${JSON.stringify(data)}]`
-    }
-    localStorage.setItem(FS_HIT_PREFIX + visitorId, dataJson)
+  cacheHit (hits: Map<string, HitCacheDTO>): Promise<void> {
+    const localDatabaseKeys = localStorage.getItem(FS_HIT_KEYS) || '[]'
+    const localDatabaseKeysArray:string[] = JSON.parse(localDatabaseKeys)
+    hits.forEach((hit, key) => {
+      const dataJson = JSON.stringify(hit)
+      if (!localDatabaseKeysArray.includes(key)) {
+        localDatabaseKeysArray.push(key)
+      }
+      localStorage.setItem(key, dataJson)
+    })
+    localStorage.setItem(FS_HIT_KEYS, JSON.stringify(localDatabaseKeysArray))
     return Promise.resolve()
   }
 
-  lookupHits (visitorId: string): Promise<HitCacheDTO[]> {
-    const data = localStorage.getItem(FS_HIT_PREFIX + visitorId)
-    localStorage.removeItem(FS_HIT_PREFIX + visitorId)
-    return Promise.resolve(data ? JSON.parse(data) : null)
+  lookupHits (): Promise<Map<string, HitCacheDTO>> {
+    const localDatabaseKeys = localStorage.getItem(FS_HIT_KEYS) || '[]'
+    const localDatabaseKeysArray:string[] = JSON.parse(localDatabaseKeys)
+    const data = new Map<string, HitCacheDTO>()
+    localDatabaseKeysArray.forEach(localKey => {
+      const hitString = localStorage.getItem(localKey)
+      if (!hitString) {
+        return
+      }
+      const hit = JSON.parse(hitString)
+      data.set(localKey, hit)
+    })
+    return Promise.resolve(data)
   }
 
-  flushHits (visitorId: string):Promise<void> {
-    localStorage.removeItem(FS_HIT_PREFIX + visitorId)
+  flushHits (hitKeys: string[]): Promise<void> {
+    const localDatabaseKeys = localStorage.getItem(FS_HIT_KEYS) || '[]'
+    const localDatabaseKeysArray:string[] = JSON.parse(localDatabaseKeys)
+    hitKeys.forEach(key => {
+      localStorage.removeItem(key)
+    })
+    const newKeysArray = localDatabaseKeysArray.filter(x => !hitKeys.includes(x))
+    localStorage.setItem(FS_HIT_KEYS, JSON.stringify(newKeysArray))
     return Promise.resolve()
   }
 }
