@@ -1,3 +1,6 @@
+// import { Flagship } from '../../'
+// import { BatchStrategy } from '../../dist/enum/BatchStrategy'
+
 const ENV_ID = ''
 const API_KEY = ''
 
@@ -5,7 +8,11 @@ Flagship.start(ENV_ID, API_KEY, {
   // decisionMode: DecisionMode.BUCKETING,
 //   fetchNow: false,
   timeout: 10,
-  pollingInterval: 5
+  pollingInterval: 5,
+  trackingMangerConfig: {
+    batchStrategy: BatchStrategy.BATCHING_WITH_PERIODIC_CACHING_STRATEGY,
+    batchLength: 2
+  }
 })
 
 let visitor
