@@ -1,44 +1,38 @@
 import { HitCacheDTO } from '../types.ts'
 import { IHitCacheImplementation } from './IHitCacheImplementation.ts'
-export const FS_HIT_KEYS = 'FS_HIT_KEYS'
+
+export const FS_HIT_PREFIX = 'FS_DEFAULT_HIT_CACHE'
+
 export class DefaultHitCache implements IHitCacheImplementation {
-  cacheHit (hits: Map<string, HitCacheDTO>): Promise<void> {
-    const localDatabaseKeys = localStorage.getItem(FS_HIT_KEYS) || '[]'
-    const localDatabaseKeysArray:string[] = JSON.parse(localDatabaseKeys)
-    hits.forEach((hit, key) => {
-      const dataJson = JSON.stringify(hit)
-      if (!localDatabaseKeysArray.includes(key)) {
-        localDatabaseKeysArray.push(key)
-      }
-      localStorage.setItem(key, dataJson)
-    })
-    localStorage.setItem(FS_HIT_KEYS, JSON.stringify(localDatabaseKeysArray))
+  cacheHit (hits: Record<string, HitCacheDTO>): Promise<void> {
+    const localDatabaseJson = localStorage.getItem(FS_HIT_PREFIX) || '{}'
+    const localDatabase = JSON.parse(localDatabaseJson)
+
+    const newLocalDatabase = {
+      // ...localDatabase,
+      ...hits
+    }
+
+    localStorage.setItem(FS_HIT_PREFIX, JSON.stringify(newLocalDatabase))
+
     return Promise.resolve()
   }
 
-  lookupHits (): Promise<Map<string, HitCacheDTO>> {
-    const localDatabaseKeys = localStorage.getItem(FS_HIT_KEYS) || '[]'
-    const localDatabaseKeysArray:string[] = JSON.parse(localDatabaseKeys)
-    const data = new Map<string, HitCacheDTO>()
-    localDatabaseKeysArray.forEach(localKey => {
-      const hitString = localStorage.getItem(localKey)
-      if (!hitString) {
-        return
-      }
-      const hit = JSON.parse(hitString)
-      data.set(localKey, hit)
-    })
-    return Promise.resolve(data)
+  lookupHits (): Promise<Record<string, HitCacheDTO>> {
+    const localDatabaseJson = localStorage.getItem(FS_HIT_PREFIX) || '{}'
+    const localDatabase = JSON.parse(localDatabaseJson)
+    return Promise.resolve(localDatabase)
   }
 
   flushHits (hitKeys: string[]): Promise<void> {
-    const localDatabaseKeys = localStorage.getItem(FS_HIT_KEYS) || '[]'
-    const localDatabaseKeysArray:string[] = JSON.parse(localDatabaseKeys)
+    const localDatabaseJson = localStorage.getItem(FS_HIT_PREFIX) || '{}'
+    const localDatabase:Record<string, HitCacheDTO> = JSON.parse(localDatabaseJson)
+
     hitKeys.forEach(key => {
-      localStorage.removeItem(key)
+      delete localDatabase[key]
     })
-    const newKeysArray = localDatabaseKeysArray.filter(x => !hitKeys.includes(x))
-    localStorage.setItem(FS_HIT_KEYS, JSON.stringify(newKeysArray))
+
+    localStorage.setItem(FS_HIT_PREFIX, JSON.stringify(localDatabase))
     return Promise.resolve()
   }
 }

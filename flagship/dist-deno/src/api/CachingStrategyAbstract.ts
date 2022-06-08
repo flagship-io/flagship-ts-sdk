@@ -26,11 +26,13 @@ export abstract class CachingStrategyAbstract implements ITrackingManagerCommon 
 
     abstract addHit (hit: HitAbstract): Promise<void>
 
-    abstract addHits (hits: HitAbstract[]): Promise<void>
+    abstract sendBatch(): Promise<void>
 
     abstract notConsent(visitorId: string): Promise<void>
 
-    abstract sendBatch(): Promise<void>
+    async addHits (hits: HitAbstract[]): Promise<void> {
+      await Promise.all(hits.map(hit => this.addHit(hit)))
+    }
 
     protected async cacheHit (hits:Map<string, HitAbstract>):Promise<void> {
       try {
@@ -39,7 +41,7 @@ export abstract class CachingStrategyAbstract implements ITrackingManagerCommon 
           return
         }
 
-        const data = new Map<string, HitCacheDTO>()
+        const data : Record<string, HitCacheDTO> = {}
 
         hits.forEach((item, key) => {
           const hitData: HitCacheDTO = {
@@ -53,7 +55,7 @@ export abstract class CachingStrategyAbstract implements ITrackingManagerCommon 
               time: Date.now()
             }
           }
-          data.set(key, hitData)
+          data[key] = hitData
         })
 
         await hitCacheImplementation.cacheHit(data)
@@ -63,7 +65,7 @@ export abstract class CachingStrategyAbstract implements ITrackingManagerCommon 
       }
     }
 
-    protected async flushHits (hitKeys:string[]): Promise<void> {
+    public async flushHits (hitKeys:string[]): Promise<void> {
       try {
         const hitCacheImplementation = this.config.hitCacheImplementation
         if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.flushHits !== 'function') {
