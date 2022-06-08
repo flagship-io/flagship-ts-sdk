@@ -10,7 +10,8 @@ import {
   USER_IP_API_ITEM,
   SCREEN_RESOLUTION_API_ITEM,
   SESSION_NUMBER,
-  USER_LANGUAGE
+  USER_LANGUAGE,
+  QT_API_ITEM
 } from '../enum/FlagshipConstant.ts'
 import { HitType } from '../enum/HitType.ts'
 import { primitive } from '../types.ts'
@@ -36,6 +37,16 @@ export abstract class HitAbstract implements IHitAbstract {
   private _screenResolution! : string;
   private _locale! : string;
   private _sessionNumber! : string;
+  private _key! : string;
+  private _createAt: number
+
+  public get key () : string {
+    return this._key
+  }
+
+  public set key (v : string) {
+    this._key = v
+  }
 
   public get sessionNumber () : string {
     return this._sessionNumber
@@ -121,6 +132,7 @@ export abstract class HitAbstract implements IHitAbstract {
       this.sessionNumber = sessionNumber
     }
     this._anonymousId = null
+    this._createAt = Date.now()
   }
 
   /**
@@ -174,7 +186,8 @@ export abstract class HitAbstract implements IHitAbstract {
       [VISITOR_ID_API_ITEM]: this.visitorId,
       [DS_API_ITEM]: this.ds,
       [CUSTOMER_ENV_ID_API_ITEM]: `${this.config?.envId}`,
-      [T_API_ITEM]: this.type
+      [T_API_ITEM]: this.type,
+      [QT_API_ITEM]: Date.now() - this._createAt
     }
     if (this.userIp) {
       apiKeys[USER_IP_API_ITEM] = this.userIp
@@ -200,6 +213,7 @@ export abstract class HitAbstract implements IHitAbstract {
 
   toObject ():Record<string, unknown> {
     return {
+      key: this.key,
       visitorId: this.visitorId,
       ds: this.ds,
       type: this.type,

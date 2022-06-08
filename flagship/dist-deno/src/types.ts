@@ -1,6 +1,6 @@
 import { CampaignDTO } from './decision/api/models.ts'
 import { HitType } from './enum/index.ts'
-import { IEvent, IItem, IPage, IScreen, ITransaction, HitShape } from './hit/index.ts'
+import { IEvent, IItem, IPage, IScreen, ITransaction, HitShape, IHitAbstract } from './hit/index.ts'
 
 export type modificationsRequested<T> = {
     key: string,
@@ -66,7 +66,7 @@ export type HitCacheDTO ={
       anonymousId: string|null,
       type: HitType|'BATCH'|'ACTIVATE',
       time: number,
-      content?:IHit|FlagDTO|Record<string, unknown>
+      content:IHitAbstract
   }
 }
 

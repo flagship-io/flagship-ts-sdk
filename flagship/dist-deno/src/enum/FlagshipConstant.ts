@@ -14,11 +14,16 @@ export const REQUEST_TIME_OUT = 2
 export const DEFAULT_DEDUPLICATION_TIME = 2.5
 export const DEFAULT_POLLING_INTERVAL = 1
 
+export const DEFAULT_TIME_INTERVAL = 10
+export const DEFAULT_BATCH_LENGTH = 20
+export const BATCH_MAX_SIZE = 2500000
+
 /**
  * Decision api base url
  */
 export const BASE_API_URL = 'https://decision.flagship.io/v2/'
 export const HIT_API_URL = 'https://ariane.abtasty.com'
+export const HIT_EVENT_URL = 'http://localhost:3000/events' // 'https://events.flagship.io/v2'
 export const BUCKETING_API_URL = 'https://cdn.flagship.io/{0}/bucketing.json'
 export const BUCKETING_API_CONTEXT_URL = 'https://decision.flagship.io/v2/{0}/events'
 export const HIT_CONSENT_URL = 'https://ariane.abtasty.com'
@@ -107,15 +112,19 @@ export const PROCESS_CACHE_HIT = 'cacheHit'
 
 // Api items
 
-export const CUSTOMER_ENV_ID_API_ITEM = 'cid'
+export const CUSTOMER_ENV_ID_API_ITEM = 'eid'
 export const CUSTOMER_UID = 'cuid'
 export const ANONYMOUS_ID = 'aid'
 export const VISITOR_ID_API_ITEM = 'vid'
-export const VARIATION_GROUP_ID_API_ITEM = 'caid'
+export const VARIATION_GROUP_ID_API_ITEM = 'vgid'
+export const VISITOR_CONSENT = 'vc'
+export const CAMPAIGN_ID = 'caid'
 export const VARIATION_ID_API_ITEM = 'vaid'
 export const DS_API_ITEM = 'ds'
 export const T_API_ITEM = 't'
+export const QT_API_ITEM = 'qt'
 export const DL_API_ITEM = 'dl'
+export const SL_ITEM = 'sl'
 export const SDK_APP = 'APP'
 export const TID_API_ITEM = 'tid'
 export const TA_API_ITEM = 'ta'
@@ -142,6 +151,7 @@ export const USER_LANGUAGE = 'ul'
 export const SESSION_NUMBER = 'sn'
 
 export const HEADER_X_API_KEY = 'x-api-key'
+export const HEADER_X_ENV_ID = 'x-env-id'
 export const HEADER_CONTENT_TYPE = 'Content-Type'
 export const HEADER_X_SDK_CLIENT = 'x-sdk-client'
 export const HEADER_X_SDK_VERSION = 'x-sdk-version'
