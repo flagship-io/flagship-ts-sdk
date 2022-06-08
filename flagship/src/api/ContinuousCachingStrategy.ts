@@ -10,8 +10,6 @@ export class ContinuousCachingStrategy extends CachingStrategyAbstract {
     const hitKey = `${hit.visitorId}:${Date.now()}`
     hit.key = hitKey
     await this.addHitWithKey(hitKey, hit)
-    console.log('consent hit ', hit)
-
     if (hit.type === HitType.CONSENT && !(hit as Consent).visitorConsent) {
       await this.notConsent(hit.visitorId)
     }
@@ -19,8 +17,6 @@ export class ContinuousCachingStrategy extends CachingStrategyAbstract {
 
   async notConsent (visitorId: string):Promise<void> {
     const keys = Array.from(this._hitsPoolQueue.keys()).filter(x => x.includes(visitorId))
-    console.log('keys', keys)
-    console.log('hitPool', this._hitsPoolQueue)
 
     if (!keys.length) {
       return
@@ -40,10 +36,6 @@ export class ContinuousCachingStrategy extends CachingStrategyAbstract {
   protected async addHitWithKey (hitKey:string, hit:HitAbstract):Promise<void> {
     this._hitsPoolQueue.set(hitKey, hit)
     await this.cacheHit(new Map<string, HitAbstract>().set(hitKey, hit))
-  }
-
-  async addHits (hits: HitAbstract[]): Promise<void> {
-    await Promise.all(hits.map(hit => this.addHit(hit)))
   }
 
   async sendBatch (): Promise<void> {
