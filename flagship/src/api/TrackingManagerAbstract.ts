@@ -1,7 +1,7 @@
 import { IFlagshipConfig } from '../config/FlagshipConfig'
-import { DEFAULT_TIME_INTERVAL, HitType } from '../enum'
+import { DEFAULT_HIT_CACHE_TIME, DEFAULT_TIME_INTERVAL, HitType } from '../enum/index'
 import { BatchStrategy } from '../enum/BatchStrategy'
-import { HitAbstract, IEvent, ITransaction, Transaction, Event, Item, IItem, Page, IPage, IScreen, Screen } from '../hit'
+import { HitAbstract, IEvent, ITransaction, Transaction, Event, Item, IItem, Page, IPage, IScreen, Screen } from '../hit/index'
 import { Campaign, ICampaign } from '../hit/Campaign'
 import { Consent, IConsent } from '../hit/Consent'
 import { ISegment, Segment } from '../hit/Segment'
@@ -9,8 +9,11 @@ import { IHttpClient } from '../utils/HttpClient'
 import { logError, logInfo } from '../utils/utils'
 import { CachingStrategyAbstract } from './CachingStrategyAbstract'
 import { ContinuousCachingStrategy } from './ContinuousCachingStrategy'
+import { PeriodicCachingStrategy } from './PeriodicCachingStrategy'
+import { HitCacheDTO } from '../types'
 
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
+export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 
 export interface ITrackingManagerCommon {
   config:IFlagshipConfig
@@ -46,13 +49,13 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   }
 
   initStrategy ():CachingStrategyAbstract {
-    let strategy = new ContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
+    let strategy:CachingStrategyAbstract = new ContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
     switch (this.config.trackingMangerConfig?.batchStrategy) {
       case BatchStrategy.NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY :
         strategy = new ContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
         break
       case BatchStrategy.BATCHING_WITH_PERIODIC_CACHING_STRATEGY:
-        strategy = new ContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
+        strategy = new PeriodicCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
         break
     }
     return strategy
@@ -94,6 +97,14 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     this._isPooling = false
   }
 
+  protected checKLookupHitData (item:HitCacheDTO):boolean {
+    if (item?.version === 1 && item?.data?.type && item?.data?.content) {
+      return true
+    }
+    logError(this.config, LOOKUP_HITS_JSON_OBJECT_ERROR, 'lookupHits')
+    return false
+  }
+
   async lookupHits ():Promise<void> {
     try {
       const hitCacheImplementation = this.config.hitCacheImplementation
@@ -106,11 +117,18 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
       if (!hitsCache) {
         return
       }
-      if (!(hitsCache instanceof Map)) {
+      if (!Object.keys(hitsCache).length) {
         throw Error(LOOKUP_HITS_JSON_ERROR)
       }
 
-      hitsCache.forEach((item, key) => {
+      const checkHitTime = (time:number) => (((Date.now() - time) / 1000) <= DEFAULT_HIT_CACHE_TIME)
+
+      const wrongHitKeys:string[] = []
+      Object.entries(hitsCache).forEach(([key, item]) => {
+        if (!this.checKLookupHitData(item) || !checkHitTime(item.data.time)) {
+          wrongHitKeys.push(key)
+          return
+        }
         let hit:HitAbstract
         switch (item.data.type) {
           case HitType.CAMPAIGN:
@@ -141,6 +159,8 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
         hit.key = key
         this._hitsPoolQueue.set(key, hit)
       })
+
+      await this.strategy.flushHits(wrongHitKeys)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
