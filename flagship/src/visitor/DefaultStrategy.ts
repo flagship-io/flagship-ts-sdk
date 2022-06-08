@@ -48,8 +48,8 @@ import { CampaignDTO } from '../decision/api/models'
 import { DecisionMode } from '../config/index'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
 import { VisitorDelegate } from './index'
-import { Batch, BATCH, BatchDTO } from '../hit/Batch'
 import { FlagMetadata, IFlagMetadata } from '../flag/FlagMetadata'
+import { Campaign } from '../hit/Campaign'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 
@@ -343,13 +343,13 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return false
   }
 
-  protected async sendActivate (modification: FlagDTO, functionName = PROCESS_ACTIVE_MODIFICATION):Promise<void> {
+  protected async sendActivate (flagDto: FlagDTO, functionName = PROCESS_ACTIVE_MODIFICATION):Promise<void> {
     try {
-      await this.trackingManager.sendActive(this.visitor, modification)
+      const campaignHit = new Campaign({ variationGroupId: flagDto.variationGroupId, campaignId: flagDto.campaignId })
+      await this.sendHit(campaignHit)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logError(this.config, error.message || error, functionName)
-      this.cacheHit(modification)
     }
   }
 
@@ -376,26 +376,24 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     await this.sendActivate(flag)
   }
 
-  sendHit(hit: BatchDTO): Promise<void>
   sendHit(hit: HitAbstract): Promise<void>
   sendHit(hit: IHit): Promise<void>
   sendHit(hit: HitShape): Promise<void>
-  sendHit (hit: IHit | HitAbstract | HitShape|BatchDTO): Promise<void> {
+  sendHit (hit: IHit | HitAbstract | HitShape): Promise<void> {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
       return Promise.resolve()
     }
     return this.prepareAndSendHit(hit)
   }
 
-  sendHits(hits: BatchDTO[]): Promise<void>
   sendHits(hits: HitAbstract[]): Promise<void>
   sendHits(hits: IHit[]): Promise<void>
   sendHits(hits: HitShape[]): Promise<void>
-  async sendHits (hits: HitAbstract[] | IHit[]|HitShape[]|BatchDTO[]): Promise<void> {
+  async sendHits (hits: HitAbstract[] | IHit[]|HitShape[]): Promise<void> {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
       return
     }
-    hits.forEach((hit:HitAbstract | HitShape | IHit | BatchDTO) => this.prepareAndSendHit(hit))
+    hits.forEach((hit:HitAbstract | HitShape | IHit) => this.prepareAndSendHit(hit))
   }
 
   private getHitLegacy (hit: HitShape) {
@@ -448,7 +446,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return newHit
   }
 
-  private getHit (hit: IHit|BatchDTO):HitAbstract|null {
+  private getHit (hit: IHit):HitAbstract|null {
     let newHit = null
     if (!hit || !hit.type) {
       return newHit
@@ -469,18 +467,11 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       case HitType.TRANSACTION:
         newHit = new Transaction(hit as ITransaction)
         break
-      case BATCH:
-        newHit = new Batch({
-          hits: (hit as BatchDTO)?.hits?.map((item) => {
-            return this.getHit(item as IHit)
-          }).filter(item => item) as HitAbstract[]
-        })
-        break
     }
     return newHit
   }
 
-  private async prepareAndSendHit (hit: IHit | HitShape | HitAbstract|BatchDTO) {
+  private async prepareAndSendHit (hit: IHit | HitShape | HitAbstract) {
     let hitInstance: HitAbstract
     if (hit instanceof HitAbstract) {
       hitInstance = hit
@@ -515,11 +506,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
 
     try {
-      await this.trackingManager.sendHit(hitInstance)
+      await this.trackingManager.addHit(hitInstance)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logError(this.config, error.message || error, PROCESS_SEND_HIT)
-      this.cacheHit(hitInstance)
     }
   }
 
