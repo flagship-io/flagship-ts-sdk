@@ -6,12 +6,13 @@ const API_KEY = ''
 
 Flagship.start(ENV_ID, API_KEY, {
   // decisionMode: DecisionMode.BUCKETING,
-//   fetchNow: false,
+  //   fetchNow: false,
   timeout: 10,
   pollingInterval: 5,
   trackingMangerConfig: {
-    batchStrategy: BatchStrategy.BATCHING_WITH_PERIODIC_CACHING_STRATEGY,
-    batchLength: 2
+    batchStrategy: BatchStrategy.BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY,
+    batchLength: 5,
+    batchIntervals: 10
   }
 })
 
@@ -22,16 +23,15 @@ btnAction1.addEventListener('click', async () => {
   visitor = Flagship.newVisitor({
     visitorId: 'visitor-A',
     context: {
-      qa_getflag: true
+      testing_tracking_manager: true
     }
   })
 
-  const screen2 = { type: HitType.SCREEN, documentLocation: 'Screen 2' }
-  await visitor.sendHit(screen2)
-
-  console.log('screen1 sent:', screen2)
-  const event = { type: HitType.EVENT, action: 'Event 1', category: EventCategory.ACTION_TRACKING }
-  await visitor.sendHit(event)
+  await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 1' })
+  await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 2' })
+  await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 3' })
+  await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 4' })
+  await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 5' })
 })
 
 const btnAction2 = document.getElementById('scenario-1action-2')
