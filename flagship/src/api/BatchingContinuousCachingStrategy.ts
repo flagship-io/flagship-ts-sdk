@@ -2,13 +2,14 @@ import { BATCH_MAX_SIZE, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_
 import { Batch } from '../hit/Batch'
 import { Consent } from '../hit/Consent'
 import { HitAbstract } from '../hit/index'
-import { logError } from '../utils/utils'
+import { logDebug, logError, sprintf } from '../utils/utils'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
 
 export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAbstract {
   async addHit (hit: HitAbstract): Promise<void> {
     const hitKey = `${hit.visitorId}:${Date.now()}`
     hit.key = hitKey
+
     await this.addHitWithKey(hitKey, hit)
     if (hit.type === HitType.CONSENT && !(hit as Consent).visitorConsent) {
       await this.notConsent(hit.visitorId)
@@ -70,11 +71,15 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       return
     }
 
+    const requestBody = batch.toApiKeys()
+
     try {
       await this._httpClient.postAsync(HIT_EVENT_URL, {
         headers,
-        body: batch.toApiKeys()
+        body: requestBody
       })
+
+      logDebug(this.config, sprintf('Batch sent {0}', JSON.stringify(requestBody)), 'sendBatch')
 
       try {
         await this.flushHits(batch.hits.map(item => item.key))
