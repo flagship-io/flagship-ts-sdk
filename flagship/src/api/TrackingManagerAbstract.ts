@@ -11,6 +11,7 @@ import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstra
 import { BatchingContinuousCachingStrategy } from './BatchingContinuousCachingStrategy'
 import { BatchingPeriodicCachingStrategy } from './BatchingPeriodicCachingStrategy'
 import { HitCacheDTO } from '../types'
+import { NoBatchingContinuousCachingStrategy } from './NoBatchingContinuousCachingStrategy'
 
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
@@ -52,7 +53,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     let strategy:BatchingCachingStrategyAbstract = new BatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
     switch (this.config.trackingMangerConfig?.batchStrategy) {
       case BatchStrategy.NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY :
-        strategy = new BatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
+        strategy = new NoBatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
         break
       case BatchStrategy.BATCHING_WITH_PERIODIC_CACHING_STRATEGY:
         strategy = new BatchingPeriodicCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
@@ -114,11 +115,8 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
       }
 
       const hitsCache = await hitCacheImplementation.lookupHits()
-      if (!hitsCache) {
+      if (!hitsCache || !Object.keys(hitsCache).length) {
         return
-      }
-      if (!Object.keys(hitsCache).length) {
-        throw Error(LOOKUP_HITS_JSON_ERROR)
       }
 
       const checkHitTime = (time:number) => (((Date.now() - time) / 1000) <= DEFAULT_HIT_CACHE_TIME)
@@ -152,9 +150,11 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
           case HitType.SEGMENT:
             hit = new Segment(item.data.content as ISegment)
             break
-          default:
+          case HitType.TRANSACTION:
             hit = new Transaction(item.data.content as ITransaction)
             break
+          default:
+            return
         }
         hit.key = key
         this._hitsPoolQueue.set(key, hit)
