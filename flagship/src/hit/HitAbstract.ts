@@ -201,11 +201,11 @@ export abstract class HitAbstract implements IHitAbstract {
     if (this.sessionNumber) {
       apiKeys[SESSION_NUMBER] = this.sessionNumber
     }
-    if (this.visitorId && this._anonymousId) {
-      apiKeys[VISITOR_ID_API_ITEM] = this._anonymousId
+    if (this.visitorId && this.anonymousId) {
+      apiKeys[VISITOR_ID_API_ITEM] = this.anonymousId
       apiKeys[CUSTOMER_UID] = this.visitorId
     } else {
-      apiKeys[VISITOR_ID_API_ITEM] = this._anonymousId || this.visitorId
+      apiKeys[VISITOR_ID_API_ITEM] = this.anonymousId || this.visitorId
       apiKeys[CUSTOMER_UID] = null
     }
     return apiKeys
