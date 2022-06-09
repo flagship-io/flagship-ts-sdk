@@ -2,14 +2,15 @@ import { BATCH_MAX_SIZE, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_
 import { Batch } from '../hit/Batch.ts'
 import { Consent } from '../hit/Consent.ts'
 import { HitAbstract } from '../hit/index.ts'
-import { logError } from '../utils/utils.ts'
-import { CachingStrategyAbstract } from './CachingStrategyAbstract.ts'
+import { logDebug, logError, sprintf } from '../utils/utils.ts'
+import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract.ts'
 
-export class PeriodicCachingStrategy extends CachingStrategyAbstract {
+export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAbstract {
   async addHit (hit: HitAbstract): Promise<void> {
     const hitKey = `${hit.visitorId}:${Date.now()}`
     hit.key = hitKey
-    this._hitsPoolQueue.set(hitKey, hit)
+
+    await this.addHitWithKey(hitKey, hit)
     if (hit.type === HitType.CONSENT && !(hit as Consent).visitorConsent) {
       await this.notConsent(hit.visitorId)
     }
@@ -30,7 +31,14 @@ export class PeriodicCachingStrategy extends CachingStrategyAbstract {
       this._hitsPoolQueue.delete(key)
       keysToFlush.push(key)
     })
-    await this.cacheHit(this._hitsPoolQueue)
+    await this.flushHits(keysToFlush)
+  }
+
+  protected async addHitWithKey (hitKey:string, hit:HitAbstract):Promise<void> {
+    this._hitsPoolQueue.set(hitKey, hit)
+    console.log('this._hitsPoolQueue', this._hitsPoolQueue)
+
+    await this.cacheHit(new Map<string, HitAbstract>().set(hitKey, hit))
   }
 
   async sendBatch (): Promise<void> {
@@ -57,30 +65,34 @@ export class PeriodicCachingStrategy extends CachingStrategyAbstract {
       batch.hits.push(item)
     })
 
-    if (!batch.hits.length) {
-      return
-    }
-
     batch.hits.forEach(hit => {
       this._hitsPoolQueue.delete(hit.key)
     })
 
+    if (!batch.hits.length) {
+      return
+    }
+
+    const requestBody = batch.toApiKeys()
+
     try {
       await this._httpClient.postAsync(HIT_EVENT_URL, {
         headers,
-        body: batch.toApiKeys()
+        body: requestBody
       })
 
+      logDebug(this.config, sprintf('Batch sent {0}', JSON.stringify(requestBody)), 'sendBatch')
+
       try {
-        await this.cacheHit(this._hitsPoolQueue)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await this.flushHits(batch.hits.map(item => item.key))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error:any) {
         logError(this.config, error.message || error, 'sendBatch')
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       batch.hits.forEach((hit) => {
-        this._hitsPoolQueue.set(hit.key, hit)
+        this.addHitWithKey(hit.key, hit)
       })
       logError(this.config, error.message || error, 'sendBatch')
     }

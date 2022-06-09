@@ -9,7 +9,7 @@ export class DefaultHitCache implements IHitCacheImplementation {
     const localDatabase = JSON.parse(localDatabaseJson)
 
     const newLocalDatabase = {
-      // ...localDatabase,
+      ...localDatabase,
       ...hits
     }
 

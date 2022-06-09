@@ -44,6 +44,19 @@ export function logInfo (config: IFlagshipConfig, message: string, tag: string):
   config.logManager.info(message, tag)
 }
 
+export function logDebug (config: IFlagshipConfig, message: string, tag: string):void {
+  if (
+    !config ||
+    !config.logManager ||
+    typeof config.logManager.debug !== 'function' ||
+    !config.logLevel ||
+    config.logLevel < LogLevel.DEBUG
+  ) {
+    return
+  }
+  config.logManager.debug(message, tag)
+}
+
 export function sleep (ms:number) :Promise<unknown> {
   return new Promise(resolve => setTimeout(resolve, ms))
 }

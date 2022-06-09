@@ -7,10 +7,11 @@ import { Consent, IConsent } from '../hit/Consent.ts'
 import { ISegment, Segment } from '../hit/Segment.ts'
 import { IHttpClient } from '../utils/HttpClient.ts'
 import { logError, logInfo } from '../utils/utils.ts'
-import { CachingStrategyAbstract } from './CachingStrategyAbstract.ts'
-import { ContinuousCachingStrategy } from './ContinuousCachingStrategy.ts'
-import { PeriodicCachingStrategy } from './PeriodicCachingStrategy.ts'
+import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract.ts'
+import { BatchingContinuousCachingStrategy } from './BatchingContinuousCachingStrategy.ts'
+import { BatchingPeriodicCachingStrategy } from './BatchingPeriodicCachingStrategy.ts'
 import { HitCacheDTO } from '../types.ts'
+import { NoBatchingContinuousCachingStrategy } from './NoBatchingContinuousCachingStrategy.ts'
 
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
@@ -35,7 +36,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   private _httpClient: IHttpClient;
   private _config: IFlagshipConfig;
   private _hitsPoolQueue: Map<string, HitAbstract>;
-  protected strategy: CachingStrategyAbstract;
+  protected strategy: BatchingCachingStrategyAbstract;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected _intervalID:any;
   protected _isPooling = false
@@ -48,14 +49,14 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     this.strategy = this.initStrategy()
   }
 
-  initStrategy ():CachingStrategyAbstract {
-    let strategy:CachingStrategyAbstract = new ContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
+  initStrategy ():BatchingCachingStrategyAbstract {
+    let strategy:BatchingCachingStrategyAbstract = new BatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
     switch (this.config.trackingMangerConfig?.batchStrategy) {
       case BatchStrategy.NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY :
-        strategy = new ContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
+        strategy = new NoBatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
         break
       case BatchStrategy.BATCHING_WITH_PERIODIC_CACHING_STRATEGY:
-        strategy = new PeriodicCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
+        strategy = new BatchingPeriodicCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
         break
     }
     return strategy
@@ -114,11 +115,8 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
       }
 
       const hitsCache = await hitCacheImplementation.lookupHits()
-      if (!hitsCache) {
+      if (!hitsCache || !Object.keys(hitsCache).length) {
         return
-      }
-      if (!Object.keys(hitsCache).length) {
-        throw Error(LOOKUP_HITS_JSON_ERROR)
       }
 
       const checkHitTime = (time:number) => (((Date.now() - time) / 1000) <= DEFAULT_HIT_CACHE_TIME)
@@ -152,9 +150,11 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
           case HitType.SEGMENT:
             hit = new Segment(item.data.content as ISegment)
             break
-          default:
+          case HitType.TRANSACTION:
             hit = new Transaction(item.data.content as ITransaction)
             break
+          default:
+            return
         }
         hit.key = key
         this._hitsPoolQueue.set(key, hit)
