@@ -1,5 +1,5 @@
-import { CUSTOMER_ENV_ID_API_ITEM, CUSTOMER_UID, SCREEN_RESOLUTION_API_ITEM, SESSION_NUMBER, USER_IP_API_ITEM, USER_LANGUAGE, VISITOR_ID_API_ITEM } from '../enum/FlagshipConstant.ts'
-import { IHit } from '../types.ts'
+import { CUSTOMER_ENV_ID_API_ITEM, CUSTOMER_UID, DS_API_ITEM, QT_API_ITEM, SCREEN_RESOLUTION_API_ITEM, SESSION_NUMBER, T_API_ITEM, USER_IP_API_ITEM, USER_LANGUAGE, VISITOR_ID_API_ITEM } from '../enum/FlagshipConstant.ts'
+import { IHit, primitive } from '../types.ts'
 import { HitAbstract, IHitAbstract } from './HitAbstract.ts'
 
 export interface IBatch extends IHitAbstract {
@@ -38,17 +38,16 @@ export class Batch extends HitAbstract implements IBatch {
     }
 
     public toApiKeys ():Record<string, unknown> {
-      const apiKeys = super.toApiKeys()
+      const apiKeys:Record<string, unknown> = {
+        [DS_API_ITEM]: this.ds,
+        [CUSTOMER_ENV_ID_API_ITEM]: `${this.config?.envId}`,
+        [T_API_ITEM]: this.type,
+        [QT_API_ITEM]: Date.now() - this.createdAt
+      }
       apiKeys.h = this.hits.map(hit => {
         const hitKeys = hit.toApiKeys()
-        delete hitKeys[VISITOR_ID_API_ITEM]
         delete hitKeys[CUSTOMER_ENV_ID_API_ITEM]
-        delete hitKeys[USER_IP_API_ITEM]
-        delete hitKeys[SCREEN_RESOLUTION_API_ITEM]
-        delete hitKeys[USER_LANGUAGE]
-        delete hitKeys[SESSION_NUMBER]
-        delete hitKeys[VISITOR_ID_API_ITEM]
-        delete hitKeys[CUSTOMER_UID]
+        delete hitKeys[DS_API_ITEM]
         return hitKeys
       })
       return apiKeys

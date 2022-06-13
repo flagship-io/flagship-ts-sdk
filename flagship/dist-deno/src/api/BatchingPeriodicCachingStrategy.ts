@@ -9,6 +9,10 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
   async addHit (hit: HitAbstract): Promise<void> {
     const hitKey = `${hit.visitorId}:${Date.now()}`
     hit.key = hitKey
+
+    console.log('this._hitsPoolQueue', this._hitsPoolQueue)
+    console.log('this._hitsPoolQueue', this._hitsPoolQueue)
+    console.log('this._hitsPoolQueue', this._hitsPoolQueue)
     this._hitsPoolQueue.set(hitKey, hit)
     if (hit.type === HitType.CONSENT && !(hit as Consent).visitorConsent) {
       await this.notConsent(hit.visitorId)
@@ -70,18 +74,18 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         headers,
         body: batch.toApiKeys()
       })
-
-      try {
-        await this.cacheHit(this._hitsPoolQueue)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error:any) {
-        logError(this.config, error.message || error, 'sendBatch')
-      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       batch.hits.forEach((hit) => {
         this._hitsPoolQueue.set(hit.key, hit)
       })
+      logError(this.config, error.message || error, 'sendBatch')
+    }
+
+    try {
+      await this.cacheHit(this._hitsPoolQueue)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
       logError(this.config, error.message || error, 'sendBatch')
     }
   }

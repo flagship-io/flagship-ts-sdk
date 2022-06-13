@@ -36,8 +36,6 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
 
   protected async addHitWithKey (hitKey:string, hit:HitAbstract):Promise<void> {
     this._hitsPoolQueue.set(hitKey, hit)
-    console.log('this._hitsPoolQueue', this._hitsPoolQueue)
-
     await this.cacheHit(new Map<string, HitAbstract>().set(hitKey, hit))
   }
 

@@ -24,7 +24,8 @@ export interface IHitAbstract{
   userIp?: string
   screenResolution?: string
   locale?: string
-  sessionNumber?: string
+  sessionNumber?: string,
+  createdAt?:number
 }
 
 export abstract class HitAbstract implements IHitAbstract {
@@ -38,7 +39,7 @@ export abstract class HitAbstract implements IHitAbstract {
   private _locale! : string;
   private _sessionNumber! : string;
   private _key! : string;
-  private _createAt: number
+  private _createdAt: number
 
   public get key () : string {
     return this._key
@@ -116,8 +117,16 @@ export abstract class HitAbstract implements IHitAbstract {
     this._config = v
   }
 
+  public get createdAt () : number {
+    return this._createdAt
+  }
+
+  public set createdAt (v : number) {
+    this._createdAt = v
+  }
+
   protected constructor (hit: IHitAbstract) {
-    const { type, userIp, screenResolution, locale, sessionNumber } = hit
+    const { type, userIp, screenResolution, locale, sessionNumber, createdAt } = hit
     this._type = type
     if (userIp) {
       this.userIp = userIp
@@ -132,7 +141,7 @@ export abstract class HitAbstract implements IHitAbstract {
       this.sessionNumber = sessionNumber
     }
     this._anonymousId = null
-    this._createAt = Date.now()
+    this._createdAt = createdAt ?? Date.now()
   }
 
   /**
@@ -187,7 +196,7 @@ export abstract class HitAbstract implements IHitAbstract {
       [DS_API_ITEM]: this.ds,
       [CUSTOMER_ENV_ID_API_ITEM]: `${this.config?.envId}`,
       [T_API_ITEM]: this.type,
-      [QT_API_ITEM]: Date.now() - this._createAt
+      [QT_API_ITEM]: Date.now() - this._createdAt
     }
     if (this.userIp) {
       apiKeys[USER_IP_API_ITEM] = this.userIp
@@ -221,7 +230,8 @@ export abstract class HitAbstract implements IHitAbstract {
       screenResolution: this.screenResolution,
       locale: this.locale,
       sessionNumber: this.sessionNumber,
-      anonymousId: this.anonymousId
+      anonymousId: this.anonymousId,
+      createdAt: this.createdAt
     }
   }
 
