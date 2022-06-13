@@ -11,7 +11,7 @@ export type modificationsRequested<T> = {
 export type primitive=string | number | boolean
 
 export type { HitShape }
-export type IHit = IPage | IScreen | IEvent | IItem | ITransaction
+export type IHit = Omit<IPage, 'createdAt'> | Omit<IScreen, 'createdAt'> | Omit<IEvent, 'createdAt'> | Omit<IItem, 'createdAt'> | Omit<ITransaction, 'createdAt'>
 
 export type FlagDTO= {
   key: string;
