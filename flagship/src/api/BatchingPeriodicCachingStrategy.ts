@@ -70,18 +70,18 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         headers,
         body: batch.toApiKeys()
       })
-
-      try {
-        await this.cacheHit(this._hitsPoolQueue)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error:any) {
-        logError(this.config, error.message || error, 'sendBatch')
-      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       batch.hits.forEach((hit) => {
         this._hitsPoolQueue.set(hit.key, hit)
       })
+      logError(this.config, error.message || error, 'sendBatch')
+    }
+
+    try {
+      await this.cacheHit(this._hitsPoolQueue)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
       logError(this.config, error.message || error, 'sendBatch')
     }
   }
