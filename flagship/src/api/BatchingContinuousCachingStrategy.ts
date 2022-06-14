@@ -2,12 +2,12 @@ import { BATCH_MAX_SIZE, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_
 import { Batch } from '../hit/Batch'
 import { Consent } from '../hit/Consent'
 import { HitAbstract } from '../hit/index'
-import { logDebug, logError, sprintf } from '../utils/utils'
+import { logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
 
 export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAbstract {
   async addHit (hit: HitAbstract): Promise<void> {
-    const hitKey = `${hit.visitorId}:${Date.now()}`
+    const hitKey = `${hit.visitorId}:${uuidV4()}`
     hit.key = hitKey
 
     await this.addHitWithKey(hitKey, hit)

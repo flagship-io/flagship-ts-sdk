@@ -4,7 +4,7 @@ import { Batch } from '../hit/Batch'
 import { Consent } from '../hit/Consent'
 import { HitAbstract } from '../hit/index'
 import { IHttpClient } from '../utils/HttpClient'
-import { logError } from '../utils/utils'
+import { logError, uuidV4 } from '../utils/utils'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
 
 export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategyAbstract {
@@ -16,7 +16,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
     }
 
     async addHit (hit: HitAbstract): Promise<void> {
-      const hitKey = `${hit.visitorId}:${Date.now()}`
+      const hitKey = `${hit.visitorId}:${uuidV4()}`
       hit.key = hitKey
 
       if (hit.type === HitType.CONSENT && !(hit as Consent).visitorConsent) {
