@@ -77,12 +77,6 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       })
       logError(this.config, error.message || error, 'sendBatch')
     }
-
-    try {
-      await this.cacheHit(this._hitsPoolQueue)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
-      logError(this.config, error.message || error, 'sendBatch')
-    }
+    await this.cacheHit(this._hitsPoolQueue)
   }
 }
