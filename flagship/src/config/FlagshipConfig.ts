@@ -1,11 +1,10 @@
 import { BucketingDTO } from '../decision/api/bucketingDTO'
-import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, SDK_LANGUAGE, TYPE_ERROR } from '../enum/index'
+import { BASE_API_URL, BatchStrategy, DEFAULT_BATCH_LENGTH, DEFAULT_DEDUPLICATION_TIME, DEFAULT_TIME_INTERVAL, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, SDK_LANGUAGE, TYPE_ERROR } from '../enum/index'
 import { IHitCacheImplementation } from '../cache/IHitCacheImplementation'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, sprintf } from '../utils/utils'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation'
-import { ITrackingManager } from '../api/TrackingManagerAbstract'
-import { ITrackingManagerConfig, TrackingManagerConfig } from './TrackingManagerConfig'
+import { ITrackingManagerConfig } from './TrackingManagerConfig'
 
 export enum DecisionMode {
   /**
@@ -121,9 +120,9 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _visitorCacheImplementation!: IVisitorCacheImplementation;
   private _hitCacheImplementation!: IHitCacheImplementation;
   private _disableCache!: boolean;
-  private _trackingMangerConfig? : ITrackingManagerConfig;
+  private _trackingMangerConfig : ITrackingManagerConfig;
 
-  public get trackingMangerConfig () : ITrackingManagerConfig|undefined {
+  public get trackingMangerConfig () : ITrackingManagerConfig {
     return this._trackingMangerConfig
   }
 
@@ -135,19 +134,17 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       disableCache, language, trackingMangerConfig
     } = param
 
-    switch (language) {
-      case 1:
-        SDK_LANGUAGE.name = 'ReactJS'
-        break
-      case 2:
-        SDK_LANGUAGE.name = 'React-Native'
-        break
-      default:
-        SDK_LANGUAGE.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'Typescript'
-        break
+    this.setSdkLanguageName(language)
+
+    if (logManager) {
+      this.logManager = logManager
     }
 
-    this._trackingMangerConfig = trackingMangerConfig
+    this._trackingMangerConfig = trackingMangerConfig || {
+      batchIntervals: DEFAULT_TIME_INTERVAL,
+      batchLength: DEFAULT_BATCH_LENGTH,
+      batchStrategy: BatchStrategy.BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY
+    }
 
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
     this._envId = envId
@@ -169,10 +166,21 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       this.hitCacheImplementation = hitCacheImplementation
     }
 
-    if (logManager) {
-      this.logManager = logManager
-    }
     this.statusChangedCallback = statusChangedCallback
+  }
+
+  protected setSdkLanguageName (language?:number):void {
+    switch (language) {
+      case 1:
+        SDK_LANGUAGE.name = 'ReactJS'
+        break
+      case 2:
+        SDK_LANGUAGE.name = 'React-Native'
+        break
+      default:
+        SDK_LANGUAGE.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'Typescript'
+        break
+    }
   }
 
   public get initialBucketing (): BucketingDTO | undefined {
