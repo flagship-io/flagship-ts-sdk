@@ -39,12 +39,8 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
           body: hit.toApiKeys()
         })
 
-        try {
-          await this.flushHits([hitKey])
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error:any) {
-          logError(this.config, error.message || error, 'addHit')
-        }
+        await this.flushHits([hitKey])
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error:any) {
         if (hit.type !== HitType.CONSENT) {
@@ -106,12 +102,8 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
           body: batch.toApiKeys()
         })
 
-        try {
-          await this.flushHits(batch.hits.map(item => item.key))
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error:any) {
-          logError(this.config, error.message || error, 'sendBatch')
-        }
+        await this.flushHits(batch.hits.map(item => item.key))
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error:any) {
         batch.hits.forEach((hit) => {
