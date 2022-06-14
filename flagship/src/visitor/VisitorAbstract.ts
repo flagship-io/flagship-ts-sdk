@@ -4,7 +4,7 @@ import { IHit, Modification, NewVisitor, modificationsRequested, primitive, Visi
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
 import { FlagshipStatus, SDK_LANGUAGE, SDK_VERSION, VISITOR_ID_ERROR } from '../enum/index'
-import { logError } from '../utils/utils'
+import { logError, uuidV4 } from '../utils/utils'
 import { HitAbstract, HitShape } from '../hit/index'
 import { DefaultStrategy } from './DefaultStrategy'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
@@ -42,14 +42,14 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._configManager = configManager
 
     const VisitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
-    this.visitorId = visitorId || VisitorCache?.visitorId || this.uuidV4()
+    this.visitorId = visitorId || VisitorCache?.visitorId || uuidV4()
 
     this.campaigns = []
 
     this._anonymousId = VisitorCache?.anonymousId || null
 
     if (!this._anonymousId && isAuthenticated && this.config.decisionMode === DecisionMode.DECISION_API) {
-      this._anonymousId = this.uuidV4()
+      this._anonymousId = uuidV4()
     }
 
     this.setConsent(hasConsented ?? true)
@@ -114,14 +114,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.context.fs_client = SDK_LANGUAGE.name
     this.context.fs_version = SDK_VERSION
     this.context.fs_users = this.visitorId
-  }
-
-  protected uuidV4 (): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (char) {
-      const rand = Math.random() * 16 | 0
-      const value = char === 'x' ? rand : (rand & 0x3 | 0x8)
-      return value.toString(16)
-    })
   }
 
   public get visitorId (): string {
