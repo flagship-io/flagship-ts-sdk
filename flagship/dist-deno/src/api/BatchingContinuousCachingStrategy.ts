@@ -81,12 +81,8 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
 
       logDebug(this.config, sprintf('Batch sent {0}', JSON.stringify(requestBody)), 'sendBatch')
 
-      try {
-        await this.flushHits(batch.hits.map(item => item.key))
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error:any) {
-        logError(this.config, error.message || error, 'sendBatch')
-      }
+      await this.flushHits(batch.hits.map(item => item.key))
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       batch.hits.forEach((hit) => {
