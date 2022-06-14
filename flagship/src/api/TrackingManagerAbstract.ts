@@ -47,14 +47,17 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     this.strategy = this.initStrategy()
   }
 
-  initStrategy ():BatchingCachingStrategyAbstract {
-    let strategy:BatchingCachingStrategyAbstract = new BatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
+  protected initStrategy ():BatchingCachingStrategyAbstract {
+    let strategy:BatchingCachingStrategyAbstract
     switch (this.config.trackingMangerConfig?.batchStrategy) {
-      case BatchStrategy.NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY :
-        strategy = new NoBatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
-        break
       case BatchStrategy.BATCHING_WITH_PERIODIC_CACHING_STRATEGY:
         strategy = new BatchingPeriodicCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
+        break
+      case BatchStrategy.BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY:
+        strategy = new BatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
+        break
+      default:
+        strategy = new NoBatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
         break
     }
     return strategy
@@ -85,7 +88,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     logInfo(this.config, 'Batching Loop have been finished', 'stopBatchingLoop')
   }
 
-  public async batchingLoop ():Promise<void> {
+  protected async batchingLoop ():Promise<void> {
     if (this._isPooling) {
       return
     }
