@@ -51,6 +51,8 @@ export const FLAGSHIP_SDK = 'Flagship SDK'
 
 export const EMIT_READY = 'ready'
 
+export const NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY = 3
+
 /**
  * Message Error
  */
