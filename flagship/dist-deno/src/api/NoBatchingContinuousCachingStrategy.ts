@@ -4,7 +4,7 @@ import { Batch } from '../hit/Batch.ts'
 import { Consent } from '../hit/Consent.ts'
 import { HitAbstract } from '../hit/index.ts'
 import { IHttpClient } from '../utils/HttpClient.ts'
-import { logError } from '../utils/utils.ts'
+import { logError, uuidV4 } from '../utils/utils.ts'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract.ts'
 
 export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategyAbstract {
@@ -16,11 +16,8 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
     }
 
     async addHit (hit: HitAbstract): Promise<void> {
-      const hitKey = `${hit.visitorId}:${Date.now()}`
+      const hitKey = `${hit.visitorId}:${uuidV4()}`
       hit.key = hitKey
-
-      console.log('hitKey', hitKey)
-      console.log('cacheHitKeys', this.cacheHitKeys)
 
       if (hit.type === HitType.CONSENT && !(hit as Consent).visitorConsent) {
         await this.notConsent(hit.visitorId)

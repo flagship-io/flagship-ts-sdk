@@ -2,12 +2,12 @@ import { BATCH_MAX_SIZE, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_
 import { Batch } from '../hit/Batch.ts'
 import { Consent } from '../hit/Consent.ts'
 import { HitAbstract } from '../hit/index.ts'
-import { logError } from '../utils/utils.ts'
+import { logError, uuidV4 } from '../utils/utils.ts'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract.ts'
 
 export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbstract {
   async addHit (hit: HitAbstract): Promise<void> {
-    const hitKey = `${hit.visitorId}:${Date.now()}`
+    const hitKey = `${hit.visitorId}:${uuidV4()}`
     hit.key = hitKey
     this._hitsPoolQueue.set(hitKey, hit)
     if (hit.type === HitType.CONSENT && !(hit as Consent).visitorConsent) {
