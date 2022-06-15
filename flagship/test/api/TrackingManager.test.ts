@@ -12,7 +12,6 @@ import { sleep, uuidV4 } from '../../src/utils/utils'
 import { Mock } from 'jest-mock'
 import { Consent } from '../../src/hit/Consent'
 import { Segment } from '../../src/hit/Segment'
-import { IHitAbstract } from '../../src/hit'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 
 describe('test TrackingManager', () => {
