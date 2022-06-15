@@ -30,10 +30,6 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
     abstract notConsent(visitorId: string): Promise<void>
 
-    async addHits (hits: HitAbstract[]): Promise<void> {
-      await Promise.all(hits.map(hit => this.addHit(hit)))
-    }
-
     protected async cacheHit (hits:Map<string, HitAbstract>):Promise<void> {
       try {
         const hitCacheImplementation = this.config.hitCacheImplementation
