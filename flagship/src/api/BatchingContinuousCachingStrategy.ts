@@ -19,9 +19,6 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
   async notConsent (visitorId: string):Promise<void> {
     const keys = Array.from(this._hitsPoolQueue.keys()).filter(x => x.includes(visitorId))
 
-    if (!keys.length) {
-      return
-    }
     const keysToFlush:string[] = []
     keys.forEach(key => {
       const isConsentHit = this._hitsPoolQueue.get(key)?.type === HitType.CONSENT
@@ -31,6 +28,9 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       this._hitsPoolQueue.delete(key)
       keysToFlush.push(key)
     })
+    if (!keysToFlush.length) {
+      return
+    }
     await this.flushHits(keysToFlush)
   }
 
