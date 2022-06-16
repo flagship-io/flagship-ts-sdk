@@ -1,10 +1,10 @@
 import { BucketingDTO } from '../decision/api/bucketingDTO'
-import { BASE_API_URL, BatchStrategy, DEFAULT_BATCH_LENGTH, DEFAULT_DEDUPLICATION_TIME, DEFAULT_TIME_INTERVAL, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, SDK_LANGUAGE, TYPE_ERROR } from '../enum/index'
+import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, SDK_LANGUAGE, TYPE_ERROR } from '../enum/index'
 import { IHitCacheImplementation } from '../cache/IHitCacheImplementation'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, sprintf } from '../utils/utils'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation'
-import { ITrackingManagerConfig } from './TrackingManagerConfig'
+import { ITrackingManagerConfig, TrackingManagerConfig } from './TrackingManagerConfig'
 
 export enum DecisionMode {
   /**
@@ -140,11 +140,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       this.logManager = logManager
     }
 
-    this._trackingMangerConfig = trackingMangerConfig || {
-      batchIntervals: DEFAULT_TIME_INTERVAL,
-      batchLength: DEFAULT_BATCH_LENGTH,
-      batchStrategy: BatchStrategy.BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY
-    }
+    this._trackingMangerConfig = new TrackingManagerConfig(trackingMangerConfig || {})
 
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
     this._envId = envId
