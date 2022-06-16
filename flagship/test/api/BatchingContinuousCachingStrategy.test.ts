@@ -1,9 +1,9 @@
-import { jest, expect, it, describe } from '@jest/globals'
+import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { Mock } from 'jest-mock'
-import { HitAbstract, Page } from '../../src'
+import { HitAbstract, HitCacheDTO, Page } from '../../src'
 import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinuousCachingStrategy'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
-import { HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HIT_EVENT_URL, SDK_LANGUAGE, SDK_VERSION } from '../../src/enum/FlagshipConstant'
+import { HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HIT_CACHE_VERSION, HIT_EVENT_URL, PROCESS_CACHE_HIT, SDK_LANGUAGE, SDK_VERSION } from '../../src/enum/FlagshipConstant'
 import { Batch } from '../../src/hit/Batch'
 import { Campaign } from '../../src/hit/Campaign'
 import { Consent } from '../../src/hit/Consent'
@@ -88,7 +88,17 @@ describe('Test BatchingContinuousCachingStrategy', () => {
   })
 })
 
-describe('test sendBatch method ', () => {
+describe('test sendBatch method', () => {
+  const methodNow = Date.now
+  const mockNow:Mock<number, []> = jest.fn()
+  beforeAll(() => {
+    Date.now = mockNow
+    mockNow.mockReturnValue(1)
+  })
+  afterAll(() => {
+    Date.now = methodNow
+  })
+
   const httpClient = new HttpClient()
 
   const postAsync = jest.spyOn(httpClient, 'postAsync')
@@ -128,12 +138,6 @@ describe('test sendBatch method ', () => {
 
     postAsync.mockResolvedValue({ status: 200, body: null })
 
-    const methodNow = Date.now
-    const mockNow:Mock<number, []> = jest.fn()
-    Date.now = mockNow
-
-    mockNow.mockReturnValue(1)
-
     const batch:Batch = new Batch({ hits: [] })
     batch.config = config
 
@@ -162,15 +166,9 @@ describe('test sendBatch method ', () => {
     expect(postAsync).toBeCalledWith(HIT_EVENT_URL, { headers, body: batch.toApiKeys() })
     expect(flushHits).toBeCalledTimes(1)
     expect(flushHits).toHaveBeenCalledWith(expect.arrayContaining([expect.stringContaining(visitorId)]))
-
-    Date.now = methodNow
   })
 
   it('test sendBatch method throw exception ', async () => {
-    const methodNow = Date.now
-    const mockNow:Mock<number, []> = jest.fn()
-    Date.now = mockNow
-
     const error = 'message error'
     postAsync.mockRejectedValue(error)
 
@@ -188,8 +186,6 @@ describe('test sendBatch method ', () => {
     expect(hitsPoolQueue.size).toBe(1)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(error, 'sendBatch')
-
-    Date.now = methodNow
   })
 
   it('test sendBatch method with empty hitsPoolQueue', async () => {
@@ -197,5 +193,105 @@ describe('test sendBatch method ', () => {
     const batchingStrategy = new BatchingContinuousCachingStrategy(config, httpClient, hitsPoolQueue)
     await batchingStrategy.sendBatch()
     expect(postAsync).toBeCalledTimes(0)
+  })
+})
+
+describe('test cacheHit and flushHits methods', () => {
+  const methodNow = Date.now
+  const mockNow:Mock<number, []> = jest.fn()
+  beforeAll(() => {
+    Date.now = mockNow
+    mockNow.mockReturnValue(1)
+  })
+  afterAll(() => {
+    Date.now = methodNow
+  })
+
+  const httpClient = new HttpClient()
+
+  const postAsync = jest.spyOn(httpClient, 'postAsync')
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
+  const flushHits:Mock<Promise<void>, [hitKeys: string[]]> = jest.fn()
+  const lookupHits:Mock<Promise<Record<string, HitCacheDTO>>, []> = jest.fn()
+  const cacheHit:Mock<Promise<void>, [Record<string, HitCacheDTO>]> = jest.fn()
+  const hitCacheImplementation = {
+    cacheHit,
+    lookupHits,
+    flushHits
+  }
+  config.hitCacheImplementation = hitCacheImplementation
+  const logManager = new FlagshipLogManager()
+  const logError = jest.spyOn(logManager, 'error')
+
+  config.logManager = logManager
+
+  const hitsPoolQueue = new Map<string, HitAbstract>()
+  const batchingStrategy = new BatchingContinuousCachingStrategy(config, httpClient, hitsPoolQueue)
+  const visitorId = 'visitorId'
+  it('test cacheHit success ', async () => {
+    cacheHit.mockResolvedValue()
+    const campaignHit = new Campaign({
+      variationGroupId: 'variationGrID',
+      campaignId: 'campaignID'
+    })
+
+    campaignHit.visitorId = visitorId
+    campaignHit.key = 'key'
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (batchingStrategy as any).cacheHit(new Map().set(campaignHit.key, campaignHit))
+
+    const cacheData = {
+      version: HIT_CACHE_VERSION,
+      data: {
+        visitorId: campaignHit.visitorId,
+        anonymousId: campaignHit.anonymousId,
+        type: campaignHit.type,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        content: campaignHit.toObject() as any,
+        time: Date.now()
+      }
+    }
+
+    expect(cacheHit).toBeCalledTimes(1)
+    expect(cacheHit).toBeCalledWith({ [campaignHit.key]: cacheData })
+  })
+
+  it('test cacheHit throw exception', async () => {
+    const error = 'message'
+    cacheHit.mockRejectedValue(error)
+    const campaignHit = new Campaign({
+      variationGroupId: 'variationGrID',
+      campaignId: 'campaignID'
+    })
+
+    campaignHit.visitorId = visitorId
+    campaignHit.key = 'key'
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (batchingStrategy as any).cacheHit(new Map().set(campaignHit.key, campaignHit))
+
+    expect(cacheHit).toBeCalledTimes(1)
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(error, PROCESS_CACHE_HIT)
+  })
+
+  it('test flushHits method', async () => {
+    const keys = ['key1', 'key2']
+    await batchingStrategy.flushHits(keys)
+    expect(flushHits).toBeCalledTimes(1)
+    expect(flushHits).toBeCalledWith(keys)
+  })
+
+  it('test flushHits method throw exception', async () => {
+    const error = 'message'
+    flushHits.mockRejectedValue(error)
+    const keys = ['key1', 'key2']
+    await batchingStrategy.flushHits(keys)
+    expect(flushHits).toBeCalledTimes(1)
+    expect(flushHits).toBeCalledWith(keys)
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(error, 'flushHits')
   })
 })

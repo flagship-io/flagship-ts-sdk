@@ -57,7 +57,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     this._hitsPoolQueue.forEach((item) => {
       count++
       batchSize = JSON.stringify(batch).length
-      if (batchSize > BATCH_MAX_SIZE || (this.config.trackingMangerConfig?.batchLength && count >= this.config.trackingMangerConfig.batchLength)) {
+      if (batchSize > BATCH_MAX_SIZE || (this.config.trackingMangerConfig?.batchLength && count > this.config.trackingMangerConfig.batchLength)) {
         return
       }
       batch.hits.push(item)
