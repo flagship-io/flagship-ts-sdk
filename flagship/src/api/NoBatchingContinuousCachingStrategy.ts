@@ -46,8 +46,6 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         if (hit.type !== HitType.CONSENT) {
           this.cacheHitKeys[hitKey] = hitKey
         }
-
-        await this.cacheHit(new Map<string, HitAbstract>().set(hitKey, hit))
         logError(this.config, error.message || error, 'addHit')
       }
     }
