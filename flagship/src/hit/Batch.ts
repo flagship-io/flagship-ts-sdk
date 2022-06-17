@@ -1,5 +1,5 @@
-import { CUSTOMER_ENV_ID_API_ITEM, CUSTOMER_UID, DS_API_ITEM, QT_API_ITEM, SCREEN_RESOLUTION_API_ITEM, SESSION_NUMBER, T_API_ITEM, USER_IP_API_ITEM, USER_LANGUAGE, VISITOR_ID_API_ITEM } from '../enum/FlagshipConstant'
-import { IHit, primitive } from '../types'
+import { CUSTOMER_ENV_ID_API_ITEM, DS_API_ITEM, QT_API_ITEM, T_API_ITEM } from '../enum/FlagshipConstant'
+import { IHit } from '../types'
 import { HitAbstract, IHitAbstract } from './HitAbstract'
 
 export interface IBatch extends IHitAbstract {
@@ -51,13 +51,6 @@ export class Batch extends HitAbstract implements IBatch {
         return hitKeys
       })
       return apiKeys
-    }
-
-    public toObject ():Record<string, unknown> {
-      return {
-        ...super.toObject(),
-        hits: this.hits.map(hit => hit.toObject())
-      }
     }
 
     public getErrorMessage (): string {
