@@ -1,4 +1,4 @@
-import { jest, expect, it, describe } from '@jest/globals'
+import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { CATEGORY_ERROR, ERROR_MESSAGE } from '../../src/hit/Event'
 import { Event, EventCategory } from '../../src/hit/index'
 import { DecisionApiConfig } from '../../src/config/index'
@@ -11,6 +11,7 @@ import {
   EVENT_LABEL_API_ITEM,
   EVENT_VALUE_API_ITEM,
   HitType,
+  QT_API_ITEM,
   SDK_APP,
   TYPE_ERROR,
   T_API_ITEM,
@@ -18,6 +19,7 @@ import {
 } from '../../src/enum/index'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { sprintf } from '../../src/utils/utils'
+import { Mock } from 'jest-mock'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getNull = (): any => {
@@ -25,6 +27,15 @@ const getNull = (): any => {
 }
 
 describe('test hit type Event', () => {
+  const methodNow = Date.now
+  const mockNow:Mock<number, []> = jest.fn()
+  beforeAll(() => {
+    Date.now = mockNow
+    mockNow.mockReturnValue(1)
+  })
+  afterAll(() => {
+    Date.now = methodNow
+  })
   const category = EventCategory.ACTION_TRACKING
   const action = 'action'
   const event = new Event({ category, action })
@@ -119,7 +130,8 @@ describe('test hit type Event', () => {
     [T_API_ITEM]: HitType.EVENT,
     [EVENT_CATEGORY_API_ITEM]: category,
     [EVENT_ACTION_API_ITEM]: action,
-    [CUSTOMER_UID]: visitorId
+    [CUSTOMER_UID]: visitorId,
+    [QT_API_ITEM]: expect.anything()
   }
 
   it('should ', () => {
@@ -175,11 +187,28 @@ describe('test hit type Event', () => {
     const screenResolution = '800X600'
     const locale = 'fr'
     const sessionNumber = '12345'
+    const hitKey = 'key'
     event.userIp = userIp
     event.screenResolution = screenResolution
     event.locale = locale
     event.sessionNumber = sessionNumber
-    expect(event.toObject()).toEqual({ action, userIp, screenResolution, locale, sessionNumber, label, value, anonymousId: null, category, ds: SDK_APP, type: HitType.EVENT, visitorId })
+    event.key = hitKey
+    expect(event.toObject()).toEqual({
+      action,
+      userIp,
+      screenResolution,
+      locale,
+      sessionNumber,
+      label,
+      key: hitKey,
+      createdAt: expect.anything(),
+      value,
+      anonymousId: null,
+      category,
+      ds: SDK_APP,
+      type: HitType.EVENT,
+      visitorId
+    })
   })
 
   it('test log category', () => {
