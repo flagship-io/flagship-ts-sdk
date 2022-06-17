@@ -120,6 +120,7 @@ describe('test hit type Event', () => {
 
   it('test isReady method', () => {
     expect(event.isReady()).toBeTruthy()
+    expect(event.isReady(false)).toBeTruthy()
   })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
