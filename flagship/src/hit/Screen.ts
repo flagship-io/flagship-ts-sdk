@@ -24,12 +24,12 @@ export class Screen extends HitAbstract implements IScreen {
   public constructor (screen: Omit<IScreen, 'type'>) {
     super({
       type: HitType.SCREEN_VIEW,
-      userIp: screen?.userIp,
-      screenResolution: screen?.screenResolution,
-      locale: screen?.locale,
-      sessionNumber: screen?.sessionNumber
+      userIp: screen.userIp,
+      screenResolution: screen.screenResolution,
+      locale: screen.locale,
+      sessionNumber: screen.sessionNumber
     })
-    this.documentLocation = screen?.documentLocation
+    this.documentLocation = screen.documentLocation
   }
 
   public isReady (checkParent = true):boolean {
