@@ -21,10 +21,6 @@ import { ERROR_MESSAGE } from '../../src/hit/Page'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { sprintf } from '../../src/utils/utils'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const getNull = (): any => {
-  return null
-}
 describe('test hit type Page', () => {
   const url = 'https://localhost'
   const page = new Page({ documentLocation: url })
