@@ -94,10 +94,10 @@ export class Event extends HitAbstract implements IEvent {
   public constructor (event:Omit<IEvent, 'type'>) {
     super({
       type: HitType.EVENT,
-      userIp: event?.userIp,
-      screenResolution: event?.screenResolution,
-      locale: event?.locale,
-      sessionNumber: event?.sessionNumber
+      userIp: event.userIp,
+      screenResolution: event.screenResolution,
+      locale: event.locale,
+      sessionNumber: event.sessionNumber
     })
     const { category, action, label, value } = event
     this.category = category
