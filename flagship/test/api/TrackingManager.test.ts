@@ -53,14 +53,16 @@ describe('test TrackingManager Strategy ', () => {
   })
 
   it('Test instance of BatchingContinuousCachingStrategy ', async () => {
-    config.trackingMangerConfig.batchStrategy = BatchStrategy.BATCHING_WITH_PERIODIC_CACHING_STRATEGY
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (config.trackingMangerConfig as any)._batchStrategy = BatchStrategy.BATCHING_WITH_PERIODIC_CACHING_STRATEGY
     const trackingManager = new TrackingManager(httpClient, config)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((trackingManager as any).strategy).toBeInstanceOf(BatchingPeriodicCachingStrategy)
   })
 
   it('Test instance of BatchingContinuousCachingStrategy ', async () => {
-    config.trackingMangerConfig.batchStrategy = NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (config.trackingMangerConfig as any)._batchStrategy = NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY
     const trackingManager = new TrackingManager(httpClient, config)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((trackingManager as any).strategy).toBeInstanceOf(NoBatchingContinuousCachingStrategy)
