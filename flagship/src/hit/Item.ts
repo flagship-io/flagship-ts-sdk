@@ -121,10 +121,10 @@ export class Item extends HitAbstract implements IItem {
   public constructor (item:Omit<IItem, 'type'>) {
     super({
       type: HitType.ITEM,
-      userIp: item?.userIp,
-      screenResolution: item?.screenResolution,
-      locale: item?.locale,
-      sessionNumber: item?.sessionNumber
+      userIp: item.userIp,
+      screenResolution: item.screenResolution,
+      locale: item.locale,
+      sessionNumber: item.sessionNumber
     })
     const {
       transactionId, productName, productSku,
