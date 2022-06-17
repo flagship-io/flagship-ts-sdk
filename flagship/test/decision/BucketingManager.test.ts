@@ -1,17 +1,19 @@
-import { jest, expect, it, describe } from '@jest/globals'
+import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { BucketingConfig } from '../../src/config/BucketingConfig'
 import { MurmurHash } from '../../src/utils/MurmurHash'
 import { BucketingManager } from '../../src/decision/BucketingManager'
 import { bucketing } from './bucketing'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
-import { BUCKETING_API_CONTEXT_URL, BUCKETING_API_URL, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, SDK_LANGUAGE, SDK_VERSION } from '../../src/enum'
+import { BUCKETING_API_URL, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, SDK_LANGUAGE, SDK_VERSION } from '../../src/enum'
 import { sprintf, sleep } from '../../src/utils/utils'
-import { IHttpResponse, HttpClient } from '../../src/utils/HttpClient'
+import { HttpClient } from '../../src/utils/HttpClient'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { BucketingDTO } from '../../src/decision/api/bucketingDTO'
 import { DecisionManager } from '../../src/decision/DecisionManager'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { CampaignDTO } from '../../src'
+import { Segment } from '../../src/hit/Segment'
+import { Mock } from 'jest-mock'
 
 describe('test BucketingManager', () => {
   const config = new BucketingConfig({ pollingInterval: 0, envId: 'envID', apiKey: 'apiKey' })
@@ -26,9 +28,6 @@ describe('test BucketingManager', () => {
   const sendContext = jest.spyOn(bucketingManager as any, 'sendContext')
 
   const trackingManager = new TrackingManager(httpClient, config)
-  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
-
-  sendConsentHit.mockResolvedValue()
 
   sendContext.mockReturnValue(Promise.resolve())
 
@@ -193,14 +192,23 @@ describe('test error', () => {
 })
 
 describe('test sendContext', () => {
+  const methodNow = Date.now
+  const mockNow:Mock<number, []> = jest.fn()
+  beforeAll(() => {
+    Date.now = mockNow
+    mockNow.mockReturnValue(1)
+  })
+  afterAll(() => {
+    Date.now = methodNow
+  })
   const config = new BucketingConfig({ pollingInterval: 0, envId: 'envID', apiKey: 'apiKey' })
   const murmurHash = new MurmurHash()
   const httpClient = new HttpClient()
   const logManager = new FlagshipLogManager()
 
-  const logError = jest.spyOn(logManager, 'error')
+  config.logManager = logManager
 
-  const postAsync = jest.spyOn(httpClient, 'postAsync')
+  const logError = jest.spyOn(logManager, 'error')
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const bucketingManager = new BucketingManager(httpClient, config, murmurHash) as any
@@ -211,49 +219,31 @@ describe('test sendContext', () => {
   }
 
   const trackingManager = new TrackingManager({} as HttpClient, config)
-  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
-  sendConsentHit.mockResolvedValue()
 
   const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: {} as DecisionManager, trackingManager } })
 
+  const sendHit = jest.spyOn(visitor, 'sendHit')
   it('should ', () => {
-    const url = sprintf(BUCKETING_API_CONTEXT_URL, config.envId)
-    const headers: Record<string, string> = {
-      [HEADER_X_API_KEY]: `${config.apiKey}`,
-      [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
-      [HEADER_X_SDK_VERSION]: SDK_VERSION,
-      [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
-    }
-    const body = {
-      visitorId: visitor.visitorId,
-      type: 'CONTEXT',
-      data: visitor.context
-    }
-
-    postAsync.mockResolvedValue({} as IHttpResponse)
+    sendHit.mockResolvedValue()
+    const SegmentHit = new Segment({ sl: visitor.context })
     bucketingManager.sendContext(visitor).then(() => {
-      expect(postAsync).toBeCalledTimes(1)
-      expect(postAsync).toBeCalledWith(url, {
-        headers, body, timeout: config.timeout
-      })
+      expect(sendHit).toBeCalledTimes(1)
+      expect(sendHit).toBeCalledWith(SegmentHit)
     })
   })
 
-  it('should ', () => {
+  it('should ', async () => {
     const messageError = 'error'
-    postAsync.mockRejectedValue(messageError)
-    bucketingManager.sendContext(visitor)
-      .catch(() => {
-        expect(postAsync).toBeCalledTimes(1)
-        expect(logError).toBeCalledTimes(1)
-      })
+    sendHit.mockRejectedValue(messageError)
+    await bucketingManager.sendContext(visitor)
+    expect(sendHit).toBeCalledTimes(1)
+    expect(logError).toBeCalledTimes(1)
   })
 
-  it('test empty context ', () => {
+  it('test empty context ', async () => {
     const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context: {}, configManager: { config, decisionManager: {} as DecisionManager, trackingManager } })
-    bucketingManager.sendContext(visitor).then(() => {
-      expect(postAsync).toBeCalledTimes(0)
-    })
+    await bucketingManager.sendContext(visitor)
+    expect(sendHit).toBeCalledTimes(0)
   })
 })
 
@@ -273,8 +263,6 @@ describe('test bucketing method', () => {
   }
 
   const trackingManager = new TrackingManager({} as HttpClient, config)
-  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
-  sendConsentHit.mockResolvedValue()
 
   const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager } })
 
@@ -834,8 +822,7 @@ describe('test initBucketing', () => {
   }
   it('should ', async () => {
     const trackingManager = new TrackingManager({} as HttpClient, config)
-    const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
-    sendConsentHit.mockResolvedValue()
+
     const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager } })
     const campaigns = await bucketingManager.getCampaignsAsync(visitor)
     const modifications = bucketingManager.getModifications(campaigns as CampaignDTO[])

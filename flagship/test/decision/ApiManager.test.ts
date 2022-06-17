@@ -30,12 +30,6 @@ describe('test ApiManager', () => {
   const apiManager = new ApiManager(httpClient, config)
   const trackingManager = new TrackingManager(httpClient, config)
 
-  const sendConsentHit: Mock<Promise<void>, [visitor: VisitorAbstract]> = jest.fn()
-
-  sendConsentHit.mockResolvedValue()
-
-  trackingManager.sendConsentHit = sendConsentHit
-
   const visitorId = 'visitorId'
   const context = { age: 20 }
 
