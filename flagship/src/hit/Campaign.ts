@@ -9,19 +9,19 @@ export interface ICampaign extends IHitAbstract{
 }
 
 export class Campaign extends HitAbstract implements ICampaign {
-    private _variationGroupId : string;
-    private _campaignId : string;
+    private _variationGroupId! : string;
+    private _campaignId! : string;
 
     public constructor (param:Omit<ICampaign, 'type'>) {
       super({
         type: HitType.CAMPAIGN,
-        userIp: param?.userIp,
-        screenResolution: param?.screenResolution,
-        locale: param?.locale,
-        sessionNumber: param?.sessionNumber
+        userIp: param.userIp,
+        screenResolution: param.screenResolution,
+        locale: param.locale,
+        sessionNumber: param.sessionNumber
       })
-      this._variationGroupId = param.variationGroupId
-      this._campaignId = param.campaignId
+      this.variationGroupId = param.variationGroupId
+      this.campaignId = param.campaignId
     }
 
     public get variationGroupId () : string {
