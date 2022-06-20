@@ -1,12 +1,12 @@
 import { IFlagshipConfig } from '../config/FlagshipConfig'
-import { DEFAULT_HIT_CACHE_TIME, DEFAULT_TIME_INTERVAL, HitType } from '../enum/index'
+import { DEFAULT_HIT_CACHE_TIME, DEFAULT_TIME_INTERVAL, HitType, HIT_DATA_LOADED, PROCESS_LOOKUP_HIT } from '../enum/index'
 import { BatchStrategy } from '../enum/BatchStrategy'
 import { HitAbstract, IEvent, ITransaction, Transaction, Event, Item, IItem, Page, IPage, IScreen, Screen } from '../hit/index'
 import { Campaign, ICampaign } from '../hit/Campaign'
 import { Consent, IConsent } from '../hit/Consent'
 import { ISegment, Segment } from '../hit/Segment'
 import { IHttpClient } from '../utils/HttpClient'
-import { logError, logInfo } from '../utils/utils'
+import { logDebug, logError, logInfo, sprintf } from '../utils/utils'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
 import { BatchingContinuousCachingStrategy } from './BatchingContinuousCachingStrategy'
 import { BatchingPeriodicCachingStrategy } from './BatchingPeriodicCachingStrategy'
@@ -101,7 +101,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     if (item?.version === 1 && item?.data?.type && item?.data?.content) {
       return true
     }
-    logError(this.config, LOOKUP_HITS_JSON_OBJECT_ERROR, 'lookupHits')
+    logError(this.config, LOOKUP_HITS_JSON_OBJECT_ERROR, PROCESS_LOOKUP_HIT)
     return false
   }
 
@@ -117,6 +117,8 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
       if (!hitsCache || !Object.keys(hitsCache).length) {
         return
       }
+
+      logDebug(this.config, sprintf(HIT_DATA_LOADED, JSON.stringify(hitsCache)), PROCESS_LOOKUP_HIT)
 
       const checkHitTime = (time:number) => (((Date.now() - time) / 1000) <= DEFAULT_HIT_CACHE_TIME)
 
@@ -164,7 +166,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      logError(this.config, error.message || error, 'lookupHits')
+      logError(this.config, error.message || error, PROCESS_LOOKUP_HIT)
     }
   }
 }
