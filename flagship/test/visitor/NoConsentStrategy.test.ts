@@ -23,8 +23,6 @@ describe('test NoConsentStrategy', () => {
   config.logManager = logManager
 
   const trackingManager = new TrackingManager({} as HttpClient, config)
-  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
-  sendConsentHit.mockResolvedValue()
 
   const configManager = new ConfigManager(config, {} as DecisionManager, trackingManager)
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
