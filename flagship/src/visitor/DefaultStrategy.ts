@@ -410,11 +410,11 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       Item: HitType.ITEM,
       Event: HitType.EVENT
     }
-    const commonProperties: IHitAbstract = {
+    const commonProperties: Omit<IHitAbstract, 'createdAt'> = {
       type: hitTypeToEnum[hit.type]
     }
 
-    const hitData: IHitAbstract = { ...commonProperties, ...hit.data }
+    const hitData: Omit<IHitAbstract, 'createdAt'> = { ...commonProperties, ...hit.data }
 
     switch (commonProperties.type.toUpperCase()) {
       case HitType.EVENT:
