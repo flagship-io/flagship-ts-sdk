@@ -30,14 +30,18 @@ jest.mock('../../src/decision/ApiManager', () => {
     })
   }
 })
-const sendConsentHit: Mock<Promise<void>, []> = jest.fn()
-sendConsentHit.mockResolvedValue()
+const startBatchingLoop: Mock<Promise<void>, []> = jest.fn()
+startBatchingLoop.mockResolvedValue()
+const addHit: Mock<Promise<void>, []> = jest.fn()
+
+addHit.mockResolvedValue()
 
 jest.mock('../../src/api/TrackingManager', () => {
   return {
     TrackingManager: jest.fn().mockImplementation(() => {
       return {
-        sendConsentHit
+        startBatchingLoop,
+        addHit
       }
     })
   }
@@ -65,6 +69,7 @@ describe('test Flagship class', () => {
     expect(Flagship.getConfig().visitorCacheImplementation).toBeInstanceOf(DefaultVisitorCache)
     expect(Flagship.getConfig().hitCacheImplementation).toBeInstanceOf(DefaultHitCache)
     expect(Flagship.getStatus()).toBe(FlagshipStatus.READY)
+    expect(startBatchingLoop).toBeCalledTimes(1)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     global.window = (() => undefined)() as any
@@ -166,6 +171,8 @@ describe('test Flagship newVisitor', () => {
     expect(visitor?.visitorId).toBe(visitorId)
     expect(visitor?.context).toEqual({ ...context, ...predefinedContext })
     expect(Flagship.getVisitor()).toBeUndefined()
+
+    expect(addHit).toBeCalledTimes(1)
 
     const visitorNull = Flagship.newVisitor({ visitorId: getNull(), context })
     expect(visitorNull).toBeInstanceOf(Visitor)
