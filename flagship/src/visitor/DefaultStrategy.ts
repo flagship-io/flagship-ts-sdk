@@ -52,6 +52,7 @@ import { FlagMetadata, IFlagMetadata } from '../flag/FlagMetadata'
 import { Campaign } from '../hit/Campaign'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
+export const HIT_NULL_ERROR = 'Hit must not be null'
 
 export class DefaultStrategy extends VisitorStrategyAbstract {
   private checkPredefinedContext (
@@ -344,13 +345,13 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   protected async sendActivate (flagDto: FlagDTO, functionName = PROCESS_ACTIVE_MODIFICATION):Promise<void> {
-    try {
-      const campaignHit = new Campaign({ variationGroupId: flagDto.variationGroupId, campaignId: flagDto.campaignId })
-      await this.sendHit(campaignHit)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      logError(this.config, error.message || error, functionName)
+    const campaignHit = new Campaign({ variationGroupId: flagDto.variationGroupId, campaignId: flagDto.campaignId })
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { createdAt, ...campaignHitItem } = campaignHit.toObject()
+    if (this.isDeDuplicated(JSON.stringify(campaignHitItem), this.config.hitDeduplicationTime as number)) {
+      return
     }
+    await this.prepareAndSendHit(campaignHit, functionName)
   }
 
   private async activate (key: string) {
@@ -365,10 +366,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
-    if (this.isDeDuplicated(flag.variationGroupId + this.visitor.visitorId, this.config.activateDeduplicationTime as number)) {
-      return
-    }
-
     if (!this.hasTrackingManager(PROCESS_ACTIVE_MODIFICATION)) {
       return
     }
@@ -379,11 +376,11 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   sendHit(hit: HitAbstract): Promise<void>
   sendHit(hit: IHit): Promise<void>
   sendHit(hit: HitShape): Promise<void>
-  sendHit (hit: IHit | HitAbstract | HitShape): Promise<void> {
+  async sendHit (hit: IHit | HitAbstract | HitShape): Promise<void> {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
-      return Promise.resolve()
+      return
     }
-    return this.prepareAndSendHit(hit)
+    await this.prepareAndSendHit(hit)
   }
 
   sendHits(hits: HitAbstract[]): Promise<void>
@@ -393,14 +390,13 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
       return
     }
-    hits.forEach((hit:HitAbstract | HitShape | IHit) => this.prepareAndSendHit(hit))
+    for (const hit of hits) {
+      await this.prepareAndSendHit(hit)
+    }
   }
 
   private getHitLegacy (hit: HitShape) {
     let newHit = null
-    if (!hit || !hit.type) {
-      return null
-    }
     const hitTypeToEnum: Record<string, HitType> = {
       Screen: HitType.SCREEN_VIEW,
       ScreenView: HitType.SCREEN_VIEW,
@@ -416,7 +412,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     const hitData: Omit<IHitAbstract, 'createdAt'> = { ...commonProperties, ...hit.data }
 
-    switch (commonProperties.type.toUpperCase()) {
+    switch (commonProperties.type?.toUpperCase()) {
       case HitType.EVENT:
         newHit = new Event(hitData as IEvent)
         break
@@ -448,9 +444,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   private getHit (hit: IHit):HitAbstract|null {
     let newHit = null
-    if (!hit || !hit.type) {
-      return newHit
-    }
     switch (hit.type.toUpperCase()) {
       case HitType.EVENT:
         newHit = new Event(hit as IEvent)
@@ -471,22 +464,26 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return newHit
   }
 
-  private async prepareAndSendHit (hit: IHit | HitShape | HitAbstract) {
+  private async prepareAndSendHit (hit: IHit | HitShape | HitAbstract, functionName = PROCESS_SEND_HIT) {
     let hitInstance: HitAbstract
+    if (!hit?.type) {
+      logError(this.config, HIT_NULL_ERROR, functionName)
+      return
+    }
     if (hit instanceof HitAbstract) {
       hitInstance = hit
     } else if ('data' in hit) {
       const hitShape = hit as HitShape
       const hitFromInt = this.getHitLegacy(hitShape)
       if (!hitFromInt) {
-        logError(this.config, TYPE_HIT_REQUIRED_ERROR, PROCESS_SEND_HIT)
+        logError(this.config, TYPE_HIT_REQUIRED_ERROR, functionName)
         return
       }
       hitInstance = hitFromInt
     } else {
       const hitFromInt = this.getHit(hit)
       if (!hitFromInt) {
-        logError(this.config, TYPE_HIT_REQUIRED_ERROR, PROCESS_SEND_HIT)
+        logError(this.config, TYPE_HIT_REQUIRED_ERROR, functionName)
         return
       }
       hitInstance = hitFromInt
@@ -496,12 +493,14 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     hitInstance.config = this.config
     hitInstance.anonymousId = this.visitor.anonymousId
 
-    if (this.isDeDuplicated(JSON.stringify(hitInstance), this.config.hitDeduplicationTime as number)) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { createdAt, ...hitInstanceItem } = hitInstance.toObject()
+    if (this.isDeDuplicated(JSON.stringify(hitInstanceItem), this.config.hitDeduplicationTime as number)) {
       return
     }
 
     if (!hitInstance.isReady()) {
-      logError(this.config, hitInstance.getErrorMessage(), PROCESS_SEND_HIT)
+      logError(this.config, hitInstance.getErrorMessage(), functionName)
       return
     }
 
@@ -509,7 +508,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       await this.trackingManager.addHit(hitInstance)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logError(this.config, error.message || error, PROCESS_SEND_HIT)
+      logError(this.config, error.message || error, functionName)
     }
   }
 
@@ -613,10 +612,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sprintf(USER_EXPOSED_CAST_ERROR, key),
         functionName
       )
-      return
-    }
-
-    if (this.isDeDuplicated(flag.variationGroupId + this.visitor.visitorId, this.config.activateDeduplicationTime as number)) {
       return
     }
 
