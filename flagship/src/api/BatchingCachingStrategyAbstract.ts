@@ -1,4 +1,4 @@
-import { IFlagshipConfig } from '../config'
+import { IFlagshipConfig } from '../config/index'
 import { HIT_CACHE_VERSION, PROCESS_CACHE_HIT } from '../enum/index'
 import { HitAbstract } from '../hit/index'
 import { HitCacheDTO } from '../types'

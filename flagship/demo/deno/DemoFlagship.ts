@@ -9,7 +9,7 @@ import {
   Transaction,
   Modification,
   DEVICE_LOCALE
-} from 'https://deno.land/x/flagship_io_js_sdk@3.0.7/mod.ts'
+} from '../../dist-deno/src/mod.ts'
 import { API_KEY, ENV_ID } from './config.js'
 const sleep = (ms:number) => {
   return new Promise(resolve => setTimeout(resolve, ms))

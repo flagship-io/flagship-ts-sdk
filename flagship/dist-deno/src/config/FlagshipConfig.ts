@@ -4,7 +4,6 @@ import { IHitCacheImplementation } from '../cache/IHitCacheImplementation.ts'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager.ts'
 import { logError, sprintf } from '../utils/utils.ts'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation.ts'
-import { ITrackingManager } from '../api/TrackingManagerAbstract.ts'
 import { ITrackingManagerConfig, TrackingManagerConfig } from './TrackingManagerConfig.ts'
 
 export enum DecisionMode {
@@ -121,9 +120,9 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _visitorCacheImplementation!: IVisitorCacheImplementation;
   private _hitCacheImplementation!: IHitCacheImplementation;
   private _disableCache!: boolean;
-  private _trackingMangerConfig? : ITrackingManagerConfig;
+  private _trackingMangerConfig : ITrackingManagerConfig;
 
-  public get trackingMangerConfig () : ITrackingManagerConfig|undefined {
+  public get trackingMangerConfig () : ITrackingManagerConfig {
     return this._trackingMangerConfig
   }
 
@@ -135,19 +134,13 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       disableCache, language, trackingMangerConfig
     } = param
 
-    switch (language) {
-      case 1:
-        SDK_LANGUAGE.name = 'ReactJS'
-        break
-      case 2:
-        SDK_LANGUAGE.name = 'React-Native'
-        break
-      default:
-        SDK_LANGUAGE.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'Typescript'
-        break
+    this.setSdkLanguageName(language)
+
+    if (logManager) {
+      this.logManager = logManager
     }
 
-    this._trackingMangerConfig = trackingMangerConfig
+    this._trackingMangerConfig = new TrackingManagerConfig(trackingMangerConfig || {})
 
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
     this._envId = envId
@@ -169,10 +162,21 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       this.hitCacheImplementation = hitCacheImplementation
     }
 
-    if (logManager) {
-      this.logManager = logManager
-    }
     this.statusChangedCallback = statusChangedCallback
+  }
+
+  protected setSdkLanguageName (language?:number):void {
+    switch (language) {
+      case 1:
+        SDK_LANGUAGE.name = 'ReactJS'
+        break
+      case 2:
+        SDK_LANGUAGE.name = 'React-Native'
+        break
+      default:
+        SDK_LANGUAGE.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'Typescript'
+        break
+    }
   }
 
   public get initialBucketing (): BucketingDTO | undefined {

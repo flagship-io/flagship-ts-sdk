@@ -1,6 +1,6 @@
 import { FlagDTO } from '../index.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
-import { primitive, modificationsRequested, IHit, VisitorCacheDTO, HitCacheDTO } from '../types.ts'
+import { primitive, modificationsRequested, IHit, VisitorCacheDTO } from '../types.ts'
 import { IVisitor } from './IVisitor.ts'
 import { VisitorAbstract } from './VisitorAbstract.ts'
 import { IConfigManager, IFlagshipConfig } from '../config/index.ts'
@@ -190,14 +190,6 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         'flushVisitor'
       )
     }
-  }
-
-  protected checKLookupHitData (item:HitCacheDTO):boolean {
-    if (item && item.version === 1 && item.data && item.data.type && item.data.visitorId) {
-      return true
-    }
-    logError(this.config, LOOKUP_HITS_JSON_OBJECT_ERROR, 'lookupHits')
-    return false
   }
 
     abstract updateContext(context: Record<string, primitive>): void

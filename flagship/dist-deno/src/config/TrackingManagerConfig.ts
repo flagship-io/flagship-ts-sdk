@@ -1,5 +1,4 @@
-import { DEFAULT_BATCH_LENGTH, DEFAULT_TIME_INTERVAL } from '../enum.ts'
-import { BatchStrategy } from '../enum/BatchStrategy.ts'
+import { DEFAULT_BATCH_LENGTH, DEFAULT_TIME_INTERVAL, BatchStrategy } from '../enum/index.ts'
 
 export interface ITrackingManagerConfig {
     /**
@@ -15,34 +14,33 @@ export interface ITrackingManagerConfig {
 }
 
 export class TrackingManagerConfig implements ITrackingManagerConfig {
-private _batchIntervals? : number;
-private _batchLength? : number;
-private _batchStrategy? : BatchStrategy;
+private _batchIntervals : number;
+private _batchLength : number;
+private _batchStrategy : BatchStrategy;
 
-public constructor (param: ITrackingManagerConfig) {
-  const { batchIntervals, batchLength, batchStrategy } = param
-  this.batchIntervals = batchIntervals || DEFAULT_TIME_INTERVAL
-  this.batchLength = batchLength || DEFAULT_BATCH_LENGTH
-  this._batchStrategy = batchStrategy || BatchStrategy.BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY
+public constructor (param?: ITrackingManagerConfig) {
+  this._batchIntervals = param?.batchIntervals || DEFAULT_TIME_INTERVAL
+  this._batchLength = param?.batchLength || DEFAULT_BATCH_LENGTH
+  this._batchStrategy = param?.batchStrategy || BatchStrategy.BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY
 }
 
-public get batchIntervals () : number|undefined {
+public get batchIntervals () : number {
   return this._batchIntervals
 }
 
-public set batchIntervals (v : number|undefined) {
+public set batchIntervals (v : number) {
   this._batchIntervals = v
 }
 
-public get batchLength () : number|undefined {
+public get batchLength () : number {
   return this._batchLength
 }
 
-public set batchLength (v : number|undefined) {
+public set batchLength (v : number) {
   this._batchLength = v
 }
 
-public get batchStrategy () : BatchStrategy|undefined {
+public get batchStrategy () : BatchStrategy {
   return this._batchStrategy
 }
 }

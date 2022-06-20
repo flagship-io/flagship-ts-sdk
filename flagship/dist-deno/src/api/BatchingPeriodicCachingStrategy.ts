@@ -1,7 +1,6 @@
 import { BATCH_MAX_SIZE, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_EVENT_URL, SDK_LANGUAGE, SDK_VERSION } from '../enum/index.ts'
 import { Batch } from '../hit/Batch.ts'
-import { Consent } from '../hit/Consent.ts'
-import { HitAbstract } from '../hit/index.ts'
+import { HitAbstract, Consent } from '../hit/index.ts'
 import { logError, uuidV4 } from '../utils/utils.ts'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract.ts'
 
@@ -18,9 +17,6 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
   async notConsent (visitorId: string):Promise<void> {
     const keys = Array.from(this._hitsPoolQueue.keys()).filter(x => x.includes(visitorId))
 
-    if (!keys.length) {
-      return
-    }
     const keysToFlush:string[] = []
     keys.forEach(key => {
       const isConsentHit = this._hitsPoolQueue.get(key)?.type === HitType.CONSENT

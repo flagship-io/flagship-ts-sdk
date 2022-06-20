@@ -1,4 +1,4 @@
-import { IFlagshipConfig } from '../config.ts'
+import { IFlagshipConfig } from '../config/index.ts'
 import { HIT_CACHE_VERSION, PROCESS_CACHE_HIT } from '../enum/index.ts'
 import { HitAbstract } from '../hit/index.ts'
 import { HitCacheDTO } from '../types.ts'
@@ -29,10 +29,6 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     abstract sendBatch(): Promise<void>
 
     abstract notConsent(visitorId: string): Promise<void>
-
-    async addHits (hits: HitAbstract[]): Promise<void> {
-      await Promise.all(hits.map(hit => this.addHit(hit)))
-    }
 
     protected async cacheHit (hits:Map<string, HitAbstract>):Promise<void> {
       try {

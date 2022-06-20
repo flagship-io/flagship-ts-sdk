@@ -19,13 +19,13 @@ export class Segment extends HitAbstract implements ISegment {
     this._sl = v
   }
 
-  public constructor (param:Omit<ISegment, 'type'>) {
+  public constructor (param:Omit<ISegment, 'type'|'createdAt'>) {
     super({
       type: HitType.SEGMENT,
-      userIp: param?.userIp,
-      screenResolution: param?.screenResolution,
-      locale: param?.locale,
-      sessionNumber: param?.sessionNumber
+      userIp: param.userIp,
+      screenResolution: param.screenResolution,
+      locale: param.locale,
+      sessionNumber: param.sessionNumber
     })
     this.sl = param.sl
   }

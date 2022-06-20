@@ -8,17 +8,17 @@ export interface IConsent extends IHitAbstract{
 }
 
 export class Consent extends HitAbstract implements IConsent {
-    private _visitorConsent : boolean;
+    private _visitorConsent! : boolean;
 
-    public constructor (param:Omit<IConsent, 'type'>) {
+    public constructor (param:Omit<IConsent, 'type'|'createdAt'>) {
       super({
         type: HitType.CONSENT,
-        userIp: param?.userIp,
-        screenResolution: param?.screenResolution,
-        locale: param?.locale,
-        sessionNumber: param?.sessionNumber
+        userIp: param.userIp,
+        screenResolution: param.screenResolution,
+        locale: param.locale,
+        sessionNumber: param.sessionNumber
       })
-      this._visitorConsent = param.visitorConsent
+      this.visitorConsent = param.visitorConsent
     }
 
     public get visitorConsent () : boolean {

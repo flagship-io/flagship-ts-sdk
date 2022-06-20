@@ -25,7 +25,7 @@ export interface IHitAbstract{
   screenResolution?: string
   locale?: string
   sessionNumber?: string,
-  createdAt?:number
+  createdAt:number
 }
 
 export abstract class HitAbstract implements IHitAbstract {
@@ -39,7 +39,7 @@ export abstract class HitAbstract implements IHitAbstract {
   private _locale! : string;
   private _sessionNumber! : string;
   private _key! : string;
-  private _createdAt: number
+  private _createdAt!: number
 
   public get key () : string {
     return this._key
@@ -125,8 +125,8 @@ export abstract class HitAbstract implements IHitAbstract {
     this._createdAt = v
   }
 
-  protected constructor (hit: IHitAbstract) {
-    const { type, userIp, screenResolution, locale, sessionNumber, createdAt } = hit
+  protected constructor (hit: Omit<IHitAbstract, 'createdAt'>) {
+    const { type, userIp, screenResolution, locale, sessionNumber } = hit
     this._type = type
     if (userIp) {
       this.userIp = userIp
@@ -141,7 +141,7 @@ export abstract class HitAbstract implements IHitAbstract {
       this.sessionNumber = sessionNumber
     }
     this._anonymousId = null
-    this._createdAt = createdAt ?? Date.now()
+    this.createdAt = Date.now()
   }
 
   /**

@@ -1,5 +1,4 @@
-import { DEFAULT_BATCH_LENGTH, DEFAULT_TIME_INTERVAL } from '../enum'
-import { BatchStrategy } from '../enum/BatchStrategy'
+import { DEFAULT_BATCH_LENGTH, DEFAULT_TIME_INTERVAL, BatchStrategy } from '../enum/index'
 
 export interface ITrackingManagerConfig {
     /**

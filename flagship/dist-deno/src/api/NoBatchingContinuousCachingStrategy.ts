@@ -1,8 +1,7 @@
-import { IFlagshipConfig } from '../config.ts'
+import { IFlagshipConfig } from '../config/index.ts'
 import { HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, SDK_LANGUAGE, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, BATCH_MAX_SIZE } from '../enum/index.ts'
 import { Batch } from '../hit/Batch.ts'
-import { Consent } from '../hit/Consent.ts'
-import { HitAbstract } from '../hit/index.ts'
+import { HitAbstract, Consent } from '../hit/index.ts'
 import { IHttpClient } from '../utils/HttpClient.ts'
 import { logError, uuidV4 } from '../utils/utils.ts'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract.ts'
@@ -46,8 +45,6 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         if (hit.type !== HitType.CONSENT) {
           this.cacheHitKeys[hitKey] = hitKey
         }
-
-        await this.cacheHit(new Map<string, HitAbstract>().set(hitKey, hit))
         logError(this.config, error.message || error, 'addHit')
       }
     }

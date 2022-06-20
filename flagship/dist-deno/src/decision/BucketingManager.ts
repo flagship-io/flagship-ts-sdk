@@ -55,7 +55,7 @@ export class BucketingManager extends DecisionManager {
   }
 
   async startPolling (): Promise<void> {
-    const timeout = (this.config.pollingInterval ?? REQUEST_TIME_OUT) * 1000
+    const timeout = this.config.pollingInterval as number * 1000
     logInfo(this.config, 'Bucketing polling starts', 'startPolling')
     await this.polling()
     if (timeout === 0) {
