@@ -209,8 +209,6 @@ describe('test cacheHit and flushHits methods', () => {
 
   const httpClient = new HttpClient()
 
-  const postAsync = jest.spyOn(httpClient, 'postAsync')
-
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   const flushHits:Mock<Promise<void>, [hitKeys: string[]]> = jest.fn()
   const lookupHits:Mock<Promise<Record<string, HitCacheDTO>>, []> = jest.fn()
