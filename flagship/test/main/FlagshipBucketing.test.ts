@@ -3,6 +3,7 @@ import { Flagship, DecisionMode, Visitor } from '../../src'
 import { IFlagshipConfig } from '../../src/config'
 import { MurmurHash } from '../../src/utils/MurmurHash'
 import { HttpClient } from '../../src/utils/HttpClient'
+import { Mock } from 'jest-mock'
 
 const startPolling = jest.fn()
 const stopPolling = jest.fn()
@@ -12,6 +13,23 @@ jest.mock('../../src/decision/BucketingManager', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { BucketingManager } = jest.requireActual('../../src/decision/BucketingManager') as any
       return Object.assign(new BucketingManager({} as HttpClient, {} as IFlagshipConfig, {} as MurmurHash), { startPolling, stopPolling })
+    })
+  }
+})
+
+const startBatchingLoop: Mock<Promise<void>, []> = jest.fn()
+startBatchingLoop.mockResolvedValue()
+const addHit: Mock<Promise<void>, []> = jest.fn()
+
+addHit.mockResolvedValue()
+
+jest.mock('../../src/api/TrackingManager', () => {
+  return {
+    TrackingManager: jest.fn().mockImplementation(() => {
+      return {
+        startBatchingLoop,
+        addHit
+      }
     })
   }
 })
