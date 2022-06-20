@@ -5,12 +5,12 @@ const ENV_ID = ''
 const API_KEY = ''
 
 Flagship.start(ENV_ID, API_KEY, {
-  // decisionMode: DecisionMode.BUCKETING,
+  decisionMode: DecisionMode.BUCKETING,
   fetchNow: false,
   timeout: 10,
   pollingInterval: 5,
   trackingMangerConfig: {
-    batchStrategy: BatchStrategy.NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY,
+    batchStrategy: BatchStrategy.BATCHING_WITH_PERIODIC_CACHING_STRATEGY,
     batchLength: 5,
     batchIntervals: 10
   }
@@ -48,7 +48,8 @@ btnAction2.addEventListener('click', async () => {
 const btnAction3 = document.getElementById('scenario-1action-3')
 // scenario 1 action 1
 btnAction3.addEventListener('click', async () => {
+  // await visitor.getFlag('my_flag', 'defaultValue').userExposed()
   await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 1' })
   await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 2' })
-  await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 3' })
+  // await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 3' })
 })
