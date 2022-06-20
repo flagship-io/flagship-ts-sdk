@@ -1,9 +1,9 @@
 import { IFlagshipConfig } from '../config/index.ts'
-import { HIT_CACHE_VERSION, PROCESS_CACHE_HIT } from '../enum/index.ts'
+import { HIT_CACHE_VERSION, HIT_DATA_CACHED, HIT_DATA_FLUSHED, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT } from '../enum/index.ts'
 import { HitAbstract } from '../hit/index.ts'
 import { HitCacheDTO } from '../types.ts'
 import { IHttpClient } from '../utils/HttpClient.ts'
-import { logError } from '../utils/utils.ts'
+import { logDebug, logError, sprintf } from '../utils/utils.ts'
 import { ITrackingManagerCommon } from './TrackingManagerAbstract.ts'
 
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
@@ -55,6 +55,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
         })
 
         await hitCacheImplementation.cacheHit(data)
+        logDebug(this.config, sprintf(HIT_DATA_CACHED, JSON.stringify(data)), PROCESS_CACHE_HIT)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error:any) {
         logError(this.config, error.message || error, PROCESS_CACHE_HIT)
@@ -69,9 +70,10 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
         }
 
         await hitCacheImplementation.flushHits(hitKeys)
+        logDebug(this.config, sprintf(HIT_DATA_FLUSHED, JSON.stringify(hitKeys)), PROCESS_FLUSH_HIT)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error:any) {
-        logError(this.config, error.message || error, 'flushHits')
+        logError(this.config, error.message || error, PROCESS_FLUSH_HIT)
       }
     }
 }

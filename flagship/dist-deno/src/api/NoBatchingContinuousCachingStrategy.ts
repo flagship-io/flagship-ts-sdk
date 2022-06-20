@@ -1,9 +1,9 @@
 import { IFlagshipConfig } from '../config/index.ts'
-import { HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, SDK_LANGUAGE, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, BATCH_MAX_SIZE } from '../enum/index.ts'
+import { HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, SDK_LANGUAGE, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, SEND_BATCH, HIT_SENT_SUCCESS, ADD_HIT } from '../enum/index.ts'
 import { Batch } from '../hit/Batch.ts'
 import { HitAbstract, Consent } from '../hit/index.ts'
 import { IHttpClient } from '../utils/HttpClient.ts'
-import { logError, uuidV4 } from '../utils/utils.ts'
+import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils.ts'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract.ts'
 
 export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategyAbstract {
@@ -32,11 +32,15 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
       }
 
+      const requestBody = hit.toApiKeys()
+
       try {
         await this._httpClient.postAsync(HIT_EVENT_URL, {
           headers,
-          body: hit.toApiKeys()
+          body: requestBody
         })
+
+        logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(requestBody)), ADD_HIT)
 
         await this.flushHits([hitKey])
 
@@ -45,7 +49,11 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         if (hit.type !== HitType.CONSENT) {
           this.cacheHitKeys[hitKey] = hitKey
         }
-        logError(this.config, error.message || error, 'addHit')
+        logError(this.config, errorFormat(error.message || error, {
+          url: HIT_EVENT_URL,
+          headers,
+          body: requestBody
+        }), ADD_HIT)
       }
     }
 
@@ -93,11 +101,14 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         return
       }
 
+      const requestBody = batch.toApiKeys()
       try {
         await this._httpClient.postAsync(HIT_EVENT_URL, {
           headers,
-          body: batch.toApiKeys()
+          body: requestBody
         })
+
+        logDebug(this.config, sprintf(BATCH_SENT_SUCCESS, JSON.stringify(requestBody)), SEND_BATCH)
 
         await this.flushHits(batch.hits.map(item => item.key))
 
@@ -106,7 +117,11 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         batch.hits.forEach((hit) => {
           this._hitsPoolQueue.set(hit.key, hit)
         })
-        logError(this.config, error.message || error, 'sendBatch')
+        logError(this.config, errorFormat(error.message || error, {
+          url: HIT_EVENT_URL,
+          headers,
+          body: requestBody
+        }), SEND_BATCH)
       }
     }
 }

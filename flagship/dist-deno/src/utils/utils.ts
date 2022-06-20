@@ -84,3 +84,10 @@ export function uuidV4 (): string {
     return value.toString(16)
   })
 }
+
+export function errorFormat (errorMessage:string, errorData?:Record<string, unknown>):string {
+  return JSON.stringify({
+    errorMessage,
+    data: errorData
+  })
+}

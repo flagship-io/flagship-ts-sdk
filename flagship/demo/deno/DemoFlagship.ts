@@ -24,7 +24,7 @@ const check:any = {}
 Flagship.start(ENV_ID, API_KEY, {
   // decisionMode: DecisionMode.BUCKETING,
   statusChangedCallback,
-  logLevel: LogLevel.ERROR,
+  // logLevel: LogLevel.ERROR,
   fetchNow: false,
   timeout: 10
 })

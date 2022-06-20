@@ -95,6 +95,14 @@ export const METHOD_DEACTIVATED_BUCKETING_ERROR = 'Method {0} is deactivated on 
 export const FLAGSHIP_VISITOR_NOT_AUTHENTICATE = 'Visitor is not authenticated yet'
 export const PREDEFINED_CONTEXT_TYPE_ERROR = 'Predefined Context {0} must be type of {1}'
 export const METHOD_DEACTIVATED_SEND_CONSENT_ERROR = 'Send consent hit is deactivated while SDK status is: {1}.'
+export const HIT_ADDED_IN_QUEUE = 'hit has been added in pool queue : {0}'
+export const ADD_HIT = 'ADD HIT'
+export const BATCH_SENT_SUCCESS = 'Batch has been sent : {0}'
+export const SEND_BATCH = 'SEND BATCH'
+export const HIT_DATA_CACHED = 'Hit data have been cached : {0}'
+export const HIT_DATA_FLUSHED = 'The following hit keys have been flushed : {0}'
+export const HIT_SENT_SUCCESS = 'hit has been sent : {0}'
+export const HIT_DATA_LOADED = 'Hit data have been loaded from database: {0}'
 
 // Process
 export const PROCESS = 'process'
@@ -110,7 +118,9 @@ export const PROCESS_SEND_ACTIVATE = 'SEND ACTIVATE'
 export const PROCESS_GET_CAMPAIGNS = 'GET CAMPAIGNS'
 export const PROCESS_GET_ALL_MODIFICATION = 'GET ALL MODIFICATIONS'
 export const PROCESS_MODIFICATIONS_FOR_CAMPAIGN = 'GET MODIFICATION FOR CAMPAIGN'
-export const PROCESS_CACHE_HIT = 'cacheHit'
+export const PROCESS_CACHE_HIT = 'CACHE HIT'
+export const PROCESS_FLUSH_HIT = 'FLUSH HIT'
+export const PROCESS_LOOKUP_HIT = 'LOOKUP HIT'
 
 // Api items
 

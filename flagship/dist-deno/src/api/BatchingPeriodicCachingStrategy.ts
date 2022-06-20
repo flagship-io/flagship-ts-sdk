@@ -1,7 +1,7 @@
-import { BATCH_MAX_SIZE, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_EVENT_URL, SDK_LANGUAGE, SDK_VERSION } from '../enum/index.ts'
+import { ADD_HIT, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_ADDED_IN_QUEUE, HIT_EVENT_URL, SDK_LANGUAGE, SDK_VERSION, SEND_BATCH } from '../enum/index.ts'
 import { Batch } from '../hit/Batch.ts'
 import { HitAbstract, Consent } from '../hit/index.ts'
-import { logError, uuidV4 } from '../utils/utils.ts'
+import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils.ts'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract.ts'
 
 export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbstract {
@@ -12,6 +12,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
     if (hit.type === HitType.CONSENT && !(hit as Consent).visitorConsent) {
       await this.notConsent(hit.visitorId)
     }
+    logDebug(this.config, sprintf(HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_HIT)
   }
 
   async notConsent (visitorId: string):Promise<void> {
@@ -61,17 +62,23 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       this._hitsPoolQueue.delete(hit.key)
     })
 
+    const requestBody = batch.toApiKeys()
     try {
       await this._httpClient.postAsync(HIT_EVENT_URL, {
         headers,
-        body: batch.toApiKeys()
+        body: requestBody
       })
+      logDebug(this.config, sprintf(BATCH_SENT_SUCCESS, JSON.stringify(requestBody)), SEND_BATCH)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       batch.hits.forEach((hit) => {
         this._hitsPoolQueue.set(hit.key, hit)
       })
-      logError(this.config, error.message || error, 'sendBatch')
+      logError(this.config, errorFormat(error.message || error, {
+        url: HIT_EVENT_URL,
+        headers,
+        body: requestBody
+      }), SEND_BATCH)
     }
     await this.cacheHit(this._hitsPoolQueue)
   }
