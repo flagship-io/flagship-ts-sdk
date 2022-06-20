@@ -1,18 +1,19 @@
-import { jest, expect, it, describe } from '@jest/globals'
-import { DecisionApiConfig, EventCategory, FlagDTO, Screen } from '../../src/index'
+import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
+import { DecisionApiConfig, EventCategory, FlagDTO, FlagMetadata, Screen } from '../../src/index'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { BucketingConfig, ConfigManager } from '../../src/config/index'
 import { ApiManager } from '../../src/decision/ApiManager'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { IHttpResponse, IHttpOptions, HttpClient } from '../../src/utils/HttpClient'
-import { DefaultStrategy, TYPE_HIT_REQUIRED_ERROR } from '../../src/visitor/DefaultStrategy'
+import { DefaultStrategy, HIT_NULL_ERROR, TYPE_HIT_REQUIRED_ERROR } from '../../src/visitor/DefaultStrategy'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { Mock } from 'jest-mock'
-import { ACTIVATE_MODIFICATION_ERROR, ACTIVATE_MODIFICATION_KEY_ERROR, CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, GET_FLAG_CAST_ERROR, GET_FLAG_MISSING_ERROR, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, METHOD_DEACTIVATED_BUCKETING_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_SYNCHRONIZED_MODIFICATION, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_LANGUAGE, SDK_VERSION, TRACKER_MANAGER_MISSING_ERROR, USER_EXPOSED_CAST_ERROR, USER_EXPOSED_FLAG_ERROR, VISITOR_ID_ERROR } from '../../src/enum'
-import { sleep, sprintf } from '../../src/utils/utils'
+import { ACTIVATE_MODIFICATION_ERROR, ACTIVATE_MODIFICATION_KEY_ERROR, CONTEXT_NULL_ERROR, CONTEXT_PARAM_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, GET_FLAG_CAST_ERROR, GET_FLAG_MISSING_ERROR, GET_METADATA_CAST_ERROR, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, METHOD_DEACTIVATED_BUCKETING_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_SYNCHRONIZED_MODIFICATION, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_LANGUAGE, SDK_VERSION, TRACKER_MANAGER_MISSING_ERROR, USER_EXPOSED_CAST_ERROR, USER_EXPOSED_FLAG_ERROR, VISITOR_ID_ERROR } from '../../src/enum'
+import { sprintf } from '../../src/utils/utils'
 import { returnModification } from './modification'
-import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 import { HitShape } from '../../src/hit/Legacy'
+import { Consent } from '../../src/hit/Consent'
+import { Campaign } from '../../src/hit/Campaign'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getNull = (): any => {
@@ -20,6 +21,15 @@ const getNull = (): any => {
 }
 
 describe('test DefaultStrategy ', () => {
+  const methodNow = Date.now
+  const mockNow:Mock<number, []> = jest.fn()
+  beforeAll(() => {
+    Date.now = mockNow
+    mockNow.mockReturnValue(1)
+  })
+  afterAll(() => {
+    Date.now = methodNow
+  })
   const visitorId = 'visitorId'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const context: any = {
@@ -56,9 +66,7 @@ describe('test DefaultStrategy ', () => {
 
   const trackingManager = new TrackingManager(httpClient, config)
 
-  const sendActive = jest.spyOn(trackingManager, 'sendActive')
-  const sendHit = jest.spyOn(trackingManager, 'sendHit')
-  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+  const addHit = jest.spyOn(trackingManager, 'addHit')
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
@@ -80,7 +88,7 @@ describe('test DefaultStrategy ', () => {
     configManager.trackingManager = getNull()
     defaultStrategy.setConsent(true)
     expect(visitorDelegate.hasConsented).toBeTruthy()
-    expect(sendConsentHit).toBeCalledTimes(0)
+    expect(addHit).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(
       TRACKER_MANAGER_MISSING_ERROR,
@@ -90,20 +98,27 @@ describe('test DefaultStrategy ', () => {
   })
 
   it('test setConsent', () => {
-    sendConsentHit.mockResolvedValue()
+    addHit.mockResolvedValue()
     defaultStrategy.setConsent(true)
     expect(visitorDelegate.hasConsented).toBeTruthy()
-    expect(sendConsentHit).toBeCalledTimes(1)
-    expect(sendConsentHit).toBeCalledWith(visitorDelegate)
+    expect(addHit).toBeCalledTimes(1)
+
+    const consentHit = new Consent({ visitorConsent: true })
+
+    consentHit.visitorId = visitorDelegate.visitorId
+    consentHit.ds = SDK_APP
+    consentHit.config = config
+    consentHit.anonymousId = visitorDelegate.anonymousId
+
+    expect(addHit).toBeCalledWith(consentHit)
   })
 
   it('test setConsent throw error', () => {
     const error = 'message error'
-    sendConsentHit.mockRejectedValue(error)
+    addHit.mockRejectedValue(error)
     defaultStrategy.setConsent(true)
     expect(visitorDelegate.hasConsented).toBeTruthy()
-    expect(sendConsentHit).toBeCalledTimes(1)
-    expect(sendConsentHit).toBeCalledWith(visitorDelegate)
+    expect(addHit).toBeCalledTimes(1)
   })
 
   it('test updateContext', () => {
@@ -278,16 +293,24 @@ describe('test DefaultStrategy ', () => {
     const returnMod = returnModification.get('keyString') as FlagDTO
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: 'defaultValues', flag: returnMod, userExposed: true })
     expect<string>(value).toBe(returnMod.value)
-    expect(sendActive).toBeCalledTimes(1)
-    expect(sendActive).toBeCalledWith(visitorDelegate, returnMod)
+    expect(addHit).toBeCalledTimes(1)
+    const campaignHit = new Campaign({ variationGroupId: returnMod.variationGroupId, campaignId: returnMod.campaignId })
+    campaignHit.config = config
+    campaignHit.visitorId = visitorId
+    campaignHit.ds = SDK_APP
+    expect(addHit).toBeCalledWith(campaignHit)
   })
 
   it('test getFlagValue with defaultValue null', () => {
     const returnMod = returnModification.get('keyString') as FlagDTO
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: null, flag: returnMod, userExposed: true })
     expect(value).toBe(returnMod.value)
-    expect(sendActive).toBeCalledTimes(1)
-    expect(sendActive).toBeCalledWith(visitorDelegate, returnMod)
+    expect(addHit).toBeCalledTimes(1)
+    const campaignHit = new Campaign({ variationGroupId: returnMod.variationGroupId, campaignId: returnMod.campaignId })
+    campaignHit.config = config
+    campaignHit.visitorId = visitorId
+    campaignHit.ds = SDK_APP
+    expect(addHit).toBeCalledWith(campaignHit)
     expect(logInfo).toBeCalledTimes(0)
   })
 
@@ -295,8 +318,12 @@ describe('test DefaultStrategy ', () => {
     const returnMod = returnModification.get('keyString') as FlagDTO
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: undefined, flag: returnMod, userExposed: true })
     expect(value).toBe(returnMod.value)
-    expect(sendActive).toBeCalledTimes(1)
-    expect(sendActive).toBeCalledWith(visitorDelegate, returnMod)
+    expect(addHit).toBeCalledTimes(1)
+    const campaignHit = new Campaign({ variationGroupId: returnMod.variationGroupId, campaignId: returnMod.campaignId })
+    campaignHit.config = config
+    campaignHit.visitorId = visitorId
+    campaignHit.ds = SDK_APP
+    expect(addHit).toBeCalledWith(campaignHit)
     expect(logInfo).toBeCalledTimes(0)
   })
 
@@ -305,8 +332,12 @@ describe('test DefaultStrategy ', () => {
     const defaultValue = undefined
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue, flag: returnMod, userExposed: true })
     expect(value).toBe(defaultValue)
-    expect(sendActive).toBeCalledTimes(1)
-    expect(sendActive).toBeCalledWith(visitorDelegate, returnMod)
+    expect(addHit).toBeCalledTimes(1)
+    const campaignHit = new Campaign({ variationGroupId: returnMod.variationGroupId, campaignId: returnMod.campaignId })
+    campaignHit.config = config
+    campaignHit.visitorId = visitorId
+    campaignHit.ds = SDK_APP
+    expect(addHit).toBeCalledWith(campaignHit)
     expect(logInfo).toBeCalledTimes(0)
   })
 
@@ -315,6 +346,7 @@ describe('test DefaultStrategy ', () => {
     const defaultValue = null
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue })
     expect(value).toBe(defaultValue)
+    expect(addHit).toBeCalledTimes(0)
     expect(logInfo).toBeCalledTimes(1)
     expect(logInfo).toBeCalledWith(sprintf(GET_FLAG_MISSING_ERROR, 'keyString'), 'getFlag value')
   })
@@ -324,6 +356,7 @@ describe('test DefaultStrategy ', () => {
     const defaultValue = 'defaultValues'
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue })
     expect<string>(value).toBe(defaultValue)
+    expect(addHit).toBeCalledTimes(0)
     expect(logInfo).toBeCalledTimes(1)
     expect(logInfo).toBeCalledWith(sprintf(GET_FLAG_MISSING_ERROR, 'keyString'), 'getFlag value')
   })
@@ -333,6 +366,7 @@ describe('test DefaultStrategy ', () => {
     const defaultValue = 1
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue, flag: returnMod })
     expect(value).toBe(defaultValue)
+    expect(addHit).toBeCalledTimes(0)
     expect(logInfo).toBeCalledTimes(1)
     expect(logInfo).toBeCalledWith(sprintf(GET_FLAG_CAST_ERROR, 'keyString'), 'getFlag value')
   })
@@ -342,7 +376,7 @@ describe('test DefaultStrategy ', () => {
     const defaultValue = 1
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue, flag: returnMod, userExposed: true })
     expect(value).toBe(defaultValue)
-    expect(sendActive).toBeCalledTimes(1)
+    expect(addHit).toBeCalledTimes(1)
   })
 
   it('test getFlagValue castError type', () => {
@@ -352,6 +386,38 @@ describe('test DefaultStrategy ', () => {
     expect(value).toEqual(defaultValue)
     expect(logInfo).toBeCalledTimes(1)
     expect(logInfo).toBeCalledWith(sprintf(GET_FLAG_CAST_ERROR, 'array'), 'getFlag value')
+    expect(addHit).toBeCalledTimes(0)
+  })
+
+  it('test getFlagMetadata', () => {
+    const key = 'key'
+    const metadata:FlagMetadata = {
+      campaignId: 'campaignID',
+      variationGroupId: 'variationGroupId',
+      variationId: 'variationId',
+      isReference: false,
+      campaignType: 'ab',
+      slug: 'slug'
+    }
+    const flagMeta = defaultStrategy.getFlagMetadata({ key, metadata, hasSameType: true })
+    expect(flagMeta).toEqual(metadata)
+    expect(logInfo).toBeCalledTimes(0)
+  })
+
+  it('test getFlagMetadata with different type', () => {
+    const key = 'key'
+    const metadata:FlagMetadata = {
+      campaignId: 'campaignID',
+      variationGroupId: 'variationGroupId',
+      variationId: 'variationId',
+      isReference: false,
+      campaignType: 'ab',
+      slug: 'slug'
+    }
+    const flagMeta = defaultStrategy.getFlagMetadata({ key, metadata, hasSameType: false })
+    expect(flagMeta).toEqual(FlagMetadata.Empty())
+    expect(logInfo).toBeCalledTimes(1)
+    expect(logInfo).toBeCalledWith(sprintf(GET_METADATA_CAST_ERROR, key), 'flag.metadata')
   })
 
   it('test getModification with array', () => {
@@ -367,7 +433,7 @@ describe('test DefaultStrategy ', () => {
       { key: 'keyNumber', defaultValue: 10 },
       { key: 'keyNull', defaultValue: 10 }
     ], true)
-    expect(sendActive).toBeCalledTimes(3)
+    expect(addHit).toBeCalledTimes(3)
   })
 
   it('test getModification key keyNumber', () => {
@@ -396,21 +462,24 @@ describe('test DefaultStrategy ', () => {
       }
     )
     expect<string>(modification).toEqual(returnMod.value)
-    expect(sendActive).toBeCalledTimes(0)
+    expect(addHit).toBeCalledTimes(0)
   })
 
   it('test getModification key string with activate ', () => {
     testModificationType('keyString', 'defaultString', true)
-    expect(sendActive).toBeCalledTimes(1)
-    expect(sendActive).toBeCalledWith(
-      visitorDelegate,
-      returnModification.get('keyString')
-    )
+    expect(addHit).toBeCalledTimes(1)
+    const returnMod = returnModification.get('keyString') as FlagDTO
+    const campaignHit = new Campaign({ variationGroupId: returnMod.variationGroupId, campaignId: returnMod.campaignId })
+    campaignHit.config = config
+    campaignHit.visitorId = visitorId
+    campaignHit.ds = SDK_APP
+    expect(addHit).toBeCalledWith(campaignHit)
   })
 
   const notExitKey = 'notExitKey'
   it('test getModification test key not exist', () => {
     testModificationWithDefault(notExitKey, 'defaultValue')
+    expect(addHit).toBeCalledTimes(0)
     expect(logInfo).toBeCalledTimes(1)
     expect(logInfo).toBeCalledWith(
       sprintf(GET_MODIFICATION_MISSING_ERROR, notExitKey),
@@ -436,11 +505,7 @@ describe('test DefaultStrategy ', () => {
 
   it('test getModification test typeof value of key != defaultValue with activate and modification value = null', () => {
     testModificationErrorCast('keyNull', [], true)
-    expect(sendActive).toBeCalledTimes(1)
-    expect(sendActive).toBeCalledWith(
-      visitorDelegate,
-      returnModification.get('keyNull')
-    )
+    expect(addHit).toBeCalledTimes(1)
   })
 
   it('test getModification test key == null or key != string ', () => {
@@ -482,46 +547,59 @@ describe('test DefaultStrategy ', () => {
 
   it('test activateModification', async () => {
     await defaultStrategy.activateModification(returnMod.key)
-    expect(sendActive).toBeCalledTimes(1)
-    expect(sendActive).toBeCalledWith(
-      visitorDelegate,
-      returnModification.get(returnMod.key)
-    )
+    expect(addHit).toBeCalledTimes(1)
+    const campaignHit = new Campaign({ variationGroupId: returnMod.variationGroupId, campaignId: returnMod.campaignId })
+    campaignHit.config = config
+    campaignHit.visitorId = visitorId
+    campaignHit.ds = SDK_APP
+    expect(addHit).toBeCalledWith(campaignHit)
   })
 
   it('test activateModification with array key', async () => {
     const key1 = 'keyString'
     const key2 = 'keyNumber'
     await defaultStrategy.activateModifications([{ key: key1 }, { key: key2 }])
-    expect(sendActive).toBeCalledTimes(2)
-    expect(sendActive).toBeCalledWith(
-      visitorDelegate,
-      returnModification.get(key1)
-    )
-    expect(sendActive).toBeCalledWith(
-      visitorDelegate,
-      returnModification.get(key2)
-    )
+    expect(addHit).toBeCalledTimes(2)
+
+    const modification1:FlagDTO = returnModification.get(key1) as FlagDTO
+    const campaignHit = new Campaign({ variationGroupId: modification1.variationGroupId, campaignId: modification1.campaignId })
+    campaignHit.config = config
+    campaignHit.visitorId = visitorId
+    campaignHit.ds = SDK_APP
+    expect(addHit).toHaveBeenNthCalledWith(1, campaignHit)
+
+    const modification2:FlagDTO = returnModification.get(key2) as FlagDTO
+    const campaignHit2 = new Campaign({ variationGroupId: modification2?.variationGroupId, campaignId: modification2.campaignId })
+    campaignHit2.config = config
+    campaignHit2.visitorId = visitorId
+    campaignHit2.ds = SDK_APP
+    expect(addHit).toHaveBeenNthCalledWith(2, campaignHit2)
   })
 
   it('test activateModification with array', async () => {
     const key1 = 'keyString'
     const key2 = 'keyNumber'
     await defaultStrategy.activateModifications([key1, key2])
-    expect(sendActive).toBeCalledTimes(2)
-    expect(sendActive).toBeCalledWith(
-      visitorDelegate,
-      returnModification.get(key1)
-    )
-    expect(sendActive).toBeCalledWith(
-      visitorDelegate,
-      returnModification.get(key2)
-    )
+    expect(addHit).toBeCalledTimes(2)
+
+    const modification1:FlagDTO = returnModification.get(key1) as FlagDTO
+    const campaignHit = new Campaign({ variationGroupId: modification1.variationGroupId, campaignId: modification1.campaignId })
+    campaignHit.config = config
+    campaignHit.visitorId = visitorId
+    campaignHit.ds = SDK_APP
+    expect(addHit).toHaveBeenNthCalledWith(1, campaignHit)
+
+    const modification2:FlagDTO = returnModification.get(key2) as FlagDTO
+    const campaignHit2 = new Campaign({ variationGroupId: modification2.variationGroupId, campaignId: modification2.campaignId })
+    campaignHit2.config = config
+    campaignHit2.visitorId = visitorId
+    campaignHit2.ds = SDK_APP
+    expect(addHit).toHaveBeenNthCalledWith(2, campaignHit2)
   })
 
   it('test invalid key in activateModification', async () => {
     await defaultStrategy.activateModification(getNull())
-    expect(sendActive).toBeCalledTimes(0)
+    expect(addHit).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(
       sprintf(ACTIVATE_MODIFICATION_KEY_ERROR, getNull()),
@@ -531,7 +609,7 @@ describe('test DefaultStrategy ', () => {
 
   it('test invalid key in activateModifications', async () => {
     await defaultStrategy.activateModifications(getNull())
-    expect(sendActive).toBeCalledTimes(0)
+    expect(addHit).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(
       sprintf(GET_MODIFICATION_KEY_ERROR, getNull()),
@@ -541,7 +619,7 @@ describe('test DefaultStrategy ', () => {
 
   it('test key not exist in activateModification', async () => {
     await defaultStrategy.activateModification(notExitKey)
-    expect(sendActive).toBeCalledTimes(0)
+    expect(addHit).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(
       sprintf(ACTIVATE_MODIFICATION_ERROR, notExitKey),
@@ -554,7 +632,7 @@ describe('test DefaultStrategy ', () => {
 
     await defaultStrategy.activateModification(returnMod.key)
 
-    expect(sendActive).toBeCalledTimes(0)
+    expect(addHit).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(
       TRACKER_MANAGER_MISSING_ERROR,
@@ -567,13 +645,9 @@ describe('test DefaultStrategy ', () => {
   it('test activateModification failed', async () => {
     try {
       const error = 'Error'
-      sendActive.mockRejectedValue(error)
+      addHit.mockRejectedValue(error)
       await defaultStrategy.activateModification(returnMod.key)
-      expect(sendActive).toBeCalledTimes(1)
-      expect(sendActive).toBeCalledWith(
-        visitorDelegate,
-        returnModification.get(returnMod.key)
-      )
+      expect(addHit).toBeCalledTimes(1)
     } catch (error) {
       expect(logError).toBeCalledTimes(1)
       expect(logError).toBeCalledWith(error, PROCESS_ACTIVE_MODIFICATION)
@@ -582,16 +656,17 @@ describe('test DefaultStrategy ', () => {
 
   it('test userExposed', async () => {
     await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
-    expect(sendActive).toBeCalledTimes(1)
-    expect(sendActive).toBeCalledWith(
-      visitorDelegate,
-      returnModification.get(returnMod.key)
-    )
+    expect(addHit).toBeCalledTimes(1)
+    const campaignHit = new Campaign({ variationGroupId: returnMod.variationGroupId, campaignId: returnMod.campaignId })
+    campaignHit.config = config
+    campaignHit.visitorId = visitorId
+    campaignHit.ds = SDK_APP
+    expect(addHit).toBeCalledWith(campaignHit)
   })
 
   it('test userExposed with different type', async () => {
     await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: true })
-    expect(sendActive).toBeCalledTimes(0)
+    expect(addHit).toBeCalledTimes(0)
     expect(logInfo).toBeCalledTimes(1)
     expect(logInfo).toBeCalledWith(
       sprintf(USER_EXPOSED_CAST_ERROR, returnMod.key),
@@ -601,7 +676,7 @@ describe('test DefaultStrategy ', () => {
 
   it('test userExposed flag undefined', async () => {
     await defaultStrategy.userExposed({ key: notExitKey, flag: undefined, defaultValue: false })
-    expect(sendActive).toBeCalledTimes(0)
+    expect(addHit).toBeCalledTimes(0)
     expect(logInfo).toBeCalledTimes(1)
     expect(logInfo).toBeCalledWith(
       sprintf(USER_EXPOSED_FLAG_ERROR, notExitKey),
@@ -614,7 +689,7 @@ describe('test DefaultStrategy ', () => {
 
     await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
 
-    expect(sendActive).toBeCalledTimes(0)
+    expect(addHit).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(
       TRACKER_MANAGER_MISSING_ERROR,
@@ -625,19 +700,12 @@ describe('test DefaultStrategy ', () => {
   })
 
   it('test userExposed failed', async () => {
-    try {
-      const error = 'Error'
-      sendActive.mockRejectedValue(error)
-      await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
-      expect(sendActive).toBeCalledTimes(1)
-      expect(sendActive).toBeCalledWith(
-        visitorDelegate,
-        returnModification.get(returnMod.key)
-      )
-    } catch (error) {
-      expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(error, 'userExposed')
-    }
+    const error = 'Error'
+    addHit.mockRejectedValue(error)
+    await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(error, 'userExposed')
+    expect(addHit).toBeCalledTimes(1)
   })
 
   it('test getAllModifications', async () => {
@@ -654,7 +722,7 @@ describe('test DefaultStrategy ', () => {
       visitorId: visitorDelegate.visitorId,
       campaigns: campaignDTO
     })
-    expect(sendActive).toBeCalledTimes(8)
+    expect(addHit).toBeCalledTimes(8)
   })
 
   it('test getModificationsForCampaign', async () => {
@@ -663,7 +731,7 @@ describe('test DefaultStrategy ', () => {
       visitorId: visitorDelegate.visitorId,
       campaigns: campaignDTO
     })
-    expect(sendActive).toBeCalledTimes(0)
+    expect(addHit).toBeCalledTimes(0)
   })
 
   it('test getModificationsForCampaign with activate', async () => {
@@ -672,22 +740,22 @@ describe('test DefaultStrategy ', () => {
       visitorId: visitorDelegate.visitorId,
       campaigns: campaignDTO
     })
-    expect(sendActive).toBeCalledTimes(1)
+    expect(addHit).toBeCalledTimes(1)
   })
 
   const hitScreen = new Screen({ documentLocation: 'home' })
 
   it('test sendHit', async () => {
     await defaultStrategy.sendHit(hitScreen)
-    expect(sendHit).toBeCalledTimes(1)
-    expect(sendHit).toBeCalledWith(hitScreen)
+    expect(addHit).toBeCalledTimes(1)
+    expect(addHit).toBeCalledWith(hitScreen)
   })
 
   it('test hasTrackingManager sendHit', async () => {
     configManager.trackingManager = getNull()
     await defaultStrategy.sendHit(hitScreen)
 
-    expect(sendHit).toBeCalledTimes(0)
+    expect(addHit).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(
       TRACKER_MANAGER_MISSING_ERROR,
@@ -701,7 +769,7 @@ describe('test DefaultStrategy ', () => {
     configManager.trackingManager = getNull()
     await defaultStrategy.sendHits([hitScreen])
 
-    expect(sendHit).toBeCalledTimes(0)
+    expect(addHit).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(
       TRACKER_MANAGER_MISSING_ERROR,
@@ -710,22 +778,11 @@ describe('test DefaultStrategy ', () => {
     configManager.trackingManager = trackingManager
   })
 
-  it('test isReady sendHit', async () => {
-    const hitScreenNull = new Screen(getNull())
-    await defaultStrategy.sendHit(hitScreenNull)
-
-    expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(
-      hitScreen.getErrorMessage(),
-      PROCESS_SEND_HIT
-    )
-  })
-
   it('test sendHitAsync', async () => {
     try {
       await defaultStrategy.sendHit(hitScreen)
-      expect(sendHit).toBeCalledTimes(1)
-      expect(sendHit).toBeCalledWith(hitScreen)
+      expect(addHit).toBeCalledTimes(1)
+      expect(addHit).toBeCalledWith(hitScreen)
     } catch (error) {
       expect(logError).toBeCalled()
     }
@@ -739,8 +796,8 @@ describe('test DefaultStrategy ', () => {
         category: EventCategory.ACTION_TRACKING
       }
       await defaultStrategy.sendHit(hit)
-      expect(sendHit).toBeCalledTimes(1)
-      expect(sendHit).toBeCalledWith(expect.objectContaining({ ...hit, visitorId, ds: SDK_APP, config }))
+      expect(addHit).toBeCalledTimes(1)
+      expect(addHit).toBeCalledWith(expect.objectContaining({ ...hit, visitorId, ds: SDK_APP, config }))
     } catch (error) {
       console.log(error)
       expect(logError).toBeCalled()
@@ -756,8 +813,8 @@ describe('test DefaultStrategy ', () => {
         productSku: '0014'
       }
       await defaultStrategy.sendHit(hit)
-      expect(sendHit).toBeCalledTimes(1)
-      expect(sendHit).toBeCalledWith(expect.objectContaining({ ...hit, visitorId, ds: SDK_APP, config }))
+      expect(addHit).toBeCalledTimes(1)
+      expect(addHit).toBeCalledWith(expect.objectContaining({ ...hit, visitorId, ds: SDK_APP, config }))
     } catch (error) {
       console.log(error)
       expect(logError).toBeCalled()
@@ -774,8 +831,8 @@ describe('test DefaultStrategy ', () => {
     } catch (error) {
       expect(logError).toBeCalled()
     }
-    expect(sendHit).toBeCalledWith(expect.objectContaining({ ...hit, visitorId, ds: SDK_APP, config }))
-    expect(sendHit).toBeCalledTimes(1)
+    expect(addHit).toBeCalledWith(expect.objectContaining({ ...hit, visitorId, ds: SDK_APP, config }))
+    expect(addHit).toBeCalledTimes(1)
   })
 
   it('test sendHitAsync with literal object PAGE ', async () => {
@@ -789,8 +846,8 @@ describe('test DefaultStrategy ', () => {
     } catch (error) {
       expect(logError).toBeCalled()
     }
-    expect(sendHit).toBeCalledWith(expect.objectContaining({ ...hit, type: HitType.PAGE_VIEW, visitorId, ds: SDK_APP, config }))
-    expect(sendHit).toBeCalledTimes(1)
+    expect(addHit).toBeCalledWith(expect.objectContaining({ ...hit, type: HitType.PAGE_VIEW, visitorId, ds: SDK_APP, config }))
+    expect(addHit).toBeCalledTimes(1)
   })
 
   it('test sendHitAsync with literal object SCREEN ', async () => {
@@ -803,8 +860,8 @@ describe('test DefaultStrategy ', () => {
     } catch (error) {
       expect(logError).toBeCalled()
     }
-    expect(sendHit).toBeCalledWith(expect.objectContaining({ ...hit, visitorId, ds: SDK_APP, config }))
-    expect(sendHit).toBeCalledTimes(1)
+    expect(addHit).toBeCalledWith(expect.objectContaining({ ...hit, visitorId, ds: SDK_APP, config }))
+    expect(addHit).toBeCalledTimes(1)
   })
 
   it('test sendHitAsync with literal object PAGE ', async () => {
@@ -818,8 +875,8 @@ describe('test DefaultStrategy ', () => {
     } catch (error) {
       expect(logError).toBeCalled()
     }
-    expect(sendHit).toBeCalledWith(expect.objectContaining({ ...hit, type: HitType.SCREEN_VIEW, visitorId, ds: SDK_APP, config }))
-    expect(sendHit).toBeCalledTimes(1)
+    expect(addHit).toBeCalledWith(expect.objectContaining({ ...hit, type: HitType.SCREEN_VIEW, visitorId, ds: SDK_APP, config }))
+    expect(addHit).toBeCalledTimes(1)
   })
 
   it('test sendHitAsync with literal object TRANSACTION ', async () => {
@@ -833,8 +890,8 @@ describe('test DefaultStrategy ', () => {
     } catch (error) {
       expect(logError).toBeCalled()
     }
-    expect(sendHit).toBeCalledWith(expect.objectContaining({ ...hit, visitorId, ds: SDK_APP, config }))
-    expect(sendHit).toBeCalledTimes(1)
+    expect(addHit).toBeCalledWith(expect.objectContaining({ ...hit, visitorId, ds: SDK_APP, config }))
+    expect(addHit).toBeCalledTimes(1)
   })
 
   it('test sendHitAsync with literal object TRANSACTION ', async () => {
@@ -854,9 +911,9 @@ describe('test DefaultStrategy ', () => {
       expect(logError).toBeCalled()
     }
     // await sleep(4000)
-    expect(sendHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ ...hits[0], visitorId, ds: SDK_APP, config }))
-    expect(sendHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ ...hits[1], visitorId, ds: SDK_APP, config }))
-    expect(sendHit).toBeCalledTimes(2)
+    expect(addHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ ...hits[0], visitorId, ds: SDK_APP, config }))
+    expect(addHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ ...hits[1], visitorId, ds: SDK_APP, config }))
+    expect(addHit).toBeCalledTimes(2)
   })
 
   it('test sendHitAsync with literal legacy object TRANSACTION ', async () => {
@@ -881,12 +938,13 @@ describe('test DefaultStrategy ', () => {
       expect(logError).toBeCalled()
     }
     // await sleep(4000)
-    expect(sendHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ _transactionId: hit1.data.transactionId, _affiliation: hit1.data.affiliation, visitorId, ds: SDK_APP, config }))
-    expect(sendHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ _transactionId: hit2.data.transactionId, _affiliation: hit2.data.affiliation, visitorId, ds: SDK_APP, config }))
-    expect(sendHit).toBeCalledTimes(2)
+    expect(addHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ _transactionId: hit1.data.transactionId, _affiliation: hit1.data.affiliation, visitorId, ds: SDK_APP, config }))
+    expect(addHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ _transactionId: hit2.data.transactionId, _affiliation: hit2.data.affiliation, visitorId, ds: SDK_APP, config }))
+    expect(addHit).toBeCalledTimes(2)
   })
 
   it('test sendHitAsync with literal legacy object EVENT', async () => {
+    addHit.mockResolvedValue()
     const hit1: HitShape = {
       type: 'Event',
       data: {
@@ -918,6 +976,7 @@ describe('test DefaultStrategy ', () => {
         code: 'code'
       }
     }
+    // wrong hit
     const hit5 = {
       data: {
         transactionId: 'transactionId',
@@ -925,19 +984,23 @@ describe('test DefaultStrategy ', () => {
         code: 'code'
       }
     }
-    const hits: HitShape[] = [hit1, hit2, hit3, hit4, hit5 as HitShape]
-    try {
-      await defaultStrategy.sendHits(hits)
-    } catch (error) {
-      expect(logError).toBeCalled()
+    const hit6 = {
+      type: 'NOT_EXISTS',
+      data: {
+        transactionId: 'transactionId',
+        name: 'name',
+        code: 'code'
+      }
     }
-    await sleep(1000)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const hits: HitShape[] = [hit1, hit2, hit3, hit4, hit6 as any]
+    await defaultStrategy.sendHits(hits)
     expect(logError).toBeCalledTimes(1)
-    expect(sendHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ _action: hit1.data.action, _category: hit1.data.category, _label: hit1.data.label, visitorId, ds: SDK_APP, config }))
-    expect(sendHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ documentLocation: hit2.data.documentLocation, visitorId, ds: SDK_APP, config }))
-    expect(sendHit).toHaveBeenNthCalledWith(3, expect.objectContaining({ documentLocation: hit3.data.documentLocation, visitorId, ds: SDK_APP, config }))
-    expect(sendHit).toHaveBeenNthCalledWith(4, expect.objectContaining({ transactionId: hit4.data.transactionId, productName: hit4.data.name, productSku: hit4.data.code, visitorId, ds: SDK_APP, config }))
-    expect(sendHit).toBeCalledTimes(4)
+    expect(addHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ _action: hit1.data.action, _category: hit1.data.category, _label: hit1.data.label, visitorId, ds: SDK_APP, config }))
+    expect(addHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ documentLocation: hit2.data.documentLocation, visitorId, ds: SDK_APP, config }))
+    expect(addHit).toHaveBeenNthCalledWith(3, expect.objectContaining({ documentLocation: hit3.data.documentLocation, visitorId, ds: SDK_APP, config }))
+    expect(addHit).toHaveBeenNthCalledWith(4, expect.objectContaining({ transactionId: hit4.data.transactionId, productName: hit4.data.name, productSku: hit4.data.code, visitorId, ds: SDK_APP, config }))
+    expect(addHit).toBeCalledTimes(4)
   })
 
   it('test sendHitAsync with literal object type NotEXIST ', async () => {
@@ -946,27 +1009,51 @@ describe('test DefaultStrategy ', () => {
       transactionId: 'transactionId',
       affiliation: 'affiliation'
     }
-    try {
-      await defaultStrategy.sendHit(hit)
-    } catch (error) {
-      expect(logError).toBeCalled()
-    }
+
+    await defaultStrategy.sendHit(hit)
+
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(TYPE_HIT_REQUIRED_ERROR, PROCESS_SEND_HIT)
-    expect(sendHit).toBeCalledTimes(0)
+    expect(addHit).toBeCalledTimes(0)
   })
 
   it('test sendHit failed', async () => {
     try {
       const error = 'Error'
-      sendHit.mockRejectedValue(error)
+      addHit.mockRejectedValue(error)
       await defaultStrategy.sendHit(hitScreen)
-      expect(sendHit).toBeCalledTimes(1)
-      expect(sendHit).toBeCalledWith(hitScreen)
+      expect(addHit).toBeCalledTimes(1)
+      expect(addHit).toBeCalledWith(hitScreen)
     } catch (error) {
       expect(logError).toBeCalledTimes(1)
       expect(logError).toBeCalledWith(error, PROCESS_SEND_HIT)
     }
+  })
+
+  it('test sendHitAsync with is ready method to false', async () => {
+    addHit.mockResolvedValue()
+    const hits = [{
+      type: HitType.TRANSACTION,
+      transactionId: '',
+      affiliation: ''
+    },
+    {
+      type: HitType.TRANSACTION,
+      transactionId: 'transactionId_2',
+      affiliation: 'affiliation_2'
+    }]
+    await defaultStrategy.sendHits(hits)
+
+    expect(addHit).toBeCalledTimes(1)
+    expect(addHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ ...hits[1], visitorId, ds: SDK_APP, config }))
+    expect(logError).toBeCalledTimes(1)
+  })
+
+  it('test sendHitAsync with is ready method to false', async () => {
+    await defaultStrategy.sendHit(getNull())
+    expect(addHit).toBeCalledTimes(0)
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(HIT_NULL_ERROR, PROCESS_SEND_HIT)
   })
 
   it('test unauthenticate with null anonymousId', () => {
@@ -1058,10 +1145,6 @@ describe('test authenticate on bucketing mode', () => {
   config.logManager = logManager
 
   const trackingManager = new TrackingManager({} as HttpClient, config)
-  const sendConsentHit: Mock<Promise<void>, [VisitorAbstract]> = jest.fn()
-  trackingManager.sendConsentHit = sendConsentHit
-
-  sendConsentHit.mockResolvedValue()
 
   const configManager = new ConfigManager(config, {} as ApiManager, trackingManager)
 
