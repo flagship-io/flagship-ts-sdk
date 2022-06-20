@@ -113,6 +113,30 @@ describe('test BucketingManager', () => {
   })
 })
 
+describe('test bucketing polling', () => {
+  const config = new BucketingConfig({ envId: 'envID', apiKey: 'apiKey' })
+  const murmurHash = new MurmurHash()
+  const httpClient = new HttpClient()
+
+  const getAsync = jest.spyOn(httpClient, 'getAsync')
+
+  const bucketingManager = new BucketingManager(httpClient, config, murmurHash)
+
+  it('should ', async () => {
+    const lastModified = Date.now()
+    config.pollingInterval = 0.5
+    config.onBucketingUpdated = (lastUpdate) => {
+      expect(lastModified.toString()).toBe(lastUpdate.toString())
+    }
+    getAsync.mockResolvedValue({ body: bucketing, status: 200, headers: { 'last-modified': lastModified.toString() } })
+    await bucketingManager.startPolling()
+    await sleep(1000)
+    bucketingManager.stopPolling()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((bucketingManager as any)._bucketingContent).toEqual(bucketing)
+  })
+})
+
 describe('test update', () => {
   const onBucketingSuccess = (param: {
     status: number
