@@ -12,7 +12,7 @@ export class Campaign extends HitAbstract implements ICampaign {
     private _variationGroupId! : string;
     private _campaignId! : string;
 
-    public constructor (param:Omit<ICampaign, 'type'>) {
+    public constructor (param:Omit<ICampaign, 'type'|'createdAt'>) {
       super({
         type: HitType.CAMPAIGN,
         userIp: param.userIp,

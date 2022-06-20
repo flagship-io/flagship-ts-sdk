@@ -91,7 +91,7 @@ export class Event extends HitAbstract implements IEvent {
     this._value = v
   }
 
-  public constructor (event:Omit<IEvent, 'type'>) {
+  public constructor (event:Omit<IEvent, 'type'|'createdAt'>) {
     super({
       type: HitType.EVENT,
       userIp: event.userIp,

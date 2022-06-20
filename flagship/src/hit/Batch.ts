@@ -23,7 +23,7 @@ export class Batch extends HitAbstract implements IBatch {
       this._hits = v
     }
 
-    constructor (params: Omit<IBatch, 'type'>) {
+    constructor (params: Omit<IBatch, 'type'|'createdAt'>) {
       super({ ...params, type: BATCH })
       this.hits = params.hits
     }

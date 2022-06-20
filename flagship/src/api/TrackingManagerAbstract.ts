@@ -156,6 +156,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
             return
         }
         hit.key = key
+        hit.createdAt = item.data.content.createdAt
         this._hitsPoolQueue.set(key, hit)
       })
 

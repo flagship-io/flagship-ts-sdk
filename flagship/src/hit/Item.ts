@@ -118,7 +118,7 @@ export class Item extends HitAbstract implements IItem {
    * @param productName : Name of the item product.
    * @param productSku : The SKU or item code.
    */
-  public constructor (item:Omit<IItem, 'type'>) {
+  public constructor (item:Omit<IItem, 'type'|'createdAt'>) {
     super({
       type: HitType.ITEM,
       userIp: item.userIp,

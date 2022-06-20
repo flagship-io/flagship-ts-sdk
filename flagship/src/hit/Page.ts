@@ -21,7 +21,7 @@ export class Page extends HitAbstract implements IPage {
     this._documentLocation = v
   }
 
-  public constructor (page:Omit<IPage, 'type'>) {
+  public constructor (page:Omit<IPage, 'type'|'createdAt'>) {
     super({
       type: HitType.PAGE_VIEW,
       userIp: page.userIp,
