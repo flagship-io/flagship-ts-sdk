@@ -95,14 +95,14 @@ export const METHOD_DEACTIVATED_BUCKETING_ERROR = 'Method {0} is deactivated on 
 export const FLAGSHIP_VISITOR_NOT_AUTHENTICATE = 'Visitor is not authenticated yet'
 export const PREDEFINED_CONTEXT_TYPE_ERROR = 'Predefined Context {0} must be type of {1}'
 export const METHOD_DEACTIVATED_SEND_CONSENT_ERROR = 'Send consent hit is deactivated while SDK status is: {1}.'
-export const HIT_ADDED_IN_QUEUE = 'hit has been added in pool queue : {0}'
+export const HIT_ADDED_IN_QUEUE = 'The hit has been added to the pool queue : {0}'
 export const ADD_HIT = 'ADD HIT'
 export const BATCH_SENT_SUCCESS = 'Batch has been sent : {0}'
 export const SEND_BATCH = 'SEND BATCH'
-export const HIT_DATA_CACHED = 'Hit data have been saved in database : {0}'
+export const HIT_DATA_CACHED = 'Hit data has been saved into database : {0}'
 export const HIT_DATA_FLUSHED = 'The following hit keys have been flushed from database : {0}'
 export const HIT_SENT_SUCCESS = 'hit has been sent : {0}'
-export const HIT_DATA_LOADED = 'Hit data have been loaded from database: {0}'
+export const HIT_DATA_LOADED = 'Hits data has been loaded from database: {0}'
 
 // Process
 export const PROCESS = 'process'
