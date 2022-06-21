@@ -19,8 +19,6 @@ import {
 import { IHttpResponse, HttpClient } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { campaigns } from './campaigns'
-import { Mock } from 'jest-mock'
-import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 import { CampaignDTO } from '../../src'
 
 describe('test ApiManager', () => {

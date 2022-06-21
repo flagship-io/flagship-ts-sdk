@@ -1,4 +1,4 @@
-import { expect, it, describe, jest } from '@jest/globals'
+import { expect, it, describe } from '@jest/globals'
 import { TrackingManagerConfig } from '../../src/config/TrackingManagerConfig'
 import { BatchStrategy, DEFAULT_BATCH_LENGTH, DEFAULT_TIME_INTERVAL } from '../../src/enum'
 

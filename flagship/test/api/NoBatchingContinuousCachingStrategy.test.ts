@@ -2,13 +2,13 @@ import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { Mock } from 'jest-mock'
 import { DecisionApiConfig, HitAbstract, Page } from '../../src'
 import { NoBatchingContinuousCachingStrategy } from '../../src/api/NoBatchingContinuousCachingStrategy'
-import { HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, SDK_LANGUAGE, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL } from '../../src/enum'
+import { HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, SDK_LANGUAGE, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, SEND_BATCH } from '../../src/enum'
 import { Batch } from '../../src/hit/Batch'
 import { Campaign } from '../../src/hit/Campaign'
 import { Consent } from '../../src/hit/Consent'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
-import { uuidV4 } from '../../src/utils/utils'
+import { errorFormat, uuidV4 } from '../../src/utils/utils'
 
 describe('Test NoBatchingContinuousCachingStrategy', () => {
   const methodNow = Date.now
@@ -40,6 +40,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
 
     const campaignHit = new Campaign({
@@ -124,6 +125,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
 
     const campaignHit = new Campaign({
@@ -258,7 +260,11 @@ describe('test sendBatch method', () => {
     expect(cacheHit).toBeCalledTimes(0)
     expect(hitsPoolQueue.size).toBe(1)
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(error, 'sendBatch')
+    expect(logError).toBeCalledWith(errorFormat(error, {
+      url: HIT_EVENT_URL,
+      headers,
+      body: batch.toApiKeys()
+    }), SEND_BATCH)
   })
 
   it('test sendBatch method with empty hitsPoolQueue', async () => {

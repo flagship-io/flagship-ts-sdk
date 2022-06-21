@@ -6,7 +6,7 @@ import { Campaign } from '../../src/hit/Campaign'
 import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinuousCachingStrategy'
 import { BatchingPeriodicCachingStrategy } from '../../src/api/BatchingPeriodicCachingStrategy'
 import { BatchStrategy, Event, EventCategory, HitCacheDTO, Item, Page, Screen, Transaction } from '../../src'
-import { HIT_CACHE_VERSION, NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY } from '../../src/enum'
+import { HIT_CACHE_VERSION, NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY, PROCESS_LOOKUP_HIT } from '../../src/enum'
 import { NoBatchingContinuousCachingStrategy } from '../../src/api/NoBatchingContinuousCachingStrategy'
 import { sleep, uuidV4 } from '../../src/utils/utils'
 import { Mock } from 'jest-mock'
@@ -249,7 +249,7 @@ describe('test TrackingManager lookupHits', () => {
     expect(flushHits).toBeCalledTimes(0)
 
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(error.message, 'lookupHits')
+    expect(logError).toBeCalledWith(error.message, PROCESS_LOOKUP_HIT)
   })
 
   it('test lookupHits empty ', async () => {

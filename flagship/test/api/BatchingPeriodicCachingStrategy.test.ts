@@ -2,7 +2,7 @@ import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { Mock } from 'jest-mock'
 import { BatchingPeriodicCachingStrategy } from '../../src/api/BatchingPeriodicCachingStrategy'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
-import { HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, SDK_LANGUAGE, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL } from '../../src/enum'
+import { HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, SDK_LANGUAGE, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, SEND_BATCH } from '../../src/enum'
 import { Batch } from '../../src/hit/Batch'
 import { Campaign } from '../../src/hit/Campaign'
 import { Consent } from '../../src/hit/Consent'
@@ -10,6 +10,7 @@ import { HitAbstract } from '../../src/hit/HitAbstract'
 import { Page } from '../../src/hit/Page'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
+import { errorFormat } from '../../src/utils/utils'
 describe('Test BatchingPeriodicCachingStrategy', () => {
   const visitorId = 'visitorId'
   it('test addHit method', async () => {
@@ -175,7 +176,11 @@ describe('test sendBatch method', () => {
     expect(cacheHit).toBeCalledWith(hitsPoolQueue)
     expect(hitsPoolQueue.size).toBe(1)
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(error, 'sendBatch')
+    expect(logError).toBeCalledWith(errorFormat(error, {
+      url: HIT_EVENT_URL,
+      headers,
+      body: batch.toApiKeys()
+    }), SEND_BATCH)
   })
 
   it('test sendBatch method with empty hitsPoolQueue', async () => {

@@ -19,7 +19,6 @@ describe('Name of the group', () => {
   }
 
   const logManager = new FlagshipLogManager()
-  const logError = jest.spyOn(logManager, 'error')
 
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager

@@ -976,14 +976,7 @@ describe('test DefaultStrategy ', () => {
         code: 'code'
       }
     }
-    // wrong hit
-    const hit5 = {
-      data: {
-        transactionId: 'transactionId',
-        name: 'name',
-        code: 'code'
-      }
-    }
+
     const hit6 = {
       type: 'NOT_EXISTS',
       data: {
