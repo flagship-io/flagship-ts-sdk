@@ -1,5 +1,5 @@
 import { IFlagshipConfig } from '../config/index.ts'
-import { BUCKETING_API_URL, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, REQUEST_TIME_OUT, SDK_LANGUAGE, SDK_VERSION } from '../enum/index.ts'
+import { BUCKETING_API_URL, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, SDK_LANGUAGE, SDK_VERSION } from '../enum/index.ts'
 import { Segment } from '../hit/Segment.ts'
 import { primitive } from '../types.ts'
 import { IHttpClient, IHttpResponse } from '../utils/HttpClient.ts'
