@@ -40,7 +40,7 @@ describe('test DefaultStrategy ', () => {
   const logError = jest.spyOn(logManager, 'error')
   const logInfo = jest.spyOn(logManager, 'info')
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', activateDeduplicationTime: 0, hitDeduplicationTime: 0 })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0 })
   config.logManager = logManager
 
   const httpClient = new HttpClient()
@@ -518,6 +518,7 @@ describe('test DefaultStrategy ', () => {
   })
 
   const returnMod = returnModification.get('keyString') as FlagDTO
+
   it('test getModificationInfo', async () => {
     const modification = await defaultStrategy.getModificationInfo(returnMod.key)
     expect(logError).toBeCalledTimes(0)
@@ -579,6 +580,7 @@ describe('test DefaultStrategy ', () => {
   it('test activateModification with array', async () => {
     const key1 = 'keyString'
     const key2 = 'keyNumber'
+
     await defaultStrategy.activateModifications([key1, key2])
     expect(addHit).toBeCalledTimes(2)
 
