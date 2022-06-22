@@ -144,8 +144,8 @@ describe('test visitor cache', () => {
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
     const defaultStrategy = new DefaultStrategy(visitorDelegate)
 
-    visitorDelegate.visitorCache = data as VisitorCacheDTO
-    await defaultStrategy.synchronizeModifications()
+    visitorDelegate.visitorCache = data
+    await defaultStrategy.fetchFlags()
     expect(visitorDelegate.campaigns).toEqual(campaigns.campaigns)
   })
 
@@ -156,7 +156,7 @@ describe('test visitor cache', () => {
     const noConsentStrategy = new NoConsentStrategy(visitorDelegate)
 
     visitorDelegate.visitorCache = data
-    await noConsentStrategy.synchronizeModifications()
+    await noConsentStrategy.fetchFlags()
     expect(visitorDelegate.campaigns).toEqual([])
   })
 
@@ -167,12 +167,12 @@ describe('test visitor cache', () => {
     const noConsentStrategy = new PanicStrategy(visitorDelegate)
 
     visitorDelegate.visitorCache = data
-    await noConsentStrategy.synchronizeModifications()
+    await noConsentStrategy.fetchFlags()
     expect(visitorDelegate.campaigns).toEqual([])
   })
 
   it('test fetchVisitorCacheCampaigns', async () => {
-    getCampaignsAsync.mockResolvedValue([])
+    getCampaignsAsync.mockResolvedValue(null)
 
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
     const defaultStrategy = new DefaultStrategy(visitorDelegate)
@@ -186,7 +186,7 @@ describe('test visitor cache', () => {
         context: visitorDelegate.context
       }
     }
-    await defaultStrategy.synchronizeModifications()
+    await defaultStrategy.fetchFlags()
     expect(visitorDelegate.campaigns).toEqual([])
   })
 

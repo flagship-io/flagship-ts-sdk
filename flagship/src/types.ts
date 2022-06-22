@@ -1,6 +1,6 @@
 import { CampaignDTO } from './decision/api/models'
 import { HitType } from './enum/index'
-import { IEvent, IItem, IPage, IScreen, ITransaction, HitShape } from './hit/index'
+import { IEvent, IItem, IPage, IScreen, ITransaction, HitShape, IHitAbstract } from './hit/index'
 
 export type modificationsRequested<T> = {
     key: string,
@@ -11,7 +11,7 @@ export type modificationsRequested<T> = {
 export type primitive=string | number | boolean
 
 export type { HitShape }
-export type IHit = IPage | IScreen | IEvent | IItem | ITransaction
+export type IHit = Omit<IPage, 'createdAt'> | Omit<IScreen, 'createdAt'> | Omit<IEvent, 'createdAt'> | Omit<IItem, 'createdAt'> | Omit<ITransaction, 'createdAt'>
 
 export type FlagDTO= {
   key: string;
@@ -66,7 +66,7 @@ export type HitCacheDTO ={
       anonymousId: string|null,
       type: HitType|'BATCH'|'ACTIVATE',
       time: number,
-      content?:IHit|FlagDTO|Record<string, unknown>
+      content:IHitAbstract
   }
 }
 

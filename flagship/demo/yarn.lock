@@ -884,10 +884,10 @@
     "@babel/helper-validator-identifier" "^7.14.9"
     to-fast-properties "^2.0.0"
 
-"@flagship.io/js-sdk@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@flagship.io/js-sdk/-/js-sdk-3.0.0.tgz#53be83f941161fb2836100ea2ed620197d11f1bf"
-  integrity sha512-9TMGJZofLCs13zdNYXE6De5ifrscXHdk1/ZuV02ETnO7JufXsroHj+TYUUtD66uz4x3MDK1OvdgBEtI/HCdTFA==
+"@flagship.io/js-sdk@^3.0.7":
+  version "3.0.7"
+  resolved "https://registry.yarnpkg.com/@flagship.io/js-sdk/-/js-sdk-3.0.7.tgz#7709d25e933568aed4488f6c47fa0e7fe2b7fcaa"
+  integrity sha512-nzPPTUNndO6akRGJjKTDcGKz3hHwo7P9tPX+qnGMU1FTjDdx6kzRoV3tLnzf8+2fFY5ZL7cdIz6lxlzFwG2gsg==
   dependencies:
     "@babel/runtime" "^7.15.4"
     abort-controller "^3.0.0"

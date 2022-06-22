@@ -1,6 +1,7 @@
 import { expect, it, describe, jest } from '@jest/globals'
 import { IHitCacheImplementation, IVisitorCacheImplementation } from '../../src'
 import { DecisionApiConfig, DecisionMode } from '../../src/config/index'
+import { TrackingManagerConfig } from '../../src/config/TrackingManagerConfig'
 import {
   BASE_API_URL,
   DEFAULT_DEDUPLICATION_TIME,
@@ -32,6 +33,7 @@ describe('test DecisionApiConfig', () => {
     expect(config.hitCacheImplementation).toBeUndefined()
     expect(config.visitorCacheImplementation).toBeUndefined()
     expect(config.disableCache).toBeFalsy()
+    expect(config.trackingMangerConfig).toBeInstanceOf(TrackingManagerConfig)
   })
 
   it('test config constructor', () => {
@@ -60,15 +62,14 @@ describe('test DecisionApiConfig', () => {
 
     const hitCacheImplementation: IHitCacheImplementation = {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      cacheHit: function (_visitorId: string, _data: HitCacheDTO): Promise<void> {
+      cacheHit: function (hits: Record<string, HitCacheDTO>): Promise<void> {
+        throw new Error('Function not implemented.')
+      },
+      lookupHits: function (): Promise<Record<string, HitCacheDTO>> {
         throw new Error('Function not implemented.')
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      lookupHits: function (_visitorId: string): Promise<HitCacheDTO[]> {
-        throw new Error('Function not implemented.')
-      },
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      flushHits: function (_visitorId: string): Promise<void> {
+      flushHits: function (hitKeys: string[]): Promise<void> {
         throw new Error('Function not implemented.')
       }
     }
@@ -85,7 +86,9 @@ describe('test DecisionApiConfig', () => {
       initialBucketing,
       visitorCacheImplementation,
       hitCacheImplementation,
-      disableCache: true
+      disableCache: true,
+      activateDeduplicationTime: 10,
+      hitDeduplicationTime: 20
     })
     expect(config.apiKey).toBe(apiKey)
     expect(config.envId).toBe(envId)
@@ -99,6 +102,8 @@ describe('test DecisionApiConfig', () => {
     expect(config.visitorCacheImplementation).toBe(visitorCacheImplementation)
     expect(config.hitCacheImplementation).toBe(hitCacheImplementation)
     expect(config.disableCache).toBeTruthy()
+    expect(config.activateDeduplicationTime).toBe(10)
+    expect(config.hitDeduplicationTime).toBe(20)
   })
 
   it('Test envId field ', () => {

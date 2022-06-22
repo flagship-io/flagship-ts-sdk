@@ -14,11 +14,16 @@ export const REQUEST_TIME_OUT = 2
 export const DEFAULT_DEDUPLICATION_TIME = 2.5
 export const DEFAULT_POLLING_INTERVAL = 1
 
+export const DEFAULT_TIME_INTERVAL = 10
+export const DEFAULT_BATCH_LENGTH = 20
+export const BATCH_MAX_SIZE = 2500000
+
 /**
  * Decision api base url
  */
 export const BASE_API_URL = 'https://decision.flagship.io/v2/'
 export const HIT_API_URL = 'https://ariane.abtasty.com'
+export const HIT_EVENT_URL = 'http://localhost:3000/events' // 'https://events.flagship.io/v2'
 export const BUCKETING_API_URL = 'https://cdn.flagship.io/{0}/bucketing.json'
 export const BUCKETING_API_CONTEXT_URL = 'https://decision.flagship.io/v2/{0}/events'
 export const HIT_CONSENT_URL = 'https://ariane.abtasty.com'
@@ -45,6 +50,8 @@ export const SDK_STARTED_INFO = 'Flagship SDK (version: {0}) READY'
 export const FLAGSHIP_SDK = 'Flagship SDK'
 
 export const EMIT_READY = 'ready'
+
+export const NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY = 3
 
 /**
  * Message Error
@@ -88,6 +95,14 @@ export const METHOD_DEACTIVATED_BUCKETING_ERROR = 'Method {0} is deactivated on 
 export const FLAGSHIP_VISITOR_NOT_AUTHENTICATE = 'Visitor is not authenticated yet'
 export const PREDEFINED_CONTEXT_TYPE_ERROR = 'Predefined Context {0} must be type of {1}'
 export const METHOD_DEACTIVATED_SEND_CONSENT_ERROR = 'Send consent hit is deactivated while SDK status is: {1}.'
+export const HIT_ADDED_IN_QUEUE = 'The hit has been added to the pool queue : {0}'
+export const ADD_HIT = 'ADD HIT'
+export const BATCH_SENT_SUCCESS = 'Batch has been sent : {0}'
+export const SEND_BATCH = 'SEND BATCH'
+export const HIT_DATA_CACHED = 'Hit data has been saved into database : {0}'
+export const HIT_DATA_FLUSHED = 'The following hit keys have been flushed from database : {0}'
+export const HIT_SENT_SUCCESS = 'hit has been sent : {0}'
+export const HIT_DATA_LOADED = 'Hits data has been loaded from database: {0}'
 
 // Process
 export const PROCESS = 'process'
@@ -98,24 +113,30 @@ export const PROCESS_GET_MODIFICATION_INFO = 'GET MODIFICATION INFO'
 export const PROCESS_NEW_VISITOR = 'NEW VISITOR'
 export const PROCESS_ACTIVE_MODIFICATION = 'ACTIVE MODIFICATION'
 export const PROCESS_SYNCHRONIZED_MODIFICATION = 'SYNCHRONIZED MODIFICATION'
-export const PROCESS_SEND_HIT = 'SEND HIT'
+export const PROCESS_SEND_HIT = 'ADD HIT'
 export const PROCESS_SEND_ACTIVATE = 'SEND ACTIVATE'
 export const PROCESS_GET_CAMPAIGNS = 'GET CAMPAIGNS'
 export const PROCESS_GET_ALL_MODIFICATION = 'GET ALL MODIFICATIONS'
 export const PROCESS_MODIFICATIONS_FOR_CAMPAIGN = 'GET MODIFICATION FOR CAMPAIGN'
-export const PROCESS_CACHE_HIT = 'cacheHit'
+export const PROCESS_CACHE_HIT = 'CACHE HIT'
+export const PROCESS_FLUSH_HIT = 'FLUSH HIT'
+export const PROCESS_LOOKUP_HIT = 'LOOKUP HIT'
 
 // Api items
 
-export const CUSTOMER_ENV_ID_API_ITEM = 'cid'
+export const CUSTOMER_ENV_ID_API_ITEM = 'eid'
 export const CUSTOMER_UID = 'cuid'
 export const ANONYMOUS_ID = 'aid'
 export const VISITOR_ID_API_ITEM = 'vid'
-export const VARIATION_GROUP_ID_API_ITEM = 'caid'
+export const VARIATION_GROUP_ID_API_ITEM = 'vgid'
+export const VISITOR_CONSENT = 'vc'
+export const CAMPAIGN_ID = 'caid'
 export const VARIATION_ID_API_ITEM = 'vaid'
 export const DS_API_ITEM = 'ds'
 export const T_API_ITEM = 't'
+export const QT_API_ITEM = 'qt'
 export const DL_API_ITEM = 'dl'
+export const SL_ITEM = 'sl'
 export const SDK_APP = 'APP'
 export const TID_API_ITEM = 'tid'
 export const TA_API_ITEM = 'ta'
@@ -142,6 +163,7 @@ export const USER_LANGUAGE = 'ul'
 export const SESSION_NUMBER = 'sn'
 
 export const HEADER_X_API_KEY = 'x-api-key'
+export const HEADER_X_ENV_ID = 'x-env-id'
 export const HEADER_CONTENT_TYPE = 'Content-Type'
 export const HEADER_X_SDK_CLIENT = 'x-sdk-client'
 export const HEADER_X_SDK_VERSION = 'x-sdk-version'

@@ -21,15 +21,15 @@ export class Page extends HitAbstract implements IPage {
     this._documentLocation = v
   }
 
-  public constructor (page:Omit<IPage, 'type'>) {
+  public constructor (page:Omit<IPage, 'type'|'createdAt'>) {
     super({
       type: HitType.PAGE_VIEW,
-      userIp: page?.userIp,
-      screenResolution: page?.screenResolution,
-      locale: page?.locale,
-      sessionNumber: page?.sessionNumber
+      userIp: page.userIp,
+      screenResolution: page.screenResolution,
+      locale: page.locale,
+      sessionNumber: page.sessionNumber
     })
-    this.documentLocation = page?.documentLocation
+    this.documentLocation = page.documentLocation
   }
 
   public isReady (checkParent = true):boolean {

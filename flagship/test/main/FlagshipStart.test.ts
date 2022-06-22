@@ -1,6 +1,24 @@
 import { jest, expect, it, describe } from '@jest/globals'
 import { Flagship, DecisionMode, FlagshipStatus } from '../../src'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
+import { Mock } from 'jest-mock'
+
+const startBatchingLoop: Mock<Promise<void>, []> = jest.fn()
+startBatchingLoop.mockResolvedValue()
+const addHit: Mock<Promise<void>, []> = jest.fn()
+
+addHit.mockResolvedValue()
+
+jest.mock('../../src/api/TrackingManager', () => {
+  return {
+    TrackingManager: jest.fn().mockImplementation(() => {
+      return {
+        startBatchingLoop,
+        addHit
+      }
+    })
+  }
+})
 
 describe('test not ready', () => {
   const envId = 'envId'
@@ -11,7 +29,7 @@ describe('test not ready', () => {
   FlagshipAny.isReady = jest.fn().mockReturnValue(false)
   const instance = FlagshipAny.start(envId, apiKey, { decisionMode: DecisionMode.DECISION_API, logManager })
   it('should ', () => {
-    expect(instance).toBeNull()
+    expect(instance).toBeInstanceOf(Flagship)
     expect(Flagship.getStatus()).toBe(FlagshipStatus.NOT_INITIALIZED)
   })
 })
