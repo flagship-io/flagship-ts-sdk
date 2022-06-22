@@ -40,7 +40,7 @@ describe('test DefaultStrategy ', () => {
   const logError = jest.spyOn(logManager, 'error')
   const logInfo = jest.spyOn(logManager, 'info')
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', activateDeduplicationTime: 0, hitDeduplicationTime: 0 })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0 })
   config.logManager = logManager
 
   const httpClient = new HttpClient()
@@ -72,14 +72,6 @@ describe('test DefaultStrategy ', () => {
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
   const defaultStrategy = new DefaultStrategy(visitorDelegate)
-
-  const getFlagPostData = (flag?:FlagDTO) => ({
-    [VISITOR_ID_API_ITEM]: visitorDelegate.visitorId,
-    [VARIATION_ID_API_ITEM]: flag?.variationId,
-    [VARIATION_GROUP_ID_API_ITEM]: flag?.variationGroupId,
-    [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
-    [ANONYMOUS_ID]: visitorDelegate.anonymousId
-  })
 
   const predefinedContext = {
     fs_client: SDK_LANGUAGE.name,
