@@ -9,7 +9,9 @@ import { FlagshipLogManager } from '../utils/FlagshipLogManager'
 import { isBrowser, logError, logInfo, sprintf } from '../utils/utils'
 import {
   INITIALIZATION_PARAM_ERROR,
+  NEW_VISITOR_NOT_READY,
   PROCESS_INITIALIZATION,
+  PROCESS_NEW_VISITOR,
   SDK_STARTED_INFO,
   SDK_VERSION
 } from '../enum/index'
@@ -49,16 +51,6 @@ export class Flagship {
       this._instance = new this()
     }
     return this._instance
-  }
-
-  /**
-   * Return true if the SDK is properly initialized, otherwise return false
-   */
-  private static isReady (): boolean {
-    const apiKey = this._instance?.getConfig()?.apiKey
-    const envId = this._instance?.getConfig()?.envId
-    const configManager = this._instance?.configManager
-    return (!!this._instance && !!apiKey && !!envId && !!configManager)
   }
 
   protected setStatus (status: FlagshipStatus): void {
@@ -174,6 +166,12 @@ export class Flagship {
       config.logManager = new FlagshipLogManager()
     }
 
+    if (!envId || !apiKey) {
+      flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
+      logError(config, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION)
+      return flagship
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (!config.hitCacheImplementation && isBrowser()) {
       config.hitCacheImplementation = new DefaultHitCache()
@@ -200,32 +198,16 @@ export class Flagship {
       trackingManager.startBatchingLoop()
     }
 
-    if (flagship.configManager) {
-      flagship.configManager.config = config
-      flagship.configManager.decisionManager = decisionManager
-      flagship.configManager.trackingManager = trackingManager
-    } else {
-      flagship.configManager = new ConfigManager(
-        config,
-        decisionManager,
-        trackingManager
-      )
-    }
-
-    if (!envId || !apiKey) {
-      flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
-      logError(config, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION)
-      return flagship
-    }
-
-    if (!this.isReady()) {
-      flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
-      return flagship
-    }
+    flagship.configManager = new ConfigManager(
+      config,
+      decisionManager,
+      trackingManager
+    )
 
     if (flagship._status === FlagshipStatus.STARTING) {
       flagship.setStatus(FlagshipStatus.READY)
     }
+
     logInfo(
       config,
       sprintf(SDK_STARTED_INFO, SDK_VERSION),
@@ -270,6 +252,11 @@ export class Flagship {
     let initialCampaigns: CampaignDTO[] | undefined
     const isServerSide = !isBrowser()
     let isNewInstance = isServerSide
+
+    if (!this._instance?.configManager) {
+      logError(this.getConfig(), NEW_VISITOR_NOT_READY, PROCESS_NEW_VISITOR)
+      return null
+    }
 
     if (typeof param1 === 'string' || param1 === null) {
       visitorId = param1 || undefined

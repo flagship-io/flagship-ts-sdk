@@ -57,15 +57,27 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async notConsent (_visitorId: string): Promise<void> {
+    async notConsent (visitorId: string): Promise<void> {
       const keys = Object.keys(this.cacheHitKeys)
+      const hitsPoolQueueKeys = Array.from(this._hitsPoolQueue.keys()).filter(x => x.includes(visitorId))
 
-      if (!keys.length) {
+      const keysToFlush:string[] = []
+      hitsPoolQueueKeys.forEach(key => {
+        const isConsentHit = this._hitsPoolQueue.get(key)?.type === HitType.CONSENT
+        if (isConsentHit) {
+          return
+        }
+        this._hitsPoolQueue.delete(key)
+        keysToFlush.push(key)
+      })
+
+      const mergedKeys = [...keys, ...keysToFlush]
+
+      if (!mergedKeys.length) {
         return
       }
 
-      await this.flushHits(keys)
+      await this.flushHits(mergedKeys)
       this.cacheHitKeys = {}
     }
 

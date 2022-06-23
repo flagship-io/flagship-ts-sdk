@@ -103,6 +103,7 @@ export const HIT_DATA_CACHED = 'Hit data has been saved into database : {0}'
 export const HIT_DATA_FLUSHED = 'The following hit keys have been flushed from database : {0}'
 export const HIT_SENT_SUCCESS = 'hit has been sent : {0}'
 export const HIT_DATA_LOADED = 'Hits data has been loaded from database: {0}'
+export const NEW_VISITOR_NOT_READY = 'Please start first the SDK in order to create a new Visitor'
 
 // Process
 export const PROCESS = 'process'

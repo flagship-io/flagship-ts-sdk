@@ -154,12 +154,69 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     consentHitFalse.visitorId = visitorId
 
     await batchingStrategy.addHit(consentHitFalse)
-
     expect(hitsPoolQueue.size).toBe(0)
     expect(cacheHit).toBeCalledTimes(2)
     expect(cacheHit).toHaveBeenNthCalledWith(2, new Map().set(expect.stringContaining(visitorId), consentHitFalse))
     expect(flushHits).toBeCalledTimes(1)
     expect(flushHits).toHaveBeenNthCalledWith(1, [expect.stringContaining(visitorId)])
+  })
+
+  it('test addHit method throw error', async () => {
+    const error = 'message error'
+    postAsync.mockRejectedValue(error)
+
+    const hitsPoolQueue = new Map<string, HitAbstract>()
+    const batchingStrategy = new NoBatchingContinuousCachingStrategy(config, httpClient, hitsPoolQueue)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
+
+    const campaignHit = new Campaign({
+      variationGroupId: 'variationGrID',
+      campaignId: 'campaignID'
+    })
+    campaignHit.visitorId = visitorId
+    campaignHit.config = config
+
+    await batchingStrategy.addHit(campaignHit)
+
+    expect(postAsync).toHaveBeenCalledTimes(1)
+    expect(postAsync).toHaveBeenNthCalledWith(1, HIT_EVENT_URL, {
+      headers,
+      body: campaignHit.toApiKeys()
+    })
+    expect(hitsPoolQueue.size).toBe(0)
+    expect(cacheHit).toBeCalledTimes(1)
+    expect(cacheHit).toHaveBeenNthCalledWith(1, new Map().set(expect.stringContaining(visitorId), campaignHit))
+    expect(flushHits).toBeCalledTimes(0)
+
+    const consentHitLoaded = new Consent({
+      visitorConsent: true
+    })
+
+    const campaignHitLoaded = new Campaign({
+      variationGroupId: 'variationGrID',
+      campaignId: 'campaignID'
+    })
+
+    hitsPoolQueue.set(`${visitorId}:${uuidV4()}`, consentHitLoaded).set(`${visitorId}:${uuidV4()}`, campaignHitLoaded)
+
+    expect(hitsPoolQueue.size).toBe(2)
+
+    const consentHitFalse = new Consent({
+      visitorConsent: false
+    })
+
+    consentHitFalse.visitorId = visitorId
+
+    await batchingStrategy.addHit(consentHitFalse)
+    expect(hitsPoolQueue.size).toBe(1)
+    expect(cacheHit).toBeCalledTimes(2)
+    expect(cacheHit).toHaveBeenNthCalledWith(2, new Map().set(expect.stringContaining(visitorId), consentHitFalse))
+    expect(flushHits).toBeCalledTimes(1)
+    expect(flushHits).toHaveBeenNthCalledWith(1, expect.arrayContaining([expect.stringContaining(visitorId)]))
   })
 })
 
