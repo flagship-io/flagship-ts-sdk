@@ -11,7 +11,8 @@ module.exports = merge(common(), {
     alias: {
       http: false,
       https: false,
-      'node-fetch': false
+      'node-fetch': false,
+      '../nodeDeps': '../nodeDeps.browser.ts'
     }
   },
   output: {
