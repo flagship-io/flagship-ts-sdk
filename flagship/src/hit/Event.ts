@@ -11,7 +11,7 @@ import { HitAbstract, IHitAbstract } from './HitAbstract'
 export const ERROR_MESSAGE = 'event category and event action are required'
 export const CATEGORY_ERROR =
   'The category value must be either EventCategory::ACTION_TRACKING or EventCategory::ACTION_TRACKING'
-
+export const VALUE_FIELD_ERROR = 'value must be an integer and be >= 0'
 export enum EventCategory {
   ACTION_TRACKING = 'Action Tracking',
   USER_ENGAGEMENT = 'User Engagement',
@@ -85,7 +85,8 @@ export class Event extends HitAbstract implements IEvent {
    * <br/> NOTE: this value must be non-negative.
    */
   public set value (v: number) {
-    if (!this.isInteger(v, 'value')) {
+    if (!Number.isInteger(v) || v < 0) {
+      logError(this.config, VALUE_FIELD_ERROR, 'value')
       return
     }
     this._value = v
