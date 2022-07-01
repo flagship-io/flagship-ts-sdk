@@ -85,7 +85,7 @@ export class Event extends HitAbstract implements IEvent {
    * <br/> NOTE: this value must be non-negative.
    */
   public set value (v: number) {
-    if (!this.isNumeric(v, 'value')) {
+    if (!this.isInteger(v, 'value')) {
       return
     }
     this._value = v

@@ -163,11 +163,19 @@ describe('test hit type Event', () => {
 
     event.value = {} as number
     expect(logError).toBeCalledWith(
-      sprintf(TYPE_ERROR, 'value', 'number'),
+      sprintf(TYPE_ERROR, 'value', 'integer'),
       'value'
     )
     expect(event.value).toBe(value)
     expect(logError).toHaveBeenCalledTimes(1)
+
+    event.value = 2.5
+    expect(logError).toBeCalledWith(
+      sprintf(TYPE_ERROR, 'value', 'integer'),
+      'value'
+    )
+    expect(event.value).toBe(value)
+    expect(logError).toHaveBeenCalledTimes(2)
   })
 
   it('test toObject', () => {
