@@ -1,5 +1,5 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { CATEGORY_ERROR, ERROR_MESSAGE } from '../../src/hit/Event'
+import { CATEGORY_ERROR, ERROR_MESSAGE, VALUE_FIELD_ERROR } from '../../src/hit/Event'
 import { Event, EventCategory } from '../../src/hit/index'
 import { DecisionApiConfig } from '../../src/config/index'
 import {
@@ -163,11 +163,25 @@ describe('test hit type Event', () => {
 
     event.value = {} as number
     expect(logError).toBeCalledWith(
-      sprintf(TYPE_ERROR, 'value', 'number'),
+      VALUE_FIELD_ERROR,
       'value'
     )
     expect(event.value).toBe(value)
-    expect(logError).toHaveBeenCalledTimes(1)
+
+    event.value = 2.5
+    expect(logError).toBeCalledWith(
+      VALUE_FIELD_ERROR,
+      'value'
+    )
+    expect(event.value).toBe(value)
+
+    event.value = -20
+    expect(logError).toBeCalledWith(
+      VALUE_FIELD_ERROR,
+      'value'
+    )
+    expect(event.value).toBe(value)
+    expect(logError).toHaveBeenCalledTimes(3)
   })
 
   it('test toObject', () => {

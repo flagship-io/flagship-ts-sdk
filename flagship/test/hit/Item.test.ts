@@ -13,7 +13,6 @@ import {
   SDK_APP,
   TID_API_ITEM,
   TYPE_ERROR,
-  TYPE_INTEGER_ERROR,
   T_API_ITEM,
   VISITOR_ID_API_ITEM
 } from '../../src/enum/index'
@@ -135,7 +134,7 @@ describe('test hit type Item', () => {
     item.itemQuantity = 5.2
     expect(logError).toHaveBeenCalledTimes(1)
     expect(logError).toHaveBeenCalledWith(
-      sprintf(TYPE_INTEGER_ERROR, 'itemQuantity', 'integer'),
+      sprintf(TYPE_ERROR, 'itemQuantity', 'integer'),
       'itemQuantity'
     )
     expect(item.itemQuantity).toBe(itemQuantity)
