@@ -5,7 +5,6 @@ import {
   T_API_ITEM,
   TYPE_ERROR,
   VISITOR_ID_API_ITEM,
-  TYPE_INTEGER_ERROR,
   CUSTOMER_UID,
   USER_IP_API_ITEM,
   SCREEN_RESOLUTION_API_ITEM,
@@ -167,20 +166,9 @@ export abstract class HitAbstract implements IHitAbstract {
   }
 
   protected isInteger (value: unknown, itemName: string): boolean {
-    if (!value || typeof value !== 'number') {
+    if (!Number.isInteger(value)) {
       logError(this.config, sprintf(TYPE_ERROR, itemName, 'integer'), itemName)
       return false
-    }
-    if (!Number.isInteger(value)) {
-      logError(
-        this.config,
-        sprintf(
-          TYPE_INTEGER_ERROR,
-          itemName,
-          'integer'
-        ),
-        itemName
-      )
     }
     return true
   }

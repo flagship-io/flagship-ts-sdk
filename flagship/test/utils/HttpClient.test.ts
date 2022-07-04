@@ -24,10 +24,15 @@ describe('test Post method NOdeHttpClient', () => {
   const responseJson = { isVip: true }
 
   it('should ', () => {
-    fetch.mockResolvedValue(new Response(JSON.stringify(responseJson), { status: 200 }))
+    fetch.mockResolvedValue(new Response(JSON.stringify(responseJson), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }))
     nodeHttpClient.postAsync(url, options).then((response) => {
-      expect(response.body).toEqual(JSON.stringify(responseJson))
-    })
+      expect(response.body).toEqual(responseJson)
+    }).catch(er => console.log(er))
   })
 
   it('should ', async () => {
