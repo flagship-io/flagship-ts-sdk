@@ -156,7 +156,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
         locale: param.locale,
         sessionNumber: param.sessionNumber
       })
-      const { message, action, level, config, visitorId, component, timestamp, stackVersion, technicalStack, subComponent } = param
+      const { message, action, level, config, visitorId, component, timestamp, stackVersion, technicalStack, subComponent, data } = param
       this.config = config
       this._category = EventCategory.ACTION_TRACKING
       this._action = action
@@ -169,6 +169,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       this.ds = SDK_APP
       this._subComponent = subComponent
       this.visitorId = visitorId || `${SDK_LANGUAGE.name}-${config.envId}`
+      this._data = data
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -177,12 +178,10 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       apiKeys[EVENT_CATEGORY_API_ITEM] = this.category
       apiKeys[EVENT_ACTION_API_ITEM] = this.action
       apiKeys.custom = {
-        category: this.category,
-        action: this.action,
         component: this.component,
         timestamp: this.timestamp,
         stackVersion: this.stackVersion,
-        level: this.level,
+        level: LogLevel[this.level],
         message: this.message,
         technicalStack: this.technicalStack,
         data: this.data
@@ -198,7 +197,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
         component: this.component,
         timestamp: this.timestamp,
         stackVersion: this.stackVersion,
-        level: this.level,
+        level: LogLevel[this.level],
         message: this.message,
         technicalStack: this.technicalStack,
         data: this.data
