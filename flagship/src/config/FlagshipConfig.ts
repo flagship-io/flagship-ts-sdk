@@ -350,4 +350,17 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     }
     this._decisionApiUrl = v
   }
+
+  public getObjet ():Record<string, unknown> {
+    return {
+      envId: this.envId,
+      apiKey: this.apiKey,
+      decisionMode: this.decisionMode,
+      timeout: this.timeout,
+      logLevel: this.logLevel,
+      pollingInterval: this.pollingInterval,
+      hitDeduplicationTime: this.hitDeduplicationTime,
+      disableCache: this.disableCache
+    }
+  }
 }

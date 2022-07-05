@@ -9,9 +9,12 @@ import { FlagshipLogManager } from '../utils/FlagshipLogManager'
 import { isBrowser, logError, logInfo, sprintf } from '../utils/utils'
 import {
   INITIALIZATION_PARAM_ERROR,
+  LogLevel,
   NEW_VISITOR_NOT_READY,
   PROCESS_INITIALIZATION,
   PROCESS_NEW_VISITOR,
+  SDK_APP,
+  SDK_LANGUAGE,
   SDK_STARTED_INFO,
   SDK_VERSION
 } from '../enum/index'
@@ -25,6 +28,8 @@ import { FlagDTO, NewVisitor, primitive } from '../types'
 import { CampaignDTO } from '../decision/api/models'
 import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
+import { Event, EventCategory } from '../hit'
+import { Monitoring } from '../hit/Monitoring'
 
 export class Flagship {
   private static _instance: Flagship;
@@ -213,6 +218,17 @@ export class Flagship {
       sprintf(SDK_STARTED_INFO, SDK_VERSION),
       PROCESS_INITIALIZATION
     )
+
+    const initMonitoring = new Monitoring({
+      action: 'SDK-INITIALIZATION',
+      subComponent: 'Flagship.start',
+      level: LogLevel.INFO,
+      message: 'Flagship initialized',
+      data: (config as FlagshipConfig).getObjet(),
+      config
+    })
+
+    trackingManager.addHit(initMonitoring)
     return flagship
   }
 

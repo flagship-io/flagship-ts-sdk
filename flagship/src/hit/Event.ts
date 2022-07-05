@@ -22,6 +22,7 @@ export interface IEvent extends IHitAbstract{
   action: string
   label?: string
   value?: number
+  custom?: Record<string, unknown>
 }
 
 export class Event extends HitAbstract implements IEvent {
@@ -29,6 +30,15 @@ export class Event extends HitAbstract implements IEvent {
   private _action!: string;
   private _label!: string;
   private _value!: number;
+  private _custom? : Record<string, unknown>;
+
+  public get custom () : Record<string, unknown>|undefined {
+    return this._custom
+  }
+
+  public set custom (v : Record<string, unknown>|undefined) {
+    this._custom = v
+  }
 
   public get category (): EventCategory {
     return this._category
@@ -100,9 +110,10 @@ export class Event extends HitAbstract implements IEvent {
       locale: event.locale,
       sessionNumber: event.sessionNumber
     })
-    const { category, action, label, value } = event
+    const { category, action, label, value, custom } = event
     this.category = category
     this.action = action
+    this.custom = custom
     if (label) {
       this.label = label
     }
