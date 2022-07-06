@@ -179,6 +179,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       apiKeys[EVENT_ACTION_API_ITEM] = this.action
       apiKeys.custom = {
         component: this.component,
+        subComponent: this.subComponent,
         timestamp: this.timestamp,
         stackVersion: this.stackVersion,
         level: LogLevel[this.level],
@@ -195,6 +196,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
         category: this.category,
         action: this.action,
         component: this.component,
+        subComponent: this.subComponent,
         timestamp: this.timestamp,
         stackVersion: this.stackVersion,
         level: LogLevel[this.level],
