@@ -79,6 +79,8 @@ export interface IFlagshipConfig {
 
   initialBucketing?: BucketingDTO
 
+  isJamStack?: boolean
+
   decisionApiUrl?: string
 
   activateDeduplicationTime?: number
@@ -121,6 +123,15 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _hitCacheImplementation!: IHitCacheImplementation;
   private _disableCache!: boolean;
   private _trackingMangerConfig : ITrackingManagerConfig;
+  private _isJamStack? : boolean;
+
+  public get isJamStack () : boolean|undefined {
+    return this._isJamStack
+  }
+
+  public set isJamStack (v : boolean|undefined) {
+    this._isJamStack = v
+  }
 
   public get trackingMangerConfig () : ITrackingManagerConfig {
     return this._trackingMangerConfig
@@ -131,7 +142,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
-      disableCache, language, trackingMangerConfig
+      disableCache, language, trackingMangerConfig, isJamStack
     } = param
 
     this.setSdkLanguageName(language)
@@ -140,8 +151,9 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       this.logManager = logManager
     }
 
-    this._trackingMangerConfig = new TrackingManagerConfig(trackingMangerConfig || {})
+    this._trackingMangerConfig = new TrackingManagerConfig(isJamStack ? { batchStrategy: 3 } : trackingMangerConfig || {})
 
+    this.isJamStack = isJamStack
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
     this._envId = envId
     this._apiKey = apiKey
