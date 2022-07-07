@@ -177,15 +177,15 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       const apiKeys = super.toApiKeys()
       apiKeys[EVENT_CATEGORY_API_ITEM] = this.category
       apiKeys[EVENT_ACTION_API_ITEM] = this.action
-      apiKeys.custom = {
-        component: this.component,
-        subComponent: this.subComponent,
-        timestamp: this.timestamp,
-        stackVersion: this.stackVersion,
-        level: LogLevel[this.level],
-        message: this.message,
-        technicalStack: this.technicalStack,
-        data: this.data
+      apiKeys.cv = {
+        0: `component, ${this.component}`,
+        1: `subComponent, ${this.subComponent}`,
+        2: `timestamp, ${this.timestamp}`,
+        3: `stackVersion, ${this.stackVersion}`,
+        4: `level, ${LogLevel[this.level]}`,
+        5: `message, ${this.message}`,
+        6: `technicalStack, ${this.technicalStack}`,
+        7: `data, ${JSON.stringify(this.data)}`
       }
       return apiKeys
     }
