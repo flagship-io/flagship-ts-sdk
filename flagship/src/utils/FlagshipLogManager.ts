@@ -19,23 +19,23 @@ export interface IFlagshipLogManager {
 
 export class FlagshipLogManager implements IFlagshipLogManager {
   emergency (message: string, tag: string): void {
-    this.log(LogLevel.EMERGENCY, message, tag)
+    console.error(this.formatOutput(LogLevel.EMERGENCY, message, tag))
   }
 
   alert (message: string, tag: string): void {
-    this.log(LogLevel.ALERT, message, tag)
+    console.error(this.formatOutput(LogLevel.ALERT, message, tag))
   }
 
   critical (message: string, tag: string): void {
-    this.log(LogLevel.CRITICAL, message, tag)
+    console.error(this.formatOutput(LogLevel.CRITICAL, message, tag))
   }
 
   error (message: string, tag: string): void {
-    this.log(LogLevel.ERROR, message, tag)
+    console.error(this.formatOutput(LogLevel.ERROR, message, tag))
   }
 
   warning (message: string, tag: string): void {
-    this.log(LogLevel.WARNING, message, tag)
+    console.warn(this.formatOutput(LogLevel.WARNING, message, tag))
   }
 
   notice (message: string, tag: string): void {
@@ -43,21 +43,25 @@ export class FlagshipLogManager implements IFlagshipLogManager {
   }
 
   info (message: string, tag: string): void {
-    this.log(LogLevel.INFO, message, tag)
+    console.info(this.formatOutput(LogLevel.INFO, message, tag))
   }
 
   debug (message: string, tag: string): void {
-    this.log(LogLevel.DEBUG, message, tag)
+    console.debug(this.formatOutput(LogLevel.DEBUG, message, tag))
   }
 
   log (level: LogLevel, message: string, tag: string): void {
+    console.log(this.formatOutput(level, message, tag))
+  }
+
+  protected formatOutput (level: LogLevel, message: string, tag: string):string {
     const now = new Date()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const getTwoDigit = (value: any) => {
       return value.toString().length === 1 ? `0${value}` : value
     }
 
-    const out = `[${getTwoDigit(now.getFullYear())}-${
+    return `[${getTwoDigit(now.getFullYear())}-${
       getTwoDigit(
         now.getMonth()
       )
@@ -68,6 +72,5 @@ export class FlagshipLogManager implements IFlagshipLogManager {
     }:${getTwoDigit(now.getMinutes())}] [${FLAGSHIP_SDK}] [${
       LogLevel[level]
     }] [${tag}] : ${message}`
-    console.log(out)
   }
 }

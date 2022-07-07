@@ -18,7 +18,6 @@ import {
   TS_API_ITEM,
   TT_API_ITEM,
   TYPE_ERROR,
-  TYPE_INTEGER_ERROR,
   T_API_ITEM,
   VISITOR_ID_API_ITEM
 } from '../../src/enum/index'
@@ -165,12 +164,12 @@ describe('test hit type Transaction', () => {
   })
 
   it('test itemCount log 1', () => {
-    transaction.itemCount = 5.2
+    transaction.itemCount = 6.2
     expect(transaction.itemCount).toBe(itemCount)
 
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(
-      sprintf(TYPE_INTEGER_ERROR, 'itemCount', 'integer'),
+      sprintf(TYPE_ERROR, 'itemCount', 'integer'),
       'itemCount'
     )
   })
