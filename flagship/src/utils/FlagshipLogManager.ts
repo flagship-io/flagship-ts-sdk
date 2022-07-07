@@ -18,24 +18,33 @@ export interface IFlagshipLogManager {
 }
 
 export class FlagshipLogManager implements IFlagshipLogManager {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  consoleError: { (...data: any[]): void; (message?: any, ...optionalParams: any[]): void; };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  consoleWarn: { (...data: any[]): void; (message?: any, ...optionalParams: any[]): void; };
+  constructor (isCloudFlareClient = false) {
+    this.consoleError = isCloudFlareClient ? console.log : console.error
+    this.consoleWarn = isCloudFlareClient ? console.log : console.warn
+  }
+
   emergency (message: string, tag: string): void {
-    console.error(this.formatOutput(LogLevel.EMERGENCY, message, tag))
+    this.consoleError(this.formatOutput(LogLevel.EMERGENCY, message, tag))
   }
 
   alert (message: string, tag: string): void {
-    console.error(this.formatOutput(LogLevel.ALERT, message, tag))
+    this.consoleError(this.formatOutput(LogLevel.ALERT, message, tag))
   }
 
   critical (message: string, tag: string): void {
-    console.error(this.formatOutput(LogLevel.CRITICAL, message, tag))
+    this.consoleError(this.formatOutput(LogLevel.CRITICAL, message, tag))
   }
 
   error (message: string, tag: string): void {
-    console.error(this.formatOutput(LogLevel.ERROR, message, tag))
+    this.consoleError(this.formatOutput(LogLevel.ERROR, message, tag))
   }
 
   warning (message: string, tag: string): void {
-    console.warn(this.formatOutput(LogLevel.WARNING, message, tag))
+    this.consoleWarn(this.formatOutput(LogLevel.WARNING, message, tag))
   }
 
   notice (message: string, tag: string): void {

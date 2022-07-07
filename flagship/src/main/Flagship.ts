@@ -165,7 +165,7 @@ export class Flagship {
 
     // check custom logger
     if (!config.logManager) {
-      config.logManager = new FlagshipLogManager()
+      config.logManager = new FlagshipLogManager(config.isCloudFlareClient)
     }
 
     if (!envId || !apiKey) {
