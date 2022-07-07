@@ -124,11 +124,11 @@ export class Flagship {
     const setStatus = (status: FlagshipStatus) => {
       flagship.setStatus(status)
     }
-    if (config.decisionMode === DecisionMode.BUCKETING || config.isJamStack) {
+    if (config.decisionMode === DecisionMode.BUCKETING || config.isCloudFlareClient) {
       decisionManager = new BucketingManager(httpClient, config, new MurmurHash())
       const bucketingManager = decisionManager as BucketingManager
       decisionManager.statusChangedCallback(setStatus)
-      if (!config.isJamStack) {
+      if (!config.isCloudFlareClient) {
         bucketingManager.startPolling()
       }
     } else {
@@ -186,7 +186,7 @@ export class Flagship {
 
     let decisionManager = flagship.configManager?.decisionManager
 
-    if (typeof decisionManager === 'object' && decisionManager instanceof BucketingManager && !config.isJamStack) {
+    if (typeof decisionManager === 'object' && decisionManager instanceof BucketingManager && !config.isCloudFlareClient) {
       decisionManager.stopPolling()
     }
 
@@ -197,7 +197,7 @@ export class Flagship {
     let trackingManager = flagship.configManager?.trackingManager
     if (!trackingManager) {
       trackingManager = new TrackingManager(httpClient, config)
-      if (!config.isJamStack) {
+      if (!config.isCloudFlareClient) {
         trackingManager.startBatchingLoop()
       }
     }
@@ -290,7 +290,7 @@ export class Flagship {
 
     this.getInstance()._visitorInstance = !isNewInstance ? visitor : undefined
 
-    if (this.getConfig().fetchNow && !this.getConfig().isJamStack) {
+    if (this.getConfig().fetchNow && !this.getConfig().isCloudFlareClient) {
       visitor.fetchFlags()
     }
     return visitor
