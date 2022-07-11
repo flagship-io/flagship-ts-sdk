@@ -16,7 +16,9 @@ export class Consent extends HitAbstract implements IConsent {
         userIp: param.userIp,
         screenResolution: param.screenResolution,
         locale: param.locale,
-        sessionNumber: param.sessionNumber
+        sessionNumber: param.sessionNumber,
+        visitorId: param.visitorId,
+        anonymousId: param.anonymousId
       })
       this.visitorConsent = param.visitorConsent
     }

@@ -18,7 +18,9 @@ export class Campaign extends HitAbstract implements ICampaign {
         userIp: param.userIp,
         screenResolution: param.screenResolution,
         locale: param.locale,
-        sessionNumber: param.sessionNumber
+        sessionNumber: param.sessionNumber,
+        visitorId: param.visitorId,
+        anonymousId: param.anonymousId
       })
       this.variationGroupId = param.variationGroupId
       this.campaignId = param.campaignId

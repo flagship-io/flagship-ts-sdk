@@ -27,7 +27,9 @@ export class Page extends HitAbstract implements IPage {
       userIp: page.userIp,
       screenResolution: page.screenResolution,
       locale: page.locale,
-      sessionNumber: page.sessionNumber
+      sessionNumber: page.sessionNumber,
+      visitorId: page.visitorId,
+      anonymousId: page.anonymousId
     })
     this.documentLocation = page.documentLocation
   }

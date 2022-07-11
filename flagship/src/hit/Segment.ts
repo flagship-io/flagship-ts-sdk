@@ -25,7 +25,9 @@ export class Segment extends HitAbstract implements ISegment {
       userIp: param.userIp,
       screenResolution: param.screenResolution,
       locale: param.locale,
-      sessionNumber: param.sessionNumber
+      sessionNumber: param.sessionNumber,
+      visitorId: param.visitorId,
+      anonymousId: param.anonymousId
     })
     this.sl = param.sl
   }

@@ -17,9 +17,10 @@ import { primitive } from '../types'
 import { logError, sprintf } from '../utils/utils'
 
 export interface IHitAbstract{
-  visitorId?:string
+  visitorId:string
+  anonymousId: string
   ds?: string
-  type: HitType|'BATCH'
+  type: HitType|'BATCH'|'ACTIVATE'
   userIp?: string
   screenResolution?: string
   locale?: string
@@ -30,9 +31,9 @@ export interface IHitAbstract{
 export abstract class HitAbstract implements IHitAbstract {
   private _visitorId!: string;
   private _config!: IFlagshipConfig;
-  protected _type!: HitType|'BATCH';
+  protected _type!: HitType|'BATCH'|'ACTIVATE';
   private _ds!: string;
-  private _anonymousId! : string|null;
+  private _anonymousId! : string;
   private _userIp! : string;
   private _screenResolution! : string;
   private _locale! : string;
@@ -80,11 +81,11 @@ export abstract class HitAbstract implements IHitAbstract {
     this._userIp = v
   }
 
-  public get anonymousId () : string|null {
+  public get anonymousId () : string {
     return this._anonymousId
   }
 
-  public set anonymousId (v : string|null) {
+  public set anonymousId (v : string) {
     this._anonymousId = v
   }
 
@@ -104,7 +105,7 @@ export abstract class HitAbstract implements IHitAbstract {
     this._ds = v
   }
 
-  public get type (): HitType|'BATCH' {
+  public get type (): HitType|'BATCH'|'ACTIVATE' {
     return this._type
   }
 
@@ -125,7 +126,7 @@ export abstract class HitAbstract implements IHitAbstract {
   }
 
   protected constructor (hit: Omit<IHitAbstract, 'createdAt'>) {
-    const { type, userIp, screenResolution, locale, sessionNumber } = hit
+    const { type, userIp, screenResolution, locale, sessionNumber, visitorId, anonymousId } = hit
     this._type = type
     if (userIp) {
       this.userIp = userIp
@@ -139,7 +140,8 @@ export abstract class HitAbstract implements IHitAbstract {
     if (sessionNumber) {
       this.sessionNumber = sessionNumber
     }
-    this._anonymousId = null
+    this.visitorId = visitorId
+    this._anonymousId = anonymousId
     this.createdAt = Date.now()
   }
 
