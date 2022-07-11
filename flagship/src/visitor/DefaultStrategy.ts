@@ -49,7 +49,7 @@ import { DecisionMode } from '../config/index'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
 import { VisitorDelegate } from './index'
 import { FlagMetadata, IFlagMetadata } from '../flag/FlagMetadata'
-import { Campaign } from '../hit/Campaign'
+import { Activate } from '../hit/Activate'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'
@@ -345,13 +345,18 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   protected async sendActivate (flagDto: FlagDTO, functionName = PROCESS_ACTIVE_MODIFICATION):Promise<void> {
-    const campaignHit = new Campaign({ variationGroupId: flagDto.variationGroupId, campaignId: flagDto.campaignId })
+    const activateHit = new Activate({
+      variationGroupId: flagDto.variationGroupId,
+      variationId: flagDto.variationId,
+      visitorId: this.visitor.visitorId,
+      anonymousId: this.visitor.anonymousId as string
+    })
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { createdAt, ...campaignHitItem } = campaignHit.toObject()
-    if (this.isDeDuplicated(JSON.stringify(campaignHitItem), this.config.hitDeduplicationTime as number)) {
+    const { createdAt, ...activateHitItem } = activateHit.toObject()
+    if (this.isDeDuplicated(JSON.stringify(activateHitItem), this.config.hitDeduplicationTime as number)) {
       return
     }
-    await this.prepareAndSendHit(campaignHit, functionName)
+    await this.prepareAndSendHit(activateHit, functionName)
   }
 
   private async activate (key: string) {
@@ -406,11 +411,11 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       Item: HitType.ITEM,
       Event: HitType.EVENT
     }
-    const commonProperties: Omit<IHitAbstract, 'createdAt'> = {
+    const commonProperties: Omit<IHitAbstract, 'createdAt'| 'visitorId'|'anonymousId'> = {
       type: hitTypeToEnum[hit.type]
     }
 
-    const hitData: Omit<IHitAbstract, 'createdAt'> = { ...commonProperties, ...hit.data }
+    const hitData: Omit<IHitAbstract, 'createdAt'| 'visitorId'|'anonymousId'> = { ...commonProperties, ...hit.data }
 
     switch (commonProperties.type?.toUpperCase()) {
       case HitType.EVENT:
@@ -491,7 +496,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     hitInstance.visitorId = this.visitor.visitorId
     hitInstance.ds = SDK_APP
     hitInstance.config = this.config
-    hitInstance.anonymousId = this.visitor.anonymousId
+    hitInstance.anonymousId = this.visitor.anonymousId as string
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { createdAt, ...hitInstanceItem } = hitInstance.toObject()
