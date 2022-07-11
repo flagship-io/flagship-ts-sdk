@@ -12,6 +12,7 @@ import { BatchingContinuousCachingStrategy } from './BatchingContinuousCachingSt
 import { BatchingPeriodicCachingStrategy } from './BatchingPeriodicCachingStrategy'
 import { HitCacheDTO } from '../types'
 import { NoBatchingContinuousCachingStrategy } from './NoBatchingContinuousCachingStrategy'
+import { Activate, IActivate } from '../hit/Activate'
 
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
@@ -151,6 +152,9 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
           case HitType.SEGMENT:
             hit = new Segment(item.data.content as ISegment)
             break
+          case 'ACTIVATE':
+            hit = new Activate(item.data.content as IActivate)
+            break
           case HitType.TRANSACTION:
             hit = new Transaction(item.data.content as ITransaction)
             break
@@ -159,6 +163,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
         }
         hit.key = key
         hit.createdAt = item.data.content.createdAt
+        hit.config = this.config
         this._hitsPoolQueue.set(key, hit)
       })
 
