@@ -46,7 +46,6 @@ export class Batch extends HitAbstract implements Omit<IBatch, 'visitorId'|'anon
       }
       apiKeys.h = this.hits.map(hit => {
         const hitKeys = hit.toApiKeys()
-        delete hitKeys[CUSTOMER_ENV_ID_API_ITEM]
         delete hitKeys[DS_API_ITEM]
         return hitKeys
       })
