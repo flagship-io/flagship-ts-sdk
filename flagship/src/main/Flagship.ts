@@ -13,10 +13,7 @@ import {
   NEW_VISITOR_NOT_READY,
   PROCESS_INITIALIZATION,
   PROCESS_NEW_VISITOR,
-  SDK_APP,
-  SDK_LANGUAGE,
-  SDK_STARTED_INFO,
-  SDK_VERSION
+  SDK_STARTED_INFO
 } from '../enum/index'
 import { VisitorDelegate } from '../visitor/VisitorDelegate'
 import { BucketingConfig } from '../config/index'
@@ -28,8 +25,8 @@ import { FlagDTO, NewVisitor, primitive } from '../types'
 import { CampaignDTO } from '../decision/api/models'
 import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
-import { Event, EventCategory } from '../hit'
 import { Monitoring } from '../hit/Monitoring'
+import { version as packageVersion } from '../sdkVersion'
 
 export class Flagship {
   private static _instance: Flagship;
@@ -223,7 +220,7 @@ export class Flagship {
 
     logInfo(
       config,
-      sprintf(SDK_STARTED_INFO, SDK_VERSION),
+      sprintf(SDK_STARTED_INFO, packageVersion),
       PROCESS_INITIALIZATION
     )
 
@@ -232,7 +229,8 @@ export class Flagship {
       subComponent: 'Flagship.start',
       level: LogLevel.INFO,
       message: 'Flagship initialized',
-      data: (config as FlagshipConfig).getObjet(),
+      visitorId: '0',
+      anonymousId: '',
       config
     })
 
