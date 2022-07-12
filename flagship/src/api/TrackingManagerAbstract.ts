@@ -167,7 +167,9 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
         this._hitsPoolQueue.set(key, hit)
       })
 
-      await this.strategy.flushHits(wrongHitKeys)
+      if (wrongHitKeys.length) {
+        await this.strategy.flushHits(wrongHitKeys)
+      }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
