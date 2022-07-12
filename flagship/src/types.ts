@@ -65,7 +65,7 @@ export type HitCacheDTO ={
   version: number,
   data: {
       visitorId: string,
-      anonymousId: string|null,
+      anonymousId?: string|null,
       type: InternalHitType,
       time: number,
       content:IHitAbstract

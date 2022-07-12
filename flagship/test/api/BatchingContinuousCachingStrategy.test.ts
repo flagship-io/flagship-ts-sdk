@@ -26,7 +26,8 @@ describe('Test BatchingContinuousCachingStrategy', () => {
 
     const campaignHit = new Campaign({
       variationGroupId: 'variationGrID',
-      campaignId: 'campaignID'
+      campaignId: 'campaignID',
+      visitorId
     })
 
     campaignHit.visitorId = visitorId
@@ -38,7 +39,8 @@ describe('Test BatchingContinuousCachingStrategy', () => {
     expect(cacheHit).toHaveBeenNthCalledWith(1, new Map().set(expect.stringContaining(visitorId), campaignHit))
 
     const consentHit = new Consent({
-      visitorConsent: true
+      visitorConsent: true,
+      visitorId
     })
 
     consentHit.visitorId = visitorId
@@ -50,7 +52,8 @@ describe('Test BatchingContinuousCachingStrategy', () => {
     expect(cacheHit).toHaveBeenNthCalledWith(2, new Map().set(expect.stringContaining(visitorId), consentHit))
 
     const pageHit = new Page({
-      documentLocation: 'http://127.0.0.1:5500'
+      documentLocation: 'http://127.0.0.1:5500',
+      visitorId
     })
 
     pageHit.visitorId = visitorId
@@ -62,7 +65,8 @@ describe('Test BatchingContinuousCachingStrategy', () => {
     expect(cacheHit).toHaveBeenNthCalledWith(3, new Map().set(expect.stringContaining(visitorId), pageHit))
 
     const consentHitFalse1 = new Consent({
-      visitorConsent: false
+      visitorConsent: false,
+      visitorId
     })
 
     consentHitFalse1.visitorId = 'newVisitor'
@@ -75,7 +79,8 @@ describe('Test BatchingContinuousCachingStrategy', () => {
     expect(flushHits).toBeCalledTimes(0)
 
     const consentHitFalse2 = new Consent({
-      visitorConsent: false
+      visitorConsent: false,
+      visitorId
     })
 
     consentHitFalse2.visitorId = visitorId
@@ -123,7 +128,8 @@ describe('test sendBatch method', () => {
 
   const globalCampaignHit = new Campaign({
     variationGroupId: 'variationGrID21',
-    campaignId: 'campaignID21'
+    campaignId: 'campaignID21',
+    visitorId
   })
 
   globalCampaignHit.visitorId = visitorId
@@ -146,7 +152,8 @@ describe('test sendBatch method', () => {
     for (let index = 0; index < 20; index++) {
       const campaignHit = new Campaign({
         variationGroupId: 'variationGrID' + index,
-        campaignId: 'campaignID' + index
+        campaignId: 'campaignID' + index,
+        visitorId
       })
 
       campaignHit.visitorId = visitorId
@@ -237,7 +244,8 @@ describe('test cacheHit and flushHits methods', () => {
     cacheHit.mockResolvedValue()
     const campaignHit = new Campaign({
       variationGroupId: 'variationGrID',
-      campaignId: 'campaignID'
+      campaignId: 'campaignID',
+      visitorId
     })
 
     campaignHit.visitorId = visitorId
@@ -267,7 +275,8 @@ describe('test cacheHit and flushHits methods', () => {
     cacheHit.mockRejectedValue(error)
     const campaignHit = new Campaign({
       variationGroupId: 'variationGrID',
-      campaignId: 'campaignID'
+      campaignId: 'campaignID',
+      visitorId
     })
 
     campaignHit.visitorId = visitorId

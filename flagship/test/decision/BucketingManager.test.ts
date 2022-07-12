@@ -249,7 +249,7 @@ describe('test sendContext', () => {
   const sendHit = jest.spyOn(visitor, 'sendHit')
   it('should ', () => {
     sendHit.mockResolvedValue()
-    const SegmentHit = new Segment({ sl: visitor.context })
+    const SegmentHit = new Segment({ sl: visitor.context, visitorId, anonymousId: visitor.anonymousId as string })
     bucketingManager.sendContext(visitor).then(() => {
       expect(sendHit).toBeCalledTimes(1)
       expect(sendHit).toBeCalledWith(SegmentHit)

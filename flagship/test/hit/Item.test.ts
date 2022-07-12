@@ -26,7 +26,8 @@ describe('test hit type Item', () => {
   const transactionId = 'transactionId'
   const productName = 'productName'
   const productSku = 'productSku'
-  const item = new Item({ transactionId, productName, productSku })
+  const visitorId = 'visitorId'
+  const item = new Item({ transactionId, productName, productSku, visitorId })
 
   it('should ', () => {
     expect(item.transactionId).toBe(transactionId)
@@ -48,7 +49,8 @@ describe('test hit type Item', () => {
       productSku: 'productSku',
       itemCategory: 'category',
       itemPrice: 15,
-      itemQuantity: 1
+      itemQuantity: 1,
+      visitorId
     }
 
     const item = new Item(params)
@@ -60,7 +62,6 @@ describe('test hit type Item', () => {
     expect(item.itemQuantity).toBe(params.itemQuantity)
   })
 
-  const visitorId = 'visitorId'
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   const logManager = new FlagshipLogManager()
   const logError = jest.spyOn(logManager, 'error')

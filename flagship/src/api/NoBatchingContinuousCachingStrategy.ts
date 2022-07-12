@@ -187,7 +187,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         count++
         batchSize = JSON.stringify(batch).length
         if (batchSize > BATCH_MAX_SIZE || (this.config.trackingMangerConfig?.batchLength && count > this.config.trackingMangerConfig.batchLength)) {
-          return
+          break
         }
         batch.hits.push(item)
       }

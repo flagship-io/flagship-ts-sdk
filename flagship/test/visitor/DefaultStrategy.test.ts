@@ -13,7 +13,7 @@ import { sprintf } from '../../src/utils/utils'
 import { returnModification } from './modification'
 import { HitShape } from '../../src/hit/Legacy'
 import { Consent } from '../../src/hit/Consent'
-import { Campaign } from '../../src/hit/Campaign'
+import { Activate } from '../../src/hit/Activate'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getNull = (): any => {
@@ -103,12 +103,10 @@ describe('test DefaultStrategy ', () => {
     expect(visitorDelegate.hasConsented).toBeTruthy()
     expect(addHit).toBeCalledTimes(1)
 
-    const consentHit = new Consent({ visitorConsent: true })
+    const consentHit = new Consent({ visitorConsent: true, visitorId: visitorDelegate.visitorId, anonymousId: visitorDelegate.anonymousId })
 
-    consentHit.visitorId = visitorDelegate.visitorId
     consentHit.ds = SDK_APP
     consentHit.config = config
-    consentHit.anonymousId = visitorDelegate.anonymousId
 
     expect(addHit).toBeCalledWith(consentHit)
   })
@@ -294,9 +292,8 @@ describe('test DefaultStrategy ', () => {
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: 'defaultValues', flag: returnMod, userExposed: true })
     expect<string>(value).toBe(returnMod.value)
     expect(addHit).toBeCalledTimes(1)
-    const campaignHit = new Campaign({ variationGroupId: returnMod.variationGroupId, campaignId: returnMod.campaignId })
+    const campaignHit = new Activate({ variationGroupId: returnMod.variationGroupId, variationId: returnMod.variationId, visitorId })
     campaignHit.config = config
-    campaignHit.visitorId = visitorId
     campaignHit.ds = SDK_APP
     expect(addHit).toBeCalledWith(campaignHit)
   })
@@ -306,9 +303,8 @@ describe('test DefaultStrategy ', () => {
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: null, flag: returnMod, userExposed: true })
     expect(value).toBe(returnMod.value)
     expect(addHit).toBeCalledTimes(1)
-    const campaignHit = new Campaign({ variationGroupId: returnMod.variationGroupId, campaignId: returnMod.campaignId })
+    const campaignHit = new Activate({ variationGroupId: returnMod.variationGroupId, variationId: returnMod.variationId, visitorId })
     campaignHit.config = config
-    campaignHit.visitorId = visitorId
     campaignHit.ds = SDK_APP
     expect(addHit).toBeCalledWith(campaignHit)
     expect(logInfo).toBeCalledTimes(0)
@@ -319,9 +315,8 @@ describe('test DefaultStrategy ', () => {
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: undefined, flag: returnMod, userExposed: true })
     expect(value).toBe(returnMod.value)
     expect(addHit).toBeCalledTimes(1)
-    const campaignHit = new Campaign({ variationGroupId: returnMod.variationGroupId, campaignId: returnMod.campaignId })
+    const campaignHit = new Activate({ variationGroupId: returnMod.variationGroupId, variationId: returnMod.variationId, visitorId })
     campaignHit.config = config
-    campaignHit.visitorId = visitorId
     campaignHit.ds = SDK_APP
     expect(addHit).toBeCalledWith(campaignHit)
     expect(logInfo).toBeCalledTimes(0)
@@ -333,7 +328,7 @@ describe('test DefaultStrategy ', () => {
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue, flag: returnMod, userExposed: true })
     expect(value).toBe(defaultValue)
     expect(addHit).toBeCalledTimes(1)
-    const campaignHit = new Campaign({ variationGroupId: returnMod.variationGroupId, campaignId: returnMod.campaignId })
+    const campaignHit = new Activate({ variationGroupId: returnMod.variationGroupId, variationId: returnMod.variationId, visitorId })
     campaignHit.config = config
     campaignHit.visitorId = visitorId
     campaignHit.ds = SDK_APP
@@ -469,9 +464,8 @@ describe('test DefaultStrategy ', () => {
     testModificationType('keyString', 'defaultString', true)
     expect(addHit).toBeCalledTimes(1)
     const returnMod = returnModification.get('keyString') as FlagDTO
-    const campaignHit = new Campaign({ variationGroupId: returnMod.variationGroupId, campaignId: returnMod.campaignId })
+    const campaignHit = new Activate({ variationGroupId: returnMod.variationGroupId, variationId: returnMod.variationId, visitorId })
     campaignHit.config = config
-    campaignHit.visitorId = visitorId
     campaignHit.ds = SDK_APP
     expect(addHit).toBeCalledWith(campaignHit)
   })
@@ -548,9 +542,8 @@ describe('test DefaultStrategy ', () => {
   it('test activateModification', async () => {
     await defaultStrategy.activateModification(returnMod.key)
     expect(addHit).toBeCalledTimes(1)
-    const campaignHit = new Campaign({ variationGroupId: returnMod.variationGroupId, campaignId: returnMod.campaignId })
+    const campaignHit = new Activate({ variationGroupId: returnMod.variationGroupId, variationId: returnMod.variationId, visitorId })
     campaignHit.config = config
-    campaignHit.visitorId = visitorId
     campaignHit.ds = SDK_APP
     expect(addHit).toBeCalledWith(campaignHit)
   })
@@ -562,14 +555,14 @@ describe('test DefaultStrategy ', () => {
     expect(addHit).toBeCalledTimes(2)
 
     const modification1:FlagDTO = returnModification.get(key1) as FlagDTO
-    const campaignHit = new Campaign({ variationGroupId: modification1.variationGroupId, campaignId: modification1.campaignId })
+    const campaignHit = new Activate({ variationGroupId: modification1.variationGroupId, variationId: modification1.variationId, visitorId })
     campaignHit.config = config
     campaignHit.visitorId = visitorId
     campaignHit.ds = SDK_APP
     expect(addHit).toHaveBeenNthCalledWith(1, campaignHit)
 
     const modification2:FlagDTO = returnModification.get(key2) as FlagDTO
-    const campaignHit2 = new Campaign({ variationGroupId: modification2?.variationGroupId, campaignId: modification2.campaignId })
+    const campaignHit2 = new Activate({ variationGroupId: modification2?.variationGroupId, variationId: modification2.variationId, visitorId })
     campaignHit2.config = config
     campaignHit2.visitorId = visitorId
     campaignHit2.ds = SDK_APP
@@ -583,14 +576,14 @@ describe('test DefaultStrategy ', () => {
     expect(addHit).toBeCalledTimes(2)
 
     const modification1:FlagDTO = returnModification.get(key1) as FlagDTO
-    const campaignHit = new Campaign({ variationGroupId: modification1.variationGroupId, campaignId: modification1.campaignId })
+    const campaignHit = new Activate({ variationGroupId: modification1.variationGroupId, variationId: modification1.variationId, visitorId })
     campaignHit.config = config
     campaignHit.visitorId = visitorId
     campaignHit.ds = SDK_APP
     expect(addHit).toHaveBeenNthCalledWith(1, campaignHit)
 
     const modification2:FlagDTO = returnModification.get(key2) as FlagDTO
-    const campaignHit2 = new Campaign({ variationGroupId: modification2.variationGroupId, campaignId: modification2.campaignId })
+    const campaignHit2 = new Activate({ variationGroupId: modification2.variationGroupId, variationId: modification2.variationId, visitorId })
     campaignHit2.config = config
     campaignHit2.visitorId = visitorId
     campaignHit2.ds = SDK_APP
@@ -657,7 +650,7 @@ describe('test DefaultStrategy ', () => {
   it('test userExposed', async () => {
     await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
     expect(addHit).toBeCalledTimes(1)
-    const campaignHit = new Campaign({ variationGroupId: returnMod.variationGroupId, campaignId: returnMod.campaignId })
+    const campaignHit = new Activate({ variationGroupId: returnMod.variationGroupId, variationId: returnMod.variationId, visitorId })
     campaignHit.config = config
     campaignHit.visitorId = visitorId
     campaignHit.ds = SDK_APP
@@ -743,7 +736,7 @@ describe('test DefaultStrategy ', () => {
     expect(addHit).toBeCalledTimes(1)
   })
 
-  const hitScreen = new Screen({ documentLocation: 'home' })
+  const hitScreen = new Screen({ documentLocation: 'home', visitorId })
 
   it('test sendHit', async () => {
     await defaultStrategy.sendHit(hitScreen)

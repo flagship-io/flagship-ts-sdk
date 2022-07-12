@@ -19,7 +19,8 @@ import { sprintf } from '../../src/utils/utils'
 
 describe('test hit type Page', () => {
   const documentLocation = 'home'
-  const screen = new Screen({ documentLocation: documentLocation })
+  const visitorId = 'visitorId'
+  const screen = new Screen({ documentLocation: documentLocation, visitorId })
 
   it('should ', () => {
     expect(screen.documentLocation).toBe(documentLocation)
@@ -33,7 +34,6 @@ describe('test hit type Page', () => {
   const logError = jest.spyOn(logManager, 'error')
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
-  const visitorId = 'visitorId'
 
   it('should ', () => {
     screen.config = config

@@ -7,8 +7,9 @@ describe('test hit type Campaign', () => {
   const context = {
     anyKey: 'anyValue'
   }
-  const segmentHit = new Segment({ sl: context })
   const visitorId = 'visitorID'
+  const segmentHit = new Segment({ sl: context, visitorId })
+
   const anonymousId = 'anonymousId'
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
 

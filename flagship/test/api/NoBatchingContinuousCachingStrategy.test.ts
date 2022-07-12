@@ -45,7 +45,8 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
 
     const campaignHit = new Campaign({
       variationGroupId: 'variationGrID',
-      campaignId: 'campaignID'
+      campaignId: 'campaignID',
+      visitorId
     })
     campaignHit.visitorId = visitorId
     campaignHit.config = config
@@ -64,7 +65,8 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(flushHits).toHaveBeenNthCalledWith(1, [expect.stringContaining(visitorId)])
 
     const consentHit = new Consent({
-      visitorConsent: true
+      visitorConsent: true,
+      visitorId
     })
 
     consentHit.visitorId = visitorId
@@ -83,7 +85,8 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(flushHits).toHaveBeenNthCalledWith(2, [expect.stringContaining(visitorId)])
 
     const pageHit = new Page({
-      documentLocation: 'http://127.0.0.1:5500'
+      documentLocation: 'http://127.0.0.1:5500',
+      visitorId
     })
     pageHit.visitorId = visitorId
     pageHit.config = config
@@ -102,7 +105,8 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(flushHits).toHaveBeenNthCalledWith(3, [expect.stringContaining(visitorId)])
 
     const consentHitFalse = new Consent({
-      visitorConsent: false
+      visitorConsent: false,
+      visitorId
     })
 
     consentHitFalse.visitorId = visitorId
@@ -130,7 +134,8 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
 
     const campaignHit = new Campaign({
       variationGroupId: 'variationGrID',
-      campaignId: 'campaignID'
+      campaignId: 'campaignID',
+      visitorId
     })
     campaignHit.visitorId = visitorId
     campaignHit.config = config
@@ -148,7 +153,8 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(flushHits).toBeCalledTimes(0)
 
     const consentHitFalse = new Consent({
-      visitorConsent: false
+      visitorConsent: false,
+      visitorId
     })
 
     consentHitFalse.visitorId = visitorId
@@ -175,7 +181,8 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
 
     const campaignHit = new Campaign({
       variationGroupId: 'variationGrID',
-      campaignId: 'campaignID'
+      campaignId: 'campaignID',
+      visitorId
     })
     campaignHit.visitorId = visitorId
     campaignHit.config = config
@@ -193,12 +200,14 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(flushHits).toBeCalledTimes(0)
 
     const consentHitLoaded = new Consent({
-      visitorConsent: true
+      visitorConsent: true,
+      visitorId
     })
 
     const campaignHitLoaded = new Campaign({
       variationGroupId: 'variationGrID',
-      campaignId: 'campaignID'
+      campaignId: 'campaignID',
+      visitorId
     })
 
     hitsPoolQueue.set(`${visitorId}:${uuidV4()}`, consentHitLoaded).set(`${visitorId}:${uuidV4()}`, campaignHitLoaded)
@@ -206,7 +215,8 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(hitsPoolQueue.size).toBe(2)
 
     const consentHitFalse = new Consent({
-      visitorConsent: false
+      visitorConsent: false,
+      visitorId
     })
 
     consentHitFalse.visitorId = visitorId
@@ -253,7 +263,8 @@ describe('test sendBatch method', () => {
 
   const globalCampaignHit = new Campaign({
     variationGroupId: 'variationGrID21',
-    campaignId: 'campaignID21'
+    campaignId: 'campaignID21',
+    visitorId
   })
 
   globalCampaignHit.visitorId = visitorId
@@ -278,7 +289,8 @@ describe('test sendBatch method', () => {
       const key = `${visitorId}:${uuidV4()}`
       const campaignHit = new Campaign({
         variationGroupId: 'variationGrID' + index,
-        campaignId: 'campaignID' + index
+        campaignId: 'campaignID' + index,
+        visitorId
       })
       campaignHit.key = key
       campaignHit.visitorId = visitorId

@@ -17,7 +17,7 @@ import { logError, sprintf } from '../utils/utils'
 
 export interface IHitAbstract{
   visitorId:string
-  anonymousId: string
+  anonymousId?: string|null
   ds?: string
   type: InternalHitType
   userIp?: string
@@ -32,7 +32,7 @@ export abstract class HitAbstract implements IHitAbstract {
   private _config!: IFlagshipConfig;
   protected _type!: InternalHitType;
   private _ds!: string;
-  private _anonymousId! : string;
+  private _anonymousId? : string|null;
   private _userIp! : string;
   private _screenResolution! : string;
   private _locale! : string;
@@ -80,11 +80,11 @@ export abstract class HitAbstract implements IHitAbstract {
     this._userIp = v
   }
 
-  public get anonymousId () : string {
+  public get anonymousId () : string|undefined|null {
     return this._anonymousId
   }
 
-  public set anonymousId (v : string) {
+  public set anonymousId (v : string|undefined|null) {
     this._anonymousId = v
   }
 
@@ -140,7 +140,7 @@ export abstract class HitAbstract implements IHitAbstract {
       this.sessionNumber = sessionNumber
     }
     this.visitorId = visitorId
-    this._anonymousId = anonymousId
+    this._anonymousId = anonymousId || null
     this.createdAt = Date.now()
   }
 

@@ -20,6 +20,7 @@ describe('test TrackingManager', () => {
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
 
   const trackingManager = new TrackingManager(httpClient, config)
+  const visitorId = 'visitorId'
 
   it('Test properties ', async () => {
     expect(config).toBe(trackingManager.config)
@@ -29,7 +30,8 @@ describe('test TrackingManager', () => {
   it('Test addHit method', async () => {
     const CampaignHit = new Campaign({
       variationGroupId: 'variationGrID',
-      campaignId: 'campaignID'
+      campaignId: 'campaignID',
+      visitorId
     })
 
     await trackingManager.addHit(CampaignHit)
@@ -78,6 +80,8 @@ describe('test TrackingManager Strategy ', () => {
 
   const trackingManager = new TrackingManager(httpClient, config)
 
+  const visitorId = 'visitorId'
+
   it('Test startBatchingLoop and  stopBatchingLoop methods', async () => {
     postAsync.mockImplementation(async () => {
       await sleep(250)
@@ -85,7 +89,8 @@ describe('test TrackingManager Strategy ', () => {
     })
     const CampaignHit = new Campaign({
       variationGroupId: 'variationGrID',
-      campaignId: 'campaignID'
+      campaignId: 'campaignID',
+      visitorId
     })
     config.trackingMangerConfig.batchIntervals = 0.2
 
@@ -126,41 +131,49 @@ describe('test TrackingManager lookupHits', () => {
   it('test lookupHits', async () => {
     const campaignHit = new Campaign({
       variationGroupId: 'variationGrID',
-      campaignId: 'campaignID'
+      campaignId: 'campaignID',
+      visitorId
     })
 
     const consentHit = new Consent({
-      visitorConsent: true
+      visitorConsent: true,
+      visitorId
     })
 
     const eventHit = new Event({
       category: EventCategory.ACTION_TRACKING,
-      action: 'click'
+      action: 'click',
+      visitorId
     })
 
     const itemHit = new Item({
       transactionId: 'transactionId',
       productName: 'productName',
-      productSku: 'productSku'
+      productSku: 'productSku',
+      visitorId
     })
 
     const pageHit = new Page({
-      documentLocation: 'http://127.0.0.1:5500'
+      documentLocation: 'http://127.0.0.1:5500',
+      visitorId
     })
 
     const screenHit = new Screen({
-      documentLocation: 'home'
+      documentLocation: 'home',
+      visitorId
     })
 
     const segmentHit = new Segment({
       sl: {
         any: 'value'
-      }
+      },
+      visitorId
     })
 
     const transactionHit = new Transaction({
       transactionId: 'transactionId',
-      affiliation: 'affiliation'
+      affiliation: 'affiliation',
+      visitorId
     })
 
     const hits = [campaignHit, consentHit, eventHit, itemHit, pageHit, screenHit, segmentHit, transactionHit]
