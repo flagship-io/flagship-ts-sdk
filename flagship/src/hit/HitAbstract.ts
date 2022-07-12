@@ -12,15 +12,14 @@ import {
   USER_LANGUAGE,
   QT_API_ITEM
 } from '../enum/FlagshipConstant'
-import { HitType } from '../enum/HitType'
-import { primitive } from '../types'
+import { InternalHitType, primitive } from '../types'
 import { logError, sprintf } from '../utils/utils'
 
 export interface IHitAbstract{
   visitorId:string
   anonymousId: string
   ds?: string
-  type: HitType|'BATCH'|'ACTIVATE'
+  type: InternalHitType
   userIp?: string
   screenResolution?: string
   locale?: string
@@ -31,7 +30,7 @@ export interface IHitAbstract{
 export abstract class HitAbstract implements IHitAbstract {
   private _visitorId!: string;
   private _config!: IFlagshipConfig;
-  protected _type!: HitType|'BATCH'|'ACTIVATE';
+  protected _type!: InternalHitType;
   private _ds!: string;
   private _anonymousId! : string;
   private _userIp! : string;
@@ -105,7 +104,7 @@ export abstract class HitAbstract implements IHitAbstract {
     this._ds = v
   }
 
-  public get type (): HitType|'BATCH'|'ACTIVATE' {
+  public get type (): InternalHitType {
     return this._type
   }
 
