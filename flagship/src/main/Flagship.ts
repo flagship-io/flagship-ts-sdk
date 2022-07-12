@@ -56,11 +56,20 @@ export class Flagship {
   protected setStatus (status: FlagshipStatus): void {
     const statusChanged = this.getConfig().statusChangedCallback
 
-    if (this.getConfig() && statusChanged && this._status !== status) {
-      this._status = status
-      statusChanged(status)
-      return
+    if (this._status !== status) {
+      if (status === FlagshipStatus.READY) {
+        this.configManager?.trackingManager?.startBatchingLoop()
+      } else {
+        this.configManager?.trackingManager?.stopBatchingLoop()
+      }
+
+      if (this.getConfig() && statusChanged) {
+        this._status = status
+        statusChanged(status)
+        return
+      }
     }
+
     this._status = status
   }
 
@@ -195,7 +204,6 @@ export class Flagship {
     let trackingManager = flagship.configManager?.trackingManager
     if (!trackingManager) {
       trackingManager = new TrackingManager(httpClient, config)
-      trackingManager.startBatchingLoop()
     }
 
     flagship.configManager = new ConfigManager(

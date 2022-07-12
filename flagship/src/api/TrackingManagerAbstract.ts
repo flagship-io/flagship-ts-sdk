@@ -86,7 +86,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   public stopBatchingLoop (): void {
     clearInterval(this._intervalID)
     this._isPooling = false
-    logInfo(this.config, 'Batching Loop have been finished', 'stopBatchingLoop')
+    logInfo(this.config, 'Batching Loop have been stopped', 'stopBatchingLoop')
   }
 
   protected async batchingLoop ():Promise<void> {
