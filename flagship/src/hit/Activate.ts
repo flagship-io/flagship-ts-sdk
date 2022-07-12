@@ -1,4 +1,4 @@
-import { ANONYMOUS_ID, CUSTOMER_ENV_ID_API_ACTIVATE, CUSTOMER_ENV_ID_API_ITEM, VARIATION_GROUP_ID_API_ITEM_ACTIVATE, VARIATION_ID_API_ITEM, VISITOR_ID_API_ITEM } from '../enum/index'
+import { ANONYMOUS_ID, CUSTOMER_ENV_ID_API_ACTIVATE, VARIATION_GROUP_ID_API_ITEM_ACTIVATE, VARIATION_ID_API_ITEM, VISITOR_ID_API_ITEM } from '../enum/index'
 import { HitAbstract, IHitAbstract } from './HitAbstract'
 
 export const ERROR_MESSAGE = 'variationGroupId and variationId are required'

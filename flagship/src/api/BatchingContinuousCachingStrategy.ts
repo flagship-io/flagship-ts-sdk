@@ -40,52 +40,23 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     await this.cacheHit(new Map<string, HitAbstract>().set(hitKey, hit))
   }
 
-  async sendBatch (): Promise<void> {
-    const headers = {
+  async sendActivate (activateHits:HitAbstract[]):Promise<void> {
+    const activateHitKeys:string[] = []
+
+    const url = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const activateHeader = {
       [HEADER_X_API_KEY]: this.config.apiKey as string,
-      [HEADER_X_ENV_ID]: this.config.envId as string,
       [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
       [HEADER_X_SDK_VERSION]: SDK_VERSION,
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
-    const batch:Batch = new Batch({ hits: [] })
-    batch.config = this.config
-
-    let batchSize = 0
-    let count = 0
-
-    const activateHits:HitAbstract[] = []
-
-    this._hitsPoolQueue.forEach((item) => {
-      if (item.type === 'ACTIVATE') {
-        activateHits.push(item)
-        return
-      }
-      count++
-      batchSize = JSON.stringify(batch).length
-      if (batchSize > BATCH_MAX_SIZE || (this.config.trackingMangerConfig?.batchLength && count > this.config.trackingMangerConfig.batchLength)) {
-        return
-      }
-      batch.hits.push(item)
-    })
-
-    const activateHitKeys:string[] = []
-
     for (const activateHit of activateHits) {
       this._hitsPoolQueue.delete(activateHit.key)
       const activateBody = activateHit.toApiKeys()
-      const url = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const activateHeader = {
-        [HEADER_X_API_KEY]: this.config.apiKey as string,
-        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
-        [HEADER_X_SDK_VERSION]: SDK_VERSION,
-        [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
-      }
-      try {
-        console.log('activateHeader', activateHeader)
 
+      try {
         await this._httpClient.postAsync(url, {
           headers: activateHeader,
           body: activateBody
@@ -106,6 +77,40 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     if (activateHitKeys.length) {
       await this.flushHits(activateHitKeys)
     }
+  }
+
+  async sendBatch (): Promise<void> {
+    const headers = {
+      [HEADER_X_API_KEY]: this.config.apiKey as string,
+      [HEADER_X_ENV_ID]: this.config.envId as string,
+      [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
+      [HEADER_X_SDK_VERSION]: SDK_VERSION,
+      [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
+    }
+
+    const batch:Batch = new Batch({ hits: [] })
+    batch.config = this.config
+
+    let batchSize = 0
+    let count = 0
+
+    const activateHits:HitAbstract[] = []
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for (const [_, item] of this._hitsPoolQueue) {
+      if (item.type === 'ACTIVATE') {
+        activateHits.push(item)
+        continue
+      }
+      count++
+      batchSize = JSON.stringify(batch).length
+      if (batchSize > BATCH_MAX_SIZE || (this.config.trackingMangerConfig?.batchLength && count > this.config.trackingMangerConfig.batchLength)) {
+        break
+      }
+      batch.hits.push(item)
+    }
+
+    await this.sendActivate(activateHits)
 
     batch.hits.forEach(hit => {
       this._hitsPoolQueue.delete(hit.key)
