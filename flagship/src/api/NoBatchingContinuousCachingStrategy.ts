@@ -1,5 +1,5 @@
 import { IFlagshipConfig } from '../config/index'
-import { HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, SDK_LANGUAGE, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, SEND_BATCH, HIT_SENT_SUCCESS, ADD_HIT, ACTIVATE_SENT_SUCCESS, BASE_API_URL, SEND_ACTIVATE, URL_ACTIVATE_MODIFICATION } from '../enum/index'
+import { HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, SDK_LANGUAGE, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, SEND_BATCH, HIT_SENT_SUCCESS, ACTIVATE_SENT_SUCCESS, BASE_API_URL, SEND_ACTIVATE, URL_ACTIVATE_MODIFICATION, SEND_HIT } from '../enum/index'
 import { Batch } from '../hit/Batch'
 import { HitAbstract, Consent } from '../hit/index'
 import { IHttpClient } from '../utils/HttpClient'
@@ -49,7 +49,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
           body: requestBody
         })
 
-        logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(requestBody)), ADD_HIT)
+        logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(requestBody)), SEND_HIT)
 
         await this.flushHits([hit.key])
 
@@ -62,7 +62,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
           url: HIT_EVENT_URL,
           headers,
           body: requestBody
-        }), ADD_HIT)
+        }), SEND_HIT)
       }
     }
 
@@ -93,7 +93,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         this.cacheHitKeys[activateHit.key] = activateHit.key
         logError(this.config, errorFormat(error.message || error, {
           url,
-          activateHeader,
+          headers: activateHeader,
           body: activateBody
         }), SEND_ACTIVATE)
       }
@@ -150,8 +150,8 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         } catch (error:any) {
           this._hitsPoolQueue.set(activateHit.key, activateHit)
           logError(this.config, errorFormat(error.message || error, {
-            url: HIT_EVENT_URL,
-            activateHeader,
+            url: url,
+            headers: activateHeader,
             body: activateBody
           }), SEND_ACTIVATE)
         }
