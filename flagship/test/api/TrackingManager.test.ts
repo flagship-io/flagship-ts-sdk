@@ -13,6 +13,7 @@ import { Mock } from 'jest-mock'
 import { Consent } from '../../src/hit/Consent'
 import { Segment } from '../../src/hit/Segment'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
+import { Activate } from '../../src/hit/Activate'
 
 describe('test TrackingManager', () => {
   const httpClient = new HttpClient()
@@ -176,7 +177,13 @@ describe('test TrackingManager lookupHits', () => {
       visitorId
     })
 
-    const hits = [campaignHit, consentHit, eventHit, itemHit, pageHit, screenHit, segmentHit, transactionHit]
+    const activate = new Activate({
+      visitorId,
+      variationGroupId: 'varGrId',
+      variationId: 'varId'
+    })
+
+    const hits = [campaignHit, consentHit, eventHit, itemHit, pageHit, screenHit, segmentHit, transactionHit, activate]
     const data:Record<string, HitCacheDTO> = {}
 
     hits.forEach(hit => {
@@ -233,7 +240,7 @@ describe('test TrackingManager lookupHits', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const _hitsPoolQueue = (trackingManager as any)._hitsPoolQueue
 
-    expect(_hitsPoolQueue.size).toBe(8)
+    expect(_hitsPoolQueue.size).toBe(9)
 
     expect(lookupHits).toBeCalledTimes(1)
 
