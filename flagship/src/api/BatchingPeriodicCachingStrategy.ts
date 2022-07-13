@@ -54,8 +54,8 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       } catch (error:any) {
         this._hitsPoolQueue.set(activateHit.key, activateHit)
         logError(this.config, errorFormat(error.message || error, {
-          url: HIT_EVENT_URL,
-          activateHeader,
+          url: url,
+          headers: activateHeader,
           body: activateBody
         }), SEND_ACTIVATE)
       }
