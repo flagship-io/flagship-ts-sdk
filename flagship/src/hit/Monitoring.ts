@@ -83,7 +83,7 @@ export interface IMonitoring extends IHitAbstract{
 
 export class Monitoring extends HitAbstract implements IMonitoring {
     private _category: EventCategory;
-    private _action: string;
+    private _action!: string;
 
     private _logVersion? : string;
     private _logLevel! : LogLevel;
@@ -531,17 +531,6 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       return this._category
     }
 
-    /**
-     * Specify Action Tracking or User Engagement.
-     */
-    public set category (v: EventCategory) {
-      if (!(Object.values(EventCategory).includes(v))) {
-        logError(this.config, CATEGORY_ERROR, 'category')
-        return
-      }
-      this._category = v
-    }
-
     public get action (): string {
       return this._action
     }
@@ -565,7 +554,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
         screenResolution: param.screenResolution,
         locale: param.locale,
         sessionNumber: param.sessionNumber,
-        visitorId: param.visitorId || '0',
+        visitorId: param.visitorId,
         anonymousId: param.anonymousId
       })
       const {
@@ -579,12 +568,12 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       } = param
       this.config = config
       this._category = 'monitoring' as EventCategory
-      this._action = action
+      this.action = action
       this.logVersion = logVersion || '1'
       this.logLevel = logLevel
       this.accountId = accountId
       this.envId = envId || config.envId
-      this.timestamp = timestamp || new Date().toISOString()
+      this.timestamp = timestamp || new Date(Date.now()).toISOString()
       this.component = component || `Flagship SDK ${SDK_LANGUAGE.name}`
       this.subComponent = subComponent
       this.message = message
@@ -638,17 +627,17 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       apiKeys[EVENT_CATEGORY_API_ITEM] = this.category
       apiKeys[EVENT_ACTION_API_ITEM] = this.action
       apiKeys.cv = {
-        0: `logVersion, ${this.logVersion || ''}`,
-        1: `LogLevel, ${LogLevel[this.logLevel] || ''}`,
+        0: `logVersion, ${this.logVersion}`,
+        1: `LogLevel, ${LogLevel[this.logLevel]}`,
         2: `accountId, ${this.accountId || ''}`,
         3: `envId, ${this.envId || ''}`,
-        4: `timestamp, ${this.timestamp || ''}`,
-        5: `component, ${this.component || ''}`,
-        6: `subComponents, ${this.subComponent || ''}`,
-        7: `message, ${this.message || ''}`,
-        20: `stack.type, ${this.stackType || ''} `,
-        21: `stack.name, ${this.stackName || ''}`,
-        22: `stack.version, ${this.stackVersion || ''}`,
+        4: `timestamp, ${this.timestamp}`,
+        5: `component, ${this.component}`,
+        6: `subComponents, ${this.subComponent}`,
+        7: `message, ${this.message}`,
+        20: `stack.type, ${this.stackType} `,
+        21: `stack.name, ${this.stackName}`,
+        22: `stack.version, ${this.stackVersion}`,
         23: `stack.origin.name, ${this.stackOriginName || ''}`,
         24: `stack.origin.version, ${this.stackOriginVersion || ''}`,
         30: `sdk.status, ${this.sdkStatus || ''}`,
@@ -675,7 +664,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
         80: `visitor.status, ${this.visitorStatus || ''}`,
         81: `visitor.instanceType, ${this.visitorInstanceType || ''}`,
         82: `visitor.context, ${this.visitorContext || ''}`,
-        83: `visitor.consent, ${this.visitorConsent || ''}`,
+        83: `visitor.consent, ${this.visitorConsent ?? ''}`,
         84: `visitor.assignmentsHistory, ${this.visitorAssignmentHistory || ''}`,
         85: `visitor.flags, ${this.visitorFlags || ''}`,
         86: `visitor.isAuthenticated, ${this.visitorIsAuthenticated ?? ''}`,

@@ -1,6 +1,6 @@
 import { expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig } from '../../src'
-import { ANONYMOUS_ID, CUSTOMER_ENV_ID_API_ACTIVATE, QT_API_ITEM, SDK_APP, VARIATION_GROUP_ID_API_ITEM_ACTIVATE, VARIATION_ID_API_ITEM, VISITOR_ID_API_ITEM } from '../../src/enum'
+import { ANONYMOUS_ID, CUSTOMER_ENV_ID_API_ACTIVATE, SDK_APP, VARIATION_GROUP_ID_API_ITEM_ACTIVATE, VARIATION_ID_API_ITEM, VISITOR_ID_API_ITEM } from '../../src/enum'
 import { Activate, ERROR_MESSAGE } from '../../src/hit/Activate'
 
 describe('test hit type Activate', () => {
