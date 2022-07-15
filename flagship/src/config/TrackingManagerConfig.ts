@@ -21,7 +21,7 @@ private _batchStrategy : BatchStrategy;
 public constructor (param?: ITrackingManagerConfig) {
   this._batchIntervals = param?.batchIntervals || DEFAULT_TIME_INTERVAL
   this._batchLength = param?.batchLength || DEFAULT_BATCH_LENGTH
-  this._batchStrategy = param?.batchStrategy || BatchStrategy.BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY
+  this._batchStrategy = param?.batchStrategy || BatchStrategy.CONTINUOUS_CACHING
 }
 
 public get batchIntervals () : number {

@@ -51,10 +51,10 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   protected initStrategy ():BatchingCachingStrategyAbstract {
     let strategy:BatchingCachingStrategyAbstract
     switch (this.config.trackingMangerConfig?.batchStrategy) {
-      case BatchStrategy.BATCHING_WITH_PERIODIC_CACHING_STRATEGY:
+      case BatchStrategy.PERIODIC_CACHING:
         strategy = new BatchingPeriodicCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
         break
-      case BatchStrategy.BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY:
+      case BatchStrategy.CONTINUOUS_CACHING:
         strategy = new BatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
         break
       default:
