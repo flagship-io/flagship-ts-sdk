@@ -8,6 +8,7 @@ import { TrackingManager } from '../api/TrackingManager'
 import { FlagshipLogManager } from '../utils/FlagshipLogManager'
 import { isBrowser, logError, logInfo, sprintf } from '../utils/utils'
 import {
+  BatchStrategy,
   INITIALIZATION_PARAM_ERROR,
   LogLevel,
   NEW_VISITOR_NOT_READY,
@@ -165,6 +166,11 @@ export class Flagship {
 
     config = flagship.buildConfig(config)
 
+    const configCheck = {
+      useCustomLogManager: !!config.logManager,
+      useCustomCacheManager: !!config.hitCacheImplementation || !!config.visitorCacheImplementation
+    }
+
     config.envId = envId
     config.apiKey = apiKey
 
@@ -185,6 +191,7 @@ export class Flagship {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (!config.hitCacheImplementation && isBrowser()) {
+      configCheck.useCustomLogManager = false
       config.hitCacheImplementation = new DefaultHitCache()
     }
 
@@ -224,11 +231,23 @@ export class Flagship {
       PROCESS_INITIALIZATION
     )
 
+    console.log('configCheck', configCheck)
+
     const initMonitoring = new Monitoring({
       action: 'SDK-INITIALIZATION',
       subComponent: 'Flagship.start',
-      level: LogLevel.INFO,
+      logLevel: LogLevel.INFO,
       message: 'Flagship initialized',
+      sdkConfigCustomCacheManager: configCheck.useCustomCacheManager,
+      sdkConfigCustomLogManager: configCheck.useCustomLogManager,
+      sdkConfigMode: config.decisionMode,
+      sdkConfigPollingTime: config.pollingInterval?.toString(),
+      sdkConfigStatusListener: !!config.statusChangedCallback,
+      sdkConfigTimeout: config.timeout?.toString(),
+      sdkStatus: FlagshipStatus[flagship.getStatus()],
+      sdkConfigTrackingManagerConfigBatchIntervals: config.trackingMangerConfig?.batchIntervals?.toString(),
+      sdkConfigTrackingManagerConfigBatchLength: config.trackingMangerConfig?.batchLength?.toString(),
+      sdkConfigTrackingManagerConfigStrategy: BatchStrategy[config.trackingMangerConfig?.batchStrategy as BatchStrategy],
       visitorId: '0',
       anonymousId: '',
       config

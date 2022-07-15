@@ -22,61 +22,188 @@ export enum EventCategory {
 export interface IMonitoring extends IHitAbstract{
     category: EventCategory
     action: string
+    logVersion?: string
+    logLevel: LogLevel
     accountId?:string
     envId?:string
     timestamp?:string
     component?: string
     subComponent: string
-    sdkVersion?:string
-    sdkName?: string
-    decisionApiVersion?:string
-    selfHostedDecisionApiVersion?:string
     message: string
-    configMode?: string
-    configTimeout?:string
-    httpUrl?:string
-    httpCode?:string
-    httpHeaders?:string
+
+    stackType?: string
+    stackName?: string
+    stackVersion?: string
+    stackOriginName?: string
+    stackOriginVersion?: string
+
+    sdkStatus?: string
+    sdkConfigMode?: string
+    sdkConfigCustomLogManager?: boolean
+    sdkConfigCustomCacheManager?: boolean
+    sdkConfigStatusListener?: boolean
+    sdkConfigTimeout?: string
+    sdkConfigPollingTime?: string
+    sdkConfigTrackingManagerConfigStrategy?: string
+    sdkConfigTrackingManagerConfigBatchIntervals?: string
+    sdkConfigTrackingManagerConfigBatchLength?: string
+
+    httpRequestUrl?:string
+    httpRequestMethod?:string
+    httpRequestHeaders?: string
     httpRequestBody?:string
-    httpResponseBody?:string
-    visitorContext?:string
-    visitorAssignations?:string
-    visitorFlags?:string
-    level: LogLevel
+    httpRequestDetails?:string
+
+    httpResponseUrl?:string
+    httpResponseMethod?: string
+    httpResponseHeaders?: string
+    httpResponseCode?: string
+    httpResponseBody?: string
+    httpResponseDetails?: string
+
+    visitorStatus?: string
+    visitorInstanceType?: string
+    visitorContext?: string
+    visitorConsent?: boolean
+    visitorAssignmentHistory?: string
+    visitorFlags?: string
+    visitorIsAuthenticated?:boolean
+
+    flagKey?: string
+    flagValue?: string
+    flagDefault?: string
+
+    flagMetadataCampaignId?:string
+    flagMetadataVariationGroupId?: string
+    flagMetadataVariationId?: string
+    flagMetadataCampaignSlug?: string
+    flagMetadataCampaignType?: string
 
   }
 
 export class Monitoring extends HitAbstract implements IMonitoring {
     private _category: EventCategory;
     private _action: string;
+
+    private _logVersion? : string;
+    private _logLevel! : LogLevel;
     private _accountId? : string;
     private _envId? : string;
     private _timestamp? : string;
     private _component? : string;
-    private _subComponent : string;
-    private _sdkVersion? : string;
-    private _sdkName? : string;
-    private _decisionApiVersion? : string;
-    private _selfHostedDecisionApiVersion? : string;
-    private _message : string;
-    private _configMode? : string;
-    private _configTimeout? : string;
-    private _httpUrl? : string;
-    private _httpCode? : string;
-    private _httpHeaders? : string;
+    private _subComponent! : string;
+    private _message! : string;
+    private _stackType? : string;
+    private _stackName? : string;
+    private _stackVersion? : string;
+    private _stackOriginName? : string;
+    private _stackOriginVersion? : string;
+    private _sdkStatus? : string;
+    private _sdkConfigMode? : string;
+    private _sdkConfigCustomLogManager? : boolean;
+    private _sdkConfigCustomCacheManager? : boolean;
+    private _sdkConfigStatusListener? : boolean;
+    private _sdkConfigTimeout? : string;
+    private _sdkConfigPollingTime? : string;
+    private _sdkConfigTrackingManagerConfigStrategy? : string;
+    private _sdkConfigTrackingManagerConfigBatchIntervals? : string;
+    private _sdkConfigTrackingManagerConfigBatchLength? : string;
+    private _httpRequestUrl? : string;
+    private _httpRequestMethod? : string;
+    private _httpRequestHeaders? : string;
     private _httpRequestBody? : string;
+    private _httpRequestDetails? : string;
+    private _httpResponseUrl? : string;
+    private _httpResponseMethod? : string;
+    private _httpResponseHeaders? : string;
     private _httpResponseBody? : string;
+    private _httpResponseDetails? : string;
+    private _visitorStatus? : string;
+    private _visitorInstanceType? : string;
     private _visitorContext? : string;
-    private _visitorAssignations? : string;
+    private _visitorConsent? : boolean;
+    private _visitorAssignmentHistory? : string;
     private _visitorFlags? : string;
-    private _level : LogLevel;
+    private _visitorIsAuthenticated? : boolean;
+    private _flagKey? : string;
+    private _flagValue? : string;
+    private _flagDefault? : string;
+    private _flagMetadataCampaignId? : string;
+    private _flagMetadataVariationGroupId? : string;
+    private _flagMetadataVariationId? : string;
+    private _flagMetadataCampaignSlug? : string;
+    private _flagMetadataCampaignType? : string;
 
-    public get level () : LogLevel {
-      return this._level
+    public get flagMetadataCampaignType () : string|undefined {
+      return this._flagMetadataCampaignType
     }
 
-    public set level (v : LogLevel) {
-      this._level = v
+    public set flagMetadataCampaignType (v : string|undefined) {
+      this._flagMetadataCampaignType = v
+    }
+
+    public get flagMetadataCampaignSlug () : string|undefined {
+      return this._flagMetadataCampaignSlug
+    }
+
+    public set flagMetadataCampaignSlug (v : string|undefined) {
+      this._flagMetadataCampaignSlug = v
+    }
+
+    public get flagMetadataVariationId () : string|undefined {
+      return this._flagMetadataVariationId
+    }
+
+    public set flagMetadataVariationId (v : string|undefined) {
+      this._flagMetadataVariationId = v
+    }
+
+    public get flagMetadataVariationGroupId () : string|undefined {
+      return this._flagMetadataVariationGroupId
+    }
+
+    public set flagMetadataVariationGroupId (v : string|undefined) {
+      this._flagMetadataVariationGroupId = v
+    }
+
+    public get flagMetadataCampaignId () : string|undefined {
+      return this._flagMetadataCampaignId
+    }
+
+    public set flagMetadataCampaignId (v : string|undefined) {
+      this._flagMetadataCampaignId = v
+    }
+
+    public get flagDefault () : string|undefined {
+      return this._flagDefault
+    }
+
+    public set flagDefault (v : string|undefined) {
+      this._flagDefault = v
+    }
+
+    public get flagValue () : string|undefined {
+      return this._flagValue
+    }
+
+    public set flagValue (v : string|undefined) {
+      this._flagValue = v
+    }
+
+    public get flagKey () : string|undefined {
+      return this._flagKey
+    }
+
+    public set flagKey (v : string|undefined) {
+      this._flagKey = v
+    }
+
+    public get visitorIsAuthenticated () : boolean|undefined {
+      return this._visitorIsAuthenticated
+    }
+
+    public set visitorIsAuthenticated (v : boolean|undefined) {
+      this._visitorIsAuthenticated = v
     }
 
     public get visitorFlags () : string|undefined {
@@ -87,12 +214,20 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       this._visitorFlags = v
     }
 
-    public get visitorAssignations () : string|undefined {
-      return this._visitorAssignations
+    public get visitorAssignmentHistory () : string|undefined {
+      return this._visitorAssignmentHistory
     }
 
-    public set visitorAssignations (v : string|undefined) {
-      this._visitorAssignations = v
+    public set visitorAssignmentHistory (v : string|undefined) {
+      this._visitorAssignmentHistory = v
+    }
+
+    public get visitorConsent () : boolean|undefined {
+      return this._visitorConsent
+    }
+
+    public set visitorConsent (v : boolean|undefined) {
+      this._visitorConsent = v
     }
 
     public get visitorContext () : string|undefined {
@@ -103,12 +238,77 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       this._visitorContext = v
     }
 
+    public get visitorInstanceType () : string|undefined {
+      return this._visitorInstanceType
+    }
+
+    public set visitorInstanceType (v : string|undefined) {
+      this._visitorInstanceType = v
+    }
+
+    public get visitorStatus () : string|undefined {
+      return this._visitorStatus
+    }
+
+    public set visitorStatus (v : string|undefined) {
+      this._visitorStatus = v
+    }
+
+    public get httpResponseDetails () : string|undefined {
+      return this._httpResponseDetails
+    }
+
+    public set httpResponseDetails (v : string|undefined) {
+      this._httpResponseDetails = v
+    }
+
     public get httpResponseBody () : string|undefined {
       return this._httpResponseBody
     }
 
     public set httpResponseBody (v : string|undefined) {
       this._httpResponseBody = v
+    }
+
+    private _httpResponseCode? : string;
+    public get httpResponseCode () : string|undefined {
+      return this._httpResponseCode
+    }
+
+    public set httpResponseCode (v : string|undefined) {
+      this._httpResponseCode = v
+    }
+
+    public get httpResponseHeaders () : string|undefined {
+      return this._httpResponseHeaders
+    }
+
+    public set httpResponseHeaders (v : string|undefined) {
+      this._httpResponseHeaders = v
+    }
+
+    public get httpResponseMethod () : string|undefined {
+      return this._httpResponseMethod
+    }
+
+    public set httpResponseMethod (v : string|undefined) {
+      this._httpResponseMethod = v
+    }
+
+    public get httpResponseUrl () : string|undefined {
+      return this._httpResponseUrl
+    }
+
+    public set httpResponseUrl (v : string|undefined) {
+      this._httpResponseUrl = v
+    }
+
+    public get httpRequestDetails () : string|undefined {
+      return this._httpRequestDetails
+    }
+
+    public set httpRequestDetails (v : string|undefined) {
+      this._httpRequestDetails = v
     }
 
     public get httpRequestBody () : string|undefined {
@@ -119,44 +319,148 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       this._httpRequestBody = v
     }
 
-    public get httpHeaders () : string|undefined {
-      return this._httpHeaders
+    public get httpRequestHeaders () : string|undefined {
+      return this._httpRequestHeaders
     }
 
-    public set httpHeaders (v : string|undefined) {
-      this._httpHeaders = v
+    public set httpRequestHeaders (v : string|undefined) {
+      this._httpRequestHeaders = v
     }
 
-    public get httpCode () : string|undefined {
-      return this._httpCode
+    public get httpRequestMethod () : string|undefined {
+      return this._httpRequestMethod
     }
 
-    public set httpCode (v : string|undefined) {
-      this._httpCode = v
+    public set httpRequestMethod (v : string|undefined) {
+      this._httpRequestMethod = v
     }
 
-    public get httpUrl () : string|undefined {
-      return this._httpUrl
+    public get httpRequestUrl () : string|undefined {
+      return this._httpRequestUrl
     }
 
-    public set httpUrl (v : string|undefined) {
-      this._httpUrl = v
+    public set httpRequestUrl (v : string|undefined) {
+      this._httpRequestUrl = v
     }
 
-    public get configTimeout () : string|undefined {
-      return this._configTimeout
+    public get sdkConfigTrackingManagerConfigBatchLength () : string|undefined {
+      return this._sdkConfigTrackingManagerConfigBatchLength
     }
 
-    public set configTimeout (v : string|undefined) {
-      this._configTimeout = v
+    public set sdkConfigTrackingManagerConfigBatchLength (v : string|undefined) {
+      this._sdkConfigTrackingManagerConfigBatchLength = v
     }
 
-    public get configMode () : string|undefined {
-      return this._configMode
+    public get sdkConfigTrackingManagerConfigBatchIntervals () : string|undefined {
+      return this._sdkConfigTrackingManagerConfigBatchIntervals
     }
 
-    public set configMode (v : string|undefined) {
-      this._configMode = v
+    public set sdkConfigTrackingManagerConfigBatchIntervals (v : string|undefined) {
+      this._sdkConfigTrackingManagerConfigBatchIntervals = v
+    }
+
+    public get sdkConfigTrackingManagerConfigStrategy () : string|undefined {
+      return this._sdkConfigTrackingManagerConfigStrategy
+    }
+
+    public set sdkConfigTrackingManagerConfigStrategy (v : string|undefined) {
+      this._sdkConfigTrackingManagerConfigStrategy = v
+    }
+
+    public get sdkConfigPollingTime () : string|undefined {
+      return this._sdkConfigPollingTime
+    }
+
+    public set sdkConfigPollingTime (v : string|undefined) {
+      this._sdkConfigPollingTime = v
+    }
+
+    public get sdkConfigTimeout () : string|undefined {
+      return this._sdkConfigTimeout
+    }
+
+    public set sdkConfigTimeout (v : string|undefined) {
+      this._sdkConfigTimeout = v
+    }
+
+    public get sdkConfigStatusListener () : boolean|undefined {
+      return this._sdkConfigStatusListener
+    }
+
+    public set sdkConfigStatusListener (v : boolean|undefined) {
+      this._sdkConfigStatusListener = v
+    }
+
+    public get sdkConfigCustomCacheManager () : boolean|undefined {
+      return this._sdkConfigCustomCacheManager
+    }
+
+    public set sdkConfigCustomCacheManager (v : boolean|undefined) {
+      this._sdkConfigCustomCacheManager = v
+    }
+
+    public get sdkConfigCustomLogManager () : boolean|undefined {
+      return this._sdkConfigCustomLogManager
+    }
+
+    public set sdkConfigCustomLogManager (v : boolean|undefined) {
+      this._sdkConfigCustomLogManager = v
+    }
+
+    public get sdkConfigMode () : string|undefined {
+      return this._sdkConfigMode
+    }
+
+    public set sdkConfigMode (v : string|undefined) {
+      this._sdkConfigMode = v
+    }
+
+    public get sdkStatus () : string|undefined {
+      return this._sdkStatus
+    }
+
+    public set sdkStatus (v : string|undefined) {
+      this._sdkStatus = v
+    }
+
+    public get stackOriginVersion () : string|undefined {
+      return this._stackOriginVersion
+    }
+
+    public set stackOriginVersion (v : string|undefined) {
+      this._stackOriginVersion = v
+    }
+
+    public get stackOriginName () : string|undefined {
+      return this._stackOriginName
+    }
+
+    public set stackOriginName (v : string|undefined) {
+      this._stackOriginName = v
+    }
+
+    public get stackVersion () : string|undefined {
+      return this._stackVersion
+    }
+
+    public set stackVersion (v : string|undefined) {
+      this._stackVersion = v
+    }
+
+    public get stackName () : string|undefined {
+      return this._stackName
+    }
+
+    public set stackName (v : string|undefined) {
+      this._stackName = v
+    }
+
+    public get stackType () : string|undefined {
+      return this._stackType
+    }
+
+    public set stackType (v : string|undefined) {
+      this._stackType = v
     }
 
     public get message () : string {
@@ -165,38 +469,6 @@ export class Monitoring extends HitAbstract implements IMonitoring {
 
     public set message (v : string) {
       this._message = v
-    }
-
-    public get selfHostedDecisionApiVersion () : string|undefined {
-      return this._selfHostedDecisionApiVersion
-    }
-
-    public set selfHostedDecisionApiVersion (v : string|undefined) {
-      this._selfHostedDecisionApiVersion = v
-    }
-
-    public get decisionApiVersion () : string|undefined {
-      return this._decisionApiVersion
-    }
-
-    public set decisionApiVersion (v : string|undefined) {
-      this._decisionApiVersion = v
-    }
-
-    public get sdkName () : string|undefined {
-      return this._sdkName
-    }
-
-    public set sdkName (v : string|undefined) {
-      this._sdkName = v
-    }
-
-    public get sdkVersion () : string|undefined {
-      return this._sdkVersion
-    }
-
-    public set sdkVersion (v : string|undefined) {
-      this._sdkVersion = v
     }
 
     public get subComponent () : string {
@@ -237,6 +509,22 @@ export class Monitoring extends HitAbstract implements IMonitoring {
 
     public set accountId (v : string|undefined) {
       this._accountId = v
+    }
+
+    public get logLevel () : LogLevel {
+      return this._logLevel
+    }
+
+    public set logLevel (v : LogLevel) {
+      this._logLevel = v
+    }
+
+    public get logVersion () : string|undefined {
+      return this._logVersion
+    }
+
+    public set logVersion (v : string|undefined) {
+      this._logVersion = v
     }
 
     public get category (): EventCategory {
@@ -281,35 +569,66 @@ export class Monitoring extends HitAbstract implements IMonitoring {
         anonymousId: param.anonymousId
       })
       const {
-        action, accountId, envId, timestamp, component, subComponent, sdkVersion, sdkName,
-        decisionApiVersion, selfHostedDecisionApiVersion, message,
-        configMode, configTimeout, httpUrl, httpCode, httpHeaders, httpRequestBody,
-        httpResponseBody, visitorContext, visitorAssignations, visitorFlags, level, config
+        action, logVersion, logLevel, accountId, envId, timestamp, component, subComponent, message, stackType,
+        stackName, stackVersion, stackOriginName, stackOriginVersion, sdkStatus, sdkConfigMode, sdkConfigCustomLogManager,
+        sdkConfigCustomCacheManager, sdkConfigStatusListener, sdkConfigTimeout, sdkConfigPollingTime, sdkConfigTrackingManagerConfigStrategy, sdkConfigTrackingManagerConfigBatchIntervals,
+        sdkConfigTrackingManagerConfigBatchLength, httpRequestUrl: httRequestUrl, httpRequestMethod: httRequestMethod, httpRequestHeaders, httpRequestBody, httpRequestDetails,
+        httpResponseUrl, httpResponseMethod, httpResponseHeaders, httpResponseCode, httpResponseBody, httpResponseDetails, visitorStatus, visitorInstanceType, visitorContext,
+        visitorConsent, visitorAssignmentHistory, visitorFlags, visitorIsAuthenticated, config, flagKey, flagValue, flagDefault,
+        flagMetadataCampaignId, flagMetadataVariationGroupId, flagMetadataVariationId, flagMetadataCampaignSlug, flagMetadataCampaignType
       } = param
       this.config = config
       this._category = 'monitoring' as EventCategory
       this._action = action
-      this._accountId = accountId
+      this.logVersion = logVersion || '1'
+      this.logLevel = logLevel
+      this.accountId = accountId
       this.envId = envId || config.envId
-      this._timestamp = timestamp || new Date().toISOString()
-      this._component = component || `Flagship SDK ${SDK_LANGUAGE.name}`
-      this._subComponent = subComponent
-      this._sdkVersion = sdkVersion || packageVersion
-      this._sdkName = sdkName || SDK_LANGUAGE.name
-      this._decisionApiVersion = decisionApiVersion
-      this._selfHostedDecisionApiVersion = selfHostedDecisionApiVersion
-      this._message = message
-      this._configMode = configMode || config.decisionMode
-      this._configTimeout = configTimeout || config.timeout?.toString()
-      this._httpUrl = httpUrl
-      this._httpCode = httpCode
-      this._httpHeaders = httpHeaders
-      this._httpRequestBody = httpRequestBody
-      this._httpResponseBody = httpResponseBody
-      this._visitorContext = visitorContext
-      this._visitorAssignations = visitorAssignations
+      this.timestamp = timestamp || new Date().toISOString()
+      this.component = component || `Flagship SDK ${SDK_LANGUAGE.name}`
+      this.subComponent = subComponent
+      this.message = message
+      this.stackType = stackType || 'SDK'
+      this.stackName = stackName || SDK_LANGUAGE.name
+      this.stackVersion = stackVersion || packageVersion
+      this.stackOriginName = stackOriginName
+      this.stackOriginVersion = stackOriginVersion
+      this.sdkStatus = sdkStatus
+      this.sdkConfigMode = sdkConfigMode
+      this.sdkConfigCustomLogManager = sdkConfigCustomLogManager
+      this.sdkConfigCustomCacheManager = sdkConfigCustomCacheManager
+      this.sdkConfigStatusListener = sdkConfigStatusListener
+      this.sdkConfigTimeout = sdkConfigTimeout
+      this.sdkConfigPollingTime = sdkConfigPollingTime
+      this.sdkConfigTrackingManagerConfigStrategy = sdkConfigTrackingManagerConfigStrategy
+      this.sdkConfigTrackingManagerConfigBatchIntervals = sdkConfigTrackingManagerConfigBatchIntervals
+      this.sdkConfigTrackingManagerConfigBatchLength = sdkConfigTrackingManagerConfigBatchLength
+      this.httpRequestUrl = httRequestUrl
+      this.httpRequestMethod = httRequestMethod
+      this.httpRequestHeaders = httpRequestHeaders
+      this.httpRequestBody = httpRequestBody
+      this.httpRequestDetails = httpRequestDetails
+      this.httpResponseUrl = httpResponseUrl
+      this.httpResponseMethod = httpResponseMethod
+      this.httpResponseHeaders = httpResponseHeaders
+      this.httpResponseCode = httpResponseCode
+      this.httpResponseBody = httpResponseBody
+      this.httpResponseDetails = httpResponseDetails
+      this.visitorStatus = visitorStatus
+      this.visitorInstanceType = visitorInstanceType
+      this.visitorContext = visitorContext
+      this.visitorConsent = visitorConsent
+      this.visitorAssignmentHistory = visitorAssignmentHistory
       this.visitorFlags = visitorFlags
-      this._level = level
+      this.visitorIsAuthenticated = visitorIsAuthenticated
+      this.flagKey = flagKey
+      this.flagValue = flagValue
+      this.flagDefault = flagDefault
+      this.flagMetadataCampaignId = flagMetadataCampaignId
+      this.flagMetadataVariationGroupId = flagMetadataVariationGroupId
+      this.flagMetadataVariationId = flagMetadataVariationId
+      this.flagMetadataCampaignSlug = flagMetadataCampaignSlug
+      this.flagMetadataCampaignType = flagMetadataCampaignType
       this.ds = SDK_APP
     }
 
@@ -319,27 +638,55 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       apiKeys[EVENT_CATEGORY_API_ITEM] = this.category
       apiKeys[EVENT_ACTION_API_ITEM] = this.action
       apiKeys.cv = {
-        0: `accountId, ${this.accountId || ''}`,
-        1: `envId, ${this.envId || ''}`,
-        2: `timestamp, ${this.timestamp || ''}`,
-        3: `component, ${this.component || ''}`,
-        4: `subComponent, ${this.subComponent || ''}`,
-        5: `level, ${LogLevel[this.level] || ''}`,
-        6: `sdkVersion, ${this.sdkVersion || ''}`,
-        7: `sdkName, ${this.sdkName || ''}`,
-        8: `decisionApiVersion, ${this.decisionApiVersion || ''} `,
-        9: `selfHostedDecisionApiVersion, ${this.selfHostedDecisionApiVersion || ''}`,
-        10: `message, ${this.message || ''}`,
-        30: `config.mode, ${this.configMode || ''}`,
-        31: `config.timeout, ${this.configTimeout || ''}`,
-        50: `http.url, ${this.httpUrl || ''}`,
-        51: `http.code, ${this.httpCode || ''}`,
-        52: `http.headers, ${this.httpHeaders || ''}`,
-        53: `http.requestBody, ${this.httpRequestBody || ''}`,
-        54: `http.responseBody, ${this.httpResponseBody || ''}`,
-        60: `visitor.context, ${this.visitorContext || ''}`,
-        61: `visitor.assignations, ${this.visitorAssignations || ''}`,
-        62: `visitor.flags, ${this.visitorFlags || ''}`
+        0: `logVersion, ${this.logVersion || ''}`,
+        1: `LogLevel, ${LogLevel[this.logLevel] || ''}`,
+        2: `accountId, ${this.accountId || ''}`,
+        3: `envId, ${this.envId || ''}`,
+        4: `timestamp, ${this.timestamp || ''}`,
+        5: `component, ${this.component || ''}`,
+        6: `subComponents, ${this.subComponent || ''}`,
+        7: `message, ${this.message || ''}`,
+        20: `stack.type, ${this.stackType || ''} `,
+        21: `stack.name, ${this.stackName || ''}`,
+        22: `stack.version, ${this.stackVersion || ''}`,
+        23: `stack.origin.name, ${this.stackOriginName || ''}`,
+        24: `stack.origin.version, ${this.stackOriginVersion || ''}`,
+        30: `sdk.status, ${this.sdkStatus || ''}`,
+        31: `sdk.config.mode, ${this.sdkConfigMode || ''}`,
+        32: `sdk.config.customLogManager, ${this.sdkConfigCustomLogManager ?? ''}`,
+        33: `sdk.config.customCacheManager, ${this.sdkConfigCustomCacheManager ?? ''}`,
+        34: `sdk.config.custom.StatusListener, ${this.sdkConfigStatusListener ?? ''}`,
+        35: `sdk.config.timeout, ${this.sdkConfigTimeout || ''}`,
+        36: `sdk.config.pollingTime, ${this.sdkConfigPollingTime || ''}`,
+        37: `sdk.config.trackingManager.config.strategy, ${this.sdkConfigTrackingManagerConfigStrategy || ''}`,
+        38: `sdk.config.trackingManager.config.batchIntervals, ${this.sdkConfigTrackingManagerConfigBatchIntervals || ''}`,
+        39: `sdk.config.trackingManager.config.batchLength, ${this.sdkConfigTrackingManagerConfigBatchLength || ''}`,
+        50: `http.request.url, ${this.httpRequestUrl || ''}`,
+        51: `http.request.method, ${this.httpRequestMethod || ''}`,
+        52: `http.request.headers, ${this.httpRequestHeaders || ''}`,
+        53: `http.request.body, ${this.httpRequestBody || ''}`,
+        54: `http.request.details, ${this.httpRequestDetails || ''}`,
+        60: `http.response.url, ${this.httpResponseUrl || ''}`,
+        61: `http.response.method, ${this.httpResponseMethod || ''}`,
+        62: `http.response.headers, ${this.httpResponseHeaders || ''}`,
+        63: `http.response.code, ${this.httpResponseCode || ''}`,
+        64: `http.response.body, ${this.httpResponseBody || ''}`,
+        65: `http.response.details, ${this.httpResponseDetails || ''}`,
+        80: `visitor.status, ${this.visitorStatus || ''}`,
+        81: `visitor.instanceType, ${this.visitorInstanceType || ''}`,
+        82: `visitor.context, ${this.visitorContext || ''}`,
+        83: `visitor.consent, ${this.visitorConsent || ''}`,
+        84: `visitor.assignmentsHistory, ${this.visitorAssignmentHistory || ''}`,
+        85: `visitor.flags, ${this.visitorFlags || ''}`,
+        86: `visitor.isAuthenticated, ${this.visitorIsAuthenticated ?? ''}`,
+        100: `flag.key, ${this.flagKey || ''}`,
+        101: `flag.value, ${this.flagValue || ''}`,
+        102: `flag.default, ${this.flagDefault || ''}`,
+        103: `flag.metadata.campaignId, ${this.flagMetadataCampaignId || ''}`,
+        104: `flag.metadata.variationGroupId, ${this.flagMetadataVariationGroupId || ''}`,
+        105: `flag.metadata.variationId, ${this.flagMetadataVariationId || ''}`,
+        106: `flag.metadata.campaignSlug, ${this.flagMetadataCampaignSlug || ''}`,
+        107: `flag.metadata.campaignType, ${this.flagMetadataCampaignType || ''}`
       }
       return apiKeys
     }
@@ -347,29 +694,62 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     public toObject ():Record<string, unknown> {
       return {
         ...super.toObject(),
-        category: EventCategory,
+        category: this.category,
         action: this.action,
+        logVersion: this.logVersion,
+        logLevel: this.logLevel,
         accountId: this.accountId,
         envId: this.envId,
         timestamp: this.timestamp,
         component: this.component,
         subComponent: this.subComponent,
-        sdkVersion: this.sdkVersion,
-        sdkName: this.sdkName,
-        decisionApiVersion: this.decisionApiVersion,
-        selfHostedDecisionApiVersion: this.selfHostedDecisionApiVersion,
         message: this.message,
-        configMode: this.configMode,
-        configTimeout: this.configTimeout,
-        httpUrl: this.httpUrl,
-        httpCode: this.httpCode,
-        httpHeaders: this.httpHeaders,
+        stackType: this.stackType,
+        stackName: this.stackName,
+        stackVersion: this.stackVersion,
+        stackOriginName: this.stackOriginName,
+        stackOriginVersion: this.stackOriginVersion,
+
+        sdkStatus: this.sdkStatus,
+        sdkConfigMode: this.sdkConfigMode,
+        sdkConfigCustomLogManager: this.sdkConfigCustomLogManager,
+        sdkConfigCustomCacheManager: this.sdkConfigCustomCacheManager,
+        sdkConfigStatusListener: this.sdkConfigStatusListener,
+        sdkConfigTimeout: this.sdkConfigTimeout,
+        sdkConfigPollingTime: this.sdkConfigPollingTime,
+        sdkConfigTrackingManagerConfigStrategy: this.sdkConfigTrackingManagerConfigStrategy,
+        sdkConfigTrackingManagerConfigBatchIntervals: this.sdkConfigTrackingManagerConfigBatchIntervals,
+        sdkConfigTrackingManagerConfigBatchLength: this.sdkConfigTrackingManagerConfigBatchLength,
+
+        httpRequestUrl: this.httpRequestUrl,
+        httpRequestMethod: this.httpRequestMethod,
+        httpRequestHeaders: this.httpRequestHeaders,
         httpRequestBody: this.httpRequestBody,
+        httpRequestDetails: this.httpRequestDetails,
+
+        httpResponseUrl: this.httpResponseUrl,
+        httpResponseMethod: this.httpResponseMethod,
+        httpResponseHeaders: this.httpResponseHeaders,
+        httpResponseCode: this.httpResponseCode,
         httpResponseBody: this.httpResponseBody,
+        httpResponseDetails: this.httpResponseDetails,
+
+        visitorStatus: this.visitorStatus,
+        visitorInstanceType: this.visitorInstanceType,
         visitorContext: this.visitorContext,
-        visitorAssignations: this.visitorAssignations,
+        visitorConsent: this.visitorConsent,
+        visitorAssignmentHistory: this.visitorAssignmentHistory,
         visitorFlags: this.visitorFlags,
-        level: this.level
+        visitorIsAuthenticated: this.visitorIsAuthenticated,
+
+        flagKey: this.flagKey,
+        flagValue: this.flagValue,
+        flagDefault: this.flagDefault,
+        flagMetadataCampaignId: this.flagMetadataCampaignId,
+        flagMetadataVariationGroupId: this.flagMetadataVariationGroupId,
+        flagMetadataVariationId: this.flagMetadataVariationId,
+        flagMetadataCampaignSlug: this.flagMetadataCampaignSlug,
+        flagMetadataCampaignType: this.flagMetadataCampaignType
       }
     }
 
