@@ -48,7 +48,7 @@ export class Activate extends HitAbstract implements IActivate {
 
     public toApiKeys ():Record<string, unknown> {
       const apiKeys:Record<string, unknown> = {
-        [VISITOR_ID_API_ITEM]: this.visitorId,
+        [VISITOR_ID_API_ITEM]: this.anonymousId || this.visitorId,
         [VARIATION_ID_API_ITEM]: this.variationId,
         [VARIATION_GROUP_ID_API_ITEM_ACTIVATE]: this.variationGroupId,
         [CUSTOMER_ENV_ID_API_ACTIVATE]: this.config.envId,
@@ -58,8 +58,6 @@ export class Activate extends HitAbstract implements IActivate {
       if (this.visitorId && this.anonymousId) {
         apiKeys[VISITOR_ID_API_ITEM] = this.visitorId
         apiKeys[ANONYMOUS_ID] = this.anonymousId
-      } else {
-        apiKeys[VISITOR_ID_API_ITEM] = this.anonymousId || this.visitorId
       }
 
       return apiKeys
