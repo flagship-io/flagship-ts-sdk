@@ -104,7 +104,14 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       }
       count++
       batchSize = JSON.stringify(batch).length
-      if (batchSize > BATCH_MAX_SIZE || (this.config.trackingMangerConfig?.batchLength && count > this.config.trackingMangerConfig.batchLength)) {
+
+      const batchLength = this.config.trackingMangerConfig?.batchLength
+      const autoScale = this.config.trackingMangerConfig?.autoScale
+      const check = autoScale
+        ? (this._hitsPoolQueue.size > (batchLength as number) * 3 && count > this._hitsPoolQueue.size / 3)
+        : (batchLength && count > batchLength)
+
+      if (batchSize > BATCH_MAX_SIZE || check) {
         break
       }
       batch.hits.push(item)

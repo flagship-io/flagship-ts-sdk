@@ -11,17 +11,29 @@ export interface ITrackingManagerConfig {
     batchLength?: number
 
     batchStrategy?: BatchStrategy
+
+    autoScale?: boolean
 }
 
 export class TrackingManagerConfig implements ITrackingManagerConfig {
 private _batchIntervals : number;
 private _batchLength : number;
 private _batchStrategy : BatchStrategy;
+private _autoScale? : boolean;
 
 public constructor (param?: ITrackingManagerConfig) {
   this._batchIntervals = param?.batchIntervals || DEFAULT_TIME_INTERVAL
   this._batchLength = param?.batchLength || DEFAULT_BATCH_LENGTH
   this._batchStrategy = param?.batchStrategy || BatchStrategy.CONTINUOUS_CACHING
+  this._autoScale = param?.autoScale
+}
+
+public get autoScale () : boolean|undefined {
+  return this._autoScale
+}
+
+public set autoScale (v : boolean|undefined) {
+  this._autoScale = v
 }
 
 public get batchIntervals () : number {
