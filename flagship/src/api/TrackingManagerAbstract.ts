@@ -46,6 +46,27 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     this._config = config
     this.lookupHits()
     this.strategy = this.initStrategy()
+    this.strategy.autoScale = (count) => {
+      this.scaleBatchingLoop(count)
+    }
+  }
+
+  scaleBatchingLoop (count:number):void {
+    const timeInterval = (this.config.trackingMangerConfig?.batchIntervals ?? DEFAULT_TIME_INTERVAL) * 1000
+    let newTimeInterval = timeInterval
+    if (timeInterval > 60000) {
+      if (count >= 2) {
+        newTimeInterval = timeInterval * 0.5
+      }
+    }
+    if (newTimeInterval !== timeInterval) {
+      logInfo(this.config, 'Batching Loop have been scaled', 'scaleBatchingLoop')
+    }
+
+    clearInterval(this._intervalID)
+    this._intervalID = setInterval(() => {
+      this.batchingLoop()
+    }, newTimeInterval)
   }
 
   protected initStrategy ():BatchingCachingStrategyAbstract {

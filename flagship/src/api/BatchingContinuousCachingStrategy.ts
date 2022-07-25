@@ -93,6 +93,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
 
     let batchSize = 0
     let count = 0
+    let hasMaxBatch = false
 
     const activateHits:HitAbstract[] = []
 
@@ -111,10 +112,24 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
         ? (this._hitsPoolQueue.size > (batchLength as number) * 3 && count > this._hitsPoolQueue.size / 3)
         : (batchLength && count > batchLength)
 
-      if (batchSize > BATCH_MAX_SIZE || check) {
+      if (batchSize > BATCH_MAX_SIZE) {
+        hasMaxBatch = true
+        break
+      }
+
+      if (check) {
         break
       }
       batch.hits.push(item)
+    }
+
+    if (hasMaxBatch) {
+      this.maxBatchCount++
+    } else {
+      this.maxBatchCount = 0
+    }
+    if (this.autoScale) {
+      this.autoScale(this.maxBatchCount)
     }
 
     await this.sendActivate(activateHits)

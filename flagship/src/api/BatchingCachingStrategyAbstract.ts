@@ -13,6 +13,16 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     protected _config : IFlagshipConfig;
     protected _hitsPoolQueue: Map<string, HitAbstract>
     protected _httpClient: IHttpClient;
+    protected maxBatchCount=0
+    private _autoScale? : (count:number)=>void;
+
+    public get autoScale () : ((count:number)=>void)|undefined {
+      return this._autoScale
+    }
+
+    public set autoScale (v : ((count:number)=>void)|undefined) {
+      this._autoScale = v
+    }
 
     public get config () : IFlagshipConfig {
       return this._config

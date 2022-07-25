@@ -1,18 +1,20 @@
-// import { Flagship } from '../../'
+// import { Flagship, HitType } from '../../'
 // import { BatchStrategy } from '../../dist/enum/BatchStrategy'
 
 const ENV_ID = ''
 const API_KEY = ''
 
 Flagship.start(ENV_ID, API_KEY, {
-  decisionMode: DecisionMode.BUCKETING,
+  // decisionMode: DecisionMode.BUCKETING,
+  hitCacheImplementation: {},
   fetchNow: false,
-  timeout: 10,
+  timeout: 15,
   pollingInterval: 5,
   trackingMangerConfig: {
-    batchStrategy: BatchStrategy.BATCHING_WITH_PERIODIC_CACHING_STRATEGY,
-    batchLength: 5,
-    batchIntervals: 10
+    // batchStrategy: 3, // BatchStrategy.PERIODIC_CACHING,
+    batchLength: 30,
+    batchIntervals: 120,
+    autoScale: true
   }
 })
 
@@ -28,11 +30,14 @@ btnAction1.addEventListener('click', async () => {
     }
   })
 
-  await visitor.fetchFlags()
+  // await visitor.fetchFlags()
 
-  visitor.getFlag('my_flag', 'defaultValue').userExposed()
+  // await visitor.getFlag('my_flag', 'defaultValue').userExposed()
 
-  await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 1' })
+  // await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 1' })
+  for (let index = 0; index < 20000; index++) {
+    await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen ' + index })
+  }
   // await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 2' })
   // await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 3' })
   // await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 4' })
