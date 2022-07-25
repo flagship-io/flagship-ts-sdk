@@ -231,8 +231,6 @@ export class Flagship {
       PROCESS_INITIALIZATION
     )
 
-    console.log('configCheck', configCheck)
-
     const initMonitoring = new Monitoring({
       action: 'SDK-INITIALIZATION',
       subComponent: 'Flagship.start',

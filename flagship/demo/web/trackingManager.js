@@ -1,55 +1,48 @@
-// import { Flagship } from '../../'
+// import { EventCategory, Flagship, HitType } from '../../'
 // import { BatchStrategy } from '../../dist/enum/BatchStrategy'
 
-const ENV_ID = ''
-const API_KEY = ''
+const ENV_ID = 'c1ndrd07m0300ro0jf20'
+const API_KEY = 'QzdTI1M9iqaIhnJ66a34C5xdzrrvzq6q8XSVOsS6'
 
-Flagship.start(ENV_ID, API_KEY, {
-  decisionMode: DecisionMode.BUCKETING,
-  fetchNow: false,
-  timeout: 10,
-  pollingInterval: 5,
-  trackingMangerConfig: {
-    batchStrategy: BatchStrategy.BATCHING_WITH_PERIODIC_CACHING_STRATEGY,
-    batchLength: 5,
-    batchIntervals: 10
-  }
+const btnAction1 = document.getElementById('btn-action-1')
+
+btnAction1.addEventListener('click', async () => {
+// Initialize the SDK and send Initialize monitoring hit
+  Flagship.start(ENV_ID, API_KEY, {
+    hitCacheImplementation: {},
+    fetchNow: false,
+    timeout: 15,
+    pollingInterval: 5,
+    trackingMangerConfig: {
+      batchLength: 10,
+      batchIntervals: 120
+    }
+  })
 })
 
-let visitor
-const btnAction1 = document.getElementById('scenario-1action-1')
+const btnAction2 = document.getElementById('btn-action-2')
 // scenario 1 action 1
-btnAction1.addEventListener('click', async () => {
-  visitor = Flagship.newVisitor({
+btnAction2.addEventListener('click', async () => {
+  // Create a visitor and send consent hit
+  const visitor = Flagship.newVisitor({
     visitorId: 'visitor-A',
-    // isAuthenticated: true,
     context: {
       testing_tracking_manager: true
     }
   })
 
+  // Fetch flags
   await visitor.fetchFlags()
 
-  visitor.getFlag('my_flag', 'defaultValue').userExposed()
+  // Send an activate hit
+  await visitor.getFlag('my_flag', 'defaultValue').userExposed()
 
+  // Send a screen hit
   await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 1' })
-  // await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 2' })
-  // await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 3' })
-  // await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 4' })
-  // await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 5' })
-})
 
-const btnAction2 = document.getElementById('scenario-1action-2')
-// scenario 1 action 1
-btnAction2.addEventListener('click', async () => {
-  visitor.setConsent(false)
-})
+  // send a page hit
+  await visitor.sendHit({ type: HitType.PAGE, documentLocation: 'home page' })
 
-const btnAction3 = document.getElementById('scenario-1action-3')
-// scenario 1 action 1
-btnAction3.addEventListener('click', async () => {
-  // await visitor.getFlag('my_flag', 'defaultValue').userExposed()
-  await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 1' })
-  await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 2' })
-  // await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 3' })
+  // Send an event hit
+  await visitor.sendHit({ type: HitType.EVENT, action: 'click', category: EventCategory.ACTION_TRACKING })
 })
