@@ -4,7 +4,7 @@ import { IHit, Modification, NewVisitor, modificationsRequested, primitive, Visi
 import { IVisitor } from './IVisitor.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { FlagshipStatus, SDK_LANGUAGE, SDK_VERSION, VISITOR_ID_ERROR } from '../enum/index.ts'
-import { logError } from '../utils/utils.ts'
+import { logError, uuidV4 } from '../utils/utils.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract.ts'
@@ -42,19 +42,20 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._configManager = configManager
 
     const VisitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
-    this.visitorId = visitorId || VisitorCache?.visitorId || this.uuidV4()
-
-    this.setConsent(hasConsented ?? true)
+    this.visitorId = visitorId || VisitorCache?.visitorId || uuidV4()
 
     this.campaigns = []
 
-    this.updateContext(context)
     this._anonymousId = VisitorCache?.anonymousId || null
-    this.loadPredefinedContext()
 
     if (!this._anonymousId && isAuthenticated && this.config.decisionMode === DecisionMode.DECISION_API) {
-      this._anonymousId = this.uuidV4()
+      this._anonymousId = uuidV4()
     }
+
+    this.setConsent(hasConsented ?? true)
+    this.updateContext(context)
+    this.loadPredefinedContext()
+
     this.updateCache()
     this.setInitialFlags(initialFlagsData || initialModifications)
     this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
@@ -113,14 +114,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.context.fs_client = SDK_LANGUAGE.name
     this.context.fs_version = SDK_VERSION
     this.context.fs_users = this.visitorId
-  }
-
-  protected uuidV4 (): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (char) {
-      const rand = Math.random() * 16 | 0
-      const value = char === 'x' ? rand : (rand & 0x3 | 0x8)
-      return value.toString(16)
-    })
   }
 
   public get visitorId (): string {

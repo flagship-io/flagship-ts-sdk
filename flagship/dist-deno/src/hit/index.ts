@@ -11,3 +11,11 @@ export type { ITransaction } from './Transaction.ts'
 export { HitAbstract } from './HitAbstract.ts'
 export type { IHitAbstract } from './HitAbstract.ts'
 export type { HitShape } from './Legacy.ts'
+export type { IConsent } from './Consent.ts'
+export { Consent } from './Consent.ts'
+
+export { Campaign } from './Campaign.ts'
+export type { ICampaign } from './Campaign.ts'
+
+export { Segment } from './Segment.ts'
+export type { ISegment } from './Segment.ts'

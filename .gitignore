@@ -14,3 +14,4 @@ flagship/dist
 **/dist
 **/.env
 flagship/stats.json
+ariane.mock.json

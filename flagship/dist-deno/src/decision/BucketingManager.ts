@@ -1,5 +1,6 @@
 import { IFlagshipConfig } from '../config/index.ts'
-import { BUCKETING_API_CONTEXT_URL, BUCKETING_API_URL, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, REQUEST_TIME_OUT, SDK_LANGUAGE, SDK_VERSION } from '../enum/index.ts'
+import { BUCKETING_API_URL, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, SDK_LANGUAGE, SDK_VERSION } from '../enum/index.ts'
+import { Segment } from '../hit/Segment.ts'
 import { primitive } from '../types.ts'
 import { IHttpClient, IHttpResponse } from '../utils/HttpClient.ts'
 import { MurmurHash } from '../utils/MurmurHash.ts'
@@ -54,7 +55,7 @@ export class BucketingManager extends DecisionManager {
   }
 
   async startPolling (): Promise<void> {
-    const timeout = (this.config.pollingInterval ?? REQUEST_TIME_OUT) * 1000
+    const timeout = this.config.pollingInterval as number * 1000
     logInfo(this.config, 'Bucketing polling starts', 'startPolling')
     await this.polling()
     if (timeout === 0) {
@@ -114,19 +115,9 @@ export class BucketingManager extends DecisionManager {
       if (Object.keys(visitor.context).length <= 3) {
         return
       }
-      const url = sprintf(BUCKETING_API_CONTEXT_URL, this.config.envId)
-      const headers: Record<string, string> = {
-        [HEADER_X_API_KEY]: `${this.config.apiKey}`,
-        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
-        [HEADER_X_SDK_VERSION]: SDK_VERSION,
-        [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
-      }
-      const body = {
-        visitorId: visitor.visitorId,
-        type: 'CONTEXT',
-        data: visitor.context
-      }
-      await this._httpClient.postAsync(url, { headers, body, timeout: this.config.timeout })
+      const SegmentHit = new Segment({ sl: visitor.context })
+
+      await visitor.sendHit(SegmentHit)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logError(this.config, error.message || error, 'sendContext')

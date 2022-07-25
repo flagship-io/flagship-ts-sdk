@@ -16,6 +16,7 @@ import { Visitor } from '../../src/visitor/Visitor'
 import { Mock } from 'jest-mock'
 import { DefaultVisitorCache } from '../../src/cache/DefaultVisitorCache'
 import { DefaultHitCache } from '../../src/cache/DefaultHitCache'
+import { version } from '../../src/sdkVersion'
 
 const getCampaignsAsync = jest.fn().mockReturnValue(Promise.resolve([]))
 
@@ -30,14 +31,21 @@ jest.mock('../../src/decision/ApiManager', () => {
     })
   }
 })
-const sendConsentHit: Mock<Promise<void>, []> = jest.fn()
-sendConsentHit.mockResolvedValue()
+const startBatchingLoop: Mock<Promise<void>, []> = jest.fn()
+startBatchingLoop.mockResolvedValue()
+const addHit: Mock<Promise<void>, []> = jest.fn()
+
+const stopBatchingLoop:Mock<Promise<void>, []> = jest.fn()
+
+addHit.mockResolvedValue()
 
 jest.mock('../../src/api/TrackingManager', () => {
   return {
     TrackingManager: jest.fn().mockImplementation(() => {
       return {
-        sendConsentHit
+        startBatchingLoop,
+        stopBatchingLoop,
+        addHit
       }
     })
   }
@@ -65,6 +73,7 @@ describe('test Flagship class', () => {
     expect(Flagship.getConfig().visitorCacheImplementation).toBeInstanceOf(DefaultVisitorCache)
     expect(Flagship.getConfig().hitCacheImplementation).toBeInstanceOf(DefaultHitCache)
     expect(Flagship.getStatus()).toBe(FlagshipStatus.READY)
+    expect(startBatchingLoop).toBeCalledTimes(1)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     global.window = (() => undefined)() as any
@@ -128,7 +137,7 @@ describe('test Flagship with custom config', () => {
 
     expect(infoLog).toBeCalledTimes(1)
     expect(infoLog).toBeCalledWith(
-      sprintf(SDK_STARTED_INFO, SDK_VERSION),
+      sprintf(SDK_STARTED_INFO, version),
       PROCESS_INITIALIZATION
     )
     expect(instance).toBeInstanceOf(Flagship)
@@ -161,11 +170,14 @@ describe('test Flagship newVisitor', () => {
       fs_version: SDK_VERSION,
       fs_users: visitorId
     }
+    expect(addHit).toBeCalledTimes(1)
     let visitor = Flagship.newVisitor({ visitorId, context })
 
     expect(visitor?.visitorId).toBe(visitorId)
     expect(visitor?.context).toEqual({ ...context, ...predefinedContext })
     expect(Flagship.getVisitor()).toBeUndefined()
+
+    expect(addHit).toBeCalledTimes(2)
 
     const visitorNull = Flagship.newVisitor({ visitorId: getNull(), context })
     expect(visitorNull).toBeInstanceOf(Visitor)
