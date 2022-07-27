@@ -54,6 +54,28 @@ describe('test hit type Monitoring', () => {
   const monitoring = new Monitoring({ action, visitorId, message, subComponent, logLevel, config })
 
   it('should ', () => {
+    const apiKeys: Record<string, unknown> = {
+      [VISITOR_ID_API_ITEM]: visitorId,
+      [DS_API_ITEM]: SDK_APP,
+      [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
+      [T_API_ITEM]: 'MONITORING',
+      [EVENT_CATEGORY_API_ITEM]: category,
+      [EVENT_ACTION_API_ITEM]: action,
+      [CUSTOMER_UID]: null,
+      [QT_API_ITEM]: expect.anything(),
+      cv: {
+        0: `logVersion, ${logVersion}`,
+        1: `LogLevel, ${LogLevel[logLevel]}`,
+        3: `envId, ${config.envId}`,
+        4: `timestamp, ${new Date(1657899294744).toISOString()}`,
+        5: `component, ${component}`,
+        6: `subComponents, ${subComponent}`,
+        7: `message, ${message}`,
+        20: `stack.type, ${'SDK'} `,
+        21: `stack.name, ${SDK_LANGUAGE.name}`,
+        22: `stack.version, ${version}`
+      }
+    }
     expect(monitoring.category).toBe('monitoring')
     expect(monitoring.action).toBe(action)
     expect(monitoring.ds).toBe(SDK_APP)
@@ -70,6 +92,7 @@ describe('test hit type Monitoring', () => {
     expect(monitoring.screenResolution).toBeUndefined()
     expect(monitoring.locale).toBeUndefined()
     expect(monitoring.sessionNumber).toBeUndefined()
+    expect(monitoring.toApiKeys()).toEqual(apiKeys)
   })
 
   it('test constructor', () => {
@@ -79,12 +102,12 @@ describe('test hit type Monitoring', () => {
       logLevel,
       accountId: 'accountId',
       envId: config.envId,
-      component: 'component',
+      component: component,
       subComponent,
       message,
-      stackType: 'this.stackType',
-      stackName: 'this.stackName',
-      stackVersion: 'this.stackVersion',
+      stackType: 'SDK',
+      stackName: SDK_LANGUAGE.name,
+      stackVersion: version,
       stackOriginName: 'this.stackOriginName',
       stackOriginVersion: 'this.stackOriginVersion',
 
@@ -94,10 +117,10 @@ describe('test hit type Monitoring', () => {
       sdkConfigCustomCacheManager: false,
       sdkConfigStatusListener: false,
       sdkConfigTimeout: config.timeout.toString(),
-      sdkConfigPollingTime: config.pollingInterval?.toString(),
+      sdkConfigPollingTime: '10',
       sdkConfigTrackingManagerConfigStrategy: BatchStrategy[config.trackingMangerConfig.batchStrategy as number],
-      sdkConfigTrackingManagerConfigBatchIntervals: config.trackingMangerConfig.batchIntervals?.toString(),
-      sdkConfigTrackingManagerConfigBatchLength: config.trackingMangerConfig.batchLength?.toString(),
+      sdkConfigTrackingManagerConfigBatchIntervals: '30',
+      sdkConfigTrackingManagerConfigBatchLength: '10',
 
       httpRequestUrl: 'this.httpRequestUrl',
       httpRequestMethod: 'this.httpRequestMethod',
@@ -128,12 +151,75 @@ describe('test hit type Monitoring', () => {
       flagMetadataVariationId: 'this.flagMetadataVariationId',
       flagMetadataCampaignSlug: 'this.flagMetadataCampaignSlug',
       flagMetadataCampaignType: 'this.flagMetadataCampaignType',
-      userIp: '127.0.0.1',
-      screenResolution: '800X600',
-      locale: 'fr',
-      sessionNumber: '12345',
       visitorId,
       config
+    }
+
+    // eslint-disable-next-line complexity
+    const getCustomVariable = () => {
+      return {
+        0: `logVersion, ${logVersion}`,
+        1: `LogLevel, ${LogLevel[logLevel]}`,
+        2: 'accountId, ' + params.accountId,
+        3: `envId, ${config.envId}`,
+        4: `timestamp, ${new Date(1657899294744).toISOString()}`,
+        5: `component, ${component}`,
+        6: `subComponents, ${subComponent}`,
+        7: `message, ${message}`,
+        20: `stack.type, ${'SDK'} `,
+        21: `stack.name, ${SDK_LANGUAGE.name}`,
+        22: `stack.version, ${version}`,
+        23: 'stack.origin.name, ' + params.stackOriginName,
+        24: 'stack.origin.version, ' + params.stackOriginVersion,
+        30: 'sdk.status, ' + params.sdkStatus,
+        31: 'sdk.config.mode, ' + params.sdkConfigMode,
+        32: 'sdk.config.customLogManager, ' + params.sdkConfigCustomLogManager,
+        33: 'sdk.config.customCacheManager, ' + params.sdkConfigCustomCacheManager,
+        34: 'sdk.config.custom.StatusListener, ' + params.sdkConfigStatusListener,
+        35: 'sdk.config.timeout, ' + params.sdkConfigTimeout,
+        36: 'sdk.config.pollingTime, ' + params.sdkConfigPollingTime,
+        37: 'sdk.config.trackingManager.config.strategy, ' + params.sdkConfigTrackingManagerConfigStrategy,
+        38: 'sdk.config.trackingManager.config.batchIntervals, ' + params.sdkConfigTrackingManagerConfigBatchIntervals,
+        39: 'sdk.config.trackingManager.config.batchLength, ' + params.sdkConfigTrackingManagerConfigBatchLength,
+        50: 'http.request.url, ' + params.httpRequestUrl,
+        51: 'http.request.method, ' + params.httpRequestMethod,
+        52: 'http.request.headers, ' + params.httpRequestHeaders,
+        53: 'http.request.body, ' + params.httpRequestBody,
+        54: 'http.request.details, ' + params.httpRequestDetails,
+        60: 'http.response.url, ' + params.httpResponseUrl,
+        61: 'http.response.method, ' + params.httpResponseMethod,
+        62: 'http.response.headers, ' + params.httpResponseHeaders,
+        63: 'http.response.code, ' + params.httpResponseCode,
+        64: 'http.response.body, ' + params.httpResponseBody,
+        65: 'http.response.details, ' + params.httpResponseDetails,
+        80: 'visitor.status, ' + params.visitorStatus,
+        81: 'visitor.instanceType, ' + params.visitorInstanceType,
+        82: 'visitor.context, ' + params.visitorContext,
+        83: 'visitor.consent, ' + params.visitorConsent,
+        84: 'visitor.assignmentsHistory, ' + params.visitorAssignmentHistory,
+        85: 'visitor.flags, ' + params.visitorFlags,
+        86: 'visitor.isAuthenticated, ' + params.visitorIsAuthenticated,
+        100: 'flag.key, ' + params.flagKey,
+        101: 'flag.value, ' + params.flagValue,
+        102: 'flag.default, ' + params.flagDefault,
+        103: 'flag.metadata.campaignId, ' + params.flagMetadataCampaignId,
+        104: 'flag.metadata.variationGroupId, ' + params.flagMetadataVariationGroupId,
+        105: 'flag.metadata.variationId, ' + params.flagMetadataVariationId,
+        106: 'flag.metadata.campaignSlug, ' + params.flagMetadataCampaignSlug,
+        107: 'flag.metadata.campaignType, ' + params.flagMetadataCampaignType
+      }
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const apiKeys: Record<string, unknown> = {
+      [VISITOR_ID_API_ITEM]: visitorId,
+      [DS_API_ITEM]: SDK_APP,
+      [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
+      [T_API_ITEM]: 'MONITORING',
+      [EVENT_CATEGORY_API_ITEM]: category,
+      [EVENT_ACTION_API_ITEM]: action,
+      [CUSTOMER_UID]: null,
+      [QT_API_ITEM]: expect.anything(),
+      cv: getCustomVariable()
     }
 
     const monitoring = new Monitoring(params)
@@ -143,6 +229,7 @@ describe('test hit type Monitoring', () => {
     expect(monitoring.screenResolution).toBe(params.screenResolution)
     expect(monitoring.locale).toBe(params.locale)
     expect(monitoring.sessionNumber).toBe(params.sessionNumber)
+    expect(monitoring.toApiKeys()).toEqual(apiKeys)
   })
 
   it('test isReady method ', () => {
@@ -152,77 +239,6 @@ describe('test hit type Monitoring', () => {
   it('test isReady method', () => {
     expect(monitoring.isReady()).toBeTruthy()
     expect(monitoring.isReady(false)).toBeTruthy()
-  })
-
-  // eslint-disable-next-line complexity
-  const getCustomVariable = () => {
-    return {
-      0: `logVersion, ${logVersion}`,
-      1: `LogLevel, ${LogLevel[logLevel]}`,
-      2: 'accountId, ',
-      3: `envId, ${config.envId}`,
-      4: `timestamp, ${new Date(1657899294744).toISOString()}`,
-      5: `component, ${component}`,
-      6: `subComponents, ${subComponent}`,
-      7: `message, ${message}`,
-      20: `stack.type, ${'SDK'} `,
-      21: `stack.name, ${SDK_LANGUAGE.name}`,
-      22: `stack.version, ${version}`,
-      23: 'stack.origin.name, ',
-      24: 'stack.origin.version, ',
-      30: 'sdk.status, ',
-      31: 'sdk.config.mode, ',
-      32: 'sdk.config.customLogManager, ',
-      33: 'sdk.config.customCacheManager, ',
-      34: 'sdk.config.custom.StatusListener, ',
-      35: 'sdk.config.timeout, ',
-      36: 'sdk.config.pollingTime, ',
-      37: 'sdk.config.trackingManager.config.strategy, ',
-      38: 'sdk.config.trackingManager.config.batchIntervals, ',
-      39: 'sdk.config.trackingManager.config.batchLength, ',
-      50: 'http.request.url, ',
-      51: 'http.request.method, ',
-      52: 'http.request.headers, ',
-      53: 'http.request.body, ',
-      54: 'http.request.details, ',
-      60: 'http.response.url, ',
-      61: 'http.response.method, ',
-      62: 'http.response.headers, ',
-      63: 'http.response.code, ',
-      64: 'http.response.body, ',
-      65: 'http.response.details, ',
-      80: 'visitor.status, ',
-      81: 'visitor.instanceType, ',
-      82: 'visitor.context, ',
-      83: 'visitor.consent, ',
-      84: 'visitor.assignmentsHistory, ',
-      85: 'visitor.flags, ',
-      86: 'visitor.isAuthenticated, ',
-      100: 'flag.key, ',
-      101: 'flag.value, ',
-      102: 'flag.default, ',
-      103: 'flag.metadata.campaignId, ',
-      104: 'flag.metadata.variationGroupId, ',
-      105: 'flag.metadata.variationId, ',
-      106: 'flag.metadata.campaignSlug, ',
-      107: 'flag.metadata.campaignType, '
-    }
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const apiKeys: Record<string, unknown> = {
-    [VISITOR_ID_API_ITEM]: visitorId,
-    [DS_API_ITEM]: SDK_APP,
-    [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
-    [T_API_ITEM]: 'MONITORING',
-    [EVENT_CATEGORY_API_ITEM]: category,
-    [EVENT_ACTION_API_ITEM]: action,
-    [CUSTOMER_UID]: null,
-    [QT_API_ITEM]: expect.anything(),
-    cv: getCustomVariable()
-  }
-
-  it('should ', () => {
-    expect(monitoring.toApiKeys()).toEqual(apiKeys)
   })
 
   it('test toObject', () => {

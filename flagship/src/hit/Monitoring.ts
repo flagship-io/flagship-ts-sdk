@@ -7,7 +7,6 @@ import {
   SDK_LANGUAGE
 } from '../enum/FlagshipConstant'
 import { version as packageVersion } from '../sdkVersion'
-import { logError } from '../utils/utils'
 import { HitAbstract, IHitAbstract } from './HitAbstract'
 
 export const ERROR_MESSAGE = 'event category and event action are required'
@@ -626,57 +625,141 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       const apiKeys = super.toApiKeys()
       apiKeys[EVENT_CATEGORY_API_ITEM] = this.category
       apiKeys[EVENT_ACTION_API_ITEM] = this.action
-      apiKeys.cv = {
+      const customVariable:Record<number, string> = {
         0: `logVersion, ${this.logVersion}`,
         1: `LogLevel, ${LogLevel[this.logLevel]}`,
-        2: `accountId, ${this.accountId || ''}`,
-        3: `envId, ${this.envId || ''}`,
         4: `timestamp, ${this.timestamp}`,
         5: `component, ${this.component}`,
         6: `subComponents, ${this.subComponent}`,
         7: `message, ${this.message}`,
         20: `stack.type, ${this.stackType} `,
         21: `stack.name, ${this.stackName}`,
-        22: `stack.version, ${this.stackVersion}`,
-        23: `stack.origin.name, ${this.stackOriginName || ''}`,
-        24: `stack.origin.version, ${this.stackOriginVersion || ''}`,
-        30: `sdk.status, ${this.sdkStatus || ''}`,
-        31: `sdk.config.mode, ${this.sdkConfigMode || ''}`,
-        32: `sdk.config.customLogManager, ${this.sdkConfigCustomLogManager ?? ''}`,
-        33: `sdk.config.customCacheManager, ${this.sdkConfigCustomCacheManager ?? ''}`,
-        34: `sdk.config.custom.StatusListener, ${this.sdkConfigStatusListener ?? ''}`,
-        35: `sdk.config.timeout, ${this.sdkConfigTimeout || ''}`,
-        36: `sdk.config.pollingTime, ${this.sdkConfigPollingTime || ''}`,
-        37: `sdk.config.trackingManager.config.strategy, ${this.sdkConfigTrackingManagerConfigStrategy || ''}`,
-        38: `sdk.config.trackingManager.config.batchIntervals, ${this.sdkConfigTrackingManagerConfigBatchIntervals || ''}`,
-        39: `sdk.config.trackingManager.config.batchLength, ${this.sdkConfigTrackingManagerConfigBatchLength || ''}`,
-        50: `http.request.url, ${this.httpRequestUrl || ''}`,
-        51: `http.request.method, ${this.httpRequestMethod || ''}`,
-        52: `http.request.headers, ${this.httpRequestHeaders || ''}`,
-        53: `http.request.body, ${this.httpRequestBody || ''}`,
-        54: `http.request.details, ${this.httpRequestDetails || ''}`,
-        60: `http.response.url, ${this.httpResponseUrl || ''}`,
-        61: `http.response.method, ${this.httpResponseMethod || ''}`,
-        62: `http.response.headers, ${this.httpResponseHeaders || ''}`,
-        63: `http.response.code, ${this.httpResponseCode || ''}`,
-        64: `http.response.body, ${this.httpResponseBody || ''}`,
-        65: `http.response.details, ${this.httpResponseDetails || ''}`,
-        80: `visitor.status, ${this.visitorStatus || ''}`,
-        81: `visitor.instanceType, ${this.visitorInstanceType || ''}`,
-        82: `visitor.context, ${this.visitorContext || ''}`,
-        83: `visitor.consent, ${this.visitorConsent ?? ''}`,
-        84: `visitor.assignmentsHistory, ${this.visitorAssignmentHistory || ''}`,
-        85: `visitor.flags, ${this.visitorFlags || ''}`,
-        86: `visitor.isAuthenticated, ${this.visitorIsAuthenticated ?? ''}`,
-        100: `flag.key, ${this.flagKey || ''}`,
-        101: `flag.value, ${this.flagValue || ''}`,
-        102: `flag.default, ${this.flagDefault || ''}`,
-        103: `flag.metadata.campaignId, ${this.flagMetadataCampaignId || ''}`,
-        104: `flag.metadata.variationGroupId, ${this.flagMetadataVariationGroupId || ''}`,
-        105: `flag.metadata.variationId, ${this.flagMetadataVariationId || ''}`,
-        106: `flag.metadata.campaignSlug, ${this.flagMetadataCampaignSlug || ''}`,
-        107: `flag.metadata.campaignType, ${this.flagMetadataCampaignType || ''}`
+        22: `stack.version, ${this.stackVersion}`
       }
+
+      if (this.accountId) {
+        customVariable[2] = `accountId, ${this.accountId}`
+      }
+
+      if (this.envId) {
+        customVariable[3] = `envId, ${this.envId}`
+      }
+
+      if (this.stackOriginName) {
+        customVariable[23] = `stack.origin.name, ${this.stackOriginName}`
+      }
+      if (this.stackOriginVersion) {
+        customVariable[24] = `stack.origin.version, ${this.stackOriginVersion}`
+      }
+      if (this.sdkStatus) {
+        customVariable[30] = `sdk.status, ${this.sdkStatus}`
+      }
+      if (this.sdkConfigMode) {
+        customVariable[31] = `sdk.config.mode, ${this.sdkConfigMode}`
+      }
+      if (this.sdkConfigCustomLogManager !== undefined) {
+        customVariable[32] = `sdk.config.customLogManager, ${this.sdkConfigCustomLogManager}`
+      }
+      if (this.sdkConfigCustomCacheManager !== undefined) {
+        customVariable[33] = `sdk.config.customCacheManager, ${this.sdkConfigCustomCacheManager}`
+      }
+      if (this.sdkConfigStatusListener !== undefined) {
+        customVariable[34] = `sdk.config.custom.StatusListener, ${this.sdkConfigStatusListener}`
+      }
+      if (this.sdkConfigTimeout !== undefined) {
+        customVariable[35] = `sdk.config.timeout, ${this.sdkConfigTimeout}`
+      }
+      if (this.sdkConfigPollingTime !== undefined) {
+        customVariable[36] = `sdk.config.pollingTime, ${this.sdkConfigPollingTime}`
+      }
+      if (this.sdkConfigTrackingManagerConfigStrategy) {
+        customVariable[37] = `sdk.config.trackingManager.config.strategy, ${this.sdkConfigTrackingManagerConfigStrategy}`
+      }
+      if (this.sdkConfigTrackingManagerConfigBatchIntervals !== undefined) {
+        customVariable[38] = `sdk.config.trackingManager.config.batchIntervals, ${this.sdkConfigTrackingManagerConfigBatchIntervals}`
+      }
+      if (this.sdkConfigTrackingManagerConfigBatchLength !== undefined) {
+        customVariable[39] = `sdk.config.trackingManager.config.batchLength, ${this.sdkConfigTrackingManagerConfigBatchLength}`
+      }
+      if (this.httpRequestUrl) {
+        customVariable[50] = `http.request.url, ${this.httpRequestUrl}`
+      }
+      if (this.httpRequestMethod) {
+        customVariable[51] = `http.request.method, ${this.httpRequestMethod}`
+      }
+      if (this.httpRequestHeaders) {
+        customVariable[52] = `http.request.headers, ${this.httpRequestHeaders}`
+      }
+      if (this.httpRequestBody) {
+        customVariable[53] = `http.request.body, ${this.httpRequestBody}`
+      }
+      if (this.httpRequestDetails) {
+        customVariable[54] = `http.request.details, ${this.httpRequestDetails}`
+      }
+      if (this.httpResponseUrl) {
+        customVariable[60] = `http.response.url, ${this.httpResponseUrl}`
+      }
+      if (this.httpResponseMethod) {
+        customVariable[61] = `http.response.method, ${this.httpResponseMethod}`
+      }
+      if (this.httpResponseHeaders) {
+        customVariable[62] = `http.response.headers, ${this.httpResponseHeaders}`
+      }
+      if (this.httpResponseCode) {
+        customVariable[63] = `http.response.code, ${this.httpResponseCode}`
+      }
+      if (this.httpResponseBody) {
+        customVariable[64] = `http.response.body, ${this.httpResponseBody}`
+      }
+      if (this.httpResponseDetails) {
+        customVariable[65] = `http.response.details, ${this.httpResponseDetails}`
+      }
+      if (this.visitorStatus) {
+        customVariable[80] = `visitor.status, ${this.visitorStatus}`
+      }
+      if (this.visitorInstanceType) {
+        customVariable[81] = `visitor.instanceType, ${this.visitorInstanceType}`
+      }
+      if (this.visitorContext) {
+        customVariable[82] = `visitor.context, ${this.visitorContext}`
+      }
+      if (this.visitorConsent) {
+        customVariable[83] = `visitor.consent, ${this.visitorConsent}`
+      }
+      if (this.visitorAssignmentHistory) {
+        customVariable[84] = `visitor.assignmentsHistory, ${this.visitorAssignmentHistory}`
+      }
+      if (this.visitorFlags) {
+        customVariable[85] = `visitor.flags, ${this.visitorFlags}`
+      }
+      if (this.visitorIsAuthenticated !== undefined) {
+        customVariable[86] = `visitor.isAuthenticated, ${this.visitorIsAuthenticated}`
+      }
+      if (this.flagKey) {
+        customVariable[100] = `flag.key, ${this.flagKey}`
+      }
+      if (this.flagValue) {
+        customVariable[101] = `flag.value, ${this.flagValue}`
+      }
+      if (this.flagDefault) {
+        customVariable[102] = `flag.default, ${this.flagDefault}`
+      }
+      if (this.flagMetadataCampaignId) {
+        customVariable[103] = `flag.metadata.campaignId, ${this.flagMetadataCampaignId}`
+      }
+      if (this.flagMetadataVariationGroupId) {
+        customVariable[104] = `flag.metadata.variationGroupId, ${this.flagMetadataVariationGroupId}`
+      }
+      if (this.flagMetadataVariationId) {
+        customVariable[105] = `flag.metadata.variationId, ${this.flagMetadataVariationId}`
+      }
+      if (this.flagMetadataCampaignSlug) {
+        customVariable[106] = `flag.metadata.campaignSlug, ${this.flagMetadataCampaignSlug}`
+      }
+      if (this.flagMetadataCampaignType) {
+        customVariable[107] = `flag.metadata.campaignType, ${this.flagMetadataCampaignType}`
+      }
+      apiKeys.cv = customVariable
       return apiKeys
     }
 
