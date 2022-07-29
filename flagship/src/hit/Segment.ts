@@ -38,7 +38,11 @@ export class Segment extends HitAbstract implements ISegment {
 
   public toApiKeys ():Record<string, unknown> {
     const apiKeys = super.toApiKeys()
-    apiKeys[SL_ITEM] = this.sl
+    const context:Record<string, string> = {}
+    Object.entries(this.sl).forEach(([key, value]) => {
+      context[key] = value.toString()
+    })
+    apiKeys[SL_ITEM] = context
     return apiKeys
   }
 
