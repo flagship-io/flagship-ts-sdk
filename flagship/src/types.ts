@@ -1,6 +1,7 @@
 import { CampaignDTO } from './decision/api/models'
 import { HitType } from './enum/index'
 import { IEvent, IItem, IPage, IScreen, ITransaction, HitShape } from './hit/index'
+import { IVisitor } from './visitor'
 
 export type modificationsRequested<T> = {
     key: string,
@@ -90,3 +91,14 @@ export type VisitorCacheDTO = {
       }>
 }
 }
+
+export interface IFlagMetadata{
+  campaignId:string
+  variationGroupId:string
+  variationId: string
+  isReference: boolean
+  campaignType: string
+  slug?:string|null
+}
+
+export type OnUserExposedType = { metadata: IFlagMetadata, visitor: IVisitor, shouldBeExposed: boolean }

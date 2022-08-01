@@ -1,6 +1,6 @@
 import { FlagDTO } from '../index'
 import { HitAbstract, HitShape } from '../hit/index'
-import { primitive, modificationsRequested, IHit, VisitorCacheDTO, HitCacheDTO } from '../types'
+import { primitive, modificationsRequested, IHit, VisitorCacheDTO, HitCacheDTO, IFlagMetadata } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
@@ -11,8 +11,6 @@ import { logError, logInfo, sprintf } from '../utils/utils'
 import { DEFAULT_HIT_CACHE_TIME, HIT_CACHE_VERSION, PROCESS_CACHE_HIT, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index'
 
 import { BatchDTO } from '../hit/Batch'
-
-import { IFlagMetadata } from '../flag/FlagMetadata'
 
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
@@ -344,7 +342,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     abstract unauthenticate(): void
 
     abstract fetchFlags(): Promise<void>
-    abstract userExposed<T>(param:{key:string, flag?:FlagDTO, defaultValue:T}):Promise<void>
+    abstract userExposed<T>(param:{key:string, flag?:FlagDTO, defaultValue:T, userExposed?: boolean}):Promise<void>
     abstract getFlagValue<T>(param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}):T
     abstract getFlagMetadata(param:{metadata:IFlagMetadata, key?:string, hasSameType:boolean}):IFlagMetadata
 }

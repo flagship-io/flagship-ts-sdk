@@ -1,6 +1,7 @@
+import { IFlagMetadata } from '../types'
 import { hasSameType } from '../utils/utils'
 import { VisitorDelegate } from '../visitor/index'
-import { FlagMetadata, IFlagMetadata } from './FlagMetadata'
+import { FlagMetadata } from './FlagMetadata'
 
 export type FlagValue<S> = {
   defaultValue: S,
