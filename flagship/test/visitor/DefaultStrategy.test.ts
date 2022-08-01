@@ -589,6 +589,64 @@ describe('test DefaultStrategy ', () => {
     )
   })
 
+  it('test userExposed', async () => {
+    const newConfig = new DecisionApiConfig({
+      envId: 'envId',
+      apiKey: 'apiKey',
+      activateDeduplicationTime: 0,
+      hitDeduplicationTime: 0,
+      onUserExposed: ({ metadata, visitor, shouldBeExposed }) => {
+        expect(metadata).toEqual({
+          campaignId: returnMod.campaignId,
+          campaignType: returnMod.campaignType as string,
+          slug: returnMod.slug,
+          isReference: !!returnMod.isReference,
+          variationGroupId: returnMod.variationGroupId,
+          variationId: returnMod.variationId
+        })
+        expect(visitorDelegate).toEqual(visitor)
+        expect(shouldBeExposed).toBeTruthy()
+        return false
+      }
+    })
+
+    const configManager = new ConfigManager(newConfig, apiManager, trackingManager)
+
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
+    const defaultStrategy = new DefaultStrategy(visitorDelegate)
+    await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
+    expect(sendActive).toBeCalledTimes(0)
+  })
+
+  it('test userExposed', async () => {
+    const newConfig = new DecisionApiConfig({
+      envId: 'envId',
+      apiKey: 'apiKey',
+      activateDeduplicationTime: 0,
+      hitDeduplicationTime: 0,
+      onUserExposed: ({ metadata, visitor, shouldBeExposed }) => {
+        expect(metadata).toEqual({
+          campaignId: returnMod.campaignId,
+          campaignType: returnMod.campaignType as string,
+          slug: returnMod.slug,
+          isReference: !!returnMod.isReference,
+          variationGroupId: returnMod.variationGroupId,
+          variationId: returnMod.variationId
+        })
+        expect(visitorDelegate).toEqual(visitor)
+        expect(shouldBeExposed).toBeFalsy()
+        return true
+      }
+    })
+
+    const configManager = new ConfigManager(newConfig, apiManager, trackingManager)
+
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
+    const defaultStrategy = new DefaultStrategy(visitorDelegate)
+    await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value, userExposed: false })
+    expect(sendActive).toBeCalledTimes(1)
+  })
+
   it('test userExposed with different type', async () => {
     await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: true })
     expect(sendActive).toBeCalledTimes(0)

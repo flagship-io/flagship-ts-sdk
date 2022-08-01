@@ -41,7 +41,7 @@ import {
   IHitAbstract
 } from '../hit/index'
 import { HitShape, ItemHit } from '../hit/Legacy'
-import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO } from '../types'
+import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata } from '../types'
 import { hasSameType, logError, logInfo, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
@@ -49,7 +49,7 @@ import { DecisionMode } from '../config/index'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
 import { VisitorDelegate } from './index'
 import { Batch, BATCH, BatchDTO } from '../hit/Batch'
-import { FlagMetadata, IFlagMetadata } from '../flag/FlagMetadata'
+import { FlagMetadata } from '../flag/FlagMetadata'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 
@@ -605,8 +605,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return this.globalFetchFlags('fetchFlags')
   }
 
-  async userExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T}): Promise<void> {
-    const { key, flag, defaultValue } = param
+  async userExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T, userExposed?: boolean}): Promise<void> {
+    const { key, flag, defaultValue, userExposed } = param
+
     const functionName = 'userExposed'
     if (!flag) {
       logInfo(
@@ -614,6 +615,27 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sprintf(USER_EXPOSED_FLAG_ERROR, key),
         functionName
       )
+      return
+    }
+
+    let shouldBeExposed = userExposed
+
+    if (typeof this.config.onUserExposed === 'function') {
+      shouldBeExposed = this.config.onUserExposed({
+        metadata: {
+          campaignId: flag.campaignId,
+          campaignType: flag.campaignType as string,
+          slug: flag.slug,
+          isReference: !!flag.isReference,
+          variationGroupId: flag.variationGroupId,
+          variationId: flag.variationId
+        },
+        visitor: this.visitor,
+        shouldBeExposed: userExposed === undefined || userExposed
+      })
+    }
+
+    if (shouldBeExposed === false) {
       return
     }
 
@@ -665,9 +687,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return defaultValue
     }
 
-    if (userExposed) {
-      this.userExposed({ key, flag, defaultValue })
-    }
+    this.userExposed({ key, flag, defaultValue, userExposed })
     return flag.value
   }
 
