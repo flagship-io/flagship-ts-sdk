@@ -4,6 +4,7 @@ import { IHitCacheImplementation } from '../cache/IHitCacheImplementation'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, sprintf } from '../utils/utils'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation'
+import { OnUserExposedType } from '../types'
 
 export enum DecisionMode {
   /**
@@ -91,6 +92,7 @@ export interface IFlagshipConfig {
   disableCache?: boolean
 
   language?: 0 | 1 | 2
+  onUserExposed?: (param: OnUserExposedType)=> boolean
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -117,12 +119,17 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _hitCacheImplementation!: IHitCacheImplementation;
   private _disableCache!: boolean;
 
+  private _onUserExposed? : ({ metadata, visitor, shouldBeExposed }: OnUserExposedType)=> boolean;
+  public get onUserExposed () : (({ metadata, visitor, shouldBeExposed }: OnUserExposedType)=> boolean)|undefined {
+    return this._onUserExposed
+  }
+
   protected constructor (param: IFlagshipConfig) {
     const {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
-      disableCache, language
+      disableCache, language, onUserExposed
     } = param
 
     switch (language) {
@@ -161,6 +168,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       this.logManager = logManager
     }
     this.statusChangedCallback = statusChangedCallback
+    this._onUserExposed = onUserExposed
   }
 
   public get initialBucketing (): BucketingDTO | undefined {
