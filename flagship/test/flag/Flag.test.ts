@@ -41,7 +41,7 @@ describe('test Flag', () => {
 
   Flagship.getStatus = getStatus
 
-  const visitorDelegate = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: configManager })
+  const visitorDelegate = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager })
 
   const userExposed = jest.spyOn(visitorDelegate, 'userExposed')
   const getFlagValue = jest.spyOn(visitorDelegate, 'getFlagValue')
