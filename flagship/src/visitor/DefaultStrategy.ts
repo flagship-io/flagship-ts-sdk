@@ -47,7 +47,7 @@ import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
 import { DecisionMode } from '../config/index'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
-import { VisitorDelegate } from './index'
+import { IVisitor, VisitorDelegate } from './index'
 import { Batch, BATCH, BatchDTO } from '../hit/Batch'
 import { FlagMetadata } from '../flag/FlagMetadata'
 
@@ -605,8 +605,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return this.globalFetchFlags('fetchFlags')
   }
 
-  async userExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T, userExposed?: boolean}): Promise<void> {
-    const { key, flag, defaultValue, userExposed } = param
+  async userExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T}): Promise<void> {
+    const { key, flag, defaultValue } = param
 
     const functionName = 'userExposed'
     if (!flag) {
@@ -615,27 +615,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sprintf(USER_EXPOSED_FLAG_ERROR, key),
         functionName
       )
-      return
-    }
-
-    let shouldBeExposed = userExposed
-
-    if (typeof this.config.onUserExposed === 'function') {
-      shouldBeExposed = this.config.onUserExposed({
-        metadata: {
-          campaignId: flag.campaignId,
-          campaignType: flag.campaignType as string,
-          slug: flag.slug,
-          isReference: !!flag.isReference,
-          variationGroupId: flag.variationGroupId,
-          variationId: flag.variationId
-        },
-        visitor: this.visitor,
-        shouldBeExposed: userExposed === undefined || userExposed
-      })
-    }
-
-    if (shouldBeExposed === false) {
       return
     }
 
@@ -656,7 +635,27 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
-    return this.sendActivate(flag, functionName)
+    await this.sendActivate(flag, functionName)
+
+    this.onUserExposedCallback({ flag, visitor: this.visitor, hasBeenActivated: true })
+  }
+
+  protected onUserExposedCallback (param:{flag:FlagDTO, visitor:IVisitor, hasBeenActivated:boolean}) {
+    const { flag, visitor, hasBeenActivated } = param
+    if (typeof this.config.onUserExposed === 'function') {
+      this.config.onUserExposed({
+        metadata: {
+          campaignId: flag.campaignId,
+          campaignType: flag.campaignType as string,
+          slug: flag.slug,
+          isReference: !!flag.isReference,
+          variationGroupId: flag.variationGroupId,
+          variationId: flag.variationId
+        },
+        visitor,
+        hasBeenActivated
+      })
+    }
   }
 
   getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}): T {
@@ -687,7 +686,12 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return defaultValue
     }
 
-    this.userExposed({ key, flag, defaultValue, userExposed })
+    if (userExposed) {
+      this.userExposed({ key, flag, defaultValue })
+    } else {
+      this.onUserExposedCallback({ flag, visitor: this.visitor, hasBeenActivated: false })
+    }
+
     return flag.value
   }
 

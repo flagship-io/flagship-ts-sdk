@@ -92,7 +92,7 @@ export interface IFlagshipConfig {
   disableCache?: boolean
 
   language?: 0 | 1 | 2
-  onUserExposed?: (param: OnUserExposedType)=> boolean
+  onUserExposed?: (param: OnUserExposedType)=> void
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -119,8 +119,8 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _hitCacheImplementation!: IHitCacheImplementation
   private _disableCache!: boolean
 
-  private _onUserExposed? : ({ metadata, visitor, shouldBeExposed }: OnUserExposedType)=> boolean;
-  public get onUserExposed () : (({ metadata, visitor, shouldBeExposed }: OnUserExposedType)=> boolean)|undefined {
+  private _onUserExposed? : ({ metadata, visitor, hasBeenActivated: shouldBeExposed }: OnUserExposedType)=> void
+  public get onUserExposed () : (({ metadata, visitor, hasBeenActivated: shouldBeExposed }: OnUserExposedType)=> void)|undefined {
     return this._onUserExposed
   }
 

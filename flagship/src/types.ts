@@ -101,4 +101,4 @@ export interface IFlagMetadata{
   slug?:string|null
 }
 
-export type OnUserExposedType = { metadata: IFlagMetadata, visitor: IVisitor, shouldBeExposed: boolean }
+export type OnUserExposedType = { metadata: IFlagMetadata, visitor: IVisitor, hasBeenActivated: boolean }
