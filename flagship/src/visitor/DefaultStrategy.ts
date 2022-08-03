@@ -655,9 +655,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
-    this.onUserExposedCallback({ flag, visitor: this.visitor })
+    await this.sendActivate(flag, functionName)
 
-    return this.sendActivate(flag, functionName)
+    this.onUserExposedCallback({ flag, visitor: this.visitor })
   }
 
   getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}): T {
