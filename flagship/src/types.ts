@@ -107,4 +107,4 @@ export type ExposedFlag = {
   metadata: IFlagMetadata
 }
 
-export type OnUserExposedType = { exposedFlag: ExposedFlag, visitor: IVisitor }
+export type FlagExpositionType = { exposedFlag: ExposedFlag, visitor: IVisitor }

@@ -4,7 +4,7 @@ import { IHitCacheImplementation } from '../cache/IHitCacheImplementation'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, sprintf } from '../utils/utils'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation'
-import { OnUserExposedType } from '../types'
+import { FlagExpositionType } from '../types'
 
 export enum DecisionMode {
   /**
@@ -92,7 +92,7 @@ export interface IFlagshipConfig {
   disableCache?: boolean
 
   language?: 0 | 1 | 2
-  onUserExposed?: (param: OnUserExposedType)=> void
+  onFlagExposition?: (param: FlagExpositionType)=>void
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -119,9 +119,9 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _hitCacheImplementation!: IHitCacheImplementation
   private _disableCache!: boolean
 
-  private _onUserExposed? : ({ metadata, visitor, hasBeenActivated: shouldBeExposed }: OnUserExposedType)=> void
-  public get onUserExposed () : (({ metadata, visitor, hasBeenActivated: shouldBeExposed }: OnUserExposedType)=> void)|undefined {
-    return this._onUserExposed
+  private _onFlagExposition? : (param: FlagExpositionType)=>void
+  public get onFlagExposition () : ((param: FlagExpositionType)=>void)|undefined {
+    return this._onFlagExposition
   }
 
   protected constructor (param: IFlagshipConfig) {
@@ -129,7 +129,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
-      disableCache, language, onUserExposed
+      disableCache, language, onFlagExposition
     } = param
 
     switch (language) {
@@ -168,7 +168,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       this.logManager = logManager
     }
     this.statusChangedCallback = statusChangedCallback
-    this._onUserExposed = onUserExposed
+    this._onFlagExposition = onFlagExposition
   }
 
   public get initialBucketing (): BucketingDTO | undefined {
