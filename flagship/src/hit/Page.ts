@@ -9,7 +9,7 @@ export interface IPage extends IHitAbstract{
 }
 
 export class Page extends HitAbstract implements IPage {
-  private _documentLocation!: string;
+  private _documentLocation!: string
   public get documentLocation (): string {
     return this._documentLocation
   }

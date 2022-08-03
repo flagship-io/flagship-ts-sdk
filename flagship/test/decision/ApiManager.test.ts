@@ -39,7 +39,7 @@ describe('test ApiManager', () => {
   const visitorId = 'visitorId'
   const context = { age: 20 }
 
-  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: apiManager, trackingManager: trackingManager } })
+  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: apiManager, trackingManager } })
 
   const campaignResponse = { status: 200, body: campaigns }
 
@@ -71,7 +71,7 @@ describe('test ApiManager', () => {
     const campaigns = await apiManager.getCampaignsAsync(visitor)
 
     expect(postAsync).toHaveBeenCalledWith(url, {
-      headers: headers,
+      headers,
       timeout: config.timeout,
       body: postData
     })
@@ -89,7 +89,7 @@ describe('test ApiManager', () => {
     const modifications = apiManager.getModifications(campaigns as CampaignDTO[])
 
     expect(postAsync).toHaveBeenCalledWith(url, {
-      headers: headers,
+      headers,
       timeout: config.timeout,
       body: postData
     })
@@ -112,7 +112,7 @@ describe('test ApiManager', () => {
     const modifications = apiManager.getModifications(campaigns as CampaignDTO[])
 
     expect(postAsync).toHaveBeenCalledWith(`${url}&${SEND_CONTEXT_EVENT}=false`, {
-      headers: headers,
+      headers,
       timeout: config.timeout,
       body: postData
     })
