@@ -282,67 +282,6 @@ describe('test DefaultStrategy ', () => {
     expect(sendActive).toBeCalledWith(visitorDelegate, returnMod)
   })
 
-  it('test getFlagValue with onUserExposed callback', () => {
-    const newConfig = new DecisionApiConfig({
-      envId: 'envId',
-      apiKey: 'apiKey',
-      activateDeduplicationTime: 0,
-      hitDeduplicationTime: 0,
-      onUserExposed: ({ metadata, visitor, hasBeenActivated }) => {
-        expect(metadata).toEqual({
-          campaignId: returnMod.campaignId,
-          campaignType: returnMod.campaignType as string,
-          slug: returnMod.slug,
-          isReference: !!returnMod.isReference,
-          variationGroupId: returnMod.variationGroupId,
-          variationId: returnMod.variationId
-        })
-        expect(visitorDelegate).toEqual(visitor)
-        expect(hasBeenActivated).toBeTruthy()
-      }
-    })
-
-    const configManager = new ConfigManager(newConfig, apiManager, trackingManager)
-
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
-    const defaultStrategy = new DefaultStrategy(visitorDelegate)
-    const returnMod = returnModification.get('keyString') as FlagDTO
-    const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: 'defaultValues', flag: returnMod, userExposed: true })
-    expect<string>(value).toBe(returnMod.value)
-    expect(sendActive).toBeCalledTimes(1)
-    expect(sendActive).toBeCalledWith(visitorDelegate, returnMod)
-  })
-
-  it('test getFlagValue with onUserExposed callback', () => {
-    const newConfig = new DecisionApiConfig({
-      envId: 'envId',
-      apiKey: 'apiKey',
-      activateDeduplicationTime: 0,
-      hitDeduplicationTime: 0,
-      onUserExposed: ({ metadata, visitor, hasBeenActivated }) => {
-        expect(metadata).toEqual({
-          campaignId: returnMod.campaignId,
-          campaignType: returnMod.campaignType as string,
-          slug: returnMod.slug,
-          isReference: !!returnMod.isReference,
-          variationGroupId: returnMod.variationGroupId,
-          variationId: returnMod.variationId
-        })
-        expect(visitorDelegate).toEqual(visitor)
-        expect(hasBeenActivated).toBeFalsy()
-      }
-    })
-
-    const configManager = new ConfigManager(newConfig, apiManager, trackingManager)
-
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
-    const defaultStrategy = new DefaultStrategy(visitorDelegate)
-    const returnMod = returnModification.get('keyString') as FlagDTO
-    const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: 'defaultValues', flag: returnMod, userExposed: false })
-    expect<string>(value).toBe(returnMod.value)
-    expect(sendActive).toBeCalledTimes(0)
-  })
-
   it('test getFlagValue with defaultValue null', () => {
     const returnMod = returnModification.get('keyString') as FlagDTO
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: null, flag: returnMod, userExposed: true })
@@ -656,17 +595,20 @@ describe('test DefaultStrategy ', () => {
       apiKey: 'apiKey',
       activateDeduplicationTime: 0,
       hitDeduplicationTime: 0,
-      onUserExposed: ({ metadata, visitor, hasBeenActivated }) => {
-        expect(metadata).toEqual({
-          campaignId: returnMod.campaignId,
-          campaignType: returnMod.campaignType as string,
-          slug: returnMod.slug,
-          isReference: !!returnMod.isReference,
-          variationGroupId: returnMod.variationGroupId,
-          variationId: returnMod.variationId
+      onFlagExposition: ({ exposedFlag, visitor }) => {
+        expect(exposedFlag).toEqual({
+          key: returnMod.key,
+          value: returnMod.value,
+          metadata: {
+            campaignId: returnMod.campaignId,
+            campaignType: returnMod.campaignType as string,
+            slug: returnMod.slug,
+            isReference: !!returnMod.isReference,
+            variationGroupId: returnMod.variationGroupId,
+            variationId: returnMod.variationId
+          }
         })
         expect(visitorDelegate).toEqual(visitor)
-        expect(hasBeenActivated).toBeTruthy()
       }
     })
 

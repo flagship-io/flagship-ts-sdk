@@ -605,6 +605,26 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return this.globalFetchFlags('fetchFlags')
   }
 
+  protected onUserExposedCallback ({ flag, visitor }:{flag:FlagDTO, visitor:IVisitor}) {
+    if (typeof this.config.onFlagExposition === 'function') {
+      this.config.onFlagExposition({
+        exposedFlag: {
+          metadata: {
+            campaignId: flag.campaignId,
+            campaignType: flag.campaignType as string,
+            slug: flag.slug,
+            isReference: !!flag.isReference,
+            variationGroupId: flag.variationGroupId,
+            variationId: flag.variationId
+          },
+          key: flag.key,
+          value: flag.value
+        },
+        visitor
+      })
+    }
+  }
+
   async userExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T}): Promise<void> {
     const { key, flag, defaultValue } = param
 
@@ -635,27 +655,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
+    this.onUserExposedCallback({ flag, visitor: this.visitor })
+
     await this.sendActivate(flag, functionName)
-
-    this.onUserExposedCallback({ flag, visitor: this.visitor, hasBeenActivated: true })
-  }
-
-  protected onUserExposedCallback (param:{flag:FlagDTO, visitor:IVisitor, hasBeenActivated:boolean}) {
-    const { flag, visitor, hasBeenActivated } = param
-    if (typeof this.config.onUserExposed === 'function') {
-      this.config.onUserExposed({
-        metadata: {
-          campaignId: flag.campaignId,
-          campaignType: flag.campaignType as string,
-          slug: flag.slug,
-          isReference: !!flag.isReference,
-          variationGroupId: flag.variationGroupId,
-          variationId: flag.variationId
-        },
-        visitor,
-        hasBeenActivated
-      })
-    }
   }
 
   getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}): T {
@@ -688,8 +690,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     if (userExposed) {
       this.userExposed({ key, flag, defaultValue })
-    } else {
-      this.onUserExposedCallback({ flag, visitor: this.visitor, hasBeenActivated: false })
     }
 
     return flag.value
