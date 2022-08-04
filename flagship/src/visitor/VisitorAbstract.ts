@@ -40,15 +40,15 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._context = {}
     this._configManager = configManager
 
-    const VisitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
-    this.visitorId = visitorId || VisitorCache?.visitorId || this.uuidV4()
+    const visitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
+    this.visitorId = visitorId || (!isAuthenticated && visitorCache?.anonymousId ? visitorCache?.anonymousId : visitorCache?.visitorId) || this.uuidV4()
 
     this.setConsent(hasConsented ?? true)
 
     this.campaigns = []
 
     this.updateContext(context)
-    this._anonymousId = VisitorCache?.anonymousId || null
+    this._anonymousId = isAuthenticated && visitorCache?.anonymousId ? visitorCache?.anonymousId : null
     this.loadPredefinedContext()
 
     if (!this._anonymousId && isAuthenticated && this.config.decisionMode === DecisionMode.DECISION_API) {
@@ -101,11 +101,11 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   }
 
   protected updateCache (): void {
-    const visitorProfil = {
+    const visitorProfile = {
       visitorId: this.visitorId,
       anonymousId: this.anonymousId
     }
-    cacheVisitor.saveVisitorProfile(visitorProfil)
+    cacheVisitor.saveVisitorProfile(visitorProfile)
   }
 
   protected loadPredefinedContext (): void {
