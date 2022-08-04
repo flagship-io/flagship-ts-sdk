@@ -7,6 +7,8 @@ import { Mock } from 'jest-mock'
 describe('test hit Batch', () => {
   const methodNow = Date.now
   const mockNow:Mock<number, []> = jest.fn()
+
+  const visitorId = 'visitorIds'
   beforeAll(() => {
     Date.now = mockNow
     mockNow.mockReturnValue(1)
@@ -15,8 +17,8 @@ describe('test hit Batch', () => {
     Date.now = methodNow
   })
   const hits = [
-    new Screen({ documentLocation: 'screenName2' }),
-    new Page({ documentLocation: 'http://localhost' })]
+    new Screen({ documentLocation: 'screenName2', visitorId }),
+    new Page({ documentLocation: 'http://localhost', visitorId })]
   const batch = new Batch({
     hits
   })
@@ -26,7 +28,6 @@ describe('test hit Batch', () => {
       t: 'BATCH',
       h: hits.map(item => {
         const hitKeys = item.toApiKeys()
-        delete hitKeys[CUSTOMER_ENV_ID_API_ITEM]
         delete hitKeys[DS_API_ITEM]
         return hitKeys
       })

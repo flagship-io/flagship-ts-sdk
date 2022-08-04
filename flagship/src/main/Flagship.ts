@@ -8,12 +8,13 @@ import { TrackingManager } from '../api/TrackingManager'
 import { FlagshipLogManager } from '../utils/FlagshipLogManager'
 import { isBrowser, logError, logInfo, sprintf } from '../utils/utils'
 import {
+  BatchStrategy,
   INITIALIZATION_PARAM_ERROR,
+  LogLevel,
   NEW_VISITOR_NOT_READY,
   PROCESS_INITIALIZATION,
   PROCESS_NEW_VISITOR,
-  SDK_STARTED_INFO,
-  SDK_VERSION
+  SDK_STARTED_INFO
 } from '../enum/index'
 import { VisitorDelegate } from '../visitor/VisitorDelegate'
 import { BucketingConfig } from '../config/index'
@@ -25,12 +26,14 @@ import { FlagDTO, NewVisitor, primitive } from '../types'
 import { CampaignDTO } from '../decision/api/models'
 import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
+import { Monitoring } from '../hit/Monitoring'
+import { version as packageVersion } from '../sdkVersion'
 
 export class Flagship {
-  private static _instance: Flagship;
-  private _configManger!: IConfigManager;
-  private _config!: IFlagshipConfig;
-  private _status!: FlagshipStatus;
+  private static _instance: Flagship
+  private _configManger!: IConfigManager
+  private _config!: IFlagshipConfig
+  private _status!: FlagshipStatus
   private _visitorInstance?: Visitor
 
   private set configManager (value: IConfigManager) {
@@ -56,11 +59,20 @@ export class Flagship {
   protected setStatus (status: FlagshipStatus): void {
     const statusChanged = this.getConfig().statusChangedCallback
 
-    if (this.getConfig() && statusChanged && this._status !== status) {
-      this._status = status
-      statusChanged(status)
-      return
+    if (this._status !== status) {
+      if (status === FlagshipStatus.READY) {
+        this.configManager?.trackingManager?.startBatchingLoop()
+      } else {
+        this.configManager?.trackingManager?.stopBatchingLoop()
+      }
+
+      if (this.getConfig() && statusChanged) {
+        this._status = status
+        statusChanged(status)
+        return
+      }
     }
+
     this._status = status
   }
 
@@ -156,6 +168,11 @@ export class Flagship {
 
     config = flagship.buildConfig(config)
 
+    const configCheck = {
+      useCustomLogManager: !!config.logManager,
+      useCustomCacheManager: !!config.hitCacheImplementation || !!config.visitorCacheImplementation
+    }
+
     config.envId = envId
     config.apiKey = apiKey
 
@@ -176,6 +193,7 @@ export class Flagship {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (!config.hitCacheImplementation && isBrowser()) {
+      configCheck.useCustomLogManager = false
       config.hitCacheImplementation = new DefaultHitCache()
     }
 
@@ -214,9 +232,31 @@ export class Flagship {
 
     logInfo(
       config,
-      sprintf(SDK_STARTED_INFO, SDK_VERSION),
+      sprintf(SDK_STARTED_INFO, packageVersion),
       PROCESS_INITIALIZATION
     )
+
+    const initMonitoring = new Monitoring({
+      action: 'SDK-INITIALIZATION',
+      subComponent: 'Flagship.start',
+      logLevel: LogLevel.INFO,
+      message: 'Flagship initialized',
+      sdkConfigCustomCacheManager: configCheck.useCustomCacheManager,
+      sdkConfigCustomLogManager: configCheck.useCustomLogManager,
+      sdkConfigMode: config.decisionMode,
+      sdkConfigPollingTime: config.pollingInterval?.toString(),
+      sdkConfigStatusListener: !!config.statusChangedCallback,
+      sdkConfigTimeout: config.timeout?.toString(),
+      sdkStatus: FlagshipStatus[flagship.getStatus()],
+      sdkConfigTrackingManagerConfigBatchIntervals: config.trackingMangerConfig?.batchIntervals?.toString(),
+      sdkConfigTrackingManagerConfigBatchLength: config.trackingMangerConfig?.batchLength?.toString(),
+      sdkConfigTrackingManagerConfigStrategy: BatchStrategy[config.trackingMangerConfig?.batchStrategy as BatchStrategy],
+      visitorId: '0',
+      anonymousId: '',
+      config
+    })
+
+    trackingManager.addHit(initMonitoring)
     return flagship
   }
 

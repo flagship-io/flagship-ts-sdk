@@ -4,8 +4,9 @@ import { CUSTOMER_ENV_ID_API_ITEM, CUSTOMER_UID, DS_API_ITEM, HitType, QT_API_IT
 import { Consent, ERROR_MESSAGE } from '../../src/hit/Consent'
 
 describe('test hit type Campaign', () => {
-  const consentHit = new Consent({ visitorConsent: true })
   const visitorId = 'visitorID'
+  const consentHit = new Consent({ visitorConsent: true, visitorId })
+
   const anonymousId = 'anonymousId'
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
 

@@ -2,7 +2,7 @@ import { CUSTOMER_ENV_ID_API_ITEM, DS_API_ITEM, QT_API_ITEM, T_API_ITEM } from '
 import { IHit } from '../types'
 import { HitAbstract, IHitAbstract } from './HitAbstract'
 
-export interface IBatch extends IHitAbstract {
+export interface IBatch extends IHitAbstract{
     hits: HitAbstract[]
 }
 
@@ -13,7 +13,7 @@ export interface BatchDTO {
 }
 
 export const ERROR_MESSAGE = 'Please check required fields'
-export class Batch extends HitAbstract implements IBatch {
+export class Batch extends HitAbstract implements Omit<IBatch, 'visitorId'|'anonymousId'> {
     private _hits! : HitAbstract[];
     public get hits () : HitAbstract[] {
       return this._hits
@@ -23,8 +23,8 @@ export class Batch extends HitAbstract implements IBatch {
       this._hits = v
     }
 
-    constructor (params: Omit<IBatch, 'type'|'createdAt'>) {
-      super({ ...params, type: BATCH })
+    constructor (params: Omit<IBatch, 'type'|'createdAt'|'visitorId'|'anonymousId'>) {
+      super({ ...params, visitorId: '', anonymousId: '', type: BATCH })
       this.hits = params.hits
     }
 
@@ -46,7 +46,6 @@ export class Batch extends HitAbstract implements IBatch {
       }
       apiKeys.h = this.hits.map(hit => {
         const hitKeys = hit.toApiKeys()
-        delete hitKeys[CUSTOMER_ENV_ID_API_ITEM]
         delete hitKeys[DS_API_ITEM]
         return hitKeys
       })

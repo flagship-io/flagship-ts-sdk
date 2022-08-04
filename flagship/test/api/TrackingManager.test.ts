@@ -13,6 +13,7 @@ import { Mock } from 'jest-mock'
 import { Consent } from '../../src/hit/Consent'
 import { Segment } from '../../src/hit/Segment'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
+import { Activate } from '../../src/hit/Activate'
 
 describe('test TrackingManager', () => {
   const httpClient = new HttpClient()
@@ -20,6 +21,7 @@ describe('test TrackingManager', () => {
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
 
   const trackingManager = new TrackingManager(httpClient, config)
+  const visitorId = 'visitorId'
 
   it('Test properties ', async () => {
     expect(config).toBe(trackingManager.config)
@@ -29,7 +31,8 @@ describe('test TrackingManager', () => {
   it('Test addHit method', async () => {
     const CampaignHit = new Campaign({
       variationGroupId: 'variationGrID',
-      campaignId: 'campaignID'
+      campaignId: 'campaignID',
+      visitorId
     })
 
     await trackingManager.addHit(CampaignHit)
@@ -54,7 +57,7 @@ describe('test TrackingManager Strategy ', () => {
 
   it('Test instance of BatchingContinuousCachingStrategy ', async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (config.trackingMangerConfig as any)._batchStrategy = BatchStrategy.BATCHING_WITH_PERIODIC_CACHING_STRATEGY
+    (config.trackingMangerConfig as any)._batchStrategy = BatchStrategy.PERIODIC_CACHING
     const trackingManager = new TrackingManager(httpClient, config)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((trackingManager as any).strategy).toBeInstanceOf(BatchingPeriodicCachingStrategy)
@@ -78,6 +81,8 @@ describe('test TrackingManager Strategy ', () => {
 
   const trackingManager = new TrackingManager(httpClient, config)
 
+  const visitorId = 'visitorId'
+
   it('Test startBatchingLoop and  stopBatchingLoop methods', async () => {
     postAsync.mockImplementation(async () => {
       await sleep(250)
@@ -85,7 +90,8 @@ describe('test TrackingManager Strategy ', () => {
     })
     const CampaignHit = new Campaign({
       variationGroupId: 'variationGrID',
-      campaignId: 'campaignID'
+      campaignId: 'campaignID',
+      visitorId
     })
     config.trackingMangerConfig.batchIntervals = 0.2
 
@@ -126,44 +132,58 @@ describe('test TrackingManager lookupHits', () => {
   it('test lookupHits', async () => {
     const campaignHit = new Campaign({
       variationGroupId: 'variationGrID',
-      campaignId: 'campaignID'
+      campaignId: 'campaignID',
+      visitorId
     })
 
     const consentHit = new Consent({
-      visitorConsent: true
+      visitorConsent: true,
+      visitorId
     })
 
     const eventHit = new Event({
       category: EventCategory.ACTION_TRACKING,
-      action: 'click'
+      action: 'click',
+      visitorId
     })
 
     const itemHit = new Item({
       transactionId: 'transactionId',
       productName: 'productName',
-      productSku: 'productSku'
+      productSku: 'productSku',
+      visitorId
     })
 
     const pageHit = new Page({
-      documentLocation: 'http://127.0.0.1:5500'
+      documentLocation: 'http://127.0.0.1:5500',
+      visitorId
     })
 
     const screenHit = new Screen({
-      documentLocation: 'home'
+      documentLocation: 'home',
+      visitorId
     })
 
     const segmentHit = new Segment({
       sl: {
         any: 'value'
-      }
+      },
+      visitorId
     })
 
     const transactionHit = new Transaction({
       transactionId: 'transactionId',
-      affiliation: 'affiliation'
+      affiliation: 'affiliation',
+      visitorId
     })
 
-    const hits = [campaignHit, consentHit, eventHit, itemHit, pageHit, screenHit, segmentHit, transactionHit]
+    const activate = new Activate({
+      visitorId,
+      variationGroupId: 'varGrId',
+      variationId: 'varId'
+    })
+
+    const hits = [campaignHit, consentHit, eventHit, itemHit, pageHit, screenHit, segmentHit, transactionHit, activate]
     const data:Record<string, HitCacheDTO> = {}
 
     hits.forEach(hit => {
@@ -220,7 +240,7 @@ describe('test TrackingManager lookupHits', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const _hitsPoolQueue = (trackingManager as any)._hitsPoolQueue
 
-    expect(_hitsPoolQueue.size).toBe(8)
+    expect(_hitsPoolQueue.size).toBe(9)
 
     expect(lookupHits).toBeCalledTimes(1)
 

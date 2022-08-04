@@ -23,7 +23,8 @@ import { sprintf } from '../../src/utils/utils'
 
 describe('test hit type Page', () => {
   const url = 'https://localhost'
-  const page = new Page({ documentLocation: url })
+  const visitorId = 'visitorId'
+  const page = new Page({ documentLocation: url, visitorId })
 
   it('should', () => {
     expect(page.documentLocation).toBe(url)
@@ -36,7 +37,6 @@ describe('test hit type Page', () => {
 
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
-  const visitorId = 'visitorId'
 
   it('should ', () => {
     page.config = config

@@ -29,6 +29,7 @@ const getNull = (): any => {
 describe('test hit type Event', () => {
   const methodNow = Date.now
   const mockNow:Mock<number, []> = jest.fn()
+  const visitorId = 'visitorId'
   beforeAll(() => {
     Date.now = mockNow
     mockNow.mockReturnValue(1)
@@ -38,7 +39,7 @@ describe('test hit type Event', () => {
   })
   const category = EventCategory.ACTION_TRACKING
   const action = 'action'
-  const event = new Event({ category, action })
+  const event = new Event({ category, action, visitorId })
 
   it('should ', () => {
     expect(event.category).toBe(category)
@@ -47,7 +48,7 @@ describe('test hit type Event', () => {
     expect(event.ds).toBeUndefined()
     expect(event.label).toBeUndefined()
     expect(event.value).toBeUndefined()
-    expect(event.visitorId).toBeUndefined()
+    expect(event.visitorId).toBe(visitorId)
     expect(event.anonymousId).toBeNull()
     expect(event.getErrorMessage()).toBe(ERROR_MESSAGE)
     expect(event.userIp).toBeUndefined()
@@ -65,7 +66,8 @@ describe('test hit type Event', () => {
       userIp: '127.0.0.1',
       screenResolution: '800X600',
       locale: 'fr',
-      sessionNumber: '12345'
+      sessionNumber: '12345',
+      visitorId
     }
 
     const event = new Event(params)
@@ -102,11 +104,6 @@ describe('test hit type Event', () => {
     expect(event.ds).toBe(SDK_APP)
   })
 
-  it('test isReady method', () => {
-    expect(event.isReady()).toBeFalsy()
-  })
-
-  const visitorId = 'visitorId'
   it('test visitorId', () => {
     event.visitorId = visitorId
     expect(event.visitorId).toBe(visitorId)

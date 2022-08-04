@@ -16,6 +16,7 @@ import { Visitor } from '../../src/visitor/Visitor'
 import { Mock } from 'jest-mock'
 import { DefaultVisitorCache } from '../../src/cache/DefaultVisitorCache'
 import { DefaultHitCache } from '../../src/cache/DefaultHitCache'
+import { version } from '../../src/sdkVersion'
 
 const getCampaignsAsync = jest.fn().mockReturnValue(Promise.resolve([]))
 
@@ -34,6 +35,8 @@ const startBatchingLoop: Mock<Promise<void>, []> = jest.fn()
 startBatchingLoop.mockResolvedValue()
 const addHit: Mock<Promise<void>, []> = jest.fn()
 
+const stopBatchingLoop:Mock<Promise<void>, []> = jest.fn()
+
 addHit.mockResolvedValue()
 
 jest.mock('../../src/api/TrackingManager', () => {
@@ -41,6 +44,7 @@ jest.mock('../../src/api/TrackingManager', () => {
     TrackingManager: jest.fn().mockImplementation(() => {
       return {
         startBatchingLoop,
+        stopBatchingLoop,
         addHit
       }
     })
@@ -133,7 +137,7 @@ describe('test Flagship with custom config', () => {
 
     expect(infoLog).toBeCalledTimes(1)
     expect(infoLog).toBeCalledWith(
-      sprintf(SDK_STARTED_INFO, SDK_VERSION),
+      sprintf(SDK_STARTED_INFO, version),
       PROCESS_INITIALIZATION
     )
     expect(instance).toBeInstanceOf(Flagship)
@@ -166,13 +170,14 @@ describe('test Flagship newVisitor', () => {
       fs_version: SDK_VERSION,
       fs_users: visitorId
     }
+    expect(addHit).toBeCalledTimes(1)
     let visitor = Flagship.newVisitor({ visitorId, context })
 
     expect(visitor?.visitorId).toBe(visitorId)
     expect(visitor?.context).toEqual({ ...context, ...predefinedContext })
     expect(Flagship.getVisitor()).toBeUndefined()
 
-    expect(addHit).toBeCalledTimes(1)
+    expect(addHit).toBeCalledTimes(2)
 
     const visitorNull = Flagship.newVisitor({ visitorId: getNull(), context })
     expect(visitorNull).toBeInstanceOf(Visitor)

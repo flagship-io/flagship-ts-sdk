@@ -5,9 +5,10 @@ import { Campaign, ERROR_MESSAGE } from '../../src/hit/Campaign'
 
 describe('test hit type Campaign', () => {
   const variationGroupId = 'variationGroupId'
-  const campaignId = 'campaignId'
-  const campaign = new Campaign({ variationGroupId, campaignId })
   const visitorId = 'visitorID'
+  const campaignId = 'campaignId'
+  const campaign = new Campaign({ variationGroupId, campaignId, visitorId })
+
   const anonymousId = 'anonymousId'
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
 

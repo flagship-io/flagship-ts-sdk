@@ -29,7 +29,8 @@ import { sprintf } from '../../src/utils/utils'
 describe('test hit type Transaction', () => {
   const transactionId = 'transactionId'
   const affiliation = 'affiliation'
-  const transaction = new Transaction({ transactionId, affiliation })
+  const visitorId = 'visitorId'
+  const transaction = new Transaction({ transactionId, affiliation, visitorId })
 
   it('should ', () => {
     expect(transaction.transactionId).toBe(transactionId)
@@ -57,7 +58,8 @@ describe('test hit type Transaction', () => {
       shippingCosts: 45,
       shippingMethod: 'method-ship',
       taxes: 45,
-      totalRevenue: 78
+      totalRevenue: 78,
+      visitorId
     }
     const transaction = new Transaction(params)
 
@@ -79,7 +81,6 @@ describe('test hit type Transaction', () => {
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
 
-  const visitorId = 'visitorId'
   it('should ', () => {
     transaction.config = config
     transaction.ds = SDK_APP

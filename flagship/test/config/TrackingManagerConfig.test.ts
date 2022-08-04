@@ -7,18 +7,18 @@ describe('test TrackingManagerConfig', () => {
     const trackingConfig = new TrackingManagerConfig()
     expect(trackingConfig.batchIntervals).toBe(DEFAULT_TIME_INTERVAL)
     expect(trackingConfig.batchLength).toBe(DEFAULT_BATCH_LENGTH)
-    expect(trackingConfig.batchStrategy).toBe(BatchStrategy.BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY)
+    expect(trackingConfig.batchStrategy).toBe(BatchStrategy.CONTINUOUS_CACHING)
   })
 
   it('test construct ', () => {
     const trackingConfig = new TrackingManagerConfig({
       batchIntervals: 15,
-      batchStrategy: BatchStrategy.BATCHING_WITH_PERIODIC_CACHING_STRATEGY,
+      batchStrategy: BatchStrategy.PERIODIC_CACHING,
       batchLength: 21
     })
     expect(trackingConfig.batchIntervals).toBe(15)
     expect(trackingConfig.batchLength).toBe(21)
-    expect(trackingConfig.batchStrategy).toBe(BatchStrategy.BATCHING_WITH_PERIODIC_CACHING_STRATEGY)
+    expect(trackingConfig.batchStrategy).toBe(BatchStrategy.PERIODIC_CACHING)
   })
 
   it('test properties ', () => {
@@ -27,6 +27,6 @@ describe('test TrackingManagerConfig', () => {
     trackingConfig.batchLength = 21
     expect(trackingConfig.batchIntervals).toBe(15)
     expect(trackingConfig.batchLength).toBe(21)
-    expect(trackingConfig.batchStrategy).toBe(BatchStrategy.BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY)
+    expect(trackingConfig.batchStrategy).toBe(BatchStrategy.CONTINUOUS_CACHING)
   })
 })

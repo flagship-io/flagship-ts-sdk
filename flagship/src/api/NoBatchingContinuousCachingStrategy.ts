@@ -1,5 +1,5 @@
 import { IFlagshipConfig } from '../config/index'
-import { HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, SDK_LANGUAGE, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, SEND_BATCH, HIT_SENT_SUCCESS, ADD_HIT } from '../enum/index'
+import { HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, SDK_LANGUAGE, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, SEND_BATCH, HIT_SENT_SUCCESS, ACTIVATE_SENT_SUCCESS, BASE_API_URL, SEND_ACTIVATE, URL_ACTIVATE_MODIFICATION, SEND_HIT } from '../enum/index'
 import { Batch } from '../hit/Batch'
 import { HitAbstract, Consent } from '../hit/index'
 import { IHttpClient } from '../utils/HttpClient'
@@ -24,6 +24,15 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
 
       await this.cacheHit(new Map<string, HitAbstract>().set(hitKey, hit))
 
+      if (hit.type === 'ACTIVATE') {
+        await this.sendActivateHit(hit)
+        return
+      }
+
+      await this.sendHit(hit)
+    }
+
+    async sendHit (hit:HitAbstract):Promise<void> {
       const headers = {
         [HEADER_X_API_KEY]: `${this.config.apiKey}`,
         [HEADER_X_ENV_ID]: `${this.config.envId}`,
@@ -40,20 +49,53 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
           body: requestBody
         })
 
-        logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(requestBody)), ADD_HIT)
+        logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(requestBody)), SEND_HIT)
 
-        await this.flushHits([hitKey])
+        await this.flushHits([hit.key])
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error:any) {
         if (hit.type !== HitType.CONSENT) {
-          this.cacheHitKeys[hitKey] = hitKey
+          this.cacheHitKeys[hit.key] = hit.key
         }
         logError(this.config, errorFormat(error.message || error, {
           url: HIT_EVENT_URL,
           headers,
           body: requestBody
-        }), ADD_HIT)
+        }), SEND_HIT)
+      }
+    }
+
+    async sendActivateHit (activateHit:HitAbstract):Promise<void> {
+      const url = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const activateHeader = {
+        [HEADER_X_API_KEY]: this.config.apiKey as string,
+        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
+        [HEADER_X_SDK_VERSION]: SDK_VERSION,
+        [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
+      }
+
+      const activateBody = activateHit.toApiKeys()
+
+      try {
+        await this._httpClient.postAsync(url, {
+          headers: activateHeader,
+          body: activateBody
+        })
+
+        logDebug(this.config, sprintf(ACTIVATE_SENT_SUCCESS, JSON.stringify(activateBody)), SEND_ACTIVATE)
+        await this.flushHits([activateHit.key])
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error:any) {
+        this.cacheHitKeys[activateHit.key] = activateHit.key
+        logError(this.config, errorFormat(error.message || error, {
+          url,
+          headers: activateHeader,
+          body: activateBody
+        }), SEND_ACTIVATE)
       }
     }
 
@@ -81,6 +123,45 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       this.cacheHitKeys = {}
     }
 
+    async sendActivate (activateHits:HitAbstract[]):Promise<void> {
+      const activateHitKeys:string[] = []
+
+      const url = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const activateHeader = {
+        [HEADER_X_API_KEY]: this.config.apiKey as string,
+        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
+        [HEADER_X_SDK_VERSION]: SDK_VERSION,
+        [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
+      }
+
+      for (const activateHit of activateHits) {
+        this._hitsPoolQueue.delete(activateHit.key)
+        const activateBody = activateHit.toApiKeys()
+
+        try {
+          await this._httpClient.postAsync(url, {
+            headers: activateHeader,
+            body: activateBody
+          })
+          activateHitKeys.push(activateHit.key)
+          logDebug(this.config, sprintf(ACTIVATE_SENT_SUCCESS, JSON.stringify(activateBody)), SEND_ACTIVATE)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error:any) {
+          this._hitsPoolQueue.set(activateHit.key, activateHit)
+          logError(this.config, errorFormat(error.message || error, {
+            url: url,
+            headers: activateHeader,
+            body: activateBody
+          }), SEND_ACTIVATE)
+        }
+      }
+
+      if (activateHitKeys.length) {
+        await this.flushHits(activateHitKeys)
+      }
+    }
+
     async sendBatch (): Promise<void> {
       const headers = {
         [HEADER_X_API_KEY]: `${this.config.apiKey}`,
@@ -95,19 +176,27 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
 
       let batchSize = 0
       let count = 0
+      const activateHits:HitAbstract[] = []
 
-      this._hitsPoolQueue.forEach((item) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      for (const [_, item] of this._hitsPoolQueue) {
+        if (item.type === 'ACTIVATE') {
+          activateHits.push(item)
+          continue
+        }
         count++
         batchSize = JSON.stringify(batch).length
         if (batchSize > BATCH_MAX_SIZE || (this.config.trackingMangerConfig?.batchLength && count > this.config.trackingMangerConfig.batchLength)) {
-          return
+          break
         }
         batch.hits.push(item)
-      })
+      }
 
       batch.hits.forEach(hit => {
         this._hitsPoolQueue.delete(hit.key)
       })
+
+      await this.sendActivate(activateHits)
 
       if (!batch.hits.length) {
         return

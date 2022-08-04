@@ -26,7 +26,7 @@ describe('Test DefaultHitCache', () => {
   global.localStorage = storageMock as any
   const visitorId = 'visitorId'
 
-  const pageHit = new Screen({ documentLocation: 'home' })
+  const pageHit = new Screen({ documentLocation: 'home', visitorId })
   const visitorData : HitCacheDTO = {
     version: HIT_CACHE_VERSION,
     data: {

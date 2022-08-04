@@ -70,12 +70,14 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       return
     }
 
-    const consentHit = new Consent({ visitorConsent: hasConsented })
+    const consentHit = new Consent({
+      visitorConsent: hasConsented,
+      visitorId: this.visitor.visitorId,
+      anonymousId: this.visitor.anonymousId as string
+    })
 
-    consentHit.visitorId = this.visitor.visitorId
     consentHit.ds = SDK_APP
     consentHit.config = this.config
-    consentHit.anonymousId = this.visitor.anonymousId
 
     this.trackingManager.addHit(consentHit).catch((error) => {
       logError(this.config, error.message || error, method)
