@@ -606,9 +606,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   protected onUserExposedCallback ({ flag, visitor }:{flag:FlagDTO, visitor:IVisitor}) {
-    if (typeof this.config.onFlagExposition === 'function') {
-      this.config.onFlagExposition({
-        exposedFlag: {
+    if (typeof this.config.onUserExposure === 'function') {
+      this.config.onUserExposure({
+        flagData: {
           metadata: {
             campaignId: flag.campaignId,
             campaignType: flag.campaignType as string,

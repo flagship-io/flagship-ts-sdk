@@ -100,10 +100,10 @@ export interface IFlagMetadata{
   slug?:string|null
 }
 
-export type FlagExpositionType = {
-  exposedFlag: {
-    value: unknown
+export type UserExposureType = {
+  flagData: {
     key: string
+    value: unknown
     metadata: IFlagMetadata
   },
   visitorData: {

@@ -595,7 +595,7 @@ describe('test DefaultStrategy ', () => {
       apiKey: 'apiKey',
       activateDeduplicationTime: 0,
       hitDeduplicationTime: 0,
-      onFlagExposition: ({ exposedFlag, visitorData }) => {
+      onUserExposure: ({ flagData: exposedFlag, visitorData }) => {
         expect(exposedFlag).toEqual({
           key: returnMod.key,
           value: returnMod.value,

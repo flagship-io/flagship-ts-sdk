@@ -31,7 +31,7 @@ describe('test DecisionApiConfig', () => {
     expect(config.hitDeduplicationTime).toBe(DEFAULT_DEDUPLICATION_TIME)
     expect(config.hitCacheImplementation).toBeUndefined()
     expect(config.visitorCacheImplementation).toBeUndefined()
-    expect(config.onFlagExposition).toBeUndefined()
+    expect(config.onUserExposure).toBeUndefined()
     expect(config.disableCache).toBeFalsy()
   })
 
@@ -74,7 +74,7 @@ describe('test DecisionApiConfig', () => {
       }
     }
 
-    const onFlagExposition = jest.fn()
+    const onUserExposure = jest.fn()
 
     const config = new DecisionApiConfig({
       apiKey,
@@ -89,7 +89,7 @@ describe('test DecisionApiConfig', () => {
       visitorCacheImplementation,
       hitCacheImplementation,
       disableCache: true,
-      onFlagExposition
+      onUserExposure
     })
     expect(config.apiKey).toBe(apiKey)
     expect(config.envId).toBe(envId)
@@ -103,7 +103,7 @@ describe('test DecisionApiConfig', () => {
     expect(config.visitorCacheImplementation).toBe(visitorCacheImplementation)
     expect(config.hitCacheImplementation).toBe(hitCacheImplementation)
     expect(config.disableCache).toBeTruthy()
-    expect(config.onFlagExposition).toBe(onFlagExposition)
+    expect(config.onUserExposure).toBe(onUserExposure)
   })
 
   it('Test envId field ', () => {

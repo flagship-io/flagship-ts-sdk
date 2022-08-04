@@ -4,7 +4,7 @@ import { IHitCacheImplementation } from '../cache/IHitCacheImplementation'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, sprintf } from '../utils/utils'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation'
-import { FlagExpositionType } from '../types'
+import { UserExposureType } from '../types'
 
 export enum DecisionMode {
   /**
@@ -92,7 +92,7 @@ export interface IFlagshipConfig {
   disableCache?: boolean
 
   language?: 0 | 1 | 2
-  onFlagExposition?: (param: FlagExpositionType)=>void
+  onUserExposure?: (param: UserExposureType)=>void
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -119,9 +119,9 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _hitCacheImplementation!: IHitCacheImplementation
   private _disableCache!: boolean
 
-  private _onFlagExposition? : (param: FlagExpositionType)=>void
-  public get onFlagExposition () : ((param: FlagExpositionType)=>void)|undefined {
-    return this._onFlagExposition
+  private _onUserExposure? : (param: UserExposureType)=>void
+  public get onUserExposure () : ((param: UserExposureType)=>void)|undefined {
+    return this._onUserExposure
   }
 
   protected constructor (param: IFlagshipConfig) {
@@ -129,7 +129,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
-      disableCache, language, onFlagExposition
+      disableCache, language, onUserExposure
     } = param
 
     switch (language) {
@@ -168,7 +168,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       this.logManager = logManager
     }
     this.statusChangedCallback = statusChangedCallback
-    this._onFlagExposition = onFlagExposition
+    this._onUserExposure = onUserExposure
   }
 
   public get initialBucketing (): BucketingDTO | undefined {
