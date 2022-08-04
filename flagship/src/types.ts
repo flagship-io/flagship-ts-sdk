@@ -1,7 +1,6 @@
 import { CampaignDTO } from './decision/api/models'
 import { HitType } from './enum/index'
 import { IEvent, IItem, IPage, IScreen, ITransaction, HitShape } from './hit/index'
-import { IVisitor } from './visitor'
 
 export type modificationsRequested<T> = {
     key: string,
@@ -101,10 +100,15 @@ export interface IFlagMetadata{
   slug?:string|null
 }
 
-export type ExposedFlag = {
-  value: unknown
-  key: string
-  metadata: IFlagMetadata
-}
-
-export type FlagExpositionType = { exposedFlag: ExposedFlag, visitor: IVisitor }
+export type FlagExpositionType = {
+  exposedFlag: {
+    value: unknown
+    key: string
+    metadata: IFlagMetadata
+  },
+  visitorData: {
+    visitorId: string
+    anonymousId: string|null
+    context: Record<string, primitive>
+  }
+ }

@@ -620,7 +620,11 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
           key: flag.key,
           value: flag.value
         },
-        visitor
+        visitorData: {
+          visitorId: visitor.visitorId,
+          anonymousId: visitor.anonymousId,
+          context: visitor.context
+        }
       })
     }
   }

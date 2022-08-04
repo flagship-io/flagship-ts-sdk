@@ -595,7 +595,7 @@ describe('test DefaultStrategy ', () => {
       apiKey: 'apiKey',
       activateDeduplicationTime: 0,
       hitDeduplicationTime: 0,
-      onFlagExposition: ({ exposedFlag, visitor }) => {
+      onFlagExposition: ({ exposedFlag, visitorData }) => {
         expect(exposedFlag).toEqual({
           key: returnMod.key,
           value: returnMod.value,
@@ -608,7 +608,11 @@ describe('test DefaultStrategy ', () => {
             variationId: returnMod.variationId
           }
         })
-        expect(visitorDelegate).toEqual(visitor)
+        expect(visitorData).toEqual({
+          visitorId: visitorDelegate.visitorId,
+          anonymousId: visitorDelegate.anonymousId,
+          context: visitorDelegate.context
+        })
       }
     })
 
