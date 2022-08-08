@@ -31,7 +31,7 @@ describe('test BucketingConfig', () => {
 
   it('should ', () => {
     const logManager = new FlagshipLogManager()
-    const config = new BucketingConfig({ fetchNow: true, logManager: logManager })
+    const config = new BucketingConfig({ fetchNow: true, logManager })
     expect(config.logManager).toBeInstanceOf(FlagshipLogManager)
     expect(config.logManager).toBe(logManager)
     expect(config.pollingInterval).toBe(DEFAULT_POLLING_INTERVAL)

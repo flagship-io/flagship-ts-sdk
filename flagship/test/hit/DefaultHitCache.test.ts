@@ -17,7 +17,7 @@ describe('Test DefaultHitCache', () => {
   const visitorData : HitCacheDTO = {
     version: HIT_CACHE_VERSION,
     data: {
-      visitorId: visitorId,
+      visitorId,
       anonymousId: null,
       type: HitType.SCREEN,
       content: {

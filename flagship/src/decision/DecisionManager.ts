@@ -7,10 +7,10 @@ import { FlagshipStatus } from '../enum/index'
 import { FlagDTO } from '../types'
 
 export abstract class DecisionManager implements IDecisionManager {
-  protected _config: IFlagshipConfig;
-  protected _panic = false;
-  protected _httpClient: IHttpClient;
-  private _statusChangedCallback! : (status: FlagshipStatus)=>void;
+  protected _config: IFlagshipConfig
+  protected _panic = false
+  protected _httpClient: IHttpClient
+  private _statusChangedCallback! : (status: FlagshipStatus)=>void
 
   public get config ():IFlagshipConfig {
     return this._config

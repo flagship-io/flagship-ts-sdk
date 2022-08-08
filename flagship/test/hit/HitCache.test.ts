@@ -101,7 +101,7 @@ describe('test visitor hit cache', () => {
     const hitData1: HitCacheDTO = {
       version: HIT_CACHE_VERSION,
       data: {
-        visitorId: visitorId,
+        visitorId,
         anonymousId: visitorDelegate.anonymousId,
         type: 'ACTIVATE',
         content: {
@@ -119,7 +119,7 @@ describe('test visitor hit cache', () => {
     const hitData2: HitCacheDTO = {
       version: HIT_CACHE_VERSION,
       data: {
-        visitorId: visitorId,
+        visitorId,
         anonymousId: visitorDelegate.anonymousId,
         type: HitType.SCREEN,
         content: {
