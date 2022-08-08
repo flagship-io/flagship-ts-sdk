@@ -649,7 +649,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return defaultValue
     }
 
-    if (!flag.value) {
+    if (flag.value === null) {
       if (userExposed) {
         this.userExposed({ key, flag, defaultValue })
       }
