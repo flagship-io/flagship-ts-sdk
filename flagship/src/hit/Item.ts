@@ -21,12 +21,12 @@ export interface IItem extends IHitAbstract{
 }
 
 export class Item extends HitAbstract implements IItem {
-  private _transactionId!: string;
-  private _productName!: string;
-  private _productSku!: string;
-  private _itemPrice!: number;
-  private _itemQuantity!: number;
-  private _itemCategory!: string;
+  private _transactionId!: string
+  private _productName!: string
+  private _productSku!: string
+  private _itemPrice!: number
+  private _itemQuantity!: number
+  private _itemCategory!: string
 
   public get transactionId (): string {
     return this._transactionId

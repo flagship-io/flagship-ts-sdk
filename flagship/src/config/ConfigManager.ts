@@ -11,9 +11,9 @@ export interface IConfigManager {
 
 }
 export class ConfigManager implements IConfigManager {
-  private _config: IFlagshipConfig;
-  private _decisionManager: IDecisionManager;
-  private _trackingManager: ITrackingManager;
+  private _config: IFlagshipConfig
+  private _decisionManager: IDecisionManager
+  private _trackingManager: ITrackingManager
 
   public constructor (
     config: IFlagshipConfig,

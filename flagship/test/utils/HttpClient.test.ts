@@ -12,7 +12,7 @@ describe('test Post method NOdeHttpClient', () => {
   const url = 'https://localhost'
   const timeout = 2000
   const options: IHttpOptions = {
-    timeout: timeout,
+    timeout,
     headers: {
       'x-api-toke': 'token'
     },
@@ -60,7 +60,7 @@ describe('test Get method NOdeHttpClient', () => {
   const url = 'https://localhost'
   const timeout = 2000
   const options: IHttpOptions = {
-    timeout: timeout,
+    timeout,
     headers: {
       'x-api-toke': 'token'
     }

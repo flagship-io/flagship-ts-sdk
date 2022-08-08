@@ -89,7 +89,7 @@ export class TrackingManager extends TrackingManagerAbstract {
     }
 
     await this.httpClient.postAsync(url, {
-      headers: headers,
+      headers,
       timeout: this.config.timeout,
       body: postData
     })
@@ -101,7 +101,7 @@ export class TrackingManager extends TrackingManagerAbstract {
     }
 
     await this.httpClient.postAsync(HIT_API_URL, {
-      headers: headers,
+      headers,
       timeout: this.config.timeout,
       body: hit.toApiKeys()
     })

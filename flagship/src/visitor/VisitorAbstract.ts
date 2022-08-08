@@ -18,13 +18,13 @@ import { IFlag } from '../flag/Flags'
 import { IFlagMetadata } from '../flag/FlagMetadata'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
-  protected _visitorId!: string;
-  protected _context: Record<string, primitive>;
-  protected _flags!: Map<string, FlagDTO>;
-  protected _configManager: IConfigManager;
-  protected _campaigns!: CampaignDTO[];
-  protected _hasConsented!: boolean;
-  protected _anonymousId!: string | null;
+  protected _visitorId!: string
+  protected _context: Record<string, primitive>
+  protected _flags!: Map<string, FlagDTO>
+  protected _configManager: IConfigManager
+  protected _campaigns!: CampaignDTO[]
+  protected _hasConsented!: boolean
+  protected _anonymousId!: string | null
   public deDuplicationCache: Record<string, number>
   protected _isCleaningDeDuplicationCache: boolean
   public visitorCache?: VisitorCacheDTO

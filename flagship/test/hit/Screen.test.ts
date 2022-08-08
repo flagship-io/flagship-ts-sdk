@@ -18,7 +18,7 @@ import { sprintf } from '../../src/utils/utils'
 
 describe('test hit type Page', () => {
   const documentLocation = 'home'
-  const screen = new Screen({ documentLocation: documentLocation })
+  const screen = new Screen({ documentLocation })
 
   it('should ', () => {
     expect(screen.documentLocation).toBe(documentLocation)

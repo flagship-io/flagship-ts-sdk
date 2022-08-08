@@ -25,10 +25,10 @@ export interface IEvent extends IHitAbstract{
 }
 
 export class Event extends HitAbstract implements IEvent {
-  private _category!: EventCategory;
-  private _action!: string;
-  private _label!: string;
-  private _value!: number;
+  private _category!: EventCategory
+  private _action!: string
+  private _label!: string
+  private _value!: number
 
   public get category (): EventCategory {
     return this._category

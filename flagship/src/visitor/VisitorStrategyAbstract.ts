@@ -19,7 +19,7 @@ export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCac
 export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheDTO'
 export const VISITOR_ID_MISMATCH_ERROR = 'Visitor ID mismatch: {0} vs {1}'
 export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'flagsData'|'modifications'|'context'|'hasConsented'|'getModificationsArray'|'getFlagsDataArray'|'getFlag'> {
-  protected visitor:VisitorAbstract;
+  protected visitor:VisitorAbstract
 
   protected get configManager ():IConfigManager {
     return this.visitor.configManager

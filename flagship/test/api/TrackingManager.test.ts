@@ -93,7 +93,7 @@ describe('test TrackingManager sendActive ', () => {
       await trackingManager.sendActive(visitor, modification)
 
       expect(postAsync).toHaveBeenCalledWith(url, {
-        headers: headers,
+        headers,
         timeout: config.timeout,
         body: postData
       })
@@ -101,7 +101,7 @@ describe('test TrackingManager sendActive ', () => {
       postAsync.mockRejectedValue(postResponseError)
       await trackingManager.sendActive(visitor, modification)
       expect(postAsync).toHaveBeenCalledWith(url, {
-        headers: headers,
+        headers,
         timeout: config.timeout,
         body: postData
       })
@@ -126,7 +126,7 @@ describe('test TrackingManager sendActive ', () => {
       await trackingManager.sendActive(visitor, modification)
 
       expect(postAsync).toHaveBeenCalledWith(url, {
-        headers: headers,
+        headers,
         timeout: config.timeout,
         body: postData
       })
@@ -134,7 +134,7 @@ describe('test TrackingManager sendActive ', () => {
       postAsync.mockRejectedValue(postResponseError)
       await trackingManager.sendActive(visitor, modification)
       expect(postAsync).toHaveBeenCalledWith(url, {
-        headers: headers,
+        headers,
         timeout: config.timeout,
         body: postData
       })
@@ -168,7 +168,7 @@ describe('test TrackingManager sendHit ', () => {
       postAsync.mockResolvedValue(postResponse)
       await trackingManager.sendHit(hit)
       expect(postAsync).toBeCalledWith(HIT_API_URL, {
-        headers: headers,
+        headers,
         timeout: config.timeout,
         body: hit.toApiKeys()
       })
@@ -176,7 +176,7 @@ describe('test TrackingManager sendHit ', () => {
       postAsync.mockRejectedValue(postResponseError)
       await trackingManager.sendHit(hit)
       expect(postAsync).toBeCalledWith(HIT_API_URL, {
-        headers: headers,
+        headers,
         timeout: config.timeout,
         body: hit.toApiKeys()
       })
@@ -223,7 +223,7 @@ describe('test TrackingManager sendConsentHit ', () => {
     await trackingManager.sendConsentHit(visitor)
 
     expect(postAsync).toBeCalledWith(HIT_CONSENT_URL, {
-      headers: headers,
+      headers,
       timeout: config.timeout,
       body: postBody
     })
@@ -241,7 +241,7 @@ describe('test TrackingManager sendConsentHit ', () => {
     postAsync.mockResolvedValue(postResponse)
     await trackingManager.sendConsentHit(visitor)
     expect(postAsync).toBeCalledWith(HIT_CONSENT_URL, {
-      headers: headers,
+      headers,
       timeout: config.timeout,
       body: postBody
     })
