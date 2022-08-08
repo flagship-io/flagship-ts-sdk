@@ -23,8 +23,8 @@ export interface ITrackingManager {
 }
 
 export abstract class TrackingManagerAbstract implements ITrackingManager {
-  private _httpClient: IHttpClient;
-  private _config: IFlagshipConfig;
+  private _httpClient: IHttpClient
+  private _config: IFlagshipConfig
   constructor (httpClient: IHttpClient, config: IFlagshipConfig) {
     this._httpClient = httpClient
     this._config = config

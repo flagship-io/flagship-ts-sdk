@@ -25,10 +25,11 @@ import { DefaultHitCache } from '../cache/DefaultHitCache.ts'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache.ts'
 
 export class Flagship {
-  private static _instance: Flagship;
-  private _configManger!: IConfigManager;
-  private _config!: IFlagshipConfig;
-  private _status!: FlagshipStatus;
+  // eslint-disable-next-line no-use-before-define
+  private static _instance: Flagship
+  private _configManger!: IConfigManager
+  private _config!: IFlagshipConfig
+  private _status!: FlagshipStatus
   private _visitorInstance?: Visitor
 
   private set configManager (value: IConfigManager) {
@@ -286,8 +287,8 @@ export class Flagship {
       isAuthenticated,
       hasConsented,
       configManager: this.getInstance().configManager,
-      initialModifications: initialModifications,
-      initialCampaigns: initialCampaigns,
+      initialModifications,
+      initialCampaigns,
       initialFlagsData: initialModifications
     })
 
