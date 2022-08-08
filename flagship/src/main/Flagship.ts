@@ -60,10 +60,12 @@ export class Flagship {
     const statusChanged = this.getConfig().statusChangedCallback
 
     if (this._status !== status) {
-      if (status === FlagshipStatus.READY) {
-        this.configManager?.trackingManager?.startBatchingLoop()
-      } else {
-        this.configManager?.trackingManager?.stopBatchingLoop()
+      if (!this.getConfig().isCloudFlareClient) {
+        if (status === FlagshipStatus.READY) {
+          this.configManager?.trackingManager?.startBatchingLoop()
+        } else {
+          this.configManager?.trackingManager?.stopBatchingLoop()
+        }
       }
 
       if (this.getConfig() && statusChanged) {
@@ -215,9 +217,6 @@ export class Flagship {
     let trackingManager = flagship.configManager?.trackingManager
     if (!trackingManager) {
       trackingManager = new TrackingManager(httpClient, config)
-      if (!config.isCloudFlareClient) {
-        trackingManager.startBatchingLoop()
-      }
     }
 
     flagship.configManager = new ConfigManager(
