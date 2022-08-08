@@ -9,7 +9,7 @@ export interface IScreen extends IHitAbstract{
 }
 
 export class Screen extends HitAbstract implements IScreen {
-  private _documentLocation!: string;
+  private _documentLocation!: string
   public get documentLocation (): string {
     return this._documentLocation
   }
