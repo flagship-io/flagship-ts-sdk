@@ -532,7 +532,6 @@ describe('Name of the group', () => {
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBe(anonymousId)
   })
-
   it('should ', () => {
     const loadVisitorProfile:Mock<VisitorProfil, []> = jest.fn()
     cacheVisitor.loadVisitorProfile = loadVisitorProfile
