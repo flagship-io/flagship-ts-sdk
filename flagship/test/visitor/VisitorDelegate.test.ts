@@ -513,8 +513,56 @@ describe('Name of the group', () => {
         trackingManager: {} as TrackingManager
       }
     })
+    expect(visitorDelegate.visitorId).toBe(anonymousId)
+    expect(visitorDelegate.anonymousId).toBeNull()
+  })
+
+  it('should ', () => {
+    const loadVisitorProfile:Mock<VisitorProfil, []> = jest.fn()
+    cacheVisitor.loadVisitorProfile = loadVisitorProfile
+    loadVisitorProfile.mockReturnValue({ visitorId, anonymousId })
+    const visitorDelegate = new VisitorDelegate({
+      context: {},
+      isAuthenticated: true,
+      configManager: {
+        config,
+        decisionManager: {} as DecisionManager,
+        trackingManager: {} as TrackingManager
+      }
+    })
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBe(anonymousId)
+  })
+  it('should ', () => {
+    const loadVisitorProfile:Mock<VisitorProfil, []> = jest.fn()
+    cacheVisitor.loadVisitorProfile = loadVisitorProfile
+    loadVisitorProfile.mockReturnValue({ visitorId, anonymousId: null })
+    const visitorDelegate = new VisitorDelegate({
+      context: {},
+      isAuthenticated: true,
+      configManager: {
+        config,
+        decisionManager: {} as DecisionManager,
+        trackingManager: {} as TrackingManager
+      }
+    })
+    expect(visitorDelegate.visitorId).toBe(visitorId)
+    expect(visitorDelegate.anonymousId).toBeDefined()
+  })
+  it('should ', () => {
+    const loadVisitorProfile:Mock<VisitorProfil, []> = jest.fn()
+    cacheVisitor.loadVisitorProfile = loadVisitorProfile
+    loadVisitorProfile.mockReturnValue({ visitorId, anonymousId: null })
+    const visitorDelegate = new VisitorDelegate({
+      context: {},
+      configManager: {
+        config,
+        decisionManager: {} as DecisionManager,
+        trackingManager: {} as TrackingManager
+      }
+    })
+    expect(visitorDelegate.visitorId).toBe(visitorId)
+    expect(visitorDelegate.anonymousId).toBeNull()
   })
 })
 
