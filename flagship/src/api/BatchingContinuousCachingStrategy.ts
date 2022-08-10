@@ -1,4 +1,4 @@
-import { ACTIVATE_SENT_SUCCESS, ADD_HIT, BASE_API_URL, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_ADDED_IN_QUEUE, HIT_EVENT_URL, SDK_LANGUAGE, SDK_VERSION, SEND_ACTIVATE, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../enum/index'
+import { ACTIVATE_SENT_SUCCESS, ADD_HIT, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_ADDED_IN_QUEUE, SDK_LANGUAGE, SDK_VERSION, SEND_ACTIVATE, SEND_BATCH } from '../enum/index'
 import { Batch } from '../hit/Batch'
 import { HitAbstract, Consent } from '../hit/index'
 import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
@@ -43,7 +43,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
   async sendActivate (activateHits:HitAbstract[]):Promise<void> {
     const activateHitKeys:string[] = []
 
-    const url = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
+    const url = this.config.activateUrl as string
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const activateHeader = {
       [HEADER_X_API_KEY]: this.config.apiKey as string,
@@ -67,7 +67,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       } catch (error:any) {
         this.addHitWithKey(activateHit.key, activateHit)
         logError(this.config, errorFormat(error.message || error, {
-          url: url,
+          url,
           headers: activateHeader,
           body: activateBody
         }), SEND_ACTIVATE)
@@ -121,9 +121,10 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     }
 
     const requestBody = batch.toApiKeys()
+    const url = this.config.collectUrl as string
 
     try {
-      await this._httpClient.postAsync(HIT_EVENT_URL, {
+      await this._httpClient.postAsync(url, {
         headers,
         body: requestBody
       })
@@ -138,7 +139,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
         this.addHitWithKey(hit.key, hit)
       })
       logError(this.config, errorFormat(error.message || error, {
-        url: HIT_EVENT_URL,
+        url,
         headers,
         body: requestBody
       }), SEND_BATCH)

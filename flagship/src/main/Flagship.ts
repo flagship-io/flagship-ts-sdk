@@ -28,12 +28,14 @@ import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 import { Monitoring } from '../hit/Monitoring'
 import { version as packageVersion } from '../sdkVersion'
+import { SelfHostedConfig } from '../config/SelfHostedConfig'
 
 export class Flagship {
-  private static _instance: Flagship;
-  private _configManger!: IConfigManager;
-  private _config!: IFlagshipConfig;
-  private _status!: FlagshipStatus;
+  // eslint-disable-next-line no-use-before-define
+  private static _instance: Flagship
+  private _configManger!: IConfigManager
+  private _config!: IFlagshipConfig
+  private _status!: FlagshipStatus
   private _visitorInstance?: Visitor
 
   private set configManager (value: IConfigManager) {
@@ -123,10 +125,16 @@ export class Flagship {
       return config
     }
     let newConfig: FlagshipConfig
-    if (config?.decisionMode === DecisionMode.BUCKETING) {
-      newConfig = new BucketingConfig(config)
-    } else {
-      newConfig = new DecisionApiConfig(config)
+    switch (config?.decisionMode) {
+      case DecisionMode.BUCKETING:
+        newConfig = new BucketingConfig(config)
+        break
+      case DecisionMode.SELF_HOSTED:
+        newConfig = new SelfHostedConfig(config)
+        break
+      default:
+        newConfig = new DecisionApiConfig(config)
+        break
     }
     return newConfig
   }
@@ -160,44 +168,50 @@ export class Flagship {
   public static start (
     envId: string,
     apiKey: string,
-    config?: IFlagshipConfig | FlagshipConfig
+    config?: Omit<IFlagshipConfig, 'campaignsUrl'|'collectUrl'|'activateUrl'> | FlagshipConfig
   ): Flagship | null {
     const flagship = this.getInstance()
 
-    config = flagship.buildConfig(config)
+    const sdkConfig = flagship.buildConfig(config)
 
     const configCheck = {
-      useCustomLogManager: !!config.logManager,
-      useCustomCacheManager: !!config.hitCacheImplementation || !!config.visitorCacheImplementation
+      useCustomLogManager: !!sdkConfig.logManager,
+      useCustomCacheManager: !!sdkConfig.hitCacheImplementation || !!sdkConfig.visitorCacheImplementation
     }
 
-    config.envId = envId
-    config.apiKey = apiKey
+    sdkConfig.envId = envId
+    sdkConfig.apiKey = apiKey
 
-    flagship._config = config
+    flagship._config = sdkConfig
 
     flagship.setStatus(FlagshipStatus.STARTING)
 
     // check custom logger
-    if (!config.logManager) {
-      config.logManager = new FlagshipLogManager()
+    if (!sdkConfig.logManager) {
+      sdkConfig.logManager = new FlagshipLogManager()
+    }
+
+    if (sdkConfig.decisionMode === DecisionMode.SELF_HOSTED && !sdkConfig.selfHostedUrl) {
+      flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
+      logError(sdkConfig, 'property selfHostedUrl is required when decisionMode is SELF_HOSTED', PROCESS_INITIALIZATION)
+      return flagship
     }
 
     if (!envId || !apiKey) {
       flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
-      logError(config, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION)
+      logError(sdkConfig, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION)
       return flagship
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!config.hitCacheImplementation && isBrowser()) {
+    if (!sdkConfig.hitCacheImplementation && isBrowser()) {
       configCheck.useCustomLogManager = false
-      config.hitCacheImplementation = new DefaultHitCache()
+      sdkConfig.hitCacheImplementation = new DefaultHitCache()
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!config.visitorCacheImplementation && isBrowser()) {
-      config.visitorCacheImplementation = new DefaultVisitorCache()
+    if (!sdkConfig.visitorCacheImplementation && isBrowser()) {
+      sdkConfig.visitorCacheImplementation = new DefaultVisitorCache()
     }
 
     let decisionManager = flagship.configManager?.decisionManager
@@ -208,15 +222,15 @@ export class Flagship {
 
     const httpClient = new HttpClient()
 
-    decisionManager = flagship.buildDecisionManager(flagship, config as FlagshipConfig, httpClient)
+    decisionManager = flagship.buildDecisionManager(flagship, sdkConfig as FlagshipConfig, httpClient)
 
     let trackingManager = flagship.configManager?.trackingManager
     if (!trackingManager) {
-      trackingManager = new TrackingManager(httpClient, config)
+      trackingManager = new TrackingManager(httpClient, sdkConfig)
     }
 
     flagship.configManager = new ConfigManager(
-      config,
+      sdkConfig,
       decisionManager,
       trackingManager
     )
@@ -226,32 +240,32 @@ export class Flagship {
     }
 
     logInfo(
-      config,
+      sdkConfig,
       sprintf(SDK_STARTED_INFO, packageVersion),
       PROCESS_INITIALIZATION
     )
 
-    const initMonitoring = new Monitoring({
-      action: 'SDK-INITIALIZATION',
-      subComponent: 'Flagship.start',
-      logLevel: LogLevel.INFO,
-      message: 'Flagship initialized',
-      sdkConfigCustomCacheManager: configCheck.useCustomCacheManager,
-      sdkConfigCustomLogManager: configCheck.useCustomLogManager,
-      sdkConfigMode: config.decisionMode,
-      sdkConfigPollingTime: config.pollingInterval?.toString(),
-      sdkConfigStatusListener: !!config.statusChangedCallback,
-      sdkConfigTimeout: config.timeout?.toString(),
-      sdkStatus: FlagshipStatus[flagship.getStatus()],
-      sdkConfigTrackingManagerConfigBatchIntervals: config.trackingMangerConfig?.batchIntervals?.toString(),
-      sdkConfigTrackingManagerConfigBatchLength: config.trackingMangerConfig?.batchLength?.toString(),
-      sdkConfigTrackingManagerConfigStrategy: BatchStrategy[config.trackingMangerConfig?.batchStrategy as BatchStrategy],
-      visitorId: '0',
-      anonymousId: '',
-      config
-    })
+    // const initMonitoring = new Monitoring({
+    //   action: 'SDK-INITIALIZATION',
+    //   subComponent: 'Flagship.start',
+    //   logLevel: LogLevel.INFO,
+    //   message: 'Flagship initialized',
+    //   sdkConfigCustomCacheManager: configCheck.useCustomCacheManager,
+    //   sdkConfigCustomLogManager: configCheck.useCustomLogManager,
+    //   sdkConfigMode: sdkConfig.decisionMode,
+    //   sdkConfigPollingTime: sdkConfig.pollingInterval?.toString(),
+    //   sdkConfigStatusListener: !!sdkConfig.statusChangedCallback,
+    //   sdkConfigTimeout: sdkConfig.timeout?.toString(),
+    //   sdkStatus: FlagshipStatus[flagship.getStatus()],
+    //   sdkConfigTrackingManagerConfigBatchIntervals: sdkConfig.trackingMangerConfig?.batchIntervals?.toString(),
+    //   sdkConfigTrackingManagerConfigBatchLength: sdkConfig.trackingMangerConfig?.batchLength?.toString(),
+    //   sdkConfigTrackingManagerConfigStrategy: BatchStrategy[sdkConfig.trackingMangerConfig?.batchStrategy as BatchStrategy],
+    //   visitorId: '0',
+    //   anonymousId: '',
+    //   config: sdkConfig
+    // })
 
-    trackingManager.addHit(initMonitoring)
+    // trackingManager.addHit(initMonitoring)
     return flagship
   }
 
@@ -316,8 +330,8 @@ export class Flagship {
       isAuthenticated,
       hasConsented,
       configManager: this.getInstance().configManager,
-      initialModifications: initialModifications,
-      initialCampaigns: initialCampaigns,
+      initialModifications,
+      initialCampaigns,
       initialFlagsData: initialModifications
     })
 

@@ -1,5 +1,5 @@
 import { BucketingDTO } from '../decision/api/bucketingDTO'
-import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, SDK_LANGUAGE, TYPE_ERROR } from '../enum/index'
+import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FlagshipStatus, HIT_EVENT_URL, LogLevel, REQUEST_TIME_OUT, SDK_LANGUAGE, TYPE_ERROR } from '../enum/index'
 import { IHitCacheImplementation } from '../cache/IHitCacheImplementation'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, sprintf } from '../utils/utils'
@@ -15,6 +15,8 @@ export enum DecisionMode {
    * Flagship SDK mode bucketing
    */
   BUCKETING = 'BUCKETING',
+
+  SELF_HOSTED = 'SELF_HOSTED'
 }
 
 export interface IFlagshipConfig {
@@ -83,6 +85,12 @@ export interface IFlagshipConfig {
 
   selfHostedUrl?:string
 
+   campaignsUrl?: string
+
+   collectUrl?: string
+
+   activateUrl?: string
+
   activateDeduplicationTime?: number
 
   hitDeduplicationTime?: number
@@ -123,6 +131,22 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _hitCacheImplementation!: IHitCacheImplementation
   private _disableCache!: boolean
   private _trackingMangerConfig : ITrackingManagerConfig
+  private _selfHostedUrl?: string
+  protected _campaignsUrl : string
+  protected _collectUrl : string
+  protected _activateUrl : string
+
+  public get activateUrl () : string {
+    return this._activateUrl
+  }
+
+  public get collectUrl () : string {
+    return this._collectUrl
+  }
+
+  public get campaignsUrl () : string {
+    return this._campaignsUrl
+  }
 
   public get trackingMangerConfig () : ITrackingManagerConfig {
     return this._trackingMangerConfig
@@ -143,7 +167,9 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     }
 
     this._trackingMangerConfig = new TrackingManagerConfig(trackingMangerConfig || {})
-
+    this._campaignsUrl = `${BASE_API_URL}${envId}'/campaigns'`
+    this._collectUrl = HIT_EVENT_URL
+    this._activateUrl = BASE_API_URL + 'activate'
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
     this._envId = envId
     this._apiKey = apiKey
