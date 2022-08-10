@@ -24,8 +24,6 @@ describe('test DefaultStrategy ', () => {
   config.logManager = logManager
 
   const trackingManager = new TrackingManager({} as HttpClient, config)
-  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
-  sendConsentHit.mockResolvedValue()
 
   const visitorDelegate = new VisitorDelegate({
     visitorId,

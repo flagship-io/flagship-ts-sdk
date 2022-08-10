@@ -11,7 +11,7 @@ import { HitAbstract, IHitAbstract } from './HitAbstract'
 export const ERROR_MESSAGE = 'event category and event action are required'
 export const CATEGORY_ERROR =
   'The category value must be either EventCategory::ACTION_TRACKING or EventCategory::ACTION_TRACKING'
-
+export const VALUE_FIELD_ERROR = 'value must be an integer and be >= 0'
 export enum EventCategory {
   ACTION_TRACKING = 'Action Tracking',
   USER_ENGAGEMENT = 'User Engagement',
@@ -29,6 +29,7 @@ export class Event extends HitAbstract implements IEvent {
   private _action!: string;
   private _label!: string;
   private _value!: number;
+  private _custom? : Record<string, unknown>;
 
   public get category (): EventCategory {
     return this._category
@@ -85,21 +86,24 @@ export class Event extends HitAbstract implements IEvent {
    * <br/> NOTE: this value must be non-negative.
    */
   public set value (v: number) {
-    if (!this.isNumeric(v, 'value')) {
+    if (!Number.isInteger(v) || v < 0) {
+      logError(this.config, VALUE_FIELD_ERROR, 'value')
       return
     }
     this._value = v
   }
 
-  public constructor (event:Omit<IEvent, 'type'>) {
+  public constructor (param:Omit<IEvent, 'type'|'createdAt'>) {
     super({
       type: HitType.EVENT,
-      userIp: event?.userIp,
-      screenResolution: event?.screenResolution,
-      locale: event?.locale,
-      sessionNumber: event?.sessionNumber
+      userIp: param.userIp,
+      screenResolution: param.screenResolution,
+      locale: param.locale,
+      sessionNumber: param.sessionNumber,
+      visitorId: param.visitorId,
+      anonymousId: param.anonymousId
     })
-    const { category, action, label, value } = event
+    const { category, action, label, value } = param
     this.category = category
     this.action = action
     if (label) {

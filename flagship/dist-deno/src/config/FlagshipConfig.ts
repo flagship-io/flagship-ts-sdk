@@ -4,6 +4,7 @@ import { IHitCacheImplementation } from '../cache/IHitCacheImplementation.ts'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager.ts'
 import { logError, sprintf } from '../utils/utils.ts'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation.ts'
+import { ITrackingManagerConfig, TrackingManagerConfig } from './TrackingManagerConfig.ts'
 
 export enum DecisionMode {
   /**
@@ -93,53 +94,56 @@ export interface IFlagshipConfig {
   disableCache?: boolean
 
   language?: 0 | 1 | 2
+
+  trackingMangerConfig?: ITrackingManagerConfig
+
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
 
 export abstract class FlagshipConfig implements IFlagshipConfig {
-  private _envId?: string;
-  private _apiKey?: string;
-  protected _decisionMode: DecisionMode;
-  private _timeout!: number;
-  private _logLevel!: LogLevel;
-  private _statusChangedCallback?: (status: FlagshipStatus) => void;
-  private _logManager!: IFlagshipLogManager;
-  private _fetchNow!: boolean;
+  private _envId?: string
+  private _apiKey?: string
+  protected _decisionMode: DecisionMode
+  private _timeout!: number
+  private _logLevel!: LogLevel
+  private _statusChangedCallback?: (status: FlagshipStatus) => void
+  private _logManager!: IFlagshipLogManager
+  private _fetchNow!: boolean
   private _pollingInterval!: number
-  private _onBucketingFail?: (error: Error) => void;
-  private _onBucketingSuccess?: (param: { status: number; payload: BucketingDTO }) => void;
-  private _onBucketingUpdated?: (lastUpdate: Date) => void;
-  private _enableClientCache!: boolean;
+  private _onBucketingFail?: (error: Error) => void
+  private _onBucketingSuccess?: (param: { status: number; payload: BucketingDTO }) => void
+  private _onBucketingUpdated?: (lastUpdate: Date) => void
+  private _enableClientCache!: boolean
   private _initialBucketing?: BucketingDTO
   private _decisionApiUrl!: string
-  private _activateDeduplicationTime!: number;
-  private _hitDeduplicationTime!: number;
-  private _visitorCacheImplementation!: IVisitorCacheImplementation;
-  private _hitCacheImplementation!: IHitCacheImplementation;
-  private _disableCache!: boolean;
-  private _selfHostedUrl : string|undefined;
+  private _activateDeduplicationTime!: number
+  private _hitDeduplicationTime!: number
+  private _visitorCacheImplementation!: IVisitorCacheImplementation
+  private _hitCacheImplementation!: IHitCacheImplementation
+  private _disableCache!: boolean
+  private _trackingMangerConfig : ITrackingManagerConfig
+
+  public get trackingMangerConfig () : ITrackingManagerConfig {
+    return this._trackingMangerConfig
+  }
 
   protected constructor (param: IFlagshipConfig) {
     const {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
-      disableCache, language, selfHostedUrl
+      disableCache, language, trackingMangerConfig
     } = param
 
-    switch (language) {
-      case 1:
-        SDK_LANGUAGE.name = 'ReactJS'
-        break
-      case 2:
-        SDK_LANGUAGE.name = 'React-Native'
-        break
-      default:
-        SDK_LANGUAGE.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'Typescript'
-        break
+    this.setSdkLanguageName(language)
+
+    if (logManager) {
+      this.logManager = logManager
     }
-    this.selfHostedUrl = selfHostedUrl
+
+    this._trackingMangerConfig = new TrackingManagerConfig(trackingMangerConfig || {})
+
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
     this._envId = envId
     this._apiKey = apiKey
@@ -160,10 +164,21 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       this.hitCacheImplementation = hitCacheImplementation
     }
 
-    if (logManager) {
-      this.logManager = logManager
-    }
     this.statusChangedCallback = statusChangedCallback
+  }
+
+  protected setSdkLanguageName (language?:number):void {
+    switch (language) {
+      case 1:
+        SDK_LANGUAGE.name = 'ReactJS'
+        break
+      case 2:
+        SDK_LANGUAGE.name = 'React-Native'
+        break
+      default:
+        SDK_LANGUAGE.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'Typescript'
+        break
+    }
   }
 
   public get initialBucketing (): BucketingDTO | undefined {
@@ -331,8 +346,8 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   }
 
   public set selfHostedUrl (v : string|undefined) {
-    if (v && !v.endsWith("/")) {
-      v += "/";
+    if (v && !v.endsWith('/')) {
+      v += '/'
     }
     this._selfHostedUrl = v
   }

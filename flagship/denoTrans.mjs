@@ -1,4 +1,4 @@
-import { readdirSync, lstatSync, readFile, writeFile, mkdirSync, copyFileSync } from 'fs'
+import { readdirSync, lstatSync, readFile, writeFile, mkdirSync, copyFileSync, existsSync } from 'fs'
 import path from 'path'
 
 function getDirectoryContent (dirPath) {
@@ -80,4 +80,8 @@ const packageResolve = {
 
 transformFromDir(src, packageResolve)
 
-copyFileSync("README.md","dist-deno/src/README.md")
+const distDenoSrc = "dist-deno/src"
+if (!existsSync(distDenoSrc)) {
+  mkdirSync(distDenoSrc, { recursive: true })
+}
+copyFileSync("./README.md",distDenoSrc+"/README.md")

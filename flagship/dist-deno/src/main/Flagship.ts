@@ -174,10 +174,14 @@ export class Flagship {
       config.logManager = new FlagshipLogManager()
     }
 
-    if (!envId || !apiKey) {
-      flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
-      logError(config, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION)
-      return null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!config.hitCacheImplementation && isBrowser()) {
+      config.hitCacheImplementation = new DefaultHitCache()
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!config.visitorCacheImplementation && isBrowser()) {
+      config.visitorCacheImplementation = new DefaultVisitorCache()
     }
 
     let decisionManager = flagship.configManager?.decisionManager
@@ -190,7 +194,11 @@ export class Flagship {
 
     decisionManager = flagship.buildDecisionManager(flagship, config as FlagshipConfig, httpClient)
 
-    const trackingManager = new TrackingManager(httpClient, config)
+    let trackingManager = flagship.configManager?.trackingManager
+    if (!trackingManager) {
+      trackingManager = new TrackingManager(httpClient, config)
+      trackingManager.startBatchingLoop()
+    }
 
     if (flagship.configManager) {
       flagship.configManager.config = config
@@ -204,19 +212,15 @@ export class Flagship {
       )
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!config.hitCacheImplementation && isBrowser()) {
-      config.hitCacheImplementation = new DefaultHitCache()
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!config.visitorCacheImplementation && isBrowser()) {
-      config.visitorCacheImplementation = new DefaultVisitorCache()
+    if (!envId || !apiKey) {
+      flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
+      logError(config, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION)
+      return flagship
     }
 
     if (!this.isReady()) {
       flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
-      return null
+      return flagship
     }
 
     if (flagship._status === FlagshipStatus.STARTING) {
@@ -258,10 +262,6 @@ export class Flagship {
   public static newVisitor(params?: NewVisitor): Visitor | null
   public static newVisitor(param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor | null
   public static newVisitor (param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor | null {
-    if (!this.isReady()) {
-      return null
-    }
-
     let visitorId: string | undefined
     let context: Record<string, primitive>
     let isAuthenticated = false

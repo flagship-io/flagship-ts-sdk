@@ -19,8 +19,6 @@ import {
 import { IHttpResponse, HttpClient } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { campaigns } from './campaigns'
-import { Mock } from 'jest-mock'
-import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 import { CampaignDTO } from '../../src'
 
 describe('test ApiManager', () => {
@@ -29,12 +27,6 @@ describe('test ApiManager', () => {
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   const apiManager = new ApiManager(httpClient, config)
   const trackingManager = new TrackingManager(httpClient, config)
-
-  const sendConsentHit: Mock<Promise<void>, [visitor: VisitorAbstract]> = jest.fn()
-
-  sendConsentHit.mockResolvedValue()
-
-  trackingManager.sendConsentHit = sendConsentHit
 
   const visitorId = 'visitorId'
   const context = { age: 20 }

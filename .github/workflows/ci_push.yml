@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main, deno_build]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./flagship
+        
+    strategy:
+      matrix:
+        node-version: [14.x]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "yarn"
+      - run: yarn install
+      - run: yarn lint
+      - run: yarn test --coverage
+      - uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repository
+      - run: yarn build-prod
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: build deno module
+      
+

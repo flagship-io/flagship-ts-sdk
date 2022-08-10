@@ -15,7 +15,12 @@ const getOut = (level: LogLevel, message: string, tag: string) => {
   )}] [${FLAGSHIP_SDK}] [${LogLevel[level]}] [${tag}] : ${message}`
 }
 describe('test FlagshipLogManager', () => {
-  const logError = jest.spyOn(console, 'log')
+  const log = jest.spyOn(console, 'log')
+  const logError = jest.spyOn(console, 'error')
+  const logDebug = jest.spyOn(console, 'debug')
+  const logInfo = jest.spyOn(console, 'info')
+  const logWarn = jest.spyOn(console, 'warn')
+
   const logManager = new FlagshipLogManager()
   const message = 'this is a log message'
   const tag = 'tag'
@@ -32,7 +37,7 @@ describe('test FlagshipLogManager', () => {
 
   it('test critical debug', () => {
     logManager.debug(message, tag)
-    expect(logError).toBeCalledWith(getOut(LogLevel.DEBUG, message, tag))
+    expect(logDebug).toBeCalledWith(getOut(LogLevel.DEBUG, message, tag))
   })
 
   it('test emergency', () => {
@@ -47,16 +52,16 @@ describe('test FlagshipLogManager', () => {
 
   it('test info', () => {
     logManager.info(message, tag)
-    expect(logError).toBeCalledWith(getOut(LogLevel.INFO, message, tag))
+    expect(logInfo).toBeCalledWith(getOut(LogLevel.INFO, message, tag))
   })
 
   it('test notice', () => {
     logManager.notice(message, tag)
-    expect(logError).toBeCalledWith(getOut(LogLevel.NOTICE, message, tag))
+    expect(log).toBeCalledWith(getOut(LogLevel.NOTICE, message, tag))
   })
 
   it('test warning', () => {
     logManager.warning(message, tag)
-    expect(logError).toBeCalledWith(getOut(LogLevel.WARNING, message, tag))
+    expect(logWarn).toBeCalledWith(getOut(LogLevel.WARNING, message, tag))
   })
 })
