@@ -30,10 +30,11 @@ import { Monitoring } from '../hit/Monitoring'
 import { version as packageVersion } from '../sdkVersion'
 
 export class Flagship {
-  private static _instance: Flagship;
-  private _configManger!: IConfigManager;
-  private _config!: IFlagshipConfig;
-  private _status!: FlagshipStatus;
+  // eslint-disable-next-line no-use-before-define
+  private static _instance: Flagship
+  private _configManger!: IConfigManager
+  private _config!: IFlagshipConfig
+  private _status!: FlagshipStatus
   private _visitorInstance?: Visitor
 
   private set configManager (value: IConfigManager) {
@@ -231,27 +232,27 @@ export class Flagship {
       PROCESS_INITIALIZATION
     )
 
-    const initMonitoring = new Monitoring({
-      action: 'SDK-INITIALIZATION',
-      subComponent: 'Flagship.start',
-      logLevel: LogLevel.INFO,
-      message: 'Flagship initialized',
-      sdkConfigCustomCacheManager: configCheck.useCustomCacheManager,
-      sdkConfigCustomLogManager: configCheck.useCustomLogManager,
-      sdkConfigMode: config.decisionMode,
-      sdkConfigPollingTime: config.pollingInterval?.toString(),
-      sdkConfigStatusListener: !!config.statusChangedCallback,
-      sdkConfigTimeout: config.timeout?.toString(),
-      sdkStatus: FlagshipStatus[flagship.getStatus()],
-      sdkConfigTrackingManagerConfigBatchIntervals: config.trackingMangerConfig?.batchIntervals?.toString(),
-      sdkConfigTrackingManagerConfigBatchLength: config.trackingMangerConfig?.batchLength?.toString(),
-      sdkConfigTrackingManagerConfigStrategy: BatchStrategy[config.trackingMangerConfig?.batchStrategy as BatchStrategy],
-      visitorId: '0',
-      anonymousId: '',
-      config
-    })
+    // const initMonitoring = new Monitoring({
+    //   action: 'SDK-INITIALIZATION',
+    //   subComponent: 'Flagship.start',
+    //   logLevel: LogLevel.INFO,
+    //   message: 'Flagship initialized',
+    //   sdkConfigCustomCacheManager: configCheck.useCustomCacheManager,
+    //   sdkConfigCustomLogManager: configCheck.useCustomLogManager,
+    //   sdkConfigMode: config.decisionMode,
+    //   sdkConfigPollingTime: config.pollingInterval?.toString(),
+    //   sdkConfigStatusListener: !!config.statusChangedCallback,
+    //   sdkConfigTimeout: config.timeout?.toString(),
+    //   sdkStatus: FlagshipStatus[flagship.getStatus()],
+    //   sdkConfigTrackingManagerConfigBatchIntervals: config.trackingMangerConfig?.batchIntervals?.toString(),
+    //   sdkConfigTrackingManagerConfigBatchLength: config.trackingMangerConfig?.batchLength?.toString(),
+    //   sdkConfigTrackingManagerConfigStrategy: BatchStrategy[config.trackingMangerConfig?.batchStrategy as BatchStrategy],
+    //   visitorId: '0',
+    //   anonymousId: '',
+    //   config
+    // })
 
-    trackingManager.addHit(initMonitoring)
+    // trackingManager.addHit(initMonitoring)
     return flagship
   }
 
