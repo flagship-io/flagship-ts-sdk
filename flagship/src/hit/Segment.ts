@@ -1,4 +1,3 @@
-import { SL_ITEM } from '../enum/FlagshipConstant'
 import { HitType } from '../enum/HitType'
 import { primitive } from '../types'
 import { HitAbstract, IHitAbstract } from './HitAbstract'
@@ -6,22 +5,22 @@ import { HitAbstract, IHitAbstract } from './HitAbstract'
 export const ERROR_MESSAGE = 'sl is required'
 
 export interface ISegment extends IHitAbstract{
-    sl:Record<string, primitive>
+    data:Record<string, primitive>
 }
 
 export class Segment extends HitAbstract implements ISegment {
-  private _sl!: Record<string, primitive>;
-  public get sl (): Record<string, primitive> {
-    return this._sl
+  private _data!: Record<string, primitive>;
+  public get data (): Record<string, primitive> {
+    return this._data
   }
 
-  public set sl (v: Record<string, primitive>) {
-    this._sl = v
+  public set data (v: Record<string, primitive>) {
+    this._data = v
   }
 
   public constructor (param:Omit<ISegment, 'type'|'createdAt'>) {
     super({
-      type: HitType.SEGMENT,
+      type: 'CONTEXT',
       userIp: param.userIp,
       screenResolution: param.screenResolution,
       locale: param.locale,
@@ -29,27 +28,25 @@ export class Segment extends HitAbstract implements ISegment {
       visitorId: param.visitorId,
       anonymousId: param.anonymousId
     })
-    this.sl = param.sl
+    this.data = param.data
   }
 
   public isReady (checkParent = true):boolean {
-    return !!((!checkParent || super.isReady()) && this.sl)
+    return !!((!checkParent || super.isReady()) && this.data)
   }
 
   public toApiKeys ():Record<string, unknown> {
-    const apiKeys = super.toApiKeys()
-    const context:Record<string, string> = {}
-    Object.entries(this.sl).forEach(([key, value]) => {
-      context[key] = value.toString()
-    })
-    apiKeys[SL_ITEM] = context
-    return apiKeys
+    return {
+      visitorId: this.visitorId,
+      data: this.data,
+      type: this.type
+    }
   }
 
   public toObject ():Record<string, unknown> {
     return {
       ...super.toObject(),
-      sl: this.sl
+      data: this.data
     }
   }
 
