@@ -8,12 +8,12 @@ import { CampaignDTO } from '../decision/api/models'
 import { ITrackingManager } from '../api/TrackingManagerAbstract'
 import { IDecisionManager } from '../decision/IDecisionManager'
 import { logError, logInfo, sprintf } from '../utils/utils'
-import { SDK_APP, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index'
+import { FS_CONSENT, HitType, SDK_LANGUAGE, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index'
 
 import { BatchDTO } from '../hit/Batch'
 
 import { IFlagMetadata } from '../flag/FlagMetadata'
-import { Consent } from '../hit/Consent'
+import { EventCategory } from '../hit/Monitoring'
 
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
@@ -70,17 +70,12 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       return
     }
 
-    const consentHit = new Consent({
-      visitorConsent: hasConsented,
-      visitorId: this.visitor.visitorId,
-      anonymousId: this.visitor.anonymousId as string
-    })
-
-    consentHit.ds = SDK_APP
-    consentHit.config = this.config
-
-    this.trackingManager.addHit(consentHit).catch((error) => {
-      logError(this.config, error.message || error, method)
+    // send consent hit
+    this.sendHit({
+      type: HitType.EVENT,
+      label: `${SDK_LANGUAGE.name}:${this.visitor.hasConsented}`,
+      action: FS_CONSENT,
+      category: EventCategory.USER_ENGAGEMENT
     })
   }
 

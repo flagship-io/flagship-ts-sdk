@@ -23,7 +23,7 @@ export const BATCH_MAX_SIZE = 2500000
  */
 export const BASE_API_URL = 'https://decision.flagship.io/v2/'
 export const HIT_API_URL = 'https://ariane.abtasty.com'
-export const HIT_EVENT_URL = 'https://staging-events.flagship.io/v1' // 'https://events.flagship.io/v2'
+export const HIT_EVENT_URL = 'https://ariane.abtasty.com'
 export const BUCKETING_API_URL = 'https://cdn.flagship.io/{0}/bucketing.json'
 export const BUCKETING_API_CONTEXT_URL = 'https://decision.flagship.io/v2/{0}/events'
 export const HIT_CONSENT_URL = 'https://ariane.abtasty.com'
@@ -32,6 +32,8 @@ export const URL_ACTIVATE_MODIFICATION = 'activate'
 
 export const EXPOSE_ALL_KEYS = 'exposeAllKeys'
 export const SEND_CONTEXT_EVENT = 'sendContextEvent'
+
+export const FS_CONSENT = 'fs_consent'
 
 /**
  * SDK version
@@ -101,7 +103,9 @@ export const BATCH_SENT_SUCCESS = 'Batch hit has been sent : {0}'
 export const ACTIVATE_SENT_SUCCESS = 'Activate hit has been sent : {0}'
 export const SEND_BATCH = 'SEND BATCH'
 export const SEND_ACTIVATE = 'SEND ACTIVATE'
+export const SEND_SEGMENT_HIT = 'SEND SEGMENT HIT'
 export const SEND_HIT = 'SEND HIT'
+export const EVENT_SUFFIX = 'events'
 export const HIT_DATA_CACHED = 'Hit data has been saved into database : {0}'
 export const HIT_DATA_FLUSHED = 'The following hit keys have been flushed from database : {0}'
 export const HIT_SENT_SUCCESS = 'hit has been sent : {0}'
@@ -128,12 +132,12 @@ export const PROCESS_LOOKUP_HIT = 'LOOKUP HIT'
 
 // Api items
 
-export const CUSTOMER_ENV_ID_API_ITEM = 'eid'
+export const CUSTOMER_ENV_ID_API_ITEM = 'cid'
 export const CUSTOMER_ENV_ID_API_ACTIVATE = 'cid'
 export const CUSTOMER_UID = 'cuid'
 export const ANONYMOUS_ID = 'aid'
 export const VISITOR_ID_API_ITEM = 'vid'
-export const VARIATION_GROUP_ID_API_ITEM = 'vgid'
+export const VARIATION_GROUP_ID_API_ITEM = 'caid'
 export const VARIATION_GROUP_ID_API_ITEM_ACTIVATE = 'caid'
 export const VISITOR_CONSENT = 'vc'
 export const CAMPAIGN_ID = 'caid'
