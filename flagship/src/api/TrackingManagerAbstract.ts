@@ -2,8 +2,6 @@ import { IFlagshipConfig } from '../config/FlagshipConfig'
 import { DEFAULT_HIT_CACHE_TIME, DEFAULT_TIME_INTERVAL, HitType, HIT_DATA_LOADED, PROCESS_LOOKUP_HIT } from '../enum/index'
 import { BatchStrategy } from '../enum/BatchStrategy'
 import { HitAbstract, IEvent, ITransaction, Transaction, Event, Item, IItem, Page, IPage, IScreen, Screen } from '../hit/index'
-import { Campaign, ICampaign } from '../hit/Campaign'
-import { Consent, IConsent } from '../hit/Consent'
 import { ISegment, Segment } from '../hit/Segment'
 import { IHttpClient } from '../utils/HttpClient'
 import { logDebug, logError, logInfo, sprintf } from '../utils/utils'
@@ -131,12 +129,6 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
         }
         let hit:HitAbstract
         switch (item.data.type) {
-          case HitType.CAMPAIGN:
-            hit = new Campaign(item.data.content as ICampaign)
-            break
-          case HitType.CONSENT:
-            hit = new Consent(item.data.content as IConsent)
-            break
           case HitType.EVENT:
             hit = new Event(item.data.content as IEvent)
             break
@@ -149,7 +141,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
           case HitType.SCREEN:
             hit = new Screen(item.data.content as IScreen)
             break
-          case HitType.SEGMENT:
+          case 'CONTEXT':
             hit = new Segment(item.data.content as ISegment)
             break
           case 'ACTIVATE':
