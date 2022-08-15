@@ -40,18 +40,4 @@ export enum HitType {
    */
   EVENT = 'EVENT',
 
-  /**
-   *
-   */
-  SEGMENT = 'SEGMENT',
-
-  /**
-   *
-   */
-  CONSENT = 'CONSENT',
-
-  /**
-   *
-   */
-  CAMPAIGN = 'CAMPAIGN'
 }
