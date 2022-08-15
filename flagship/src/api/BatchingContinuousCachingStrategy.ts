@@ -1,6 +1,6 @@
-import { ACTIVATE_SENT_SUCCESS, ADD_HIT, BASE_API_URL, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_ADDED_IN_QUEUE, HIT_EVENT_URL, SDK_LANGUAGE, SDK_VERSION, SEND_ACTIVATE, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../enum/index'
+import { ADD_HIT, BASE_API_URL, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, EVENT_SUFFIX, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_ADDED_IN_QUEUE, HIT_EVENT_URL, HIT_SENT_SUCCESS, SDK_LANGUAGE, SDK_VERSION, SEND_ACTIVATE, SEND_BATCH, SEND_SEGMENT_HIT, URL_ACTIVATE_MODIFICATION } from '../enum/index'
 import { Batch } from '../hit/Batch'
-import { HitAbstract, Consent } from '../hit/index'
+import { HitAbstract, Event } from '../hit/index'
 import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
 
@@ -10,7 +10,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     hit.key = hitKey
 
     await this.addHitWithKey(hitKey, hit)
-    if (hit.type === HitType.CONSENT && !(hit as Consent).visitorConsent) {
+    if (hit.type === HitType.EVENT && (hit as Event).action === FS_CONSENT && (hit as Event).label === `${SDK_LANGUAGE.name}:false`) {
       await this.notConsent(hit.visitorId)
     }
 
@@ -22,7 +22,8 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
 
     const keysToFlush:string[] = []
     keys.forEach(key => {
-      const isConsentHit = this._hitsPoolQueue.get(key)?.type === HitType.CONSENT
+      const item = this._hitsPoolQueue.get(key)
+      const isConsentHit = item?.type === HitType.EVENT && (item as Event)?.action === FS_CONSENT
       if (isConsentHit) {
         return
       }
@@ -40,51 +41,53 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     await this.cacheHit(new Map<string, HitAbstract>().set(hitKey, hit))
   }
 
-  async sendActivate (activateHits:HitAbstract[]):Promise<void> {
-    const activateHitKeys:string[] = []
+  /**
+   * Other hits are ACTIVATE AND SEGMENT
+   * @param hits
+   */
+  async sendOtherHit (hits:HitAbstract[]):Promise<void> {
+    const hitKeys:string[] = []
 
-    const url = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const activateHeader = {
+    const headers = {
       [HEADER_X_API_KEY]: this.config.apiKey as string,
       [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
       [HEADER_X_SDK_VERSION]: SDK_VERSION,
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
-    for (const activateHit of activateHits) {
-      this._hitsPoolQueue.delete(activateHit.key)
-      const activateBody = activateHit.toApiKeys()
-
+    for (const hit of hits) {
+      this._hitsPoolQueue.delete(hit.key)
+      const requestBody = hit.toApiKeys()
+      const isActivateHit = hit.type === 'ACTIVATE'
+      let url = BASE_API_URL
+      url += isActivateHit ? URL_ACTIVATE_MODIFICATION : `${this.config.envId}/${EVENT_SUFFIX}`
+      const tag = isActivateHit ? SEND_ACTIVATE : SEND_SEGMENT_HIT
       try {
         await this._httpClient.postAsync(url, {
-          headers: activateHeader,
-          body: activateBody
+          headers,
+          body: requestBody
         })
-        activateHitKeys.push(activateHit.key)
-        logDebug(this.config, sprintf(ACTIVATE_SENT_SUCCESS, JSON.stringify(activateBody)), SEND_ACTIVATE)
+        hitKeys.push(hit.key)
+
+        logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(requestBody)), tag)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error:any) {
-        this.addHitWithKey(activateHit.key, activateHit)
+        this.addHitWithKey(hit.key, hit)
         logError(this.config, errorFormat(error.message || error, {
-          url: url,
-          headers: activateHeader,
-          body: activateBody
-        }), SEND_ACTIVATE)
+          url,
+          headers,
+          body: requestBody
+        }), tag)
       }
     }
 
-    if (activateHitKeys.length) {
-      await this.flushHits(activateHitKeys)
+    if (hitKeys.length) {
+      await this.flushHits(hitKeys)
     }
   }
 
   async sendBatch (): Promise<void> {
     const headers = {
-      [HEADER_X_API_KEY]: this.config.apiKey as string,
-      [HEADER_X_ENV_ID]: this.config.envId as string,
-      [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
-      [HEADER_X_SDK_VERSION]: SDK_VERSION,
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
@@ -94,14 +97,15 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     let batchSize = 0
     let count = 0
 
-    const activateHits:HitAbstract[] = []
+    const otherHits:HitAbstract[] = []
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (const [_, item] of this._hitsPoolQueue) {
-      if (item.type === 'ACTIVATE') {
-        activateHits.push(item)
+      if (item.type === 'ACTIVATE' || item.type === 'CONTEXT') {
+        otherHits.push(item)
         continue
       }
+
       count++
       batchSize = JSON.stringify(batch).length
       if (batchSize > BATCH_MAX_SIZE || (this.config.trackingMangerConfig?.batchLength && count > this.config.trackingMangerConfig.batchLength)) {
@@ -110,7 +114,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       batch.hits.push(item)
     }
 
-    await this.sendActivate(activateHits)
+    await this.sendOtherHit(otherHits)
 
     batch.hits.forEach(hit => {
       this._hitsPoolQueue.delete(hit.key)
