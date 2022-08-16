@@ -1,13 +1,12 @@
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { Mock } from 'jest-mock'
-import { HitAbstract, HitCacheDTO, Page } from '../../src'
+import { Event, EventCategory, HitAbstract, HitCacheDTO, Page } from '../../src'
 import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinuousCachingStrategy'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
-import { BASE_API_URL, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HIT_CACHE_VERSION, HIT_EVENT_URL, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_LANGUAGE, SDK_VERSION, SEND_ACTIVATE, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../../src/enum/FlagshipConstant'
+import { BASE_API_URL, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HIT_CACHE_VERSION, HIT_EVENT_URL, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_LANGUAGE, SDK_VERSION, SEND_ACTIVATE, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../../src/enum/FlagshipConstant'
+import { Segment } from '../../src/hit'
 import { Activate } from '../../src/hit/Activate'
 import { Batch } from '../../src/hit/Batch'
-import { Campaign } from '../../src/hit/Campaign'
-import { Consent } from '../../src/hit/Consent'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { errorFormat } from '../../src/utils/utils'
@@ -25,21 +24,22 @@ describe('Test BatchingContinuousCachingStrategy', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
 
-    const campaignHit = new Campaign({
-      variationGroupId: 'variationGrID',
-      campaignId: 'campaignID',
+    const pageHit1 = new Page({
+      documentLocation: 'http://localhost',
       visitorId
     })
 
-    await batchingStrategy.addHit(campaignHit)
+    await batchingStrategy.addHit(pageHit1)
 
     expect(hitsPoolQueue.size).toBe(1)
     expect(cacheHit).toBeCalledTimes(1)
-    expect(cacheHit).toHaveBeenNthCalledWith(1, new Map().set(expect.stringContaining(visitorId), campaignHit))
+    expect(cacheHit).toHaveBeenNthCalledWith(1, new Map().set(expect.stringContaining(visitorId), pageHit1))
 
-    const consentHit = new Consent({
-      visitorConsent: true,
-      visitorId
+    const consentHit = new Event({
+      visitorId: visitorId,
+      label: `${SDK_LANGUAGE.name}:${true}`,
+      action: FS_CONSENT,
+      category: EventCategory.USER_ENGAGEMENT
     })
 
     consentHit.visitorId = visitorId
@@ -63,9 +63,11 @@ describe('Test BatchingContinuousCachingStrategy', () => {
     expect(cacheHit).toBeCalledTimes(3)
     expect(cacheHit).toHaveBeenNthCalledWith(3, new Map().set(expect.stringContaining(visitorId), pageHit))
 
-    const consentHitFalse1 = new Consent({
-      visitorConsent: false,
-      visitorId
+    const consentHitFalse1 = new Event({
+      visitorId: visitorId,
+      label: `${SDK_LANGUAGE.name}:${false}`,
+      action: FS_CONSENT,
+      category: EventCategory.USER_ENGAGEMENT
     })
 
     consentHitFalse1.visitorId = 'newVisitor'
@@ -77,9 +79,11 @@ describe('Test BatchingContinuousCachingStrategy', () => {
     expect(cacheHit).toHaveBeenNthCalledWith(4, new Map().set(expect.stringContaining('newVisitor'), consentHitFalse1))
     expect(flushHits).toBeCalledTimes(0)
 
-    const consentHitFalse2 = new Consent({
-      visitorConsent: false,
-      visitorId
+    const consentHitFalse2 = new Event({
+      visitorId: visitorId,
+      label: `${SDK_LANGUAGE.name}:${false}`,
+      action: FS_CONSENT,
+      category: EventCategory.USER_ENGAGEMENT
     })
 
     consentHitFalse2.visitorId = visitorId
@@ -125,17 +129,12 @@ describe('test sendBatch method', () => {
 
   const visitorId = 'visitorId'
 
-  const globalCampaignHit = new Campaign({
-    variationGroupId: 'variationGrID21',
-    campaignId: 'campaignID21',
+  const globalPageHit = new Page({
+    documentLocation: 'http://localhost',
     visitorId
   })
 
   const headers = {
-    [HEADER_X_API_KEY]: `${config.apiKey}`,
-    [HEADER_X_ENV_ID]: `${config.envId}`,
-    [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
-    [HEADER_X_SDK_VERSION]: SDK_VERSION,
     [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
   }
 
@@ -156,18 +155,17 @@ describe('test sendBatch method', () => {
     batch.config = config
 
     for (let index = 0; index < 20; index++) {
-      const campaignHit = new Campaign({
-        variationGroupId: 'variationGrID' + index,
-        campaignId: 'campaignID' + index,
+      const pageHit = new Page({
+        documentLocation: 'http://localhost' + index,
         visitorId
       })
 
-      batch.hits.push(campaignHit)
+      batch.hits.push(pageHit)
 
-      await batchingStrategy.addHit(campaignHit)
+      await batchingStrategy.addHit(pageHit)
     }
 
-    await batchingStrategy.addHit(globalCampaignHit)
+    await batchingStrategy.addHit(globalPageHit)
 
     const activateHit = new Activate({
       visitorId,
@@ -177,11 +175,22 @@ describe('test sendBatch method', () => {
     activateHit.config = config
     await batchingStrategy.addHit(activateHit)
 
-    expect(hitsPoolQueue.size).toBe(22)
+    const segmentHit = new Segment({
+      visitorId,
+      data: {
+        key: 'value'
+      }
+    })
+
+    segmentHit.config = config
+
+    await batchingStrategy.addHit(segmentHit)
+
+    expect(hitsPoolQueue.size).toBe(23)
 
     await batchingStrategy.sendBatch()
 
-    expect(hitsPoolQueue.size).toBe(2)
+    expect(hitsPoolQueue.size).toBe(3)
 
     expect(postAsync).toBeCalledTimes(1)
     expect(postAsync).toHaveBeenNthCalledWith(1, HIT_EVENT_URL, { headers, body: batch.toApiKeys() })
@@ -190,14 +199,18 @@ describe('test sendBatch method', () => {
 
     await batchingStrategy.sendBatch()
 
-    expect(postAsync).toBeCalledTimes(3)
+    expect(postAsync).toBeCalledTimes(4)
 
     expect(postAsync).toHaveBeenNthCalledWith(2, urlActivate, { headers: headersActivate, body: activateHit.toApiKeys() })
 
-    const newBatch = new Batch({ hits: [globalCampaignHit] })
+    const urlEvents = `${BASE_API_URL}${config.envId}/events`
+
+    expect(postAsync).toHaveBeenNthCalledWith(3, urlEvents, { headers: headersActivate, body: segmentHit.toApiKeys() })
+
+    const newBatch = new Batch({ hits: [globalPageHit] })
     newBatch.config = config
 
-    expect(postAsync).toHaveBeenNthCalledWith(3, HIT_EVENT_URL, { headers, body: newBatch.toApiKeys() })
+    expect(postAsync).toHaveBeenNthCalledWith(4, HIT_EVENT_URL, { headers, body: newBatch.toApiKeys() })
     expect(flushHits).toBeCalledTimes(3)
   })
 
@@ -205,9 +218,9 @@ describe('test sendBatch method', () => {
     const error = 'message error'
     postAsync.mockRejectedValue(error)
 
-    const batch:Batch = new Batch({ hits: [globalCampaignHit] })
+    const batch:Batch = new Batch({ hits: [globalPageHit] })
     batch.config = config
-    hitsPoolQueue.set(globalCampaignHit.key, globalCampaignHit)
+    hitsPoolQueue.set(globalPageHit.key, globalPageHit)
 
     await batchingStrategy.sendBatch()
 
@@ -216,7 +229,7 @@ describe('test sendBatch method', () => {
     expect(flushHits).toBeCalledTimes(0)
 
     expect(cacheHit).toBeCalledTimes(1)
-    expect(cacheHit).toBeCalledWith(new Map().set(expect.stringContaining(visitorId), globalCampaignHit))
+    expect(cacheHit).toBeCalledWith(new Map().set(expect.stringContaining(visitorId), globalPageHit))
     expect(hitsPoolQueue.size).toBe(1)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(errorFormat(error, {
@@ -299,48 +312,46 @@ describe('test cacheHit and flushHits methods', () => {
   const visitorId = 'visitorId'
   it('test cacheHit success ', async () => {
     cacheHit.mockResolvedValue()
-    const campaignHit = new Campaign({
-      variationGroupId: 'variationGrID',
-      campaignId: 'campaignID',
+    const pageHit = new Page({
+      documentLocation: 'http://localhost',
       visitorId
     })
 
-    campaignHit.visitorId = visitorId
-    campaignHit.key = 'key'
+    pageHit.visitorId = visitorId
+    pageHit.key = 'key'
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (batchingStrategy as any).cacheHit(new Map().set(campaignHit.key, campaignHit))
+    await (batchingStrategy as any).cacheHit(new Map().set(pageHit.key, pageHit))
 
     const cacheData = {
       version: HIT_CACHE_VERSION,
       data: {
-        visitorId: campaignHit.visitorId,
-        anonymousId: campaignHit.anonymousId,
-        type: campaignHit.type,
+        visitorId: pageHit.visitorId,
+        anonymousId: pageHit.anonymousId,
+        type: pageHit.type,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        content: campaignHit.toObject() as any,
+        content: pageHit.toObject() as any,
         time: Date.now()
       }
     }
 
     expect(cacheHit).toBeCalledTimes(1)
-    expect(cacheHit).toBeCalledWith({ [campaignHit.key]: cacheData })
+    expect(cacheHit).toBeCalledWith({ [pageHit.key]: cacheData })
   })
 
   it('test cacheHit throw exception', async () => {
     const error = 'message'
     cacheHit.mockRejectedValue(error)
-    const campaignHit = new Campaign({
-      variationGroupId: 'variationGrID',
-      campaignId: 'campaignID',
+    const pageHit = new Page({
+      documentLocation: 'http://localhost',
       visitorId
     })
 
-    campaignHit.visitorId = visitorId
-    campaignHit.key = 'key'
+    pageHit.visitorId = visitorId
+    pageHit.key = 'key'
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (batchingStrategy as any).cacheHit(new Map().set(campaignHit.key, campaignHit))
+    await (batchingStrategy as any).cacheHit(new Map().set(pageHit.key, pageHit))
 
     expect(cacheHit).toBeCalledTimes(1)
     expect(logError).toBeCalledTimes(1)

@@ -2,15 +2,13 @@ import { jest, expect, it, describe } from '@jest/globals'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { DecisionApiConfig } from '../../src/config/index'
 import { HttpClient } from '../../src/utils/HttpClient'
-import { Campaign } from '../../src/hit/Campaign'
 import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinuousCachingStrategy'
 import { BatchingPeriodicCachingStrategy } from '../../src/api/BatchingPeriodicCachingStrategy'
 import { BatchStrategy, Event, EventCategory, HitCacheDTO, Item, Page, Screen, Transaction } from '../../src'
-import { HIT_CACHE_VERSION, NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY, PROCESS_LOOKUP_HIT } from '../../src/enum'
+import { FS_CONSENT, HIT_CACHE_VERSION, NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY, PROCESS_LOOKUP_HIT, SDK_LANGUAGE } from '../../src/enum'
 import { NoBatchingContinuousCachingStrategy } from '../../src/api/NoBatchingContinuousCachingStrategy'
 import { sleep, uuidV4 } from '../../src/utils/utils'
 import { Mock } from 'jest-mock'
-import { Consent } from '../../src/hit/Consent'
 import { Segment } from '../../src/hit/Segment'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { Activate } from '../../src/hit/Activate'
@@ -29,11 +27,13 @@ describe('test TrackingManager', () => {
   })
 
   it('Test addHit method', async () => {
-    const CampaignHit = new Campaign({
+    const CampaignHit = new Activate({
       variationGroupId: 'variationGrID',
-      campaignId: 'campaignID',
+      variationId: 'campaignID',
       visitorId
     })
+
+    CampaignHit.config = config
 
     await trackingManager.addHit(CampaignHit)
 
@@ -88,11 +88,12 @@ describe('test TrackingManager Strategy ', () => {
       await sleep(250)
       return { status: 200, body: null }
     })
-    const CampaignHit = new Campaign({
+    const CampaignHit = new Activate({
       variationGroupId: 'variationGrID',
-      campaignId: 'campaignID',
+      variationId: 'campaignID',
       visitorId
     })
+    CampaignHit.config = config
     config.trackingMangerConfig.batchIntervals = 0.2
 
     await trackingManager.addHit(CampaignHit)
@@ -130,15 +131,17 @@ describe('test TrackingManager lookupHits', () => {
   config.hitCacheImplementation = hitCacheImplementation
 
   it('test lookupHits', async () => {
-    const campaignHit = new Campaign({
+    const campaignHit = new Activate({
       variationGroupId: 'variationGrID',
-      campaignId: 'campaignID',
+      variationId: 'campaignID',
       visitorId
     })
 
-    const consentHit = new Consent({
-      visitorConsent: true,
-      visitorId
+    const consentHit = new Event({
+      visitorId: visitorId,
+      label: `${SDK_LANGUAGE.name}:${true}`,
+      action: FS_CONSENT,
+      category: EventCategory.USER_ENGAGEMENT
     })
 
     const eventHit = new Event({
@@ -165,7 +168,7 @@ describe('test TrackingManager lookupHits', () => {
     })
 
     const segmentHit = new Segment({
-      sl: {
+      data: {
         any: 'value'
       },
       visitorId
