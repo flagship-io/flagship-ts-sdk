@@ -1,12 +1,11 @@
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { Mock } from 'jest-mock'
-import { DecisionApiConfig, HitAbstract, Page } from '../../src'
+import { DecisionApiConfig, Event, EventCategory, HitAbstract, Page } from '../../src'
 import { NoBatchingContinuousCachingStrategy } from '../../src/api/NoBatchingContinuousCachingStrategy'
-import { HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, SDK_LANGUAGE, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, SEND_BATCH, BASE_API_URL, URL_ACTIVATE_MODIFICATION, SEND_HIT, SEND_ACTIVATE } from '../../src/enum'
+import { HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, SDK_LANGUAGE, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, SEND_BATCH, BASE_API_URL, URL_ACTIVATE_MODIFICATION, SEND_HIT, SEND_ACTIVATE, FS_CONSENT } from '../../src/enum'
+import { Segment } from '../../src/hit'
 import { Activate } from '../../src/hit/Activate'
 import { Batch } from '../../src/hit/Batch'
-import { Campaign } from '../../src/hit/Campaign'
-import { Consent } from '../../src/hit/Consent'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { errorFormat, uuidV4 } from '../../src/utils/utils'
@@ -35,10 +34,6 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
   config.logManager = logManager
 
   const headers = {
-    [HEADER_X_API_KEY]: `${config.apiKey}`,
-    [HEADER_X_ENV_ID]: `${config.envId}`,
-    [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
-    [HEADER_X_SDK_VERSION]: SDK_VERSION,
     [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
   }
 
@@ -60,9 +55,9 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
 
-    const campaignHit = new Campaign({
+    const campaignHit = new Activate({
       variationGroupId: 'variationGrID',
-      campaignId: 'campaignID',
+      variationId: 'campaignID',
       visitorId
     })
     campaignHit.config = config
@@ -70,8 +65,8 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     await batchingStrategy.addHit(campaignHit)
 
     expect(postAsync).toHaveBeenCalledTimes(1)
-    expect(postAsync).toHaveBeenNthCalledWith(1, HIT_EVENT_URL, {
-      headers,
+    expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
+      headers: headersActivate,
       body: campaignHit.toApiKeys()
     })
     expect(hitsPoolQueue.size).toBe(0)
@@ -80,9 +75,11 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(flushHits).toBeCalledTimes(1)
     expect(flushHits).toHaveBeenNthCalledWith(1, [expect.stringContaining(visitorId)])
 
-    const consentHit = new Consent({
-      visitorConsent: true,
-      visitorId
+    const consentHit = new Event({
+      visitorId: visitorId,
+      label: `${SDK_LANGUAGE.name}:${true}`,
+      action: FS_CONSENT,
+      category: EventCategory.USER_ENGAGEMENT
     })
 
     consentHit.visitorId = visitorId
@@ -119,9 +116,11 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(flushHits).toBeCalledTimes(3)
     expect(flushHits).toHaveBeenNthCalledWith(3, [expect.stringContaining(visitorId)])
 
-    const consentHitFalse = new Consent({
-      visitorConsent: false,
-      visitorId
+    const consentHitFalse = new Event({
+      visitorId: visitorId,
+      label: `${SDK_LANGUAGE.name}:${false}`,
+      action: FS_CONSENT,
+      category: EventCategory.USER_ENGAGEMENT
     })
 
     consentHitFalse.visitorId = visitorId
@@ -151,6 +150,26 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(cacheHit).toHaveBeenNthCalledWith(5, new Map().set(expect.stringContaining(visitorId), activateHit))
     expect(flushHits).toBeCalledTimes(5)
     expect(flushHits).toHaveBeenNthCalledWith(5, [expect.stringContaining(visitorId)])
+
+    // Test segmentHit
+    const segmentHit = new Segment({
+      data: {
+        key: 'value'
+      },
+      visitorId
+    })
+    segmentHit.config = config
+
+    await batchingStrategy.addHit(segmentHit)
+
+    const urlEvents = `${BASE_API_URL}${config.envId}/events`
+    expect(postAsync).toHaveBeenCalledTimes(6)
+    expect(postAsync).toHaveBeenNthCalledWith(6, urlEvents, { headers: headersActivate, body: segmentHit.toApiKeys() })
+    expect(hitsPoolQueue.size).toBe(0)
+    expect(cacheHit).toBeCalledTimes(6)
+    expect(cacheHit).toHaveBeenNthCalledWith(6, new Map().set(expect.stringContaining(visitorId), segmentHit))
+    expect(flushHits).toBeCalledTimes(6)
+    expect(flushHits).toHaveBeenNthCalledWith(6, [expect.stringContaining(visitorId)])
   })
 
   it('test addHit method throw error', async () => {
@@ -165,15 +184,14 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
 
-    const campaignHit = new Campaign({
-      variationGroupId: 'variationGrID',
-      campaignId: 'campaignID',
+    const pageHit = new Page({
+      documentLocation: 'http://localhost',
       visitorId
     })
-    campaignHit.visitorId = visitorId
-    campaignHit.config = config
+    pageHit.visitorId = visitorId
+    pageHit.config = config
 
-    await batchingStrategy.addHit(campaignHit)
+    await batchingStrategy.addHit(pageHit)
 
     expect(postAsync).toHaveBeenCalledTimes(1)
 
@@ -187,7 +205,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(logError).toHaveBeenNthCalledWith(1, errorFormat(error, {
       url: HIT_EVENT_URL,
       headers,
-      body: campaignHit.toApiKeys()
+      body: pageHit.toApiKeys()
     }), SEND_HIT)
 
     // Test activate
@@ -216,21 +234,25 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     }), SEND_ACTIVATE)
 
     // Test consent false
-    const consentHitFalse = new Consent({
-      visitorConsent: false,
-      visitorId
+    const consentHitFalse = new Event({
+      visitorId: visitorId,
+      label: `${SDK_LANGUAGE.name}:${false}`,
+      action: FS_CONSENT,
+      category: EventCategory.USER_ENGAGEMENT
     })
     consentHitFalse.config = config
 
-    const campaignHitLoaded = new Campaign({
+    const campaignHitLoaded = new Activate({
       variationGroupId: 'variationGrID',
-      campaignId: 'campaignID',
+      variationId: 'campaignID',
       visitorId
     })
 
-    const consentHitLoaded = new Consent({
-      visitorConsent: true,
-      visitorId
+    const consentHitLoaded = new Event({
+      visitorId: visitorId,
+      label: `${SDK_LANGUAGE.name}:${true}`,
+      action: FS_CONSENT,
+      category: EventCategory.USER_ENGAGEMENT
     })
 
     hitsPoolQueue.set(visitorId + 'campaign', campaignHitLoaded).set(visitorId + 'consent', consentHitLoaded)
@@ -287,9 +309,8 @@ describe('test sendBatch method', () => {
 
   const visitorId = 'visitorId'
 
-  const globalCampaignHit = new Campaign({
-    variationGroupId: 'variationGrID21',
-    campaignId: 'campaignID21',
+  const globalCampaignHit = new Page({
+    documentLocation: 'http://localhost',
     visitorId
   })
 
@@ -297,10 +318,6 @@ describe('test sendBatch method', () => {
   globalCampaignHit.key = `${visitorId}:${uuidV4()}`
 
   const headers = {
-    [HEADER_X_API_KEY]: `${config.apiKey}`,
-    [HEADER_X_ENV_ID]: `${config.envId}`,
-    [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
-    [HEADER_X_SDK_VERSION]: SDK_VERSION,
     [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
   }
 
@@ -322,9 +339,8 @@ describe('test sendBatch method', () => {
 
     for (let index = 0; index < 20; index++) {
       const key = `${visitorId}:${uuidV4()}`
-      const campaignHit = new Campaign({
-        variationGroupId: 'variationGrID' + index,
-        campaignId: 'campaignID' + index,
+      const campaignHit = new Page({
+        documentLocation: 'http://localhost' + index,
         visitorId
       })
       campaignHit.key = key
@@ -345,11 +361,22 @@ describe('test sendBatch method', () => {
     activateHit.key = visitorId + 'activate'
     hitsPoolQueue.set(activateHit.key, activateHit)
 
-    expect(hitsPoolQueue.size).toBe(22)
+    const segmentHit = new Segment({
+      data: {
+        key: 'value'
+      },
+      visitorId
+    })
+    segmentHit.config = config
+    segmentHit.key = visitorId + 'segment'
+
+    hitsPoolQueue.set(segmentHit.key, segmentHit)
+
+    expect(hitsPoolQueue.size).toBe(23)
 
     await batchingStrategy.sendBatch()
 
-    expect(hitsPoolQueue.size).toBe(2)
+    expect(hitsPoolQueue.size).toBe(3)
 
     expect(postAsync).toBeCalledTimes(1)
     expect(postAsync).toBeCalledWith(HIT_EVENT_URL, { headers, body: batch.toApiKeys() })
@@ -360,13 +387,16 @@ describe('test sendBatch method', () => {
 
     expect(hitsPoolQueue.size).toBe(0)
 
-    expect(postAsync).toBeCalledTimes(3)
+    expect(postAsync).toBeCalledTimes(4)
 
     const newBatch:Batch = new Batch({ hits: [globalCampaignHit] })
     newBatch.config = config
 
+    const urlEvents = `${BASE_API_URL}${config.envId}/events`
+
     expect(postAsync).toHaveBeenNthCalledWith(2, urlActivate, { headers: headersActivate, body: activateHit.toApiKeys() })
-    expect(postAsync).toHaveBeenNthCalledWith(3, HIT_EVENT_URL, { headers, body: newBatch.toApiKeys() })
+    expect(postAsync).toHaveBeenNthCalledWith(3, urlEvents, { headers: headersActivate, body: segmentHit.toApiKeys() })
+    expect(postAsync).toHaveBeenNthCalledWith(4, HIT_EVENT_URL, { headers, body: newBatch.toApiKeys() })
     expect(flushHits).toBeCalledTimes(3)
     expect(flushHits).toHaveBeenCalledWith(expect.arrayContaining([expect.stringContaining(visitorId)]))
   })
