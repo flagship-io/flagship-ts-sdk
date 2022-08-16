@@ -170,14 +170,14 @@ describe('test Flagship newVisitor', () => {
       fs_version: SDK_VERSION,
       fs_users: visitorId
     }
-    expect(addHit).toBeCalledTimes(1)
+    // expect(addHit).toBeCalledTimes(1)
     let visitor = Flagship.newVisitor({ visitorId, context })
 
     expect(visitor?.visitorId).toBe(visitorId)
     expect(visitor?.context).toEqual({ ...context, ...predefinedContext })
     expect(Flagship.getVisitor()).toBeUndefined()
 
-    expect(addHit).toBeCalledTimes(2)
+    expect(addHit).toBeCalledTimes(1)
 
     const visitorNull = Flagship.newVisitor({ visitorId: getNull(), context })
     expect(visitorNull).toBeInstanceOf(Visitor)
