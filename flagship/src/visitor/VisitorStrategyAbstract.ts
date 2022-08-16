@@ -1,5 +1,5 @@
 import { FlagDTO } from '../index'
-import { HitAbstract, HitShape } from '../hit/index'
+import { Event, HitAbstract, HitShape } from '../hit/index'
 import { primitive, modificationsRequested, IHit, VisitorCacheDTO } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
@@ -8,7 +8,7 @@ import { CampaignDTO } from '../decision/api/models'
 import { ITrackingManager } from '../api/TrackingManagerAbstract'
 import { IDecisionManager } from '../decision/IDecisionManager'
 import { logError, logInfo, sprintf } from '../utils/utils'
-import { FS_CONSENT, HitType, SDK_LANGUAGE, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index'
+import { FS_CONSENT, SDK_APP, SDK_LANGUAGE, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index'
 
 import { BatchDTO } from '../hit/Batch'
 
@@ -70,12 +70,18 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       return
     }
 
-    // send consent hit
-    this.sendHit({
-      type: HitType.EVENT,
+    const consentHit = new Event({
+      visitorId: this.visitor.visitorId,
       label: `${SDK_LANGUAGE.name}:${this.visitor.hasConsented}`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT
+    })
+
+    consentHit.ds = SDK_APP
+    consentHit.config = this.config
+
+    this.trackingManager.addHit(consentHit).catch((error) => {
+      logError(this.config, error.message || error, method)
     })
   }
 
