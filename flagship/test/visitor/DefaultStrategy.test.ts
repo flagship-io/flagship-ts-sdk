@@ -291,6 +291,32 @@ describe('test DefaultStrategy ', () => {
   })
 
   it('test getFlagValue', () => {
+    const returnMod = {
+      key: 'keyBoolean',
+      campaignId: 'c2nrh1hjg50l9thhu8bgkeyB',
+      variationGroupId: 'c2nrh1hjg50l9thhu8cgKeyBoolean',
+      variationId: 'c2nrh1hjg50l9thhu8dg',
+      isReference: false,
+      value: false
+    }
+    const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: true, flag: returnMod })
+    expect(value).toBe(returnMod.value)
+  })
+
+  it('test getFlagValue', () => {
+    const returnMod = {
+      key: 'keyBoolean',
+      campaignId: 'c2nrh1hjg50l9thhu8bgkeyB',
+      variationGroupId: 'c2nrh1hjg50l9thhu8cgKeyBoolean',
+      variationId: 'c2nrh1hjg50l9thhu8dg',
+      isReference: false,
+      value: 0
+    }
+    const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: 1, flag: returnMod })
+    expect(value).toBe(returnMod.value)
+  })
+
+  it('test getFlagValue', () => {
     const returnMod = returnModification.get('keyString') as FlagDTO
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: 'defaultValues', flag: returnMod, userExposed: true })
     expect<string>(value).toBe(returnMod.value)

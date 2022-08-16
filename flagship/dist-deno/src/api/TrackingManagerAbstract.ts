@@ -31,6 +31,7 @@ export interface ITrackingManager extends ITrackingManagerCommon {
 }
 
 export abstract class TrackingManagerAbstract implements ITrackingManager {
+<<<<<<< HEAD
   private _httpClient: IHttpClient;
   private _config: IFlagshipConfig;
   private _hitsPoolQueue: Map<string, HitAbstract>;
@@ -39,6 +40,10 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   protected _intervalID:any;
   protected _isPooling = false
 
+=======
+  private _httpClient: IHttpClient
+  private _config: IFlagshipConfig
+>>>>>>> origin/main
   constructor (httpClient: IHttpClient, config: IFlagshipConfig) {
     this._hitsPoolQueue = new Map<string, HitAbstract>()
     this._httpClient = httpClient

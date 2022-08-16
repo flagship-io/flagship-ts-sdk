@@ -29,7 +29,6 @@ export class Event extends HitAbstract implements IEvent {
   private _action!: string;
   private _label!: string;
   private _value!: number;
-  private _custom? : Record<string, unknown>;
 
   public get category (): EventCategory {
     return this._category

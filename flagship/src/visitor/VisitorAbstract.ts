@@ -18,13 +18,13 @@ import { IFlag } from '../flag/Flags'
 import { IFlagMetadata } from '../flag/FlagMetadata'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
-  protected _visitorId!: string;
-  protected _context: Record<string, primitive>;
-  protected _flags!: Map<string, FlagDTO>;
-  protected _configManager: IConfigManager;
-  protected _campaigns!: CampaignDTO[];
-  protected _hasConsented!: boolean;
-  protected _anonymousId!: string | null;
+  protected _visitorId!: string
+  protected _context: Record<string, primitive>
+  protected _flags!: Map<string, FlagDTO>
+  protected _configManager: IConfigManager
+  protected _campaigns!: CampaignDTO[]
+  protected _hasConsented!: boolean
+  protected _anonymousId!: string | null
   public deDuplicationCache: Record<string, number>
   protected _isCleaningDeDuplicationCache: boolean
   public visitorCache?: VisitorCacheDTO
@@ -41,20 +41,21 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._context = {}
     this._configManager = configManager
 
-    const VisitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
-    this.visitorId = visitorId || VisitorCache?.visitorId || uuidV4()
+    const visitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
+    this.visitorId = visitorId || (!isAuthenticated && visitorCache?.anonymousId ? visitorCache?.anonymousId : visitorCache?.visitorId) || uuidV4()
 
     this.campaigns = []
 
-    this._anonymousId = VisitorCache?.anonymousId || null
+    this.updateContext(context)
+
+    this._anonymousId = isAuthenticated && visitorCache?.anonymousId ? visitorCache?.anonymousId : null
+    this.loadPredefinedContext()
 
     if (!this._anonymousId && isAuthenticated && this.config.decisionMode === DecisionMode.DECISION_API) {
       this._anonymousId = uuidV4()
     }
 
     this.setConsent(hasConsented ?? true)
-    this.updateContext(context)
-    this.loadPredefinedContext()
 
     this.updateCache()
     this.setInitialFlags(initialFlagsData || initialModifications)
@@ -103,11 +104,11 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   }
 
   protected updateCache (): void {
-    const visitorProfil = {
+    const visitorProfile = {
       visitorId: this.visitorId,
       anonymousId: this.anonymousId
     }
-    cacheVisitor.saveVisitorProfile(visitorProfil)
+    cacheVisitor.saveVisitorProfile(visitorProfile)
   }
 
   protected loadPredefinedContext (): void {

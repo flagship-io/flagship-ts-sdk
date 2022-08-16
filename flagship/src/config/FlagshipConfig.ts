@@ -100,19 +100,19 @@ export interface IFlagshipConfig {
 export const statusChangeError = 'statusChangedCallback must be a function'
 
 export abstract class FlagshipConfig implements IFlagshipConfig {
-  private _envId?: string;
-  private _apiKey?: string;
-  protected _decisionMode: DecisionMode;
-  private _timeout!: number;
-  private _logLevel!: LogLevel;
-  private _statusChangedCallback?: (status: FlagshipStatus) => void;
-  private _logManager!: IFlagshipLogManager;
-  private _fetchNow!: boolean;
+  private _envId?: string
+  private _apiKey?: string
+  protected _decisionMode: DecisionMode
+  private _timeout!: number
+  private _logLevel!: LogLevel
+  private _statusChangedCallback?: (status: FlagshipStatus) => void
+  private _logManager!: IFlagshipLogManager
+  private _fetchNow!: boolean
   private _pollingInterval!: number
-  private _onBucketingFail?: (error: Error) => void;
-  private _onBucketingSuccess?: (param: { status: number; payload: BucketingDTO }) => void;
-  private _onBucketingUpdated?: (lastUpdate: Date) => void;
-  private _enableClientCache!: boolean;
+  private _onBucketingFail?: (error: Error) => void
+  private _onBucketingSuccess?: (param: { status: number; payload: BucketingDTO }) => void
+  private _onBucketingUpdated?: (lastUpdate: Date) => void
+  private _enableClientCache!: boolean
   private _initialBucketing?: BucketingDTO
   private _decisionApiUrl!: string
   private _activateDeduplicationTime!: number;

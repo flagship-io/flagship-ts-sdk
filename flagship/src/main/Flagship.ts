@@ -317,8 +317,8 @@ export class Flagship {
       isAuthenticated,
       hasConsented,
       configManager: this.getInstance().configManager,
-      initialModifications: initialModifications,
-      initialCampaigns: initialCampaigns,
+      initialModifications,
+      initialCampaigns,
       initialFlagsData: initialModifications
     })
 

@@ -11,7 +11,7 @@ import { CampaignDTO, VariationDTO } from './api/models.ts'
 import { DecisionManager } from './DecisionManager.ts'
 
 export class BucketingManager extends DecisionManager {
-  private _bucketingContent!: BucketingDTO;
+  private _bucketingContent!: BucketingDTO
   private _lastModified!: string
   private _isPooling!: boolean
   private _murmurHash: MurmurHash
@@ -165,7 +165,7 @@ export class BucketingManager extends DecisionManager {
         }
         return {
           id: campaignId,
-          variation: variation,
+          variation,
           variationGroupId: variationGroup.id,
           type: campaignType
         }

@@ -40,7 +40,7 @@ export class HttpClient implements IHttpClient {
     })
     return {
       status: response.status,
-      body: body,
+      body,
       headers
     }
   }

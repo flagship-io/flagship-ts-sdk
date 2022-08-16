@@ -28,6 +28,7 @@ export interface IHitAbstract{
 }
 
 export abstract class HitAbstract implements IHitAbstract {
+<<<<<<< HEAD
   private _visitorId!: string;
   private _config!: IFlagshipConfig;
   protected _type!: HitType|'BATCH';
@@ -47,6 +48,17 @@ export abstract class HitAbstract implements IHitAbstract {
   public set key (v : string) {
     this._key = v
   }
+=======
+  private _visitorId!: string
+  private _config!: IFlagshipConfig
+  protected _type!: HitType|'BATCH'
+  private _ds!: string
+  private _anonymousId! : string|null
+  private _userIp! : string
+  private _screenResolution! : string
+  private _locale! : string
+  private _sessionNumber! : string
+>>>>>>> origin/main
 
   public get sessionNumber () : string {
     return this._sessionNumber
