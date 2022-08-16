@@ -1,4 +1,3 @@
-import { HitType } from '../enum/HitType'
 import { primitive } from '../types'
 import { HitAbstract, IHitAbstract } from './HitAbstract'
 
