@@ -118,18 +118,20 @@ export class Item extends HitAbstract implements IItem {
    * @param productName : Name of the item product.
    * @param productSku : The SKU or item code.
    */
-  public constructor (item:Omit<IItem, 'type'|'createdAt'>) {
+  public constructor (param:Omit<IItem, 'type'|'createdAt'>) {
     super({
       type: HitType.ITEM,
-      userIp: item.userIp,
-      screenResolution: item.screenResolution,
-      locale: item.locale,
-      sessionNumber: item.sessionNumber
+      userIp: param.userIp,
+      screenResolution: param.screenResolution,
+      locale: param.locale,
+      sessionNumber: param.sessionNumber,
+      visitorId: param.visitorId,
+      anonymousId: param.anonymousId
     })
     const {
       transactionId, productName, productSku,
       itemCategory, itemPrice, itemQuantity
-    } = item
+    } = param
     this.transactionId = transactionId
     this.productName = productName
     this.productSku = productSku

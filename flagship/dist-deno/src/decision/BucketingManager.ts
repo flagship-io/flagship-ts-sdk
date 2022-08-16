@@ -115,7 +115,11 @@ export class BucketingManager extends DecisionManager {
       if (Object.keys(visitor.context).length <= 3) {
         return
       }
-      const SegmentHit = new Segment({ sl: visitor.context })
+      const SegmentHit = new Segment({
+        data: visitor.context,
+        visitorId: visitor.visitorId,
+        anonymousId: visitor.anonymousId as string
+      })
 
       await visitor.sendHit(SegmentHit)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

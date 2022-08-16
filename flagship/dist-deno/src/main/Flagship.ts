@@ -8,10 +8,13 @@ import { TrackingManager } from '../api/TrackingManager.ts'
 import { FlagshipLogManager } from '../utils/FlagshipLogManager.ts'
 import { isBrowser, logError, logInfo, sprintf } from '../utils/utils.ts'
 import {
+  BatchStrategy,
   INITIALIZATION_PARAM_ERROR,
+  LogLevel,
+  NEW_VISITOR_NOT_READY,
   PROCESS_INITIALIZATION,
-  SDK_STARTED_INFO,
-  SDK_VERSION
+  PROCESS_NEW_VISITOR,
+  SDK_STARTED_INFO
 } from '../enum/index.ts'
 import { VisitorDelegate } from '../visitor/VisitorDelegate.ts'
 import { BucketingConfig } from '../config/index.ts'
@@ -23,6 +26,8 @@ import { FlagDTO, NewVisitor, primitive } from '../types.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { DefaultHitCache } from '../cache/DefaultHitCache.ts'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache.ts'
+import { Monitoring } from '../hit/Monitoring.ts'
+import { version as packageVersion } from '../sdkVersion.ts'
 
 export class Flagship {
   // eslint-disable-next-line no-use-before-define
@@ -52,24 +57,23 @@ export class Flagship {
     return this._instance
   }
 
-  /**
-   * Return true if the SDK is properly initialized, otherwise return false
-   */
-  private static isReady (): boolean {
-    const apiKey = this._instance?.getConfig()?.apiKey
-    const envId = this._instance?.getConfig()?.envId
-    const configManager = this._instance?.configManager
-    return (!!this._instance && !!apiKey && !!envId && !!configManager)
-  }
-
   protected setStatus (status: FlagshipStatus): void {
     const statusChanged = this.getConfig().statusChangedCallback
 
-    if (this.getConfig() && statusChanged && this._status !== status) {
-      this._status = status
-      statusChanged(status)
-      return
+    if (this._status !== status) {
+      if (status === FlagshipStatus.READY) {
+        this.configManager?.trackingManager?.startBatchingLoop()
+      } else {
+        this.configManager?.trackingManager?.stopBatchingLoop()
+      }
+
+      if (this.getConfig() && statusChanged) {
+        this._status = status
+        statusChanged(status)
+        return
+      }
     }
+
     this._status = status
   }
 
@@ -163,6 +167,11 @@ export class Flagship {
 
     config = flagship.buildConfig(config)
 
+    const configCheck = {
+      useCustomLogManager: !!config.logManager,
+      useCustomCacheManager: !!config.hitCacheImplementation || !!config.visitorCacheImplementation
+    }
+
     config.envId = envId
     config.apiKey = apiKey
 
@@ -175,8 +184,15 @@ export class Flagship {
       config.logManager = new FlagshipLogManager()
     }
 
+    if (!envId || !apiKey) {
+      flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
+      logError(config, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION)
+      return flagship
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (!config.hitCacheImplementation && isBrowser()) {
+      configCheck.useCustomLogManager = false
       config.hitCacheImplementation = new DefaultHitCache()
     }
 
@@ -198,40 +214,45 @@ export class Flagship {
     let trackingManager = flagship.configManager?.trackingManager
     if (!trackingManager) {
       trackingManager = new TrackingManager(httpClient, config)
-      trackingManager.startBatchingLoop()
     }
 
-    if (flagship.configManager) {
-      flagship.configManager.config = config
-      flagship.configManager.decisionManager = decisionManager
-      flagship.configManager.trackingManager = trackingManager
-    } else {
-      flagship.configManager = new ConfigManager(
-        config,
-        decisionManager,
-        trackingManager
-      )
-    }
-
-    if (!envId || !apiKey) {
-      flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
-      logError(config, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION)
-      return flagship
-    }
-
-    if (!this.isReady()) {
-      flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
-      return flagship
-    }
+    flagship.configManager = new ConfigManager(
+      config,
+      decisionManager,
+      trackingManager
+    )
 
     if (flagship._status === FlagshipStatus.STARTING) {
       flagship.setStatus(FlagshipStatus.READY)
     }
+
     logInfo(
       config,
-      sprintf(SDK_STARTED_INFO, SDK_VERSION),
+      sprintf(SDK_STARTED_INFO, packageVersion),
       PROCESS_INITIALIZATION
     )
+
+    // const initMonitoring = new Monitoring({
+    //   action: 'SDK-INITIALIZATION',
+    //   subComponent: 'Flagship.start',
+    //   logLevel: LogLevel.INFO,
+    //   message: 'Flagship initialized',
+    //   sdkConfigCustomCacheManager: configCheck.useCustomCacheManager,
+    //   sdkConfigCustomLogManager: configCheck.useCustomLogManager,
+    //   sdkConfigMode: config.decisionMode,
+    //   sdkConfigPollingTime: config.pollingInterval?.toString(),
+    //   sdkConfigStatusListener: !!config.statusChangedCallback,
+    //   sdkConfigTimeout: config.timeout?.toString(),
+    //   sdkStatus: FlagshipStatus[flagship.getStatus()],
+    //   sdkConfigTrackingManagerConfigBatchIntervals: config.trackingMangerConfig?.batchIntervals?.toString(),
+    //   sdkConfigTrackingManagerConfigBatchLength: config.trackingMangerConfig?.batchLength?.toString(),
+    //   sdkConfigTrackingManagerConfigStrategy: BatchStrategy[config.trackingMangerConfig?.batchStrategy as BatchStrategy],
+    //   visitorId: '0',
+    //   anonymousId: '',
+    //   config
+    // })
+
+    // trackingManager.addHit(initMonitoring)
     return flagship
   }
 
@@ -271,6 +292,11 @@ export class Flagship {
     let initialCampaigns: CampaignDTO[] | undefined
     const isServerSide = !isBrowser()
     let isNewInstance = isServerSide
+
+    if (!this._instance?.configManager) {
+      logError(this.getConfig(), NEW_VISITOR_NOT_READY, PROCESS_NEW_VISITOR)
+      return null
+    }
 
     if (typeof param1 === 'string' || param1 === null) {
       visitorId = param1 || undefined

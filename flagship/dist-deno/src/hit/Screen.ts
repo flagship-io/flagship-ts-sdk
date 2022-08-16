@@ -21,15 +21,17 @@ export class Screen extends HitAbstract implements IScreen {
     this._documentLocation = v
   }
 
-  public constructor (screen: Omit<IScreen, 'type'|'createdAt'>) {
+  public constructor (param: Omit<IScreen, 'type'|'createdAt'>) {
     super({
       type: HitType.SCREEN_VIEW,
-      userIp: screen.userIp,
-      screenResolution: screen.screenResolution,
-      locale: screen.locale,
-      sessionNumber: screen.sessionNumber
+      userIp: param.userIp,
+      screenResolution: param.screenResolution,
+      locale: param.locale,
+      sessionNumber: param.sessionNumber,
+      visitorId: param.visitorId,
+      anonymousId: param.anonymousId
     })
-    this.documentLocation = screen.documentLocation
+    this.documentLocation = param.documentLocation
   }
 
   public isReady (checkParent = true):boolean {

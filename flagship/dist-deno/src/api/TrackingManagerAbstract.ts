@@ -2,8 +2,6 @@ import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
 import { DEFAULT_HIT_CACHE_TIME, DEFAULT_TIME_INTERVAL, HitType, HIT_DATA_LOADED, PROCESS_LOOKUP_HIT } from '../enum/index.ts'
 import { BatchStrategy } from '../enum/BatchStrategy.ts'
 import { HitAbstract, IEvent, ITransaction, Transaction, Event, Item, IItem, Page, IPage, IScreen, Screen } from '../hit/index.ts'
-import { Campaign, ICampaign } from '../hit/Campaign.ts'
-import { Consent, IConsent } from '../hit/Consent.ts'
 import { ISegment, Segment } from '../hit/Segment.ts'
 import { IHttpClient } from '../utils/HttpClient.ts'
 import { logDebug, logError, logInfo, sprintf } from '../utils/utils.ts'
@@ -12,6 +10,7 @@ import { BatchingContinuousCachingStrategy } from './BatchingContinuousCachingSt
 import { BatchingPeriodicCachingStrategy } from './BatchingPeriodicCachingStrategy.ts'
 import { HitCacheDTO } from '../types.ts'
 import { NoBatchingContinuousCachingStrategy } from './NoBatchingContinuousCachingStrategy.ts'
+import { Activate, IActivate } from '../hit/Activate.ts'
 
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
@@ -31,7 +30,6 @@ export interface ITrackingManager extends ITrackingManagerCommon {
 }
 
 export abstract class TrackingManagerAbstract implements ITrackingManager {
-<<<<<<< HEAD
   private _httpClient: IHttpClient;
   private _config: IFlagshipConfig;
   private _hitsPoolQueue: Map<string, HitAbstract>;
@@ -40,10 +38,6 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   protected _intervalID:any;
   protected _isPooling = false
 
-=======
-  private _httpClient: IHttpClient
-  private _config: IFlagshipConfig
->>>>>>> origin/main
   constructor (httpClient: IHttpClient, config: IFlagshipConfig) {
     this._hitsPoolQueue = new Map<string, HitAbstract>()
     this._httpClient = httpClient
@@ -55,10 +49,10 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   protected initStrategy ():BatchingCachingStrategyAbstract {
     let strategy:BatchingCachingStrategyAbstract
     switch (this.config.trackingMangerConfig?.batchStrategy) {
-      case BatchStrategy.BATCHING_WITH_PERIODIC_CACHING_STRATEGY:
+      case BatchStrategy.PERIODIC_CACHING:
         strategy = new BatchingPeriodicCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
         break
-      case BatchStrategy.BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY:
+      case BatchStrategy.CONTINUOUS_CACHING:
         strategy = new BatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
         break
       default:
@@ -90,7 +84,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   public stopBatchingLoop (): void {
     clearInterval(this._intervalID)
     this._isPooling = false
-    logInfo(this.config, 'Batching Loop have been finished', 'stopBatchingLoop')
+    logInfo(this.config, 'Batching Loop have been stopped', 'stopBatchingLoop')
   }
 
   protected async batchingLoop ():Promise<void> {
@@ -135,12 +129,6 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
         }
         let hit:HitAbstract
         switch (item.data.type) {
-          case HitType.CAMPAIGN:
-            hit = new Campaign(item.data.content as ICampaign)
-            break
-          case HitType.CONSENT:
-            hit = new Consent(item.data.content as IConsent)
-            break
           case HitType.EVENT:
             hit = new Event(item.data.content as IEvent)
             break
@@ -153,8 +141,11 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
           case HitType.SCREEN:
             hit = new Screen(item.data.content as IScreen)
             break
-          case HitType.SEGMENT:
+          case 'CONTEXT':
             hit = new Segment(item.data.content as ISegment)
+            break
+          case 'ACTIVATE':
+            hit = new Activate(item.data.content as IActivate)
             break
           case HitType.TRANSACTION:
             hit = new Transaction(item.data.content as ITransaction)
@@ -164,10 +155,13 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
         }
         hit.key = key
         hit.createdAt = item.data.content.createdAt
+        hit.config = this.config
         this._hitsPoolQueue.set(key, hit)
       })
 
-      await this.strategy.flushHits(wrongHitKeys)
+      if (wrongHitKeys.length) {
+        await this.strategy.flushHits(wrongHitKeys)
+      }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {

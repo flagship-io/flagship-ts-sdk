@@ -41,33 +41,21 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._context = {}
     this._configManager = configManager
 
-<<<<<<< HEAD
-    const VisitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
-    this.visitorId = visitorId || VisitorCache?.visitorId || uuidV4()
-
-    this.campaigns = []
-
-    this._anonymousId = VisitorCache?.anonymousId || null
-=======
     const visitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
-    this.visitorId = visitorId || (!isAuthenticated && visitorCache?.anonymousId ? visitorCache?.anonymousId : visitorCache?.visitorId) || this.uuidV4()
-
-    this.setConsent(hasConsented ?? true)
+    this.visitorId = visitorId || (!isAuthenticated && visitorCache?.anonymousId ? visitorCache?.anonymousId : visitorCache?.visitorId) || uuidV4()
 
     this.campaigns = []
 
     this.updateContext(context)
+
     this._anonymousId = isAuthenticated && visitorCache?.anonymousId ? visitorCache?.anonymousId : null
     this.loadPredefinedContext()
->>>>>>> origin/main
 
     if (!this._anonymousId && isAuthenticated && this.config.decisionMode === DecisionMode.DECISION_API) {
       this._anonymousId = uuidV4()
     }
 
     this.setConsent(hasConsented ?? true)
-    this.updateContext(context)
-    this.loadPredefinedContext()
 
     this.updateCache()
     this.setInitialFlags(initialFlagsData || initialModifications)

@@ -2,7 +2,7 @@ import { CUSTOMER_ENV_ID_API_ITEM, DS_API_ITEM, QT_API_ITEM, T_API_ITEM } from '
 import { IHit } from '../types.ts'
 import { HitAbstract, IHitAbstract } from './HitAbstract.ts'
 
-export interface IBatch extends IHitAbstract {
+export interface IBatch extends IHitAbstract{
     hits: HitAbstract[]
 }
 
@@ -13,38 +13,30 @@ export interface BatchDTO {
 }
 
 export const ERROR_MESSAGE = 'Please check required fields'
-export class Batch extends HitAbstract implements IBatch {
-  private _hits! : HitAbstract[]
-  public get hits () : HitAbstract[] {
-    return this._hits
-  }
+export class Batch extends HitAbstract implements Omit<IBatch, 'visitorId'|'anonymousId'> {
+    private _hits! : HitAbstract[];
+    public get hits () : HitAbstract[] {
+      return this._hits
+    }
 
-  public set hits (v : HitAbstract[]) {
-    this._hits = v
-  }
+    public set hits (v : HitAbstract[]) {
+      this._hits = v
+    }
 
-<<<<<<< HEAD
-    constructor (params: Omit<IBatch, 'type'|'createdAt'>) {
-      super({ ...params, type: BATCH })
+    constructor (params: Omit<IBatch, 'type'|'createdAt'|'visitorId'|'anonymousId'>) {
+      super({ ...params, visitorId: '', anonymousId: '', type: BATCH })
       this.hits = params.hits
     }
-=======
-  constructor (params: Omit<IBatch, 'type'>) {
-    super({ ...params, type: BATCH })
-    this.hits = params.hits
-  }
->>>>>>> origin/main
 
-  public isReady (): boolean {
-    return !!(
-      super.isReady() &&
+    public isReady (): boolean {
+      return !!(
+        super.isReady() &&
         this.hits &&
         this.hits.length > 0 &&
         this.hits.every(hit => hit.isReady(false))
-    )
-  }
+      )
+    }
 
-<<<<<<< HEAD
     public toApiKeys ():Record<string, unknown> {
       const apiKeys:Record<string, unknown> = {
         [DS_API_ITEM]: this.ds,
@@ -54,7 +46,6 @@ export class Batch extends HitAbstract implements IBatch {
       }
       apiKeys.h = this.hits.map(hit => {
         const hitKeys = hit.toApiKeys()
-        delete hitKeys[CUSTOMER_ENV_ID_API_ITEM]
         delete hitKeys[DS_API_ITEM]
         return hitKeys
       })
@@ -64,33 +55,4 @@ export class Batch extends HitAbstract implements IBatch {
     public getErrorMessage (): string {
       return ERROR_MESSAGE
     }
-=======
-  public toApiKeys ():Record<string, unknown> {
-    const apiKeys = super.toApiKeys()
-    apiKeys.h = this.hits.map(hit => {
-      const hitKeys = hit.toApiKeys()
-      delete hitKeys[VISITOR_ID_API_ITEM]
-      delete hitKeys[CUSTOMER_ENV_ID_API_ITEM]
-      delete hitKeys[USER_IP_API_ITEM]
-      delete hitKeys[SCREEN_RESOLUTION_API_ITEM]
-      delete hitKeys[USER_LANGUAGE]
-      delete hitKeys[SESSION_NUMBER]
-      delete hitKeys[VISITOR_ID_API_ITEM]
-      delete hitKeys[CUSTOMER_UID]
-      return hitKeys
-    })
-    return apiKeys
-  }
-
-  public toObject ():Record<string, unknown> {
-    return {
-      ...super.toObject(),
-      hits: this.hits.map(hit => hit.toObject())
-    }
-  }
-
-  public getErrorMessage (): string {
-    return ERROR_MESSAGE
-  }
->>>>>>> origin/main
 }
