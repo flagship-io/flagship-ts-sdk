@@ -72,6 +72,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
     const consentHit = new Event({
       visitorId: this.visitor.visitorId,
+      anonymousId: this.visitor.anonymousId,
       label: `${SDK_LANGUAGE.name}:${this.visitor.hasConsented}`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT

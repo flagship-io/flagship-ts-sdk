@@ -351,11 +351,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       visitorId: this.visitor.visitorId,
       anonymousId: this.visitor.anonymousId as string
     })
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { createdAt, ...activateHitItem } = activateHit.toObject()
-    if (this.isDeDuplicated(JSON.stringify(activateHitItem), this.config.hitDeduplicationTime as number)) {
-      return
-    }
+
     await this.prepareAndSendHit(activateHit, functionName)
   }
 
@@ -471,10 +467,12 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   private async prepareAndSendHit (hit: IHit | HitShape | HitAbstract, functionName = PROCESS_SEND_HIT) {
     let hitInstance: HitAbstract
+
     if (!hit?.type) {
       logError(this.config, HIT_NULL_ERROR, functionName)
       return
     }
+
     if (hit instanceof HitAbstract) {
       hitInstance = hit
     } else if ('data' in hit) {
@@ -503,12 +501,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     if (this.isDeDuplicated(JSON.stringify(hitInstanceItem), this.config.hitDeduplicationTime as number)) {
       return
     }
-
     if (!hitInstance.isReady()) {
       logError(this.config, hitInstance.getErrorMessage(), functionName)
       return
     }
-
     try {
       await this.trackingManager.addHit(hitInstance)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

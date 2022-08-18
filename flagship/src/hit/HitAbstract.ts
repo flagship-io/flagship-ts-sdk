@@ -10,7 +10,8 @@ import {
   SCREEN_RESOLUTION_API_ITEM,
   SESSION_NUMBER,
   USER_LANGUAGE,
-  QT_API_ITEM
+  QT_API_ITEM,
+  SDK_APP
 } from '../enum/FlagshipConstant'
 import { InternalHitType, primitive } from '../types'
 import { logError, sprintf } from '../utils/utils'
@@ -125,7 +126,7 @@ export abstract class HitAbstract implements IHitAbstract {
   }
 
   protected constructor (hit: Omit<IHitAbstract, 'createdAt'>) {
-    const { type, userIp, screenResolution, locale, sessionNumber, visitorId, anonymousId } = hit
+    const { type, userIp, screenResolution, locale, sessionNumber, visitorId, anonymousId, ds } = hit
     this._type = type
     if (userIp) {
       this.userIp = userIp
@@ -142,6 +143,7 @@ export abstract class HitAbstract implements IHitAbstract {
     this.visitorId = visitorId
     this._anonymousId = anonymousId || null
     this.createdAt = Date.now()
+    this.ds = ds || SDK_APP
   }
 
   /**
