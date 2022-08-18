@@ -1,5 +1,5 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { Flagship, DecisionMode, FlagshipStatus, DecisionApiConfig } from '../../src'
+import { Flagship, DecisionApiConfig } from '../../src'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { Mock } from 'jest-mock'
 import { NEW_VISITOR_NOT_READY, PROCESS_NEW_VISITOR } from '../../src/enum'

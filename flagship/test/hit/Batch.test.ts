@@ -1,5 +1,5 @@
 import { expect, it, describe, beforeAll, afterAll, jest } from '@jest/globals'
-import { CUSTOMER_ENV_ID_API_ITEM, SDK_APP, DS_API_ITEM } from '../../src/enum'
+import { SDK_APP, DS_API_ITEM } from '../../src/enum'
 import { Page, Screen } from '../../src/hit'
 import { Batch, ERROR_MESSAGE } from '../../src/hit/Batch'
 import { Mock } from 'jest-mock'

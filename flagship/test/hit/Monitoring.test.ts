@@ -1,4 +1,4 @@
-import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
+import { jest, expect, it, describe, afterAll } from '@jest/globals'
 import { ERROR_MESSAGE } from '../../src/hit/Event'
 import { DecisionApiConfig, IFlagshipConfig } from '../../src/config/index'
 import {
@@ -8,7 +8,6 @@ import {
   DS_API_ITEM,
   EVENT_ACTION_API_ITEM,
   EVENT_CATEGORY_API_ITEM,
-  HitType,
   LogLevel,
   QT_API_ITEM,
   SDK_APP,
@@ -22,11 +21,6 @@ import { sprintf } from '../../src/utils/utils'
 import { Mock } from 'jest-mock'
 import { IMonitoring, Monitoring } from '../../src/hit/Monitoring'
 import { version } from '../../src/sdkVersion'
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const getNull = (): any => {
-  return null
-}
 
 describe('test hit type Monitoring', () => {
   const methodNow = Date.now

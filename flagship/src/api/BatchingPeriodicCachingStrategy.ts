@@ -32,8 +32,6 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
   }
 
   async sendOtherHit (hits:HitAbstract[]):Promise<void> {
-    const url = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const headers = {
       [HEADER_X_API_KEY]: this.config.apiKey as string,
       [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,

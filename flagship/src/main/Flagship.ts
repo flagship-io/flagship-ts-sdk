@@ -8,9 +8,7 @@ import { TrackingManager } from '../api/TrackingManager'
 import { FlagshipLogManager } from '../utils/FlagshipLogManager'
 import { isBrowser, logError, logInfo, sprintf } from '../utils/utils'
 import {
-  BatchStrategy,
   INITIALIZATION_PARAM_ERROR,
-  LogLevel,
   NEW_VISITOR_NOT_READY,
   PROCESS_INITIALIZATION,
   PROCESS_NEW_VISITOR,
@@ -26,7 +24,6 @@ import { FlagDTO, NewVisitor, primitive } from '../types'
 import { CampaignDTO } from '../decision/api/models'
 import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
-import { Monitoring } from '../hit/Monitoring'
 import { version as packageVersion } from '../sdkVersion'
 
 export class Flagship {

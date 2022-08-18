@@ -1,6 +1,6 @@
 import { expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig } from '../../src'
-import { SDK_APP, T_API_ITEM } from '../../src/enum'
+import { SDK_APP } from '../../src/enum'
 import { Segment, ERROR_MESSAGE } from '../../src/hit/Segment'
 
 describe('test hit type Campaign', () => {

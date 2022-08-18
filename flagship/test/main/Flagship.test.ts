@@ -6,8 +6,7 @@ import {
   INITIALIZATION_PARAM_ERROR,
   PROCESS_INITIALIZATION,
   SDK_LANGUAGE,
-  SDK_STARTED_INFO,
-  SDK_VERSION
+  SDK_STARTED_INFO
 } from '../../src/enum/index'
 import { Flagship } from '../../src/main/Flagship'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
@@ -167,7 +166,7 @@ describe('test Flagship newVisitor', () => {
     const context = { isVip: true }
     const predefinedContext = {
       fs_client: SDK_LANGUAGE.name,
-      fs_version: SDK_VERSION,
+      fs_version: version,
       fs_users: visitorId
     }
     // expect(addHit).toBeCalledTimes(1)

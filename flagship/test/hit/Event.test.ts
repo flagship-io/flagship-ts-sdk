@@ -45,7 +45,7 @@ describe('test hit type Event', () => {
     expect(event.category).toBe(category)
     expect(event.action).toBe(action)
     expect(event.config).toBeUndefined()
-    expect(event.ds).toBeUndefined()
+    expect(event.ds).toBe(SDK_APP)
     expect(event.label).toBeUndefined()
     expect(event.value).toBeUndefined()
     expect(event.visitorId).toBe(visitorId)
@@ -90,13 +90,12 @@ describe('test hit type Event', () => {
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
 
+  it('test isReady method ', () => {
+    expect(event.isReady()).toBeFalsy()
+  })
   it('test set config ', () => {
     event.config = config
     expect(event.config).toBe(config)
-  })
-
-  it('test isReady method ', () => {
-    expect(event.isReady()).toBeFalsy()
   })
 
   it('test set ds', () => {

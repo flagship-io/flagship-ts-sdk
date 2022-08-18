@@ -2,8 +2,9 @@ import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ApiManager } from '../../src/decision/ApiManager'
-import { PREDEFINED_CONTEXT_TYPE_ERROR, PROCESS_UPDATE_CONTEXT, SDK_LANGUAGE, SDK_VERSION } from '../../src/enum'
+import { PREDEFINED_CONTEXT_TYPE_ERROR, PROCESS_UPDATE_CONTEXT, SDK_LANGUAGE } from '../../src/enum'
 import { APP_VERSION_CODE, APP_VERSION_NAME, FLAGSHIP_VISITOR, INTERNET_CONNECTION, LOCATION_LAT } from '../../src/enum/FlagshipContext'
+import { version } from '../../src/sdkVersion'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
@@ -39,7 +40,7 @@ describe('test DefaultStrategy ', () => {
 
   const predefinedContext = {
     fs_client: SDK_LANGUAGE.name,
-    fs_version: SDK_VERSION,
+    fs_version: version,
     fs_users: visitorDelegate.visitorId
   }
   const expectContext = { sdk_versionCode: '5', sdk_versionName: 'name', [LOCATION_LAT]: 555.55, town: 'London', ...context, ...predefinedContext }
