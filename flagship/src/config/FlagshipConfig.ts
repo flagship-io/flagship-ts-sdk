@@ -4,7 +4,7 @@ import { IHitCacheImplementation } from '../cache/IHitCacheImplementation'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, sprintf } from '../utils/utils'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation'
-import { UserExposureType } from '../types'
+import { UserExposureInfo } from '../types'
 
 export enum DecisionMode {
   /**
@@ -92,7 +92,7 @@ export interface IFlagshipConfig {
   disableCache?: boolean
 
   language?: 0 | 1 | 2
-  onUserExposure?: (param: UserExposureType)=>void
+  onUserExposure?: (param: UserExposureInfo)=>void
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -119,8 +119,8 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _hitCacheImplementation!: IHitCacheImplementation
   private _disableCache!: boolean
 
-  private _onUserExposure? : (param: UserExposureType)=>void
-  public get onUserExposure () : ((param: UserExposureType)=>void)|undefined {
+  private _onUserExposure? : (param: UserExposureInfo)=>void
+  public get onUserExposure () : ((param: UserExposureInfo)=>void)|undefined {
     return this._onUserExposure
   }
 
