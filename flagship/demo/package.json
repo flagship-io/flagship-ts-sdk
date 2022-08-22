@@ -9,7 +9,8 @@
   "scripts": {
     "build": "babel node -d dist",
     "start": "babel node -d dist && node dist/DemoFlagship.js",
-    "qa:cache": "babel node -d dist && node dist/cacheQA.js"
+    "qa:cache": "babel node -d dist && node dist/cacheQA.js",
+    "qa:report": "babel node -d dist && node dist/qa-reporting.js"
   },
   "devDependencies": {
     "@babel/cli": "^7.14.5",
