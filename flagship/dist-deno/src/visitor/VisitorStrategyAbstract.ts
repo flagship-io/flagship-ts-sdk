@@ -1,6 +1,6 @@
 import { FlagDTO } from '../index.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
-import { primitive, modificationsRequested, IHit, VisitorCacheDTO, HitCacheDTO } from '../types.ts'
+import { primitive, modificationsRequested, IHit, VisitorCacheDTO, HitCacheDTO, IFlagMetadata } from '../types.ts'
 import { IVisitor } from './IVisitor.ts'
 import { VisitorAbstract } from './VisitorAbstract.ts'
 import { IConfigManager, IFlagshipConfig } from '../config/index.ts'
@@ -12,13 +12,11 @@ import { DEFAULT_HIT_CACHE_TIME, HIT_CACHE_VERSION, PROCESS_CACHE_HIT, TRACKER_M
 
 import { BatchDTO } from '../hit/Batch.ts'
 
-import { IFlagMetadata } from '../flag/FlagMetadata.ts'
-
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheDTO'
 export const VISITOR_ID_MISMATCH_ERROR = 'Visitor ID mismatch: {0} vs {1}'
-export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'flagsData'|'modifications'|'context'|'hasConsented'|'getModificationsArray'|'getFlagsDataArray'|'getFlag'> {
+export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'anonymousId'|'flagsData'|'modifications'|'context'|'hasConsented'|'getModificationsArray'|'getFlagsDataArray'|'getFlag'> {
   protected visitor:VisitorAbstract
 
   protected get configManager ():IConfigManager {

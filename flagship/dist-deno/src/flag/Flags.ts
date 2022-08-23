@@ -1,6 +1,7 @@
+import { IFlagMetadata } from '../types.ts'
 import { hasSameType } from '../utils/utils.ts'
 import { VisitorDelegate } from '../visitor/index.ts'
-import { FlagMetadata, IFlagMetadata } from './FlagMetadata.ts'
+import { FlagMetadata } from './FlagMetadata.ts'
 
 export type FlagValue<S> = {
   defaultValue: S,
@@ -62,7 +63,7 @@ export class Flag<T> implements IFlag<T> {
 
     return this._visitor.getFlagMetadata({
       metadata,
-      hasSameType: !flagDTO.value || hasSameType(flagDTO.value, this._defaultValue),
+      hasSameType: flagDTO.value === null || this._defaultValue === null || this._defaultValue === undefined || hasSameType(flagDTO.value, this._defaultValue),
       key: flagDTO.key
     })
   }
