@@ -71,12 +71,24 @@ export interface IFlagshipConfig {
    */
   enableClientCache?: boolean
 
+  /**
+   * Define a callable in order to get callback when the first bucketing polling succeed.
+   */
   onBucketingSuccess?: (param: { status: number; payload: BucketingDTO }) => void
 
+  /**
+   * Define a callable to get callback when the first bucketing polling failed.
+   */
   onBucketingFail?: (error: Error) => void
 
+  /**
+   * Define a callable to get callback each time bucketing data from Flagship has updated.
+   */
   onBucketingUpdated?: (lastUpdate: Date) => void
 
+  /**
+   * This is a set of flag data provided to avoid the SDK to have an empty cache during the first initialization.
+   */
   initialBucketing?: BucketingDTO
 
   decisionApiUrl?: string
@@ -89,9 +101,15 @@ export interface IFlagshipConfig {
 
   hitCacheImplementation?: IHitCacheImplementation
 
+  /**
+   * If it's set to true, hit cache and visitor cache will be disabled otherwise will be enabled.
+   */
   disableCache?: boolean
 
   language?: 0 | 1 | 2
+  /**
+   * Define a callable to get callback each time  a Flag have been user exposed (activation hit has been sent) by SDK
+   */
   onUserExposure?: (param: UserExposureInfo)=>void
 }
 
