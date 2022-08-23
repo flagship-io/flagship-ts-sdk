@@ -4,6 +4,7 @@ import { IHitCacheImplementation } from '../cache/IHitCacheImplementation'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, sprintf } from '../utils/utils'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation'
+import { UserExposureInfo } from '../types'
 
 export enum DecisionMode {
   /**
@@ -70,12 +71,24 @@ export interface IFlagshipConfig {
    */
   enableClientCache?: boolean
 
+  /**
+   * Define a callable in order to get callback when the first bucketing polling succeed.
+   */
   onBucketingSuccess?: (param: { status: number; payload: BucketingDTO }) => void
 
+  /**
+   * Define a callable to get callback when the first bucketing polling failed.
+   */
   onBucketingFail?: (error: Error) => void
 
+  /**
+   * Define a callable to get callback each time bucketing data from Flagship has updated.
+   */
   onBucketingUpdated?: (lastUpdate: Date) => void
 
+  /**
+   * This is a set of flag data provided to avoid the SDK to have an empty cache during the first initialization.
+   */
   initialBucketing?: BucketingDTO
 
   decisionApiUrl?: string
@@ -88,9 +101,16 @@ export interface IFlagshipConfig {
 
   hitCacheImplementation?: IHitCacheImplementation
 
+  /**
+   * If it's set to true, hit cache and visitor cache will be disabled otherwise will be enabled.
+   */
   disableCache?: boolean
 
   language?: 0 | 1 | 2
+  /**
+   * Define a callable to get callback each time  a Flag have been user exposed (activation hit has been sent) by SDK
+   */
+  onUserExposure?: (param: UserExposureInfo)=>void
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -117,12 +137,17 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _hitCacheImplementation!: IHitCacheImplementation
   private _disableCache!: boolean
 
+  private _onUserExposure? : (param: UserExposureInfo)=>void
+  public get onUserExposure () : ((param: UserExposureInfo)=>void)|undefined {
+    return this._onUserExposure
+  }
+
   protected constructor (param: IFlagshipConfig) {
     const {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
-      disableCache, language
+      disableCache, language, onUserExposure
     } = param
 
     switch (language) {
@@ -161,6 +186,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       this.logManager = logManager
     }
     this.statusChangedCallback = statusChangedCallback
+    this._onUserExposure = onUserExposure
   }
 
   public get initialBucketing (): BucketingDTO | undefined {

@@ -1,10 +1,9 @@
 import { FlagDTO } from '../index.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
-import { primitive, modificationsRequested, IHit } from '../types.ts'
+import { primitive, modificationsRequested, IHit, IFlagMetadata } from '../types.ts'
 import { VisitorAbstract } from './VisitorAbstract.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { Flag, IFlag } from '../flag/Flags.ts'
-import { IFlagMetadata } from '../flag/FlagMetadata.ts'
 
 export class VisitorDelegate extends VisitorAbstract {
   updateContext (context: Record<string, primitive>): void {

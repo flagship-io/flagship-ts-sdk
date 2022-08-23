@@ -6,6 +6,7 @@ import { IHit, FlagDTO, modificationsRequested, primitive, Modification } from '
 
 export interface IVisitor {
   visitorId: string;
+  anonymousId: string|null
   flagsData: Map<string, FlagDTO>;
   /**
    * @deprecated use flagsData instead

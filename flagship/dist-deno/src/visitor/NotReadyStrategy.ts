@@ -1,11 +1,11 @@
 import { FlagDTO } from '../index.ts'
 import { FlagshipStatus, METHOD_DEACTIVATED_ERROR } from '../enum/index.ts'
-import { IHit, modificationsRequested } from '../types.ts'
+import { IFlagMetadata, IHit, modificationsRequested } from '../types.ts'
 import { logError, sprintf } from '../utils/utils.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
 import { BatchDTO } from '../hit/Batch.ts'
-import { FlagMetadata, IFlagMetadata } from '../flag/FlagMetadata.ts'
+import { FlagMetadata } from '../flag/FlagMetadata.ts'
 
 export class NotReadyStrategy extends DefaultStrategy {
   async synchronizeModifications (): Promise<void> {

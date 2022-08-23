@@ -90,3 +90,25 @@ export type VisitorCacheDTO = {
       }>
 }
 }
+
+export interface IFlagMetadata{
+  campaignId:string
+  variationGroupId:string
+  variationId: string
+  isReference: boolean
+  campaignType: string
+  slug?:string|null
+}
+
+export type UserExposureInfo = {
+  flagData: {
+    key: string
+    value: unknown
+    metadata: IFlagMetadata
+  },
+  visitorData: {
+    visitorId: string
+    anonymousId: string|null
+    context: Record<string, primitive>
+  }
+ }
