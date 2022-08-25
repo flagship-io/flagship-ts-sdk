@@ -228,28 +228,6 @@ export class Flagship {
       sprintf(SDK_STARTED_INFO, packageVersion),
       PROCESS_INITIALIZATION
     )
-
-    // const initMonitoring = new Monitoring({
-    //   action: 'SDK-INITIALIZATION',
-    //   subComponent: 'Flagship.start',
-    //   logLevel: LogLevel.INFO,
-    //   message: 'Flagship initialized',
-    //   sdkConfigCustomCacheManager: configCheck.useCustomCacheManager,
-    //   sdkConfigCustomLogManager: configCheck.useCustomLogManager,
-    //   sdkConfigMode: config.decisionMode,
-    //   sdkConfigPollingTime: config.pollingInterval?.toString(),
-    //   sdkConfigStatusListener: !!config.statusChangedCallback,
-    //   sdkConfigTimeout: config.timeout?.toString(),
-    //   sdkStatus: FlagshipStatus[flagship.getStatus()],
-    //   sdkConfigTrackingManagerConfigBatchIntervals: config.trackingMangerConfig?.batchIntervals?.toString(),
-    //   sdkConfigTrackingManagerConfigBatchLength: config.trackingMangerConfig?.batchLength?.toString(),
-    //   sdkConfigTrackingManagerConfigStrategy: BatchStrategy[config.trackingMangerConfig?.batchStrategy as BatchStrategy],
-    //   visitorId: '0',
-    //   anonymousId: '',
-    //   config
-    // })
-
-    // trackingManager.addHit(initMonitoring)
     return flagship
   }
 
