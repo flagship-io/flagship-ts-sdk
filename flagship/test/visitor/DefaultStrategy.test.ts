@@ -719,7 +719,7 @@ describe('test DefaultStrategy ', () => {
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
     const defaultStrategy = new DefaultStrategy(visitorDelegate)
     await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
-    expect(sendActive).toBeCalledTimes(1)
+    expect(addHit).toBeCalledTimes(2)
   })
 
   it('test userExposed with different type', async () => {
