@@ -8,7 +8,7 @@ export interface ISegment extends IHitAbstract{
 }
 
 export class Segment extends HitAbstract implements ISegment {
-  private _data!: Record<string, primitive>;
+  private _data!: Record<string, primitive>
   public get data (): Record<string, primitive> {
     return this._data
   }

@@ -14,33 +14,33 @@ export interface ITrackingManagerConfig {
 }
 
 export class TrackingManagerConfig implements ITrackingManagerConfig {
-private _batchIntervals : number;
-private _batchLength : number;
-private _batchStrategy : BatchStrategy;
+  private _batchIntervals : number
+  private _batchLength : number
+  private _batchStrategy : BatchStrategy
 
-public constructor (param?: ITrackingManagerConfig) {
-  this._batchIntervals = param?.batchIntervals || DEFAULT_TIME_INTERVAL
-  this._batchLength = param?.batchLength || DEFAULT_BATCH_LENGTH
-  this._batchStrategy = param?.batchStrategy || BatchStrategy.CONTINUOUS_CACHING
-}
+  public constructor (param?: ITrackingManagerConfig) {
+    this._batchIntervals = param?.batchIntervals || DEFAULT_TIME_INTERVAL
+    this._batchLength = param?.batchLength || DEFAULT_BATCH_LENGTH
+    this._batchStrategy = param?.batchStrategy || BatchStrategy.CONTINUOUS_CACHING
+  }
 
-public get batchIntervals () : number {
-  return this._batchIntervals
-}
+  public get batchIntervals () : number {
+    return this._batchIntervals
+  }
 
-public set batchIntervals (v : number) {
-  this._batchIntervals = v
-}
+  public set batchIntervals (v : number) {
+    this._batchIntervals = v
+  }
 
-public get batchLength () : number {
-  return this._batchLength
-}
+  public get batchLength () : number {
+    return this._batchLength
+  }
 
-public set batchLength (v : number) {
-  this._batchLength = v
-}
+  public set batchLength (v : number) {
+    this._batchLength = v
+  }
 
-public get batchStrategy () : BatchStrategy {
-  return this._batchStrategy
-}
+  public get batchStrategy () : BatchStrategy {
+    return this._batchStrategy
+  }
 }

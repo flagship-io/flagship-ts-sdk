@@ -38,7 +38,7 @@ describe('Test BatchingPeriodicCachingStrategy', () => {
     expect(cacheHit).toBeCalledTimes(0)
 
     const consentHit = new Event({
-      visitorId: visitorId,
+      visitorId,
       label: `${SDK_LANGUAGE.name}:${true}`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT
@@ -64,7 +64,7 @@ describe('Test BatchingPeriodicCachingStrategy', () => {
     expect(cacheHit).toBeCalledTimes(0)
 
     const consentHitFalse1 = new Event({
-      visitorId: visitorId,
+      visitorId,
       label: `${SDK_LANGUAGE.name}:${false}`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT
@@ -79,7 +79,7 @@ describe('Test BatchingPeriodicCachingStrategy', () => {
     expect(cacheHit).toBeCalledWith(hitsPoolQueue)
 
     const consentHitFalse2 = new Event({
-      visitorId: visitorId,
+      visitorId,
       label: `${SDK_LANGUAGE.name}:${false}`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT

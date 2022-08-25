@@ -10,19 +10,19 @@ export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCac
 export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheDTO'
 
 export abstract class BatchingCachingStrategyAbstract implements ITrackingManagerCommon {
-    protected _config : IFlagshipConfig;
-    protected _hitsPoolQueue: Map<string, HitAbstract>
-    protected _httpClient: IHttpClient;
+  protected _config : IFlagshipConfig
+  protected _hitsPoolQueue: Map<string, HitAbstract>
+  protected _httpClient: IHttpClient
 
-    public get config () : IFlagshipConfig {
-      return this._config
-    }
+  public get config () : IFlagshipConfig {
+    return this._config
+  }
 
-    constructor (config: IFlagshipConfig, httpClient: IHttpClient, hitsPoolQueue: Map<string, HitAbstract>) {
-      this._config = config
-      this._hitsPoolQueue = hitsPoolQueue
-      this._httpClient = httpClient
-    }
+  constructor (config: IFlagshipConfig, httpClient: IHttpClient, hitsPoolQueue: Map<string, HitAbstract>) {
+    this._config = config
+    this._hitsPoolQueue = hitsPoolQueue
+    this._httpClient = httpClient
+  }
 
     abstract addHit (hit: HitAbstract): Promise<void>
 

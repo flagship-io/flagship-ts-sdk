@@ -29,16 +29,16 @@ export interface IHitAbstract{
 }
 
 export abstract class HitAbstract implements IHitAbstract {
-  private _visitorId!: string;
-  private _config!: IFlagshipConfig;
-  protected _type!: InternalHitType;
-  private _ds!: string;
-  private _anonymousId? : string|null;
-  private _userIp! : string;
-  private _screenResolution! : string;
-  private _locale! : string;
-  private _sessionNumber! : string;
-  private _key! : string;
+  private _visitorId!: string
+  private _config!: IFlagshipConfig
+  protected _type!: InternalHitType
+  private _ds!: string
+  private _anonymousId? : string|null
+  private _userIp! : string
+  private _screenResolution! : string
+  private _locale! : string
+  private _sessionNumber! : string
+  private _key! : string
   private _createdAt!: number
 
   public get key () : string {

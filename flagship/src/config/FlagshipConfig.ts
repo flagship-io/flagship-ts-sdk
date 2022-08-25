@@ -135,12 +135,12 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _enableClientCache!: boolean
   private _initialBucketing?: BucketingDTO
   private _decisionApiUrl!: string
-  private _activateDeduplicationTime!: number;
-  private _hitDeduplicationTime!: number;
-  private _visitorCacheImplementation!: IVisitorCacheImplementation;
-  private _hitCacheImplementation!: IHitCacheImplementation;
-  private _disableCache!: boolean;
-  private _trackingMangerConfig : ITrackingManagerConfig;
+  private _activateDeduplicationTime!: number
+  private _hitDeduplicationTime!: number
+  private _visitorCacheImplementation!: IVisitorCacheImplementation
+  private _hitCacheImplementation!: IHitCacheImplementation
+  private _disableCache!: boolean
+  private _trackingMangerConfig : ITrackingManagerConfig
 
   public get trackingMangerConfig () : ITrackingManagerConfig {
     return this._trackingMangerConfig

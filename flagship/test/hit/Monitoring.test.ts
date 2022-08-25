@@ -96,7 +96,7 @@ describe('test hit type Monitoring', () => {
       logLevel,
       accountId: 'accountId',
       envId: config.envId,
-      component: component,
+      component,
       subComponent,
       message,
       stackType: 'SDK',

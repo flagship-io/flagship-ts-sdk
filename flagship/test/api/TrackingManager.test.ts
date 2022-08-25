@@ -138,7 +138,7 @@ describe('test TrackingManager lookupHits', () => {
     })
 
     const consentHit = new Event({
-      visitorId: visitorId,
+      visitorId,
       label: `${SDK_LANGUAGE.name}:${true}`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT
@@ -197,8 +197,8 @@ describe('test TrackingManager lookupHits', () => {
       const hitData: HitCacheDTO = {
         version: HIT_CACHE_VERSION,
         data: {
-          visitorId: visitorId,
-          anonymousId: anonymousId,
+          visitorId,
+          anonymousId,
           type: hit.type,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           content: hit.toObject() as any,
@@ -212,8 +212,8 @@ describe('test TrackingManager lookupHits', () => {
     data[uuidV4()] = {
       version: HIT_CACHE_VERSION,
       data: {
-        visitorId: visitorId,
-        anonymousId: anonymousId,
+        visitorId,
+        anonymousId,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         type: 'any' as any,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -227,8 +227,8 @@ describe('test TrackingManager lookupHits', () => {
     data[wrongKey] = {
       version: HIT_CACHE_VERSION,
       data: {
-        visitorId: visitorId,
-        anonymousId: anonymousId,
+        visitorId,
+        anonymousId,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         type: getNull() as any,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

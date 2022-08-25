@@ -56,7 +56,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       } catch (error:any) {
         this._hitsPoolQueue.set(hit.key, hit)
         logError(this.config, errorFormat(error.message || error, {
-          url: url,
+          url,
           headers,
           body: requestBody
         }), tag)

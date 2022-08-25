@@ -76,7 +76,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(flushHits).toHaveBeenNthCalledWith(1, [expect.stringContaining(visitorId)])
 
     const consentHit = new Event({
-      visitorId: visitorId,
+      visitorId,
       label: `${SDK_LANGUAGE.name}:${true}`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT
@@ -117,7 +117,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(flushHits).toHaveBeenNthCalledWith(3, [expect.stringContaining(visitorId)])
 
     const consentHitFalse = new Event({
-      visitorId: visitorId,
+      visitorId,
       label: `${SDK_LANGUAGE.name}:${false}`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT
@@ -235,7 +235,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
 
     // Test consent false
     const consentHitFalse = new Event({
-      visitorId: visitorId,
+      visitorId,
       label: `${SDK_LANGUAGE.name}:${false}`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT
@@ -249,7 +249,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     })
 
     const consentHitLoaded = new Event({
-      visitorId: visitorId,
+      visitorId,
       label: `${SDK_LANGUAGE.name}:${true}`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT

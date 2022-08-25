@@ -30,12 +30,12 @@ export interface ITrackingManager extends ITrackingManagerCommon {
 }
 
 export abstract class TrackingManagerAbstract implements ITrackingManager {
-  private _httpClient: IHttpClient;
-  private _config: IFlagshipConfig;
-  private _hitsPoolQueue: Map<string, HitAbstract>;
-  protected strategy: BatchingCachingStrategyAbstract;
+  private _httpClient: IHttpClient
+  private _config: IFlagshipConfig
+  private _hitsPoolQueue: Map<string, HitAbstract>
+  protected strategy: BatchingCachingStrategyAbstract
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  protected _intervalID:any;
+  protected _intervalID:any
   protected _isPooling = false
 
   constructor (httpClient: IHttpClient, config: IFlagshipConfig) {

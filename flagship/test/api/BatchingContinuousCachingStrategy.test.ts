@@ -36,7 +36,7 @@ describe('Test BatchingContinuousCachingStrategy', () => {
     expect(cacheHit).toHaveBeenNthCalledWith(1, new Map().set(expect.stringContaining(visitorId), pageHit1))
 
     const consentHit = new Event({
-      visitorId: visitorId,
+      visitorId,
       label: `${SDK_LANGUAGE.name}:${true}`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT
@@ -64,7 +64,7 @@ describe('Test BatchingContinuousCachingStrategy', () => {
     expect(cacheHit).toHaveBeenNthCalledWith(3, new Map().set(expect.stringContaining(visitorId), pageHit))
 
     const consentHitFalse1 = new Event({
-      visitorId: visitorId,
+      visitorId,
       label: `${SDK_LANGUAGE.name}:${false}`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT
@@ -80,7 +80,7 @@ describe('Test BatchingContinuousCachingStrategy', () => {
     expect(flushHits).toBeCalledTimes(0)
 
     const consentHitFalse2 = new Event({
-      visitorId: visitorId,
+      visitorId,
       label: `${SDK_LANGUAGE.name}:${false}`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT
