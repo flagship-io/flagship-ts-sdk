@@ -1,12 +1,4 @@
-
-export interface IFlagMetadata{
-    campaignId:string
-    variationGroupId:string
-    variationId: string
-    isReference: boolean
-    campaignType: string
-    slug?:string|null
-}
+import { IFlagMetadata } from '../types'
 
 export class FlagMetadata implements IFlagMetadata {
   campaignId:string

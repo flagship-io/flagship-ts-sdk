@@ -41,14 +41,14 @@ import {
   IHitAbstract
 } from '../hit/index'
 import { HitShape, ItemHit } from '../hit/Legacy'
-import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO } from '../types'
+import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata } from '../types'
 import { hasSameType, logError, logInfo, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
 import { DecisionMode } from '../config/index'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
-import { VisitorDelegate } from './index'
-import { FlagMetadata, IFlagMetadata } from '../flag/FlagMetadata'
+import { IVisitor, VisitorDelegate } from './index'
+import { FlagMetadata } from '../flag/FlagMetadata'
 import { Activate } from '../hit/Activate'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
@@ -353,6 +353,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     })
 
     await this.prepareAndSendHit(activateHit, functionName)
+    this.onUserExposedCallback({ flag: flagDto, visitor: this.visitor })
   }
 
   private async activate (key: string) {
@@ -595,8 +596,34 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return this.globalFetchFlags('fetchFlags')
   }
 
+  protected onUserExposedCallback ({ flag, visitor }:{flag:FlagDTO, visitor:IVisitor}): void {
+    if (typeof this.config.onUserExposure !== 'function') {
+      return
+    }
+    this.config.onUserExposure({
+      flagData: {
+        metadata: {
+          campaignId: flag.campaignId,
+          campaignType: flag.campaignType as string,
+          slug: flag.slug,
+          isReference: !!flag.isReference,
+          variationGroupId: flag.variationGroupId,
+          variationId: flag.variationId
+        },
+        key: flag.key,
+        value: flag.value
+      },
+      visitorData: {
+        visitorId: visitor.visitorId,
+        anonymousId: visitor.anonymousId,
+        context: visitor.context
+      }
+    })
+  }
+
   async userExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T}): Promise<void> {
     const { key, flag, defaultValue } = param
+
     const functionName = 'userExposed'
     if (!flag) {
       logInfo(
@@ -607,7 +634,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
-    if (defaultValue !== null && defaultValue !== undefined && flag.value && !hasSameType(flag.value, defaultValue)) {
+    if (defaultValue !== null && defaultValue !== undefined && flag.value !== null && !hasSameType(flag.value, defaultValue)) {
       logInfo(
         this.visitor.config,
         sprintf(USER_EXPOSED_CAST_ERROR, key),
@@ -620,7 +647,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
-    return this.sendActivate(flag, functionName)
+    await this.sendActivate(flag, functionName)
   }
 
   getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}): T {
@@ -654,6 +681,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     if (userExposed) {
       this.userExposed({ key, flag, defaultValue })
     }
+
     return flag.value
   }
 

@@ -1,5 +1,5 @@
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index.ts'
-import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO } from '../types.ts'
+import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata } from '../types.ts'
 
 import { IVisitor } from './IVisitor.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
@@ -15,7 +15,6 @@ import { PanicStrategy } from './PanicStrategy.ts'
 import { NoConsentStrategy } from './NoConsentStrategy.ts'
 import { cacheVisitor } from './VisitorCache.ts'
 import { IFlag } from '../flag/Flags.ts'
-import { IFlagMetadata } from '../flag/FlagMetadata.ts'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string

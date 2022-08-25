@@ -8,11 +8,10 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { Mock } from 'jest-mock'
-import { IHit, modificationsRequested } from '../../src/types'
+import { IFlagMetadata, IHit, modificationsRequested } from '../../src/types'
 import { CampaignDTO } from '../../src/decision/api/models'
 import { DecisionManager } from '../../src/decision/DecisionManager'
 import { cacheVisitor, VisitorProfil } from '../../src/visitor/VisitorCache'
-import { IFlagMetadata } from '../../src/flag/FlagMetadata'
 
 const updateContext = jest.fn()
 const clearContext = jest.fn()
@@ -573,6 +572,7 @@ describe('Name of the group', () => {
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBeDefined()
   })
+
   it('should ', () => {
     const loadVisitorProfile:Mock<VisitorProfil, []> = jest.fn()
     cacheVisitor.loadVisitorProfile = loadVisitorProfile

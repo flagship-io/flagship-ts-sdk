@@ -1,5 +1,6 @@
 import { expect, it, describe } from '@jest/globals'
-import { FlagMetadata, IFlagMetadata } from '../../src/flag/FlagMetadata'
+import { FlagMetadata } from '../../src/flag/FlagMetadata'
+import { IFlagMetadata } from '../../src/types'
 
 describe('test FlagMetadata', () => {
   it('test property', () => {
