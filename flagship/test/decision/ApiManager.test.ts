@@ -56,7 +56,8 @@ describe('test ApiManager', () => {
     visitorId: visitor.visitorId,
     anonymousId: visitor.anonymousId,
     trigger_hit: false,
-    context: visitor.context
+    context: visitor.context,
+    visitor_consent: visitor.hasConsented
   }
   const url = `${BASE_API_URL}${config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
 
@@ -111,10 +112,10 @@ describe('test ApiManager', () => {
     )
     const modifications = apiManager.getModifications(campaigns as CampaignDTO[])
 
-    expect(postAsync).toHaveBeenCalledWith(`${url}&${SEND_CONTEXT_EVENT}=false`, {
+    expect(postAsync).toHaveBeenCalledWith(url, {
       headers,
       timeout: config.timeout,
-      body: postData
+      body: { ...postData, visitor_consent: visitor.hasConsented }
     })
 
     expect(modifications.size).toBe(4)
