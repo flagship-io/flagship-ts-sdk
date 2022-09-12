@@ -158,7 +158,7 @@ export class Flagship {
     envId: string,
     apiKey: string,
     config?: IFlagshipConfig | FlagshipConfig
-  ): Flagship | null {
+  ): Flagship {
     const flagship = this.getInstance()
 
     config = flagship.buildConfig(config)
@@ -237,9 +237,9 @@ export class Flagship {
    * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
    * @returns {Visitor} a new visitor instance
    */
-  public newVisitor(visitorId?: string | null, context?: Record<string, primitive>): Visitor | null
-  public newVisitor(params?: NewVisitor): Visitor | null
-  public newVisitor (param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor | null {
+  public newVisitor(visitorId?: string | null, context?: Record<string, primitive>): Visitor
+  public newVisitor(params?: NewVisitor): Visitor
+  public newVisitor (param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor {
     return Flagship.newVisitor(param1, param2)
   }
 
@@ -249,7 +249,7 @@ export class Flagship {
    * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
    * @returns {Visitor} a new visitor instance
    */
-  public static newVisitor(visitorId?: string | null, context?: Record<string, primitive>): Visitor | null
+  public static newVisitor(visitorId?: string | null, context?: Record<string, primitive>): Visitor
   /**
    * Create a new visitor with a context.
    * @param {string} visitorId : Unique visitor identifier.
@@ -257,8 +257,8 @@ export class Flagship {
    * @returns {Visitor} a new visitor instance
    */
   public static newVisitor(params?: NewVisitor): Visitor | null
-  public static newVisitor(param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor | null
-  public static newVisitor (param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor | null {
+  public static newVisitor(param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor
+  public static newVisitor (param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor {
     let visitorId: string | undefined
     let context: Record<string, primitive>
     let isAuthenticated = false
