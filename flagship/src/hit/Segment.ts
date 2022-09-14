@@ -1,7 +1,7 @@
 import { primitive } from '../types'
 import { HitAbstract, IHitAbstract } from './HitAbstract'
 
-export const ERROR_MESSAGE = 'sl is required'
+export const ERROR_MESSAGE = 'data property is required'
 
 export interface ISegment extends IHitAbstract{
     data:Record<string, primitive>

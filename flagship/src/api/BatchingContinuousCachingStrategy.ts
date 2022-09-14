@@ -45,7 +45,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
    * Other hits are ACTIVATE AND SEGMENT
    * @param hits
    */
-  async sendOtherHit (hits:HitAbstract[]):Promise<void> {
+  async SendActivateAndSegmentHit (hits:HitAbstract[]):Promise<void> {
     const hitKeys:string[] = []
 
     const headers = {
@@ -87,41 +87,41 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
   }
 
   async sendBatch (): Promise<void> {
-    const headers = {
-      [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
-    }
-
     const batch:Batch = new Batch({ hits: [], ds: SDK_APP })
     batch.config = this.config
 
-    let batchSize = 0
     let count = 0
 
     const otherHits:HitAbstract[] = []
+    const hitKeysToRemove:string[] = []
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for (const [_, item] of this._hitsPoolQueue) {
+    for (const [key, item] of this._hitsPoolQueue) {
       if (item.type === 'ACTIVATE' || item.type === 'CONTEXT') {
         otherHits.push(item)
         continue
       }
 
       count++
-      batchSize = JSON.stringify(batch).length
+      const batchSize = JSON.stringify(batch).length
       if (batchSize > BATCH_MAX_SIZE || (this.config.trackingMangerConfig?.batchLength && count > this.config.trackingMangerConfig.batchLength)) {
         break
       }
       batch.hits.push(item)
+      hitKeysToRemove.push(key)
     }
 
-    await this.sendOtherHit(otherHits)
-
-    batch.hits.forEach(hit => {
-      this._hitsPoolQueue.delete(hit.key)
-    })
+    await this.SendActivateAndSegmentHit(otherHits)
 
     if (!batch.hits.length) {
       return
+    }
+
+    hitKeysToRemove.forEach(key => {
+      this._hitsPoolQueue.delete(key)
+    })
+
+    const headers = {
+      [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
     const requestBody = batch.toApiKeys()
@@ -134,7 +134,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
 
       logDebug(this.config, sprintf(BATCH_SENT_SUCCESS, JSON.stringify(requestBody)), SEND_BATCH)
 
-      await this.flushHits(batch.hits.map(item => item.key))
+      await this.flushHits(hitKeysToRemove)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {

@@ -124,7 +124,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
     this.cacheHitKeys = {}
   }
 
-  async sendOtherHits (activateHits:HitAbstract[]):Promise<void> {
+  async SendActivateAndSegmentHit (activateHits:HitAbstract[]):Promise<void> {
     const hitKeys:string[] = []
 
     const headers = {
@@ -196,7 +196,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       this._hitsPoolQueue.delete(hit.key)
     })
 
-    await this.sendOtherHits(activateHits)
+    await this.SendActivateAndSegmentHit(activateHits)
 
     if (!batch.hits.length) {
       return

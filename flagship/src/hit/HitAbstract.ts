@@ -187,6 +187,7 @@ export abstract class HitAbstract implements IHitAbstract {
       [DS_API_ITEM]: this.ds,
       [CUSTOMER_ENV_ID_API_ITEM]: `${this.config?.envId}`,
       [T_API_ITEM]: this.type,
+      [CUSTOMER_UID]: null,
       [QT_API_ITEM]: Date.now() - this._createdAt
     }
     if (this.userIp) {
@@ -204,9 +205,6 @@ export abstract class HitAbstract implements IHitAbstract {
     if (this.visitorId && this.anonymousId) {
       apiKeys[VISITOR_ID_API_ITEM] = this.anonymousId
       apiKeys[CUSTOMER_UID] = this.visitorId
-    } else {
-      apiKeys[VISITOR_ID_API_ITEM] = this.anonymousId || this.visitorId
-      apiKeys[CUSTOMER_UID] = null
     }
     return apiKeys
   }

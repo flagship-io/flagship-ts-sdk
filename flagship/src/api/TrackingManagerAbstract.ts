@@ -42,8 +42,8 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     this._hitsPoolQueue = new Map<string, HitAbstract>()
     this._httpClient = httpClient
     this._config = config
-    this.lookupHits()
     this.strategy = this.initStrategy()
+    this.lookupHits()
   }
 
   protected initStrategy ():BatchingCachingStrategyAbstract {

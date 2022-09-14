@@ -31,7 +31,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
     await this.cacheHit(this._hitsPoolQueue)
   }
 
-  async sendOtherHit (hits:HitAbstract[]):Promise<void> {
+  async SendActivateAndSegmentHit (hits:HitAbstract[]):Promise<void> {
     const headers = {
       [HEADER_X_API_KEY]: this.config.apiKey as string,
       [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
@@ -90,7 +90,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       batch.hits.push(item)
     }
 
-    await this.sendOtherHit(otherHits)
+    await this.SendActivateAndSegmentHit(otherHits)
 
     if (!batch.hits.length) {
       if (otherHits.length) {
