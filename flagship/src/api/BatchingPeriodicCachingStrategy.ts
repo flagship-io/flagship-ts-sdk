@@ -17,7 +17,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
 
   async notConsent (visitorId: string):Promise<void> {
     const keys = Array.from(this._hitsPoolQueue).filter(([key, item]) => {
-      return !(item?.type === HitType.EVENT && (item as Event)?.action === FS_CONSENT) && key.includes(visitorId)
+      return (item?.type !== HitType.EVENT || (item as Event)?.action !== FS_CONSENT) && key.includes(visitorId)
     })
 
     const keysToFlush:string[] = []

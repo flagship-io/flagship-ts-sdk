@@ -25,7 +25,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
     await this.cacheHit(new Map<string, HitAbstract>().set(hitKey, hit))
 
     if (hit.type === 'ACTIVATE' || hit.type === 'CONTEXT') {
-      await this.SendActivateAndSegmentHit(hit)
+      await this.sendActivateAndSegmentHit(hit)
       return
     }
 
@@ -51,7 +51,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      if (hit.type !== HitType.EVENT && (hit as Event).action !== FS_CONSENT) {
+      if (hit.type !== HitType.EVENT || (hit as Event).action !== FS_CONSENT) {
         this.cacheHitKeys[hit.key] = hit.key
       }
       logError(this.config, errorFormat(error.message || error, {
@@ -66,7 +66,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
    * Other hits are ACTIVATE AND SEGMENT
    * @param hit
    */
-  async SendActivateAndSegmentHit (hit:HitAbstract):Promise<void> {
+  async sendActivateAndSegmentHit (hit:HitAbstract):Promise<void> {
     const headers = {
       [HEADER_X_API_KEY]: this.config.apiKey as string,
       [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
@@ -102,7 +102,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
   async notConsent (visitorId: string): Promise<void> {
     const keys = Object.keys(this.cacheHitKeys)
     const hitsPoolQueueKeys = Array.from(this._hitsPoolQueue).filter(([key, item]) => {
-      return !(item?.type === HitType.EVENT && (item as Event)?.action === FS_CONSENT) && key.includes(visitorId)
+      return (item?.type !== HitType.EVENT || (item as Event)?.action !== FS_CONSENT) && key.includes(visitorId)
     })
 
     const keysToFlush:string[] = []
