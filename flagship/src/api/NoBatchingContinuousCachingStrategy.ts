@@ -25,7 +25,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
     await this.cacheHit(new Map<string, HitAbstract>().set(hitKey, hit))
 
     if (hit.type === 'ACTIVATE' || hit.type === 'CONTEXT') {
-      await this.sendOtherHit(hit)
+      await this.SendActivateAndSegmentHit(hit)
       return
     }
 
@@ -66,7 +66,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
    * Other hits are ACTIVATE AND SEGMENT
    * @param hit
    */
-  async sendOtherHit (hit:HitAbstract):Promise<void> {
+  async SendActivateAndSegmentHit (hit:HitAbstract):Promise<void> {
     const headers = {
       [HEADER_X_API_KEY]: this.config.apiKey as string,
       [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
@@ -121,7 +121,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
     this.cacheHitKeys = {}
   }
 
-  async SendActivateAndSegmentHit (activateHits:HitAbstract[]):Promise<void> {
+  async SendActivateAndSegmentHits (activateHits:HitAbstract[]):Promise<void> {
     const hitKeys:string[] = []
 
     const headers = {
@@ -173,12 +173,12 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
 
     let batchSize = 0
     let count = 0
-    const activateHits:HitAbstract[] = []
+    const activateAndSegmentHits:HitAbstract[] = []
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (const [_, item] of this._hitsPoolQueue) {
       if (item.type === 'ACTIVATE' || item.type === 'CONTEXT') {
-        activateHits.push(item)
+        activateAndSegmentHits.push(item)
         continue
       }
       count++
@@ -193,7 +193,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       this._hitsPoolQueue.delete(hit.key)
     })
 
-    await this.SendActivateAndSegmentHit(activateHits)
+    await this.SendActivateAndSegmentHits(activateAndSegmentHits)
 
     if (!batch.hits.length) {
       return

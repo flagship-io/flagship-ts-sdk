@@ -42,7 +42,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
    * Other hits are ACTIVATE AND SEGMENT
    * @param hits
    */
-  async SendActivateAndSegmentHit (hits:HitAbstract[]):Promise<void> {
+  async SendActivateAndSegmentHits (hits:HitAbstract[]):Promise<void> {
     const hitKeys:string[] = []
 
     const headers = {
@@ -89,12 +89,12 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
 
     let count = 0
 
-    const otherHits:HitAbstract[] = []
+    const activateAndSegmentHits:HitAbstract[] = []
     const hitKeysToRemove:string[] = []
 
     for (const [key, item] of this._hitsPoolQueue) {
       if (item.type === 'ACTIVATE' || item.type === 'CONTEXT') {
-        otherHits.push(item)
+        activateAndSegmentHits.push(item)
         continue
       }
 
@@ -107,7 +107,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       hitKeysToRemove.push(key)
     }
 
-    await this.SendActivateAndSegmentHit(otherHits)
+    await this.SendActivateAndSegmentHits(activateAndSegmentHits)
 
     if (!batch.hits.length) {
       return

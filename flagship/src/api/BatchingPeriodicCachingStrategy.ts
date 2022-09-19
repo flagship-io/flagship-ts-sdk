@@ -28,7 +28,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
     await this.cacheHit(this._hitsPoolQueue)
   }
 
-  async SendActivateAndSegmentHit (hits:HitAbstract[]):Promise<void> {
+  async SendActivateAndSegmentHits (hits:HitAbstract[]):Promise<void> {
     const headers = {
       [HEADER_X_API_KEY]: this.config.apiKey as string,
       [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
@@ -71,12 +71,12 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
 
     let batchSize = 0
     let count = 0
-    const otherHits:HitAbstract[] = []
+    const activateAndSegmentHits:HitAbstract[] = []
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (const [_, item] of this._hitsPoolQueue) {
       if (item.type === 'ACTIVATE' || item.type === 'CONTEXT') {
-        otherHits.push(item)
+        activateAndSegmentHits.push(item)
         continue
       }
       count++
@@ -87,10 +87,10 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       batch.hits.push(item)
     }
 
-    await this.SendActivateAndSegmentHit(otherHits)
+    await this.SendActivateAndSegmentHits(activateAndSegmentHits)
 
     if (!batch.hits.length) {
-      if (otherHits.length) {
+      if (activateAndSegmentHits.length) {
         await this.cacheHit(this._hitsPoolQueue)
       }
       return
