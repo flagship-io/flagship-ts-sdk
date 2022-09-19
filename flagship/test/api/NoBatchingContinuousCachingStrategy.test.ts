@@ -118,20 +118,25 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
 
     const consentHitFalse = new Event({
       visitorId,
-      label: `${SDK_LANGUAGE.name}:${false}`,
+      label: `${SDK_LANGUAGE.name}:false`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT
     })
 
     consentHitFalse.visitorId = visitorId
 
+    const newHitKey = visitorId + 'any'
+    pageHit.key = newHitKey
+    hitsPoolQueue.set(newHitKey, pageHit)
+
     await batchingStrategy.addHit(consentHitFalse)
 
     expect(hitsPoolQueue.size).toBe(0)
     expect(cacheHit).toBeCalledTimes(4)
     expect(cacheHit).toHaveBeenNthCalledWith(4, new Map().set(expect.stringContaining(visitorId), consentHitFalse))
-    expect(flushHits).toBeCalledTimes(4)
-    expect(flushHits).toHaveBeenNthCalledWith(4, [expect.stringContaining(visitorId)])
+    expect(flushHits).toBeCalledTimes(5)
+    expect(flushHits).toHaveBeenNthCalledWith(4, [newHitKey])
+    expect(flushHits).toHaveBeenNthCalledWith(5, [expect.stringContaining(visitorId)])
 
     // Test activate
     const activateHit = new Activate({
@@ -148,8 +153,8 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(hitsPoolQueue.size).toBe(0)
     expect(cacheHit).toBeCalledTimes(5)
     expect(cacheHit).toHaveBeenNthCalledWith(5, new Map().set(expect.stringContaining(visitorId), activateHit))
-    expect(flushHits).toBeCalledTimes(5)
-    expect(flushHits).toHaveBeenNthCalledWith(5, [expect.stringContaining(visitorId)])
+    expect(flushHits).toBeCalledTimes(6)
+    expect(flushHits).toHaveBeenNthCalledWith(6, [expect.stringContaining(visitorId)])
 
     // Test segmentHit
     const segmentHit = new Segment({
@@ -168,8 +173,8 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(hitsPoolQueue.size).toBe(0)
     expect(cacheHit).toBeCalledTimes(6)
     expect(cacheHit).toHaveBeenNthCalledWith(6, new Map().set(expect.stringContaining(visitorId), segmentHit))
-    expect(flushHits).toBeCalledTimes(6)
-    expect(flushHits).toHaveBeenNthCalledWith(6, [expect.stringContaining(visitorId)])
+    expect(flushHits).toBeCalledTimes(7)
+    expect(flushHits).toHaveBeenNthCalledWith(7, [expect.stringContaining(visitorId)])
   })
 
   it('test addHit method throw error', async () => {
