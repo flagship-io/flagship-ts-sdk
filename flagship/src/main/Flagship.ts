@@ -55,23 +55,22 @@ export class Flagship {
   }
 
   protected setStatus (status: FlagshipStatus): void {
-    const statusChanged = this.getConfig().statusChangedCallback
-
-    if (this._status !== status) {
-      if (status === FlagshipStatus.READY) {
-        this.configManager?.trackingManager?.startBatchingLoop()
-      } else {
-        this.configManager?.trackingManager?.stopBatchingLoop()
-      }
-
-      if (this.getConfig() && statusChanged) {
-        this._status = status
-        statusChanged(status)
-        return
-      }
+    if (this._status === status) {
+      return
     }
 
     this._status = status
+    const statusChanged = this.getConfig().statusChangedCallback
+
+    if (status === FlagshipStatus.READY) {
+      this.configManager?.trackingManager?.startBatchingLoop()
+    } else {
+      this.configManager?.trackingManager?.stopBatchingLoop()
+    }
+
+    if (this.getConfig() && statusChanged) {
+      statusChanged(status)
+    }
   }
 
   /**
@@ -164,11 +163,6 @@ export class Flagship {
 
     config = flagship.buildConfig(config)
 
-    const configCheck = {
-      useCustomLogManager: !!config.logManager,
-      useCustomCacheManager: !!config.hitCacheImplementation || !!config.visitorCacheImplementation
-    }
-
     config.envId = envId
     config.apiKey = apiKey
 
@@ -189,7 +183,6 @@ export class Flagship {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (!config.hitCacheImplementation && isBrowser()) {
-      configCheck.useCustomLogManager = false
       config.hitCacheImplementation = new DefaultHitCache()
     }
 
