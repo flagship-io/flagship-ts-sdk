@@ -33,6 +33,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   private _httpClient: IHttpClient
   private _config: IFlagshipConfig
   private _hitsPoolQueue: Map<string, HitAbstract>
+  private _activatePoolQueue: Map<string, Activate>
   protected strategy: BatchingCachingStrategyAbstract
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected _intervalID:any
@@ -40,6 +41,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
   constructor (httpClient: IHttpClient, config: IFlagshipConfig) {
     this._hitsPoolQueue = new Map<string, HitAbstract>()
+    this._activatePoolQueue = new Map<string, Activate>()
     this._httpClient = httpClient
     this._config = config
     this.strategy = this.initStrategy()
@@ -50,13 +52,13 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     let strategy:BatchingCachingStrategyAbstract
     switch (this.config.trackingMangerConfig?.batchStrategy) {
       case BatchStrategy.PERIODIC_CACHING:
-        strategy = new BatchingPeriodicCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
+        strategy = new BatchingPeriodicCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue, this._activatePoolQueue)
         break
       case BatchStrategy.CONTINUOUS_CACHING:
-        strategy = new BatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
+        strategy = new BatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue, this._activatePoolQueue)
         break
       default:
-        strategy = new NoBatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
+        strategy = new NoBatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue, this._activatePoolQueue)
         break
     }
     return strategy

@@ -1,10 +1,56 @@
 import { ADD_HIT, BASE_API_URL, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, EVENT_SUFFIX, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_ADDED_IN_QUEUE, HIT_EVENT_URL, HIT_SENT_SUCCESS, SDK_APP, SDK_LANGUAGE, SDK_VERSION, SEND_ACTIVATE, SEND_BATCH, SEND_SEGMENT_HIT, URL_ACTIVATE_MODIFICATION } from '../enum/index'
+import { Activate } from '../hit/Activate'
 import { Batch } from '../hit/Batch'
 import { HitAbstract, Event } from '../hit/index'
 import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
 
 export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAbstract {
+  async activate (hit: Activate): Promise<void> {
+    const hitKey = `${hit.visitorId}:${uuidV4()}`
+    hit.key = hitKey
+
+    await this.cacheHit(new Map<string, HitAbstract>().set(hitKey, hit))
+
+    let activateHits:Activate[] = [hit]
+    if (this._activatePoolQueue.size) {
+      activateHits = [...activateHits, ...Array.from(this._activatePoolQueue.values())]
+    }
+
+    this._activatePoolQueue.clear()
+
+    const headers = {
+      [HEADER_X_API_KEY]: this.config.apiKey as string,
+      [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
+      [HEADER_X_SDK_VERSION]: SDK_VERSION,
+      [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
+    }
+
+    const requestBody = activateHits.map(item => item.toApiKeys())
+    const url = BASE_API_URL + URL_ACTIVATE_MODIFICATION
+    try {
+      await this._httpClient.postAsync(url, {
+        headers,
+        body: requestBody
+      })
+
+      logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(requestBody)), SEND_ACTIVATE)
+
+      await this.flushHits(activateHits.map(item => item.key))
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      activateHits.forEach(item => {
+        this._activatePoolQueue.set(item.key, item)
+      })
+      logError(this.config, errorFormat(error.message || error, {
+        url,
+        headers,
+        body: requestBody
+      }), SEND_ACTIVATE)
+    }
+  }
+
   async addHit (hit: HitAbstract): Promise<void> {
     const hitKey = `${hit.visitorId}:${uuidV4()}`
     hit.key = hitKey

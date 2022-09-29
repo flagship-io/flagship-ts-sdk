@@ -1,5 +1,6 @@
 import { IFlagshipConfig } from '../config/index'
 import { HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, SDK_LANGUAGE, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, SEND_BATCH, HIT_SENT_SUCCESS, BASE_API_URL, SEND_ACTIVATE, URL_ACTIVATE_MODIFICATION, SEND_HIT, FS_CONSENT, EVENT_SUFFIX, SEND_SEGMENT_HIT } from '../enum/index'
+import { Activate } from '../hit/Activate'
 import { Batch } from '../hit/Batch'
 import { HitAbstract, Event } from '../hit/index'
 import { IHttpClient } from '../utils/HttpClient'
@@ -9,9 +10,13 @@ import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstra
 export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategyAbstract {
   protected cacheHitKeys:Record<string, string>
 
-  constructor (config: IFlagshipConfig, httpClient: IHttpClient, hitsPoolQueue: Map<string, HitAbstract>) {
-    super(config, httpClient, hitsPoolQueue)
+  constructor (config: IFlagshipConfig, httpClient: IHttpClient, hitsPoolQueue: Map<string, HitAbstract>, activatePoolQueue: Map<string, HitAbstract>) {
+    super(config, httpClient, hitsPoolQueue, activatePoolQueue)
     this.cacheHitKeys = {}
+  }
+
+  activate (hit: Activate): Promise<void> {
+    //
   }
 
   async addHit (hit: HitAbstract): Promise<void> {
