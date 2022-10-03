@@ -10,8 +10,8 @@ import { isBrowser, logError, logInfo, sprintf } from '../utils/utils.ts'
 import {
   INITIALIZATION_PARAM_ERROR,
   PROCESS_INITIALIZATION,
-  SDK_STARTED_INFO,
-  SDK_VERSION
+  SDK_INFO,
+  SDK_STARTED_INFO
 } from '../enum/index.ts'
 import { VisitorDelegate } from '../visitor/VisitorDelegate.ts'
 import { BucketingConfig } from '../config/index.ts'
@@ -225,7 +225,7 @@ export class Flagship {
     }
     logInfo(
       config,
-      sprintf(SDK_STARTED_INFO, SDK_VERSION),
+      sprintf(SDK_STARTED_INFO, SDK_INFO.version),
       PROCESS_INITIALIZATION
     )
     return flagship

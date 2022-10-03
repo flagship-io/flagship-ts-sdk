@@ -4,8 +4,9 @@ import { version } from '../sdkVersion.ts'
  * SDK language
  */
 
-export const SDK_LANGUAGE = {
-  name: 'TypeScript'
+export const SDK_INFO = {
+  name: 'TypeScript',
+  version
 }
 
 /**

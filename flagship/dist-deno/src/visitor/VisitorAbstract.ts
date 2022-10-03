@@ -3,7 +3,7 @@ import { IHit, Modification, NewVisitor, modificationsRequested, primitive, Visi
 
 import { IVisitor } from './IVisitor.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
-import { FlagshipStatus, SDK_LANGUAGE, SDK_VERSION, VISITOR_ID_ERROR } from '../enum/index.ts'
+import { FlagshipStatus, SDK_INFO, VISITOR_ID_ERROR } from '../enum/index.ts'
 import { logError } from '../utils/utils.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
@@ -109,8 +109,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   }
 
   protected loadPredefinedContext (): void {
-    this.context.fs_client = SDK_LANGUAGE.name
-    this.context.fs_version = SDK_VERSION
+    this.context.fs_client = SDK_INFO.name
+    this.context.fs_version = SDK_INFO.version
     this.context.fs_users = this.visitorId
   }
 
