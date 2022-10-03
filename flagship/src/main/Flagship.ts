@@ -9,7 +9,9 @@ import { FlagshipLogManager } from '../utils/FlagshipLogManager'
 import { isBrowser, logError, logInfo, sprintf } from '../utils/utils'
 import {
   INITIALIZATION_PARAM_ERROR,
+  NEW_VISITOR_NOT_READY,
   PROCESS_INITIALIZATION,
+  PROCESS_NEW_VISITOR,
   SDK_INFO,
   SDK_STARTED_INFO
 } from '../enum/index'
@@ -270,6 +272,26 @@ export class Flagship {
       initialModifications = param1?.initialFlagsData || param1?.initialModifications
       initialCampaigns = param1?.initialCampaigns
       isNewInstance = param1?.isNewInstance ?? isNewInstance
+    }
+
+    if (!this._instance?.configManager) {
+      const flagship = this.getInstance()
+      const config = new DecisionApiConfig()
+      config.logManager = new FlagshipLogManager()
+      flagship._config = config
+      const httpClient = new HttpClient()
+      const trackingManager = new TrackingManager(httpClient, config)
+      const decisionManager = new ApiManager(
+        httpClient,
+        config
+      )
+      flagship.configManager = new ConfigManager(
+        config,
+        decisionManager,
+        trackingManager
+      )
+      logError(this.getConfig(), NEW_VISITOR_NOT_READY, PROCESS_NEW_VISITOR)
+      // this.getInstance().configManager = new ConfigManager()
     }
 
     const visitorDelegate = new VisitorDelegate({
