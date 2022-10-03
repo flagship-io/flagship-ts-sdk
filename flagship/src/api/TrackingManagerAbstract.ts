@@ -19,6 +19,8 @@ export interface ITrackingManagerCommon {
   config:IFlagshipConfig
 
   addHit(hit: HitAbstract): Promise<void>
+
+  activateFlag (hit: Activate): Promise<void>
 }
 
 export interface ITrackingManager extends ITrackingManagerCommon {
@@ -73,6 +75,8 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   }
 
   public abstract addHit(hit: HitAbstract): Promise<void>
+
+  public abstract activateFlag (hit: Activate): Promise<void>
 
   public startBatchingLoop (): void {
     const timeInterval = (this.config.trackingMangerConfig?.batchIntervals ?? DEFAULT_TIME_INTERVAL) * 1000

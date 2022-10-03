@@ -29,7 +29,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
     abstract addHit (hit: HitAbstract): Promise<void>
 
-    abstract activate(hit: Activate):Promise<void>
+    abstract activateFlag(hit: Activate):Promise<void>
 
     abstract sendBatch(): Promise<void>
 
