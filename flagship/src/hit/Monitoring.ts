@@ -4,9 +4,8 @@ import {
   EVENT_ACTION_API_ITEM,
   EVENT_CATEGORY_API_ITEM,
   SDK_APP,
-  SDK_LANGUAGE
+  SDK_INFO
 } from '../enum/FlagshipConstant'
-import { version as packageVersion } from '../sdkVersion'
 import { HitAbstract, IHitAbstract } from './HitAbstract'
 
 export const ERROR_MESSAGE = 'event category and event action are required'
@@ -573,12 +572,12 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     this.accountId = accountId
     this.envId = envId || config.envId
     this.timestamp = timestamp || new Date(Date.now()).toISOString()
-    this.component = component || `Flagship SDK ${SDK_LANGUAGE.name}`
+    this.component = component || `Flagship SDK ${SDK_INFO.name}`
     this.subComponent = subComponent
     this.message = message
     this.stackType = stackType || 'SDK'
-    this.stackName = stackName || SDK_LANGUAGE.name
-    this.stackVersion = stackVersion || packageVersion
+    this.stackName = stackName || SDK_INFO.name
+    this.stackVersion = stackVersion || SDK_INFO.version
     this.stackOriginName = stackOriginName
     this.stackOriginVersion = stackOriginVersion
     this.sdkStatus = sdkStatus
