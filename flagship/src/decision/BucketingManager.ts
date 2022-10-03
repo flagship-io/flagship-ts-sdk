@@ -1,5 +1,5 @@
 import { IFlagshipConfig } from '../config/index'
-import { BUCKETING_API_CONTEXT_URL, BUCKETING_API_URL, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, REQUEST_TIME_OUT, SDK_LANGUAGE, SDK_VERSION } from '../enum/index'
+import { BUCKETING_API_CONTEXT_URL, BUCKETING_API_URL, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, REQUEST_TIME_OUT, SDK_INFO } from '../enum/index'
 import { primitive } from '../types'
 import { IHttpClient, IHttpResponse } from '../utils/HttpClient'
 import { MurmurHash } from '../utils/MurmurHash'
@@ -77,8 +77,8 @@ export class BucketingManager extends DecisionManager {
       const url = sprintf(BUCKETING_API_URL, this.config.envId)
       const headers: Record<string, string> = {
         [HEADER_X_API_KEY]: `${this.config.apiKey}`,
-        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
-        [HEADER_X_SDK_VERSION]: SDK_VERSION,
+        [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
+        [HEADER_X_SDK_VERSION]: SDK_INFO.version,
         [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
       }
 
@@ -117,8 +117,8 @@ export class BucketingManager extends DecisionManager {
       const url = sprintf(BUCKETING_API_CONTEXT_URL, this.config.envId)
       const headers: Record<string, string> = {
         [HEADER_X_API_KEY]: `${this.config.apiKey}`,
-        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
-        [HEADER_X_SDK_VERSION]: SDK_VERSION,
+        [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
+        [HEADER_X_SDK_VERSION]: SDK_INFO.version,
         [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
       }
       const body = {

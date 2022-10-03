@@ -7,8 +7,9 @@ import {
   FlagshipStatus,
   LogLevel,
   REQUEST_TIME_OUT,
-  SDK_LANGUAGE
+  SDK_INFO
 } from '../../src/enum/index'
+import { version } from '../../src/sdkVersion'
 import { HitCacheDTO, VisitorCacheDTO } from '../../src/types'
 import { FlagshipLogManager, IFlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 
@@ -184,19 +185,25 @@ describe('test DecisionApiConfig', () => {
 
 describe('Test SDK_LANGUAGE', () => {
   it('should be reactJS', () => {
-    const config = new DecisionApiConfig({ language: 1 })
-    expect(SDK_LANGUAGE.name).toBe('ReactJS')
+    const sdkVersion = '2.12.5'
+    const config = new DecisionApiConfig({ language: 1, sdkVersion })
+    expect(SDK_INFO.name).toBe('ReactJS')
+    expect(SDK_INFO.version).toBe(sdkVersion)
     expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
   })
   it('should be react-native', () => {
-    const config = new DecisionApiConfig({ language: 2 })
-    expect(SDK_LANGUAGE.name).toBe('React-Native')
+    const sdkVersion = '2.5.5'
+    const config = new DecisionApiConfig({ language: 2, sdkVersion })
+    expect(SDK_INFO.name).toBe('React-Native')
+    expect(SDK_INFO.version).toBe(sdkVersion)
     expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
   })
 
   it('should be Typescript', () => {
-    const config = new DecisionApiConfig({ language: 0 })
-    expect(SDK_LANGUAGE.name).toBe('Typescript')
+    const sdkVersion = '2.6.5'
+    const config = new DecisionApiConfig({ language: 0, sdkVersion })
+    expect(SDK_INFO.name).toBe('Typescript')
+    expect(SDK_INFO.version).toBe(version)
     expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
   })
 
@@ -208,7 +215,7 @@ describe('Test SDK_LANGUAGE', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any
     const config = new DecisionApiConfig({ language: 0 })
-    expect(SDK_LANGUAGE.name).toBe('Deno')
+    expect(SDK_INFO.name).toBe('Deno')
     expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
     global.window = window
   })

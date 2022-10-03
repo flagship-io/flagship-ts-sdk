@@ -11,9 +11,7 @@ import {
   HEADER_X_API_KEY,
   HEADER_X_SDK_CLIENT,
   HEADER_X_SDK_VERSION,
-  SDK_LANGUAGE,
-  SDK_VERSION,
-  SEND_CONTEXT_EVENT,
+  SDK_INFO,
   URL_CAMPAIGNS
 } from '../../src/enum/index'
 import { IHttpResponse, HttpClient } from '../../src/utils/HttpClient'
@@ -48,8 +46,8 @@ describe('test ApiManager', () => {
   // Test http request data
   const headers = {
     [HEADER_X_API_KEY]: `${config.apiKey}`,
-    [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
-    [HEADER_X_SDK_VERSION]: SDK_VERSION,
+    [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
+    [HEADER_X_SDK_VERSION]: SDK_INFO.version,
     [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
   }
   const postData = {

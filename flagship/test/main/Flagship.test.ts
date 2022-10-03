@@ -5,9 +5,8 @@ import {
   FlagshipStatus,
   INITIALIZATION_PARAM_ERROR,
   PROCESS_INITIALIZATION,
-  SDK_LANGUAGE,
-  SDK_STARTED_INFO,
-  SDK_VERSION
+  SDK_INFO,
+  SDK_STARTED_INFO
 } from '../../src/enum/index'
 import { Flagship } from '../../src/main/Flagship'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
@@ -128,7 +127,7 @@ describe('test Flagship with custom config', () => {
 
     expect(infoLog).toBeCalledTimes(1)
     expect(infoLog).toBeCalledWith(
-      sprintf(SDK_STARTED_INFO, SDK_VERSION),
+      sprintf(SDK_STARTED_INFO, SDK_INFO.version),
       PROCESS_INITIALIZATION
     )
     expect(instance).toBeInstanceOf(Flagship)
@@ -157,8 +156,8 @@ describe('test Flagship newVisitor', () => {
     const visitorId = 'visitorId'
     const context = { isVip: true }
     const predefinedContext = {
-      fs_client: SDK_LANGUAGE.name,
-      fs_version: SDK_VERSION,
+      fs_client: SDK_INFO.name,
+      fs_version: SDK_INFO.version,
       fs_users: visitorId
     }
     let visitor = Flagship.newVisitor({ visitorId, context })
