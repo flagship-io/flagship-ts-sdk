@@ -4,7 +4,7 @@ import { MurmurHash } from '../../src/utils/MurmurHash'
 import { BucketingManager } from '../../src/decision/BucketingManager'
 import { bucketing } from './bucketing'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
-import { BUCKETING_API_URL, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, SDK_LANGUAGE, SDK_VERSION } from '../../src/enum'
+import { BUCKETING_API_URL, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, SDK_INFO } from '../../src/enum'
 import { sprintf, sleep } from '../../src/utils/utils'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
@@ -82,8 +82,8 @@ describe('test BucketingManager', () => {
     expect(getAsync).toBeCalledWith(url, {
       headers: {
         [HEADER_X_API_KEY]: `${config.apiKey}`,
-        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
-        [HEADER_X_SDK_VERSION]: SDK_VERSION,
+        [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
+        [HEADER_X_SDK_VERSION]: SDK_INFO.version,
         [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
       },
       timeout: config.timeout
@@ -103,8 +103,8 @@ describe('test BucketingManager', () => {
     expect(getAsync).toBeCalledWith(url, {
       headers: {
         [HEADER_X_API_KEY]: `${config.apiKey}`,
-        [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
-        [HEADER_X_SDK_VERSION]: SDK_VERSION,
+        [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
+        [HEADER_X_SDK_VERSION]: SDK_INFO.version,
         [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON,
         'if-modified-since': 'Fri, 06 Aug 2021 11:16:19 GMT'
       },

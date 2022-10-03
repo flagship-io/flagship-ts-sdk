@@ -3,7 +3,7 @@ import { IHit, Modification, NewVisitor, modificationsRequested, primitive, Visi
 
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
-import { FlagshipStatus, SDK_LANGUAGE, VISITOR_ID_ERROR } from '../enum/index'
+import { FlagshipStatus, SDK_INFO, VISITOR_ID_ERROR } from '../enum/index'
 import { logError, uuidV4 } from '../utils/utils'
 import { HitAbstract, HitShape } from '../hit/index'
 import { DefaultStrategy } from './DefaultStrategy'
@@ -15,7 +15,6 @@ import { PanicStrategy } from './PanicStrategy'
 import { NoConsentStrategy } from './NoConsentStrategy'
 import { cacheVisitor } from './VisitorCache'
 import { IFlag } from '../flag/Flags'
-import { version } from '../sdkVersion'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -112,8 +111,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   }
 
   protected loadPredefinedContext (): void {
-    this.context.fs_client = SDK_LANGUAGE.name
-    this.context.fs_version = version
+    this.context.fs_client = SDK_INFO.name
+    this.context.fs_version = SDK_INFO.version
     this.context.fs_users = this.visitorId
   }
 

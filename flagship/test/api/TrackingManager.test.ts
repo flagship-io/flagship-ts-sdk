@@ -5,7 +5,7 @@ import { HttpClient } from '../../src/utils/HttpClient'
 import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinuousCachingStrategy'
 import { BatchingPeriodicCachingStrategy } from '../../src/api/BatchingPeriodicCachingStrategy'
 import { BatchStrategy, Event, EventCategory, HitCacheDTO, Item, Page, Screen, Transaction } from '../../src'
-import { FS_CONSENT, HIT_CACHE_VERSION, NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY, PROCESS_LOOKUP_HIT, SDK_LANGUAGE } from '../../src/enum'
+import { FS_CONSENT, HIT_CACHE_VERSION, NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY, PROCESS_LOOKUP_HIT, SDK_INFO } from '../../src/enum'
 import { NoBatchingContinuousCachingStrategy } from '../../src/api/NoBatchingContinuousCachingStrategy'
 import { sleep, uuidV4 } from '../../src/utils/utils'
 import { Mock } from 'jest-mock'
@@ -139,7 +139,7 @@ describe('test TrackingManager lookupHits', () => {
 
     const consentHit = new Event({
       visitorId,
-      label: `${SDK_LANGUAGE.name}:${true}`,
+      label: `${SDK_INFO.name}:${true}`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT
     })

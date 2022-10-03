@@ -1,11 +1,12 @@
 import { BucketingDTO } from '../decision/api/bucketingDTO'
-import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, SDK_LANGUAGE, TYPE_ERROR } from '../enum/index'
+import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, SDK_INFO, TYPE_ERROR } from '../enum/index'
 import { IHitCacheImplementation } from '../cache/IHitCacheImplementation'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, sprintf } from '../utils/utils'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation'
 import { ITrackingManagerConfig, TrackingManagerConfig } from './TrackingManagerConfig'
 import { UserExposureInfo } from '../types'
+import { version as SDK_VERSION } from '../sdkVersion'
 
 export enum DecisionMode {
   /**
@@ -115,6 +116,7 @@ export interface IFlagshipConfig {
    * Define a callable to get callback each time  a Flag have been user exposed (activation hit has been sent) by SDK
    */
   onUserExposure?: (param: UserExposureInfo)=>void
+  sdkVersion?: string
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -156,10 +158,10 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
-      disableCache, language, trackingMangerConfig, onUserExposure
+      disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig
     } = param
 
-    this.setSdkLanguageName(language)
+    this.initSDKInfo(language, sdkVersion)
 
     if (logManager) {
       this.logManager = logManager
@@ -191,16 +193,19 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._onUserExposure = onUserExposure
   }
 
-  protected setSdkLanguageName (language?:number):void {
+  protected initSDKInfo (language?:number, sdkVersion?:string) {
     switch (language) {
       case 1:
-        SDK_LANGUAGE.name = 'ReactJS'
+        SDK_INFO.name = 'ReactJS'
+        SDK_INFO.version = sdkVersion ?? SDK_VERSION
         break
       case 2:
-        SDK_LANGUAGE.name = 'React-Native'
+        SDK_INFO.name = 'React-Native'
+        SDK_INFO.version = sdkVersion ?? SDK_VERSION
         break
       default:
-        SDK_LANGUAGE.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'Typescript'
+        SDK_INFO.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'Typescript'
+        SDK_INFO.version = SDK_VERSION
         break
     }
   }

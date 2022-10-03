@@ -9,9 +9,8 @@ import { FlagshipLogManager } from '../utils/FlagshipLogManager'
 import { isBrowser, logError, logInfo, sprintf } from '../utils/utils'
 import {
   INITIALIZATION_PARAM_ERROR,
-  NEW_VISITOR_NOT_READY,
   PROCESS_INITIALIZATION,
-  PROCESS_NEW_VISITOR,
+  SDK_INFO,
   SDK_STARTED_INFO
 } from '../enum/index'
 import { VisitorDelegate } from '../visitor/VisitorDelegate'
@@ -24,7 +23,6 @@ import { FlagDTO, NewVisitor, primitive } from '../types'
 import { CampaignDTO } from '../decision/api/models'
 import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
-import { version as packageVersion } from '../sdkVersion'
 
 export class Flagship {
   // eslint-disable-next-line no-use-before-define
@@ -158,7 +156,7 @@ export class Flagship {
     envId: string,
     apiKey: string,
     config?: IFlagshipConfig | FlagshipConfig
-  ): Flagship | null {
+  ): Flagship {
     const flagship = this.getInstance()
 
     config = flagship.buildConfig(config)
@@ -218,7 +216,7 @@ export class Flagship {
 
     logInfo(
       config,
-      sprintf(SDK_STARTED_INFO, packageVersion),
+      sprintf(SDK_STARTED_INFO, SDK_INFO.version),
       PROCESS_INITIALIZATION
     )
     return flagship
@@ -230,9 +228,9 @@ export class Flagship {
    * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
    * @returns {Visitor} a new visitor instance
    */
-  public newVisitor(visitorId?: string | null, context?: Record<string, primitive>): Visitor | null
-  public newVisitor(params?: NewVisitor): Visitor | null
-  public newVisitor (param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor | null {
+  public newVisitor(visitorId?: string | null, context?: Record<string, primitive>): Visitor
+  public newVisitor(params?: NewVisitor): Visitor
+  public newVisitor (param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor {
     return Flagship.newVisitor(param1, param2)
   }
 
@@ -242,7 +240,7 @@ export class Flagship {
    * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
    * @returns {Visitor} a new visitor instance
    */
-  public static newVisitor(visitorId?: string | null, context?: Record<string, primitive>): Visitor | null
+  public static newVisitor(visitorId?: string | null, context?: Record<string, primitive>): Visitor
   /**
    * Create a new visitor with a context.
    * @param {string} visitorId : Unique visitor identifier.
@@ -250,8 +248,8 @@ export class Flagship {
    * @returns {Visitor} a new visitor instance
    */
   public static newVisitor(params?: NewVisitor): Visitor | null
-  public static newVisitor(param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor | null
-  public static newVisitor (param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor | null {
+  public static newVisitor(param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor
+  public static newVisitor (param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor {
     let visitorId: string | undefined
     let context: Record<string, primitive>
     let isAuthenticated = false
@@ -260,11 +258,6 @@ export class Flagship {
     let initialCampaigns: CampaignDTO[] | undefined
     const isServerSide = !isBrowser()
     let isNewInstance = isServerSide
-
-    if (!this._instance?.configManager) {
-      logError(this.getConfig(), NEW_VISITOR_NOT_READY, PROCESS_NEW_VISITOR)
-      return null
-    }
 
     if (typeof param1 === 'string' || param1 === null) {
       visitorId = param1 || undefined

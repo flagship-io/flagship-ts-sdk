@@ -11,9 +11,7 @@ import {
   HEADER_X_API_KEY,
   HEADER_X_SDK_CLIENT,
   HEADER_X_SDK_VERSION,
-  SDK_LANGUAGE,
-  SDK_VERSION,
-  SEND_CONTEXT_EVENT,
+  SDK_INFO,
   URL_CAMPAIGNS
 } from '../../src/enum/index'
 import { IHttpResponse, HttpClient } from '../../src/utils/HttpClient'
@@ -40,15 +38,16 @@ describe('test ApiManager', () => {
   // Test http request data
   const headers = {
     [HEADER_X_API_KEY]: `${config.apiKey}`,
-    [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
-    [HEADER_X_SDK_VERSION]: SDK_VERSION,
+    [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
+    [HEADER_X_SDK_VERSION]: SDK_INFO.version,
     [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
   }
   const postData = {
     visitorId: visitor.visitorId,
     anonymousId: visitor.anonymousId,
     trigger_hit: false,
-    context: visitor.context
+    context: visitor.context,
+    visitor_consent: visitor.hasConsented
   }
   const url = `${BASE_API_URL}${config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
 
@@ -103,10 +102,10 @@ describe('test ApiManager', () => {
     )
     const modifications = apiManager.getModifications(campaigns as CampaignDTO[])
 
-    expect(postAsync).toHaveBeenCalledWith(`${url}&${SEND_CONTEXT_EVENT}=false`, {
+    expect(postAsync).toHaveBeenCalledWith(url, {
       headers,
       timeout: config.timeout,
-      body: postData
+      body: { ...postData, visitor_consent: visitor.hasConsented }
     })
 
     expect(modifications.size).toBe(4)
