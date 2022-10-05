@@ -15,10 +15,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
     this.cacheHitKeys = {}
   }
 
-  async activateFlag (hit: Activate): Promise<void> {
-    const hitKey = `${hit.visitorId}:${uuidV4()}`
-    hit.key = hitKey
-
+  async sendActivate (activateHits:Activate[]) {
     const headers = {
       [HEADER_X_API_KEY]: this.config.apiKey as string,
       [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
@@ -26,9 +23,13 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
-    const requestBody = hit.toApiKeys()
+    const hitKeys:string[] = []
+    const requestBody = activateHits.map(item => {
+      hitKeys.push(item.key)
+      return item.toApiKeys()
+    })
 
-    const url = BASE_API_URL + URL_ACTIVATE_MODIFICATION
+    const url = /* BASE_API_URL */ 'https://test-api.free.beeceptor.com/' + URL_ACTIVATE_MODIFICATION
     try {
       await this._httpClient.postAsync(url, {
         headers,
@@ -37,18 +38,30 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
 
       logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(requestBody)), SEND_ACTIVATE)
 
-      await this.flushHits([hit.key])
+      await this.flushHits(hitKeys)
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      await this.cacheHit(new Map().set(hit.key, hit))
-      this.cacheHitKeys[hit.key] = hit.key
+      const hits = new Map<string, Activate>()
+      activateHits.forEach((item) => {
+        this.cacheHitKeys[item.key] = item.key
+        hits.set(item.key, item)
+      })
+      await this.cacheHit(hits)
+
       logError(this.config, errorFormat(error.message || error, {
         url,
         headers,
         body: requestBody
       }), SEND_ACTIVATE)
     }
+  }
+
+  async activateFlag (hit: Activate): Promise<void> {
+    const hitKey = `${hit.visitorId}:${uuidV4()}`
+    hit.key = hitKey
+
+    await this.sendActivate([hit])
   }
 
   async addHit (hit: HitAbstract): Promise<void> {
@@ -114,6 +127,11 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
   }
 
   async sendBatch (): Promise<void> {
+    if (this._activatePoolQueue.size) {
+      const activateHits = Array.from(this._activatePoolQueue.values())
+      this._activatePoolQueue.clear()
+      await this.sendActivate(activateHits)
+    }
     const headers = {
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }

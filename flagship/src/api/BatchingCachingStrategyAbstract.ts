@@ -31,6 +31,8 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
     abstract activateFlag(hit: Activate):Promise<void>
 
+    protected abstract sendActivate (activateHitsPool:Activate[], currentActivate?:Activate):Promise<void>
+
     abstract sendBatch(): Promise<void>
 
     abstract notConsent(visitorId: string): Promise<void>

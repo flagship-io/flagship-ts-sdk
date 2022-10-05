@@ -11,7 +11,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     hit.key = hitKey
 
     this._hitsPoolQueue.set(hitKey, hit)
-    await this.cacheHit(new Map<string, HitAbstract>().set(hitKey, hit))
+    await this.cacheHit(new Map<string, HitAbstract>([[hitKey, hit]]))
 
     if (hit.type === HitType.EVENT && (hit as Event).action === FS_CONSENT && (hit as Event).label === `${SDK_INFO.name}:false`) {
       await this.notConsent(hit.visitorId)
@@ -20,17 +20,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     logDebug(this.config, sprintf(HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_HIT)
   }
 
-  async activateFlag (hit: Activate): Promise<void> {
-    const hitKey = `${hit.visitorId}:${uuidV4()}`
-    hit.key = hitKey
-
-    let activateHits:Activate[] = [hit]
-    if (this._activatePoolQueue.size) {
-      activateHits = [...activateHits, ...Array.from(this._activatePoolQueue.values())]
-    }
-
-    this._activatePoolQueue.clear()
-
+  protected async sendActivate (activateHitsPool:Activate[], currentActivate?:Activate) {
     const headers = {
       [HEADER_X_API_KEY]: this.config.apiKey as string,
       [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
@@ -38,9 +28,19 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
-    const requestBody = activateHits.map(item => item.toApiKeys())
+    const requestBody:Record<string, unknown>[] = []
+    const hitKeysToRemove:string[] = []
 
-    const url = BASE_API_URL + URL_ACTIVATE_MODIFICATION
+    activateHitsPool.forEach(item => {
+      hitKeysToRemove.push(item.key)
+      requestBody.push(item.toApiKeys())
+    })
+
+    if (currentActivate) {
+      requestBody.push(currentActivate.toApiKeys())
+    }
+
+    const url = /* BASE_API_URL */ 'https://test-api.free.beeceptor.com/' + URL_ACTIVATE_MODIFICATION
     try {
       await this._httpClient.postAsync(url, {
         headers,
@@ -49,20 +49,40 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
 
       logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(requestBody)), SEND_ACTIVATE)
 
-      await this.flushHits(activateHits.map(item => item.key))
+      if (hitKeysToRemove.length) {
+        await this.flushHits(hitKeysToRemove)
+      }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      activateHits.forEach(item => {
+      activateHitsPool.forEach(item => {
         this._activatePoolQueue.set(item.key, item)
       })
-      await this.cacheHit(this._activatePoolQueue)
+
+      if (currentActivate) {
+        await this.cacheHit(new Map<string, Activate>([[currentActivate.key, currentActivate]]))
+      }
+
       logError(this.config, errorFormat(error.message || error, {
         url,
         headers,
         body: requestBody
       }), SEND_ACTIVATE)
     }
+  }
+
+  async activateFlag (hit: Activate): Promise<void> {
+    const hitKey = `${hit.visitorId}:${uuidV4()}`
+    hit.key = hitKey
+
+    let activateHitPool:Activate[] = []
+    if (this._activatePoolQueue.size) {
+      activateHitPool = Array.from(this._activatePoolQueue.values())
+    }
+
+    this._activatePoolQueue.clear()
+
+    await this.sendActivate(activateHitPool, hit)
   }
 
   async notConsent (visitorId: string):Promise<void> {
@@ -87,6 +107,12 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
   }
 
   async sendBatch (): Promise<void> {
+    if (this._activatePoolQueue.size) {
+      const activateHits = Array.from(this._activatePoolQueue.values())
+      this._activatePoolQueue.clear()
+      await this.sendActivate(activateHits)
+    }
+
     const batch:Batch = new Batch({ hits: [], ds: SDK_APP })
     batch.config = this.config
 
@@ -130,13 +156,9 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      const hits = new Map<string, HitAbstract>()
       batch.hits.forEach((hit) => {
         this._hitsPoolQueue.set(hit.key, hit)
-        hits.set(hit.key, hit)
       })
-
-      await this.cacheHit(hits)
 
       logError(this.config, errorFormat(error.message || error, {
         url: HIT_EVENT_URL,

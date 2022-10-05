@@ -16,17 +16,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
     logDebug(this.config, sprintf(HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_HIT)
   }
 
-  async activateFlag (hit: Activate): Promise<void> {
-    const hitKey = `${hit.visitorId}:${uuidV4()}`
-    hit.key = hitKey
-
-    let activateHits:Activate[] = [hit]
-    if (this._activatePoolQueue.size) {
-      activateHits = [...activateHits, ...Array.from(this._activatePoolQueue.values())]
-    }
-
-    this._activatePoolQueue.clear()
-
+  async sendActivate (activateHitsPool:Activate[], currentActivate?:Activate) {
     const headers = {
       [HEADER_X_API_KEY]: this.config.apiKey as string,
       [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
@@ -34,9 +24,13 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
-    const requestBody = activateHits.map(item => item.toApiKeys())
+    const requestBody = activateHitsPool.map(item => item.toApiKeys())
 
-    const url = BASE_API_URL + URL_ACTIVATE_MODIFICATION
+    if (currentActivate) {
+      requestBody.push(currentActivate.toApiKeys())
+    }
+
+    const url = /* BASE_API_URL */ 'https://test-api.free.beeceptor.com/' + URL_ACTIVATE_MODIFICATION
     try {
       await this._httpClient.postAsync(url, {
         headers,
@@ -47,7 +41,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      activateHits.forEach(item => {
+      activateHitsPool.forEach(item => {
         this._activatePoolQueue.set(item.key, item)
       })
       logError(this.config, errorFormat(error.message || error, {
@@ -56,6 +50,20 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         body: requestBody
       }), SEND_ACTIVATE)
     }
+  }
+
+  async activateFlag (hit: Activate): Promise<void> {
+    const hitKey = `${hit.visitorId}:${uuidV4()}`
+    hit.key = hitKey
+
+    let activateHitsPool:Activate[] = [hit]
+    if (this._activatePoolQueue.size) {
+      activateHitsPool = Array.from(this._activatePoolQueue.values())
+    }
+
+    this._activatePoolQueue.clear()
+
+    this.sendActivate(activateHitsPool, hit)
   }
 
   async notConsent (visitorId: string):Promise<void> {
@@ -72,6 +80,11 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
   }
 
   async sendBatch (): Promise<void> {
+    if (this._activatePoolQueue.size) {
+      const activateHits = Array.from(this._activatePoolQueue.values())
+      this._activatePoolQueue.clear()
+      await this.sendActivate(activateHits)
+    }
     const headers = {
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
