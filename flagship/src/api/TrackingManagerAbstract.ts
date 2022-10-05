@@ -147,12 +147,16 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
           case HitType.SCREEN:
             hit = new Screen(item.data.content as IScreen)
             break
-          case 'CONTEXT':
+          case 'SEGMENT':
             hit = new Segment(item.data.content as ISegment)
             break
           case 'ACTIVATE':
             hit = new Activate(item.data.content as IActivate)
-            break
+            hit.key = key
+            hit.createdAt = item.data.content.createdAt
+            hit.config = this.config
+            this._activatePoolQueue.set(key, hit as Activate)
+            return
           case HitType.TRANSACTION:
             hit = new Transaction(item.data.content as ITransaction)
             break

@@ -116,7 +116,7 @@ export class BucketingManager extends DecisionManager {
         return
       }
       const SegmentHit = new Segment({
-        data: visitor.context,
+        context: visitor.context,
         visitorId: visitor.visitorId,
         anonymousId: visitor.anonymousId as string
       })
