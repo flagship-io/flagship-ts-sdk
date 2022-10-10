@@ -106,11 +106,6 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     await this.flushHits(keysToFlush)
   }
 
-  protected async addHitWithKey (hitKey:string, hit:HitAbstract):Promise<void> {
-    this._hitsPoolQueue.set(hitKey, hit)
-    await this.cacheHit(new Map<string, HitAbstract>().set(hitKey, hit))
-  }
-
   async sendBatch (): Promise<void> {
     if (this._activatePoolQueue.size) {
       const activateHits = Array.from(this._activatePoolQueue.values())
