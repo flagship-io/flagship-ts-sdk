@@ -24,12 +24,16 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
     }
 
     const hitKeys:string[] = []
-    const requestBody = activateHits.map(item => {
+    const activateBatch = activateHits.map(item => {
       hitKeys.push(item.key)
       return item.toApiKeys()
     })
 
-    const url = /* BASE_API_URL */ 'https://test-api.free.beeceptor.com/' + URL_ACTIVATE_MODIFICATION
+    const requestBody = {
+      batch: activateBatch
+    }
+
+    const url = BASE_API_URL + URL_ACTIVATE_MODIFICATION
     try {
       await this._httpClient.postAsync(url, {
         headers,

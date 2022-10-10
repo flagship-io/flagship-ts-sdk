@@ -28,19 +28,23 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
-    const requestBody:Record<string, unknown>[] = []
+    const activateBatch:Record<string, unknown>[] = []
     const hitKeysToRemove:string[] = []
 
     activateHitsPool.forEach(item => {
       hitKeysToRemove.push(item.key)
-      requestBody.push(item.toApiKeys())
+      activateBatch.push(item.toApiKeys())
     })
 
     if (currentActivate) {
-      requestBody.push(currentActivate.toApiKeys())
+      activateBatch.push(currentActivate.toApiKeys())
     }
 
-    const url = /* BASE_API_URL */ 'https://test-api.free.beeceptor.com/' + URL_ACTIVATE_MODIFICATION
+    const requestBody = {
+      batch: activateBatch
+    }
+
+    const url = BASE_API_URL + URL_ACTIVATE_MODIFICATION
     try {
       await this._httpClient.postAsync(url, {
         headers,
@@ -60,6 +64,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       })
 
       if (currentActivate) {
+        this._activatePoolQueue.set(currentActivate.key, currentActivate)
         await this.cacheHit(new Map<string, Activate>([[currentActivate.key, currentActivate]]))
       }
 

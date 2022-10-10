@@ -77,7 +77,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     consentHit.ds = SDK_APP
     consentHit.config = this.config
 
-    this.sendHit(consentHit).catch((error) => {
+    this.trackingManager.addHit(consentHit).catch((error) => {
       logError(this.config, error.message || error, method)
     })
   }
