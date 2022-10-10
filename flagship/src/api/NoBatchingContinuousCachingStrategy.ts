@@ -15,7 +15,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
     this.cacheHitKeys = {}
   }
 
-  async sendActivate (activateHits:Activate[]) {
+  async sendActivate (activateHitsPool:Activate[], currentActivate?:Activate) {
     const headers = {
       [HEADER_X_API_KEY]: this.config.apiKey as string,
       [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
@@ -23,11 +23,15 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
-    const hitKeys:string[] = []
-    const activateBatch = activateHits.map(item => {
-      hitKeys.push(item.key)
+    const hitKeysToRemove:string[] = []
+    const activateBatch = activateHitsPool.map(item => {
+      hitKeysToRemove.push(item.key)
       return item.toApiKeys()
     })
+
+    if (currentActivate) {
+      activateBatch.push(currentActivate.toApiKeys())
+    }
 
     const requestBody = {
       batch: activateBatch
@@ -42,16 +46,20 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
 
       logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(requestBody)), SEND_ACTIVATE)
 
-      await this.flushHits(hitKeys)
+      if (hitKeysToRemove.length) {
+        await this.flushHits(hitKeysToRemove)
+      }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      const hits = new Map<string, Activate>()
-      activateHits.forEach((item) => {
+      activateHitsPool.forEach((item) => {
         this.cacheHitKeys[item.key] = item.key
-        hits.set(item.key, item)
       })
-      await this.cacheHit(hits)
+
+      if (currentActivate) {
+        this.cacheHitKeys[currentActivate.key] = currentActivate.key
+        await this.cacheHit(new Map<string, Activate>([[currentActivate.key, currentActivate]]))
+      }
 
       logError(this.config, errorFormat(error.message || error, {
         url,
@@ -65,7 +73,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
     const hitKey = `${hit.visitorId}:${uuidV4()}`
     hit.key = hitKey
 
-    await this.sendActivate([hit])
+    await this.sendActivate([], hit)
   }
 
   async addHit (hit: HitAbstract): Promise<void> {

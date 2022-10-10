@@ -168,7 +168,7 @@ describe('test TrackingManager lookupHits', () => {
     })
 
     const segmentHit = new Segment({
-      data: {
+      context: {
         any: 'value'
       },
       visitorId
@@ -243,7 +243,7 @@ describe('test TrackingManager lookupHits', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const _hitsPoolQueue = (trackingManager as any)._hitsPoolQueue
 
-    expect(_hitsPoolQueue.size).toBe(9)
+    expect(_hitsPoolQueue.size).toBe(7)
 
     expect(lookupHits).toBeCalledTimes(1)
 
