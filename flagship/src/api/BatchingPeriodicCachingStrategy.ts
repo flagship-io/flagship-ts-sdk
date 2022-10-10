@@ -71,7 +71,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
 
     this._activatePoolQueue.clear()
 
-    this.sendActivate(activateHitsPool, hit)
+    await this.sendActivate(activateHitsPool, hit)
   }
 
   async notConsent (visitorId: string):Promise<void> {
@@ -88,10 +88,12 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
   }
 
   async sendBatch (): Promise<void> {
+    let hasActivateHit = false
     if (this._activatePoolQueue.size) {
       const activateHits = Array.from(this._activatePoolQueue.values())
       this._activatePoolQueue.clear()
       await this.sendActivate(activateHits)
+      hasActivateHit = true
     }
     const headers = {
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
@@ -114,7 +116,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
     }
 
     if (!batch.hits.length) {
-      if (this._activatePoolQueue.size) {
+      if (hasActivateHit) {
         await this.cacheHit(this._activatePoolQueue)
       }
       return
