@@ -344,15 +344,22 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return false
   }
 
-  protected async sendActivate (flagDto: FlagDTO, functionName = PROCESS_ACTIVE_MODIFICATION):Promise<void> {
+  protected async sendActivate (flagDto: FlagDTO):Promise<void> {
     const activateHit = new Activate({
       variationGroupId: flagDto.variationGroupId,
       variationId: flagDto.variationId,
       visitorId: this.visitor.visitorId,
       anonymousId: this.visitor.anonymousId as string
     })
+    activateHit.config = this.config
 
-    await this.prepareAndSendHit(activateHit, functionName)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { createdAt, ...hitInstanceItem } = activateHit.toObject()
+    if (this.isDeDuplicated(JSON.stringify(hitInstanceItem), this.config.hitDeduplicationTime as number)) {
+      return
+    }
+
+    await this.trackingManager.activateFlag(activateHit)
     this.onUserExposedCallback({ flag: flagDto, visitor: this.visitor })
   }
 
@@ -647,7 +654,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
-    await this.sendActivate(flag, functionName)
+    await this.sendActivate(flag)
   }
 
   getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}): T {

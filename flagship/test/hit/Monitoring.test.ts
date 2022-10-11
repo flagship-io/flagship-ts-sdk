@@ -11,7 +11,7 @@ import {
   LogLevel,
   QT_API_ITEM,
   SDK_APP,
-  SDK_LANGUAGE,
+  SDK_INFO,
   TYPE_ERROR,
   T_API_ITEM,
   VISITOR_ID_API_ITEM
@@ -43,7 +43,7 @@ describe('test hit type Monitoring', () => {
   const subComponent = 'subComponent'
   const logLevel = LogLevel.INFO
   const logVersion = '1'
-  const component = `Flagship SDK ${SDK_LANGUAGE.name}`
+  const component = `Flagship SDK ${SDK_INFO.name}`
   const stackType = 'SDK'
   const monitoring = new Monitoring({ action, visitorId, message, subComponent, logLevel, config })
 
@@ -66,7 +66,7 @@ describe('test hit type Monitoring', () => {
         6: `subComponents, ${subComponent}`,
         7: `message, ${message}`,
         20: `stack.type, ${'SDK'} `,
-        21: `stack.name, ${SDK_LANGUAGE.name}`,
+        21: `stack.name, ${SDK_INFO.name}`,
         22: `stack.version, ${version}`
       }
     }
@@ -100,7 +100,7 @@ describe('test hit type Monitoring', () => {
       subComponent,
       message,
       stackType: 'SDK',
-      stackName: SDK_LANGUAGE.name,
+      stackName: SDK_INFO.name,
       stackVersion: version,
       stackOriginName: 'this.stackOriginName',
       stackOriginVersion: 'this.stackOriginVersion',
@@ -161,7 +161,7 @@ describe('test hit type Monitoring', () => {
         6: `subComponents, ${subComponent}`,
         7: `message, ${message}`,
         20: `stack.type, ${'SDK'} `,
-        21: `stack.name, ${SDK_LANGUAGE.name}`,
+        21: `stack.name, ${SDK_INFO.name}`,
         22: `stack.version, ${version}`,
         23: 'stack.origin.name, ' + params.stackOriginName,
         24: 'stack.origin.version, ' + params.stackOriginVersion,
@@ -267,7 +267,7 @@ describe('test hit type Monitoring', () => {
       type: 'MONITORING',
       visitorId,
       stackVersion: version,
-      stackName: SDK_LANGUAGE.name,
+      stackName: SDK_INFO.name,
       timestamp: expect.anything(),
       accountId: undefined,
       flagDefault: undefined,

@@ -3,8 +3,7 @@ import { Mock } from 'jest-mock'
 import { Event, EventCategory, HitAbstract, HitCacheDTO, Page } from '../../src'
 import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinuousCachingStrategy'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
-import { BASE_API_URL, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HIT_CACHE_VERSION, HIT_EVENT_URL, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_LANGUAGE, SDK_VERSION, SEND_ACTIVATE, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../../src/enum/FlagshipConstant'
-import { Segment } from '../../src/hit'
+import { BASE_API_URL, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HIT_CACHE_VERSION, HIT_EVENT_URL, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_INFO, SDK_VERSION, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../../src/enum/FlagshipConstant'
 import { Activate } from '../../src/hit/Activate'
 import { Batch } from '../../src/hit/Batch'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
@@ -17,7 +16,8 @@ describe('Test BatchingContinuousCachingStrategy', () => {
     const httpClient = new HttpClient()
     const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
     const hitsPoolQueue = new Map<string, HitAbstract>()
-    const batchingStrategy = new BatchingContinuousCachingStrategy(config, httpClient, hitsPoolQueue)
+    const activatePoolQueue = new Map<string, Activate>()
+    const batchingStrategy = new BatchingContinuousCachingStrategy(config, httpClient, hitsPoolQueue, activatePoolQueue)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
@@ -37,7 +37,7 @@ describe('Test BatchingContinuousCachingStrategy', () => {
 
     const consentHit = new Event({
       visitorId,
-      label: `${SDK_LANGUAGE.name}:${true}`,
+      label: `${SDK_INFO.name}:${true}`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT
     })
@@ -65,7 +65,7 @@ describe('Test BatchingContinuousCachingStrategy', () => {
 
     const consentHitFalse1 = new Event({
       visitorId,
-      label: `${SDK_LANGUAGE.name}:${false}`,
+      label: `${SDK_INFO.name}:${false}`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT
     })
@@ -81,7 +81,7 @@ describe('Test BatchingContinuousCachingStrategy', () => {
 
     const consentHitFalse2 = new Event({
       visitorId,
-      label: `${SDK_LANGUAGE.name}:${false}`,
+      label: `${SDK_INFO.name}:${false}`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT
     })
@@ -95,6 +95,171 @@ describe('Test BatchingContinuousCachingStrategy', () => {
     expect(cacheHit).toHaveBeenNthCalledWith(5, new Map().set(expect.stringContaining(visitorId), consentHitFalse2))
     expect(flushHits).toBeCalledTimes(1)
     expect(flushHits).toHaveBeenNthCalledWith(1, expect.arrayContaining([expect.stringContaining(visitorId)]))
+  })
+})
+
+describe('test activateFlag method', () => {
+  const methodNow = Date.now
+  const mockNow:Mock<number, []> = jest.fn()
+  beforeAll(() => {
+    Date.now = mockNow
+    mockNow.mockReturnValue(1)
+  })
+  afterAll(() => {
+    Date.now = methodNow
+  })
+
+  const httpClient = new HttpClient()
+
+  const postAsync = jest.spyOn(httpClient, 'postAsync')
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
+  const logManager = new FlagshipLogManager()
+
+  config.logManager = logManager
+
+  const hitsPoolQueue = new Map<string, HitAbstract>()
+  const activatePoolQueue = new Map<string, Activate>()
+  const batchingStrategy = new BatchingContinuousCachingStrategy(config, httpClient, hitsPoolQueue, activatePoolQueue)
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
+
+  const visitorId = 'visitorId'
+
+  const headersActivate = {
+    [HEADER_X_API_KEY]: `${config.apiKey}`,
+    [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
+    [HEADER_X_SDK_VERSION]: SDK_VERSION,
+    [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
+  }
+
+  const urlActivate = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
+  it('test activate success', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+    postAsync.mockResolvedValue({ status: 200, body: null })
+
+    const activateHit = new Activate({
+      visitorId,
+      variationGroupId: 'variationGrID-activate',
+      variationId: 'variationId'
+    })
+    activateHit.config = config
+    activateHit.key = visitorId
+
+    expect(hitsPoolQueue.size).toBe(0)
+
+    await batchingStrategy.activateFlag(activateHit)
+
+    expect(hitsPoolQueue.size).toBe(0)
+    expect(activatePoolQueue.size).toBe(0)
+
+    expect(postAsync).toBeCalledTimes(1)
+    expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, { headers: headersActivate, body: { batch: [activateHit.toApiKeys()] } })
+
+    expect(flushHits).toBeCalledTimes(0)
+  })
+
+  it('test multiple activate success', async () => {
+    postAsync.mockResolvedValue({ status: 200, body: null })
+
+    const activateHit = new Activate({
+      visitorId,
+      variationGroupId: 'variationGrID-activate',
+      variationId: 'variationId'
+    })
+    activateHit.config = config
+    activateHit.key = visitorId
+
+    const activateHit2 = new Activate({
+      visitorId,
+      variationGroupId: 'variationGrID-activate-2',
+      variationId: 'variationId-2'
+    })
+
+    activateHit2.config = config
+    activateHit2.key = visitorId + 'key-2'
+
+    const activateHit3 = new Activate({
+      visitorId,
+      variationGroupId: 'variationGrID-activate-3',
+      variationId: 'variationId-3'
+    })
+    activateHit3.config = config
+    activateHit3.key = visitorId + 'key-3'
+
+    activatePoolQueue.set(activateHit2.key, activateHit2).set(activateHit3.key, activateHit3)
+
+    expect(hitsPoolQueue.size).toBe(0)
+    expect(activatePoolQueue.size).toBe(2)
+
+    await batchingStrategy.activateFlag(activateHit)
+
+    expect(hitsPoolQueue.size).toBe(0)
+    expect(activatePoolQueue.size).toBe(0)
+
+    expect(postAsync).toBeCalledTimes(1)
+    expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
+      headers: headersActivate,
+      body: { batch: [activateHit2.toApiKeys(), activateHit3.toApiKeys(), activateHit.toApiKeys()] }
+    })
+
+    expect(cacheHit).toBeCalledTimes(0)
+    expect(flushHits).toBeCalledTimes(1)
+    expect(flushHits).toHaveBeenCalledWith([activateHit2.key, activateHit3.key])
+  })
+
+  it('test multiple activate failed', async () => {
+    const error = 'message error'
+    postAsync.mockRejectedValue(error)
+
+    const activateHit = new Activate({
+      visitorId,
+      variationGroupId: 'variationGrID-activate',
+      variationId: 'variationId'
+    })
+    activateHit.config = config
+    activateHit.key = visitorId
+
+    const activateHit2 = new Activate({
+      visitorId,
+      variationGroupId: 'variationGrID-activate-2',
+      variationId: 'variationId-2'
+    })
+
+    activateHit2.config = config
+    activateHit2.key = visitorId + 'key-2'
+
+    const activateHit3 = new Activate({
+      visitorId,
+      variationGroupId: 'variationGrID-activate-3',
+      variationId: 'variationId-3'
+    })
+    activateHit3.config = config
+    activateHit3.key = visitorId + 'key-3'
+
+    activatePoolQueue.set(activateHit2.key, activateHit2).set(activateHit3.key, activateHit3)
+
+    expect(hitsPoolQueue.size).toBe(0)
+    expect(activatePoolQueue.size).toBe(2)
+
+    await batchingStrategy.activateFlag(activateHit)
+
+    expect(hitsPoolQueue.size).toBe(0)
+    expect(activatePoolQueue.size).toBe(3)
+
+    expect(postAsync).toBeCalledTimes(1)
+    expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
+      headers: headersActivate,
+      body: { batch: [activateHit2.toApiKeys(), activateHit3.toApiKeys(), activateHit.toApiKeys()] }
+    })
+
+    expect(flushHits).toBeCalledTimes(0)
+    expect(cacheHit).toBeCalledTimes(1)
+    expect(cacheHit).toHaveBeenCalledWith(new Map([[activateHit.key, activateHit]]))
   })
 })
 
@@ -120,7 +285,8 @@ describe('test sendBatch method', () => {
   config.logManager = logManager
 
   const hitsPoolQueue = new Map<string, HitAbstract>()
-  const batchingStrategy = new BatchingContinuousCachingStrategy(config, httpClient, hitsPoolQueue)
+  const activatePoolQueue = new Map<string, Activate>()
+  const batchingStrategy = new BatchingContinuousCachingStrategy(config, httpClient, hitsPoolQueue, activatePoolQueue)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
@@ -140,7 +306,7 @@ describe('test sendBatch method', () => {
 
   const headersActivate = {
     [HEADER_X_API_KEY]: `${config.apiKey}`,
-    [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
+    [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
     [HEADER_X_SDK_VERSION]: SDK_VERSION,
     [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
   }
@@ -167,51 +333,23 @@ describe('test sendBatch method', () => {
 
     await batchingStrategy.addHit(globalPageHit)
 
-    const activateHit = new Activate({
-      visitorId,
-      variationGroupId: 'variationGrID-activate',
-      variationId: 'variationId'
-    })
-    activateHit.config = config
-    await batchingStrategy.addHit(activateHit)
-
-    const segmentHit = new Segment({
-      visitorId,
-      data: {
-        key: 'value'
-      }
-    })
-
-    segmentHit.config = config
-
-    await batchingStrategy.addHit(segmentHit)
-
-    expect(hitsPoolQueue.size).toBe(23)
+    expect(hitsPoolQueue.size).toBe(21)
 
     await batchingStrategy.sendBatch()
 
-    expect(hitsPoolQueue.size).toBe(3)
+    expect(hitsPoolQueue.size).toBe(1)
 
-    expect(postAsync).toBeCalledTimes(1)
+    await batchingStrategy.sendBatch()
+
+    expect(postAsync).toBeCalledTimes(2)
     expect(postAsync).toHaveBeenNthCalledWith(1, HIT_EVENT_URL, { headers, body: batch.toApiKeys() })
-    expect(flushHits).toBeCalledTimes(1)
+    expect(flushHits).toBeCalledTimes(2)
     expect(flushHits).toHaveBeenCalledWith(expect.arrayContaining([expect.stringContaining(visitorId)]))
-
-    await batchingStrategy.sendBatch()
-
-    expect(postAsync).toBeCalledTimes(4)
-
-    expect(postAsync).toHaveBeenNthCalledWith(2, urlActivate, { headers: headersActivate, body: activateHit.toApiKeys() })
-
-    const urlEvents = `${BASE_API_URL}${config.envId}/events`
-
-    expect(postAsync).toHaveBeenNthCalledWith(3, urlEvents, { headers: headersActivate, body: segmentHit.toApiKeys() })
 
     const newBatch = new Batch({ hits: [globalPageHit] })
     newBatch.config = config
 
-    expect(postAsync).toHaveBeenNthCalledWith(4, HIT_EVENT_URL, { headers, body: newBatch.toApiKeys() })
-    expect(flushHits).toBeCalledTimes(3)
+    expect(postAsync).toHaveBeenNthCalledWith(2, HIT_EVENT_URL, { headers, body: newBatch.toApiKeys() })
   })
 
   it('test sendBatch method throw exception ', async () => {
@@ -227,9 +365,7 @@ describe('test sendBatch method', () => {
     expect(postAsync).toBeCalledTimes(1)
     expect(postAsync).toBeCalledWith(HIT_EVENT_URL, { headers, body: batch.toApiKeys() })
     expect(flushHits).toBeCalledTimes(0)
-
-    expect(cacheHit).toBeCalledTimes(1)
-    expect(cacheHit).toBeCalledWith(new Map().set(expect.stringContaining(visitorId), globalPageHit))
+    expect(cacheHit).toBeCalledTimes(0)
     expect(hitsPoolQueue.size).toBe(1)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(errorFormat(error, {
@@ -239,9 +375,8 @@ describe('test sendBatch method', () => {
     }), SEND_BATCH)
   })
 
-  it('test sendActivate method throw exception ', async () => {
-    const error = 'message error'
-    postAsync.mockRejectedValue(error)
+  it('test sendActivate on batch', async () => {
+    postAsync.mockResolvedValue({ status: 200, body: null })
 
     const activateHit = new Activate({
       visitorId,
@@ -250,30 +385,27 @@ describe('test sendBatch method', () => {
     })
     activateHit.config = config
     activateHit.key = visitorId
+    activateHit.key = visitorId + 'key'
 
     hitsPoolQueue.clear()
 
-    hitsPoolQueue.set(activateHit.key, activateHit)
+    activatePoolQueue.set(activateHit.key, activateHit)
 
     await batchingStrategy.sendBatch()
 
-    expect(postAsync).toBeCalledTimes(1)
-    expect(flushHits).toBeCalledTimes(0)
+    expect(activatePoolQueue.size).toBe(0)
 
-    expect(cacheHit).toBeCalledTimes(1)
-    expect(cacheHit).toBeCalledWith(new Map().set(expect.stringContaining(visitorId), activateHit))
-    expect(hitsPoolQueue.size).toBe(1)
-    expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(errorFormat(error, {
-      url: urlActivate,
+    expect(postAsync).toBeCalledTimes(1)
+    expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
       headers: headersActivate,
-      body: activateHit.toApiKeys()
-    }), SEND_ACTIVATE)
+      body: { batch: [activateHit.toApiKeys()] }
+    })
   })
 
   it('test sendBatch method with empty hitsPoolQueue', async () => {
     const hitsPoolQueue = new Map<string, HitAbstract>()
-    const batchingStrategy = new BatchingContinuousCachingStrategy(config, httpClient, hitsPoolQueue)
+    const activatePoolQueue = new Map<string, Activate>()
+    const batchingStrategy = new BatchingContinuousCachingStrategy(config, httpClient, hitsPoolQueue, activatePoolQueue)
     await batchingStrategy.sendBatch()
     expect(postAsync).toBeCalledTimes(0)
   })
@@ -308,7 +440,8 @@ describe('test cacheHit and flushHits methods', () => {
   config.logManager = logManager
 
   const hitsPoolQueue = new Map<string, HitAbstract>()
-  const batchingStrategy = new BatchingContinuousCachingStrategy(config, httpClient, hitsPoolQueue)
+  const activatePoolQueue = new Map<string, Activate>()
+  const batchingStrategy = new BatchingContinuousCachingStrategy(config, httpClient, hitsPoolQueue, activatePoolQueue)
   const visitorId = 'visitorId'
   it('test cacheHit success ', async () => {
     cacheHit.mockResolvedValue()

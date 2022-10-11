@@ -5,7 +5,7 @@ import {
   FlagshipStatus,
   INITIALIZATION_PARAM_ERROR,
   PROCESS_INITIALIZATION,
-  SDK_LANGUAGE,
+  SDK_INFO,
   SDK_STARTED_INFO
 } from '../../src/enum/index'
 import { Flagship } from '../../src/main/Flagship'
@@ -15,7 +15,6 @@ import { Visitor } from '../../src/visitor/Visitor'
 import { Mock } from 'jest-mock'
 import { DefaultVisitorCache } from '../../src/cache/DefaultVisitorCache'
 import { DefaultHitCache } from '../../src/cache/DefaultHitCache'
-import { version } from '../../src/sdkVersion'
 
 const getCampaignsAsync = jest.fn().mockReturnValue(Promise.resolve([]))
 
@@ -136,7 +135,7 @@ describe('test Flagship with custom config', () => {
 
     expect(infoLog).toBeCalledTimes(1)
     expect(infoLog).toBeCalledWith(
-      sprintf(SDK_STARTED_INFO, version),
+      sprintf(SDK_STARTED_INFO, SDK_INFO.version),
       PROCESS_INITIALIZATION
     )
     expect(instance).toBeInstanceOf(Flagship)
@@ -165,8 +164,8 @@ describe('test Flagship newVisitor', () => {
     const visitorId = 'visitorId'
     const context = { isVip: true }
     const predefinedContext = {
-      fs_client: SDK_LANGUAGE.name,
-      fs_version: version,
+      fs_client: SDK_INFO.name,
+      fs_version: SDK_INFO.version,
       fs_users: visitorId
     }
     // expect(addHit).toBeCalledTimes(1)

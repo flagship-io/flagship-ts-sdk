@@ -1,11 +1,12 @@
 import { BucketingDTO } from '../decision/api/bucketingDTO.ts'
-import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, SDK_LANGUAGE, TYPE_ERROR } from '../enum/index.ts'
+import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, SDK_INFO, TYPE_ERROR } from '../enum/index.ts'
 import { IHitCacheImplementation } from '../cache/IHitCacheImplementation.ts'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager.ts'
 import { logError, sprintf } from '../utils/utils.ts'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation.ts'
 import { ITrackingManagerConfig, TrackingManagerConfig } from './TrackingManagerConfig.ts'
 import { UserExposureInfo } from '../types.ts'
+import { version as SDK_VERSION } from '../sdkVersion.ts'
 
 export enum DecisionMode {
   /**
@@ -117,6 +118,10 @@ export interface IFlagshipConfig {
    * Define a callable to get callback each time  a Flag have been user exposed (activation hit has been sent) by SDK
    */
   onUserExposure?: (param: UserExposureInfo)=>void
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
+  sdkVersion?: string
 >>>>>>> origin/main
 }
 
@@ -160,6 +165,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
 <<<<<<< HEAD
+<<<<<<< HEAD
       disableCache, language, trackingMangerConfig
 =======
       disableCache, language, onUserExposure
@@ -171,6 +177,12 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     if (logManager) {
       this.logManager = logManager
     }
+=======
+      disableCache, language, onUserExposure, sdkVersion
+    } = param
+
+    this.initSDKInfo(language, sdkVersion)
+>>>>>>> origin/main
 
     this._trackingMangerConfig = new TrackingManagerConfig(trackingMangerConfig || {})
 
@@ -198,6 +210,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._onUserExposure = onUserExposure
   }
 
+<<<<<<< HEAD
   protected setSdkLanguageName (language?:number):void {
     switch (language) {
       case 1:
@@ -208,6 +221,21 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
         break
       default:
         SDK_LANGUAGE.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'Typescript'
+=======
+  protected initSDKInfo (language?:number, sdkVersion?:string) {
+    switch (language) {
+      case 1:
+        SDK_INFO.name = 'ReactJS'
+        SDK_INFO.version = sdkVersion ?? SDK_VERSION
+        break
+      case 2:
+        SDK_INFO.name = 'React-Native'
+        SDK_INFO.version = sdkVersion ?? SDK_VERSION
+        break
+      default:
+        SDK_INFO.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'Typescript'
+        SDK_INFO.version = SDK_VERSION
+>>>>>>> origin/main
         break
     }
   }

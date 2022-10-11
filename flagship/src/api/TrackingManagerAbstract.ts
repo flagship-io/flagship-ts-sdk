@@ -19,6 +19,8 @@ export interface ITrackingManagerCommon {
   config:IFlagshipConfig
 
   addHit(hit: HitAbstract): Promise<void>
+
+  activateFlag (hit: Activate): Promise<void>
 }
 
 export interface ITrackingManager extends ITrackingManagerCommon {
@@ -33,6 +35,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   private _httpClient: IHttpClient
   private _config: IFlagshipConfig
   private _hitsPoolQueue: Map<string, HitAbstract>
+  private _activatePoolQueue: Map<string, Activate>
   protected strategy: BatchingCachingStrategyAbstract
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected _intervalID:any
@@ -40,6 +43,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
   constructor (httpClient: IHttpClient, config: IFlagshipConfig) {
     this._hitsPoolQueue = new Map<string, HitAbstract>()
+    this._activatePoolQueue = new Map<string, Activate>()
     this._httpClient = httpClient
     this._config = config
     this.strategy = this.initStrategy()
@@ -50,13 +54,13 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     let strategy:BatchingCachingStrategyAbstract
     switch (this.config.trackingMangerConfig?.batchStrategy) {
       case BatchStrategy.PERIODIC_CACHING:
-        strategy = new BatchingPeriodicCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
+        strategy = new BatchingPeriodicCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue, this._activatePoolQueue)
         break
       case BatchStrategy.CONTINUOUS_CACHING:
-        strategy = new BatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
+        strategy = new BatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue, this._activatePoolQueue)
         break
       default:
-        strategy = new NoBatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
+        strategy = new NoBatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue, this._activatePoolQueue)
         break
     }
     return strategy
@@ -71,6 +75,8 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   }
 
   public abstract addHit(hit: HitAbstract): Promise<void>
+
+  public abstract activateFlag (hit: Activate): Promise<void>
 
   public startBatchingLoop (): void {
     const timeInterval = (this.config.trackingMangerConfig?.batchIntervals ?? DEFAULT_TIME_INTERVAL) * 1000
@@ -141,12 +147,16 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
           case HitType.SCREEN:
             hit = new Screen(item.data.content as IScreen)
             break
-          case 'CONTEXT':
+          case 'SEGMENT':
             hit = new Segment(item.data.content as ISegment)
             break
           case 'ACTIVATE':
             hit = new Activate(item.data.content as IActivate)
-            break
+            hit.key = key
+            hit.createdAt = item.data.content.createdAt
+            hit.config = this.config
+            this._activatePoolQueue.set(key, hit as Activate)
+            return
           case HitType.TRANSACTION:
             hit = new Transaction(item.data.content as ITransaction)
             break

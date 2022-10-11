@@ -1,9 +1,12 @@
+import { version } from '../sdkVersion'
+
 /**
  * SDK language
  */
 
-export const SDK_LANGUAGE = {
-  name: 'TypeScript'
+export const SDK_INFO = {
+  name: 'TypeScript',
+  version
 }
 
 /**
@@ -23,7 +26,7 @@ export const BATCH_MAX_SIZE = 2500000
  */
 export const BASE_API_URL = 'https://decision.flagship.io/v2/'
 export const HIT_API_URL = 'https://ariane.abtasty.com'
-export const HIT_EVENT_URL = 'http://events.flagship.io'
+export const HIT_EVENT_URL = 'https://events.flagship.io'
 export const BUCKETING_API_URL = 'https://cdn.flagship.io/{0}/bucketing.json'
 export const BUCKETING_API_CONTEXT_URL = 'https://decision.flagship.io/v2/{0}/events'
 export const HIT_CONSENT_URL = 'https://ariane.abtasty.com'
@@ -38,7 +41,7 @@ export const FS_CONSENT = 'fs_consent'
 /**
  * SDK version
  */
-export const SDK_VERSION = 'v3'
+export const SDK_VERSION = version
 
 export const VISITOR_CACHE_VERSION = 1
 export const HIT_CACHE_VERSION = 1
@@ -110,7 +113,7 @@ export const HIT_DATA_CACHED = 'Hit data has been saved into database : {0}'
 export const HIT_DATA_FLUSHED = 'The following hit keys have been flushed from database : {0}'
 export const HIT_SENT_SUCCESS = 'hit has been sent : {0}'
 export const HIT_DATA_LOADED = 'Hits data has been loaded from database: {0}'
-export const NEW_VISITOR_NOT_READY = 'Please start first the SDK in order to create a new Visitor'
+export const NEW_VISITOR_NOT_READY = 'You can\'t create a new visitor without first calling the "Flagship.start" method'
 
 // Process
 export const PROCESS = 'process'
@@ -163,6 +166,7 @@ export const IC_API_ITEM = 'ic'
 export const IP_API_ITEM = 'ip'
 export const IQ_API_ITEM = 'iq'
 export const IV_API_ITEM = 'iv'
+export const S_API_ITEM = 's'
 export const EVENT_CATEGORY_API_ITEM = 'ec'
 export const EVENT_ACTION_API_ITEM = 'ea'
 export const EVENT_LABEL_API_ITEM = 'el'

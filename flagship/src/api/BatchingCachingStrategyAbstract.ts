@@ -1,5 +1,6 @@
 import { IFlagshipConfig } from '../config/index'
 import { HIT_CACHE_VERSION, HIT_DATA_CACHED, HIT_DATA_FLUSHED, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT } from '../enum/index'
+import { Activate } from '../hit/Activate'
 import { HitAbstract } from '../hit/index'
 import { HitCacheDTO } from '../types'
 import { IHttpClient } from '../utils/HttpClient'
@@ -12,25 +13,29 @@ export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type Vis
 export abstract class BatchingCachingStrategyAbstract implements ITrackingManagerCommon {
   protected _config : IFlagshipConfig
   protected _hitsPoolQueue: Map<string, HitAbstract>
+  protected _activatePoolQueue: Map<string, Activate>
   protected _httpClient: IHttpClient
 
   public get config () : IFlagshipConfig {
     return this._config
   }
 
-  constructor (config: IFlagshipConfig, httpClient: IHttpClient, hitsPoolQueue: Map<string, HitAbstract>) {
+  constructor (config: IFlagshipConfig, httpClient: IHttpClient, hitsPoolQueue: Map<string, HitAbstract>, activatePoolQueue: Map<string, Activate>) {
     this._config = config
     this._hitsPoolQueue = hitsPoolQueue
     this._httpClient = httpClient
+    this._activatePoolQueue = activatePoolQueue
   }
 
     abstract addHit (hit: HitAbstract): Promise<void>
 
+    abstract activateFlag(hit: Activate):Promise<void>
+
+    protected abstract sendActivate (activateHitsPool:Activate[], currentActivate?:Activate):Promise<void>
+
     abstract sendBatch(): Promise<void>
 
     abstract notConsent(visitorId: string): Promise<void>
-
-    abstract SendActivateAndSegmentHits(hits:HitAbstract[]):Promise<void>
 
     protected async cacheHit (hits:Map<string, HitAbstract>):Promise<void> {
       try {

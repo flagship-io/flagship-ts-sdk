@@ -1,5 +1,5 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { Flagship, DecisionApiConfig } from '../../src'
+import { Flagship, DecisionApiConfig, Visitor } from '../../src'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { Mock } from 'jest-mock'
 import { NEW_VISITOR_NOT_READY, PROCESS_NEW_VISITOR } from '../../src/enum'
@@ -39,7 +39,7 @@ describe('Test newVisitor without starting the SDK', () => {
 
   it('should ', () => {
     const visitor = Flagship.newVisitor()
-    expect(visitor).toBeNull()
+    expect(visitor).toBeInstanceOf(Visitor)
     expect(errorLog).toBeCalledTimes(1)
     expect(errorLog).toBeCalledWith(NEW_VISITOR_NOT_READY, PROCESS_NEW_VISITOR)
   })

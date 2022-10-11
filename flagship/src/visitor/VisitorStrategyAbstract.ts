@@ -8,7 +8,7 @@ import { CampaignDTO } from '../decision/api/models'
 import { ITrackingManager } from '../api/TrackingManagerAbstract'
 import { IDecisionManager } from '../decision/IDecisionManager'
 import { logError, logInfo, sprintf } from '../utils/utils'
-import { FS_CONSENT, SDK_APP, SDK_LANGUAGE, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index'
+import { FS_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index'
 import { BatchDTO } from '../hit/Batch'
 import { EventCategory } from '../hit/Monitoring'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
@@ -69,7 +69,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     const consentHit = new Event({
       visitorId: this.visitor.visitorId,
       anonymousId: this.visitor.anonymousId,
-      label: `${SDK_LANGUAGE.name}:${this.visitor.hasConsented}`,
+      label: `${SDK_INFO.name}:${this.visitor.hasConsented}`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT
     })
