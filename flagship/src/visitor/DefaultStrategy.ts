@@ -353,6 +353,12 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     })
     activateHit.config = this.config
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { createdAt, ...hitInstanceItem } = activateHit.toObject()
+    if (this.isDeDuplicated(JSON.stringify(hitInstanceItem), this.config.hitDeduplicationTime as number)) {
+      return
+    }
+
     await this.trackingManager.activateFlag(activateHit)
     this.onUserExposedCallback({ flag: flagDto, visitor: this.visitor })
   }
