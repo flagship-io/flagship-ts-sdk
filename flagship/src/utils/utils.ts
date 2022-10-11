@@ -19,29 +19,31 @@ export function logError (
   message: string,
   tag: string
 ):void {
-  if (
-    !config ||
-    !config.logManager ||
-    typeof config.logManager.error !== 'function' ||
-    !config.logLevel ||
-    config.logLevel < LogLevel.ERROR
-  ) {
+  if (!config || !config.logLevel || config.logLevel < LogLevel.ERROR) {
     return
   }
-  config.logManager.error(message, tag)
+
+  if (typeof config.onLog === 'function') {
+    config.onLog(LogLevel.ERROR, tag, message)
+  }
+
+  if (config.logManager && typeof config.logManager.error === 'function') {
+    config.logManager.error(message, tag)
+  }
 }
 
 export function logInfo (config: IFlagshipConfig, message: string, tag: string):void {
-  if (
-    !config ||
-    !config.logManager ||
-    typeof config.logManager.info !== 'function' ||
-    !config.logLevel ||
-    config.logLevel < LogLevel.INFO
-  ) {
+  if (!config || !config.logLevel || config.logLevel < LogLevel.INFO) {
     return
   }
-  config.logManager.info(message, tag)
+
+  if (typeof config.onLog === 'function') {
+    config.onLog(LogLevel.INFO, tag, message)
+  }
+
+  if (config.logManager && typeof config.logManager.info === 'function') {
+    config.logManager.info(message, tag)
+  }
 }
 
 export function sleep (ms:number) :Promise<unknown> {
