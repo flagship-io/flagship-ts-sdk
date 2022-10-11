@@ -1,6 +1,6 @@
 import { expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig } from '../../src'
-import { SDK_APP } from '../../src/enum'
+import { CUSTOMER_ENV_ID_API_ITEM, CUSTOMER_UID, DS_API_ITEM, QT_API_ITEM, SDK_APP, T_API_ITEM, VISITOR_ID_API_ITEM } from '../../src/enum'
 import { Segment, ERROR_MESSAGE } from '../../src/hit/Segment'
 
 describe('test hit type Campaign', () => {
@@ -8,13 +8,13 @@ describe('test hit type Campaign', () => {
     anyKey: 'anyValue'
   }
   const visitorId = 'visitorID'
-  const segmentHit = new Segment({ data: context, visitorId })
+  const segmentHit = new Segment({ context, visitorId })
 
   const anonymousId = 'anonymousId'
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
 
   it('test constructor', () => {
-    expect(segmentHit.data).toEqual(context)
+    expect(segmentHit.context).toEqual(context)
     expect(segmentHit.getErrorMessage()).toBe(ERROR_MESSAGE)
   })
 
@@ -31,11 +31,14 @@ describe('test hit type Campaign', () => {
     expect(segmentHit.isReady(false)).toBeTruthy()
   })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const apiKeys: Record<string, unknown> = {
-    type: 'CONTEXT',
-    data: context,
-    visitorId
+    [VISITOR_ID_API_ITEM]: anonymousId,
+    [DS_API_ITEM]: SDK_APP,
+    [CUSTOMER_UID]: visitorId,
+    [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
+    [T_API_ITEM]: 'SEGMENT',
+    s: context,
+    [QT_API_ITEM]: expect.anything()
   }
 
   it('test toApiKeys method ', () => {
@@ -58,12 +61,12 @@ describe('test hit type Campaign', () => {
       screenResolution,
       locale,
       sessionNumber,
-      data: context,
+      context,
       key: hitKey,
       createdAt: expect.anything(),
       anonymousId,
       ds: SDK_APP,
-      type: 'CONTEXT',
+      type: 'SEGMENT',
       visitorId
     })
   })
