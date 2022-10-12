@@ -1,5 +1,6 @@
 import { ADD_HIT, BASE_API_URL, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_ADDED_IN_QUEUE, HIT_EVENT_URL, HIT_SENT_SUCCESS, SDK_APP, SDK_INFO, SEND_ACTIVATE, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../enum/index'
 import { Activate } from '../hit/Activate'
+import { ActivateBatch } from '../hit/ActivateBatch'
 import { Batch } from '../hit/Batch'
 import { HitAbstract, Event } from '../hit/index'
 import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
@@ -28,21 +29,13 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
-    const activateBatch:Record<string, unknown>[] = []
-    const hitKeysToRemove:string[] = []
-
-    activateHitsPool.forEach(item => {
-      hitKeysToRemove.push(item.key)
-      activateBatch.push(item.toApiKeys())
-    })
+    const activateBatch = new ActivateBatch(Array.from(activateHitsPool), this.config)
 
     if (currentActivate) {
-      activateBatch.push(currentActivate.toApiKeys())
+      activateBatch.hits.push(currentActivate)
     }
 
-    const requestBody = {
-      batch: activateBatch
-    }
+    const requestBody = activateBatch.toApiKeys()
 
     const url = BASE_API_URL + URL_ACTIVATE_MODIFICATION
     try {
@@ -53,18 +46,19 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
 
       logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(requestBody)), SEND_ACTIVATE)
 
+      const hitKeysToRemove = activateHitsPool.map(item => item.key)
+
       if (hitKeysToRemove.length) {
         await this.flushHits(hitKeysToRemove)
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      activateHitsPool.forEach(item => {
+      activateBatch.hits.forEach(item => {
         this._activatePoolQueue.set(item.key, item)
       })
 
       if (currentActivate) {
-        this._activatePoolQueue.set(currentActivate.key, currentActivate)
         await this.cacheHit(new Map<string, Activate>([[currentActivate.key, currentActivate]]))
       }
 

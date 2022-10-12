@@ -135,6 +135,7 @@ export const PROCESS_LOOKUP_HIT = 'LOOKUP HIT'
 
 // Api items
 
+export const BATCH = 'batch'
 export const CUSTOMER_ENV_ID_API_ITEM = 'cid'
 export const CUSTOMER_ENV_ID_API_ACTIVATE = 'cid'
 export const CUSTOMER_UID = 'cuid'

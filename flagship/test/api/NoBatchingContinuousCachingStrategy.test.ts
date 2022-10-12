@@ -4,6 +4,7 @@ import { DecisionApiConfig, Event, EventCategory, HitAbstract, Page } from '../.
 import { NoBatchingContinuousCachingStrategy } from '../../src/api/NoBatchingContinuousCachingStrategy'
 import { HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, SDK_INFO, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, SEND_BATCH, BASE_API_URL, URL_ACTIVATE_MODIFICATION, SEND_HIT, FS_CONSENT } from '../../src/enum'
 import { Activate } from '../../src/hit/Activate'
+import { ActivateBatch } from '../../src/hit/ActivateBatch'
 import { Batch } from '../../src/hit/Batch'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
@@ -245,7 +246,10 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     await batchingStrategy.activateFlag(activateHit)
 
     expect(postAsync).toHaveBeenCalledTimes(1)
-    expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, { headers: headersActivate, body: { batch: [activateHit.toApiKeys()] } })
+    expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
+      headers: headersActivate,
+      body: new ActivateBatch([activateHit], config).toApiKeys()
+    })
     expect(hitsPoolQueue.size).toBe(0)
     expect(activatePoolQueue.size).toBe(0)
     expect(cacheHit).toBeCalledTimes(0)
@@ -276,7 +280,10 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     await batchingStrategy.activateFlag(activateHit)
 
     expect(postAsync).toHaveBeenCalledTimes(1)
-    expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, { headers: headersActivate, body: { batch: [activateHit.toApiKeys()] } })
+    expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
+      headers: headersActivate,
+      body: new ActivateBatch([activateHit], config).toApiKeys()
+    })
     expect(hitsPoolQueue.size).toBe(0)
     expect(activatePoolQueue.size).toBe(0)
 
@@ -422,7 +429,7 @@ describe('test sendBatch method', () => {
     expect(postAsync).toBeCalledTimes(1)
     expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
       headers: headersActivate,
-      body: { batch: [activateHit.toApiKeys()] }
+      body: new ActivateBatch([activateHit], config).toApiKeys()
     })
   })
 
@@ -450,7 +457,7 @@ describe('test sendBatch method', () => {
     expect(postAsync).toBeCalledTimes(1)
     expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
       headers: headersActivate,
-      body: { batch: [activateHit.toApiKeys()] }
+      body: new ActivateBatch([activateHit], config).toApiKeys()
     })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

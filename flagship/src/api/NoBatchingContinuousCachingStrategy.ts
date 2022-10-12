@@ -1,6 +1,7 @@
 import { IFlagshipConfig } from '../config/index'
 import { HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, SEND_BATCH, HIT_SENT_SUCCESS, BASE_API_URL, SEND_ACTIVATE, URL_ACTIVATE_MODIFICATION, SEND_HIT, FS_CONSENT, SDK_INFO } from '../enum/index'
 import { Activate } from '../hit/Activate'
+import { ActivateBatch } from '../hit/ActivateBatch'
 import { Batch } from '../hit/Batch'
 import { HitAbstract, Event } from '../hit/index'
 import { IHttpClient } from '../utils/HttpClient'
@@ -23,19 +24,13 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
-    const hitKeysToRemove:string[] = []
-    const activateBatch = activateHitsPool.map(item => {
-      hitKeysToRemove.push(item.key)
-      return item.toApiKeys()
-    })
+    const activateBatch = new ActivateBatch(Array.from(activateHitsPool), this.config)
 
     if (currentActivate) {
-      activateBatch.push(currentActivate.toApiKeys())
+      activateBatch.hits.push(currentActivate)
     }
 
-    const requestBody = {
-      batch: activateBatch
-    }
+    const requestBody = activateBatch.toApiKeys()
 
     const url = BASE_API_URL + URL_ACTIVATE_MODIFICATION
     try {
@@ -46,18 +41,19 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
 
       logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(requestBody)), SEND_ACTIVATE)
 
+      const hitKeysToRemove:string[] = activateHitsPool.map(item => item.key)
+
       if (hitKeysToRemove.length) {
         await this.flushHits(hitKeysToRemove)
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      activateHitsPool.forEach((item) => {
+      activateBatch.hits.forEach((item) => {
         this.cacheHitKeys[item.key] = item.key
       })
 
       if (currentActivate) {
-        this.cacheHitKeys[currentActivate.key] = currentActivate.key
         await this.cacheHit(new Map<string, Activate>([[currentActivate.key, currentActivate]]))
       }
 
