@@ -46,6 +46,20 @@ export function logInfo (config: IFlagshipConfig, message: string, tag: string):
   }
 }
 
+export function logDebug (config: IFlagshipConfig, message: string, tag: string):void {
+  if (!config || !config.logLevel || config.logLevel < LogLevel.DEBUG) {
+    return
+  }
+
+  if (typeof config.onLog === 'function') {
+    config.onLog(LogLevel.DEBUG, tag, message)
+  }
+
+  if (config.logManager && typeof config.logManager.debug === 'function') {
+    config.logManager.debug(message, tag)
+  }
+}
+
 export function sleep (ms:number) :Promise<unknown> {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
@@ -64,4 +78,11 @@ export function hasSameType (flagValue:unknown, defaultValue:unknown):boolean {
     return false
   }
   return true
+}
+
+export function errorFormat (errorMessage:string, errorData?:Record<string, unknown>):string {
+  return JSON.stringify({
+    errorMessage,
+    data: errorData
+  })
 }

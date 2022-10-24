@@ -107,6 +107,7 @@ export const PROCESS_GET_CAMPAIGNS = 'GET CAMPAIGNS'
 export const PROCESS_GET_ALL_MODIFICATION = 'GET ALL MODIFICATIONS'
 export const PROCESS_MODIFICATIONS_FOR_CAMPAIGN = 'GET MODIFICATION FOR CAMPAIGN'
 export const PROCESS_CACHE_HIT = 'cacheHit'
+export const HIT_SENT_SUCCESS = 'hit has been sent : {0}'
 
 // Api items
 
