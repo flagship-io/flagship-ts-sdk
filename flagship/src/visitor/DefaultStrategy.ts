@@ -269,11 +269,13 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   protected async globalFetchFlags (functionName:string): Promise<void> {
+    const now = Date.now()
     const logData = {
       visitorId: this.visitor.visitorId,
       anonymousId: this.visitor.anonymousId,
       context: this.visitor.context,
-      isFromCache: false
+      isFromCache: false,
+      delay: 0
     }
     try {
       let campaigns = await this.decisionManager.getCampaignsAsync(this.visitor)
@@ -290,10 +292,12 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       this.visitor.campaigns = campaigns
       this.visitor.flagsData = this.decisionManager.getModifications(this.visitor.campaigns)
       this.visitor.emit(EMIT_READY)
+      logData.delay = Date.now() - now
       logDebug(this.config, sprintf('{0} succeeded {1}', functionName, JSON.stringify(logData)), functionName)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.visitor.emit(EMIT_READY, error)
+      logData.delay = Date.now() - now
       logError(
         this.config,
         errorFormat(error.message || error, logData),
@@ -353,18 +357,21 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   protected async sendActivate (flag: FlagDTO, functionName = PROCESS_ACTIVE_MODIFICATION):Promise<void> {
+    const now = Date.now()
     const logData = {
       visitorId: this.visitor.visitorId,
       anonymousId: this.visitor.anonymousId,
-      flag
+      flag,
+      delay: 0
     }
     try {
       await this.trackingManager.sendActive(this.visitor, flag)
       this.onUserExposedCallback({ flag, visitor: this.visitor })
-
+      logData.delay = Date.now() - now
       logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(logData)), functionName)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
+      logData.delay = Date.now() - now
       logError(this.config, errorFormat(error.message || error, logData), functionName)
       this.cacheHit(flag)
     }
@@ -383,6 +390,13 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
 
     if (this.isDeDuplicated(flag.variationGroupId + this.visitor.visitorId, this.config.activateDeduplicationTime as number)) {
+      const logData = {
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        flag,
+        delay: 0
+      }
+      logDebug(this.config, sprintf('Activate {0} is deduplicated', JSON.stringify(logData)), PROCESS_SEND_HIT)
       return
     }
 
@@ -531,12 +545,16 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
+    const logData = { ...hitInstance.toApiKeys(), delay: 0 }
+    const now = Date.now()
     try {
       await this.trackingManager.sendHit(hitInstance)
-      logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(hitInstance.toApiKeys())), PROCESS_SEND_HIT)
+      logData.delay = Date.now() - now
+      logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(logData)), PROCESS_SEND_HIT)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logError(this.config, errorFormat(error.message || error, hitInstance.toApiKeys()), PROCESS_SEND_HIT)
+      logData.delay = Date.now() - now
+      logError(this.config, errorFormat(error.message || error, logData), PROCESS_SEND_HIT)
       this.cacheHit(hitInstance)
     }
   }
