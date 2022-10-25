@@ -1,4 +1,4 @@
-import { logError, logInfo, sprintf } from '../../src/utils/utils'
+import { logDebug, logError, logInfo, sprintf } from '../../src/utils/utils'
 import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig } from '../../src/config/index'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
@@ -18,6 +18,11 @@ describe('test logError function', () => {
   const logManager = new FlagshipLogManager()
 
   const errorMethod = jest.spyOn(logManager, 'error')
+  const infoMethod = jest.spyOn(logManager, 'info')
+  const debugMethod = jest.spyOn(logManager, 'debug')
+
+  const onLog = jest.fn<void, [level: LogLevel, tag: string, message: string]>()
+  config.onLog = onLog
 
   config.logManager = logManager
 
@@ -28,6 +33,8 @@ describe('test logError function', () => {
     logError(config, messageAll, tag)
     expect(errorMethod).toBeCalledTimes(1)
     expect(errorMethod).toBeCalledWith(messageAll, tag)
+    expect(onLog).toBeCalledTimes(1)
+    expect(onLog).toBeCalledWith(LogLevel.ERROR, tag, messageAll)
   })
 
   it('test level EMERGENCY', () => {
@@ -35,6 +42,7 @@ describe('test logError function', () => {
     const messageEmergency = 'emergency'
     logError(config, messageEmergency, tag)
     expect(errorMethod).toBeCalledTimes(0)
+    expect(onLog).toBeCalledTimes(0)
   })
 
   it('test level NONE', () => {
@@ -42,14 +50,34 @@ describe('test logError function', () => {
     const messageNone = 'none'
     logError(config, messageNone, tag)
     expect(errorMethod).toBeCalledTimes(0)
+    expect(onLog).toBeCalledTimes(0)
   })
 
   it('test level INFO', () => {
     config.logLevel = LogLevel.INFO
     const messageInfo = 'this a message with info level'
-    logError(config, messageInfo, tag)
-    expect(errorMethod).toBeCalledTimes(1)
-    expect(errorMethod).toBeCalledWith(messageInfo, tag)
+    logInfo(config, messageInfo, tag)
+    expect(infoMethod).toBeCalledTimes(1)
+    expect(infoMethod).toBeCalledWith(messageInfo, tag)
+    expect(onLog).toBeCalledTimes(1)
+    expect(onLog).toBeCalledWith(LogLevel.INFO, tag, messageInfo)
+  })
+
+  it('test level DEBUG', () => {
+    config.logLevel = LogLevel.DEBUG
+    const messageDebug = 'this a message with DEBUG level'
+    logDebug(config, messageDebug, tag)
+    expect(debugMethod).toBeCalledTimes(1)
+    expect(debugMethod).toBeCalledWith(messageDebug, tag)
+    expect(onLog).toBeCalledTimes(1)
+    expect(onLog).toBeCalledWith(LogLevel.DEBUG, tag, messageDebug)
+  })
+
+  it('test level DEBUG', () => {
+    config.logLevel = LogLevel.INFO
+    const messageDebug = 'this a message with DEBUG level'
+    logDebug(config, messageDebug, tag)
+    expect(debugMethod).toBeCalledTimes(0)
   })
 
   it('test invalid config', () => {
