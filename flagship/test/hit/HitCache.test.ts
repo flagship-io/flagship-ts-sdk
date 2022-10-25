@@ -8,7 +8,7 @@ import { HttpClient, IHttpResponse, IHttpOptions } from '../../src/utils/HttpCli
 import { VisitorDelegate, DefaultStrategy, NoConsentStrategy } from '../../src/visitor'
 import { Mock } from 'jest-mock'
 import { HitCacheDTO, IHit } from '../../src/types'
-import { HIT_CACHE_VERSION, SDK_APP } from '../../src/enum'
+import { HIT_CACHE_VERSION, LogLevel, SDK_APP } from '../../src/enum'
 import { sleep } from '../../src/utils/utils'
 import { LOOKUP_HITS_JSON_ERROR, LOOKUP_HITS_JSON_OBJECT_ERROR } from '../../src/visitor/VisitorStrategyAbstract'
 
@@ -169,6 +169,8 @@ describe('test visitor hit cache', () => {
   })
 
   it('test lookupHit defaultStrategy', async () => {
+    config.logLevel = LogLevel.NONE
+
     const hits:HitCacheDTO[] = []
 
     for (let index = 0; index < 100; index++) {
@@ -282,6 +284,8 @@ describe('test visitor hit cache', () => {
 
     await sleep(100)
     expect(cacheHit).toBeCalledTimes(14)
+
+    config.logLevel = LogLevel.ALL
   })
 
   it('test lookupHit noConsentStrategy', async () => {
