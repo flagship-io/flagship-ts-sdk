@@ -42,7 +42,7 @@ import {
 } from '../hit/index'
 import { HitShape, ItemHit } from '../hit/Legacy'
 import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata } from '../types'
-import { hasSameType, logError, logInfo, sprintf } from '../utils/utils'
+import { errorFormat, hasSameType, logDebug, logError, logInfo, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
 import { DecisionMode } from '../config/index'
@@ -269,11 +269,20 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   protected async globalFetchFlags (functionName:string): Promise<void> {
+    const now = Date.now()
+    const logData = {
+      visitorId: this.visitor.visitorId,
+      anonymousId: this.visitor.anonymousId,
+      context: this.visitor.context,
+      isFromCache: false,
+      delay: 0
+    }
     try {
       let campaigns = await this.decisionManager.getCampaignsAsync(this.visitor)
 
       if (!campaigns) {
         campaigns = this.fetchVisitorCampaigns(this.visitor)
+        logData.isFromCache = true
       }
 
       if (!campaigns) {
@@ -283,12 +292,15 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       this.visitor.campaigns = campaigns
       this.visitor.flagsData = this.decisionManager.getModifications(this.visitor.campaigns)
       this.visitor.emit(EMIT_READY)
+      logData.delay = Date.now() - now
+      logDebug(this.config, sprintf('{0} succeeded {1}', functionName, JSON.stringify(logData)), functionName)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.visitor.emit(EMIT_READY, error)
+      logData.delay = Date.now() - now
       logError(
         this.config,
-        error.message || error,
+        errorFormat(error.message || error, logData),
         functionName
       )
     }
@@ -356,6 +368,13 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { createdAt, ...hitInstanceItem } = activateHit.toObject()
     if (this.isDeDuplicated(JSON.stringify(hitInstanceItem), this.config.hitDeduplicationTime as number)) {
+      const logData = {
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        flag: flagDto,
+        delay: 0
+      }
+      logDebug(this.config, sprintf('Activate {0} is deduplicated', JSON.stringify(logData)), PROCESS_SEND_HIT)
       return
     }
 

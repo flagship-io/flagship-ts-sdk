@@ -117,6 +117,7 @@ export interface IFlagshipConfig {
    */
   onUserExposure?: (param: UserExposureInfo)=>void
   sdkVersion?: string
+  onLog?: (level: LogLevel, tag: string, message: string)=>void
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -148,6 +149,16 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     return this._trackingMangerConfig
   }
 
+  private _onLog? : (level: LogLevel, tag: string, message: string)=>void
+
+  public get onLog () : ((level: LogLevel, tag: string, message: string)=>void)|undefined {
+    return this._onLog
+  }
+
+  public set onLog (v :((level: LogLevel, tag: string, message: string)=>void)|undefined) {
+    this._onLog = v
+  }
+
   private _onUserExposure? : (param: UserExposureInfo)=>void
   public get onUserExposure () : ((param: UserExposureInfo)=>void)|undefined {
     return this._onUserExposure
@@ -158,7 +169,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
-      disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig
+      disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig, onLog
     } = param
 
     this.initSDKInfo(language, sdkVersion)
@@ -168,7 +179,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     }
 
     this._trackingMangerConfig = new TrackingManagerConfig(trackingMangerConfig || {})
-
+    this.onLog = onLog
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
     this._envId = envId
     this._apiKey = apiKey
@@ -355,7 +366,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   }
 
   public set statusChangedCallback (fn: ((status: FlagshipStatus) => void) | undefined) {
-    if (typeof fn !== 'function') {
+    if (fn && typeof fn !== 'function') {
       logError(this, statusChangeError, 'statusChangedCallback')
       return
     }

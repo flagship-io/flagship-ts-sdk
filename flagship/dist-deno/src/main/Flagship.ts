@@ -184,7 +184,7 @@ export class Flagship {
     flagship.setStatus(FlagshipStatus.STARTING)
 
     // check custom logger
-    if (!config.logManager) {
+    if (!config.onLog && !config.logManager) {
       config.logManager = new FlagshipLogManager()
     }
 

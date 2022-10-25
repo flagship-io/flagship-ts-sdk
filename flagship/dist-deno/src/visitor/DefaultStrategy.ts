@@ -13,6 +13,7 @@ import {
   GET_MODIFICATION_KEY_ERROR,
   GET_MODIFICATION_MISSING_ERROR,
   HitType,
+  HIT_SENT_SUCCESS,
   METHOD_DEACTIVATED_BUCKETING_ERROR,
   PREDEFINED_CONTEXT_TYPE_ERROR,
   PROCESS_ACTIVE_MODIFICATION,
@@ -42,20 +43,14 @@ import {
 } from '../hit/index.ts'
 import { HitShape, ItemHit } from '../hit/Legacy.ts'
 import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata } from '../types.ts'
-import { hasSameType, logError, logInfo, sprintf } from '../utils/utils.ts'
+import { errorFormat, hasSameType, logDebug, logError, logInfo, sprintf } from '../utils/utils.ts'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { DecisionMode } from '../config/index.ts'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext.ts'
-<<<<<<< HEAD
-import { VisitorDelegate } from './index.ts'
-import { FlagMetadata, IFlagMetadata } from '../flag/FlagMetadata.ts'
-import { Activate } from '../hit/Activate.ts'
-=======
 import { IVisitor, VisitorDelegate } from './index.ts'
 import { Batch, BATCH, BatchDTO } from '../hit/Batch.ts'
 import { FlagMetadata } from '../flag/FlagMetadata.ts'
->>>>>>> origin/main
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'
@@ -275,11 +270,20 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   protected async globalFetchFlags (functionName:string): Promise<void> {
+    const now = Date.now()
+    const logData = {
+      visitorId: this.visitor.visitorId,
+      anonymousId: this.visitor.anonymousId,
+      context: this.visitor.context,
+      isFromCache: false,
+      delay: 0
+    }
     try {
       let campaigns = await this.decisionManager.getCampaignsAsync(this.visitor)
 
       if (!campaigns) {
         campaigns = this.fetchVisitorCampaigns(this.visitor)
+        logData.isFromCache = true
       }
 
       if (!campaigns) {
@@ -289,12 +293,15 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       this.visitor.campaigns = campaigns
       this.visitor.flagsData = this.decisionManager.getModifications(this.visitor.campaigns)
       this.visitor.emit(EMIT_READY)
+      logData.delay = Date.now() - now
+      logDebug(this.config, sprintf('{0} succeeded {1}', functionName, JSON.stringify(logData)), functionName)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.visitor.emit(EMIT_READY, error)
+      logData.delay = Date.now() - now
       logError(
         this.config,
-        error.message || error,
+        errorFormat(error.message || error, logData),
         functionName
       )
     }
@@ -350,28 +357,24 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return false
   }
 
-<<<<<<< HEAD
-  protected async sendActivate (flagDto: FlagDTO, functionName = PROCESS_ACTIVE_MODIFICATION):Promise<void> {
-    const activateHit = new Activate({
-      variationGroupId: flagDto.variationGroupId,
-      variationId: flagDto.variationId,
-      visitorId: this.visitor.visitorId,
-      anonymousId: this.visitor.anonymousId as string
-    })
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { createdAt, ...activateHitItem } = activateHit.toObject()
-    if (this.isDeDuplicated(JSON.stringify(activateHitItem), this.config.hitDeduplicationTime as number)) {
-      return
-=======
   protected async sendActivate (flag: FlagDTO, functionName = PROCESS_ACTIVE_MODIFICATION):Promise<void> {
+    const now = Date.now()
+    const logData = {
+      visitorId: this.visitor.visitorId,
+      anonymousId: this.visitor.anonymousId,
+      flag,
+      delay: 0
+    }
     try {
       await this.trackingManager.sendActive(this.visitor, flag)
       this.onUserExposedCallback({ flag, visitor: this.visitor })
+      logData.delay = Date.now() - now
+      logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(logData)), functionName)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logError(this.config, error.message || error, functionName)
+      logData.delay = Date.now() - now
+      logError(this.config, errorFormat(error.message || error, logData), functionName)
       this.cacheHit(flag)
->>>>>>> origin/main
     }
     await this.prepareAndSendHit(activateHit, functionName)
   }
@@ -385,6 +388,17 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sprintf(ACTIVATE_MODIFICATION_ERROR, key),
         PROCESS_ACTIVE_MODIFICATION
       )
+      return
+    }
+
+    if (this.isDeDuplicated(flag.variationGroupId + this.visitor.visitorId, this.config.activateDeduplicationTime as number)) {
+      const logData = {
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        flag,
+        delay: 0
+      }
+      logDebug(this.config, sprintf('Activate {0} is deduplicated', JSON.stringify(logData)), PROCESS_SEND_HIT)
       return
     }
 
@@ -526,11 +540,17 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
+    const logData = { ...hitInstance.toApiKeys(), delay: 0 }
+    const now = Date.now()
     try {
-      await this.trackingManager.addHit(hitInstance)
+      await this.trackingManager.sendHit(hitInstance)
+      logData.delay = Date.now() - now
+      logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(logData)), PROCESS_SEND_HIT)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logError(this.config, error.message || error, functionName)
+      logData.delay = Date.now() - now
+      logError(this.config, errorFormat(error.message || error, logData), PROCESS_SEND_HIT)
+      this.cacheHit(hitInstance)
     }
   }
 

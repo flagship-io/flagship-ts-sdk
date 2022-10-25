@@ -122,6 +122,10 @@ export interface IFlagshipConfig {
 >>>>>>> origin/main
 =======
   sdkVersion?: string
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
+  onLog?: (level: LogLevel, tag: string, message: string)=>void
 >>>>>>> origin/main
 }
 
@@ -143,6 +147,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _enableClientCache!: boolean
   private _initialBucketing?: BucketingDTO
   private _decisionApiUrl!: string
+<<<<<<< HEAD
   private _activateDeduplicationTime!: number;
   private _hitDeduplicationTime!: number;
   private _visitorCacheImplementation!: IVisitorCacheImplementation;
@@ -152,6 +157,21 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
 
   public get trackingMangerConfig () : ITrackingManagerConfig {
     return this._trackingMangerConfig
+=======
+  private _activateDeduplicationTime!: number
+  private _hitDeduplicationTime!: number
+  private _visitorCacheImplementation!: IVisitorCacheImplementation
+  private _hitCacheImplementation!: IHitCacheImplementation
+  private _disableCache!: boolean
+  private _onLog? : (level: LogLevel, tag: string, message: string)=>void
+
+  public get onLog () : ((level: LogLevel, tag: string, message: string)=>void)|undefined {
+    return this._onLog
+  }
+
+  public set onLog (v :((level: LogLevel, tag: string, message: string)=>void)|undefined) {
+    this._onLog = v
+>>>>>>> origin/main
   }
 
   private _onUserExposure? : (param: UserExposureInfo)=>void
@@ -164,6 +184,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
       disableCache, language, trackingMangerConfig
@@ -186,6 +207,13 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
 
     this._trackingMangerConfig = new TrackingManagerConfig(trackingMangerConfig || {})
 
+=======
+      disableCache, language, onUserExposure, sdkVersion, onLog
+    } = param
+
+    this.initSDKInfo(language, sdkVersion)
+    this.onLog = onLog
+>>>>>>> origin/main
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
     this._envId = envId
     this._apiKey = apiKey
@@ -385,7 +413,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   }
 
   public set statusChangedCallback (fn: ((status: FlagshipStatus) => void) | undefined) {
-    if (typeof fn !== 'function') {
+    if (fn && typeof fn !== 'function') {
       logError(this, statusChangeError, 'statusChangedCallback')
       return
     }

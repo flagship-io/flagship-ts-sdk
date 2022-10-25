@@ -36,6 +36,7 @@ describe('test DecisionApiConfig', () => {
     expect(config.onUserExposure).toBeUndefined()
     expect(config.disableCache).toBeFalsy()
     expect(config.trackingMangerConfig).toBeInstanceOf(TrackingManagerConfig)
+    expect(config.onLog).toBeUndefined()
   })
 
   it('test config constructor', () => {
@@ -78,6 +79,8 @@ describe('test DecisionApiConfig', () => {
 
     const onUserExposure = jest.fn()
 
+    const onLog = jest.fn()
+
     const config = new DecisionApiConfig({
       apiKey,
       envId,
@@ -93,7 +96,8 @@ describe('test DecisionApiConfig', () => {
       disableCache: true,
       activateDeduplicationTime: 10,
       hitDeduplicationTime: 20,
-      onUserExposure
+      onUserExposure,
+      onLog
     })
     expect(config.apiKey).toBe(apiKey)
     expect(config.envId).toBe(envId)
@@ -110,6 +114,7 @@ describe('test DecisionApiConfig', () => {
     expect(config.activateDeduplicationTime).toBe(10)
     expect(config.hitDeduplicationTime).toBe(20)
     expect(config.onUserExposure).toBe(onUserExposure)
+    expect(config.onLog).toBe(onLog)
   })
 
   it('Test envId field ', () => {
