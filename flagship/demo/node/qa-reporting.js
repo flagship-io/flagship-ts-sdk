@@ -8,14 +8,10 @@ import Flagship, {
   Transaction
 } from '../../'
 import { API_KEY, ENV_ID } from './config.js'
-import { campaigns } from './campaigns'
-
-const sleep = (ms) => {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
 
 Flagship.start(ENV_ID, API_KEY, {
-  timeout: 10
+  timeout: 10,
+  fetchNow: false
 })
 
 async function scenario1 () {
