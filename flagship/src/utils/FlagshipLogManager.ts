@@ -69,7 +69,7 @@ export class FlagshipLogManager implements IFlagshipLogManager {
       getTwoDigit(
         now.getHours()
       )
-    }:${getTwoDigit(now.getMinutes())}] [${FLAGSHIP_SDK}] [${
+    }:${getTwoDigit(now.getMinutes())}:${getTwoDigit(now.getSeconds())}.${getTwoDigit(now.getMilliseconds())}] [${FLAGSHIP_SDK}] [${
       LogLevel[level]
     }] [${tag}] : ${message}`
   }

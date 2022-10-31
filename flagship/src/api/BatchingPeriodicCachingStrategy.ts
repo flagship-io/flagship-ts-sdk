@@ -15,6 +15,10 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       await this.notConsent(hit.visitorId)
     }
     logDebug(this.config, sprintf(HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_HIT)
+
+    if (this.config.trackingMangerConfig?.batchLength && this._hitsPoolQueue.size >= this.config.trackingMangerConfig.batchLength) {
+      this.sendBatch()
+    }
   }
 
   async sendActivate (activateHitsPool:Activate[], currentActivate?:Activate) {
@@ -98,13 +102,11 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
     batch.config = this.config
 
     let batchSize = 0
-    let count = 0
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (const [_, item] of this._hitsPoolQueue) {
-      count++
       batchSize = JSON.stringify(batch).length
-      if (batchSize > BATCH_MAX_SIZE || (this.config.trackingMangerConfig?.batchLength && count > this.config.trackingMangerConfig.batchLength)) {
+      if (batchSize > BATCH_MAX_SIZE) {
         break
       }
       batch.hits.push(item)

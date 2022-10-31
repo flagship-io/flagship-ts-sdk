@@ -19,6 +19,10 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     }
 
     logDebug(this.config, sprintf(HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_HIT)
+
+    if (this.config.trackingMangerConfig?.batchLength && this._hitsPoolQueue.size >= this.config.trackingMangerConfig.batchLength) {
+      this.sendBatch()
+    }
   }
 
   protected async sendActivate (activateHitsPool:Activate[], currentActivate?:Activate) {
@@ -110,14 +114,11 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     const batch:Batch = new Batch({ hits: [], ds: SDK_APP })
     batch.config = this.config
 
-    let count = 0
-
     const hitKeysToRemove:string[] = []
 
     for (const [key, item] of this._hitsPoolQueue) {
-      count++
       const batchSize = JSON.stringify(batch).length
-      if (batchSize > BATCH_MAX_SIZE || (this.config.trackingMangerConfig?.batchLength && count > this.config.trackingMangerConfig.batchLength)) {
+      if (batchSize > BATCH_MAX_SIZE) {
         break
       }
       batch.hits.push(item)
