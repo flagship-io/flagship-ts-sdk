@@ -42,13 +42,19 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     const requestBody = activateBatch.toApiKeys()
 
     const url = BASE_API_URL + URL_ACTIVATE_MODIFICATION
+    const now = Date.now()
+
     try {
       await this._httpClient.postAsync(url, {
         headers,
-        body: requestBody
+        body: requestBody,
+        timeout: this.config.timeout
       })
 
-      logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(requestBody)), SEND_ACTIVATE)
+      logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify({
+        ...requestBody,
+        duration: Date.now() - now
+      })), SEND_ACTIVATE)
 
       const hitKeysToRemove = activateHitsPool.map(item => item.key)
 
@@ -69,7 +75,8 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       logError(this.config, errorFormat(error.message || error, {
         url,
         headers,
-        body: requestBody
+        body: requestBody,
+        duration: Date.now() - now
       }), SEND_ACTIVATE)
     }
   }
@@ -104,7 +111,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     await this.flushHits(keysToFlush)
   }
 
-  async sendBatch (): Promise<void> {
+  async sendBatch (isFromTimer?:boolean): Promise<void> {
     if (this._activatePoolQueue.size) {
       const activateHits = Array.from(this._activatePoolQueue.values())
       this._activatePoolQueue.clear()
@@ -139,13 +146,19 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
 
     const requestBody = batch.toApiKeys()
 
+    const now = Date.now()
     try {
       await this._httpClient.postAsync(HIT_EVENT_URL, {
         headers,
-        body: requestBody
+        body: requestBody,
+        timeout: this.config.timeout
       })
 
-      logDebug(this.config, sprintf(BATCH_SENT_SUCCESS, JSON.stringify(requestBody)), SEND_BATCH)
+      logDebug(this.config, sprintf(BATCH_SENT_SUCCESS, JSON.stringify({
+        ...requestBody,
+        duration: Date.now() - now,
+        isFromTimer: !!isFromTimer
+      })), SEND_BATCH)
 
       await this.flushHits(hitKeysToRemove)
 
@@ -158,7 +171,9 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       logError(this.config, errorFormat(error.message || error, {
         url: HIT_EVENT_URL,
         headers,
-        body: requestBody
+        body: requestBody,
+        duration: Date.now() - now,
+        isFromTimer: !!isFromTimer
       }), SEND_BATCH)
     }
   }

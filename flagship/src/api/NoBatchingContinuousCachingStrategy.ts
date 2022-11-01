@@ -36,7 +36,8 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
     try {
       await this._httpClient.postAsync(url, {
         headers,
-        body: requestBody
+        body: requestBody,
+        timeout: this.config.timeout
       })
 
       logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(requestBody)), SEND_ACTIVATE)
@@ -93,7 +94,8 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
     try {
       await this._httpClient.postAsync(HIT_EVENT_URL, {
         headers,
-        body: requestBody
+        body: requestBody,
+        timeout: this.config.timeout
       })
 
       logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(requestBody)), SEND_HIT)
@@ -172,7 +174,8 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
     try {
       await this._httpClient.postAsync(HIT_EVENT_URL, {
         headers,
-        body: requestBody
+        body: requestBody,
+        timeout: this.config.timeout
       })
 
       logDebug(this.config, sprintf(BATCH_SENT_SUCCESS, JSON.stringify(requestBody)), SEND_BATCH)

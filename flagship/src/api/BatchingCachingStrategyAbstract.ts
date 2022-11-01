@@ -33,7 +33,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
     protected abstract sendActivate (activateHitsPool:Activate[], currentActivate?:Activate):Promise<void>
 
-    abstract sendBatch(): Promise<void>
+    abstract sendBatch(isFromTimer?:boolean): Promise<void>
 
     abstract notConsent(visitorId: string): Promise<void>
 

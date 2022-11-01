@@ -37,13 +37,18 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
 
     const requestBody = activateBatch.toApiKeys()
     const url = BASE_API_URL + URL_ACTIVATE_MODIFICATION
+    const now = Date.now()
     try {
       await this._httpClient.postAsync(url, {
         headers,
-        body: requestBody
+        body: requestBody,
+        timeout: this.config.timeout
       })
 
-      logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(requestBody)), SEND_ACTIVATE)
+      logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify({
+        ...requestBody,
+        duration: Date.now() - now
+      })), SEND_ACTIVATE)
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
@@ -54,7 +59,8 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       logError(this.config, errorFormat(error.message || error, {
         url,
         headers,
-        body: requestBody
+        body: requestBody,
+        duration: Date.now() - now
       }), SEND_ACTIVATE)
     }
   }
@@ -86,7 +92,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
     await this.cacheHit(this._hitsPoolQueue)
   }
 
-  async sendBatch (): Promise<void> {
+  async sendBatch (isFromTimer?:boolean): Promise<void> {
     let hasActivateHit = false
     if (this._activatePoolQueue.size) {
       const activateHits = Array.from(this._activatePoolQueue.values())
@@ -124,12 +130,18 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
     })
 
     const requestBody = batch.toApiKeys()
+    const now = Date.now()
     try {
       await this._httpClient.postAsync(HIT_EVENT_URL, {
         headers,
-        body: requestBody
+        body: requestBody,
+        timeout: this.config.timeout
       })
-      logDebug(this.config, sprintf(BATCH_SENT_SUCCESS, JSON.stringify(requestBody)), SEND_BATCH)
+      logDebug(this.config, sprintf(BATCH_SENT_SUCCESS, JSON.stringify({
+        ...requestBody,
+        duration: Date.now() - now,
+        isFromTimer: !!isFromTimer
+      })), SEND_BATCH)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       batch.hits.forEach((hit) => {
@@ -138,7 +150,9 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       logError(this.config, errorFormat(error.message || error, {
         url: HIT_EVENT_URL,
         headers,
-        body: requestBody
+        body: requestBody,
+        duration: Date.now() - now,
+        isFromTimer: !!isFromTimer
       }), SEND_BATCH)
     }
     const mergedQueue = new Map<string, HitAbstract>([...this._hitsPoolQueue, ...this._activatePoolQueue])

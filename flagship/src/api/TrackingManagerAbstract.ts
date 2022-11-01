@@ -98,7 +98,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
       return
     }
     this._isPooling = true
-    await this.strategy.sendBatch()
+    await this.strategy.sendBatch(true)
     this._isPooling = false
   }
 
