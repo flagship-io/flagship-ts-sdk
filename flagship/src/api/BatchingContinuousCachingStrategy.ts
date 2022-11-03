@@ -1,10 +1,11 @@
-import { ADD_HIT, BASE_API_URL, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_ADDED_IN_QUEUE, HIT_EVENT_URL, HIT_SENT_SUCCESS, SDK_APP, SDK_INFO, SEND_ACTIVATE, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../enum/index'
+import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
+import { ADD_HIT, BASE_API_URL, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_ADDED_IN_QUEUE, HIT_EVENT_URL, HIT_SENT_SUCCESS, SDK_APP, SDK_INFO, SEND_ACTIVATE, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../enum/index'
 import { Activate } from '../hit/Activate'
 import { ActivateBatch } from '../hit/ActivateBatch'
 import { Batch } from '../hit/Batch'
 import { HitAbstract, Event } from '../hit/index'
 import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
-import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
+import { BatchingCachingStrategyAbstract, SendActivate } from './BatchingCachingStrategyAbstract'
 
 export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAbstract {
   async addHit (hit: HitAbstract): Promise<void> {
@@ -20,12 +21,12 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
 
     logDebug(this.config, sprintf(HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_HIT)
 
-    if (this.config.trackingMangerConfig?.batchLength && this._hitsPoolQueue.size >= this.config.trackingMangerConfig.batchLength) {
+    if (this.config.trackingMangerConfig?.poolMaxSize && this._hitsPoolQueue.size >= this.config.trackingMangerConfig.poolMaxSize) {
       this.sendBatch()
     }
   }
 
-  protected async sendActivate (activateHitsPool:Activate[], currentActivate?:Activate) {
+  protected async sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate) {
     const headers = {
       [HEADER_X_API_KEY]: this.config.apiKey as string,
       [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
@@ -53,7 +54,8 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
 
       logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify({
         ...requestBody,
-        duration: Date.now() - now
+        duration: Date.now() - now,
+        batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })), SEND_ACTIVATE)
 
       const hitKeysToRemove = activateHitsPool.map(item => item.key)
@@ -76,23 +78,10 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
         url,
         headers,
         body: requestBody,
-        duration: Date.now() - now
+        duration: Date.now() - now,
+        batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       }), SEND_ACTIVATE)
     }
-  }
-
-  async activateFlag (hit: Activate): Promise<void> {
-    const hitKey = `${hit.visitorId}:${uuidV4()}`
-    hit.key = hitKey
-
-    let activateHitPool:Activate[] = []
-    if (this._activatePoolQueue.size) {
-      activateHitPool = Array.from(this._activatePoolQueue.values())
-    }
-
-    this._activatePoolQueue.clear()
-
-    await this.sendActivate(activateHitPool, hit)
   }
 
   async notConsent (visitorId: string):Promise<void> {
@@ -111,11 +100,11 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     await this.flushHits(keysToFlush)
   }
 
-  async sendBatch (isFromTimer?:boolean): Promise<void> {
+  async sendBatch (batchTriggeredBy = BatchTriggeredBy.BatchLength): Promise<void> {
     if (this._activatePoolQueue.size) {
       const activateHits = Array.from(this._activatePoolQueue.values())
       this._activatePoolQueue.clear()
-      await this.sendActivate(activateHits)
+      await this.sendActivate({ activateHitsPool: activateHits, batchTriggeredBy })
     }
 
     const batch:Batch = new Batch({ hits: [], ds: SDK_APP })
@@ -124,6 +113,10 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     const hitKeysToRemove:string[] = []
 
     for (const [key, item] of this._hitsPoolQueue) {
+      if ((Date.now() - item.createdAt) >= DEFAULT_HIT_CACHE_TIME_MS) {
+        hitKeysToRemove.push(key)
+        continue
+      }
       const batchSize = JSON.stringify(batch).length
       if (batchSize > BATCH_MAX_SIZE) {
         break
@@ -132,13 +125,13 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       hitKeysToRemove.push(key)
     }
 
-    if (!batch.hits.length) {
-      return
-    }
-
     hitKeysToRemove.forEach(key => {
       this._hitsPoolQueue.delete(key)
     })
+
+    if (!batch.hits.length) {
+      return
+    }
 
     const headers = {
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
@@ -157,7 +150,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       logDebug(this.config, sprintf(BATCH_SENT_SUCCESS, JSON.stringify({
         ...requestBody,
         duration: Date.now() - now,
-        isFromTimer: !!isFromTimer
+        batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })), SEND_BATCH)
 
       await this.flushHits(hitKeysToRemove)
@@ -173,7 +166,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
         headers,
         body: requestBody,
         duration: Date.now() - now,
-        isFromTimer: !!isFromTimer
+        batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       }), SEND_BATCH)
     }
   }
