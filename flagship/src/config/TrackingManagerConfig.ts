@@ -22,7 +22,7 @@ export class TrackingManagerConfig implements ITrackingManagerConfig {
   public constructor (param?: ITrackingManagerConfig) {
     this.batchIntervals = param?.batchIntervals
     this.poolMaxSize = param?.poolMaxSize
-    this._batchStrategy = param?.batchStrategy || isBrowser() ? BatchStrategy.CONTINUOUS_CACHING : BatchStrategy.PERIODIC_CACHING
+    this._batchStrategy = param?.batchStrategy || (isBrowser() ? BatchStrategy.CONTINUOUS_CACHING : BatchStrategy.PERIODIC_CACHING)
   }
 
   public get batchIntervals () : number|undefined {
