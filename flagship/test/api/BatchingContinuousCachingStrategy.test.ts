@@ -1,6 +1,6 @@
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { Mock } from 'jest-mock'
-import { Event, EventCategory, HitAbstract, HitCacheDTO, Page } from '../../src'
+import { Event, EventCategory, HitAbstract, HitCacheDTO, LogLevel, Page } from '../../src'
 import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinuousCachingStrategy'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
 import { BatchTriggeredBy } from '../../src/enum/BatchTriggeredBy'
@@ -10,7 +10,7 @@ import { ActivateBatch } from '../../src/hit/ActivateBatch'
 import { Batch } from '../../src/hit/Batch'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
-import { errorFormat } from '../../src/utils/utils'
+import { errorFormat, sleep } from '../../src/utils/utils'
 
 describe('Test BatchingContinuousCachingStrategy', () => {
   const visitorId = 'visitorId'
@@ -329,6 +329,50 @@ describe('test sendBatch method', () => {
     const batch:Batch = new Batch({ hits: [] })
     batch.config = config
     config.trackingMangerConfig.batchIntervals = 25
+    config.logLevel = LogLevel.NONE
+
+    for (let index = 0; index < 71; index++) {
+      const pageHit = new Page({
+        documentLocation: ('http://localhost' + index).repeat(2000),
+        visitorId
+      })
+
+      await batchingStrategy.addHit(pageHit)
+      if (index === 70) {
+        continue
+      }
+      batch.hits.push(pageHit)
+    }
+
+    expect(hitsPoolQueue.size).toBe(71)
+
+    await batchingStrategy.sendBatch()
+
+    expect(hitsPoolQueue.size).toBe(1)
+
+    expect(postAsync).toBeCalledTimes(1)
+    expect(postAsync).toHaveBeenNthCalledWith(1, HIT_EVENT_URL, {
+      headers,
+      body: batch.toApiKeys(),
+      timeout: config.timeout
+    })
+    expect(flushHits).toBeCalledTimes(1)
+    expect(flushHits).toHaveBeenCalledWith(expect.arrayContaining([expect.stringContaining(visitorId)]))
+
+    await batchingStrategy.sendBatch()
+
+    expect(postAsync).toBeCalledTimes(2)
+    expect(hitsPoolQueue.size).toBe(0)
+  })
+
+  it('test sendBatch with poolMaxSize', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+    postAsync.mockResolvedValue({ status: 200, body: null })
+
+    const batch:Batch = new Batch({ hits: [] })
+    batch.config = config
+    config.trackingMangerConfig.poolMaxSize = 20
 
     for (let index = 0; index < 20; index++) {
       const pageHit = new Page({
@@ -341,13 +385,9 @@ describe('test sendBatch method', () => {
       await batchingStrategy.addHit(pageHit)
     }
 
-    expect(hitsPoolQueue.size).toBe(20)
-
-    await batchingStrategy.sendBatch()
+    await sleep(500)
 
     expect(hitsPoolQueue.size).toBe(0)
-
-    await batchingStrategy.sendBatch()
 
     expect(postAsync).toBeCalledTimes(1)
     expect(postAsync).toHaveBeenNthCalledWith(1, HIT_EVENT_URL, {
@@ -363,6 +403,7 @@ describe('test sendBatch method', () => {
     const error = 'message error'
     postAsync.mockRejectedValue(error)
 
+    config.logLevel = LogLevel.ALL
     const batch:Batch = new Batch({ hits: [globalPageHit] })
     batch.config = config
     hitsPoolQueue.set(globalPageHit.key, globalPageHit)
