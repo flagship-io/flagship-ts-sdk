@@ -30,7 +30,7 @@ export class TrackingManagerConfig implements ITrackingManagerConfig {
   }
 
   public set batchIntervals (v : number|undefined) {
-    if (typeof v !== 'number' || v <= 1 || v > 10800) {
+    if (typeof v !== 'number' || v < 1 || v > 10800) {
       v = isBrowser() ? DEFAULT_BROWSER_TIME_INTERVAL : DEFAULT_SERVER_TIME_INTERVAL
     }
     this._batchIntervals = v
