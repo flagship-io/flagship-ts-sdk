@@ -275,7 +275,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       anonymousId: this.visitor.anonymousId,
       context: this.visitor.context,
       isFromCache: false,
-      delay: 0
+      duration: 0
     }
     try {
       let campaigns = await this.decisionManager.getCampaignsAsync(this.visitor)
@@ -292,12 +292,12 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       this.visitor.campaigns = campaigns
       this.visitor.flagsData = this.decisionManager.getModifications(this.visitor.campaigns)
       this.visitor.emit(EMIT_READY)
-      logData.delay = Date.now() - now
+      logData.duration = Date.now() - now
       logDebug(this.config, sprintf('{0} succeeded {1}', functionName, JSON.stringify(logData)), functionName)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.visitor.emit(EMIT_READY, error)
-      logData.delay = Date.now() - now
+      logData.duration = Date.now() - now
       logError(
         this.config,
         errorFormat(error.message || error, logData),

@@ -1,14 +1,18 @@
 import { IFlagshipConfig } from '../config/index'
+import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 import { HIT_CACHE_VERSION, HIT_DATA_CACHED, HIT_DATA_FLUSHED, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT } from '../enum/index'
 import { Activate } from '../hit/Activate'
 import { HitAbstract } from '../hit/index'
 import { HitCacheDTO } from '../types'
 import { IHttpClient } from '../utils/HttpClient'
-import { logDebug, logError, sprintf } from '../utils/utils'
+import { logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
 import { ITrackingManagerCommon } from './TrackingManagerAbstract'
 
-export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
-export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheDTO'
+export type SendActivate = {
+  activateHitsPool:Activate[],
+ currentActivate?:Activate
+ batchTriggeredBy: BatchTriggeredBy
+}
 
 export abstract class BatchingCachingStrategyAbstract implements ITrackingManagerCommon {
   protected _config : IFlagshipConfig
@@ -29,11 +33,23 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
     abstract addHit (hit: HitAbstract): Promise<void>
 
-    abstract activateFlag(hit: Activate):Promise<void>
+    async activateFlag (hit: Activate):Promise<void> {
+      const hitKey = `${hit.visitorId}:${uuidV4()}`
+      hit.key = hitKey
 
-    protected abstract sendActivate (activateHitsPool:Activate[], currentActivate?:Activate):Promise<void>
+      let activateHitsPool:Activate[] = []
+      if (this._activatePoolQueue.size) {
+        activateHitsPool = Array.from(this._activatePoolQueue.values())
+      }
 
-    abstract sendBatch(): Promise<void>
+      this._activatePoolQueue.clear()
+
+      await this.sendActivate({ activateHitsPool, currentActivate: hit, batchTriggeredBy: BatchTriggeredBy.ActivateLength })
+    }
+
+    protected abstract sendActivate (params:SendActivate):Promise<void>
+
+    abstract sendBatch(batchTriggeredBy?:BatchTriggeredBy): Promise<void>
 
     abstract notConsent(visitorId: string): Promise<void>
 

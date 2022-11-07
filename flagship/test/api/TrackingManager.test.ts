@@ -27,6 +27,22 @@ describe('test TrackingManager', () => {
   })
 
   it('Test addHit method', async () => {
+    const screenHit = new Screen({
+      documentLocation: 'variationGrID',
+      visitorId
+    })
+
+    screenHit.config = config
+
+    await trackingManager.addHit(screenHit)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const _hitsPoolQueue = (trackingManager as any)._hitsPoolQueue
+
+    expect(_hitsPoolQueue.size).toBe(1)
+  })
+
+  it('Test activateFlag method', async () => {
     const CampaignHit = new Activate({
       variationGroupId: 'variationGrID',
       variationId: 'campaignID',
@@ -35,12 +51,12 @@ describe('test TrackingManager', () => {
 
     CampaignHit.config = config
 
-    await trackingManager.addHit(CampaignHit)
+    await trackingManager.activateFlag(CampaignHit)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const _hitsPoolQueue = (trackingManager as any)._hitsPoolQueue
+    const _activatePoolQueue = (trackingManager as any)._activatePoolQueue
 
-    expect(_hitsPoolQueue.size).toBe(1)
+    expect(_activatePoolQueue.size).toBe(1)
   })
 })
 
@@ -50,6 +66,8 @@ describe('test TrackingManager Strategy ', () => {
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
 
   it('Test instance of BatchingContinuousCachingStrategy ', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (config.trackingMangerConfig as any)._batchStrategy = BatchStrategy.CONTINUOUS_CACHING
     const trackingManager = new TrackingManager(httpClient, config)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((trackingManager as any).strategy).toBeInstanceOf(BatchingContinuousCachingStrategy)
@@ -88,19 +106,21 @@ describe('test TrackingManager Strategy ', () => {
       await sleep(250)
       return { status: 200, body: null }
     })
-    const CampaignHit = new Activate({
-      variationGroupId: 'variationGrID',
-      variationId: 'campaignID',
+
+    const pageHit = new Page({
+      documentLocation: 'https://myurl.com',
       visitorId
     })
-    CampaignHit.config = config
-    config.trackingMangerConfig.batchIntervals = 0.2
 
-    await trackingManager.addHit(CampaignHit)
+    pageHit.config = config
+
+    config.trackingMangerConfig.batchIntervals = 1
+
+    await trackingManager.addHit(pageHit)
 
     trackingManager.startBatchingLoop()
 
-    await sleep(500)
+    await sleep(1500)
 
     trackingManager.stopBatchingLoop()
 

@@ -1,5 +1,5 @@
 import { expect, it, describe, beforeAll, afterAll, jest } from '@jest/globals'
-import { SDK_APP, DS_API_ITEM } from '../../src/enum'
+import { SDK_APP, DS_API_ITEM, CUSTOMER_ENV_ID_API_ITEM } from '../../src/enum'
 import { Page, Screen } from '../../src/hit'
 import { Batch, ERROR_MESSAGE } from '../../src/hit/Batch'
 import { Mock } from 'jest-mock'
@@ -29,6 +29,7 @@ describe('test hit Batch', () => {
       h: hits.map(item => {
         const hitKeys = item.toApiKeys()
         delete hitKeys[DS_API_ITEM]
+        delete hitKeys[CUSTOMER_ENV_ID_API_ITEM]
         return hitKeys
       })
     }))

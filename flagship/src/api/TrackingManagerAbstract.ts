@@ -1,5 +1,5 @@
 import { IFlagshipConfig } from '../config/FlagshipConfig'
-import { DEFAULT_HIT_CACHE_TIME, DEFAULT_TIME_INTERVAL, HitType, HIT_DATA_LOADED, PROCESS_LOOKUP_HIT } from '../enum/index'
+import { DEFAULT_HIT_CACHE_TIME_MS, HitType, HIT_DATA_LOADED, PROCESS_LOOKUP_HIT } from '../enum/index'
 import { BatchStrategy } from '../enum/BatchStrategy'
 import { HitAbstract, IEvent, ITransaction, Transaction, Event, Item, IItem, Page, IPage, IScreen, Screen } from '../hit/index'
 import { ISegment, Segment } from '../hit/Segment'
@@ -11,6 +11,7 @@ import { BatchingPeriodicCachingStrategy } from './BatchingPeriodicCachingStrate
 import { HitCacheDTO } from '../types'
 import { NoBatchingContinuousCachingStrategy } from './NoBatchingContinuousCachingStrategy'
 import { Activate, IActivate } from '../hit/Activate'
+import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
@@ -79,7 +80,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   public abstract activateFlag (hit: Activate): Promise<void>
 
   public startBatchingLoop (): void {
-    const timeInterval = (this.config.trackingMangerConfig?.batchIntervals ?? DEFAULT_TIME_INTERVAL) * 1000
+    const timeInterval = (this.config.trackingMangerConfig?.batchIntervals) as number * 1000
     logInfo(this.config, 'Batching Loop have been started', 'startBatchingLoop')
 
     this._intervalID = setInterval(() => {
@@ -98,7 +99,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
       return
     }
     this._isPooling = true
-    await this.strategy.sendBatch()
+    await this.strategy.sendBatch(BatchTriggeredBy.Timer)
     this._isPooling = false
   }
 
@@ -125,7 +126,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
       logDebug(this.config, sprintf(HIT_DATA_LOADED, JSON.stringify(hitsCache)), PROCESS_LOOKUP_HIT)
 
-      const checkHitTime = (time:number) => (((Date.now() - time) / 1000) <= DEFAULT_HIT_CACHE_TIME)
+      const checkHitTime = (time:number) => (((Date.now() - time)) <= DEFAULT_HIT_CACHE_TIME_MS)
 
       const wrongHitKeys:string[] = []
       Object.entries(hitsCache).forEach(([key, item]) => {

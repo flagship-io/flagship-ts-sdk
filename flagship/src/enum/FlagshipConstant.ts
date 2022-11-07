@@ -17,8 +17,12 @@ export const REQUEST_TIME_OUT = 2
 export const DEFAULT_DEDUPLICATION_TIME = 2.5
 export const DEFAULT_POLLING_INTERVAL = 1
 
-export const DEFAULT_TIME_INTERVAL = 10
-export const DEFAULT_BATCH_LENGTH = 20
+export const DEFAULT_SERVER_TIME_INTERVAL = 10
+export const DEFAULT_SERVER_POOL_MAX_SIZE = 100
+
+export const DEFAULT_BROWSER_TIME_INTERVAL = 5
+export const DEFAULT_BROWSER_POOL_MAX_SIZE = 10
+
 export const BATCH_MAX_SIZE = 2500000
 
 /**
@@ -45,7 +49,7 @@ export const SDK_VERSION = version
 
 export const VISITOR_CACHE_VERSION = 1
 export const HIT_CACHE_VERSION = 1
-export const DEFAULT_HIT_CACHE_TIME = 14400000
+export const DEFAULT_HIT_CACHE_TIME_MS = 14400000
 
 /**
  * Message Info
@@ -100,8 +104,10 @@ export const METHOD_DEACTIVATED_BUCKETING_ERROR = 'Method {0} is deactivated on 
 export const FLAGSHIP_VISITOR_NOT_AUTHENTICATE = 'Visitor is not authenticated yet'
 export const PREDEFINED_CONTEXT_TYPE_ERROR = 'Predefined Context {0} must be type of {1}'
 export const METHOD_DEACTIVATED_SEND_CONSENT_ERROR = 'Send consent hit is deactivated while SDK status is: {1}.'
-export const HIT_ADDED_IN_QUEUE = 'The hit has been added to the pool queue : {0}'
+export const HIT_ADDED_IN_QUEUE = 'The HIT has been added to the pool queue : {0}'
+export const ACTIVATE_ADDED_IN_QUEUE = 'The ACTIVATE has been added to the pool queue : {0}'
 export const ADD_HIT = 'ADD HIT'
+export const ADD_ACTIVATE = 'ADD ACTIVATE'
 export const BATCH_SENT_SUCCESS = 'Batch hit has been sent : {0}'
 export const ACTIVATE_SENT_SUCCESS = 'Activate hit has been sent : {0}'
 export const SEND_BATCH = 'SEND BATCH'
@@ -114,7 +120,9 @@ export const HIT_DATA_FLUSHED = 'The following hit keys have been flushed from d
 export const HIT_SENT_SUCCESS = 'hit has been sent : {0}'
 export const HIT_DATA_LOADED = 'Hits data has been loaded from database: {0}'
 export const NEW_VISITOR_NOT_READY = 'You can\'t create a new visitor without first calling the "Flagship.start" method'
-
+export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
+export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheDTO'
+export const ACTIVATE_BATCH_LENGTH = 5
 // Process
 export const PROCESS = 'process'
 export const PROCESS_INITIALIZATION = 'INITIALIZATION'
