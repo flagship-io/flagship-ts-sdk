@@ -3,7 +3,8 @@ import { Mock } from 'jest-mock'
 import { Event, EventCategory } from '../../src'
 import { BatchingPeriodicCachingStrategy } from '../../src/api/BatchingPeriodicCachingStrategy'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
-import { HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, SDK_INFO, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, SEND_BATCH, BASE_API_URL, URL_ACTIVATE_MODIFICATION, FS_CONSENT } from '../../src/enum'
+import { HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, SDK_INFO, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, SEND_BATCH, BASE_API_URL, URL_ACTIVATE_MODIFICATION, FS_CONSENT, LogLevel, DEFAULT_HIT_CACHE_TIME_MS } from '../../src/enum'
+import { BatchTriggeredBy } from '../../src/enum/BatchTriggeredBy'
 import { Activate } from '../../src/hit/Activate'
 import { ActivateBatch } from '../../src/hit/ActivateBatch'
 import { Batch } from '../../src/hit/Batch'
@@ -11,7 +12,7 @@ import { HitAbstract } from '../../src/hit/HitAbstract'
 import { Page } from '../../src/hit/Page'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
-import { errorFormat } from '../../src/utils/utils'
+import { errorFormat, sleep } from '../../src/utils/utils'
 describe('Test BatchingPeriodicCachingStrategy', () => {
   const visitorId = 'visitorId'
   it('test addHit method', async () => {
@@ -150,6 +151,98 @@ describe('test sendBatch method', () => {
 
     const batch:Batch = new Batch({ hits: [] })
     batch.config = config
+    config.logLevel = LogLevel.NONE
+
+    for (let index = 0; index < 71; index++) {
+      const pageHit = new Page({
+        documentLocation: ('http://localhost' + index).repeat(2000),
+        visitorId
+      })
+
+      await batchingStrategy.addHit(pageHit)
+      if (index === 70) {
+        continue
+      }
+      batch.hits.push(pageHit)
+    }
+
+    expect(hitsPoolQueue.size).toBe(71)
+
+    await batchingStrategy.sendBatch()
+
+    expect(hitsPoolQueue.size).toBe(1)
+    expect(cacheHit).toHaveBeenNthCalledWith(1, hitsPoolQueue)
+
+    expect(postAsync).toHaveBeenNthCalledWith(1, HIT_EVENT_URL, {
+      headers,
+      body: batch.toApiKeys(),
+      timeout: config.timeout
+    })
+
+    expect(flushHits).toBeCalledTimes(0)
+
+    expect(cacheHit).toBeCalledTimes(1)
+    expect(cacheHit).toHaveBeenNthCalledWith(1, hitsPoolQueue)
+
+    await batchingStrategy.sendBatch()
+
+    expect(postAsync).toBeCalledTimes(2)
+    expect(hitsPoolQueue.size).toBe(0)
+  })
+
+  it('test sendBatch method hit expired', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+    postAsync.mockResolvedValue({ status: 200, body: null })
+
+    const batch:Batch = new Batch({ hits: [] })
+    batch.config = config
+    config.trackingMangerConfig.batchIntervals = 25
+    config.logLevel = LogLevel.NONE
+
+    const pageHit = new Page({
+      documentLocation: ('http://localhost'),
+      visitorId
+    })
+    pageHit.key = visitorId + 'key1'
+
+    const pageHit2 = new Page({
+      documentLocation: ('http://localhost'),
+      visitorId
+    })
+    pageHit2.key = visitorId + 'key2'
+
+    pageHit.createdAt = (DEFAULT_HIT_CACHE_TIME_MS + 1) * -1
+
+    hitsPoolQueue.set(pageHit.key, pageHit)
+    hitsPoolQueue.set(pageHit2.key, pageHit2)
+
+    await batchingStrategy.sendBatch()
+
+    expect(hitsPoolQueue.size).toBe(0)
+
+    batch.hits.push(pageHit2)
+
+    expect(postAsync).toBeCalledTimes(1)
+    expect(postAsync).toHaveBeenNthCalledWith(1, HIT_EVENT_URL, {
+      headers,
+      body: batch.toApiKeys(),
+      timeout: config.timeout
+    })
+
+    expect(flushHits).toBeCalledTimes(0)
+    expect(cacheHit).toBeCalledTimes(1)
+    expect(cacheHit).toHaveBeenNthCalledWith(1, hitsPoolQueue)
+  })
+
+  it('test sendBatch with poolMaxSize', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+    postAsync.mockResolvedValue({ status: 200, body: null })
+
+    const batch:Batch = new Batch({ hits: [] })
+    batch.config = config
+    config.trackingMangerConfig.poolMaxSize = 20
 
     for (let index = 0; index < 20; index++) {
       const pageHit = new Page({
@@ -162,29 +255,19 @@ describe('test sendBatch method', () => {
       await batchingStrategy.addHit(pageHit)
     }
 
-    await batchingStrategy.addHit(globalPageHit)
+    await sleep(500)
 
-    expect(hitsPoolQueue.size).toBe(21)
+    expect(hitsPoolQueue.size).toBe(0)
 
-    await batchingStrategy.sendBatch()
+    expect(postAsync).toBeCalledTimes(1)
+    expect(postAsync).toHaveBeenNthCalledWith(1, HIT_EVENT_URL, {
+      headers,
+      body: batch.toApiKeys(),
+      timeout: config.timeout
+    })
 
-    expect(hitsPoolQueue.size).toBe(1)
+    expect(cacheHit).toBeCalledTimes(1)
     expect(cacheHit).toHaveBeenNthCalledWith(1, hitsPoolQueue)
-
-    await batchingStrategy.sendBatch()
-
-    expect(postAsync).toBeCalledTimes(2)
-    expect(postAsync).toHaveBeenNthCalledWith(1, HIT_EVENT_URL, { headers, body: batch.toApiKeys() })
-
-    expect(flushHits).toBeCalledTimes(0)
-
-    expect(cacheHit).toBeCalledTimes(2)
-    expect(cacheHit).toHaveBeenNthCalledWith(2, hitsPoolQueue)
-
-    const newBatch = new Batch({ hits: [globalPageHit] })
-    newBatch.config = config
-
-    expect(postAsync).toHaveBeenNthCalledWith(2, HIT_EVENT_URL, { headers, body: newBatch.toApiKeys() })
   })
 
   it('test sendBatch method throw exception ', async () => {
@@ -193,12 +276,17 @@ describe('test sendBatch method', () => {
 
     const batch:Batch = new Batch({ hits: [globalPageHit] })
     batch.config = config
+    config.logLevel = LogLevel.ALL
     hitsPoolQueue.set(globalPageHit.key, globalPageHit)
 
     await batchingStrategy.sendBatch()
 
     expect(postAsync).toBeCalledTimes(1)
-    expect(postAsync).toBeCalledWith(HIT_EVENT_URL, { headers, body: batch.toApiKeys() })
+    expect(postAsync).toBeCalledWith(HIT_EVENT_URL, {
+      headers,
+      body: batch.toApiKeys(),
+      timeout: config.timeout
+    })
     expect(flushHits).toBeCalledTimes(0)
     expect(cacheHit).toBeCalledTimes(1)
     expect(hitsPoolQueue.size).toBe(1)
@@ -206,7 +294,9 @@ describe('test sendBatch method', () => {
     expect(logError).toBeCalledWith(errorFormat(error, {
       url: HIT_EVENT_URL,
       headers,
-      body: batch.toApiKeys()
+      body: batch.toApiKeys(),
+      duration: 0,
+      batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.BatchLength]
     }), SEND_BATCH)
   })
 
@@ -237,7 +327,8 @@ describe('test sendBatch method', () => {
 
     expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
       headers: headersActivate,
-      body: new ActivateBatch([activateHit], config).toApiKeys()
+      body: new ActivateBatch([activateHit], config).toApiKeys(),
+      timeout: config.timeout
     })
   })
 
@@ -310,7 +401,11 @@ describe('test activateFlag method', () => {
     expect(activatePoolQueue.size).toBe(0)
 
     expect(postAsync).toBeCalledTimes(1)
-    expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, { headers: headersActivate, body: new ActivateBatch([activateHit], config).toApiKeys() })
+    expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
+      headers: headersActivate,
+      body: new ActivateBatch([activateHit], config).toApiKeys(),
+      timeout: config.timeout
+    })
 
     expect(flushHits).toBeCalledTimes(0)
     expect(cacheHit).toBeCalledTimes(0)
@@ -357,7 +452,8 @@ describe('test activateFlag method', () => {
     expect(postAsync).toBeCalledTimes(1)
     expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
       headers: headersActivate,
-      body: new ActivateBatch([activateHit2, activateHit3, activateHit], config).toApiKeys()
+      body: new ActivateBatch([activateHit2, activateHit3, activateHit], config).toApiKeys(),
+      timeout: config.timeout
     })
 
     expect(cacheHit).toBeCalledTimes(0)
@@ -406,7 +502,8 @@ describe('test activateFlag method', () => {
     expect(postAsync).toBeCalledTimes(1)
     expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
       headers: headersActivate,
-      body: new ActivateBatch([activateHit2, activateHit3, activateHit], config).toApiKeys()
+      body: new ActivateBatch([activateHit2, activateHit3, activateHit], config).toApiKeys(),
+      timeout: config.timeout
     })
 
     expect(flushHits).toBeCalledTimes(0)

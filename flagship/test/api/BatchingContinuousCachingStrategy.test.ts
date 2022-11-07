@@ -4,7 +4,7 @@ import { Event, EventCategory, HitAbstract, HitCacheDTO, LogLevel, Page } from '
 import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinuousCachingStrategy'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
 import { BatchTriggeredBy } from '../../src/enum/BatchTriggeredBy'
-import { BASE_API_URL, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HIT_CACHE_VERSION, HIT_EVENT_URL, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_INFO, SDK_VERSION, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../../src/enum/FlagshipConstant'
+import { BASE_API_URL, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HIT_CACHE_VERSION, HIT_EVENT_URL, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_INFO, SDK_VERSION, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../../src/enum/FlagshipConstant'
 import { Activate } from '../../src/hit/Activate'
 import { ActivateBatch } from '../../src/hit/ActivateBatch'
 import { Batch } from '../../src/hit/Batch'
@@ -363,6 +363,50 @@ describe('test sendBatch method', () => {
 
     expect(postAsync).toBeCalledTimes(2)
     expect(hitsPoolQueue.size).toBe(0)
+  })
+
+  it('test sendBatch method hit expired', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+    postAsync.mockResolvedValue({ status: 200, body: null })
+
+    const batch:Batch = new Batch({ hits: [] })
+    batch.config = config
+    config.trackingMangerConfig.batchIntervals = 25
+    config.logLevel = LogLevel.NONE
+
+    const pageHit = new Page({
+      documentLocation: ('http://localhost'),
+      visitorId
+    })
+    pageHit.key = visitorId + 'key1'
+
+    const pageHit2 = new Page({
+      documentLocation: ('http://localhost'),
+      visitorId
+    })
+    pageHit2.key = visitorId + 'key2'
+
+    pageHit.createdAt = (DEFAULT_HIT_CACHE_TIME_MS + 1) * -1
+
+    hitsPoolQueue.set(pageHit.key, pageHit)
+    hitsPoolQueue.set(pageHit2.key, pageHit2)
+
+    await batchingStrategy.sendBatch()
+
+    expect(hitsPoolQueue.size).toBe(0)
+
+    batch.hits.push(pageHit2)
+
+    expect(postAsync).toBeCalledTimes(1)
+    expect(postAsync).toHaveBeenNthCalledWith(1, HIT_EVENT_URL, {
+      headers,
+      body: batch.toApiKeys(),
+      timeout: config.timeout
+    })
+
+    expect(flushHits).toBeCalledTimes(1)
+    expect(flushHits).toHaveBeenCalledWith(expect.arrayContaining([expect.stringContaining(visitorId)]))
   })
 
   it('test sendBatch with poolMaxSize', async () => {
