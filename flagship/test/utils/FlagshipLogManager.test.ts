@@ -1,20 +1,28 @@
-import { jest, expect, it, describe } from '@jest/globals'
+import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { FLAGSHIP_SDK, LogLevel } from '../../src/enum/index'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
+import { Mock } from 'jest-mock'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getTwoDigit = (value: any) => {
   return value.toString().length === 1 ? `0${value}` : value
 }
 const getOut = (level: LogLevel, message: string, tag: string) => {
-  const now = new Date()
+  const now = new Date(Date.now())
   return `[${getTwoDigit(now.getFullYear())}-${getTwoDigit(
     now.getMonth()
-  )}-${getTwoDigit(now.getDay())} ${getTwoDigit(now.getHours())}:${getTwoDigit(
-    now.getMinutes()
-  )}] [${FLAGSHIP_SDK}] [${LogLevel[level]}] [${tag}] : ${message}`
+  )}-${getTwoDigit(now.getDay())} ${getTwoDigit(now.getHours())}:${getTwoDigit(now.getMinutes())}:${getTwoDigit(now.getSeconds())}.${getTwoDigit(now.getMilliseconds())}] [${FLAGSHIP_SDK}] [${LogLevel[level]}] [${tag}] : ${message}`
 }
 describe('test FlagshipLogManager', () => {
+  const methodNow = Date.now
+  const mockNow:Mock<number, []> = jest.fn()
+  beforeAll(() => {
+    Date.now = mockNow
+    mockNow.mockReturnValue(1)
+  })
+  afterAll(() => {
+    Date.now = methodNow
+  })
   const log = jest.spyOn(console, 'log')
   const logError = jest.spyOn(console, 'error')
   const logDebug = jest.spyOn(console, 'debug')
