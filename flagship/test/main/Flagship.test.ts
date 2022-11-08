@@ -35,6 +35,8 @@ const addHit: Mock<Promise<void>, []> = jest.fn()
 
 const stopBatchingLoop:Mock<Promise<void>, []> = jest.fn()
 
+const sendBatch:Mock<Promise<void>, []> = jest.fn()
+
 addHit.mockResolvedValue()
 
 jest.mock('../../src/api/TrackingManager', () => {
@@ -43,6 +45,7 @@ jest.mock('../../src/api/TrackingManager', () => {
       return {
         startBatchingLoop,
         stopBatchingLoop,
+        sendBatch,
         addHit
       }
     })
@@ -75,6 +78,19 @@ describe('test Flagship class', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     global.window = (() => undefined)() as any
+  })
+
+  it('should test Flagship.close method', async () => {
+    sendBatch.mockResolvedValue()
+    await Flagship.close()
+    expect(sendBatch).toBeCalledTimes(1)
+  })
+
+  it('should test Flagship.close method', async () => {
+    const fs = Flagship.start(envId, apiKey)
+    sendBatch.mockResolvedValue()
+    await fs.close()
+    expect(sendBatch).toBeCalledTimes(1)
   })
 })
 

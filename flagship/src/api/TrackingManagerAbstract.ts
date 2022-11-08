@@ -12,25 +12,10 @@ import { HitCacheDTO } from '../types'
 import { NoBatchingContinuousCachingStrategy } from './NoBatchingContinuousCachingStrategy'
 import { Activate, IActivate } from '../hit/Activate'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
+import { ITrackingManager } from './ITrackingManager'
 
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
-
-export interface ITrackingManagerCommon {
-  config:IFlagshipConfig
-
-  addHit(hit: HitAbstract): Promise<void>
-
-  activateFlag (hit: Activate): Promise<void>
-}
-
-export interface ITrackingManager extends ITrackingManagerCommon {
-
-  startBatchingLoop():void
-
-  stopBatchingLoop():void
-
-}
 
 export abstract class TrackingManagerAbstract implements ITrackingManager {
   private _httpClient: IHttpClient
@@ -78,6 +63,8 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   public abstract addHit(hit: HitAbstract): Promise<void>
 
   public abstract activateFlag (hit: Activate): Promise<void>
+
+  public abstract sendBatch(): Promise<void>
 
   public startBatchingLoop (): void {
     const timeInterval = (this.config.trackingMangerConfig?.batchIntervals) as number * 1000

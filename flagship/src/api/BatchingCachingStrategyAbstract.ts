@@ -6,7 +6,7 @@ import { HitAbstract } from '../hit/index'
 import { HitCacheDTO } from '../types'
 import { IHttpClient } from '../utils/HttpClient'
 import { logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
-import { ITrackingManagerCommon } from './TrackingManagerAbstract'
+import { ITrackingManagerCommon } from './ITrackingManagerCommon'
 
 export type SendActivate = {
   activateHitsPool:Activate[],

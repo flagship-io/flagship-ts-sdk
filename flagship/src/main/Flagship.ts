@@ -224,6 +224,14 @@ export class Flagship {
     return flagship
   }
 
+  public async close () {
+    await Flagship.close()
+  }
+
+  public static async close () {
+    await this._instance?.configManager?.trackingManager?.sendBatch()
+  }
+
   /**
    * Create a new visitor with a context.
    * @param {string} visitorId : Unique visitor identifier.
