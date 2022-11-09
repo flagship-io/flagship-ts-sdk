@@ -1,6 +1,6 @@
 import { IFlagshipConfig } from '../config/FlagshipConfig'
 import { DEFAULT_HIT_CACHE_TIME_MS, HitType, HIT_DATA_LOADED, PROCESS_LOOKUP_HIT } from '../enum/index'
-import { BatchStrategy } from '../enum/BatchStrategy'
+import { CacheStrategy } from '../enum/BatchStrategy'
 import { HitAbstract, IEvent, ITransaction, Transaction, Event, Item, IItem, Page, IPage, IScreen, Screen } from '../hit/index'
 import { ISegment, Segment } from '../hit/Segment'
 import { IHttpClient } from '../utils/HttpClient'
@@ -38,11 +38,11 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
   protected initStrategy ():BatchingCachingStrategyAbstract {
     let strategy:BatchingCachingStrategyAbstract
-    switch (this.config.trackingMangerConfig?.batchStrategy) {
-      case BatchStrategy.PERIODIC_CACHING:
+    switch (this.config.trackingMangerConfig?.cacheStrategy) {
+      case CacheStrategy.PERIODIC_CACHING:
         strategy = new BatchingPeriodicCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue, this._activatePoolQueue)
         break
-      case BatchStrategy.CONTINUOUS_CACHING:
+      case CacheStrategy.CONTINUOUS_CACHING:
         strategy = new BatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue, this._activatePoolQueue)
         break
       default:

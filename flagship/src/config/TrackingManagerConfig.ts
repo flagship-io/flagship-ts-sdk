@@ -1,4 +1,4 @@
-import { BatchStrategy, DEFAULT_SERVER_TIME_INTERVAL, DEFAULT_BROWSER_TIME_INTERVAL, DEFAULT_BROWSER_POOL_MAX_SIZE, DEFAULT_SERVER_POOL_MAX_SIZE } from '../enum/index'
+import { CacheStrategy, DEFAULT_SERVER_TIME_INTERVAL, DEFAULT_BROWSER_TIME_INTERVAL, DEFAULT_BROWSER_POOL_MAX_SIZE, DEFAULT_SERVER_POOL_MAX_SIZE } from '../enum/index'
 import { isBrowser } from '../utils/utils'
 
 export interface ITrackingManagerConfig {
@@ -11,18 +11,18 @@ export interface ITrackingManagerConfig {
      */
     poolMaxSize?: number
 
-    batchStrategy?: BatchStrategy
+    cacheStrategy?: CacheStrategy
 }
 
 export class TrackingManagerConfig implements ITrackingManagerConfig {
   private _batchIntervals! : number
   private _poolMaxSize! : number
-  private _batchStrategy : BatchStrategy
+  private _batchStrategy : CacheStrategy
 
   public constructor (param?: ITrackingManagerConfig) {
     this.batchIntervals = param?.batchIntervals
     this.poolMaxSize = param?.poolMaxSize
-    this._batchStrategy = param?.batchStrategy || (isBrowser() ? BatchStrategy.CONTINUOUS_CACHING : BatchStrategy.PERIODIC_CACHING)
+    this._batchStrategy = param?.cacheStrategy || (isBrowser() ? CacheStrategy.CONTINUOUS_CACHING : CacheStrategy.PERIODIC_CACHING)
   }
 
   public get batchIntervals () : number|undefined {
@@ -47,7 +47,7 @@ export class TrackingManagerConfig implements ITrackingManagerConfig {
     this._poolMaxSize = v
   }
 
-  public get batchStrategy () : BatchStrategy {
+  public get cacheStrategy () : CacheStrategy {
     return this._batchStrategy
   }
 }
