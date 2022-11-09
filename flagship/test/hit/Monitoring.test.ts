@@ -2,7 +2,7 @@ import { jest, expect, it, describe, afterAll } from '@jest/globals'
 import { ERROR_MESSAGE } from '../../src/hit/Event'
 import { DecisionApiConfig, IFlagshipConfig } from '../../src/config/index'
 import {
-  BatchStrategy,
+  CacheStrategy,
   CUSTOMER_ENV_ID_API_ITEM,
   CUSTOMER_UID,
   DS_API_ITEM,
@@ -112,7 +112,7 @@ describe('test hit type Monitoring', () => {
       sdkConfigStatusListener: false,
       sdkConfigTimeout: config.timeout.toString(),
       sdkConfigPollingTime: '10',
-      sdkConfigTrackingManagerConfigStrategy: BatchStrategy[config.trackingMangerConfig.batchStrategy as number],
+      sdkConfigTrackingManagerConfigStrategy: CacheStrategy[config.trackingMangerConfig.cacheStrategy as number],
       sdkConfigTrackingManagerConfigBatchIntervals: '30',
       sdkConfigTrackingManagerConfigBatchLength: '10',
 

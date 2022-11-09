@@ -4,7 +4,7 @@ import { DecisionApiConfig } from '../../src/config/index'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinuousCachingStrategy'
 import { BatchingPeriodicCachingStrategy } from '../../src/api/BatchingPeriodicCachingStrategy'
-import { BatchStrategy, Event, EventCategory, HitCacheDTO, Item, Page, Screen, Transaction } from '../../src'
+import { CacheStrategy, Event, EventCategory, HitCacheDTO, Item, Page, Screen, Transaction } from '../../src'
 import { FS_CONSENT, HIT_CACHE_VERSION, NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY, PROCESS_LOOKUP_HIT, SDK_INFO } from '../../src/enum'
 import { NoBatchingContinuousCachingStrategy } from '../../src/api/NoBatchingContinuousCachingStrategy'
 import { sleep, uuidV4 } from '../../src/utils/utils'
@@ -67,7 +67,7 @@ describe('test TrackingManager Strategy ', () => {
 
   it('Test instance of BatchingContinuousCachingStrategy ', async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (config.trackingMangerConfig as any)._batchStrategy = BatchStrategy.CONTINUOUS_CACHING
+    (config.trackingMangerConfig as any)._batchStrategy = CacheStrategy.CONTINUOUS_CACHING
     const trackingManager = new TrackingManager(httpClient, config)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((trackingManager as any).strategy).toBeInstanceOf(BatchingContinuousCachingStrategy)
@@ -75,7 +75,7 @@ describe('test TrackingManager Strategy ', () => {
 
   it('Test instance of BatchingContinuousCachingStrategy ', async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (config.trackingMangerConfig as any)._batchStrategy = BatchStrategy.PERIODIC_CACHING
+    (config.trackingMangerConfig as any)._batchStrategy = CacheStrategy.PERIODIC_CACHING
     const trackingManager = new TrackingManager(httpClient, config)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((trackingManager as any).strategy).toBeInstanceOf(BatchingPeriodicCachingStrategy)
