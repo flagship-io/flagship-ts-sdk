@@ -127,6 +127,9 @@ describe('test sendBatch method', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const flushAllHits = jest.spyOn(batchingStrategy as any, 'flushAllHits')
+
   const visitorId = 'visitorId'
 
   const globalPageHit = new Page({
@@ -180,7 +183,7 @@ describe('test sendBatch method', () => {
     })
 
     expect(flushHits).toBeCalledTimes(0)
-
+    expect(flushAllHits).toBeCalledTimes(1)
     expect(cacheHit).toBeCalledTimes(1)
     expect(cacheHit).toHaveBeenNthCalledWith(1, hitsPoolQueue)
 
@@ -231,6 +234,7 @@ describe('test sendBatch method', () => {
     })
 
     expect(flushHits).toBeCalledTimes(0)
+    expect(flushAllHits).toBeCalledTimes(1)
     expect(cacheHit).toBeCalledTimes(1)
     expect(cacheHit).toHaveBeenNthCalledWith(1, hitsPoolQueue)
   })
@@ -287,7 +291,7 @@ describe('test sendBatch method', () => {
       body: batch.toApiKeys(),
       timeout: config.timeout
     })
-    expect(flushHits).toBeCalledTimes(0)
+    expect(flushAllHits).toBeCalledTimes(1)
     expect(cacheHit).toBeCalledTimes(1)
     expect(hitsPoolQueue.size).toBe(1)
     expect(logError).toBeCalledTimes(1)

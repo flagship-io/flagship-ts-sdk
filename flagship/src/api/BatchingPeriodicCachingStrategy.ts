@@ -150,6 +150,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       }), SEND_BATCH)
     }
     const mergedQueue = new Map<string, HitAbstract>([...this._hitsPoolQueue, ...this._activatePoolQueue])
+    await this.flushAllHits()
     await this.cacheHit(mergedQueue)
   }
 }

@@ -143,10 +143,12 @@ describe('test TrackingManager lookupHits', () => {
   const flushHits:Mock<Promise<void>, [hitKeys: string[]]> = jest.fn()
   const lookupHits:Mock<Promise<Record<string, HitCacheDTO>>, []> = jest.fn()
   const cacheHit:Mock<Promise<void>, [Record<string, HitCacheDTO>]> = jest.fn()
+  const flushAllHits:Mock<Promise<void>, []> = jest.fn()
   const hitCacheImplementation = {
     cacheHit,
     lookupHits,
-    flushHits
+    flushHits,
+    flushAllHits
   }
   config.hitCacheImplementation = hitCacheImplementation
 

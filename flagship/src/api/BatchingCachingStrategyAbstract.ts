@@ -1,6 +1,6 @@
 import { IFlagshipConfig } from '../config/index'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
-import { HIT_CACHE_VERSION, HIT_DATA_CACHED, HIT_DATA_FLUSHED, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT } from '../enum/index'
+import { FLUSH_ALL_HITS, HIT_CACHE_VERSION, HIT_DATA_CACHED, HIT_DATA_FLUSHED, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT } from '../enum/index'
 import { Activate } from '../hit/Activate'
 import { HitAbstract } from '../hit/index'
 import { HitCacheDTO } from '../types'
@@ -94,6 +94,20 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
         await hitCacheImplementation.flushHits(hitKeys)
         logDebug(this.config, sprintf(HIT_DATA_FLUSHED, JSON.stringify(hitKeys)), PROCESS_FLUSH_HIT)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error:any) {
+        logError(this.config, error.message || error, PROCESS_FLUSH_HIT)
+      }
+    }
+
+    public async flushAllHits (): Promise<void> {
+      try {
+        const hitCacheImplementation = this.config.hitCacheImplementation
+        if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.flushAllHits !== 'function') {
+          return
+        }
+        await hitCacheImplementation.flushAllHits()
+        logDebug(this.config, FLUSH_ALL_HITS, PROCESS_FLUSH_HIT)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error:any) {
         logError(this.config, error.message || error, PROCESS_FLUSH_HIT)

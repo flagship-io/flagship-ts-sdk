@@ -123,6 +123,7 @@ export const NEW_VISITOR_NOT_READY = 'You can\'t create a new visitor without fi
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheDTO'
 export const ACTIVATE_BATCH_LENGTH = 5
+export const FLUSH_ALL_HITS = 'All hits have been flushed from database'
 // Process
 export const PROCESS = 'process'
 export const PROCESS_INITIALIZATION = 'INITIALIZATION'
