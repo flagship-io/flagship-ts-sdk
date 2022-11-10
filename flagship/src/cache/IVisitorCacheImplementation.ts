@@ -6,7 +6,7 @@ export interface IVisitorCacheImplementation {
      * @param {string} visitorId visitor ID
      * @param {string} data visitor data JSON
      */
-    cacheVisitor:(visitorId: string, Data: VisitorCacheDTO)=>Promise<void>
+    cacheVisitor(visitorId: string, Data: VisitorCacheDTO):Promise<void>
 
     /**
      * This method is called when the SDK needs to get the visitor information corresponding to visitor ID from your database.

@@ -131,8 +131,9 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
 
   async notConsent (visitorId: string): Promise<void> {
     const keys = Object.keys(this.cacheHitKeys)
-    const hitsPoolQueueKeys = Array.from(this._hitsPoolQueue).filter(([key, item]) => {
-      return (item?.type !== HitType.EVENT || (item as Event)?.action !== FS_CONSENT) && key.includes(visitorId)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const hitsPoolQueueKeys = Array.from(this._hitsPoolQueue).filter(([_, item]) => {
+      return (item?.type !== HitType.EVENT || (item as Event)?.action !== FS_CONSENT) && (item.visitorId === visitorId || item.anonymousId === visitorId)
     })
 
     const keysToFlush:string[] = []
