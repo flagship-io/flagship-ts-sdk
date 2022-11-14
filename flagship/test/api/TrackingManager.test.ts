@@ -40,6 +40,8 @@ describe('test TrackingManager', () => {
     const _hitsPoolQueue = (trackingManager as any)._hitsPoolQueue
 
     expect(_hitsPoolQueue.size).toBe(1)
+
+    _hitsPoolQueue.clear()
   })
 
   it('Test activateFlag method', async () => {
@@ -57,6 +59,33 @@ describe('test TrackingManager', () => {
     const _activatePoolQueue = (trackingManager as any)._activatePoolQueue
 
     expect(_activatePoolQueue.size).toBe(1)
+  })
+
+  it('Test sendBatch method', async () => {
+    const postAsync = jest.spyOn(httpClient, 'postAsync')
+
+    postAsync.mockResolvedValue({
+      status: 200,
+      body: null
+    })
+
+    const screenHit = new Screen({
+      documentLocation: 'variationGrID',
+      visitorId
+    })
+
+    screenHit.config = config
+
+    await trackingManager.addHit(screenHit)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const _hitsPoolQueue = (trackingManager as any)._hitsPoolQueue
+
+    expect(_hitsPoolQueue.size).toBe(1)
+
+    await trackingManager.sendBatch()
+
+    expect(_hitsPoolQueue.size).toBe(0)
   })
 })
 

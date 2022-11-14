@@ -141,8 +141,19 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     pageHit.config = config
     pageHit.key = visitorId + 'key-page'
 
+    const activateHit = new Activate({
+      visitorId,
+      variationGroupId: 'varGroupId',
+      variationId: 'varId'
+    })
+
+    activateHit.config = config
+    activateHit.key = visitorId + 'key-activate'
+
     hitsPoolQueue.set(pageHit.key, pageHit)
     hitsPoolQueue.set(eventHit.key, eventHit)
+
+    activatePoolQueue.set(activateHit.key, activateHit)
 
     const consentHitFalse = new Event({
       visitorId,
@@ -158,7 +169,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(hitsPoolQueue.size).toBe(0)
     expect(cacheHit).toBeCalledTimes(0)
     expect(flushHits).toBeCalledTimes(1)
-    expect(flushHits).toHaveBeenNthCalledWith(1, [pageHit.key, eventHit.key])
+    expect(flushHits).toHaveBeenNthCalledWith(1, [pageHit.key, eventHit.key, activateHit.key])
   })
 
   it('test addHit method throw error', async () => {
@@ -469,7 +480,7 @@ describe('test sendBatch method', () => {
       headers,
       body: batch.toApiKeys(),
       duration: 0,
-      batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.DirectHit]
+      batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.BatchLength]
     }), SEND_BATCH)
   })
 

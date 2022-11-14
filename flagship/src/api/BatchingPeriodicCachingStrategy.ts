@@ -69,16 +69,26 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
 
   async notConsent (visitorId: string):Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const keys = Array.from(this._hitsPoolQueue).filter(([_, item]) => {
-      return (item?.type !== HitType.EVENT || (item as Event)?.action !== FS_CONSENT) && (item.visitorId === visitorId || item.anonymousId === visitorId)
+    const HitKeys = Array.from(this._hitsPoolQueue).filter(([_, item]) => {
+      return (item.type !== HitType.EVENT || (item as Event)?.action !== FS_CONSENT) && (item.visitorId === visitorId || item.anonymousId === visitorId)
     })
 
-    const keysToFlush:string[] = []
-    keys.forEach(([key]) => {
-      this._hitsPoolQueue.delete(key)
-      keysToFlush.push(key)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const activateKeys = Array.from(this._activatePoolQueue).filter(([_, item]) => {
+      return item.visitorId === visitorId || item.anonymousId === visitorId
     })
-    await this.cacheHit(this._hitsPoolQueue)
+
+    HitKeys.forEach(([key]) => {
+      this._hitsPoolQueue.delete(key)
+    })
+
+    activateKeys.forEach(([key]) => {
+      this._activatePoolQueue.delete(key)
+    })
+
+    const mergedQueue = new Map<string, HitAbstract>([...this._hitsPoolQueue, ...this._activatePoolQueue])
+    await this.flushAllHits()
+    await this.cacheHit(mergedQueue)
   }
 
   async sendBatch (batchTriggeredBy = BatchTriggeredBy.BatchLength): Promise<void> {
