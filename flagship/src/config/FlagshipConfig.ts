@@ -93,7 +93,7 @@ export interface IFlagshipConfig {
    */
   initialBucketing?: BucketingDTO
 
-  isCloudFlareClient?: boolean
+  isLiteClient?: boolean
 
   decisionApiUrl?: string
 
@@ -146,14 +146,14 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _hitCacheImplementation!: IHitCacheImplementation
   private _disableCache!: boolean
   private _trackingMangerConfig : ITrackingManagerConfig
-  private _isCloudFlareClient?: boolean
+  private _isLiteClient?: boolean
 
-  public set isCloudFlareClient (v : boolean|undefined) {
-    this._isCloudFlareClient = v
+  public set isLiteClient (v : boolean|undefined) {
+    this._isLiteClient = v
   }
 
-  public get isCloudFlareClient () {
-    return this._isCloudFlareClient
+  public get isLiteClient () {
+    return this._isLiteClient
   }
 
   public get trackingMangerConfig () : ITrackingManagerConfig {
@@ -180,7 +180,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
-      disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig, onLog
+      disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig, onLog, isLiteClient
     } = param
 
     this.initSDKInfo(language, sdkVersion)
@@ -189,6 +189,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       this.logManager = logManager
     }
 
+    this.isLiteClient = isLiteClient
     this._trackingMangerConfig = new TrackingManagerConfig(trackingMangerConfig || {})
     this.onLog = onLog
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL

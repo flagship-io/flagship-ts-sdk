@@ -16,7 +16,7 @@ module.exports = merge(common(), {
     }
   },
   output: {
-    filename: 'index.jamstack.js',
+    filename: 'index.lite.js',
     library: {
       type: 'umd'
     }
@@ -26,7 +26,12 @@ module.exports = merge(common(), {
       {
         test: /\.(js|ts)$/,
         exclude: /node_modules/,
-        use: ['ts-loader']
+        use: [{
+          loader: 'ts-loader',
+          options: {
+            transpileOnly: true
+          }
+        }]
       }
     ]
   },

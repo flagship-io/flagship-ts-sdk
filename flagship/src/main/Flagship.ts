@@ -62,7 +62,7 @@ export class Flagship {
     this._status = status
     const statusChanged = this.getConfig().statusChangedCallback
 
-    if (!this.getConfig().isCloudFlareClient) {
+    if (!this.getConfig().isLiteClient) {
       if (status === FlagshipStatus.READY) {
         this.configManager?.trackingManager?.startBatchingLoop()
       } else {
@@ -135,11 +135,11 @@ export class Flagship {
     const setStatus = (status: FlagshipStatus) => {
       flagship.setStatus(status)
     }
-    if (config.decisionMode === DecisionMode.BUCKETING || config.isCloudFlareClient) {
+    if (config.decisionMode === DecisionMode.BUCKETING || config.isLiteClient) {
       decisionManager = new BucketingManager(httpClient, config, new MurmurHash())
       const bucketingManager = decisionManager as BucketingManager
       decisionManager.statusChangedCallback(setStatus)
-      if (!config.isCloudFlareClient) {
+      if (!config.isLiteClient) {
         bucketingManager.startPolling()
       }
     } else {
@@ -176,7 +176,7 @@ export class Flagship {
 
     // check custom logger
     if (!config.onLog && !config.logManager) {
-      config.logManager = new FlagshipLogManager(config.isCloudFlareClient)
+      config.logManager = new FlagshipLogManager(config.isLiteClient)
     }
 
     if (!envId || !apiKey) {
@@ -197,7 +197,7 @@ export class Flagship {
 
     let decisionManager = flagship.configManager?.decisionManager
 
-    if (typeof decisionManager === 'object' && decisionManager instanceof BucketingManager && !config.isCloudFlareClient) {
+    if (typeof decisionManager === 'object' && decisionManager instanceof BucketingManager && !config.isLiteClient) {
       decisionManager.stopPolling()
     }
 
@@ -261,7 +261,7 @@ export class Flagship {
    * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
    * @returns {Visitor} a new visitor instance
    */
-  public static newVisitor(params?: NewVisitor): Visitor | null
+  public static newVisitor(params?: NewVisitor): Visitor
   public static newVisitor(param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor
   public static newVisitor (param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor {
     let visitorId: string | undefined
@@ -321,7 +321,7 @@ export class Flagship {
 
     this.getInstance()._visitorInstance = !isNewInstance ? visitor : undefined
 
-    if (this.getConfig().fetchNow && !this.getConfig().isCloudFlareClient) {
+    if (this.getConfig().fetchNow && !this.getConfig().isLiteClient) {
       visitor.fetchFlags()
     }
     return visitor

@@ -26,7 +26,7 @@
     "clean": "rm -rf dist-deno dist",
     "test:coverage": "jest --coverage",
     "build": "webpack",
-    "postbuild": "node denoTrans.mjs",
+    "postbuild": "node denoTrans.mjs && node generateDeclarationFile.js",
     "prebuild": "npm run clean && npm run generate:version && tsc",
     "generate:version": "genversion --es6 src/sdkVersion.ts",
     "build-prod": "NODE_ENV=production npm run build",
