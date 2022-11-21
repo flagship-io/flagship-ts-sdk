@@ -1,147 +1,113 @@
-import { ACTIVATE_SENT_SUCCESS, ADD_HIT, BASE_API_URL, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_ENV_ID, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_ADDED_IN_QUEUE, HIT_EVENT_URL, SDK_LANGUAGE, SDK_VERSION, SEND_ACTIVATE, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../enum/index'
-import { Batch } from '../hit/Batch'
-import { HitAbstract, Consent } from '../hit/index'
+import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
+import { ADD_HIT, BASE_API_URL, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_ADDED_IN_QUEUE, HIT_SENT_SUCCESS, SDK_INFO, SEND_ACTIVATE, URL_ACTIVATE_MODIFICATION } from '../enum/index'
+import { Activate } from '../hit/Activate'
+import { ActivateBatch } from '../hit/ActivateBatch'
+import { HitAbstract, Event } from '../hit/index'
 import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
-import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
+import { BatchingCachingStrategyAbstract, SendActivate } from './BatchingCachingStrategyAbstract'
 
 export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAbstract {
   async addHit (hit: HitAbstract): Promise<void> {
     const hitKey = `${hit.visitorId}:${uuidV4()}`
     hit.key = hitKey
 
-    await this.addHitWithKey(hitKey, hit)
-    if (hit.type === HitType.CONSENT && !(hit as Consent).visitorConsent) {
+    this._hitsPoolQueue.set(hitKey, hit)
+    await this.cacheHit(new Map<string, HitAbstract>([[hitKey, hit]]))
+
+    if (hit.type === HitType.EVENT && (hit as Event).action === FS_CONSENT && (hit as Event).label === `${SDK_INFO.name}:false`) {
       await this.notConsent(hit.visitorId)
     }
 
     logDebug(this.config, sprintf(HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_HIT)
+
+    if (this.config.trackingMangerConfig?.poolMaxSize && this._hitsPoolQueue.size >= this.config.trackingMangerConfig.poolMaxSize) {
+      this.sendBatch()
+    }
   }
 
   async notConsent (visitorId: string):Promise<void> {
-    const keys = Array.from(this._hitsPoolQueue.keys()).filter(x => x.includes(visitorId))
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const hitKeys = Array.from(this._hitsPoolQueue).filter(([_, item]) => {
+      return (item?.type !== HitType.EVENT || (item as Event)?.action !== FS_CONSENT) && (item.visitorId === visitorId || item.anonymousId === visitorId)
+    })
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const activateKeys = Array.from(this._activatePoolQueue).filter(([_, item]) => {
+      return item.visitorId === visitorId || item.anonymousId === visitorId
+    })
 
     const keysToFlush:string[] = []
-    keys.forEach(key => {
-      const isConsentHit = this._hitsPoolQueue.get(key)?.type === HitType.CONSENT
-      if (isConsentHit) {
-        return
-      }
+    hitKeys.forEach(([key]) => {
       this._hitsPoolQueue.delete(key)
       keysToFlush.push(key)
     })
+
+    activateKeys.forEach(([key]) => {
+      this._activatePoolQueue.delete(key)
+      keysToFlush.push(key)
+    })
+
     if (!keysToFlush.length) {
       return
     }
     await this.flushHits(keysToFlush)
   }
 
-  protected async addHitWithKey (hitKey:string, hit:HitAbstract):Promise<void> {
-    this._hitsPoolQueue.set(hitKey, hit)
-    await this.cacheHit(new Map<string, HitAbstract>().set(hitKey, hit))
-  }
-
-  async sendActivate (activateHits:HitAbstract[]):Promise<void> {
-    const activateHitKeys:string[] = []
-
-    const url = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const activateHeader = {
-      [HEADER_X_API_KEY]: this.config.apiKey as string,
-      [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
-      [HEADER_X_SDK_VERSION]: SDK_VERSION,
-      [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
-    }
-
-    for (const activateHit of activateHits) {
-      this._hitsPoolQueue.delete(activateHit.key)
-      const activateBody = activateHit.toApiKeys()
-
-      try {
-        await this._httpClient.postAsync(url, {
-          headers: activateHeader,
-          body: activateBody
-        })
-        activateHitKeys.push(activateHit.key)
-        logDebug(this.config, sprintf(ACTIVATE_SENT_SUCCESS, JSON.stringify(activateBody)), SEND_ACTIVATE)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error:any) {
-        this.addHitWithKey(activateHit.key, activateHit)
-        logError(this.config, errorFormat(error.message || error, {
-          url: url,
-          headers: activateHeader,
-          body: activateBody
-        }), SEND_ACTIVATE)
-      }
-    }
-
-    if (activateHitKeys.length) {
-      await this.flushHits(activateHitKeys)
-    }
-  }
-
-  async sendBatch (): Promise<void> {
+  protected async sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate) {
     const headers = {
       [HEADER_X_API_KEY]: this.config.apiKey as string,
-      [HEADER_X_ENV_ID]: this.config.envId as string,
-      [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
-      [HEADER_X_SDK_VERSION]: SDK_VERSION,
+      [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
+      [HEADER_X_SDK_VERSION]: SDK_INFO.version,
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
-    const batch:Batch = new Batch({ hits: [] })
-    batch.config = this.config
+    const activateBatch = new ActivateBatch(Array.from(activateHitsPool), this.config)
 
-    let batchSize = 0
-    let count = 0
-
-    const activateHits:HitAbstract[] = []
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for (const [_, item] of this._hitsPoolQueue) {
-      if (item.type === 'ACTIVATE') {
-        activateHits.push(item)
-        continue
-      }
-      count++
-      batchSize = JSON.stringify(batch).length
-      if (batchSize > BATCH_MAX_SIZE || (this.config.trackingMangerConfig?.batchLength && count > this.config.trackingMangerConfig.batchLength)) {
-        break
-      }
-      batch.hits.push(item)
+    if (currentActivate) {
+      activateBatch.hits.push(currentActivate)
     }
 
-    await this.sendActivate(activateHits)
+    const requestBody = activateBatch.toApiKeys()
 
-    batch.hits.forEach(hit => {
-      this._hitsPoolQueue.delete(hit.key)
-    })
-
-    if (!batch.hits.length) {
-      return
-    }
-
-    const requestBody = batch.toApiKeys()
+    const url = BASE_API_URL + URL_ACTIVATE_MODIFICATION
+    const now = Date.now()
 
     try {
-      await this._httpClient.postAsync(HIT_EVENT_URL, {
+      await this._httpClient.postAsync(url, {
         headers,
-        body: requestBody
+        body: requestBody,
+        timeout: this.config.timeout
       })
 
-      logDebug(this.config, sprintf(BATCH_SENT_SUCCESS, JSON.stringify(requestBody)), SEND_BATCH)
+      logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify({
+        ...requestBody,
+        duration: Date.now() - now,
+        batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
+      })), SEND_ACTIVATE)
 
-      await this.flushHits(batch.hits.map(item => item.key))
+      const hitKeysToRemove = activateHitsPool.map(item => item.key)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (hitKeysToRemove.length) {
+        await this.flushHits(hitKeysToRemove)
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      batch.hits.forEach((hit) => {
-        this.addHitWithKey(hit.key, hit)
+      activateBatch.hits.forEach(item => {
+        this._activatePoolQueue.set(item.key, item)
       })
+
+      if (currentActivate) {
+        await this.cacheHit(new Map<string, Activate>([[currentActivate.key, currentActivate]]))
+      }
+
       logError(this.config, errorFormat(error.message || error, {
-        url: HIT_EVENT_URL,
+        url,
         headers,
-        body: requestBody
-      }), SEND_BATCH)
+        body: requestBody,
+        duration: Date.now() - now,
+        batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
+      }), SEND_ACTIVATE)
     }
   }
 }

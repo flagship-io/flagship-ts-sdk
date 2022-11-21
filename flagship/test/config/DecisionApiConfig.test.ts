@@ -8,8 +8,9 @@ import {
   FlagshipStatus,
   LogLevel,
   REQUEST_TIME_OUT,
-  SDK_LANGUAGE
+  SDK_INFO
 } from '../../src/enum/index'
+import { version } from '../../src/sdkVersion'
 import { HitCacheDTO, VisitorCacheDTO } from '../../src/types'
 import { FlagshipLogManager, IFlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 
@@ -32,8 +33,10 @@ describe('test DecisionApiConfig', () => {
     expect(config.hitDeduplicationTime).toBe(DEFAULT_DEDUPLICATION_TIME)
     expect(config.hitCacheImplementation).toBeUndefined()
     expect(config.visitorCacheImplementation).toBeUndefined()
+    expect(config.onUserExposure).toBeUndefined()
     expect(config.disableCache).toBeFalsy()
     expect(config.trackingMangerConfig).toBeInstanceOf(TrackingManagerConfig)
+    expect(config.onLog).toBeUndefined()
   })
 
   it('test config constructor', () => {
@@ -71,8 +74,15 @@ describe('test DecisionApiConfig', () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       flushHits: function (hitKeys: string[]): Promise<void> {
         throw new Error('Function not implemented.')
+      },
+      flushAllHits: function (): Promise<void> {
+        throw new Error('Function not implemented.')
       }
     }
+
+    const onUserExposure = jest.fn()
+
+    const onLog = jest.fn()
 
     const config = new DecisionApiConfig({
       apiKey,
@@ -88,7 +98,9 @@ describe('test DecisionApiConfig', () => {
       hitCacheImplementation,
       disableCache: true,
       activateDeduplicationTime: 10,
-      hitDeduplicationTime: 20
+      hitDeduplicationTime: 20,
+      onUserExposure,
+      onLog
     })
     expect(config.apiKey).toBe(apiKey)
     expect(config.envId).toBe(envId)
@@ -104,6 +116,8 @@ describe('test DecisionApiConfig', () => {
     expect(config.disableCache).toBeTruthy()
     expect(config.activateDeduplicationTime).toBe(10)
     expect(config.hitDeduplicationTime).toBe(20)
+    expect(config.onUserExposure).toBe(onUserExposure)
+    expect(config.onLog).toBe(onLog)
   })
 
   it('Test envId field ', () => {
@@ -184,19 +198,25 @@ describe('test DecisionApiConfig', () => {
 
 describe('Test SDK_LANGUAGE', () => {
   it('should be reactJS', () => {
-    const config = new DecisionApiConfig({ language: 1 })
-    expect(SDK_LANGUAGE.name).toBe('ReactJS')
+    const sdkVersion = '2.12.5'
+    const config = new DecisionApiConfig({ language: 1, sdkVersion })
+    expect(SDK_INFO.name).toBe('ReactJS')
+    expect(SDK_INFO.version).toBe(sdkVersion)
     expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
   })
   it('should be react-native', () => {
-    const config = new DecisionApiConfig({ language: 2 })
-    expect(SDK_LANGUAGE.name).toBe('React-Native')
+    const sdkVersion = '2.5.5'
+    const config = new DecisionApiConfig({ language: 2, sdkVersion })
+    expect(SDK_INFO.name).toBe('React-Native')
+    expect(SDK_INFO.version).toBe(sdkVersion)
     expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
   })
 
   it('should be Typescript', () => {
-    const config = new DecisionApiConfig({ language: 0 })
-    expect(SDK_LANGUAGE.name).toBe('Typescript')
+    const sdkVersion = '2.6.5'
+    const config = new DecisionApiConfig({ language: 0, sdkVersion })
+    expect(SDK_INFO.name).toBe('Typescript')
+    expect(SDK_INFO.version).toBe(version)
     expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
   })
 
@@ -208,7 +228,7 @@ describe('Test SDK_LANGUAGE', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any
     const config = new DecisionApiConfig({ language: 0 })
-    expect(SDK_LANGUAGE.name).toBe('Deno')
+    expect(SDK_INFO.name).toBe('Deno')
     expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
     global.window = window
   })

@@ -1,27 +1,26 @@
-import { SL_ITEM } from '../enum/FlagshipConstant'
-import { HitType } from '../enum/HitType'
+import { S_API_ITEM } from '../enum'
 import { primitive } from '../types'
 import { HitAbstract, IHitAbstract } from './HitAbstract'
 
-export const ERROR_MESSAGE = 'sl is required'
+export const ERROR_MESSAGE = 'data property is required'
 
 export interface ISegment extends IHitAbstract{
-    sl:Record<string, primitive>
+    context:Record<string, primitive>
 }
 
 export class Segment extends HitAbstract implements ISegment {
-  private _sl!: Record<string, primitive>;
-  public get sl (): Record<string, primitive> {
-    return this._sl
+  private _context!: Record<string, primitive>
+  public get context (): Record<string, primitive> {
+    return this._context
   }
 
-  public set sl (v: Record<string, primitive>) {
-    this._sl = v
+  public set context (v: Record<string, primitive>) {
+    this._context = v
   }
 
   public constructor (param:Omit<ISegment, 'type'|'createdAt'>) {
     super({
-      type: HitType.SEGMENT,
+      type: 'SEGMENT',
       userIp: param.userIp,
       screenResolution: param.screenResolution,
       locale: param.locale,
@@ -29,27 +28,23 @@ export class Segment extends HitAbstract implements ISegment {
       visitorId: param.visitorId,
       anonymousId: param.anonymousId
     })
-    this.sl = param.sl
+    this.context = param.context
   }
 
   public isReady (checkParent = true):boolean {
-    return !!((!checkParent || super.isReady()) && this.sl)
+    return !!((!checkParent || super.isReady()) && this.context)
   }
 
   public toApiKeys ():Record<string, unknown> {
     const apiKeys = super.toApiKeys()
-    const context:Record<string, string> = {}
-    Object.entries(this.sl).forEach(([key, value]) => {
-      context[key] = value.toString()
-    })
-    apiKeys[SL_ITEM] = context
+    apiKeys[S_API_ITEM] = this.context
     return apiKeys
   }
 
   public toObject ():Record<string, unknown> {
     return {
       ...super.toObject(),
-      sl: this.sl
+      context: this.context
     }
   }
 

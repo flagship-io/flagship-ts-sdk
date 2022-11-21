@@ -1,10 +1,12 @@
 import { BucketingDTO } from '../decision/api/bucketingDTO.ts'
-import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, SDK_LANGUAGE, TYPE_ERROR } from '../enum/index.ts'
+import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, SDK_INFO, TYPE_ERROR } from '../enum/index.ts'
 import { IHitCacheImplementation } from '../cache/IHitCacheImplementation.ts'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager.ts'
 import { logError, sprintf } from '../utils/utils.ts'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation.ts'
 import { ITrackingManagerConfig, TrackingManagerConfig } from './TrackingManagerConfig.ts'
+import { UserExposureInfo } from '../types.ts'
+import { version as SDK_VERSION } from '../sdkVersion.ts'
 
 export enum DecisionMode {
   /**
@@ -71,12 +73,24 @@ export interface IFlagshipConfig {
    */
   enableClientCache?: boolean
 
+  /**
+   * Define a callable in order to get callback when the first bucketing polling succeed.
+   */
   onBucketingSuccess?: (param: { status: number; payload: BucketingDTO }) => void
 
+  /**
+   * Define a callable to get callback when the first bucketing polling failed.
+   */
   onBucketingFail?: (error: Error) => void
 
+  /**
+   * Define a callable to get callback each time bucketing data from Flagship has updated.
+   */
   onBucketingUpdated?: (lastUpdate: Date) => void
 
+  /**
+   * This is a set of flag data provided to avoid the SDK to have an empty cache during the first initialization.
+   */
   initialBucketing?: BucketingDTO
 
   decisionApiUrl?: string
@@ -89,32 +103,51 @@ export interface IFlagshipConfig {
 
   hitCacheImplementation?: IHitCacheImplementation
 
+  /**
+   * If it's set to true, hit cache and visitor cache will be disabled otherwise will be enabled.
+   */
   disableCache?: boolean
 
   language?: 0 | 1 | 2
+<<<<<<< HEAD
 
   trackingMangerConfig?: ITrackingManagerConfig
 
+=======
+  /**
+   * Define a callable to get callback each time  a Flag have been user exposed (activation hit has been sent) by SDK
+   */
+  onUserExposure?: (param: UserExposureInfo)=>void
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
+  sdkVersion?: string
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
+  onLog?: (level: LogLevel, tag: string, message: string)=>void
+>>>>>>> origin/main
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
 
 export abstract class FlagshipConfig implements IFlagshipConfig {
-  private _envId?: string;
-  private _apiKey?: string;
-  protected _decisionMode: DecisionMode;
-  private _timeout!: number;
-  private _logLevel!: LogLevel;
-  private _statusChangedCallback?: (status: FlagshipStatus) => void;
-  private _logManager!: IFlagshipLogManager;
-  private _fetchNow!: boolean;
+  private _envId?: string
+  private _apiKey?: string
+  protected _decisionMode: DecisionMode
+  private _timeout!: number
+  private _logLevel!: LogLevel
+  private _statusChangedCallback?: (status: FlagshipStatus) => void
+  private _logManager!: IFlagshipLogManager
+  private _fetchNow!: boolean
   private _pollingInterval!: number
-  private _onBucketingFail?: (error: Error) => void;
-  private _onBucketingSuccess?: (param: { status: number; payload: BucketingDTO }) => void;
-  private _onBucketingUpdated?: (lastUpdate: Date) => void;
-  private _enableClientCache!: boolean;
+  private _onBucketingFail?: (error: Error) => void
+  private _onBucketingSuccess?: (param: { status: number; payload: BucketingDTO }) => void
+  private _onBucketingUpdated?: (lastUpdate: Date) => void
+  private _enableClientCache!: boolean
   private _initialBucketing?: BucketingDTO
   private _decisionApiUrl!: string
+<<<<<<< HEAD
   private _activateDeduplicationTime!: number;
   private _hitDeduplicationTime!: number;
   private _visitorCacheImplementation!: IVisitorCacheImplementation;
@@ -124,6 +157,26 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
 
   public get trackingMangerConfig () : ITrackingManagerConfig {
     return this._trackingMangerConfig
+=======
+  private _activateDeduplicationTime!: number
+  private _hitDeduplicationTime!: number
+  private _visitorCacheImplementation!: IVisitorCacheImplementation
+  private _hitCacheImplementation!: IHitCacheImplementation
+  private _disableCache!: boolean
+  private _onLog? : (level: LogLevel, tag: string, message: string)=>void
+
+  public get onLog () : ((level: LogLevel, tag: string, message: string)=>void)|undefined {
+    return this._onLog
+  }
+
+  public set onLog (v :((level: LogLevel, tag: string, message: string)=>void)|undefined) {
+    this._onLog = v
+>>>>>>> origin/main
+  }
+
+  private _onUserExposure? : (param: UserExposureInfo)=>void
+  public get onUserExposure () : ((param: UserExposureInfo)=>void)|undefined {
+    return this._onUserExposure
   }
 
   protected constructor (param: IFlagshipConfig) {
@@ -131,7 +184,13 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
       disableCache, language, trackingMangerConfig
+=======
+      disableCache, language, onUserExposure
+>>>>>>> origin/main
     } = param
 
     this.setSdkLanguageName(language)
@@ -139,9 +198,22 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     if (logManager) {
       this.logManager = logManager
     }
+=======
+      disableCache, language, onUserExposure, sdkVersion
+    } = param
+
+    this.initSDKInfo(language, sdkVersion)
+>>>>>>> origin/main
 
     this._trackingMangerConfig = new TrackingManagerConfig(trackingMangerConfig || {})
 
+=======
+      disableCache, language, onUserExposure, sdkVersion, onLog
+    } = param
+
+    this.initSDKInfo(language, sdkVersion)
+    this.onLog = onLog
+>>>>>>> origin/main
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
     this._envId = envId
     this._apiKey = apiKey
@@ -163,8 +235,10 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     }
 
     this.statusChangedCallback = statusChangedCallback
+    this._onUserExposure = onUserExposure
   }
 
+<<<<<<< HEAD
   protected setSdkLanguageName (language?:number):void {
     switch (language) {
       case 1:
@@ -175,6 +249,21 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
         break
       default:
         SDK_LANGUAGE.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'Typescript'
+=======
+  protected initSDKInfo (language?:number, sdkVersion?:string) {
+    switch (language) {
+      case 1:
+        SDK_INFO.name = 'ReactJS'
+        SDK_INFO.version = sdkVersion ?? SDK_VERSION
+        break
+      case 2:
+        SDK_INFO.name = 'React-Native'
+        SDK_INFO.version = sdkVersion ?? SDK_VERSION
+        break
+      default:
+        SDK_INFO.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'Typescript'
+        SDK_INFO.version = SDK_VERSION
+>>>>>>> origin/main
         break
     }
   }
@@ -324,7 +413,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   }
 
   public set statusChangedCallback (fn: ((status: FlagshipStatus) => void) | undefined) {
-    if (typeof fn !== 'function') {
+    if (fn && typeof fn !== 'function') {
       logError(this, statusChangeError, 'statusChangedCallback')
       return
     }

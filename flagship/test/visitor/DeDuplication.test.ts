@@ -30,8 +30,10 @@ describe('Name of the group', () => {
   const trackingManager = new TrackingManager(httpClient, config)
 
   const addHit = jest.spyOn(trackingManager, 'addHit')
+  const activateFlag = jest.spyOn(trackingManager, 'activateFlag')
 
   addHit.mockResolvedValue()
+  activateFlag.mockResolvedValue()
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
@@ -61,7 +63,7 @@ describe('Name of the group', () => {
     await defaultStrategy.activateModification(key)
     await defaultStrategy.activateModification('keyNumber')
     await defaultStrategy.activateModification('keyNumber')
-    expect(addHit).toBeCalledTimes(2)
+    expect(activateFlag).toBeCalledTimes(2)
   })
 
   it('test userExposed ', async () => {
@@ -86,7 +88,7 @@ describe('Name of the group', () => {
     await defaultStrategy.userExposed({ key: flag.key, flag, defaultValue: flag.value })
     await defaultStrategy.userExposed({ key: flag2.key, flag: flag2, defaultValue: flag2.value })
     await defaultStrategy.userExposed({ key: flag2.key, flag: flag2, defaultValue: flag2.value })
-    expect(addHit).toBeCalledTimes(2)
+    expect(activateFlag).toBeCalledTimes(2)
   })
 
   it('test sendHitAsync with literal object Event ', async () => {
@@ -111,7 +113,7 @@ describe('Name of the group', () => {
     await defaultStrategy.activateModification(key)
     await sleep(1200)
     await defaultStrategy.activateModification(key)
-    expect(addHit).toBeCalledTimes(2)
+    expect(activateFlag).toBeCalledTimes(2)
   })
 })
 
@@ -141,6 +143,7 @@ describe('Clean cache', () => {
   const trackingManager = new TrackingManager(httpClient, config)
 
   const addHit = jest.spyOn(trackingManager, 'addHit')
+  const activateFlag = jest.spyOn(trackingManager, 'activateFlag')
 
   addHit.mockResolvedValue()
 
@@ -171,6 +174,6 @@ describe('Clean cache', () => {
     defaultStrategy.activateModification('array')
     await sleep(1200)
     await defaultStrategy.activateModification(keyBoolean)
-    expect(addHit).toBeCalledTimes(4)
+    expect(activateFlag).toBeCalledTimes(4)
   })
 })

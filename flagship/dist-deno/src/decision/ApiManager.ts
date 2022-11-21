@@ -7,9 +7,7 @@ import {
   HEADER_X_SDK_CLIENT,
   HEADER_X_SDK_VERSION,
   PROCESS_GET_CAMPAIGNS,
-  SDK_LANGUAGE,
-  SDK_VERSION,
-  SEND_CONTEXT_EVENT,
+  SDK_INFO,
   URL_CAMPAIGNS
 } from '../enum/index.ts'
 import { DecisionManager } from './DecisionManager.ts'
@@ -21,8 +19,8 @@ export class ApiManager extends DecisionManager {
   public async getCampaignsAsync (visitor: VisitorAbstract): Promise<CampaignDTO[]|null> {
     const headers = {
       [HEADER_X_API_KEY]: `${this.config.apiKey}`,
-      [HEADER_X_SDK_CLIENT]: SDK_LANGUAGE.name,
-      [HEADER_X_SDK_VERSION]: SDK_VERSION,
+      [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
+      [HEADER_X_SDK_VERSION]: SDK_INFO.version,
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
@@ -30,13 +28,11 @@ export class ApiManager extends DecisionManager {
       visitorId: visitor.visitorId,
       anonymousId: visitor.anonymousId,
       trigger_hit: false,
-      context: visitor.context
+      context: visitor.context,
+      visitor_consent: visitor.hasConsented
     }
 
-    let url = `${this.config.decisionApiUrl || BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
-    if (!visitor.hasConsented) {
-      url += `&${SEND_CONTEXT_EVENT}=false`
-    }
+    const url = `${this.config.decisionApiUrl || BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
 
     return this._httpClient.postAsync(url, {
       headers,

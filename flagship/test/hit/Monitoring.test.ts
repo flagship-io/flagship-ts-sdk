@@ -1,18 +1,17 @@
-import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
+import { jest, expect, it, describe, afterAll } from '@jest/globals'
 import { ERROR_MESSAGE } from '../../src/hit/Event'
 import { DecisionApiConfig, IFlagshipConfig } from '../../src/config/index'
 import {
-  BatchStrategy,
+  CacheStrategy,
   CUSTOMER_ENV_ID_API_ITEM,
   CUSTOMER_UID,
   DS_API_ITEM,
   EVENT_ACTION_API_ITEM,
   EVENT_CATEGORY_API_ITEM,
-  HitType,
   LogLevel,
   QT_API_ITEM,
   SDK_APP,
-  SDK_LANGUAGE,
+  SDK_INFO,
   TYPE_ERROR,
   T_API_ITEM,
   VISITOR_ID_API_ITEM
@@ -22,11 +21,6 @@ import { sprintf } from '../../src/utils/utils'
 import { Mock } from 'jest-mock'
 import { IMonitoring, Monitoring } from '../../src/hit/Monitoring'
 import { version } from '../../src/sdkVersion'
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const getNull = (): any => {
-  return null
-}
 
 describe('test hit type Monitoring', () => {
   const methodNow = Date.now
@@ -49,7 +43,7 @@ describe('test hit type Monitoring', () => {
   const subComponent = 'subComponent'
   const logLevel = LogLevel.INFO
   const logVersion = '1'
-  const component = `Flagship SDK ${SDK_LANGUAGE.name}`
+  const component = `Flagship SDK ${SDK_INFO.name}`
   const stackType = 'SDK'
   const monitoring = new Monitoring({ action, visitorId, message, subComponent, logLevel, config })
 
@@ -72,7 +66,7 @@ describe('test hit type Monitoring', () => {
         6: `subComponents, ${subComponent}`,
         7: `message, ${message}`,
         20: `stack.type, ${'SDK'} `,
-        21: `stack.name, ${SDK_LANGUAGE.name}`,
+        21: `stack.name, ${SDK_INFO.name}`,
         22: `stack.version, ${version}`
       }
     }
@@ -102,11 +96,11 @@ describe('test hit type Monitoring', () => {
       logLevel,
       accountId: 'accountId',
       envId: config.envId,
-      component: component,
+      component,
       subComponent,
       message,
       stackType: 'SDK',
-      stackName: SDK_LANGUAGE.name,
+      stackName: SDK_INFO.name,
       stackVersion: version,
       stackOriginName: 'this.stackOriginName',
       stackOriginVersion: 'this.stackOriginVersion',
@@ -118,7 +112,7 @@ describe('test hit type Monitoring', () => {
       sdkConfigStatusListener: false,
       sdkConfigTimeout: config.timeout.toString(),
       sdkConfigPollingTime: '10',
-      sdkConfigTrackingManagerConfigStrategy: BatchStrategy[config.trackingMangerConfig.batchStrategy as number],
+      sdkConfigTrackingManagerConfigStrategy: CacheStrategy[config.trackingMangerConfig.cacheStrategy as number],
       sdkConfigTrackingManagerConfigBatchIntervals: '30',
       sdkConfigTrackingManagerConfigBatchLength: '10',
 
@@ -167,7 +161,7 @@ describe('test hit type Monitoring', () => {
         6: `subComponents, ${subComponent}`,
         7: `message, ${message}`,
         20: `stack.type, ${'SDK'} `,
-        21: `stack.name, ${SDK_LANGUAGE.name}`,
+        21: `stack.name, ${SDK_INFO.name}`,
         22: `stack.version, ${version}`,
         23: 'stack.origin.name, ' + params.stackOriginName,
         24: 'stack.origin.version, ' + params.stackOriginVersion,
@@ -273,7 +267,7 @@ describe('test hit type Monitoring', () => {
       type: 'MONITORING',
       visitorId,
       stackVersion: version,
-      stackName: SDK_LANGUAGE.name,
+      stackName: SDK_INFO.name,
       timestamp: expect.anything(),
       accountId: undefined,
       flagDefault: undefined,

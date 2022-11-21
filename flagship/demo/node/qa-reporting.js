@@ -6,16 +6,12 @@ import Flagship, {
   Item,
   LogLevel,
   Transaction
-} from '@flagship.io/js-sdk'
+} from '../../'
 import { API_KEY, ENV_ID } from './config.js'
-import { campaigns } from './campaigns'
-
-const sleep = (ms) => {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
 
 Flagship.start(ENV_ID, API_KEY, {
-  timeout: 10
+  timeout: 10,
+  fetchNow: false
 })
 
 async function scenario1 () {
@@ -29,16 +25,10 @@ async function scenario1 () {
   const flag = visitor.getFlag('qa_report_var', 'test')
   console.log('flag.getValue 1: ', flag.getValue())
 
-  await flag.userExposed()
-
-  await sleep(1000)
-
   await visitor.sendHit({
     type: HitType.SCREEN,
     documentLocation: 'I LOVE QA'
   })
-
-  await sleep(1000)
 
   await visitor.sendHit({
     type: HitType.EVENT,
@@ -60,16 +50,10 @@ async function scenario2 () {
   const flag = visitor.getFlag('qa_report_var', 'test')
   console.log('flag.getValue 2: ', flag.getValue())
 
-  await flag.userExposed()
-
-  await sleep(1000)
-
   await visitor.sendHit({
     type: HitType.SCREEN,
     documentLocation: 'I LOVE QA'
   })
-
-  await sleep(1000)
 
   await visitor.sendHit({
     type: HitType.EVENT,
@@ -91,14 +75,10 @@ async function scenario3 () {
   const flag = visitor.getFlag('qa_report_var', 'test')
   console.log('flag.getValue 3: ', flag.getValue(false))
 
-  //   await flag.userExposed()
-
   await visitor.sendHit({
     type: HitType.SCREEN,
     documentLocation: 'I LOVE QA'
   })
-
-  await sleep(1000)
 
   await visitor.sendHit({
     type: HitType.EVENT,
@@ -118,18 +98,7 @@ async function scenario4 () {
   await visitor.fetchFlags()
 
   const flag = visitor.getFlag('qa_report_var', 'test')
-  console.log('flag.getValue 4: ', flag.getValue(false))
-
-  await flag.userExposed()
-  await sleep(1000)
-
-  //   await visitor.sendHit({
-  //     type: HitType.SCREEN,
-  //     category: EventCategory.ACTION_TRACKING,
-  //     documentLocation: 'I LOVE QA'
-  //   })
-
-  console.log('userExposed')
+  console.log('flag.getValue 4: ', flag.getValue(true))
 }
 
 async function scenario5 () {
@@ -141,11 +110,7 @@ async function scenario5 () {
   await visitor.fetchFlags()
 
   const flag = visitor.getFlag('qa_report_var', 'test')
-  console.log('flag.getValue 5: ', flag.getValue(false))
-
-  await flag.userExposed()
-
-  await sleep(1000)
+  console.log('flag.getValue 5: ', flag.getValue())
 
   visitor.setConsent(false)
 
@@ -154,15 +119,11 @@ async function scenario5 () {
     documentLocation: 'I LOVE QA'
   })
 
-  await sleep(1000)
-
   await visitor.sendHit({
     type: HitType.EVENT,
     action: 'KP2',
     category: EventCategory.ACTION_TRACKING
   })
-
-  console.log('userExposed')
 }
 
 async function scenario6 () {
@@ -174,26 +135,18 @@ async function scenario6 () {
   await visitor.fetchFlags()
 
   const flag = visitor.getFlag('qa_report_var', 'test')
-  console.log('flag.getValue 6: ', flag.getValue(false))
-
-  await flag.userExposed()
-
-  await sleep(1000)
+  console.log('flag.getValue 6: ', flag.getValue())
 
   await visitor.sendHit({
     type: HitType.SCREEN,
     documentLocation: 'I LOVE QA'
   })
 
-  await sleep(1000)
-
   await visitor.sendHit({
     type: HitType.EVENT,
     action: 'KP2',
     category: EventCategory.ACTION_TRACKING
   })
-
-  console.log('userExposed')
 }
 
 async function scenario7 () {

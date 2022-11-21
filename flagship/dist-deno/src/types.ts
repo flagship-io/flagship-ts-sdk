@@ -11,7 +11,7 @@ export type modificationsRequested<T> = {
 export type primitive=string | number | boolean
 
 export type { HitShape }
-export type IHit = Omit<IPage, 'createdAt'> | Omit<IScreen, 'createdAt'> | Omit<IEvent, 'createdAt'> | Omit<IItem, 'createdAt'> | Omit<ITransaction, 'createdAt'>
+export type IHit = Omit<IPage, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IScreen, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IEvent, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IItem, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<ITransaction, 'createdAt'|'visitorId'|'anonymousId'|'ds'>
 
 export type FlagDTO= {
   key: string;
@@ -59,12 +59,14 @@ export type NewVisitor={
 
 }
 
+export type InternalHitType = HitType|'BATCH'|'ACTIVATE'|'MONITORING'|'CONTEXT'
+
 export type HitCacheDTO ={
   version: number,
   data: {
       visitorId: string,
-      anonymousId: string|null,
-      type: HitType|'BATCH'|'ACTIVATE',
+      anonymousId?: string|null,
+      type: InternalHitType,
       time: number,
       content:IHitAbstract
   }
@@ -90,3 +92,25 @@ export type VisitorCacheDTO = {
       }>
 }
 }
+
+export interface IFlagMetadata{
+  campaignId:string
+  variationGroupId:string
+  variationId: string
+  isReference: boolean
+  campaignType: string
+  slug?:string|null
+}
+
+export type UserExposureInfo = {
+  flagData: {
+    key: string
+    value: unknown
+    metadata: IFlagMetadata
+  },
+  visitorData: {
+    visitorId: string
+    anonymousId: string|null
+    context: Record<string, primitive>
+  }
+ }

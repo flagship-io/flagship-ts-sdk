@@ -5,9 +5,8 @@ import {
   FlagshipStatus,
   INITIALIZATION_PARAM_ERROR,
   PROCESS_INITIALIZATION,
-  SDK_LANGUAGE,
-  SDK_STARTED_INFO,
-  SDK_VERSION
+  SDK_INFO,
+  SDK_STARTED_INFO
 } from '../../src/enum/index'
 import { Flagship } from '../../src/main/Flagship'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
@@ -16,7 +15,6 @@ import { Visitor } from '../../src/visitor/Visitor'
 import { Mock } from 'jest-mock'
 import { DefaultVisitorCache } from '../../src/cache/DefaultVisitorCache'
 import { DefaultHitCache } from '../../src/cache/DefaultHitCache'
-import { version } from '../../src/sdkVersion'
 
 const getCampaignsAsync = jest.fn().mockReturnValue(Promise.resolve([]))
 
@@ -37,6 +35,8 @@ const addHit: Mock<Promise<void>, []> = jest.fn()
 
 const stopBatchingLoop:Mock<Promise<void>, []> = jest.fn()
 
+const sendBatch:Mock<Promise<void>, []> = jest.fn()
+
 addHit.mockResolvedValue()
 
 jest.mock('../../src/api/TrackingManager', () => {
@@ -45,6 +45,7 @@ jest.mock('../../src/api/TrackingManager', () => {
       return {
         startBatchingLoop,
         stopBatchingLoop,
+        sendBatch,
         addHit
       }
     })
@@ -77,6 +78,19 @@ describe('test Flagship class', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     global.window = (() => undefined)() as any
+  })
+
+  it('should test Flagship.close method', async () => {
+    sendBatch.mockResolvedValue()
+    await Flagship.close()
+    expect(sendBatch).toBeCalledTimes(1)
+  })
+
+  it('should test Flagship.close method', async () => {
+    const fs = Flagship.start(envId, apiKey)
+    sendBatch.mockResolvedValue()
+    await fs.close()
+    expect(sendBatch).toBeCalledTimes(1)
   })
 })
 
@@ -137,7 +151,7 @@ describe('test Flagship with custom config', () => {
 
     expect(infoLog).toBeCalledTimes(1)
     expect(infoLog).toBeCalledWith(
-      sprintf(SDK_STARTED_INFO, version),
+      sprintf(SDK_STARTED_INFO, SDK_INFO.version),
       PROCESS_INITIALIZATION
     )
     expect(instance).toBeInstanceOf(Flagship)
@@ -166,18 +180,18 @@ describe('test Flagship newVisitor', () => {
     const visitorId = 'visitorId'
     const context = { isVip: true }
     const predefinedContext = {
-      fs_client: SDK_LANGUAGE.name,
-      fs_version: SDK_VERSION,
+      fs_client: SDK_INFO.name,
+      fs_version: SDK_INFO.version,
       fs_users: visitorId
     }
-    expect(addHit).toBeCalledTimes(1)
+    // expect(addHit).toBeCalledTimes(1)
     let visitor = Flagship.newVisitor({ visitorId, context })
 
     expect(visitor?.visitorId).toBe(visitorId)
     expect(visitor?.context).toEqual({ ...context, ...predefinedContext })
     expect(Flagship.getVisitor()).toBeUndefined()
 
-    expect(addHit).toBeCalledTimes(2)
+    expect(addHit).toBeCalledTimes(1)
 
     const visitorNull = Flagship.newVisitor({ visitorId: getNull(), context })
     expect(visitorNull).toBeInstanceOf(Visitor)

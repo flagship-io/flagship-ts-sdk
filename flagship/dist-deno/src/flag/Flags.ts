@@ -1,6 +1,7 @@
+import { IFlagMetadata } from '../types.ts'
 import { hasSameType } from '../utils/utils.ts'
 import { VisitorDelegate } from '../visitor/index.ts'
-import { FlagMetadata, IFlagMetadata } from './FlagMetadata.ts'
+import { FlagMetadata } from './FlagMetadata.ts'
 
 export type FlagValue<S> = {
   defaultValue: S,
@@ -29,56 +30,56 @@ export interface IFlag<T>{
 }
 
 export class Flag<T> implements IFlag<T> {
-    private _visitor:VisitorDelegate
-    private _key:string
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private _defaultValue:any
-    constructor (param: {key:string, visitor:VisitorDelegate, defaultValue:T}) {
-      const { key, visitor, defaultValue } = param
-      this._key = key
-      this._visitor = visitor
-      this._defaultValue = defaultValue
+  private _visitor:VisitorDelegate
+  private _key:string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private _defaultValue:any
+  constructor (param: {key:string, visitor:VisitorDelegate, defaultValue:T}) {
+    const { key, visitor, defaultValue } = param
+    this._key = key
+    this._visitor = visitor
+    this._defaultValue = defaultValue
+  }
+
+  exists ():boolean {
+    const flagDTO = this._visitor.flagsData.get(this._key)
+    return !!(flagDTO?.campaignId && flagDTO.variationId && flagDTO.variationGroupId)
+  }
+
+  get metadata ():IFlagMetadata {
+    const flagDTO = this._visitor.flagsData.get(this._key)
+    const metadata = new FlagMetadata({
+      campaignId: flagDTO?.campaignId || '',
+      variationGroupId: flagDTO?.variationGroupId || '',
+      variationId: flagDTO?.variationId || '',
+      isReference: !!flagDTO?.isReference,
+      campaignType: flagDTO?.campaignType || '',
+      slug: flagDTO?.slug
+    })
+
+    if (!flagDTO) {
+      return metadata
     }
 
-    exists ():boolean {
-      const flagDTO = this._visitor.flagsData.get(this._key)
-      return !!(flagDTO?.campaignId && flagDTO.variationId && flagDTO.variationGroupId)
-    }
+    return this._visitor.getFlagMetadata({
+      metadata,
+      hasSameType: flagDTO.value === null || this._defaultValue === null || this._defaultValue === undefined || hasSameType(flagDTO.value, this._defaultValue),
+      key: flagDTO.key
+    })
+  }
 
-    get metadata ():IFlagMetadata {
-      const flagDTO = this._visitor.flagsData.get(this._key)
-      const metadata = new FlagMetadata({
-        campaignId: flagDTO?.campaignId || '',
-        variationGroupId: flagDTO?.variationGroupId || '',
-        variationId: flagDTO?.variationId || '',
-        isReference: !!flagDTO?.isReference,
-        campaignType: flagDTO?.campaignType || '',
-        slug: flagDTO?.slug
-      })
+  userExposed ():Promise<void> {
+    const flagDTO = this._visitor.flagsData.get(this._key)
+    return this._visitor.userExposed({ key: this._key, flag: flagDTO, defaultValue: this._defaultValue })
+  }
 
-      if (!flagDTO) {
-        return metadata
-      }
-
-      return this._visitor.getFlagMetadata({
-        metadata: metadata,
-        hasSameType: !flagDTO.value || hasSameType(flagDTO.value, this._defaultValue),
-        key: flagDTO.key
-      })
-    }
-
-    userExposed ():Promise<void> {
-      const flagDTO = this._visitor.flagsData.get(this._key)
-      return this._visitor.userExposed({ key: this._key, flag: flagDTO, defaultValue: this._defaultValue })
-    }
-
-    getValue (userExposed = true) : T {
-      const flagDTO = this._visitor.flagsData.get(this._key)
-      return this._visitor.getFlagValue({
-        key: this._key,
-        defaultValue: this._defaultValue,
-        flag: flagDTO,
-        userExposed
-      })
-    }
+  getValue (userExposed = true) : T {
+    const flagDTO = this._visitor.flagsData.get(this._key)
+    return this._visitor.getFlagValue({
+      key: this._key,
+      defaultValue: this._defaultValue,
+      flag: flagDTO,
+      userExposed
+    })
+  }
 }

@@ -12,14 +12,14 @@ import {
   USER_LANGUAGE,
   QT_API_ITEM
 } from '../enum/FlagshipConstant.ts'
-import { HitType } from '../enum/HitType.ts'
-import { primitive } from '../types.ts'
+import { InternalHitType, primitive } from '../types.ts'
 import { logError, sprintf } from '../utils/utils.ts'
 
 export interface IHitAbstract{
-  visitorId?:string
+  visitorId:string
+  anonymousId?: string|null
   ds?: string
-  type: HitType|'BATCH'
+  type: InternalHitType
   userIp?: string
   screenResolution?: string
   locale?: string
@@ -30,9 +30,9 @@ export interface IHitAbstract{
 export abstract class HitAbstract implements IHitAbstract {
   private _visitorId!: string;
   private _config!: IFlagshipConfig;
-  protected _type!: HitType|'BATCH';
+  protected _type!: InternalHitType;
   private _ds!: string;
-  private _anonymousId! : string|null;
+  private _anonymousId? : string|null;
   private _userIp! : string;
   private _screenResolution! : string;
   private _locale! : string;
@@ -80,11 +80,11 @@ export abstract class HitAbstract implements IHitAbstract {
     this._userIp = v
   }
 
-  public get anonymousId () : string|null {
+  public get anonymousId () : string|undefined|null {
     return this._anonymousId
   }
 
-  public set anonymousId (v : string|null) {
+  public set anonymousId (v : string|undefined|null) {
     this._anonymousId = v
   }
 
@@ -104,7 +104,7 @@ export abstract class HitAbstract implements IHitAbstract {
     this._ds = v
   }
 
-  public get type (): HitType|'BATCH' {
+  public get type (): InternalHitType {
     return this._type
   }
 
@@ -125,7 +125,7 @@ export abstract class HitAbstract implements IHitAbstract {
   }
 
   protected constructor (hit: Omit<IHitAbstract, 'createdAt'>) {
-    const { type, userIp, screenResolution, locale, sessionNumber } = hit
+    const { type, userIp, screenResolution, locale, sessionNumber, visitorId, anonymousId } = hit
     this._type = type
     if (userIp) {
       this.userIp = userIp
@@ -139,7 +139,8 @@ export abstract class HitAbstract implements IHitAbstract {
     if (sessionNumber) {
       this.sessionNumber = sessionNumber
     }
-    this._anonymousId = null
+    this.visitorId = visitorId
+    this._anonymousId = anonymousId || null
     this.createdAt = Date.now()
   }
 

@@ -1,11 +1,11 @@
 import { CampaignDTO, FlagDTO } from '../index.ts'
 import { FlagshipStatus, METHOD_DEACTIVATED_ERROR, METHOD_DEACTIVATED_SEND_CONSENT_ERROR } from '../enum/index.ts'
-import { IHit, modificationsRequested, primitive } from '../types.ts'
+import { IFlagMetadata, IHit, modificationsRequested, primitive } from '../types.ts'
 import { logError, sprintf } from '../utils/utils.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
 import { BatchDTO } from '../hit/Batch.ts'
-import { FlagMetadata, IFlagMetadata } from '../flag/FlagMetadata.ts'
+import { FlagMetadata } from '../flag/FlagMetadata.ts'
 
 export class PanicStrategy extends DefaultStrategy {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -8,7 +8,7 @@ import { Mock } from 'jest-mock'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { Visitor } from '../../src/visitor/Visitor'
 import { HitType, FlagDTO } from '../../src'
-import { EMIT_READY, SDK_LANGUAGE, SDK_VERSION } from '../../src/enum'
+import { EMIT_READY, SDK_INFO } from '../../src/enum'
 import { CampaignDTO } from '../../src/decision/api/models'
 import { IFlag } from '../../src/flag/Flags'
 
@@ -44,8 +44,8 @@ describe('test visitor', () => {
   const visitor = new Visitor(visitorDelegate)
 
   const predefinedContext = {
-    fs_client: SDK_LANGUAGE.name,
-    fs_version: SDK_VERSION,
+    fs_client: SDK_INFO.name,
+    fs_version: SDK_INFO.version,
     fs_users: visitor.visitorId
   }
   const newVisitorId = 'newVisitorId'

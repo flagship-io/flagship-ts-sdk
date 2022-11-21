@@ -1,26 +1,22 @@
 import { FlagDTO } from '../index'
-import { HitAbstract, HitShape } from '../hit/index'
-import { primitive, modificationsRequested, IHit, VisitorCacheDTO } from '../types'
+import { Event, HitAbstract, HitShape } from '../hit/index'
+import { primitive, modificationsRequested, IHit, VisitorCacheDTO, IFlagMetadata } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
 import { CampaignDTO } from '../decision/api/models'
-import { ITrackingManager } from '../api/TrackingManagerAbstract'
 import { IDecisionManager } from '../decision/IDecisionManager'
 import { logError, logInfo, sprintf } from '../utils/utils'
-import { SDK_APP, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index'
-
+import { FS_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index'
 import { BatchDTO } from '../hit/Batch'
-
-import { IFlagMetadata } from '../flag/FlagMetadata'
-import { Consent } from '../hit/Consent'
-
+import { EventCategory } from '../hit/Monitoring'
+import { ITrackingManager } from '../api/ITrackingManager'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheDTO'
 export const VISITOR_ID_MISMATCH_ERROR = 'Visitor ID mismatch: {0} vs {1}'
-export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'flagsData'|'modifications'|'context'|'hasConsented'|'getModificationsArray'|'getFlagsDataArray'|'getFlag'> {
-  protected visitor:VisitorAbstract;
+export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'anonymousId'|'flagsData'|'modifications'|'context'|'hasConsented'|'getModificationsArray'|'getFlagsDataArray'|'getFlag'> {
+  protected visitor:VisitorAbstract
 
   protected get configManager ():IConfigManager {
     return this.visitor.configManager
@@ -70,10 +66,12 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       return
     }
 
-    const consentHit = new Consent({
-      visitorConsent: hasConsented,
+    const consentHit = new Event({
       visitorId: this.visitor.visitorId,
-      anonymousId: this.visitor.anonymousId as string
+      anonymousId: this.visitor.anonymousId,
+      label: `${SDK_INFO.name}:${this.visitor.hasConsented}`,
+      action: FS_CONSENT,
+      category: EventCategory.USER_ENGAGEMENT
     })
 
     consentHit.ds = SDK_APP

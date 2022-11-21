@@ -4,12 +4,15 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "@flagship.io/js-sdk": "^3.0.7"
+    "@flagship.io/js-sdk": "^3.0.7",
+    "ioredis": "^5.2.3"
   },
   "scripts": {
     "build": "babel node -d dist",
     "start": "babel node -d dist && node dist/DemoFlagship.js",
-    "qa:cache": "babel node -d dist && node dist/cacheQA.js"
+    "qa:cache": "babel node -d dist && node dist/cacheQA.js",
+    "qa:report": "babel node -d dist && node dist/qa-reporting.js",
+    "qa:reportXP": "babel node -d dist && node dist/qa-reporting-xp.js"
   },
   "devDependencies": {
     "@babel/cli": "^7.14.5",

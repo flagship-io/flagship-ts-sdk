@@ -30,7 +30,7 @@ describe('Test DefaultHitCache', () => {
   const visitorData : HitCacheDTO = {
     version: HIT_CACHE_VERSION,
     data: {
-      visitorId: visitorId,
+      visitorId,
       anonymousId: null,
       type: HitType.SCREEN,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

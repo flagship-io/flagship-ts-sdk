@@ -32,16 +32,16 @@ export interface ITransaction extends IHitAbstract{
 }
 
 export class Transaction extends HitAbstract implements ITransaction {
-  private _transactionId!: string;
-  private _affiliation!: string;
-  private _taxes!: number;
-  private _currency!: string;
-  private _couponCode!: string;
-  private _itemCount!: number;
-  private _shippingMethod!: string;
-  private _paymentMethod!: string;
-  private _totalRevenue!: number;
-  private _shippingCosts!: number;
+  private _transactionId!: string
+  private _affiliation!: string
+  private _taxes!: number
+  private _currency!: string
+  private _couponCode!: string
+  private _itemCount!: number
+  private _shippingMethod!: string
+  private _paymentMethod!: string
+  private _totalRevenue!: number
+  private _shippingCosts!: number
 
   public get transactionId (): string {
     return this._transactionId
@@ -154,13 +154,15 @@ export class Transaction extends HitAbstract implements ITransaction {
     this._shippingCosts = v
   }
 
-  public constructor (transaction: Omit<ITransaction, 'type'|'createdAt'>) {
+  public constructor (param: Omit<ITransaction, 'type'|'createdAt'>) {
     super({
       type: HitType.TRANSACTION,
-      userIp: transaction.userIp,
-      screenResolution: transaction.screenResolution,
-      locale: transaction.locale,
-      sessionNumber: transaction.sessionNumber
+      userIp: param.userIp,
+      screenResolution: param.screenResolution,
+      locale: param.locale,
+      sessionNumber: param.sessionNumber,
+      visitorId: param.visitorId,
+      anonymousId: param.anonymousId
     })
     const {
       transactionId,
@@ -169,7 +171,7 @@ export class Transaction extends HitAbstract implements ITransaction {
       itemCount, shippingMethod,
       paymentMethod,
       totalRevenue, shippingCosts
-    } = transaction
+    } = param
     this.transactionId = transactionId
     this.affiliation = affiliation
     if (taxes) {

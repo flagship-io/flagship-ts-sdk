@@ -1,9 +1,12 @@
+import { version } from '../sdkVersion'
+
 /**
  * SDK language
  */
 
-export const SDK_LANGUAGE = {
-  name: 'TypeScript'
+export const SDK_INFO = {
+  name: 'TypeScript',
+  version
 }
 
 /**
@@ -14,8 +17,12 @@ export const REQUEST_TIME_OUT = 2
 export const DEFAULT_DEDUPLICATION_TIME = 2.5
 export const DEFAULT_POLLING_INTERVAL = 1
 
-export const DEFAULT_TIME_INTERVAL = 10
-export const DEFAULT_BATCH_LENGTH = 20
+export const DEFAULT_SERVER_TIME_INTERVAL = 10
+export const DEFAULT_SERVER_POOL_MAX_SIZE = 100
+
+export const DEFAULT_BROWSER_TIME_INTERVAL = 5
+export const DEFAULT_BROWSER_POOL_MAX_SIZE = 10
+
 export const BATCH_MAX_SIZE = 2500000
 
 /**
@@ -23,7 +30,7 @@ export const BATCH_MAX_SIZE = 2500000
  */
 export const BASE_API_URL = 'https://decision.flagship.io/v2/'
 export const HIT_API_URL = 'https://ariane.abtasty.com'
-export const HIT_EVENT_URL = 'https://staging-events.flagship.io/v1' // 'https://events.flagship.io/v2'
+export const HIT_EVENT_URL = 'https://events.flagship.io'
 export const BUCKETING_API_URL = 'https://cdn.flagship.io/{0}/bucketing.json'
 export const BUCKETING_API_CONTEXT_URL = 'https://decision.flagship.io/v2/{0}/events'
 export const HIT_CONSENT_URL = 'https://ariane.abtasty.com'
@@ -33,14 +40,16 @@ export const URL_ACTIVATE_MODIFICATION = 'activate'
 export const EXPOSE_ALL_KEYS = 'exposeAllKeys'
 export const SEND_CONTEXT_EVENT = 'sendContextEvent'
 
+export const FS_CONSENT = 'fs_consent'
+
 /**
  * SDK version
  */
-export const SDK_VERSION = 'v3'
+export const SDK_VERSION = version
 
 export const VISITOR_CACHE_VERSION = 1
 export const HIT_CACHE_VERSION = 1
-export const DEFAULT_HIT_CACHE_TIME = 14400000
+export const DEFAULT_HIT_CACHE_TIME_MS = 14400000
 
 /**
  * Message Info
@@ -95,19 +104,26 @@ export const METHOD_DEACTIVATED_BUCKETING_ERROR = 'Method {0} is deactivated on 
 export const FLAGSHIP_VISITOR_NOT_AUTHENTICATE = 'Visitor is not authenticated yet'
 export const PREDEFINED_CONTEXT_TYPE_ERROR = 'Predefined Context {0} must be type of {1}'
 export const METHOD_DEACTIVATED_SEND_CONSENT_ERROR = 'Send consent hit is deactivated while SDK status is: {1}.'
-export const HIT_ADDED_IN_QUEUE = 'The hit has been added to the pool queue : {0}'
+export const HIT_ADDED_IN_QUEUE = 'The HIT has been added to the pool queue : {0}'
+export const ACTIVATE_ADDED_IN_QUEUE = 'The ACTIVATE has been added to the pool queue : {0}'
 export const ADD_HIT = 'ADD HIT'
+export const ADD_ACTIVATE = 'ADD ACTIVATE'
 export const BATCH_SENT_SUCCESS = 'Batch hit has been sent : {0}'
 export const ACTIVATE_SENT_SUCCESS = 'Activate hit has been sent : {0}'
 export const SEND_BATCH = 'SEND BATCH'
 export const SEND_ACTIVATE = 'SEND ACTIVATE'
+export const SEND_SEGMENT_HIT = 'SEND SEGMENT HIT'
 export const SEND_HIT = 'SEND HIT'
+export const EVENT_SUFFIX = 'events'
 export const HIT_DATA_CACHED = 'Hit data has been saved into database : {0}'
 export const HIT_DATA_FLUSHED = 'The following hit keys have been flushed from database : {0}'
 export const HIT_SENT_SUCCESS = 'hit has been sent : {0}'
 export const HIT_DATA_LOADED = 'Hits data has been loaded from database: {0}'
-export const NEW_VISITOR_NOT_READY = 'Please start first the SDK in order to create a new Visitor'
-
+export const NEW_VISITOR_NOT_READY = 'You can\'t create a new visitor without first calling the "Flagship.start" method'
+export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
+export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheDTO'
+export const ACTIVATE_BATCH_LENGTH = 5
+export const FLUSH_ALL_HITS = 'All hits have been flushed from database'
 // Process
 export const PROCESS = 'process'
 export const PROCESS_INITIALIZATION = 'INITIALIZATION'
@@ -128,12 +144,13 @@ export const PROCESS_LOOKUP_HIT = 'LOOKUP HIT'
 
 // Api items
 
-export const CUSTOMER_ENV_ID_API_ITEM = 'eid'
+export const BATCH = 'batch'
+export const CUSTOMER_ENV_ID_API_ITEM = 'cid'
 export const CUSTOMER_ENV_ID_API_ACTIVATE = 'cid'
 export const CUSTOMER_UID = 'cuid'
 export const ANONYMOUS_ID = 'aid'
 export const VISITOR_ID_API_ITEM = 'vid'
-export const VARIATION_GROUP_ID_API_ITEM = 'vgid'
+export const VARIATION_GROUP_ID_API_ITEM = 'caid'
 export const VARIATION_GROUP_ID_API_ITEM_ACTIVATE = 'caid'
 export const VISITOR_CONSENT = 'vc'
 export const CAMPAIGN_ID = 'caid'
@@ -159,6 +176,7 @@ export const IC_API_ITEM = 'ic'
 export const IP_API_ITEM = 'ip'
 export const IQ_API_ITEM = 'iq'
 export const IV_API_ITEM = 'iv'
+export const S_API_ITEM = 's'
 export const EVENT_CATEGORY_API_ITEM = 'ec'
 export const EVENT_ACTION_API_ITEM = 'ea'
 export const EVENT_LABEL_API_ITEM = 'el'

@@ -11,11 +11,5 @@ export type { ITransaction } from './Transaction'
 export { HitAbstract } from './HitAbstract'
 export type { IHitAbstract } from './HitAbstract'
 export type { HitShape } from './Legacy'
-export type { IConsent } from './Consent'
-export { Consent } from './Consent'
-
-export { Campaign } from './Campaign'
-export type { ICampaign } from './Campaign'
-
 export { Segment } from './Segment'
 export type { ISegment } from './Segment'
