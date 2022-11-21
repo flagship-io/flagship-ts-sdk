@@ -1,5 +1,4 @@
-// import { DecisionMode, EventCategory, Flagship, HitType } from '../../'
-// import { BatchStrategy } from '../../dist/enum/BatchStrategy'
+// import { DecisionMode, EventCategory, Flagship, HitType, BatchStrategy } from '../../'
 
 const ENV_ID = ''
 const API_KEY = ''
@@ -9,14 +8,10 @@ const btnAction1 = document.getElementById('btn-action-1')
 btnAction1.addEventListener('click', async () => {
 // Initialize the SDK and send Initialize monitoring hit
   Flagship.start(ENV_ID, API_KEY, {
-    // decisionMode: DecisionMode.BUCKETING,
-    fetchNow: false,
-    timeout: 15,
-    pollingInterval: 5,
     trackingMangerConfig: {
-      // batchStrategy: 3,
-      batchLength: 5,
-      batchIntervals: 30
+      // cacheStrategy: CacheStrategy.PERIODIC_CACHING,
+      poolMaxSize: 5,
+      batchIntervals: 10
     }
   })
 })
@@ -44,11 +39,16 @@ btnAction2.addEventListener('click', async () => {
   console.log('flag value', value)
 
   // Send a screen hit
-  await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 1' })
-  await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 2' })
-  await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 3' })
-  await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 4' })
-  await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 5' })
+
+  for (let index = 0; index < 25; index++) {
+    await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen ' + index })
+  }
+
+  // await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 1' })
+  // await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 2' })
+  // await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 3' })
+  // await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 4' })
+  // await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'Screen 5' })
 
   // // send a page hit
   // await visitor.sendHit({ type: HitType.PAGE, documentLocation: 'home page' })

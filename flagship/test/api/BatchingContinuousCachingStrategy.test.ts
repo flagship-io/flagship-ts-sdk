@@ -16,6 +16,10 @@ describe('Test BatchingContinuousCachingStrategy', () => {
   const visitorId = 'visitorId'
   it('test addHit method', async () => {
     const httpClient = new HttpClient()
+
+    const postAsync = jest.spyOn(httpClient, 'postAsync')
+    postAsync.mockRejectedValue('Error')
+
     const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
     const hitsPoolQueue = new Map<string, HitAbstract>()
     const activatePoolQueue = new Map<string, Activate>()
@@ -44,8 +48,6 @@ describe('Test BatchingContinuousCachingStrategy', () => {
       category: EventCategory.USER_ENGAGEMENT
     })
 
-    consentHit.visitorId = visitorId
-
     await batchingStrategy.addHit(consentHit)
 
     expect(hitsPoolQueue.size).toBe(2)
@@ -57,29 +59,56 @@ describe('Test BatchingContinuousCachingStrategy', () => {
       visitorId
     })
 
-    pageHit.visitorId = visitorId
-
     await batchingStrategy.addHit(pageHit)
 
     expect(hitsPoolQueue.size).toBe(3)
     expect(cacheHit).toBeCalledTimes(3)
     expect(cacheHit).toHaveBeenNthCalledWith(3, new Map().set(expect.stringContaining(visitorId), pageHit))
 
+    const activateHit = new Activate({
+      variationGroupId: 'varGroupId',
+      variationId: 'varId',
+      visitorId
+    })
+    activateHit.config = config
+
+    await batchingStrategy.activateFlag(activateHit)
+
+    expect(hitsPoolQueue.size).toBe(3)
+    expect(activatePoolQueue.size).toBe(1)
+    expect(cacheHit).toBeCalledTimes(4)
+    expect(cacheHit).toHaveBeenNthCalledWith(4, new Map().set(expect.stringContaining(visitorId), activateHit))
+
+    const newVisitorId = 'newVisitor'
     const consentHitFalse1 = new Event({
-      visitorId,
+      visitorId: newVisitorId,
       label: `${SDK_INFO.name}:${false}`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT
     })
 
-    consentHitFalse1.visitorId = 'newVisitor'
-
     await batchingStrategy.addHit(consentHitFalse1)
 
     expect(hitsPoolQueue.size).toBe(4)
-    expect(cacheHit).toBeCalledTimes(4)
-    expect(cacheHit).toHaveBeenNthCalledWith(4, new Map().set(expect.stringContaining('newVisitor'), consentHitFalse1))
+    expect(cacheHit).toBeCalledTimes(5)
+    expect(cacheHit).toHaveBeenNthCalledWith(5, new Map().set(expect.stringContaining('newVisitor'), consentHitFalse1))
     expect(flushHits).toBeCalledTimes(0)
+    expect(activatePoolQueue.size).toBe(1)
+
+    const activateHit2 = new Activate({
+      variationGroupId: 'varGroupId',
+      variationId: 'varId',
+      visitorId: newVisitorId
+    })
+    activateHit2.config = config
+
+    await batchingStrategy.activateFlag(activateHit2)
+
+    expect(hitsPoolQueue.size).toBe(4)
+    expect(cacheHit).toBeCalledTimes(6)
+    expect(cacheHit).toHaveBeenNthCalledWith(6, new Map().set(expect.stringContaining(newVisitorId), activateHit2))
+    expect(flushHits).toBeCalledTimes(0)
+    expect(activatePoolQueue.size).toBe(2)
 
     const consentHitFalse2 = new Event({
       visitorId,
@@ -88,13 +117,12 @@ describe('Test BatchingContinuousCachingStrategy', () => {
       category: EventCategory.USER_ENGAGEMENT
     })
 
-    consentHitFalse2.visitorId = visitorId
-
     await batchingStrategy.addHit(consentHitFalse2)
 
     expect(hitsPoolQueue.size).toBe(3)
-    expect(cacheHit).toBeCalledTimes(5)
-    expect(cacheHit).toHaveBeenNthCalledWith(5, new Map().set(expect.stringContaining(visitorId), consentHitFalse2))
+    expect(activatePoolQueue.size).toBe(1)
+    expect(cacheHit).toBeCalledTimes(7)
+    expect(cacheHit).toHaveBeenNthCalledWith(7, new Map().set(expect.stringContaining(visitorId), consentHitFalse2))
     expect(flushHits).toBeCalledTimes(1)
     expect(flushHits).toHaveBeenNthCalledWith(1, expect.arrayContaining([expect.stringContaining(visitorId)]))
   })
@@ -527,10 +555,12 @@ describe('test cacheHit and flushHits methods', () => {
   const flushHits:Mock<Promise<void>, [hitKeys: string[]]> = jest.fn()
   const lookupHits:Mock<Promise<Record<string, HitCacheDTO>>, []> = jest.fn()
   const cacheHit:Mock<Promise<void>, [Record<string, HitCacheDTO>]> = jest.fn()
+  const flushAllHits:Mock<Promise<void>, []> = jest.fn()
   const hitCacheImplementation = {
     cacheHit,
     lookupHits,
-    flushHits
+    flushHits,
+    flushAllHits
   }
   config.hitCacheImplementation = hitCacheImplementation
   const logManager = new FlagshipLogManager()
@@ -604,6 +634,20 @@ describe('test cacheHit and flushHits methods', () => {
     await batchingStrategy.flushHits(keys)
     expect(flushHits).toBeCalledTimes(1)
     expect(flushHits).toBeCalledWith(keys)
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(error, PROCESS_FLUSH_HIT)
+  })
+
+  it('test flushAllHits method', async () => {
+    await batchingStrategy.flushAllHits()
+    expect(flushAllHits).toBeCalledTimes(1)
+  })
+
+  it('test flushAllHits method throw exception', async () => {
+    const error = 'message'
+    flushAllHits.mockRejectedValue(error)
+    await batchingStrategy.flushAllHits()
+    expect(flushAllHits).toBeCalledTimes(1)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(error, PROCESS_FLUSH_HIT)
   })

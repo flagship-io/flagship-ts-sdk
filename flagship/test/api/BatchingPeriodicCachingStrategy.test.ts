@@ -17,6 +17,8 @@ describe('Test BatchingPeriodicCachingStrategy', () => {
   const visitorId = 'visitorId'
   it('test addHit method', async () => {
     const httpClient = new HttpClient()
+    const postAsync = jest.spyOn(httpClient, 'postAsync')
+    postAsync.mockRejectedValue('Error')
     const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
     const hitsPoolQueue = new Map<string, HitAbstract>()
     const activatePoolQueue = new Map<string, Activate>()
@@ -25,19 +27,33 @@ describe('Test BatchingPeriodicCachingStrategy', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const flushAllHits = jest.spyOn(batchingStrategy as any, 'flushAllHits')
+
+    const pageHit1 = new Page({
+      documentLocation: 'http://localhost',
+      visitorId
+    })
+
+    await batchingStrategy.addHit(pageHit1)
+
+    expect(hitsPoolQueue.size).toBe(1)
+    expect(cacheHit).toBeCalledTimes(0)
+
     const activateHit = new Activate({
       variationGroupId: 'variationGrID',
       variationId: 'campaignID',
       visitorId
     })
 
-    activateHit.visitorId = visitorId
     activateHit.config = config
 
-    await batchingStrategy.addHit(activateHit)
+    await batchingStrategy.activateFlag(activateHit)
 
     expect(hitsPoolQueue.size).toBe(1)
+    expect(activatePoolQueue.size).toBe(1)
     expect(cacheHit).toBeCalledTimes(0)
+    expect(flushAllHits).toBeCalledTimes(0)
 
     const consentHit = new Event({
       visitorId,
@@ -52,6 +68,8 @@ describe('Test BatchingPeriodicCachingStrategy', () => {
 
     expect(hitsPoolQueue.size).toBe(2)
     expect(cacheHit).toBeCalledTimes(0)
+    expect(flushAllHits).toBeCalledTimes(0)
+    expect(activatePoolQueue.size).toBe(1)
 
     const pageHit = new Page({
       documentLocation: 'http://127.0.0.1:5500',
@@ -64,21 +82,23 @@ describe('Test BatchingPeriodicCachingStrategy', () => {
 
     expect(hitsPoolQueue.size).toBe(3)
     expect(cacheHit).toBeCalledTimes(0)
+    expect(flushAllHits).toBeCalledTimes(0)
+    expect(activatePoolQueue.size).toBe(1)
 
     const consentHitFalse1 = new Event({
-      visitorId,
+      visitorId: 'newVisitor',
       label: `${SDK_INFO.name}:${false}`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT
     })
 
-    consentHitFalse1.visitorId = 'newVisitor'
-
     await batchingStrategy.addHit(consentHitFalse1)
 
     expect(hitsPoolQueue.size).toBe(4)
     expect(cacheHit).toBeCalledTimes(1)
-    expect(cacheHit).toBeCalledWith(hitsPoolQueue)
+    expect(cacheHit).toBeCalledTimes(1)
+    expect(flushAllHits).toBeCalledTimes(1)
+    expect(activatePoolQueue.size).toBe(1)
 
     const consentHitFalse2 = new Event({
       visitorId,
@@ -90,10 +110,10 @@ describe('Test BatchingPeriodicCachingStrategy', () => {
     consentHitFalse2.visitorId = visitorId
 
     await batchingStrategy.addHit(consentHitFalse2)
-
+    expect(activatePoolQueue.size).toBe(0)
     expect(hitsPoolQueue.size).toBe(3)
     expect(cacheHit).toBeCalledTimes(2)
-    expect(cacheHit).toBeCalledWith(hitsPoolQueue)
+    expect(flushAllHits).toBeCalledTimes(2)
   })
 })
 
@@ -126,6 +146,9 @@ describe('test sendBatch method', () => {
   const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const flushAllHits = jest.spyOn(batchingStrategy as any, 'flushAllHits')
 
   const visitorId = 'visitorId'
 
@@ -180,7 +203,7 @@ describe('test sendBatch method', () => {
     })
 
     expect(flushHits).toBeCalledTimes(0)
-
+    expect(flushAllHits).toBeCalledTimes(1)
     expect(cacheHit).toBeCalledTimes(1)
     expect(cacheHit).toHaveBeenNthCalledWith(1, hitsPoolQueue)
 
@@ -231,6 +254,7 @@ describe('test sendBatch method', () => {
     })
 
     expect(flushHits).toBeCalledTimes(0)
+    expect(flushAllHits).toBeCalledTimes(1)
     expect(cacheHit).toBeCalledTimes(1)
     expect(cacheHit).toHaveBeenNthCalledWith(1, hitsPoolQueue)
   })
@@ -287,7 +311,7 @@ describe('test sendBatch method', () => {
       body: batch.toApiKeys(),
       timeout: config.timeout
     })
-    expect(flushHits).toBeCalledTimes(0)
+    expect(flushAllHits).toBeCalledTimes(1)
     expect(cacheHit).toBeCalledTimes(1)
     expect(hitsPoolQueue.size).toBe(1)
     expect(logError).toBeCalledTimes(1)

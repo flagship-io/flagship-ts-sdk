@@ -1,11 +1,12 @@
 import { IFlagshipConfig } from '../config/index'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
-import { HIT_CACHE_VERSION, HIT_DATA_CACHED, HIT_DATA_FLUSHED, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT } from '../enum/index'
+import { BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, DEFAULT_HIT_CACHE_TIME_MS, FLUSH_ALL_HITS, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HIT_CACHE_VERSION, HIT_DATA_CACHED, HIT_DATA_FLUSHED, HIT_EVENT_URL, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_APP, SEND_BATCH } from '../enum/index'
 import { Activate } from '../hit/Activate'
+import { Batch } from '../hit/Batch'
 import { HitAbstract } from '../hit/index'
 import { HitCacheDTO } from '../types'
 import { IHttpClient } from '../utils/HttpClient'
-import { logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
+import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
 import { ITrackingManagerCommon } from './ITrackingManagerCommon'
 
 export type SendActivate = {
@@ -47,9 +48,78 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       await this.sendActivate({ activateHitsPool, currentActivate: hit, batchTriggeredBy: BatchTriggeredBy.ActivateLength })
     }
 
-    protected abstract sendActivate (params:SendActivate):Promise<void>
+    protected abstract sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate): Promise<void>
 
-    abstract sendBatch(batchTriggeredBy?:BatchTriggeredBy): Promise<void>
+    async sendBatch (batchTriggeredBy = BatchTriggeredBy.BatchLength): Promise<void> {
+      if (this._activatePoolQueue.size) {
+        const activateHits = Array.from(this._activatePoolQueue.values())
+        this._activatePoolQueue.clear()
+        await this.sendActivate({ activateHitsPool: activateHits, batchTriggeredBy })
+      }
+
+      const batch:Batch = new Batch({ hits: [], ds: SDK_APP })
+      batch.config = this.config
+
+      const hitKeysToRemove:string[] = []
+
+      for (const [key, item] of this._hitsPoolQueue) {
+        if ((Date.now() - item.createdAt) >= DEFAULT_HIT_CACHE_TIME_MS) {
+          hitKeysToRemove.push(key)
+          continue
+        }
+        const batchSize = JSON.stringify(batch).length
+        if (batchSize > BATCH_MAX_SIZE) {
+          break
+        }
+        batch.hits.push(item)
+        hitKeysToRemove.push(key)
+      }
+
+      hitKeysToRemove.forEach(key => {
+        this._hitsPoolQueue.delete(key)
+      })
+
+      if (!batch.hits.length) {
+        return
+      }
+
+      const headers = {
+        [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
+      }
+
+      const requestBody = batch.toApiKeys()
+
+      const now = Date.now()
+      try {
+        await this._httpClient.postAsync(HIT_EVENT_URL, {
+          headers,
+          body: requestBody,
+          timeout: this.config.timeout
+        })
+
+        logDebug(this.config, sprintf(BATCH_SENT_SUCCESS, JSON.stringify({
+          ...requestBody,
+          duration: Date.now() - now,
+          batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
+        })), SEND_BATCH)
+
+        await this.flushHits(hitKeysToRemove)
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error:any) {
+        batch.hits.forEach((hit) => {
+          this._hitsPoolQueue.set(hit.key, hit)
+        })
+
+        logError(this.config, errorFormat(error.message || error, {
+          url: HIT_EVENT_URL,
+          headers,
+          body: requestBody,
+          duration: Date.now() - now,
+          batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
+        }), SEND_BATCH)
+      }
+    }
 
     abstract notConsent(visitorId: string): Promise<void>
 
@@ -94,6 +164,20 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
         await hitCacheImplementation.flushHits(hitKeys)
         logDebug(this.config, sprintf(HIT_DATA_FLUSHED, JSON.stringify(hitKeys)), PROCESS_FLUSH_HIT)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error:any) {
+        logError(this.config, error.message || error, PROCESS_FLUSH_HIT)
+      }
+    }
+
+    public async flushAllHits (): Promise<void> {
+      try {
+        const hitCacheImplementation = this.config.hitCacheImplementation
+        if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.flushAllHits !== 'function') {
+          return
+        }
+        await hitCacheImplementation.flushAllHits()
+        logDebug(this.config, FLUSH_ALL_HITS, PROCESS_FLUSH_HIT)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error:any) {
         logError(this.config, error.message || error, PROCESS_FLUSH_HIT)

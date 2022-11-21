@@ -74,6 +74,9 @@ describe('test DecisionApiConfig', () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       flushHits: function (hitKeys: string[]): Promise<void> {
         throw new Error('Function not implemented.')
+      },
+      flushAllHits: function (): Promise<void> {
+        throw new Error('Function not implemented.')
       }
     }
 
