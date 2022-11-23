@@ -17,6 +17,8 @@ export enum DecisionMode {
    * Flagship SDK mode bucketing
    */
   BUCKETING = 'BUCKETING',
+
+  EDGE = 'EDGE'
 }
 
 export interface IFlagshipConfig {
@@ -93,8 +95,6 @@ export interface IFlagshipConfig {
    */
   initialBucketing?: BucketingDTO
 
-  isLiteClient?: boolean
-
   decisionApiUrl?: string
 
   activateDeduplicationTime?: number
@@ -148,14 +148,6 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _trackingMangerConfig : ITrackingManagerConfig
   private _isLiteClient?: boolean
 
-  public set isLiteClient (v : boolean|undefined) {
-    this._isLiteClient = v
-  }
-
-  public get isLiteClient () {
-    return this._isLiteClient
-  }
-
   public get trackingMangerConfig () : ITrackingManagerConfig {
     return this._trackingMangerConfig
   }
@@ -180,7 +172,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
-      disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig, onLog, isLiteClient
+      disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig, onLog
     } = param
 
     this.initSDKInfo(language, sdkVersion)
@@ -189,7 +181,6 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       this.logManager = logManager
     }
 
-    this.isLiteClient = isLiteClient
     this._trackingMangerConfig = new TrackingManagerConfig(trackingMangerConfig || {})
     this.onLog = onLog
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
