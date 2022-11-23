@@ -24,14 +24,14 @@ export class HttpClient implements IHttpClient {
   private async getResponse (response:Response) {
     const applicationType = response.headers.get('Content-Type')
     const checkJson = applicationType === 'application/json'
-    const bodyString = await response.text()
     let body:Record<string, unknown>|undefined
 
-    if (bodyString && checkJson) {
-      body = JSON.parse(bodyString)
+    if (checkJson && response.ok && response.status !== 204) {
+      body = await response.json()
     }
 
     if (response.status >= 400) {
+      const bodyString = await response.text()
       throw new Error(bodyString || response.statusText)
     }
     const headers:Record<string, string> = {}
