@@ -25,6 +25,8 @@ import { FlagDTO, NewVisitor, primitive } from '../types'
 import { CampaignDTO } from '../decision/api/models'
 import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
+import { EdgeManage } from '../decision/EdgeManager'
+import { EdgeConfig } from '../config/EdgeConfig'
 
 export class Flagship {
   // eslint-disable-next-line no-use-before-define
@@ -62,7 +64,7 @@ export class Flagship {
     this._status = status
     const statusChanged = this.getConfig().statusChangedCallback
 
-    if (!this.getConfig().isLiteClient) {
+    if (this.getConfig().decisionMode !== DecisionMode.EDGE) {
       if (status === FlagshipStatus.READY) {
         this.configManager?.trackingManager?.startBatchingLoop()
       } else {
@@ -122,10 +124,16 @@ export class Flagship {
       return config
     }
     let newConfig: FlagshipConfig
-    if (config?.decisionMode === DecisionMode.BUCKETING) {
-      newConfig = new BucketingConfig(config)
-    } else {
-      newConfig = new DecisionApiConfig(config)
+    switch (config?.decisionMode) {
+      case DecisionMode.BUCKETING:
+        newConfig = new BucketingConfig(config)
+        break
+      case DecisionMode.EDGE:
+        newConfig = new EdgeConfig(config)
+        break
+      default:
+        newConfig = new DecisionApiConfig(config)
+        break
     }
     return newConfig
   }
@@ -135,20 +143,26 @@ export class Flagship {
     const setStatus = (status: FlagshipStatus) => {
       flagship.setStatus(status)
     }
-    if (config.decisionMode === DecisionMode.BUCKETING || config.isLiteClient) {
-      decisionManager = new BucketingManager(httpClient, config, new MurmurHash())
-      const bucketingManager = decisionManager as BucketingManager
-      decisionManager.statusChangedCallback(setStatus)
-      if (!config.isLiteClient) {
-        bucketingManager.startPolling()
-      }
-    } else {
-      decisionManager = new ApiManager(
-        httpClient,
-        config
-      )
-      decisionManager.statusChangedCallback(setStatus)
+
+    switch (config.decisionMode) {
+      case DecisionMode.BUCKETING:
+        decisionManager = new BucketingManager(httpClient, config, new MurmurHash())
+        decisionManager.statusChangedCallback(setStatus);
+        (decisionManager as BucketingManager).startPolling()
+        break
+      case DecisionMode.EDGE:
+        decisionManager = new EdgeManage(httpClient, config, new MurmurHash())
+        decisionManager.statusChangedCallback(setStatus)
+        break
+      default:
+        decisionManager = new ApiManager(
+          httpClient,
+          config
+        )
+        decisionManager.statusChangedCallback(setStatus)
+        break
     }
+
     return decisionManager
   }
 
@@ -176,7 +190,7 @@ export class Flagship {
 
     // check custom logger
     if (!config.onLog && !config.logManager) {
-      config.logManager = new FlagshipLogManager(config.isLiteClient)
+      config.logManager = new FlagshipLogManager(config.decisionMode === DecisionMode.EDGE)
     }
 
     if (!envId || !apiKey) {
@@ -197,7 +211,7 @@ export class Flagship {
 
     let decisionManager = flagship.configManager?.decisionManager
 
-    if (typeof decisionManager === 'object' && decisionManager instanceof BucketingManager && !config.isLiteClient) {
+    if (decisionManager instanceof BucketingManager && config.decisionMode !== DecisionMode.EDGE) {
       decisionManager.stopPolling()
     }
 
@@ -321,7 +335,7 @@ export class Flagship {
 
     this.getInstance()._visitorInstance = !isNewInstance ? visitor : undefined
 
-    if (this.getConfig().fetchNow && !this.getConfig().isLiteClient) {
+    if (this.getConfig().fetchNow && this.getConfig().decisionMode !== DecisionMode.EDGE) {
       visitor.fetchFlags()
     }
     return visitor

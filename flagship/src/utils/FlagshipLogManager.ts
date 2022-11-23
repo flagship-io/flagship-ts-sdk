@@ -19,12 +19,12 @@ export interface IFlagshipLogManager {
 
 export class FlagshipLogManager implements IFlagshipLogManager {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  consoleError: { (...data: any[]): void; (message?: any, ...optionalParams: any[]): void; };
+  consoleError: { (...data: any[]): void; (message?: any, ...optionalParams: any[]): void; }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  consoleWarn: { (...data: any[]): void; (message?: any, ...optionalParams: any[]): void; };
-  constructor (isCloudFlareClient = false) {
-    this.consoleError = isCloudFlareClient ? console.log : console.error
-    this.consoleWarn = isCloudFlareClient ? console.log : console.warn
+  consoleWarn: { (...data: any[]): void; (message?: any, ...optionalParams: any[]): void; }
+  constructor (isEdge = false) {
+    this.consoleError = isEdge ? console.log : console.error
+    this.consoleWarn = isEdge ? console.log : console.warn
   }
 
   emergency (message: string, tag: string): void {
