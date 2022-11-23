@@ -1,6 +1,6 @@
-import { IFlagshipConfig } from '../config/index'
+import { DecisionMode, IFlagshipConfig } from '../config/index'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
-import { BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, DEFAULT_HIT_CACHE_TIME_MS, FLUSH_ALL_HITS, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HIT_CACHE_VERSION, HIT_DATA_CACHED, HIT_DATA_FLUSHED, HIT_EVENT_URL, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_APP, SEND_BATCH } from '../enum/index'
+import { ACTIVATE_ADDED_IN_QUEUE, ADD_ACTIVATE, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, DEFAULT_HIT_CACHE_TIME_MS, FLUSH_ALL_HITS, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HIT_CACHE_VERSION, HIT_DATA_CACHED, HIT_DATA_FLUSHED, HIT_EVENT_URL, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_APP, SEND_BATCH } from '../enum/index'
 import { Activate } from '../hit/Activate'
 import { Batch } from '../hit/Batch'
 import { HitAbstract } from '../hit/index'
@@ -38,14 +38,24 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       const hitKey = `${hit.visitorId}:${uuidV4()}`
       hit.key = hitKey
 
+      if (this.config.decisionMode === DecisionMode.EDGE) {
+        await this.activateFlagEdgeMode(hit)
+        logDebug(this.config, sprintf(ACTIVATE_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_ACTIVATE)
+        return
+      }
+
       let activateHitsPool:Activate[] = []
       if (this._activatePoolQueue.size) {
         activateHitsPool = Array.from(this._activatePoolQueue.values())
       }
-
       this._activatePoolQueue.clear()
 
       await this.sendActivate({ activateHitsPool, currentActivate: hit, batchTriggeredBy: BatchTriggeredBy.ActivateLength })
+    }
+
+    protected async activateFlagEdgeMode (hit: Activate): Promise<void> {
+      this._activatePoolQueue.set(hit.key, hit)
+      await this.cacheHit(new Map<string, HitAbstract>([[hit.key, hit]]))
     }
 
     protected abstract sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate): Promise<void>

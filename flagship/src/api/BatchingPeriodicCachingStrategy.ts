@@ -1,5 +1,6 @@
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 import { ADD_HIT, BASE_API_URL, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_ADDED_IN_QUEUE, HIT_EVENT_URL, HIT_SENT_SUCCESS, SDK_INFO, SEND_ACTIVATE, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../enum/index'
+import { Activate } from '../hit/Activate'
 import { ActivateBatch } from '../hit/ActivateBatch'
 import { Batch } from '../hit/Batch'
 import { HitAbstract, Event } from '../hit/index'
@@ -7,6 +8,11 @@ import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils
 import { BatchingCachingStrategyAbstract, SendActivate } from './BatchingCachingStrategyAbstract'
 
 export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbstract {
+  protected activateFlagEdgeMode (hit: Activate): Promise<void> {
+    this._activatePoolQueue.set(hit.key, hit)
+    return Promise.resolve()
+  }
+
   async addHit (hit: HitAbstract): Promise<void> {
     const hitKey = `${hit.visitorId}:${uuidV4()}`
     hit.key = hitKey
