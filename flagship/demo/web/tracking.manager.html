@@ -27,23 +27,185 @@
           </button>
         </div>
         <div class="col-12 d-flex justify-content-center mt-5">
-          <button class="btn btn-primary" id="btn-action-3">
+          <button class="btn btn-primary" id="btn-action-3">FetchFlags</button>
+        </div>
+        <div class="col-12 d-flex justify-content-center mt-5">
+          <button class="btn btn-primary" id="btn-action-4">Activate</button>
+        </div>
+        <div class="col-12 d-flex justify-content-center mt-5">
+          <button class="btn btn-primary" id="btn-action-5">
             Set consent false
           </button>
         </div>
         <div class="col-12 d-flex justify-content-center mt-5">
-          <button class="btn btn-primary" id="btn-action-4">
+          <button class="btn btn-primary" id="btn-action-6">
             Send 3 hits screen
           </button>
         </div>
         <div class="col-12 d-flex justify-content-center mt-5">
-          <button class="btn btn-primary" id="btn-action-5">
-            Send Reports
+          <button class="btn btn-primary" id="btn-action-7">visitor B</button>
+        </div>
+        <div class="col-12 d-flex justify-content-center mt-5">
+          <button class="btn btn-primary" id="btn-action-8">
+            Flagship.close()
           </button>
         </div>
       </div>
     </div>
     <script src="../../dist/index.browser.js"></script>
+    <script>
+      var bucketing = {
+        campaigns: [
+          {
+            id: "cbf6svh9m27g1fuoinsg",
+            type: "ab",
+            variationGroups: [
+              {
+                id: "cbf6svh9m27g1fuointg",
+                targeting: {
+                  targetingGroups: [
+                    {
+                      targetings: [
+                        {
+                          operator: "EQUALS",
+                          key: "testing_tracking_manager",
+                          value: true,
+                        },
+                      ],
+                    },
+                  ],
+                },
+                variations: [
+                  {
+                    id: "cbf6svh9m27g1fuoinu0",
+                    modifications: {
+                      type: "FLAG",
+                      value: {
+                        my_flag: null,
+                      },
+                    },
+                    allocation: 25,
+                    reference: true,
+                  },
+                  {
+                    id: "cbf6svh9m27g1fuoinug",
+                    modifications: {
+                      type: "TEXT",
+                      value: {
+                        my_flag: "value1",
+                      },
+                    },
+                    allocation: 25,
+                  },
+                  {
+                    id: "cbf6svh9m27g1fuoinv0",
+                    modifications: {
+                      type: "TEXT",
+                      value: {
+                        my_flag: "value3",
+                      },
+                    },
+                    allocation: 25,
+                  },
+                  {
+                    id: "cbf6svh9m27g1fuoinvg",
+                    modifications: {
+                      type: "TEXT",
+                      value: {
+                        my_flag: "value2",
+                      },
+                    },
+                    allocation: 25,
+                  },
+                ],
+              },
+            ],
+            bucketRanges: [
+              {
+                r: [0, 100],
+              },
+            ],
+          },
+          {
+            id: "c7q1lmuru9u05agq3aog",
+            type: "ab",
+            variationGroups: [
+              {
+                id: "c7q1lmuru9u05agq3apg",
+                targeting: {
+                  targetingGroups: [
+                    {
+                      targetings: [
+                        {
+                          operator: "EQUALS",
+                          key: "fs_all_users",
+                          value: "",
+                        },
+                      ],
+                    },
+                  ],
+                },
+                variations: [
+                  {
+                    id: "c7q1lmuru9u05agq3aq0",
+                    modifications: {
+                      type: "FLAG",
+                      value: {
+                        js: null,
+                        "js-boolean": null,
+                      },
+                    },
+                    allocation: 25,
+                    reference: true,
+                  },
+                  {
+                    id: "c7q1lmuru9u05agq3aqg",
+                    modifications: {
+                      type: "FLAG",
+                      value: {
+                        js: "new-value1",
+                        "js-boolean": false,
+                      },
+                    },
+                    allocation: 25,
+                  },
+                  {
+                    id: "c7q1m8p172r00al7k2sg",
+                    modifications: {
+                      type: "FLAG",
+                      value: {
+                        js: "new-value3",
+                        "js-boolean": true,
+                      },
+                    },
+                    allocation: 25,
+                  },
+                  {
+                    id: "c7q1m8p172r04gs741og",
+                    modifications: {
+                      type: "FLAG",
+                      value: {
+                        js: "new-value2",
+                        "js-boolean": false,
+                      },
+                    },
+                    allocation: 25,
+                  },
+                ],
+              },
+            ],
+            bucketRanges: [
+              {
+                r: [0, 100],
+              },
+            ],
+          },
+        ],
+        accountSettings: {
+          enabledXPC: true,
+        },
+      };
+    </script>
     <script src="./trackingManager.js"></script>
   </body>
 </html>
