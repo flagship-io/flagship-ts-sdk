@@ -1,5 +1,5 @@
-import { IFlagshipConfig } from '../config'
-import { LogLevel } from '../enum'
+import { IFlagshipConfig } from '../config/index'
+import { LogLevel } from '../enum/index'
 import {
   EVENT_ACTION_API_ITEM,
   EVENT_CATEGORY_API_ITEM,

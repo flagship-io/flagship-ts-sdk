@@ -1,5 +1,5 @@
-import { IFlagshipConfig } from '../config'
-import { BATCH, CUSTOMER_ENV_ID_API_ITEM } from '../enum'
+import { IFlagshipConfig } from '../config/index'
+import { BATCH, CUSTOMER_ENV_ID_API_ITEM } from '../enum/index'
 import { Activate } from './Activate'
 
 export class ActivateBatch {

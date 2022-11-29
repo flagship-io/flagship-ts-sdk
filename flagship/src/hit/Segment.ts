@@ -1,4 +1,4 @@
-import { S_API_ITEM } from '../enum'
+import { S_API_ITEM } from '../enum/index'
 import { primitive } from '../types'
 import { HitAbstract, IHitAbstract } from './HitAbstract'
 
