@@ -34,6 +34,11 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
     await this.sendHit(hit)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  addHitInPoolQueue (_hit: HitAbstract): Promise<void> {
+    return Promise.resolve()
+  }
+
   async sendHit (hit:HitAbstract):Promise<void> {
     const headers = {
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON

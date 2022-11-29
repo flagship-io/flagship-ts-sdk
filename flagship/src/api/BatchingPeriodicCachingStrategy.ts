@@ -1,24 +1,14 @@
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
-import { ADD_HIT, BASE_API_URL, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_ADDED_IN_QUEUE, HIT_EVENT_URL, HIT_SENT_SUCCESS, SDK_INFO, SEND_ACTIVATE, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../enum/index'
+import { BASE_API_URL, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_EVENT_URL, HIT_SENT_SUCCESS, SDK_INFO, SEND_ACTIVATE, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../enum/index'
 import { ActivateBatch } from '../hit/ActivateBatch'
 import { Batch } from '../hit/Batch'
 import { HitAbstract, Event } from '../hit/index'
-import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
+import { errorFormat, logDebug, logError, sprintf } from '../utils/utils'
 import { BatchingCachingStrategyAbstract, SendActivate } from './BatchingCachingStrategyAbstract'
 
 export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbstract {
-  async addHit (hit: HitAbstract): Promise<void> {
-    const hitKey = `${hit.visitorId}:${uuidV4()}`
-    hit.key = hitKey
-    this._hitsPoolQueue.set(hitKey, hit)
-    if (hit.type === HitType.EVENT && (hit as Event).action === FS_CONSENT && (hit as Event).label === `${SDK_INFO.name}:false`) {
-      await this.notConsent(hit.visitorId)
-    }
-    logDebug(this.config, sprintf(HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_HIT)
-
-    if (this.config.trackingMangerConfig?.poolMaxSize && this._hitsPoolQueue.size >= this.config.trackingMangerConfig.poolMaxSize) {
-      this.sendBatch()
-    }
+  async addHitInPoolQueue (hit: HitAbstract) {
+    this._hitsPoolQueue.set(hit.key, hit)
   }
 
   async sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate) {
