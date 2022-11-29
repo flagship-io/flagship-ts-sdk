@@ -60,19 +60,6 @@ export function logDebug (config: IFlagshipConfig, message: string, tag: string)
   }
 }
 
-export function logDebug (config: IFlagshipConfig, message: string, tag: string):void {
-  if (
-    !config ||
-    !config.logManager ||
-    typeof config.logManager.debug !== 'function' ||
-    !config.logLevel ||
-    config.logLevel < LogLevel.DEBUG
-  ) {
-    return
-  }
-  config.logManager.debug(message, tag)
-}
-
 export function sleep (ms:number) :Promise<unknown> {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
@@ -91,6 +78,14 @@ export function hasSameType (flagValue:unknown, defaultValue:unknown):boolean {
     return false
   }
   return true
+}
+
+export function uuidV4 (): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (char) {
+    const rand = Math.random() * 16 | 0
+    const value = char === 'x' ? rand : (rand & 0x3 | 0x8)
+    return value.toString(16)
+  })
 }
 
 export function errorFormat (errorMessage:string, errorData?:Record<string, unknown>):string {

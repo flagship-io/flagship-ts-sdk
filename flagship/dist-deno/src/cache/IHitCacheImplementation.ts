@@ -12,4 +12,6 @@ export interface IHitCacheImplementation {
     /**
      * This method will be called to erase the visitor hits cache corresponding to visitor ID from your database. */
     flushHits(hitKeys: string[]): Promise<void>
+
+    flushAllHits(): Promise<void>
 }

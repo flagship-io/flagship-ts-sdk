@@ -1,14 +1,9 @@
 import {
-  DecisionMode,
   EventCategory,
   Flagship,
   FlagshipStatus,
   HitType,
-  Item,
-  LogLevel,
-  Transaction,
-  Modification,
-  DEVICE_LOCALE
+  Transaction
 } from '../../dist-deno/src/mod.ts'
 import { API_KEY, ENV_ID } from './config.js'
 const sleep = (ms:number) => {
@@ -79,7 +74,7 @@ const start = async (visitor:any, index:number) => {
 
     await flag.userExposed()
     // hit type Transaction
-    const transaction = new Transaction({ transactionId: visitor.visitorId, affiliation: 'KPI1' })
+    const transaction = new Transaction({ transactionId: visitor.visitorId, visitorId: 'v', affiliation: 'KPI1' })
     await visitor.sendHit(transaction)
 
     console.log('hit type transaction')

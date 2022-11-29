@@ -13,7 +13,6 @@ import {
   GET_MODIFICATION_KEY_ERROR,
   GET_MODIFICATION_MISSING_ERROR,
   HitType,
-  HIT_SENT_SUCCESS,
   METHOD_DEACTIVATED_BUCKETING_ERROR,
   PREDEFINED_CONTEXT_TYPE_ERROR,
   PROCESS_ACTIVE_MODIFICATION,
@@ -49,8 +48,8 @@ import { CampaignDTO } from '../decision/api/models.ts'
 import { DecisionMode } from '../config/index.ts'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext.ts'
 import { IVisitor, VisitorDelegate } from './index.ts'
-import { Batch, BATCH, BatchDTO } from '../hit/Batch.ts'
 import { FlagMetadata } from '../flag/FlagMetadata.ts'
+import { Activate } from '../hit/Activate.ts'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'
@@ -276,7 +275,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       anonymousId: this.visitor.anonymousId,
       context: this.visitor.context,
       isFromCache: false,
-      delay: 0
+      duration: 0
     }
     try {
       let campaigns = await this.decisionManager.getCampaignsAsync(this.visitor)
@@ -293,12 +292,12 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       this.visitor.campaigns = campaigns
       this.visitor.flagsData = this.decisionManager.getModifications(this.visitor.campaigns)
       this.visitor.emit(EMIT_READY)
-      logData.delay = Date.now() - now
+      logData.duration = Date.now() - now
       logDebug(this.config, sprintf('{0} succeeded {1}', functionName, JSON.stringify(logData)), functionName)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.visitor.emit(EMIT_READY, error)
-      logData.delay = Date.now() - now
+      logData.duration = Date.now() - now
       logError(
         this.config,
         errorFormat(error.message || error, logData),
@@ -357,26 +356,30 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return false
   }
 
-  protected async sendActivate (flag: FlagDTO, functionName = PROCESS_ACTIVE_MODIFICATION):Promise<void> {
-    const now = Date.now()
-    const logData = {
+  protected async sendActivate (flagDto: FlagDTO):Promise<void> {
+    const activateHit = new Activate({
+      variationGroupId: flagDto.variationGroupId,
+      variationId: flagDto.variationId,
       visitorId: this.visitor.visitorId,
-      anonymousId: this.visitor.anonymousId,
-      flag,
-      delay: 0
+      anonymousId: this.visitor.anonymousId as string
+    })
+    activateHit.config = this.config
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { createdAt, ...hitInstanceItem } = activateHit.toObject()
+    if (this.isDeDuplicated(JSON.stringify(hitInstanceItem), this.config.hitDeduplicationTime as number)) {
+      const logData = {
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        flag: flagDto,
+        delay: 0
+      }
+      logDebug(this.config, sprintf('Activate {0} is deduplicated', JSON.stringify(logData)), PROCESS_SEND_HIT)
+      return
     }
-    try {
-      await this.trackingManager.sendActive(this.visitor, flag)
-      this.onUserExposedCallback({ flag, visitor: this.visitor })
-      logData.delay = Date.now() - now
-      logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(logData)), functionName)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      logData.delay = Date.now() - now
-      logError(this.config, errorFormat(error.message || error, logData), functionName)
-      this.cacheHit(flag)
-    }
-    await this.prepareAndSendHit(activateHit, functionName)
+
+    await this.trackingManager.activateFlag(activateHit)
+    this.onUserExposedCallback({ flag: flagDto, visitor: this.visitor })
   }
 
   private async activate (key: string) {
@@ -388,17 +391,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sprintf(ACTIVATE_MODIFICATION_ERROR, key),
         PROCESS_ACTIVE_MODIFICATION
       )
-      return
-    }
-
-    if (this.isDeDuplicated(flag.variationGroupId + this.visitor.visitorId, this.config.activateDeduplicationTime as number)) {
-      const logData = {
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
-        flag,
-        delay: 0
-      }
-      logDebug(this.config, sprintf('Activate {0} is deduplicated', JSON.stringify(logData)), PROCESS_SEND_HIT)
       return
     }
 
@@ -502,10 +494,12 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   private async prepareAndSendHit (hit: IHit | HitShape | HitAbstract, functionName = PROCESS_SEND_HIT) {
     let hitInstance: HitAbstract
+
     if (!hit?.type) {
       logError(this.config, HIT_NULL_ERROR, functionName)
       return
     }
+
     if (hit instanceof HitAbstract) {
       hitInstance = hit
     } else if ('data' in hit) {
@@ -534,23 +528,15 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     if (this.isDeDuplicated(JSON.stringify(hitInstanceItem), this.config.hitDeduplicationTime as number)) {
       return
     }
-
     if (!hitInstance.isReady()) {
       logError(this.config, hitInstance.getErrorMessage(), functionName)
       return
     }
-
-    const logData = { ...hitInstance.toApiKeys(), delay: 0 }
-    const now = Date.now()
     try {
-      await this.trackingManager.sendHit(hitInstance)
-      logData.delay = Date.now() - now
-      logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify(logData)), PROCESS_SEND_HIT)
+      await this.trackingManager.addHit(hitInstance)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logData.delay = Date.now() - now
-      logError(this.config, errorFormat(error.message || error, logData), PROCESS_SEND_HIT)
-      this.cacheHit(hitInstance)
+      logError(this.config, error.message || error, functionName)
     }
   }
 
@@ -687,7 +673,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
-    await this.sendActivate(flag, functionName)
+    await this.sendActivate(flag)
   }
 
   getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}): T {
