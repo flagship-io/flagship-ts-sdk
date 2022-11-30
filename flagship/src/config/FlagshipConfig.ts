@@ -10,9 +10,18 @@ import { version as SDK_VERSION } from '../sdkVersion'
 
 export enum DecisionMode {
   /**
+   *
+   * Flagship SDK mode decision api
+   * @deprecated use DECISION_API instead of
+   */
+  API = 'API',
+
+  /**
+   *   /**
    * Flagship SDK mode decision api
    */
-  DECISION_API = 'API',
+  DECISION_API = 'DECISION-API',
+
   /**
    * Flagship SDK mode bucketing
    */
