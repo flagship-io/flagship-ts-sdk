@@ -50,7 +50,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._anonymousId = isAuthenticated && visitorCache?.anonymousId ? visitorCache?.anonymousId : null
     this.loadPredefinedContext()
 
-    if (!this._anonymousId && isAuthenticated && this.config.decisionMode === DecisionMode.DECISION_API) {
+    if (!this._anonymousId && isAuthenticated && (this.config.decisionMode === DecisionMode.DECISION_API || this.config.decisionMode === DecisionMode.API)) {
       this._anonymousId = uuidV4()
     }
 
