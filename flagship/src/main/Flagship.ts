@@ -6,9 +6,10 @@ import { ConfigManager, IConfigManager } from '../config/ConfigManager'
 import { ApiManager } from '../decision/ApiManager'
 import { TrackingManager } from '../api/TrackingManager'
 import { FlagshipLogManager } from '../utils/FlagshipLogManager'
-import { isBrowser, logError, logInfo, sprintf } from '../utils/utils'
+import { isBrowser, logDebug, logError, logInfo, sprintf } from '../utils/utils'
 import {
   INITIALIZATION_PARAM_ERROR,
+  INITIALIZATION_STARTING,
   NEW_VISITOR_NOT_READY,
   PROCESS_INITIALIZATION,
   PROCESS_NEW_VISITOR,
@@ -174,6 +175,8 @@ export class Flagship {
     if (!config.onLog && !config.logManager) {
       config.logManager = new FlagshipLogManager()
     }
+
+    logDebug(config, sprintf(INITIALIZATION_STARTING, SDK_INFO.version, config.decisionMode, JSON.stringify(config)), PROCESS_INITIALIZATION)
 
     if (!envId || !apiKey) {
       flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)

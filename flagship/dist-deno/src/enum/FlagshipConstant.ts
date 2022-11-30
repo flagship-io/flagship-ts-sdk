@@ -192,3 +192,7 @@ export const HEADER_CONTENT_TYPE = 'Content-Type'
 export const HEADER_X_SDK_CLIENT = 'x-sdk-client'
 export const HEADER_X_SDK_VERSION = 'x-sdk-version'
 export const HEADER_APPLICATION_JSON = 'application/json'
+
+// Log
+
+export const INITIALIZATION_STARTING = 'Flagship SDK version {0} is starting in {1} mode with config {2}'
