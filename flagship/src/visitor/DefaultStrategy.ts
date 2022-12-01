@@ -1,8 +1,12 @@
 import {
   ACTIVATE_MODIFICATION_ERROR,
   ACTIVATE_MODIFICATION_KEY_ERROR,
+  CLEAR_CONTEXT,
+  CONTEXT_KEY_ERROR,
+  CONTEXT_KEY_VALUE_UPDATE,
   CONTEXT_NULL_ERROR,
-  CONTEXT_PARAM_ERROR,
+  CONTEXT_OBJET_PARAM_UPDATE,
+  CONTEXT_VALUE_ERROR,
   EMIT_READY,
   FLAGSHIP_VISITOR_NOT_AUTHENTICATE,
   GET_FLAG_CAST_ERROR,
@@ -16,6 +20,7 @@ import {
   METHOD_DEACTIVATED_BUCKETING_ERROR,
   PREDEFINED_CONTEXT_TYPE_ERROR,
   PROCESS_ACTIVE_MODIFICATION,
+  PROCESS_CLEAR_CONTEXT,
   PROCESS_GET_MODIFICATION,
   PROCESS_GET_MODIFICATION_INFO,
   PROCESS_SEND_HIT,
@@ -42,7 +47,7 @@ import {
 } from '../hit/index'
 import { HitShape, ItemHit } from '../hit/Legacy'
 import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata } from '../types'
-import { errorFormat, hasSameType, logDebug, logError, logInfo, sprintf } from '../utils/utils'
+import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
 import { DecisionMode } from '../config/index'
@@ -73,37 +78,21 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
 
     if (!check) {
-      logError(
-        this.config,
-        sprintf(PREDEFINED_CONTEXT_TYPE_ERROR, key, type),
-        PROCESS_UPDATE_CONTEXT
-      )
+      logErrorSprintf(this.config, PROCESS_UPDATE_CONTEXT, PREDEFINED_CONTEXT_TYPE_ERROR, this.visitor.visitorId, key, type)
     }
     return check
   }
 
-  /**
-   *  Update the visitor context values, matching the given keys, used for targeting.
-   *
-   * A new context value associated with this key will be created if there is no previous matching value.
-   * Context key must be String, and value type must be one of the following : Number, Boolean, String.
-   * @param {string} key : context key.
-   * @param {primitive} value : context value.
-   */
   private updateContextKeyValue (key: string, value: primitive): void {
     const valueType = typeof value
-    if (
-      typeof key !== 'string' ||
-      key === '' ||
-      (valueType !== 'string' &&
-        valueType !== 'number' &&
-        valueType !== 'boolean')
-    ) {
-      logError(
-        this.visitor.config,
-        sprintf(CONTEXT_PARAM_ERROR, key),
-        PROCESS_UPDATE_CONTEXT
-      )
+
+    if (typeof key !== 'string' || key === '') {
+      logErrorSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_KEY_ERROR, this.visitor.visitorId, key)
+      return
+    }
+
+    if (valueType !== 'string' && valueType !== 'number' && valueType !== 'boolean') {
+      logErrorSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_VALUE_ERROR, this.visitor.visitorId, key)
       return
     }
 
@@ -119,7 +108,15 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     this.visitor.context[key] = value
   }
 
-  updateContext (context: Record<string, primitive>): void {
+  updateContext(key: string, value: primitive):void
+  updateContext (context: Record<string, primitive>): void
+  updateContext (context: Record<string, primitive> | string, value?:primitive): void {
+    if (typeof context === 'string') {
+      this.updateContextKeyValue(context, value as primitive)
+      logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_KEY_VALUE_UPDATE, this.visitor.visitorId, context, value, this.visitor.context)
+      return
+    }
+
     if (!context) {
       logError(this.visitor.config, CONTEXT_NULL_ERROR, PROCESS_UPDATE_CONTEXT)
       return
@@ -129,10 +126,13 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       const value = context[key]
       this.updateContextKeyValue(key, value)
     }
+    logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_OBJET_PARAM_UPDATE, this.visitor.visitorId, context, this.visitor.context)
   }
 
   clearContext (): void {
     this.visitor.context = {}
+    this.visitor.loadPredefinedContext()
+    logDebugSprintf(this.config, PROCESS_CLEAR_CONTEXT, CLEAR_CONTEXT, this.visitor.visitorId, this.visitor.context)
   }
 
   private checkAndGetModification<T> (
