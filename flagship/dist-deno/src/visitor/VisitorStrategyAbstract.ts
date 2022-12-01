@@ -192,7 +192,9 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     }
   }
 
+    abstract updateContext(key: string, value: primitive):void
     abstract updateContext(context: Record<string, primitive>): void
+    abstract updateContext (context: Record<string, primitive> | string, value?:primitive): void
     abstract clearContext (): void
 
     abstract getModification<T>(params: modificationsRequested<T>): Promise<T>;

@@ -63,8 +63,10 @@ export class Visitor extends EventEmitter implements IVisitor {
     return this.visitorDelegate.flagsData
   }
 
-  public updateContext (context: Record<string, primitive>): void {
-    this.visitorDelegate.updateContext(context)
+  public updateContext(key: string, value: primitive):void
+  public updateContext (context: Record<string, primitive>): void
+  public updateContext (context: Record<string, primitive> | string, value?:primitive): void {
+    this.visitorDelegate.updateContext(context, value)
   }
 
   public clearContext (): void {
