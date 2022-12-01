@@ -8,6 +8,10 @@ import {
   CONTEXT_OBJET_PARAM_UPDATE,
   CONTEXT_VALUE_ERROR,
   EMIT_READY,
+  FETCH_CAMPAIGNS_FROM_CACHE,
+  FETCH_CAMPAIGNS_SUCCESS,
+  FETCH_FLAGS_FROM_CAMPAIGNS,
+  FETCH_FLAGS_STARTED,
   FLAGSHIP_VISITOR_NOT_AUTHENTICATE,
   GET_FLAG_CAST_ERROR,
   GET_FLAG_MISSING_ERROR,
@@ -277,23 +281,40 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       isFromCache: false,
       duration: 0
     }
+    let campaigns: CampaignDTO[] | null = null
+    let fetchCampaignError:string|undefined
     try {
-      let campaigns = await this.decisionManager.getCampaignsAsync(this.visitor)
+      logDebugSprintf(this.config, functionName, FETCH_FLAGS_STARTED, this.visitor.visitorId)
 
+      campaigns = await this.decisionManager.getCampaignsAsync(this.visitor)
+
+      logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_SUCCESS,
+        this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
+      )
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      logError(this.config, error.message, functionName)
+      fetchCampaignError = error.message
+    }
+    try {
       if (!campaigns) {
         campaigns = this.fetchVisitorCampaigns(this.visitor)
         logData.isFromCache = true
+        if (campaigns) {
+          logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_FROM_CACHE,
+            this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
+          )
+        }
       }
 
-      if (!campaigns) {
-        return
-      }
+      campaigns = campaigns || []
 
       this.visitor.campaigns = campaigns
       this.visitor.flagsData = this.decisionManager.getModifications(this.visitor.campaigns)
-      this.visitor.emit(EMIT_READY)
-      logData.duration = Date.now() - now
-      logDebug(this.config, sprintf('{0} succeeded {1}', functionName, JSON.stringify(logData)), functionName)
+      this.visitor.emit(EMIT_READY, fetchCampaignError)
+
+      logDebugSprintf(this.config, functionName, FETCH_FLAGS_FROM_CAMPAIGNS,
+        this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, this.visitor.flagsData)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.visitor.emit(EMIT_READY, error)

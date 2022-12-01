@@ -6,13 +6,12 @@ import {
   HEADER_X_API_KEY,
   HEADER_X_SDK_CLIENT,
   HEADER_X_SDK_VERSION,
-  PROCESS_GET_CAMPAIGNS,
   SDK_INFO,
   URL_CAMPAIGNS
 } from '../enum/index'
 import { DecisionManager } from './DecisionManager'
 import { CampaignDTO } from './api/models'
-import { logError } from '../utils/utils'
+import { errorFormat } from '../utils/utils'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 
 export class ApiManager extends DecisionManager {
@@ -33,6 +32,7 @@ export class ApiManager extends DecisionManager {
     }
 
     const url = `${this.config.decisionApiUrl || BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
+    const now = Date.now()
 
     return this._httpClient.postAsync(url, {
       headers,
@@ -48,8 +48,12 @@ export class ApiManager extends DecisionManager {
         return response
       })
       .catch(error => {
-        logError(this.config, error.message || error, PROCESS_GET_CAMPAIGNS)
-        return null
+        throw new Error(errorFormat(error.message || error, {
+          url,
+          headers,
+          body: postData,
+          duration: Date.now() - now
+        }))
       })
   }
 }

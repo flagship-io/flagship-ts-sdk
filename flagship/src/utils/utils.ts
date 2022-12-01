@@ -9,7 +9,7 @@ export function sprintf (format: string, ...value: any[]): string {
   let formatted = format
   for (let i = 0; i < value.length; i++) {
     const item = value[i]
-    const element = typeof item === 'string' ? item : JSON.stringify(item)
+    const element = typeof item === 'string' ? item : JSON.stringify(item instanceof Map ? Array.from(item.values()) : item)
     formatted = formatted.replace(new RegExp(`\\{${i}\\}`, 'g'), element)
   }
   return formatted

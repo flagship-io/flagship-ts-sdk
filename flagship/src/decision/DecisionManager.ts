@@ -3,8 +3,9 @@ import { IFlagshipConfig } from '../config/FlagshipConfig'
 import { IHttpClient } from '../utils/HttpClient'
 import { CampaignDTO } from './api/models'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
-import { FlagshipStatus } from '../enum/index'
+import { FETCH_FLAGS_PANIC_MODE, FlagshipStatus, PROCESS_FETCHING_FLAGS } from '../enum/index'
 import { FlagDTO } from '../types'
+import { logDebug, logDebugSprintf } from '../utils/utils'
 
 export abstract class DecisionManager implements IDecisionManager {
   protected _config: IFlagshipConfig
@@ -20,6 +21,9 @@ export abstract class DecisionManager implements IDecisionManager {
   protected set panic (v: boolean) {
     this.updateFlagshipStatus(v ? FlagshipStatus.READY_PANIC_ON : FlagshipStatus.READY)
     this._panic = v
+    if (v) {
+      logDebug(this.config, FETCH_FLAGS_PANIC_MODE, PROCESS_FETCHING_FLAGS)
+    }
   }
 
   public statusChangedCallback (v : (status: FlagshipStatus)=>void):void {

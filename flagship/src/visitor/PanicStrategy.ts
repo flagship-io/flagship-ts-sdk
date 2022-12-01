@@ -8,12 +8,10 @@ import { BatchDTO } from '../hit/Batch'
 import { FlagMetadata } from '../flag/FlagMetadata'
 
 export class PanicStrategy extends DefaultStrategy {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   setConsent (hasConsented:boolean):void {
     this.visitor.hasConsented = hasConsented
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   updateContext (): void {
     this.log('updateContext')
   }
