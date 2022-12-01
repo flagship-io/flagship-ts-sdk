@@ -6,8 +6,8 @@ import { VisitorAbstract } from './VisitorAbstract'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
 import { CampaignDTO } from '../decision/api/models'
 import { IDecisionManager } from '../decision/IDecisionManager'
-import { logError, logInfo, sprintf } from '../utils/utils'
-import { FS_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index'
+import { logDebugSprintf, logError, logInfo, sprintf } from '../utils/utils'
+import { CONSENT_CHANGED, FS_CONSENT, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index'
 import { BatchDTO } from '../hit/Batch'
 import { EventCategory } from '../hit/Monitoring'
 import { ITrackingManager } from '../api/ITrackingManager'
@@ -77,9 +77,9 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     consentHit.ds = SDK_APP
     consentHit.config = this.config
 
-    this.trackingManager.addHit(consentHit).catch((error) => {
-      logError(this.config, error.message || error, method)
-    })
+    this.trackingManager.addHit(consentHit)
+
+    logDebugSprintf(this.config, PROCESS_SET_CONSENT, CONSENT_CHANGED, this.visitor.visitorId, hasConsented)
   }
 
   protected checKLookupVisitorDataV1 (item:VisitorCacheDTO):boolean {

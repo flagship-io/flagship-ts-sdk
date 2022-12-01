@@ -219,3 +219,5 @@ export const CONTEXT_KEY_VALUE_UPDATE = 'visitor `{0}`, context have been update
 export const CONTEXT_OBJET_PARAM_UPDATE = 'visitor `{0}`, context have been updated: key/value {1}, Context {2}'
 export const CLEAR_CONTEXT = 'visitor `{0}`, context has been cleared cleared `{1}`'
 export const PROCESS_CLEAR_CONTEXT = 'CLEAR_CONTEXT'
+export const CONSENT_CHANGED = 'Visitor `{0}` consent has been changed : {1}'
+export const PROCESS_SET_CONSENT = 'SET_CONSENT'
