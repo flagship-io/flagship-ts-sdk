@@ -62,11 +62,12 @@ export const EMIT_READY = 'ready'
 
 export const NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY = 3
 
+export const JS_DOC_URL = 'https://docs.developers.flagship.io/docs/js-v3'
 /**
  * Message Error
  */
-export const INITIALIZATION_PARAM_ERROR =
-  "Params 'envId' and 'apiKey' must not be null or empty."
+export const INITIALIZATION_PARAM_ERROR = `Params 'envId' and 'apiKey' must not be null or empty.
+  Learn more: ${JS_DOC_URL}#initialization`
 export const ERROR = 'error'
 export const CONTEXT_NULL_ERROR = 'Context must not to be null'
 export const CONTEXT_PARAM_ERROR =
@@ -99,10 +100,9 @@ export const TYPE_INTEGER_ERROR =
 export const VISITOR_ID_ERROR = 'visitorId must not be null or empty'
 export const PANIC_MODE_ERROR = '{0} deactivated while panic mode is on.'
 export const METHOD_DEACTIVATED_CONSENT_ERROR = 'Method {0} is deactivated for visitor {1} : visitor did not consent.'
-export const METHOD_DEACTIVATED_ERROR = 'Method {0} is deactivated while SDK status is: {1}.'
+export const METHOD_DEACTIVATED_ERROR = 'Visitor {0}, method {1} is deactivated while SDK status is: {2}.'
 export const METHOD_DEACTIVATED_BUCKETING_ERROR = 'Method {0} is deactivated on Bucketing mode.'
 export const FLAGSHIP_VISITOR_NOT_AUTHENTICATE = 'Visitor is not authenticated yet'
-export const PREDEFINED_CONTEXT_TYPE_ERROR = 'Predefined Context {0} must be type of {1}'
 export const METHOD_DEACTIVATED_SEND_CONSENT_ERROR = 'Send consent hit is deactivated while SDK status is: {1}.'
 export const HIT_ADDED_IN_QUEUE = 'The HIT has been added to the pool queue : {0}'
 export const ACTIVATE_ADDED_IN_QUEUE = 'The ACTIVATE has been added to the pool queue : {0}'
@@ -196,3 +196,26 @@ export const HEADER_APPLICATION_JSON = 'application/json'
 // Log
 
 export const INITIALIZATION_STARTING = 'Flagship SDK version {0} is starting in {1} mode with config {2}'
+export const BUCKETING_POOLING_STARTED = 'Bucketing polling process has been started'
+export const BUCKETING_POOLING_STOPPED = 'Bucketing polling process has been stopped'
+export const PROCESS_BUCKETING = 'BUCKETING'
+export const POLLING_EVENT_200 = 'Polling event with code status 200 : {0}'
+export const POLLING_EVENT_300 = 'Polling event with code status 304'
+export const POLLING_EVENT_FAILED = 'Polling event failed with error'
+export const PROCESS_SDK_STATUS = 'SDK STATUS'
+export const SDK_STATUS_CHANGED = 'SDK status has changed:  {0}'
+export const SAVE_VISITOR_INSTANCE = 'Visitor {0} has been saved in SDK instance'
+export const VISITOR_CREATED = 'Visitor {0} has been created with context {1}, isAuthenticated:{2} and hasConsented {3}'
+export const VISITOR_PROFILE_LOADED = 'Visitor profile has been loaded {0}'
+export const VISITOR_ID_GENERATED = 'Visitor identifier is empty. A UUID {0} has been generated.'
+export const PREDEFINED_CONTEXT_LOADED = 'Predefined Context have been loaded {0}'
+export const CONTEXT_KEY_ERROR = `Visitor {0}, the key '{1}' must be a non null String.
+Learn more: ${JS_DOC_URL}#updating-the-visitor-context`
+export const CONTEXT_VALUE_ERROR = `Visitor {0}, 'value' for key '{1}[], must be one of the following types : String, Number, Boolean
+Learn more: ${JS_DOC_URL}#updating-the-visitor-context`
+export const PREDEFINED_CONTEXT_TYPE_ERROR = `visitor {0}, Predefined Context {0} must be of type {1}
+Learn more: ${JS_DOC_URL}#predefined-user-context-keys-`
+export const CONTEXT_KEY_VALUE_UPDATE = 'visitor `{0}`, context have been updated: key {1}, value {2}, Context {3}'
+export const CONTEXT_OBJET_PARAM_UPDATE = 'visitor `{0}`, context have been updated: key/value {1}, Context {2}'
+export const CLEAR_CONTEXT = 'visitor `{0}`, context has been cleared cleared `{1}`'
+export const PROCESS_CLEAR_CONTEXT = 'CLEAR_CONTEXT'
