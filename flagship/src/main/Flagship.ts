@@ -6,7 +6,7 @@ import { ConfigManager, IConfigManager } from '../config/ConfigManager'
 import { ApiManager } from '../decision/ApiManager'
 import { TrackingManager } from '../api/TrackingManager'
 import { FlagshipLogManager } from '../utils/FlagshipLogManager'
-import { isBrowser, logDebug, logError, logInfo, sprintf } from '../utils/utils'
+import { isBrowser, logDebugSprintf, logError, logInfo, logInfoSprintf, sprintf } from '../utils/utils'
 import {
   INITIALIZATION_PARAM_ERROR,
   INITIALIZATION_STARTING,
@@ -14,7 +14,10 @@ import {
   PROCESS_INITIALIZATION,
   PROCESS_NEW_VISITOR,
   SDK_INFO,
-  SDK_STARTED_INFO
+  SDK_STARTED_INFO,
+  PROCESS_SDK_STATUS,
+  SDK_STATUS_CHANGED,
+  SAVE_VISITOR_INSTANCE
 } from '../enum/index'
 import { VisitorDelegate } from '../visitor/VisitorDelegate'
 import { BucketingConfig } from '../config/index'
@@ -62,6 +65,8 @@ export class Flagship {
 
     this._status = status
     const statusChanged = this.getConfig().statusChangedCallback
+
+    logInfoSprintf(this._config, PROCESS_SDK_STATUS, SDK_STATUS_CHANGED, FlagshipStatus[status])
 
     if (status === FlagshipStatus.READY) {
       this.configManager?.trackingManager?.startBatchingLoop()
@@ -176,13 +181,13 @@ export class Flagship {
       config.logManager = new FlagshipLogManager()
     }
 
-    logDebug(config, sprintf(INITIALIZATION_STARTING, SDK_INFO.version, config.decisionMode, JSON.stringify(config)), PROCESS_INITIALIZATION)
-
     if (!envId || !apiKey) {
       flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
       logError(config, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION)
       return flagship
     }
+
+    logDebugSprintf(config, PROCESS_INITIALIZATION, INITIALIZATION_STARTING, SDK_INFO.version, config.decisionMode, config)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (!config.hitCacheImplementation && isBrowser()) {
@@ -319,6 +324,10 @@ export class Flagship {
     const visitor = new Visitor(visitorDelegate)
 
     this.getInstance()._visitorInstance = !isNewInstance ? visitor : undefined
+
+    if (!isNewInstance) {
+      logDebugSprintf(this.getConfig(), PROCESS_NEW_VISITOR, SAVE_VISITOR_INSTANCE, visitor.visitorId)
+    }
 
     if (this.getConfig().fetchNow) {
       visitor.fetchFlags()
