@@ -110,6 +110,8 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(hitsPoolQueue.size).toBe(0)
     expect(cacheHit).toBeCalledTimes(0)
     expect(flushHits).toBeCalledTimes(0)
+
+    await batchingStrategy.addHitInPoolQueue(consentHitFalse)
   })
 
   it('test addHit method consent false', async () => {

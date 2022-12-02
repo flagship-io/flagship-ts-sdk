@@ -1,3 +1,4 @@
+import { primitive } from './../../src/types'
 import { jest, expect, it, describe } from '@jest/globals'
 import { FlagDTO } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
@@ -108,7 +109,7 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
 describe('test VisitorDelegate', () => {
   const visitorId = 'visitorId'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const context: any = {
+  const context: Record<string, primitive> = {
     isVip: true
   }
 
@@ -142,8 +143,9 @@ describe('test VisitorDelegate', () => {
   }]
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager: configManager as ConfigManager, initialCampaigns: campaigns })
-  expect(updateContext).toBeCalledWith(context)
+
   expect(updateContext).toBeCalledTimes(1)
+  expect(updateContext).toBeCalledWith(context, undefined)
   expect(updateCampaigns).toBeCalledTimes(1)
   expect(updateCampaigns).toBeCalledWith(campaigns)
 
@@ -172,7 +174,7 @@ describe('test VisitorDelegate', () => {
     }
     visitorDelegate.context = newContext
     expect(updateContext).toBeCalledTimes(1)
-    expect(updateContext).toBeCalledWith(newContext)
+    expect(updateContext).toBeCalledWith(newContext, undefined)
   })
 
   it('test flagsData', () => {
@@ -271,7 +273,13 @@ describe('test VisitorDelegate methods', () => {
     }
     visitorDelegate.updateContext(contexts)
     expect(updateContext).toBeCalledTimes(1)
-    expect(updateContext).toBeCalledWith(contexts)
+    expect(updateContext).toBeCalledWith(contexts, undefined)
+  })
+
+  it('test updateContext key/value', () => {
+    visitorDelegate.updateContext('isVip', false)
+    expect(updateContext).toBeCalledTimes(1)
+    expect(updateContext).toBeCalledWith('isVip', false)
   })
 
   it('test clear', () => {

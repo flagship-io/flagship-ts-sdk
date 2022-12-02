@@ -13,8 +13,11 @@ import {
   FETCH_FLAGS_FROM_CAMPAIGNS,
   FETCH_FLAGS_STARTED,
   FLAGSHIP_VISITOR_NOT_AUTHENTICATE,
+  FLAG_USER_EXPOSED,
+  FLAG_VALUE,
   GET_FLAG_CAST_ERROR,
   GET_FLAG_MISSING_ERROR,
+  GET_FLAG_VALUE,
   GET_METADATA_CAST_ERROR,
   GET_MODIFICATION_CAST_ERROR,
   GET_MODIFICATION_ERROR,
@@ -25,6 +28,7 @@ import {
   PREDEFINED_CONTEXT_TYPE_ERROR,
   PROCESS_ACTIVE_MODIFICATION,
   PROCESS_CLEAR_CONTEXT,
+  PROCESS_FETCHING_FLAGS,
   PROCESS_GET_MODIFICATION,
   PROCESS_GET_MODIFICATION_INFO,
   PROCESS_SEND_HIT,
@@ -294,7 +298,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logError(this.config, error.message, functionName)
-      fetchCampaignError = error.message
+      fetchCampaignError = error
     }
     try {
       if (!campaigns) {
@@ -640,7 +644,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   async fetchFlags (): Promise<void> {
-    return this.globalFetchFlags('fetchFlags')
+    return this.globalFetchFlags(PROCESS_FETCHING_FLAGS)
   }
 
   protected onUserExposedCallback ({ flag, visitor }:{flag:FlagDTO, visitor:IVisitor}): void {
@@ -673,19 +677,19 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     const functionName = 'userExposed'
     if (!flag) {
-      logInfo(
+      logErrorSprintf(
         this.visitor.config,
-        sprintf(USER_EXPOSED_FLAG_ERROR, key),
-        functionName
+        FLAG_USER_EXPOSED,
+        USER_EXPOSED_FLAG_ERROR, this.visitor.visitorId, key
       )
       return
     }
 
     if (defaultValue !== null && defaultValue !== undefined && flag.value !== null && !hasSameType(flag.value, defaultValue)) {
-      logInfo(
+      logErrorSprintf(
         this.visitor.config,
-        sprintf(USER_EXPOSED_CAST_ERROR, key),
-        functionName
+        FLAG_USER_EXPOSED,
+        USER_EXPOSED_CAST_ERROR, this.visitor.visitorId, key
       )
       return
     }
@@ -699,13 +703,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}): T {
     const { key, defaultValue, flag, userExposed } = param
-    const functionName = 'getFlag value'
+
     if (!flag) {
-      logInfo(
-        this.config,
-        sprintf(GET_FLAG_MISSING_ERROR, key),
-        functionName
-      )
+      logErrorSprintf(this.config, FLAG_VALUE, GET_FLAG_MISSING_ERROR, this.visitor.visitorId, key, defaultValue)
       return defaultValue
     }
 
@@ -717,17 +717,15 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
 
     if (defaultValue !== null && defaultValue !== undefined && !hasSameType(flag.value, defaultValue)) {
-      logInfo(
-        this.config,
-        sprintf(GET_FLAG_CAST_ERROR, key),
-        functionName
-      )
+      logErrorSprintf(this.config, FLAG_VALUE, GET_FLAG_CAST_ERROR, this.visitor.visitorId, key, defaultValue)
       return defaultValue
     }
 
     if (userExposed) {
       this.userExposed({ key, flag, defaultValue })
     }
+
+    logDebugSprintf(this.config, FLAG_VALUE, GET_FLAG_VALUE, this.visitor.visitorId, key, flag.value)
 
     return flag.value
   }

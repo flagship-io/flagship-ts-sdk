@@ -1,4 +1,4 @@
-import { logDebug, logError, logInfo, sprintf } from '../../src/utils/utils'
+import { logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, sprintf } from '../../src/utils/utils'
 import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig } from '../../src/config/index'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
@@ -49,7 +49,17 @@ describe('test logError function', () => {
     config.logLevel = LogLevel.NONE
     const messageNone = 'none'
     logError(config, messageNone, tag)
+    logErrorSprintf(config, tag, messageNone)
     expect(errorMethod).toBeCalledTimes(0)
+
+    logDebug(config, messageNone, tag)
+    logDebugSprintf(config, tag, messageNone)
+    expect(debugMethod).toBeCalledTimes(0)
+
+    logInfo(config, messageNone, tag)
+    logInfoSprintf(config, tag, messageNone)
+    expect(infoMethod).toBeCalledTimes(0)
+
     expect(onLog).toBeCalledTimes(0)
   })
 

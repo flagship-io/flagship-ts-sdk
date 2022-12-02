@@ -74,20 +74,14 @@ export const CONTEXT_PARAM_ERROR =
   "params {0} must be a non null String, and 'value' must be one of the following types , Number, Boolean"
 export const GET_MODIFICATION_CAST_ERROR =
   'Modification for key {0} has a different type. Default value is returned.'
-export const GET_FLAG_CAST_ERROR =
-  'Flag for key {0} has a different type. Default value is returned.'
 export const GET_MODIFICATION_MISSING_ERROR =
   'No modification for key {0}. Default value is returned.'
-export const GET_FLAG_MISSING_ERROR =
-  'No Flag for key {0}. Default value is returned.'
 export const GET_MODIFICATION_KEY_ERROR =
   'Key {0} must not be null. Default value is returned.'
 export const ACTIVATE_MODIFICATION_KEY_ERROR =
   'Key {0} must not be null, no activate will be sent.'
 export const GET_MODIFICATION_ERROR = 'No modification for key {0}.'
 export const GET_FLAG_ERROR = 'No flag for key {0}.'
-export const USER_EXPOSED_FLAG_ERROR = 'No flag for key {0}, no activate will be sent'
-export const USER_EXPOSED_CAST_ERROR = 'Flag for key {0} has a different type with defaultValue, no activate will be sent'
 export const GET_METADATA_CAST_ERROR = 'Flag for key {0} has a different type with defaultValue, an empty metadata object is returned'
 export const ACTIVATE_MODIFICATION_ERROR = 'No modification for key {0}, no activate will be sent.'
 export const DECISION_MANAGER_MISSING_ERROR =
@@ -226,4 +220,11 @@ export const FETCH_CAMPAIGNS_FROM_CACHE = 'Visitor {0}, anonymousId {1} with con
 export const FETCH_FLAGS_FROM_CAMPAIGNS = 'Visitor {0}, anonymousId {1} with context {2} has just fetched flags {3} from Campaigns'
 export const FETCH_FLAGS_STARTED = 'visitor `{0}` fetchFlags process is started'
 export const FETCH_FLAGS_PANIC_MODE = 'Panic mode is enabled : all feature are disabled except fetchFlags.'
-export const PROCESS_FETCHING_FLAGS = 'FETCHING_FLAGS'
+export const PROCESS_FETCHING_FLAGS = 'FETCH_FLAGS'
+export const GET_FLAG_MISSING_ERROR = 'Visitor {0}, No Flags found for key {1} : Default value is returned {2}'
+export const FLAG_VALUE = 'FLAG_VALUE'
+export const GET_FLAG_CAST_ERROR = 'Visitor {0}, Flag for key {1} has a different type with default value : Default value is returned {2}'
+export const GET_FLAG_VALUE = 'Visitor {0}, Flag for key {1} returns value {2}'
+export const USER_EXPOSED_FLAG_ERROR = 'Visitor {0}, No Flags found for key {1}: User exposition wont be sent'
+export const FLAG_USER_EXPOSED = 'FLAG_USER_EXPOSED'
+export const USER_EXPOSED_CAST_ERROR = 'Visitor {0}, Flag for key {1} has a different type with default value: User exposition wont be sent'

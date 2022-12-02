@@ -201,7 +201,7 @@ export class Flagship {
 
     let decisionManager = flagship.configManager?.decisionManager
 
-    if (typeof decisionManager === 'object' && decisionManager instanceof BucketingManager) {
+    if (decisionManager instanceof BucketingManager) {
       decisionManager.stopPolling()
     }
 
