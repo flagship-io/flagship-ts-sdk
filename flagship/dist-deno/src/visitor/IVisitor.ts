@@ -46,6 +46,15 @@ export interface IVisitor {
    * @param {Record<string, primitive>} context : collection of keys, values.
    */
   updateContext(context: Record<string, primitive>): void;
+  /**
+  * Update the visitor context values, matching the given keys, used for targeting.
+   *
+   * A new context value associated with this key will be created if there is no previous matching value.
+   * @param key Context keys must be String.
+   * @param value values types must be one of the following : Number, Boolean, String.
+   *
+   */
+  updateContext(key: string, value:primitive):void
 
   /**
    * clear the actual visitor context

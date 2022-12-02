@@ -1,10 +1,11 @@
+import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant.ts'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index.ts'
 import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata } from '../types.ts'
 
 import { IVisitor } from './IVisitor.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { FlagshipStatus, SDK_INFO, VISITOR_ID_ERROR } from '../enum/index.ts'
-import { logError, uuidV4 } from '../utils/utils.ts'
+import { logDebugSprintf, logError, uuidV4 } from '../utils/utils.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract.ts'
@@ -41,7 +42,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._configManager = configManager
 
     const visitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
-    this.visitorId = visitorId || (!isAuthenticated && visitorCache?.anonymousId ? visitorCache?.anonymousId : visitorCache?.visitorId) || uuidV4()
+    if (visitorCache) {
+      logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_PROFILE_LOADED, visitorCache)
+    }
+    this.visitorId = visitorId || (!isAuthenticated && visitorCache?.anonymousId ? visitorCache?.anonymousId : visitorCache?.visitorId) || this.generateVisitorId()
 
     this.campaigns = []
 
@@ -49,6 +53,11 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     this._anonymousId = isAuthenticated && visitorCache?.anonymousId ? visitorCache?.anonymousId : null
     this.loadPredefinedContext()
+    logDebugSprintf(this.config, PROCESS_NEW_VISITOR, PREDEFINED_CONTEXT_LOADED, {
+      fs_client: SDK_INFO.name,
+      fs_version: SDK_INFO.version,
+      fs_users: this.visitorId
+    })
 
     if (!this._anonymousId && isAuthenticated && (this.config.decisionMode === DecisionMode.DECISION_API || this.config.decisionMode === DecisionMode.API)) {
       this._anonymousId = uuidV4()
@@ -59,6 +68,14 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.updateCache()
     this.setInitialFlags(initialFlagsData || initialModifications)
     this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
+
+    logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, visitorId, context, !!isAuthenticated, !!hasConsented)
+  }
+
+  protected generateVisitorId ():string {
+    const visitorId = uuidV4()
+    logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_ID_GENERATED, visitorId)
+    return visitorId
   }
 
   public clearDeDuplicationCache (deDuplicationTime: number): void {
@@ -110,7 +127,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     cacheVisitor.saveVisitorProfile(visitorProfile)
   }
 
-  protected loadPredefinedContext (): void {
+  public loadPredefinedContext (): void {
     this.context.fs_client = SDK_INFO.name
     this.context.fs_version = SDK_INFO.version
     this.context.fs_users = this.visitorId
@@ -218,7 +235,9 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     return strategy
   }
 
+  abstract updateContext(key: string, value: primitive):void
   abstract updateContext(context: Record<string, primitive>): void
+  abstract updateContext (context: Record<string, primitive> | string, value?:primitive): void
   abstract clearContext(): void
 
   abstract getModification<T>(params: modificationsRequested<T>): Promise<T>;

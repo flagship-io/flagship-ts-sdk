@@ -1,10 +1,11 @@
+import { POLLING_EVENT_300, POLLING_EVENT_FAILED } from './../enum/FlagshipConstant.ts'
 import { IFlagshipConfig } from '../config/index.ts'
-import { BUCKETING_API_URL, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, SDK_INFO } from '../enum/index.ts'
+import { BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, POLLING_EVENT_200, PROCESS_BUCKETING, SDK_INFO } from '../enum/index.ts'
 import { Segment } from '../hit/Segment.ts'
 import { primitive } from '../types.ts'
 import { IHttpClient, IHttpResponse } from '../utils/HttpClient.ts'
 import { MurmurHash } from '../utils/MurmurHash.ts'
-import { logError, logInfo, sprintf } from '../utils/utils.ts'
+import { errorFormat, logDebug, logDebugSprintf, logError, logInfo, sprintf } from '../utils/utils.ts'
 import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 import { BucketingDTO, Targetings, VariationGroupDTO } from './api/bucketingDTO.ts'
 import { CampaignDTO, VariationDTO } from './api/models.ts'
@@ -30,7 +31,10 @@ export class BucketingManager extends DecisionManager {
 
   private finishLoop (response: IHttpResponse) {
     if (response.status === 200) {
+      logDebugSprintf(this.config, PROCESS_BUCKETING, POLLING_EVENT_200, response.body)
       this._bucketingContent = response.body
+    } else if (response.status === 304) {
+      logDebug(this.config, POLLING_EVENT_300, PROCESS_BUCKETING)
     }
 
     if (response.headers && response.headers['last-modified']) {
@@ -56,7 +60,7 @@ export class BucketingManager extends DecisionManager {
 
   async startPolling (): Promise<void> {
     const timeout = this.config.pollingInterval as number * 1000
-    logInfo(this.config, 'Bucketing polling starts', 'startPolling')
+    logInfo(this.config, BUCKETING_POOLING_STARTED, PROCESS_BUCKETING)
     await this.polling()
     if (timeout === 0) {
       return
@@ -74,15 +78,15 @@ export class BucketingManager extends DecisionManager {
     if (this._isFirstPooling) {
       this.updateFlagshipStatus(FlagshipStatus.POLLING)
     }
+    const url = sprintf(BUCKETING_API_URL, this.config.envId)
+    const headers: Record<string, string> = {
+      [HEADER_X_API_KEY]: `${this.config.apiKey}`,
+      [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
+      [HEADER_X_SDK_VERSION]: SDK_INFO.version,
+      [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
+    }
+    const now = Date.now()
     try {
-      const url = sprintf(BUCKETING_API_URL, this.config.envId)
-      const headers: Record<string, string> = {
-        [HEADER_X_API_KEY]: `${this.config.apiKey}`,
-        [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
-        [HEADER_X_SDK_VERSION]: SDK_INFO.version,
-        [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
-      }
-
       if (this._lastModified) {
         headers['if-modified-since'] = this._lastModified
       }
@@ -94,7 +98,12 @@ export class BucketingManager extends DecisionManager {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this._isPooling = false
-      logError(this.config, error, 'startPolling')
+      logError(this.config, errorFormat(POLLING_EVENT_FAILED, {
+        url,
+        headers,
+        method: 'GET',
+        duration: Date.now() - now
+      }), PROCESS_BUCKETING)
       if (this._isFirstPooling) {
         this.updateFlagshipStatus(FlagshipStatus.NOT_INITIALIZED)
       }
@@ -107,7 +116,7 @@ export class BucketingManager extends DecisionManager {
   public stopPolling (): void {
     clearInterval(this._intervalID)
     this._isPooling = false
-    logInfo(this.config, 'Bucketing polling stopped', 'stopPolling')
+    logInfo(this.config, BUCKETING_POOLING_STOPPED, PROCESS_BUCKETING)
   }
 
   private async sendContext (visitor: VisitorAbstract): Promise<void> {
