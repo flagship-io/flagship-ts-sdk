@@ -1,5 +1,6 @@
+import { FLAG_METADATA, NO_FLAG_METADATA } from '../enum'
 import { IFlagMetadata } from '../types'
-import { hasSameType } from '../utils/utils'
+import { hasSameType, logDebugSprintf } from '../utils/utils'
 import { VisitorDelegate } from '../visitor/index'
 import { FlagMetadata } from './FlagMetadata'
 
@@ -58,6 +59,7 @@ export class Flag<T> implements IFlag<T> {
     })
 
     if (!flagDTO) {
+      logDebugSprintf(this._visitor.config, FLAG_METADATA, NO_FLAG_METADATA, this._visitor.visitorId, this._key, metadata)
       return metadata
     }
 

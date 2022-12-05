@@ -63,6 +63,8 @@ export const EMIT_READY = 'ready'
 export const NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY = 3
 
 export const JS_DOC_URL = 'https://docs.developers.flagship.io/docs/js-v3'
+
+export const PANIC_MODE_DOC_URL = 'https://docs.developers.flagship.io/docs/glossary#panic-mode'
 /**
  * Message Error
  */
@@ -82,7 +84,6 @@ export const ACTIVATE_MODIFICATION_KEY_ERROR =
   'Key {0} must not be null, no activate will be sent.'
 export const GET_MODIFICATION_ERROR = 'No modification for key {0}.'
 export const GET_FLAG_ERROR = 'No flag for key {0}.'
-export const GET_METADATA_CAST_ERROR = 'Flag for key {0} has a different type with defaultValue, an empty metadata object is returned'
 export const ACTIVATE_MODIFICATION_ERROR = 'No modification for key {0}, no activate will be sent.'
 export const DECISION_MANAGER_MISSING_ERROR =
   'decisionManager must not be null.'
@@ -95,8 +96,7 @@ export const VISITOR_ID_ERROR = 'visitorId must not be null or empty'
 export const PANIC_MODE_ERROR = '{0} deactivated while panic mode is on.'
 export const METHOD_DEACTIVATED_CONSENT_ERROR = 'Method {0} is deactivated for visitor {1} : visitor did not consent.'
 export const METHOD_DEACTIVATED_ERROR = 'Visitor {0}, method {1} is deactivated while SDK status is: {2}.'
-export const METHOD_DEACTIVATED_BUCKETING_ERROR = 'Method {0} is deactivated on Bucketing mode.'
-export const FLAGSHIP_VISITOR_NOT_AUTHENTICATE = 'Visitor is not authenticated yet'
+
 export const METHOD_DEACTIVATED_SEND_CONSENT_ERROR = 'Send consent hit is deactivated while SDK status is: {1}.'
 export const HIT_ADDED_IN_QUEUE = 'The HIT has been added to the pool queue : {0}'
 export const ACTIVATE_ADDED_IN_QUEUE = 'The ACTIVATE has been added to the pool queue : {0}'
@@ -228,3 +228,18 @@ export const GET_FLAG_VALUE = 'Visitor {0}, Flag for key {1} returns value {2}'
 export const USER_EXPOSED_FLAG_ERROR = 'Visitor {0}, No Flags found for key {1}: User exposition wont be sent'
 export const FLAG_USER_EXPOSED = 'FLAG_USER_EXPOSED'
 export const USER_EXPOSED_CAST_ERROR = 'Visitor {0}, Flag for key {1} has a different type with default value: User exposition wont be sent'
+export const GET_METADATA_CAST_ERROR = 'Visitor {0}, Flag for key {1} has a different type with default value: Empty metadata object is returned {2}'
+export const FLAG_METADATA = 'FLAG_METADATA'
+export const NO_FLAG_METADATA = 'Visitor {0}, No Flags found for key {1}:  Empty metadata object is returned {2}'
+export const METADATA_SDK_NOT_READY = `Visitor {0}, Flag for key {1} Method Flag.metadata is deactivated while SDK status is NOT_READY: Empty metadata object is returned {2}
+Learn more: ${JS_DOC_URL}#getting-flags-campaigns-metadata`
+export const METADATA_PANIC_MODE = `Visitor {0}, Flag for key {1} Method Flag.metadata is deactivated while SDK status is PANIC: Empty metadata object is returned {2}
+Learn more: ${PANIC_MODE_DOC_URL}`
+export const AUTHENTICATE = 'AUTHENTICATE'
+export const VISITOR_AUTHENTICATE = 'The visitor is authenticated with new visitor ID {0} anonymous ID {1}'
+export const METHOD_DEACTIVATED_BUCKETING_ERROR = 'Visitor {0}, Method {1} is deactivated on Bucketing mode'
+export const VISITOR_AUTHENTICATE_VISITOR_ID_ERROR = `Visitor {0}, visitorId must not be null or empty
+Learn more: ${JS_DOC_URL}#authenticate`
+export const VISITOR_UNAUTHENTICATE = 'The visitor is unauthenticated with visitor ID {0}'
+export const UNAUTHENTICATE = 'UNAUTHENTICATE'
+export const FLAGSHIP_VISITOR_NOT_AUTHENTICATE = 'Visitor {0} is not authenticated yet'
