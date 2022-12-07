@@ -6,14 +6,14 @@ import { VisitorAbstract } from './VisitorAbstract.ts'
 import { IConfigManager, IFlagshipConfig } from '../config/index.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { IDecisionManager } from '../decision/IDecisionManager.ts'
-import { logDebugSprintf, logError, logInfo, sprintf } from '../utils/utils.ts'
-import { CONSENT_CHANGED, FS_CONSENT, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index.ts'
+import { logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, sprintf } from '../utils/utils.ts'
+import { VISITOR_CACHE_ERROR, CONSENT_CHANGED, FS_CONSENT, LOOKUP_VISITOR_JSON_OBJECT_ERROR, PROCESS_CACHE, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION, VISITOR_CACHE_FLUSHED, VISITOR_CACHE_LOADED, VISITOR_CACHE_SAVED } from '../enum/index.ts'
 import { BatchDTO } from '../hit/Batch.ts'
 import { EventCategory } from '../hit/Monitoring.ts'
 import { ITrackingManager } from '../api/ITrackingManager.ts'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
-export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheDTO'
+
 export const VISITOR_ID_MISMATCH_ERROR = 'Visitor ID mismatch: {0} vs {1}'
 export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'anonymousId'|'flagsData'|'modifications'|'context'|'hasConsented'|'getModificationsArray'|'getFlagsDataArray'|'getFlag'> {
   protected visitor:VisitorAbstract
@@ -94,7 +94,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       return false
     }
     if (item.data.visitorId !== this.visitor.visitorId) {
-      logInfo(this.config, sprintf(VISITOR_ID_MISMATCH_ERROR, item.data.visitorId, this.visitor.visitorId), 'lookupVisitor')
+      logInfoSprintf(this.config, PROCESS_CACHE, VISITOR_ID_MISMATCH_ERROR, item.data.visitorId, this.visitor.visitorId)
       return false
     }
     return campaigns.every(x => x.campaignId && x.type && x.variationGroupId && x.variationId)
@@ -114,17 +114,21 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         return
       }
       const visitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
+
+      logDebugSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_LOADED, this.visitor.visitorId, visitorCache)
+
       if (!visitorCache) {
         return
       }
       if (!this.checKLookupVisitorData(visitorCache)) {
-        throw new Error(LOOKUP_VISITOR_JSON_OBJECT_ERROR)
+        logErrorSprintf(this.config, PROCESS_CACHE, LOOKUP_VISITOR_JSON_OBJECT_ERROR, VISITOR_CACHE_VERSION, this.visitor.visitorId)
+        return
       }
 
       this.visitor.visitorCache = visitorCache
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      logError(this.config, error.message || error, 'lookupVisitor')
+      logErrorSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_ERROR, this.visitor.visitorId, 'lookupVisitor', error.message || error)
     }
   }
 
@@ -164,14 +168,12 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
       await visitorCacheInstance.cacheVisitor(this.visitor.visitorId, data)
 
+      logDebugSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_SAVED, this.visitor.visitorId, data)
+
       this.visitor.visitorCache = data
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      logError(
-        this.config,
-        error.message || error,
-        'cacheVisitor'
-      )
+      logErrorSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_ERROR, this.visitor.visitorId, 'cacheVisitor', error.message || error)
     }
   }
 
@@ -182,13 +184,11 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         return
       }
       await visitorCacheInstance.flushVisitor(this.visitor.visitorId)
+
+      logDebugSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_FLUSHED, this.visitor.visitorId)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      logError(
-        this.config,
-        error.message || error,
-        'flushVisitor'
-      )
+      logErrorSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_ERROR, this.visitor.visitorId, 'flushVisitor', error.message || error)
     }
   }
 

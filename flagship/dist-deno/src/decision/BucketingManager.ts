@@ -1,4 +1,4 @@
-import { POLLING_EVENT_300, POLLING_EVENT_FAILED } from './../enum/FlagshipConstant.ts'
+import { ALLOCATION, BUCKETING_NEW_ALLOCATION, BUCKETING_VARIATION_CACHE, POLLING_EVENT_300, POLLING_EVENT_FAILED } from './../enum/FlagshipConstant.ts'
 import { IFlagshipConfig } from '../config/index.ts'
 import { BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, POLLING_EVENT_200, PROCESS_BUCKETING, SDK_INFO } from '../enum/index.ts'
 import { Segment } from '../hit/Segment.ts'
@@ -200,6 +200,7 @@ export class BucketingManager extends DecisionManager {
         if (!newVariation) {
           continue
         }
+        logDebugSprintf(this.config, ALLOCATION, BUCKETING_VARIATION_CACHE, visitor.visitorId, newVariation.id)
         return {
           id: newVariation.id,
           modifications: newVariation.modifications,
@@ -213,6 +214,7 @@ export class BucketingManager extends DecisionManager {
       totalAllocation += variation.allocation
 
       if (hashAllocation <= totalAllocation) {
+        logDebugSprintf(this.config, ALLOCATION, BUCKETING_NEW_ALLOCATION, visitor.visitorId, variation.id, totalAllocation)
         return {
           id: variation.id,
           modifications: variation.modifications,

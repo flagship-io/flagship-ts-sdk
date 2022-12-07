@@ -1,9 +1,10 @@
+import { ACTIVATE_HIT, HIT_SENT_SUCCESS, TRACKING_MANAGER, TRACKING_MANAGER_ERROR } from './../enum/FlagshipConstant'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
-import { BASE_API_URL, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_SENT_SUCCESS, SDK_INFO, SEND_ACTIVATE, URL_ACTIVATE_MODIFICATION } from '../enum/index'
+import { BASE_API_URL, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, SDK_INFO, URL_ACTIVATE_MODIFICATION } from '../enum/index'
 import { Activate } from '../hit/Activate'
 import { ActivateBatch } from '../hit/ActivateBatch'
 import { HitAbstract, Event } from '../hit/index'
-import { errorFormat, logDebug, logError, sprintf } from '../utils/utils'
+import { logDebugSprintf, logErrorSprintf } from '../utils/utils'
 import { BatchingCachingStrategyAbstract, SendActivate } from './BatchingCachingStrategyAbstract'
 
 export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAbstract {
@@ -65,11 +66,13 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
         timeout: this.config.timeout
       })
 
-      logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify({
-        ...requestBody,
+      logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, ACTIVATE_HIT, {
+        url,
+        headers,
+        body: requestBody,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
-      })), SEND_ACTIVATE)
+      })
 
       const hitKeysToRemove = activateHitsPool.map(item => item.key)
 
@@ -87,13 +90,14 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
         await this.cacheHit(new Map<string, Activate>([[currentActivate.key, currentActivate]]))
       }
 
-      logError(this.config, errorFormat(error.message || error, {
+      logErrorSprintf(this.config, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, ACTIVATE_HIT, {
+        message: error.message || error,
         url,
         headers,
         body: requestBody,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
-      }), SEND_ACTIVATE)
+      })
     }
   }
 }
