@@ -236,6 +236,9 @@ export class Flagship {
     await Flagship.close()
   }
 
+  /**
+   * When called, it will batch and send all hits that are in the pool before the application is closed
+   */
   public static async close () {
     await this._instance?.configManager?.trackingManager?.sendBatch()
   }

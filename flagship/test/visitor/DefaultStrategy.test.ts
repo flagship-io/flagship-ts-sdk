@@ -40,7 +40,7 @@ describe('test DefaultStrategy ', () => {
   const logError = jest.spyOn(logManager, 'error')
   const logInfo = jest.spyOn(logManager, 'info')
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', activateDeduplicationTime: 0, hitDeduplicationTime: 0 })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0 })
   config.logManager = logManager
 
   const httpClient = new HttpClient()
@@ -708,7 +708,6 @@ describe('test DefaultStrategy ', () => {
     const newConfig = new DecisionApiConfig({
       envId: 'envId',
       apiKey: 'apiKey',
-      activateDeduplicationTime: 0,
       hitDeduplicationTime: 0,
       onUserExposure: ({ flagData: exposedFlag, visitorData }) => {
         expect(exposedFlag).toEqual({

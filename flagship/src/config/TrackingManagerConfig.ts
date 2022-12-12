@@ -3,14 +3,26 @@ import { isBrowser } from '../utils/utils'
 
 export interface ITrackingManagerConfig {
     /**
-     * Define the time intervals the SDK will use to send tracking batches.
+     * Define a regular interval in seconds to trigger batch processing
+     *
+     * Note:
+     * - The process will batch all hits from the pool whether poolMaxSize is reached or not
+     * - Must be between 1sec and 10800s (3hours). Otherwise default value will be applied
      */
     batchIntervals?: number
+
     /**
-     * Define the maximum number of tracking hit that each batch can contain.
+     * Define the minimum number of hits the pool must reach to automatically batch all hits in the pool and send it
+     *
+     * Note:
+     * - Must be greater than 5 otherwise default value will be used
+     * - Having a large poolMaxSize can lead to performance issues
      */
     poolMaxSize?: number
 
+    /**
+     * Define the strategy that will be used for hit caching
+     */
     cacheStrategy?: CacheStrategy
 }
 

@@ -1,6 +1,6 @@
 import { IFlagshipConfig } from '../config/FlagshipConfig'
 import { DEFAULT_HIT_CACHE_TIME_MS, HitType, HIT_DATA_LOADED, PROCESS_LOOKUP_HIT } from '../enum/index'
-import { CacheStrategy } from '../enum/BatchStrategy'
+import { CacheStrategy } from '../enum/CacheStrategy'
 import { HitAbstract, IEvent, ITransaction, Transaction, Event, Item, IItem, Page, IPage, IScreen, Screen } from '../hit/index'
 import { ISegment, Segment } from '../hit/Segment'
 import { IHttpClient } from '../utils/HttpClient'

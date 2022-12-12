@@ -104,8 +104,6 @@ export interface IFlagshipConfig {
 
   decisionApiUrl?: string
 
-  activateDeduplicationTime?: number
-
   hitDeduplicationTime?: number
 
   visitorCacheImplementation?: IVisitorCacheImplementation
@@ -147,7 +145,6 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _enableClientCache!: boolean
   private _initialBucketing?: BucketingDTO
   private _decisionApiUrl!: string
-  private _activateDeduplicationTime!: number
   private _hitDeduplicationTime!: number
   private _visitorCacheImplementation!: IVisitorCacheImplementation
   private _hitCacheImplementation!: IHitCacheImplementation
@@ -177,7 +174,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     const {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
-      activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
+      hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
       disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig, onLog
     } = param
 
@@ -198,7 +195,6 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this.enableClientCache = typeof enableClientCache === 'undefined' || enableClientCache
     this._decisionMode = decisionMode || DecisionMode.DECISION_API
     this._initialBucketing = initialBucketing
-    this.activateDeduplicationTime = activateDeduplicationTime ?? DEFAULT_DEDUPLICATION_TIME
     this.hitDeduplicationTime = hitDeduplicationTime ?? DEFAULT_DEDUPLICATION_TIME
     this.disableCache = !!disableCache
 
@@ -320,18 +316,6 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
 
   public set pollingInterval (v: number) {
     this._pollingInterval = v
-  }
-
-  public get activateDeduplicationTime (): number {
-    return this._activateDeduplicationTime
-  }
-
-  public set activateDeduplicationTime (v: number) {
-    if (typeof v !== 'number') {
-      logError(this, sprintf(TYPE_ERROR, 'activateDeduplicationTime', 'number'), 'activateDeduplicationTime')
-      return
-    }
-    this._activateDeduplicationTime = v
   }
 
   public get hitDeduplicationTime (): number {
