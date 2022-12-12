@@ -104,10 +104,22 @@ export interface IFlagshipConfig {
 
   decisionApiUrl?: string
 
+  /**
+   * Specify delay in seconds of hit deduplication. After a hit is sent, all future sending of this hit will be blocked until the expiration of the delay.
+   *
+   * Note: if 0 is given, no deduplication process will be used
+   */
   hitDeduplicationTime?: number
 
+  /**
+   * Define an object that implement the interface visitorCacheImplementation, to handle the visitor cache.
+   *
+   */
   visitorCacheImplementation?: IVisitorCacheImplementation
 
+  /**
+   * Define an object that implement the interface IHitCacheImplementation, to handle the visitor cache.
+   */
   hitCacheImplementation?: IHitCacheImplementation
 
   /**
@@ -117,6 +129,9 @@ export interface IFlagshipConfig {
 
   language?: 0 | 1 | 2
 
+  /**
+   * Define options to configure hit batching
+   */
   trackingMangerConfig?: ITrackingManagerConfig
 
   /**
@@ -124,6 +139,9 @@ export interface IFlagshipConfig {
    */
   onUserExposure?: (param: UserExposureInfo)=>void
   sdkVersion?: string
+  /**
+   * Define a callable to get a callback whenever the SDK needs to report a log
+   */
   onLog?: (level: LogLevel, tag: string, message: string)=>void
 }
 

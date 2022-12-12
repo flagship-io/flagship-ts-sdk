@@ -1,6 +1,6 @@
 import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
 import { DEFAULT_HIT_CACHE_TIME_MS, HitType, HIT_DATA_LOADED, PROCESS_LOOKUP_HIT } from '../enum/index.ts'
-import { CacheStrategy } from '../enum/BatchStrategy.ts'
+import { CacheStrategy } from '../enum/CacheStrategy.ts'
 import { HitAbstract, IEvent, ITransaction, Transaction, Event, Item, IItem, Page, IPage, IScreen, Screen } from '../hit/index.ts'
 import { ISegment, Segment } from '../hit/Segment.ts'
 import { IHttpClient } from '../utils/HttpClient.ts'
