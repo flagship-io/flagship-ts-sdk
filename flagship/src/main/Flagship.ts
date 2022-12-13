@@ -6,12 +6,18 @@ import { ConfigManager, IConfigManager } from '../config/ConfigManager'
 import { ApiManager } from '../decision/ApiManager'
 import { TrackingManager } from '../api/TrackingManager'
 import { FlagshipLogManager } from '../utils/FlagshipLogManager'
-import { isBrowser, logError, logInfo, sprintf } from '../utils/utils'
+import { isBrowser, logDebugSprintf, logError, logInfo, logInfoSprintf, sprintf } from '../utils/utils'
 import {
   INITIALIZATION_PARAM_ERROR,
+  INITIALIZATION_STARTING,
+  NEW_VISITOR_NOT_READY,
   PROCESS_INITIALIZATION,
+  PROCESS_NEW_VISITOR,
   SDK_INFO,
-  SDK_STARTED_INFO
+  SDK_STARTED_INFO,
+  PROCESS_SDK_STATUS,
+  SDK_STATUS_CHANGED,
+  SAVE_VISITOR_INSTANCE
 } from '../enum/index'
 import { VisitorDelegate } from '../visitor/VisitorDelegate'
 import { BucketingConfig } from '../config/index'
@@ -52,25 +58,25 @@ export class Flagship {
     return this._instance
   }
 
-  /**
-   * Return true if the SDK is properly initialized, otherwise return false
-   */
-  private static isReady (): boolean {
-    const apiKey = this._instance?.getConfig()?.apiKey
-    const envId = this._instance?.getConfig()?.envId
-    const configManager = this._instance?.configManager
-    return (!!this._instance && !!apiKey && !!envId && !!configManager)
-  }
-
   protected setStatus (status: FlagshipStatus): void {
-    const statusChanged = this.getConfig().statusChangedCallback
-
-    if (this.getConfig() && statusChanged && this._status !== status) {
-      this._status = status
-      statusChanged(status)
+    if (this._status === status) {
       return
     }
+
     this._status = status
+    const statusChanged = this.getConfig().statusChangedCallback
+
+    logInfoSprintf(this._config, PROCESS_SDK_STATUS, SDK_STATUS_CHANGED, FlagshipStatus[status])
+
+    if (status === FlagshipStatus.READY) {
+      this.configManager?.trackingManager?.startBatchingLoop()
+    } else {
+      this.configManager?.trackingManager?.stopBatchingLoop()
+    }
+
+    if (this.getConfig() && statusChanged) {
+      statusChanged(status)
+    }
   }
 
   /**
@@ -175,35 +181,13 @@ export class Flagship {
       config.logManager = new FlagshipLogManager()
     }
 
-    let decisionManager = flagship.configManager?.decisionManager
-
-    if (typeof decisionManager === 'object' && decisionManager instanceof BucketingManager) {
-      decisionManager.stopPolling()
-    }
-
-    const httpClient = new HttpClient()
-
-    decisionManager = flagship.buildDecisionManager(flagship, config as FlagshipConfig, httpClient)
-
-    const trackingManager = new TrackingManager(httpClient, config)
-
-    if (flagship.configManager) {
-      flagship.configManager.config = config
-      flagship.configManager.decisionManager = decisionManager
-      flagship.configManager.trackingManager = trackingManager
-    } else {
-      flagship.configManager = new ConfigManager(
-        config,
-        decisionManager,
-        trackingManager
-      )
-    }
-
     if (!envId || !apiKey) {
       flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
       logError(config, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION)
       return flagship
     }
+
+    logDebugSprintf(config, PROCESS_INITIALIZATION, INITIALIZATION_STARTING, SDK_INFO.version, config.decisionMode, config)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (!config.hitCacheImplementation && isBrowser()) {
@@ -215,20 +199,48 @@ export class Flagship {
       config.visitorCacheImplementation = new DefaultVisitorCache()
     }
 
-    if (!this.isReady()) {
-      flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
-      return flagship
+    let decisionManager = flagship.configManager?.decisionManager
+
+    if (decisionManager instanceof BucketingManager) {
+      decisionManager.stopPolling()
     }
+
+    const httpClient = new HttpClient()
+
+    decisionManager = flagship.buildDecisionManager(flagship, config as FlagshipConfig, httpClient)
+
+    let trackingManager = flagship.configManager?.trackingManager
+    if (!trackingManager) {
+      trackingManager = new TrackingManager(httpClient, config)
+    }
+
+    flagship.configManager = new ConfigManager(
+      config,
+      decisionManager,
+      trackingManager
+    )
 
     if (flagship._status === FlagshipStatus.STARTING) {
       flagship.setStatus(FlagshipStatus.READY)
     }
+
     logInfo(
       config,
       sprintf(SDK_STARTED_INFO, SDK_INFO.version),
       PROCESS_INITIALIZATION
     )
     return flagship
+  }
+
+  public async close () {
+    await Flagship.close()
+  }
+
+  /**
+   * When called, it will batch and send all hits that are in the pool before the application is closed
+   */
+  public static async close () {
+    await this._instance?.configManager?.trackingManager?.sendBatch()
   }
 
   /**
@@ -281,6 +293,26 @@ export class Flagship {
       isNewInstance = param1?.isNewInstance ?? isNewInstance
     }
 
+    if (!this._instance?.configManager) {
+      const flagship = this.getInstance()
+      const config = new DecisionApiConfig()
+      config.logManager = new FlagshipLogManager()
+      flagship._config = config
+      const httpClient = new HttpClient()
+      const trackingManager = new TrackingManager(httpClient, config)
+      const decisionManager = new ApiManager(
+        httpClient,
+        config
+      )
+      flagship.configManager = new ConfigManager(
+        config,
+        decisionManager,
+        trackingManager
+      )
+      logError(this.getConfig(), NEW_VISITOR_NOT_READY, PROCESS_NEW_VISITOR)
+      // this.getInstance().configManager = new ConfigManager()
+    }
+
     const visitorDelegate = new VisitorDelegate({
       visitorId,
       context,
@@ -295,6 +327,10 @@ export class Flagship {
     const visitor = new Visitor(visitorDelegate)
 
     this.getInstance()._visitorInstance = !isNewInstance ? visitor : undefined
+
+    if (!isNewInstance) {
+      logDebugSprintf(this.getConfig(), PROCESS_NEW_VISITOR, SAVE_VISITOR_INSTANCE, visitor.visitorId)
+    }
 
     if (this.getConfig().fetchNow) {
       visitor.fetchFlags()

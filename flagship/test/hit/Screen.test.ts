@@ -6,6 +6,7 @@ import {
   DL_API_ITEM,
   DS_API_ITEM,
   HitType,
+  QT_API_ITEM,
   SDK_APP,
   TYPE_ERROR,
   T_API_ITEM,
@@ -18,7 +19,8 @@ import { sprintf } from '../../src/utils/utils'
 
 describe('test hit type Page', () => {
   const documentLocation = 'home'
-  const screen = new Screen({ documentLocation })
+  const visitorId = 'visitorId'
+  const screen = new Screen({ documentLocation, visitorId })
 
   it('should ', () => {
     expect(screen.documentLocation).toBe(documentLocation)
@@ -32,13 +34,13 @@ describe('test hit type Page', () => {
   const logError = jest.spyOn(logManager, 'error')
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
-  const visitorId = 'visitorId'
 
   it('should ', () => {
     screen.config = config
     screen.ds = SDK_APP
     screen.visitorId = visitorId
     expect(screen.isReady()).toBeTruthy()
+    expect(screen.isReady(false)).toBeTruthy()
   })
 
   it('test method apiKey ', () => {
@@ -49,7 +51,8 @@ describe('test hit type Page', () => {
       [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
       [T_API_ITEM]: HitType.SCREEN_VIEW,
       [DL_API_ITEM]: documentLocation,
-      [CUSTOMER_UID]: null
+      [CUSTOMER_UID]: null,
+      [QT_API_ITEM]: expect.anything()
     }
     expect(screen.toApiKeys()).toEqual(apiKeys)
   })
@@ -59,10 +62,12 @@ describe('test hit type Page', () => {
     const screenResolution = '800X600'
     const locale = 'fr'
     const sessionNumber = '12345'
+    const key = 'key'
     screen.userIp = userIp
     screen.screenResolution = screenResolution
     screen.locale = locale
     screen.sessionNumber = sessionNumber
+    screen.key = key
     expect(screen.toObject()).toEqual({
       userIp,
       screenResolution,
@@ -70,6 +75,8 @@ describe('test hit type Page', () => {
       sessionNumber,
       anonymousId: null,
       visitorId,
+      key,
+      createdAt: expect.anything(),
       ds: SDK_APP,
       type: HitType.SCREEN,
       documentLocation

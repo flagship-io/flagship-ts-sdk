@@ -17,7 +17,7 @@ describe('test Flag', () => {
   }
 
   const logManager = new FlagshipLogManager()
-  const logInfo = jest.spyOn(logManager, 'info')
+  const logWarning = jest.spyOn(logManager, 'warning')
 
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
@@ -128,7 +128,7 @@ describe('test Flag', () => {
         variationId: '',
         isReference: false
       })
-    expect(logInfo).toBeCalledTimes(1)
+    expect(logWarning).toBeCalledTimes(1)
   })
 
   it('should ', () => {

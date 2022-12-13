@@ -1,7 +1,7 @@
 import { FlagDTO } from '../index'
-import { FlagshipStatus, METHOD_DEACTIVATED_ERROR } from '../enum/index'
+import { FlagshipStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR } from '../enum/index'
 import { IFlagMetadata, IHit, modificationsRequested } from '../types'
-import { logError, sprintf } from '../utils/utils'
+import { logErrorSprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
 import { HitAbstract, HitShape } from '../hit/index'
 import { BatchDTO } from '../hit/Batch'
@@ -78,7 +78,7 @@ export class NotReadyStrategy extends DefaultStrategy {
   }
 
   async userExposed (): Promise<void> {
-    this.log('userExposed')
+    this.log(FLAG_USER_EXPOSED)
   }
 
   getFlagMetadata ():IFlagMetadata {
@@ -87,6 +87,6 @@ export class NotReadyStrategy extends DefaultStrategy {
   }
 
   private log (methodName:string) {
-    logError(this.config, sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
+    logErrorSprintf(this.config, methodName, METHOD_DEACTIVATED_ERROR, this.visitor.visitorId, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED])
   }
 }

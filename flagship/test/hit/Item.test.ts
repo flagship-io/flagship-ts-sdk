@@ -10,6 +10,7 @@ import {
   IP_API_ITEM,
   IQ_API_ITEM,
   IV_API_ITEM,
+  QT_API_ITEM,
   SDK_APP,
   TID_API_ITEM,
   TYPE_ERROR,
@@ -25,7 +26,8 @@ describe('test hit type Item', () => {
   const transactionId = 'transactionId'
   const productName = 'productName'
   const productSku = 'productSku'
-  const item = new Item({ transactionId, productName, productSku })
+  const visitorId = 'visitorId'
+  const item = new Item({ transactionId, productName, productSku, visitorId })
 
   it('should ', () => {
     expect(item.transactionId).toBe(transactionId)
@@ -47,7 +49,8 @@ describe('test hit type Item', () => {
       productSku: 'productSku',
       itemCategory: 'category',
       itemPrice: 15,
-      itemQuantity: 1
+      itemQuantity: 1,
+      visitorId
     }
 
     const item = new Item(params)
@@ -59,7 +62,6 @@ describe('test hit type Item', () => {
     expect(item.itemQuantity).toBe(params.itemQuantity)
   })
 
-  const visitorId = 'visitorId'
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   const logManager = new FlagshipLogManager()
   const logError = jest.spyOn(logManager, 'error')
@@ -70,6 +72,7 @@ describe('test hit type Item', () => {
     item.ds = SDK_APP
     item.visitorId = visitorId
     expect(item.isReady()).toBeTruthy()
+    expect(item.isReady(false)).toBeTruthy()
   })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -81,7 +84,8 @@ describe('test hit type Item', () => {
     [TID_API_ITEM]: transactionId,
     [IN_API_ITEM]: productName,
     [IC_API_ITEM]: productSku,
-    [CUSTOMER_UID]: null
+    [CUSTOMER_UID]: null,
+    [QT_API_ITEM]: expect.anything()
   }
 
   it('should ', () => {
@@ -152,10 +156,12 @@ describe('test hit type Item', () => {
     const screenResolution = '800X600'
     const locale = 'fr'
     const sessionNumber = '12345'
+    const key = 'key'
     item.userIp = userIp
     item.screenResolution = screenResolution
     item.locale = locale
     item.sessionNumber = sessionNumber
+    item.key = key
     expect(item.toObject())
       .toEqual({
         userIp,
@@ -166,7 +172,8 @@ describe('test hit type Item', () => {
         visitorId,
         ds: SDK_APP,
         type: HitType.ITEM,
-
+        key,
+        createdAt: expect.anything(),
         transactionId,
         productName,
         productSku,

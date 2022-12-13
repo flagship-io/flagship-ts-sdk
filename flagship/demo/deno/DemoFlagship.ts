@@ -1,15 +1,10 @@
 import {
-  DecisionMode,
   EventCategory,
   Flagship,
   FlagshipStatus,
   HitType,
-  Item,
-  LogLevel,
-  Transaction,
-  Modification,
-  DEVICE_LOCALE
-} from 'https://deno.land/x/flagship_io_js_sdk@3.0.7/mod.ts'
+  Transaction, CacheStrategy
+} from '../../dist-deno/src/mod.ts'
 import { API_KEY, ENV_ID } from './config.js'
 const sleep = (ms:number) => {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -24,9 +19,14 @@ const check:any = {}
 Flagship.start(ENV_ID, API_KEY, {
   // decisionMode: DecisionMode.BUCKETING,
   statusChangedCallback,
-  logLevel: LogLevel.ERROR,
+  // logLevel: LogLevel.ERROR,
   fetchNow: false,
-  timeout: 10
+  timeout: 10,
+  trackingMangerConfig: {
+    cacheStrategy: CacheStrategy.CONTINUOUS_CACHING,
+    poolMaxSize: 5,
+    batchIntervals: 10
+  }
 })
 
 const start = async (visitor:any, index:number) => {
@@ -79,7 +79,7 @@ const start = async (visitor:any, index:number) => {
 
     await flag.userExposed()
     // hit type Transaction
-    const transaction = new Transaction({ transactionId: visitor.visitorId, affiliation: 'KPI1' })
+    const transaction = new Transaction({ transactionId: visitor.visitorId, visitorId: 'v', affiliation: 'KPI1' })
     await visitor.sendHit(transaction)
 
     console.log('hit type transaction')

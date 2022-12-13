@@ -24,8 +24,6 @@ describe('test DefaultStrategy ', () => {
   config.logManager = logManager
 
   const trackingManager = new TrackingManager({} as HttpClient, config)
-  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
-  sendConsentHit.mockResolvedValue()
 
   const visitorDelegate = new VisitorDelegate({
     visitorId,
@@ -69,6 +67,7 @@ describe('test DefaultStrategy ', () => {
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(sprintf(
       PREDEFINED_CONTEXT_TYPE_ERROR,
+      visitorId,
       'sdk_internetConnection',
       'string'), PROCESS_UPDATE_CONTEXT)
   })

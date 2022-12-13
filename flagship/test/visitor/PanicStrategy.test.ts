@@ -3,7 +3,7 @@ import { DecisionApiConfig, IVisitorCacheImplementation, VisitorCacheDTO } from 
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
-import { FlagshipStatus, HitType, METHOD_DEACTIVATED_ERROR, METHOD_DEACTIVATED_SEND_CONSENT_ERROR, VISITOR_CACHE_VERSION } from '../../src/enum'
+import { FlagshipStatus, FLAG_USER_EXPOSED, HitType, LogLevel, METHOD_DEACTIVATED_ERROR, VISITOR_CACHE_VERSION } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
@@ -31,7 +31,7 @@ describe('test NotReadyStrategy', () => {
   const logManager = new FlagshipLogManager()
   const logError = jest.spyOn(logManager, 'error')
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', visitorCacheImplementation })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', visitorCacheImplementation, logLevel: LogLevel.ERROR })
   config.logManager = logManager
 
   const apiManager = new ApiManager({} as HttpClient, config)
@@ -39,33 +39,28 @@ describe('test NotReadyStrategy', () => {
   const getCampaignsAsync = jest.spyOn(apiManager, 'getCampaignsAsync')
 
   const trackingManager = new TrackingManager({} as HttpClient, config)
-  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
-  sendConsentHit.mockResolvedValue()
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
   const panicStrategy = new PanicStrategy(visitorDelegate)
 
   it('test setConsent', () => {
-    const methodName = 'setConsent'
     panicStrategy.setConsent(true)
     expect(visitorDelegate.hasConsented).toBe(true)
-    expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_SEND_CONSENT_ERROR, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
   })
 
   it('test updateContext', () => {
     const methodName = 'updateContext'
-    panicStrategy.updateContext({ key: 'value' })
+    panicStrategy.updateContext()
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
   })
 
   it('test clearContext', () => {
     const methodName = 'clearContext'
     panicStrategy.clearContext()
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
   })
 
   it('test getModification', async () => {
@@ -74,7 +69,7 @@ describe('test NotReadyStrategy', () => {
     const methodName = 'getModification'
     expect(value).toBe(defaultValue)
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
   })
 
   it('test getFlagValue', () => {
@@ -83,7 +78,7 @@ describe('test NotReadyStrategy', () => {
     const methodName = 'Flag.value'
     expect(flagValue).toBe(defaultValue)
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
   })
 
   it('test getModification array', () => {
@@ -93,7 +88,7 @@ describe('test NotReadyStrategy', () => {
 
       expect(value).toEqual({ key: defaultValue })
       expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
     })
   })
 
@@ -103,7 +98,7 @@ describe('test NotReadyStrategy', () => {
 
       expect(modification).toBeNull()
       expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
     })
   })
 
@@ -119,7 +114,7 @@ describe('test NotReadyStrategy', () => {
       isReference: false
     })
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
   })
 
   it('test fetchVisitorCacheCampaigns', async () => {
@@ -155,22 +150,21 @@ describe('test NotReadyStrategy', () => {
     panicStrategy.activateModification('key').then(() => {
       const methodName = 'activateModification'
       expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
     })
   })
 
   it('test userExposed', async () => {
     await panicStrategy.userExposed()
-    const methodName = 'userExposed'
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, FLAG_USER_EXPOSED, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), FLAG_USER_EXPOSED)
   })
 
   it('test activateModifications', () => {
     panicStrategy.activateModifications(['key']).then(() => {
       const methodName = 'activateModifications'
       expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
     })
   })
 
@@ -178,7 +172,7 @@ describe('test NotReadyStrategy', () => {
     panicStrategy.sendHit({ type: HitType.PAGE, documentLocation: 'home' }).then(() => {
       const methodName = 'sendHit'
       expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
     })
   })
 
@@ -186,7 +180,7 @@ describe('test NotReadyStrategy', () => {
     panicStrategy.sendHits([{ type: HitType.PAGE, documentLocation: 'home' }]).then(() => {
       const methodName = 'sendHits'
       expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
     })
   })
 })

@@ -154,13 +154,15 @@ export class Transaction extends HitAbstract implements ITransaction {
     this._shippingCosts = v
   }
 
-  public constructor (transaction: Omit<ITransaction, 'type'>) {
+  public constructor (param: Omit<ITransaction, 'type'|'createdAt'>) {
     super({
       type: HitType.TRANSACTION,
-      userIp: transaction?.userIp,
-      screenResolution: transaction?.screenResolution,
-      locale: transaction?.locale,
-      sessionNumber: transaction?.sessionNumber
+      userIp: param.userIp,
+      screenResolution: param.screenResolution,
+      locale: param.locale,
+      sessionNumber: param.sessionNumber,
+      visitorId: param.visitorId,
+      anonymousId: param.anonymousId
     })
     const {
       transactionId,
@@ -169,7 +171,7 @@ export class Transaction extends HitAbstract implements ITransaction {
       itemCount, shippingMethod,
       paymentMethod,
       totalRevenue, shippingCosts
-    } = transaction
+    } = param
     this.transactionId = transactionId
     this.affiliation = affiliation
     if (taxes) {

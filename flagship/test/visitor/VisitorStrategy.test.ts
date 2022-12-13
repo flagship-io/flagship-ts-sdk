@@ -31,7 +31,7 @@ describe('test getStrategy', () => {
     const methodName = 'activateModification'
     await visitorDelegate.activateModification('key')
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
   })
 
   it('test NotReadyStrategy flagship with status  NOT_INITIALIZED', async () => {
@@ -41,7 +41,7 @@ describe('test getStrategy', () => {
     const methodName = 'activateModification'
     await visitorDelegate.activateModification('key')
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
   })
 
   it('test PanicStrategy', async () => {
@@ -52,7 +52,7 @@ describe('test getStrategy', () => {
     await visitorDelegate.activateModification('key')
     await visitorDelegate.activateModification('key')
     expect(logError).toBeCalledTimes(2)
-    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
   })
 
   it('test NoConsent', async () => {
@@ -71,7 +71,7 @@ describe('test getStrategy', () => {
     })
     visitorDelegate.setConsent(true)
     await visitorDelegate.activateModification('key')
-    expect(logError).toBeCalledTimes(2)
+    expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(sprintf(ACTIVATE_MODIFICATION_ERROR, 'key'),
       PROCESS_ACTIVE_MODIFICATION)
   })

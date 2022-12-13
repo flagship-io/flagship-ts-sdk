@@ -6,6 +6,7 @@ import {
   DL_API_ITEM,
   DS_API_ITEM,
   HitType,
+  QT_API_ITEM,
   SCREEN_RESOLUTION_API_ITEM,
   SDK_APP,
   SESSION_NUMBER,
@@ -20,13 +21,10 @@ import { ERROR_MESSAGE } from '../../src/hit/Page'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { sprintf } from '../../src/utils/utils'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const getNull = (): any => {
-  return null
-}
 describe('test hit type Page', () => {
   const url = 'https://localhost'
-  const page = new Page({ documentLocation: url })
+  const visitorId = 'visitorId'
+  const page = new Page({ documentLocation: url, visitorId })
 
   it('should', () => {
     expect(page.documentLocation).toBe(url)
@@ -34,23 +32,18 @@ describe('test hit type Page', () => {
     expect(page.isReady()).toBeFalsy()
   })
 
-  it('should ', () => {
-    const page = new Page(getNull())
-    expect(page.documentLocation).toBeUndefined()
-  })
-
   const logManager = new FlagshipLogManager()
   const logError = jest.spyOn(logManager, 'error')
 
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
-  const visitorId = 'visitorId'
 
   it('should ', () => {
     page.config = config
     page.ds = SDK_APP
     page.visitorId = visitorId
     expect(page.isReady()).toBeTruthy()
+    expect(page.isReady(false)).toBeTruthy()
   })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -60,7 +53,8 @@ describe('test hit type Page', () => {
     [CUSTOMER_UID]: null,
     [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
     [T_API_ITEM]: HitType.PAGE_VIEW,
-    [DL_API_ITEM]: url
+    [DL_API_ITEM]: url,
+    [QT_API_ITEM]: expect.anything()
   }
 
   it('test method apiKey', () => {
@@ -72,10 +66,12 @@ describe('test hit type Page', () => {
     const screenResolution = '800X600'
     const locale = 'fr'
     const sessionNumber = '12345'
+    const key = 'key'
     page.userIp = userIp
     page.screenResolution = screenResolution
     page.locale = locale
     page.sessionNumber = sessionNumber
+    page.key = key
     expect(page.toObject()).toEqual({
       userIp,
       screenResolution,
@@ -83,6 +79,8 @@ describe('test hit type Page', () => {
       sessionNumber,
       anonymousId: null,
       visitorId,
+      key,
+      createdAt: expect.anything(),
       ds: SDK_APP,
       type: HitType.PAGE,
       documentLocation: url

@@ -1,6 +1,6 @@
 import { CampaignDTO } from './decision/api/models.ts'
 import { HitType } from './enum/index.ts'
-import { IEvent, IItem, IPage, IScreen, ITransaction, HitShape } from './hit/index.ts'
+import { IEvent, IItem, IPage, IScreen, ITransaction, HitShape, IHitAbstract } from './hit/index.ts'
 
 export type modificationsRequested<T> = {
     key: string,
@@ -11,7 +11,7 @@ export type modificationsRequested<T> = {
 export type primitive=string | number | boolean
 
 export type { HitShape }
-export type IHit = IPage | IScreen | IEvent | IItem | ITransaction
+export type IHit = Omit<IPage, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IScreen, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IEvent, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IItem, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<ITransaction, 'createdAt'|'visitorId'|'anonymousId'|'ds'>
 
 export type FlagDTO= {
   key: string;
@@ -59,14 +59,16 @@ export type NewVisitor={
 
 }
 
+export type InternalHitType = HitType|'BATCH'|'ACTIVATE'|'MONITORING'|'SEGMENT'
+
 export type HitCacheDTO ={
   version: number,
   data: {
       visitorId: string,
-      anonymousId: string|null,
-      type: HitType|'BATCH'|'ACTIVATE',
+      anonymousId?: string|null,
+      type: InternalHitType,
       time: number,
-      content?:IHit|FlagDTO|Record<string, unknown>
+      content:IHitAbstract
   }
 }
 

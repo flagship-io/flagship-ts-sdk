@@ -1,4 +1,5 @@
 import Flagship, {
+  CacheStrategy,
   DecisionMode,
   EventCategory,
   FlagshipStatus,
@@ -6,9 +7,10 @@ import Flagship, {
   Item,
   LogLevel,
   Transaction
-} from '@flagship.io/js-sdk'
+} from '../..'
 import { API_KEY, ENV_ID } from './config.js'
 import { campaigns } from './campaigns'
+import Redis from 'ioredis'
 
 const sleep = (ms) => {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -20,12 +22,55 @@ const statusChangedCallback = (status) => {
 
 const check = {}
 
+function hitCacheImplementation (host, port, dbIndex) {
+  const redis = new Redis({
+    host,
+    port
+  })
+
+  redis.select(dbIndex)
+
+  return {
+
+    async cacheHit (hits) {
+      const multi = redis.multi()
+      Object.entries(hits).forEach(([key, value]) => {
+        multi.set(key, JSON.stringify(value))
+      })
+      await multi.exec()
+    },
+    async lookupHits () {
+      const keys = await redis.keys('*')
+      if (!keys.length) {
+        return null
+      }
+      const redisData = await redis.mget(keys)
+      const hits = {}
+      redisData.forEach((value, index) => {
+        if (!value) {
+          return
+        }
+        hits[keys[index]] = JSON.parse(value)
+      })
+      return hits
+    },
+    async flushHits (hitKeys) {
+      await redis.del(hitKeys)
+    },
+
+    async flushAllHits () {
+      await redis.flushdb()
+    }
+  }
+}
+
 Flagship.start(ENV_ID, API_KEY, {
-  // decisionMode: DecisionMode.BUCKETING,
-  statusChangedCallback,
-  logLevel: LogLevel.ERROR,
-  fetchNow: false,
-  timeout: 10
+  hitCacheImplementation: hitCacheImplementation('127.0.0.1', '6379', 2),
+  trackingMangerConfig: {
+    batchIntervals: 5,
+    poolMaxSize: 10,
+    cacheStrategy: CacheStrategy.PERIODIC_CACHING
+  }
 })
 
 const start = async (visitor, index) => {
@@ -40,19 +85,10 @@ const start = async (visitor, index) => {
     // getFlag
     const flag = visitor.getFlag('js-qa-app', 'test')
 
-    const value = flag.getValue(false)
-
-    if (check[value]) {
-      check[value] += 1
-    } else {
-      check[value] = 1
-    }
+    const value = flag.getValue()
 
     console.log('flag.value', value)
 
-    await flag.userExposed()
-
-    console.log('flag.userExposed')
     // send hit
 
     // hit type Event
@@ -65,18 +101,13 @@ const start = async (visitor, index) => {
 
     console.log('hit type Event')
 
-    await flag.userExposed()
     // hit type Page
     await visitor.sendHit({ type: HitType.PAGE, documentLocation: 'https://www.sdk.com/abtastylab/js/151021-' + index })
     console.log('hit type Page')
 
-    await flag.userExposed()
     // hit type Screen
     await visitor.sendHit({ type: HitType.SCREEN, documentLocation: 'abtastylab-js-' + index })
 
-    console.log('hit type Screen')
-
-    await flag.userExposed()
     // hit type Transaction
     const transaction = new Transaction({ transactionId: visitor.visitorId, affiliation: 'KPI1' })
     await visitor.sendHit(transaction)
@@ -91,7 +122,7 @@ const start = async (visitor, index) => {
 
 async function script () {
   await sleep(2000)
-  for (let index = 0; index <= 1; index++) {
+  for (let index = 0; index < 1; index++) {
     const visitor = Flagship.newVisitor({ visitorId: 'visitor_a', context: { qa_report: true } })
     await start(visitor, index)
   }

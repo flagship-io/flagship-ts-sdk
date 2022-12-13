@@ -7,6 +7,7 @@ import {
   HitType,
   ICN_API_ITEM,
   PM_API_ITEM,
+  QT_API_ITEM,
   SDK_APP,
   SM_API_ITEM,
   TA_API_ITEM,
@@ -28,7 +29,8 @@ import { sprintf } from '../../src/utils/utils'
 describe('test hit type Transaction', () => {
   const transactionId = 'transactionId'
   const affiliation = 'affiliation'
-  const transaction = new Transaction({ transactionId, affiliation })
+  const visitorId = 'visitorId'
+  const transaction = new Transaction({ transactionId, affiliation, visitorId })
 
   it('should ', () => {
     expect(transaction.transactionId).toBe(transactionId)
@@ -56,7 +58,8 @@ describe('test hit type Transaction', () => {
       shippingCosts: 45,
       shippingMethod: 'method-ship',
       taxes: 45,
-      totalRevenue: 78
+      totalRevenue: 78,
+      visitorId
     }
     const transaction = new Transaction(params)
 
@@ -78,12 +81,12 @@ describe('test hit type Transaction', () => {
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
 
-  const visitorId = 'visitorId'
   it('should ', () => {
     transaction.config = config
     transaction.ds = SDK_APP
     transaction.visitorId = visitorId
     expect(transaction.isReady()).toBeTruthy()
+    expect(transaction.isReady(false)).toBeTruthy()
   })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -94,7 +97,8 @@ describe('test hit type Transaction', () => {
     [T_API_ITEM]: HitType.TRANSACTION,
     [TID_API_ITEM]: transactionId,
     [TA_API_ITEM]: affiliation,
-    [CUSTOMER_UID]: null
+    [CUSTOMER_UID]: null,
+    [QT_API_ITEM]: expect.anything()
   }
 
   it('should ', () => {
@@ -283,10 +287,12 @@ describe('test hit type Transaction', () => {
     const screenResolution = '800X600'
     const locale = 'fr'
     const sessionNumber = '12345'
+    const key = 'key'
     transaction.userIp = userIp
     transaction.screenResolution = screenResolution
     transaction.locale = locale
     transaction.sessionNumber = sessionNumber
+    transaction.key = key
     expect(transaction.toObject()).toEqual({
       userIp,
       screenResolution,
@@ -305,7 +311,9 @@ describe('test hit type Transaction', () => {
       shippingCosts,
       taxes,
       totalRevenue,
-      couponCode
+      couponCode,
+      key,
+      createdAt: expect.anything()
     })
   })
 

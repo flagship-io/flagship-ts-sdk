@@ -39,4 +39,5 @@ export enum HitType {
    *
    */
   EVENT = 'EVENT',
+
 }

@@ -1,11 +1,17 @@
+// import Flagship, { BatchStrategy } from '../../'
+
 const ENV_ID = ''
 const API_KEY = ''
 
 Flagship.start(ENV_ID, API_KEY, {
-  // decisionMode: DecisionMode.BUCKETING,
+  decisionMode: DecisionMode.BUCKETING,
   fetchNow: false,
   timeout: 10,
-  pollingInterval: 5
+  pollingInterval: 5,
+  // enableClientCache: false,
+  trackingMangerConfig: {
+    batchStrategy: 0
+  }
 })
 
 const currentVisitorId = 'visitor_5678'
@@ -21,33 +27,32 @@ const printLocalStorage = () => {
   console.log('localStorage:', { ...localStorage })
 }
 
-let visitor = Flagship.newVisitor({
-  visitorId: currentVisitorId,
-  context: { plan: 'premium' },
-  hasConsented: true
-})
-
 // scenario 1 action 1
 btnAction1.addEventListener('click', async () => {
-  printMessage(1, 1)
+  // printMessage(1, 1)
+
+  const visitor = Flagship.newVisitor({
+    context: { plan: 'premium' },
+    hasConsented: true
+  })
   await visitor.fetchFlags()
 
-  const flag = visitor.getFlag( myAwesomeFeature, 0)
+  const flag = visitor.getFlag('js', 'default')
 
   console.log('flag myAwesomeFeature :', flag.getValue())
 
-  const screen1 = { type: HitType.SCREEN, documentLocation: 'Screen 1' }
+  const screen1 = { type: HitType.SCREEN, documentLocation: 'abtastylab' }
   await visitor.sendHit(screen1)
   console.log('screen1 sent:', screen1)
 
-  printLocalStorage()
+  // printLocalStorage()
 })
 
 const scenario1Action2 = document.getElementById('scenario-1-action-2')
 
 scenario1Action2.addEventListener('click', async () => {
   printMessage(1, 2)
-  const flag = visitor.getFlag('perso_value',  'Not found')
+  const flag = visitor.getFlag('perso_value', 'Not found')
 
   console.log('perso_value:', flag.getValue())
 
@@ -81,7 +86,7 @@ scenario1Action3.addEventListener('click', async () => {
   console.log('fetchFlags OK')
   printLocalStorage()
 
-  let flag = visitor.getFlag( myAwesomeFeature, 0)
+  let flag = visitor.getFlag(myAwesomeFeature, 0)
 
   console.log('flag myAwesomeFeature :', flag.getValue())
 
@@ -93,7 +98,7 @@ scenario1Action3.addEventListener('click', async () => {
   console.log('synchronize OK')
   printLocalStorage()
 
-  flag = visitor.getFlag( myAwesomeFeature, 0)
+  flag = visitor.getFlag(myAwesomeFeature, 0)
   console.log('flag myAwesomeFeature :', flag.getValue())
 
   console.log('setConsent')
@@ -234,7 +239,7 @@ scenario1Action11.addEventListener('click', async () => {
 
   await visitor.fetchFlags()
   console.log('fetchFlags OK')
-  const flag = visitor.getFlag('js-qa-app', "default")
+  const flag = visitor.getFlag('js-qa-app', 'default')
   console.log('flag js-qa-app :', flag.getValue())
 
   printLocalStorage()

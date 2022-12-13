@@ -4,14 +4,24 @@ import { IHitCacheImplementation } from '../cache/IHitCacheImplementation'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, sprintf } from '../utils/utils'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation'
+import { ITrackingManagerConfig, TrackingManagerConfig } from './TrackingManagerConfig'
 import { UserExposureInfo } from '../types'
 import { version as SDK_VERSION } from '../sdkVersion'
 
 export enum DecisionMode {
   /**
+   *
+   * Flagship SDK mode decision api
+   * @deprecated use DECISION_API instead of
+   */
+  API = 'API',
+
+  /**
+   *   /**
    * Flagship SDK mode decision api
    */
-  DECISION_API = 'API',
+  DECISION_API = 'DECISION-API',
+
   /**
    * Flagship SDK mode bucketing
    */
@@ -94,12 +104,22 @@ export interface IFlagshipConfig {
 
   decisionApiUrl?: string
 
-  activateDeduplicationTime?: number
-
+  /**
+   * Specify delay in seconds of hit deduplication. After a hit is sent, all future sending of this hit will be blocked until the expiration of the delay.
+   *
+   * Note: if 0 is given, no deduplication process will be used
+   */
   hitDeduplicationTime?: number
 
+  /**
+   * Define an object that implement the interface visitorCacheImplementation, to handle the visitor cache.
+   *
+   */
   visitorCacheImplementation?: IVisitorCacheImplementation
 
+  /**
+   * Define an object that implement the interface IHitCacheImplementation, to handle the visitor cache.
+   */
   hitCacheImplementation?: IHitCacheImplementation
 
   /**
@@ -108,11 +128,20 @@ export interface IFlagshipConfig {
   disableCache?: boolean
 
   language?: 0 | 1 | 2
+
+  /**
+   * Define options to configure hit batching
+   */
+  trackingMangerConfig?: ITrackingManagerConfig
+
   /**
    * Define a callable to get callback each time  a Flag have been user exposed (activation hit has been sent) by SDK
    */
   onUserExposure?: (param: UserExposureInfo)=>void
   sdkVersion?: string
+  /**
+   * Define a callable to get a callback whenever the SDK needs to report a log
+   */
   onLog?: (level: LogLevel, tag: string, message: string)=>void
 }
 
@@ -134,11 +163,16 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _enableClientCache!: boolean
   private _initialBucketing?: BucketingDTO
   private _decisionApiUrl!: string
-  private _activateDeduplicationTime!: number
   private _hitDeduplicationTime!: number
   private _visitorCacheImplementation!: IVisitorCacheImplementation
   private _hitCacheImplementation!: IHitCacheImplementation
   private _disableCache!: boolean
+  private _trackingMangerConfig : ITrackingManagerConfig
+
+  public get trackingMangerConfig () : ITrackingManagerConfig {
+    return this._trackingMangerConfig
+  }
+
   private _onLog? : (level: LogLevel, tag: string, message: string)=>void
 
   public get onLog () : ((level: LogLevel, tag: string, message: string)=>void)|undefined {
@@ -158,11 +192,17 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     const {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
-      activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
-      disableCache, language, onUserExposure, sdkVersion, onLog
+      hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
+      disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig, onLog
     } = param
 
     this.initSDKInfo(language, sdkVersion)
+
+    if (logManager) {
+      this.logManager = logManager
+    }
+
+    this._trackingMangerConfig = new TrackingManagerConfig(trackingMangerConfig || {})
     this.onLog = onLog
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
     this._envId = envId
@@ -173,7 +213,6 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this.enableClientCache = typeof enableClientCache === 'undefined' || enableClientCache
     this._decisionMode = decisionMode || DecisionMode.DECISION_API
     this._initialBucketing = initialBucketing
-    this.activateDeduplicationTime = activateDeduplicationTime ?? DEFAULT_DEDUPLICATION_TIME
     this.hitDeduplicationTime = hitDeduplicationTime ?? DEFAULT_DEDUPLICATION_TIME
     this.disableCache = !!disableCache
 
@@ -184,9 +223,6 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       this.hitCacheImplementation = hitCacheImplementation
     }
 
-    if (logManager) {
-      this.logManager = logManager
-    }
     this.statusChangedCallback = statusChangedCallback
     this._onUserExposure = onUserExposure
   }
@@ -298,18 +334,6 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
 
   public set pollingInterval (v: number) {
     this._pollingInterval = v
-  }
-
-  public get activateDeduplicationTime (): number {
-    return this._activateDeduplicationTime
-  }
-
-  public set activateDeduplicationTime (v: number) {
-    if (typeof v !== 'number') {
-      logError(this, sprintf(TYPE_ERROR, 'activateDeduplicationTime', 'number'), 'activateDeduplicationTime')
-      return
-    }
-    this._activateDeduplicationTime = v
   }
 
   public get hitDeduplicationTime (): number {

@@ -5,7 +5,7 @@ import { DecisionManager } from '../../src/decision/DecisionManager'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { NoConsentStrategy } from '../../src/visitor/index'
-import { HitType, METHOD_DEACTIVATED_CONSENT_ERROR } from '../../src/enum/index'
+import { FLAG_USER_EXPOSED, HitType, LogLevel, METHOD_DEACTIVATED_CONSENT_ERROR } from '../../src/enum/index'
 import { sprintf } from '../../src/utils/utils'
 import { HttpClient } from '../../src/utils/HttpClient'
 
@@ -19,12 +19,10 @@ describe('test NoConsentStrategy', () => {
   const logManager = new FlagshipLogManager()
   const logError = jest.spyOn(logManager, 'error')
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', logLevel: LogLevel.ERROR })
   config.logManager = logManager
 
   const trackingManager = new TrackingManager({} as HttpClient, config)
-  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
-  sendConsentHit.mockResolvedValue()
 
   const configManager = new ConfigManager(config, {} as DecisionManager, trackingManager)
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
@@ -64,9 +62,8 @@ describe('test NoConsentStrategy', () => {
 
   it('test userExposed', () => {
     noConsentStrategy.userExposed().then(() => {
-      const methodName = 'userExposed'
       expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
+      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, FLAG_USER_EXPOSED, visitorDelegate.visitorId), FLAG_USER_EXPOSED)
     })
   })
 })

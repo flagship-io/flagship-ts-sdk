@@ -1,42 +1,125 @@
 import { jest, expect, it, describe } from '@jest/globals'
 import { TrackingManager } from '../../src/api/TrackingManager'
-import { ConfigManager, DecisionApiConfig } from '../../src/config/index'
-import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
-import {
-  ANONYMOUS_ID,
-  BASE_API_URL,
-  CUSTOMER_ENV_ID_API_ITEM,
-  CUSTOMER_UID,
-  DS_API_ITEM,
-  EVENT_ACTION_API_ITEM,
-  EVENT_CATEGORY_API_ITEM,
-  EVENT_LABEL_API_ITEM,
-  HEADER_APPLICATION_JSON,
-  HEADER_CONTENT_TYPE,
-  HEADER_X_API_KEY,
-  HEADER_X_SDK_CLIENT,
-  HEADER_X_SDK_VERSION,
-  HitType,
-  HIT_API_URL,
-  HIT_CONSENT_URL,
-  SDK_APP,
-  SDK_INFO,
-  T_API_ITEM,
-  URL_ACTIVATE_MODIFICATION,
-  VARIATION_GROUP_ID_API_ITEM,
-  VARIATION_ID_API_ITEM,
-  VISITOR_ID_API_ITEM
-} from '../../src/enum/index'
+import { DecisionApiConfig } from '../../src/config/index'
+import { HttpClient } from '../../src/utils/HttpClient'
+import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinuousCachingStrategy'
+import { BatchingPeriodicCachingStrategy } from '../../src/api/BatchingPeriodicCachingStrategy'
+import { CacheStrategy, Event, EventCategory, HitCacheDTO, Item, Page, Screen, Transaction } from '../../src'
+import { FS_CONSENT, HIT_CACHE_VERSION, NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY, PROCESS_LOOKUP_HIT, SDK_INFO } from '../../src/enum'
+import { NoBatchingContinuousCachingStrategy } from '../../src/api/NoBatchingContinuousCachingStrategy'
+import { sleep, uuidV4 } from '../../src/utils/utils'
+import { Mock } from 'jest-mock'
+import { Segment } from '../../src/hit/Segment'
+import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
+import { Activate } from '../../src/hit/Activate'
 
-import { EventCategory, Page } from '../../src/hit/index'
-import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
-import { ApiManager } from '../../src/decision/ApiManager'
-import { DecisionManager } from '../../src/decision/DecisionManager'
+describe('test TrackingManager', () => {
+  const httpClient = new HttpClient()
 
-// mock NodeHttpClient
-jest.mock('../../src/utils/HttpClient')
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
 
-describe('test TrackingManager sendActive ', () => {
+  const trackingManager = new TrackingManager(httpClient, config)
+  const visitorId = 'visitorId'
+
+  it('Test properties ', async () => {
+    expect(config).toBe(trackingManager.config)
+    expect(httpClient).toBe(trackingManager.httpClient)
+  })
+
+  it('Test addHit method', async () => {
+    const screenHit = new Screen({
+      documentLocation: 'variationGrID',
+      visitorId
+    })
+
+    screenHit.config = config
+
+    await trackingManager.addHit(screenHit)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const _hitsPoolQueue = (trackingManager as any)._hitsPoolQueue
+
+    expect(_hitsPoolQueue.size).toBe(1)
+
+    _hitsPoolQueue.clear()
+  })
+
+  it('Test activateFlag method', async () => {
+    const CampaignHit = new Activate({
+      variationGroupId: 'variationGrID',
+      variationId: 'campaignID',
+      visitorId
+    })
+
+    CampaignHit.config = config
+
+    await trackingManager.activateFlag(CampaignHit)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const _activatePoolQueue = (trackingManager as any)._activatePoolQueue
+
+    expect(_activatePoolQueue.size).toBe(1)
+  })
+
+  it('Test sendBatch method', async () => {
+    const postAsync = jest.spyOn(httpClient, 'postAsync')
+
+    postAsync.mockResolvedValue({
+      status: 200,
+      body: null
+    })
+
+    const screenHit = new Screen({
+      documentLocation: 'variationGrID',
+      visitorId
+    })
+
+    screenHit.config = config
+
+    await trackingManager.addHit(screenHit)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const _hitsPoolQueue = (trackingManager as any)._hitsPoolQueue
+
+    expect(_hitsPoolQueue.size).toBe(1)
+
+    await trackingManager.sendBatch()
+
+    expect(_hitsPoolQueue.size).toBe(0)
+  })
+})
+
+describe('test TrackingManager Strategy ', () => {
+  const httpClient = new HttpClient()
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
+
+  it('Test instance of BatchingContinuousCachingStrategy ', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (config.trackingMangerConfig as any)._batchStrategy = CacheStrategy.CONTINUOUS_CACHING
+    const trackingManager = new TrackingManager(httpClient, config)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((trackingManager as any).strategy).toBeInstanceOf(BatchingContinuousCachingStrategy)
+  })
+
+  it('Test instance of BatchingContinuousCachingStrategy ', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (config.trackingMangerConfig as any)._batchStrategy = CacheStrategy.PERIODIC_CACHING
+    const trackingManager = new TrackingManager(httpClient, config)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((trackingManager as any).strategy).toBeInstanceOf(BatchingPeriodicCachingStrategy)
+  })
+
+  it('Test instance of BatchingContinuousCachingStrategy ', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (config.trackingMangerConfig as any)._batchStrategy = NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY
+    const trackingManager = new TrackingManager(httpClient, config)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((trackingManager as any).strategy).toBeInstanceOf(NoBatchingContinuousCachingStrategy)
+  })
+})
+
+describe('test TrackingManager Strategy ', () => {
   const httpClient = new HttpClient()
 
   const postAsync = jest.spyOn(httpClient, 'postAsync')
@@ -45,205 +128,218 @@ describe('test TrackingManager sendActive ', () => {
 
   const trackingManager = new TrackingManager(httpClient, config)
 
-  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+  const visitorId = 'visitorId'
 
-  sendConsentHit.mockResolvedValue()
+  it('Test startBatchingLoop and  stopBatchingLoop methods', async () => {
+    postAsync.mockImplementation(async () => {
+      await sleep(250)
+      return { status: 200, body: null }
+    })
+
+    const pageHit = new Page({
+      documentLocation: 'https://myurl.com',
+      visitorId
+    })
+
+    pageHit.config = config
+
+    config.trackingMangerConfig.batchIntervals = 1
+
+    await trackingManager.addHit(pageHit)
+
+    trackingManager.startBatchingLoop()
+
+    await sleep(1500)
+
+    trackingManager.stopBatchingLoop()
+
+    expect(postAsync).toBeCalledTimes(1)
+  })
+})
+
+describe('test TrackingManager lookupHits', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const getNull:()=>any = () => null
+  const httpClient = new HttpClient()
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
 
   const visitorId = 'visitorId'
-  const context = { age: 20 }
+  const anonymousId = 'anonymousId'
 
-  const visitor = new VisitorDelegate({ visitorId, context, configManager: { config, trackingManager, decisionManager: {} as DecisionManager } })
+  const trackingManager = new TrackingManager(httpClient, config)
 
-  const url = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
-  const headers = {
-    [HEADER_X_API_KEY]: `${config.apiKey}`,
-    [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
-    [HEADER_X_SDK_VERSION]: SDK_INFO.version,
-    [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
+  const flushHits:Mock<Promise<void>, [hitKeys: string[]]> = jest.fn()
+  const lookupHits:Mock<Promise<Record<string, HitCacheDTO>>, []> = jest.fn()
+  const cacheHit:Mock<Promise<void>, [Record<string, HitCacheDTO>]> = jest.fn()
+  const flushAllHits:Mock<Promise<void>, []> = jest.fn()
+  const hitCacheImplementation = {
+    cacheHit,
+    lookupHits,
+    flushHits,
+    flushAllHits
   }
-  const modification = {
-    key: 'key',
-    campaignId: 'campaignId',
-    variationGroupId: 'variationGroupId',
-    variationId: 'variationId',
-    isReference: false,
-    value: 'value'
-  }
+  config.hitCacheImplementation = hitCacheImplementation
 
-  const postResponse: IHttpResponse = { status: 204, body: null }
-  const postResponseError: IHttpResponse = { status: 400, body: null }
-
-  it('should ', async () => {
-    expect(config).toBe(trackingManager.config)
-    expect(httpClient).toBe(trackingManager.httpClient)
-
-    // Test http request data
-
-    const postData = {
-      [VISITOR_ID_API_ITEM]: visitor.visitorId,
-      [VARIATION_ID_API_ITEM]: modification.variationId,
-      [VARIATION_GROUP_ID_API_ITEM]: modification.variationGroupId,
-      [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
-      [ANONYMOUS_ID]: visitor.anonymousId
-    }
-
-    try {
-      postAsync.mockResolvedValue(postResponse)
-      await trackingManager.sendActive(visitor, modification)
-
-      expect(postAsync).toHaveBeenCalledWith(url, {
-        headers,
-        timeout: config.timeout,
-        body: postData
-      })
-
-      postAsync.mockRejectedValue(postResponseError)
-      await trackingManager.sendActive(visitor, modification)
-      expect(postAsync).toHaveBeenCalledWith(url, {
-        headers,
-        timeout: config.timeout,
-        body: postData
-      })
-    } catch (error) {
-      expect(error).toBe(postResponseError)
-    }
-    expect(postAsync).toHaveBeenCalledTimes(2)
-  })
-
-  it('should ', async () => {
-    const visitor = new VisitorDelegate({ visitorId, hasConsented: true, isAuthenticated: true, context, configManager: { config, trackingManager, decisionManager: {} as ApiManager } })
-    const postData = {
-      [VISITOR_ID_API_ITEM]: visitor.visitorId,
-      [VARIATION_ID_API_ITEM]: modification.variationId,
-      [VARIATION_GROUP_ID_API_ITEM]: modification.variationGroupId,
-      [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
-      [ANONYMOUS_ID]: visitor.anonymousId
-    }
-
-    try {
-      postAsync.mockResolvedValue(postResponse)
-      await trackingManager.sendActive(visitor, modification)
-
-      expect(postAsync).toHaveBeenCalledWith(url, {
-        headers,
-        timeout: config.timeout,
-        body: postData
-      })
-
-      postAsync.mockRejectedValue(postResponseError)
-      await trackingManager.sendActive(visitor, modification)
-      expect(postAsync).toHaveBeenCalledWith(url, {
-        headers,
-        timeout: config.timeout,
-        body: postData
-      })
-    } catch (error) {
-      expect(error).toBe(postResponseError)
-    }
-    expect(postAsync).toHaveBeenCalledTimes(2)
-  })
-})
-
-describe('test TrackingManager sendHit ', () => {
-  it(' should', async () => {
-    const httpClient = new HttpClient()
-    const postAsync = jest.spyOn(httpClient, 'postAsync')
-
-    const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
-    const trackingManager = new TrackingManager(httpClient, config)
-
-    const hit = new Page({ documentLocation: 'url' })
-    hit.config = config
-
-    const headers = {
-      [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
-    }
-
-    const postResponse: IHttpResponse = { status: 204, body: null }
-
-    const postResponseError: IHttpResponse = { status: 400, body: null }
-
-    try {
-      postAsync.mockResolvedValue(postResponse)
-      await trackingManager.sendHit(hit)
-      expect(postAsync).toBeCalledWith(HIT_API_URL, {
-        headers,
-        timeout: config.timeout,
-        body: hit.toApiKeys()
-      })
-
-      postAsync.mockRejectedValue(postResponseError)
-      await trackingManager.sendHit(hit)
-      expect(postAsync).toBeCalledWith(HIT_API_URL, {
-        headers,
-        timeout: config.timeout,
-        body: hit.toApiKeys()
-      })
-    } catch (error) {
-      expect(error).toBe(postResponseError)
-    }
-    expect(postAsync).toHaveBeenCalledTimes(2)
-  })
-})
-
-describe('test TrackingManager sendConsentHit ', () => {
-  it(' should', async () => {
-    const httpClient = new HttpClient()
-    const postAsync = jest.spyOn(httpClient, 'postAsync')
-
-    const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
-    const trackingManager = new TrackingManager(httpClient, config)
-
-    const headers = {
-      [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
-    }
-
-    const postResponse: IHttpResponse = { status: 204, body: null }
-
-    const postResponseError: IHttpResponse = { status: 400, body: null }
-
-    const configManager = new ConfigManager(config, {} as DecisionManager, trackingManager)
-
-    const visitor = new VisitorDelegate({ visitorId: 'visitorId', hasConsented: true, context: {}, configManager })
-
-    const postBody: Record<string, unknown> = {
-      [T_API_ITEM]: HitType.EVENT,
-      [EVENT_LABEL_API_ITEM]: `${SDK_INFO.name}:${visitor.hasConsented}`,
-      [EVENT_ACTION_API_ITEM]: 'fs_consent',
-      [EVENT_CATEGORY_API_ITEM]: EventCategory.USER_ENGAGEMENT,
-      [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
-      [DS_API_ITEM]: SDK_APP,
-      [VISITOR_ID_API_ITEM]: visitor.visitorId,
-      [CUSTOMER_UID]: null
-    }
-
-    postAsync.mockResolvedValue(postResponse)
-
-    await trackingManager.sendConsentHit(visitor)
-
-    expect(postAsync).toBeCalledWith(HIT_CONSENT_URL, {
-      headers,
-      timeout: config.timeout,
-      body: postBody
+  it('test lookupHits', async () => {
+    const campaignHit = new Activate({
+      variationGroupId: 'variationGrID',
+      variationId: 'campaignID',
+      visitorId
     })
 
-    postAsync.mockRejectedValue(postResponseError)
-    try {
-      await trackingManager.sendConsentHit(visitor)
-    } catch (error) {
-      expect(error).toBe(postResponseError)
+    const consentHit = new Event({
+      visitorId,
+      label: `${SDK_INFO.name}:${true}`,
+      action: FS_CONSENT,
+      category: EventCategory.USER_ENGAGEMENT
+    })
+
+    const eventHit = new Event({
+      category: EventCategory.ACTION_TRACKING,
+      action: 'click',
+      visitorId
+    })
+
+    const itemHit = new Item({
+      transactionId: 'transactionId',
+      productName: 'productName',
+      productSku: 'productSku',
+      visitorId
+    })
+
+    const pageHit = new Page({
+      documentLocation: 'http://127.0.0.1:5500',
+      visitorId
+    })
+
+    const screenHit = new Screen({
+      documentLocation: 'home',
+      visitorId
+    })
+
+    const segmentHit = new Segment({
+      context: {
+        any: 'value'
+      },
+      visitorId
+    })
+
+    const transactionHit = new Transaction({
+      transactionId: 'transactionId',
+      affiliation: 'affiliation',
+      visitorId
+    })
+
+    const activate = new Activate({
+      visitorId,
+      variationGroupId: 'varGrId',
+      variationId: 'varId'
+    })
+
+    const hits = [campaignHit, consentHit, eventHit, itemHit, pageHit, screenHit, segmentHit, transactionHit, activate]
+    const data:Record<string, HitCacheDTO> = {}
+
+    hits.forEach(hit => {
+      hit.anonymousId = anonymousId
+      hit.visitorId = visitorId
+      hit.config = config
+
+      const hitData: HitCacheDTO = {
+        version: HIT_CACHE_VERSION,
+        data: {
+          visitorId,
+          anonymousId,
+          type: hit.type,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          content: hit.toObject() as any,
+          time: Date.now()
+        }
+      }
+
+      data[uuidV4()] = hitData
+    })
+
+    data[uuidV4()] = {
+      version: HIT_CACHE_VERSION,
+      data: {
+        visitorId,
+        anonymousId,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        type: 'any' as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        content: {} as any,
+        time: Date.now()
+      }
     }
 
-    visitor.authenticate('visitorIdAuth')
-    postBody[VISITOR_ID_API_ITEM] = visitor.anonymousId
-    postBody[CUSTOMER_UID] = visitor.visitorId
-    postAsync.mockResolvedValue(postResponse)
-    await trackingManager.sendConsentHit(visitor)
-    expect(postAsync).toBeCalledWith(HIT_CONSENT_URL, {
-      headers,
-      timeout: config.timeout,
-      body: postBody
-    })
-    expect(postAsync).toHaveBeenCalledTimes(4)
+    const wrongKey = uuidV4()
+
+    data[wrongKey] = {
+      version: HIT_CACHE_VERSION,
+      data: {
+        visitorId,
+        anonymousId,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        type: getNull() as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        content: getNull() as any,
+        time: Date.now()
+      }
+    }
+
+    lookupHits.mockResolvedValue(data)
+    await trackingManager.lookupHits()
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const _hitsPoolQueue = (trackingManager as any)._hitsPoolQueue
+
+    expect(_hitsPoolQueue.size).toBe(7)
+
+    expect(lookupHits).toBeCalledTimes(1)
+
+    expect(flushHits).toBeCalledTimes(1)
+    expect(flushHits).toBeCalledWith([wrongKey])
+  })
+
+  it('test lookupHits error ', async () => {
+    const logManager = new FlagshipLogManager()
+    const logError = jest.spyOn(logManager, 'error')
+    const error = new Error('message error')
+    lookupHits.mockRejectedValue(error)
+    config.hitCacheImplementation = getNull()
+    const trackingManager = new TrackingManager(httpClient, config)
+    config.logManager = logManager
+    config.hitCacheImplementation = hitCacheImplementation
+    await trackingManager.lookupHits()
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const _hitsPoolQueue = (trackingManager as any)._hitsPoolQueue
+
+    expect(_hitsPoolQueue.size).toBe(0)
+
+    expect(lookupHits).toBeCalledTimes(1)
+
+    expect(flushHits).toBeCalledTimes(0)
+
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(error.message, PROCESS_LOOKUP_HIT)
+  })
+
+  it('test lookupHits empty ', async () => {
+    lookupHits.mockResolvedValue({})
+    config.hitCacheImplementation = getNull()
+    const trackingManager = new TrackingManager(httpClient, config)
+    config.hitCacheImplementation = hitCacheImplementation
+    await trackingManager.lookupHits()
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const _hitsPoolQueue = (trackingManager as any)._hitsPoolQueue
+
+    expect(_hitsPoolQueue.size).toBe(0)
+
+    expect(lookupHits).toBeCalledTimes(1)
+
+    expect(flushHits).toBeCalledTimes(0)
   })
 })

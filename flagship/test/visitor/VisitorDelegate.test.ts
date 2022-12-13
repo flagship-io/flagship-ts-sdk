@@ -1,3 +1,4 @@
+import { primitive } from './../../src/types'
 import { jest, expect, it, describe } from '@jest/globals'
 import { FlagDTO } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
@@ -62,6 +63,8 @@ const updateCampaigns:Mock<void, [CampaignDTO[]]> = jest.fn()
 const lookupVisitor:Mock<void, []> = jest.fn()
 const lookupHits:Mock<void, []> = jest.fn()
 const cacheVisitorFn:Mock<Promise<void>, []> = jest.fn()
+const userExposed:Mock<Promise<void>, [{key:string, flag?:FlagDTO, defaultValue:unknown}]> = jest.fn()
+const getFlagValue:Mock<unknown, [{ key:string, defaultValue: unknown, flag?:FlagDTO, userExposed?: boolean}]> = jest.fn()
 
 jest.mock('../../src/visitor/DefaultStrategy', () => {
   return {
@@ -95,7 +98,9 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         lookupHits,
         fetchFlags,
         getFlagMetadata,
-        cacheVisitor: cacheVisitorFn
+        cacheVisitor: cacheVisitorFn,
+        userExposed,
+        getFlagValue
       }
     })
   }
@@ -104,7 +109,7 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
 describe('test VisitorDelegate', () => {
   const visitorId = 'visitorId'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const context: any = {
+  const context: Record<string, primitive> = {
     isVip: true
   }
 
@@ -138,8 +143,9 @@ describe('test VisitorDelegate', () => {
   }]
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager: configManager as ConfigManager, initialCampaigns: campaigns })
-  expect(updateContext).toBeCalledWith(context)
+
   expect(updateContext).toBeCalledTimes(1)
+  expect(updateContext).toBeCalledWith(context, undefined)
   expect(updateCampaigns).toBeCalledTimes(1)
   expect(updateCampaigns).toBeCalledWith(campaigns)
 
@@ -168,7 +174,7 @@ describe('test VisitorDelegate', () => {
     }
     visitorDelegate.context = newContext
     expect(updateContext).toBeCalledTimes(1)
-    expect(updateContext).toBeCalledWith(newContext)
+    expect(updateContext).toBeCalledWith(newContext, undefined)
   })
 
   it('test flagsData', () => {
@@ -267,7 +273,13 @@ describe('test VisitorDelegate methods', () => {
     }
     visitorDelegate.updateContext(contexts)
     expect(updateContext).toBeCalledTimes(1)
-    expect(updateContext).toBeCalledWith(contexts)
+    expect(updateContext).toBeCalledWith(contexts, undefined)
+  })
+
+  it('test updateContext key/value', () => {
+    visitorDelegate.updateContext('isVip', false)
+    expect(updateContext).toBeCalledTimes(1)
+    expect(updateContext).toBeCalledWith('isVip', false)
   })
 
   it('test clear', () => {
@@ -395,13 +407,33 @@ describe('test VisitorDelegate methods', () => {
       }).catch(err => console.log(err))
   })
 
-  it('test synchronizeModifications', () => {
+  it('test fetchFlags', () => {
     fetchFlags.mockResolvedValue()
     cacheVisitorFn.mockResolvedValue()
     visitorDelegate.fetchFlags()
       .then(() => {
         expect(fetchFlags).toBeCalledTimes(1)
       }).catch(err => console.log(err))
+  })
+
+  it('test userExposed', () => {
+    userExposed.mockResolvedValue()
+    const params = { key: 'key', flag: undefined, defaultValue: 'defaultValue' }
+    visitorDelegate.userExposed(params)
+      .then(() => {
+        expect(userExposed).toBeCalledTimes(1)
+        expect(userExposed).toBeCalledWith(params)
+      }).catch(err => console.log(err))
+  })
+
+  it('test getFlagValue', () => {
+    const flagValue = 'value'
+    getFlagValue.mockReturnValue(flagValue)
+    const params = { key: 'key', flag: undefined, defaultValue: 'defaultValue' }
+    const value = visitorDelegate.getFlagValue(params)
+    expect(getFlagValue).toBeCalledTimes(1)
+    expect(getFlagValue).toBeCalledWith(params)
+    expect(value).toBe(flagValue)
   })
 
   it('test activateModification', () => {

@@ -1,12 +1,24 @@
-import { expect, it, describe } from '@jest/globals'
-import { VISITOR_ID_API_ITEM, CUSTOMER_ENV_ID_API_ITEM, USER_IP_API_ITEM, SCREEN_RESOLUTION_API_ITEM, USER_LANGUAGE, SESSION_NUMBER, CUSTOMER_UID, SDK_APP } from '../../src/enum'
+import { expect, it, describe, beforeAll, afterAll, jest } from '@jest/globals'
+import { SDK_APP, DS_API_ITEM, CUSTOMER_ENV_ID_API_ITEM } from '../../src/enum'
 import { Page, Screen } from '../../src/hit'
 import { Batch, ERROR_MESSAGE } from '../../src/hit/Batch'
+import { Mock } from 'jest-mock'
 
 describe('test hit Batch', () => {
+  const methodNow = Date.now
+  const mockNow:Mock<number, []> = jest.fn()
+
+  const visitorId = 'visitorIds'
+  beforeAll(() => {
+    Date.now = mockNow
+    mockNow.mockReturnValue(1)
+  })
+  afterAll(() => {
+    Date.now = methodNow
+  })
   const hits = [
-    new Screen({ documentLocation: 'screenName2' }),
-    new Page({ documentLocation: 'http://localhost' })]
+    new Screen({ documentLocation: 'screenName2', visitorId }),
+    new Page({ documentLocation: 'http://localhost', visitorId })]
   const batch = new Batch({
     hits
   })
@@ -16,14 +28,8 @@ describe('test hit Batch', () => {
       t: 'BATCH',
       h: hits.map(item => {
         const hitKeys = item.toApiKeys()
-        delete hitKeys[VISITOR_ID_API_ITEM]
+        delete hitKeys[DS_API_ITEM]
         delete hitKeys[CUSTOMER_ENV_ID_API_ITEM]
-        delete hitKeys[USER_IP_API_ITEM]
-        delete hitKeys[SCREEN_RESOLUTION_API_ITEM]
-        delete hitKeys[USER_LANGUAGE]
-        delete hitKeys[SESSION_NUMBER]
-        delete hitKeys[VISITOR_ID_API_ITEM]
-        delete hitKeys[CUSTOMER_UID]
         return hitKeys
       })
     }))

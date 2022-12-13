@@ -17,11 +17,20 @@ export const REQUEST_TIME_OUT = 2
 export const DEFAULT_DEDUPLICATION_TIME = 2.5
 export const DEFAULT_POLLING_INTERVAL = 1
 
+export const DEFAULT_SERVER_TIME_INTERVAL = 10
+export const DEFAULT_SERVER_POOL_MAX_SIZE = 100
+
+export const DEFAULT_BROWSER_TIME_INTERVAL = 5
+export const DEFAULT_BROWSER_POOL_MAX_SIZE = 10
+
+export const BATCH_MAX_SIZE = 2500000
+
 /**
  * Decision api base url
  */
 export const BASE_API_URL = 'https://decision.flagship.io/v2/'
 export const HIT_API_URL = 'https://ariane.abtasty.com'
+export const HIT_EVENT_URL = 'https://events.flagship.io'
 export const BUCKETING_API_URL = 'https://cdn.flagship.io/{0}/bucketing.json'
 export const BUCKETING_API_CONTEXT_URL = 'https://decision.flagship.io/v2/{0}/events'
 export const HIT_CONSENT_URL = 'https://ariane.abtasty.com'
@@ -31,6 +40,8 @@ export const URL_ACTIVATE_MODIFICATION = 'activate'
 export const EXPOSE_ALL_KEYS = 'exposeAllKeys'
 export const SEND_CONTEXT_EVENT = 'sendContextEvent'
 
+export const FS_CONSENT = 'fs_consent'
+
 /**
  * SDK version
  */
@@ -38,7 +49,7 @@ export const SDK_VERSION = version
 
 export const VISITOR_CACHE_VERSION = 1
 export const HIT_CACHE_VERSION = 1
-export const DEFAULT_HIT_CACHE_TIME = 14400000
+export const DEFAULT_HIT_CACHE_TIME_MS = 14400000
 
 /**
  * Message Info
@@ -49,31 +60,28 @@ export const FLAGSHIP_SDK = 'Flagship SDK'
 
 export const EMIT_READY = 'ready'
 
+export const NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY = 3
+
+export const JS_DOC_URL = 'https://docs.developers.flagship.io/docs/js-v3'
 /**
  * Message Error
  */
-export const INITIALIZATION_PARAM_ERROR =
-  "Params 'envId' and 'apiKey' must not be null or empty."
+export const INITIALIZATION_PARAM_ERROR = `Params 'envId' and 'apiKey' must not be null or empty.
+  Learn more: ${JS_DOC_URL}#initialization`
 export const ERROR = 'error'
 export const CONTEXT_NULL_ERROR = 'Context must not to be null'
 export const CONTEXT_PARAM_ERROR =
   "params {0} must be a non null String, and 'value' must be one of the following types , Number, Boolean"
 export const GET_MODIFICATION_CAST_ERROR =
   'Modification for key {0} has a different type. Default value is returned.'
-export const GET_FLAG_CAST_ERROR =
-  'Flag for key {0} has a different type. Default value is returned.'
 export const GET_MODIFICATION_MISSING_ERROR =
   'No modification for key {0}. Default value is returned.'
-export const GET_FLAG_MISSING_ERROR =
-  'No Flag for key {0}. Default value is returned.'
 export const GET_MODIFICATION_KEY_ERROR =
   'Key {0} must not be null. Default value is returned.'
 export const ACTIVATE_MODIFICATION_KEY_ERROR =
   'Key {0} must not be null, no activate will be sent.'
 export const GET_MODIFICATION_ERROR = 'No modification for key {0}.'
 export const GET_FLAG_ERROR = 'No flag for key {0}.'
-export const USER_EXPOSED_FLAG_ERROR = 'No flag for key {0}, no activate will be sent'
-export const USER_EXPOSED_CAST_ERROR = 'Flag for key {0} has a different type with defaultValue, no activate will be sent'
 export const GET_METADATA_CAST_ERROR = 'Flag for key {0} has a different type with defaultValue, an empty metadata object is returned'
 export const ACTIVATE_MODIFICATION_ERROR = 'No modification for key {0}, no activate will be sent.'
 export const DECISION_MANAGER_MISSING_ERROR =
@@ -86,12 +94,30 @@ export const TYPE_INTEGER_ERROR =
 export const VISITOR_ID_ERROR = 'visitorId must not be null or empty'
 export const PANIC_MODE_ERROR = '{0} deactivated while panic mode is on.'
 export const METHOD_DEACTIVATED_CONSENT_ERROR = 'Method {0} is deactivated for visitor {1} : visitor did not consent.'
-export const METHOD_DEACTIVATED_ERROR = 'Method {0} is deactivated while SDK status is: {1}.'
+export const METHOD_DEACTIVATED_ERROR = 'Visitor {0}, method {1} is deactivated while SDK status is: {2}.'
 export const METHOD_DEACTIVATED_BUCKETING_ERROR = 'Method {0} is deactivated on Bucketing mode.'
 export const FLAGSHIP_VISITOR_NOT_AUTHENTICATE = 'Visitor is not authenticated yet'
-export const PREDEFINED_CONTEXT_TYPE_ERROR = 'Predefined Context {0} must be type of {1}'
 export const METHOD_DEACTIVATED_SEND_CONSENT_ERROR = 'Send consent hit is deactivated while SDK status is: {1}.'
-
+export const HIT_ADDED_IN_QUEUE = 'The HIT has been added to the pool queue : {0}'
+export const ACTIVATE_ADDED_IN_QUEUE = 'The ACTIVATE has been added to the pool queue : {0}'
+export const ADD_HIT = 'ADD HIT'
+export const ADD_ACTIVATE = 'ADD ACTIVATE'
+export const BATCH_SENT_SUCCESS = 'Batch hit has been sent : {0}'
+export const ACTIVATE_SENT_SUCCESS = 'Activate hit has been sent : {0}'
+export const SEND_BATCH = 'SEND BATCH'
+export const SEND_ACTIVATE = 'SEND ACTIVATE'
+export const SEND_SEGMENT_HIT = 'SEND SEGMENT HIT'
+export const SEND_HIT = 'SEND HIT'
+export const EVENT_SUFFIX = 'events'
+export const HIT_DATA_CACHED = 'Hit data has been saved into database : {0}'
+export const HIT_DATA_FLUSHED = 'The following hit keys have been flushed from database : {0}'
+export const HIT_SENT_SUCCESS = 'hit has been sent : {0}'
+export const HIT_DATA_LOADED = 'Hits data has been loaded from database: {0}'
+export const NEW_VISITOR_NOT_READY = 'You can\'t create a new visitor without first calling the "Flagship.start" method'
+export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
+export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheDTO'
+export const ACTIVATE_BATCH_LENGTH = 5
+export const FLUSH_ALL_HITS = 'All hits have been flushed from database'
 // Process
 export const PROCESS = 'process'
 export const PROCESS_INITIALIZATION = 'INITIALIZATION'
@@ -101,25 +127,33 @@ export const PROCESS_GET_MODIFICATION_INFO = 'GET MODIFICATION INFO'
 export const PROCESS_NEW_VISITOR = 'NEW VISITOR'
 export const PROCESS_ACTIVE_MODIFICATION = 'ACTIVE MODIFICATION'
 export const PROCESS_SYNCHRONIZED_MODIFICATION = 'SYNCHRONIZED MODIFICATION'
-export const PROCESS_SEND_HIT = 'SEND HIT'
+export const PROCESS_SEND_HIT = 'ADD HIT'
 export const PROCESS_SEND_ACTIVATE = 'SEND ACTIVATE'
 export const PROCESS_GET_CAMPAIGNS = 'GET CAMPAIGNS'
 export const PROCESS_GET_ALL_MODIFICATION = 'GET ALL MODIFICATIONS'
 export const PROCESS_MODIFICATIONS_FOR_CAMPAIGN = 'GET MODIFICATION FOR CAMPAIGN'
-export const PROCESS_CACHE_HIT = 'cacheHit'
-export const HIT_SENT_SUCCESS = 'hit has been sent : {0}'
+export const PROCESS_CACHE_HIT = 'CACHE HIT'
+export const PROCESS_FLUSH_HIT = 'FLUSH HIT'
+export const PROCESS_LOOKUP_HIT = 'LOOKUP HIT'
 
 // Api items
 
+export const BATCH = 'batch'
 export const CUSTOMER_ENV_ID_API_ITEM = 'cid'
+export const CUSTOMER_ENV_ID_API_ACTIVATE = 'cid'
 export const CUSTOMER_UID = 'cuid'
 export const ANONYMOUS_ID = 'aid'
 export const VISITOR_ID_API_ITEM = 'vid'
 export const VARIATION_GROUP_ID_API_ITEM = 'caid'
+export const VARIATION_GROUP_ID_API_ITEM_ACTIVATE = 'caid'
+export const VISITOR_CONSENT = 'vc'
+export const CAMPAIGN_ID = 'caid'
 export const VARIATION_ID_API_ITEM = 'vaid'
 export const DS_API_ITEM = 'ds'
 export const T_API_ITEM = 't'
+export const QT_API_ITEM = 'qt'
 export const DL_API_ITEM = 'dl'
+export const SL_ITEM = 'sl'
 export const SDK_APP = 'APP'
 export const TID_API_ITEM = 'tid'
 export const TA_API_ITEM = 'ta'
@@ -136,6 +170,7 @@ export const IC_API_ITEM = 'ic'
 export const IP_API_ITEM = 'ip'
 export const IQ_API_ITEM = 'iq'
 export const IV_API_ITEM = 'iv'
+export const S_API_ITEM = 's'
 export const EVENT_CATEGORY_API_ITEM = 'ec'
 export const EVENT_ACTION_API_ITEM = 'ea'
 export const EVENT_LABEL_API_ITEM = 'el'
@@ -146,7 +181,50 @@ export const USER_LANGUAGE = 'ul'
 export const SESSION_NUMBER = 'sn'
 
 export const HEADER_X_API_KEY = 'x-api-key'
+export const HEADER_X_ENV_ID = 'x-env-id'
 export const HEADER_CONTENT_TYPE = 'Content-Type'
 export const HEADER_X_SDK_CLIENT = 'x-sdk-client'
 export const HEADER_X_SDK_VERSION = 'x-sdk-version'
 export const HEADER_APPLICATION_JSON = 'application/json'
+
+// Log
+
+export const INITIALIZATION_STARTING = 'Flagship SDK version {0} is starting in {1} mode with config {2}'
+export const BUCKETING_POOLING_STARTED = 'Bucketing polling process has been started'
+export const BUCKETING_POOLING_STOPPED = 'Bucketing polling process has been stopped'
+export const PROCESS_BUCKETING = 'BUCKETING'
+export const POLLING_EVENT_200 = 'Polling event with code status 200 : {0}'
+export const POLLING_EVENT_300 = 'Polling event with code status 304'
+export const POLLING_EVENT_FAILED = 'Polling event failed with error'
+export const PROCESS_SDK_STATUS = 'SDK STATUS'
+export const SDK_STATUS_CHANGED = 'SDK status has changed:  {0}'
+export const SAVE_VISITOR_INSTANCE = 'Visitor {0} has been saved in SDK instance'
+export const VISITOR_CREATED = 'Visitor {0} has been created with context {1}, isAuthenticated:{2} and hasConsented {3}'
+export const VISITOR_PROFILE_LOADED = 'Visitor profile has been loaded {0}'
+export const VISITOR_ID_GENERATED = 'Visitor identifier is empty. A UUID {0} has been generated.'
+export const PREDEFINED_CONTEXT_LOADED = 'Predefined Context have been loaded {0}'
+export const CONTEXT_KEY_ERROR = `Visitor {0}, the key '{1}' must be a non null String.
+Learn more: ${JS_DOC_URL}#updating-the-visitor-context`
+export const CONTEXT_VALUE_ERROR = `Visitor {0}, 'value' for key '{1}[], must be one of the following types : String, Number, Boolean
+Learn more: ${JS_DOC_URL}#updating-the-visitor-context`
+export const PREDEFINED_CONTEXT_TYPE_ERROR = `visitor {0}, Predefined Context {0} must be of type {1}
+Learn more: ${JS_DOC_URL}#predefined-user-context-keys-`
+export const CONTEXT_KEY_VALUE_UPDATE = 'visitor `{0}`, context have been updated: key {1}, value {2}, Context {3}'
+export const CONTEXT_OBJET_PARAM_UPDATE = 'visitor `{0}`, context have been updated: key/value {1}, Context {2}'
+export const CLEAR_CONTEXT = 'visitor `{0}`, context has been cleared cleared `{1}`'
+export const PROCESS_CLEAR_CONTEXT = 'CLEAR_CONTEXT'
+export const CONSENT_CHANGED = 'Visitor `{0}` consent has been changed : {1}'
+export const PROCESS_SET_CONSENT = 'SET_CONSENT'
+export const FETCH_CAMPAIGNS_SUCCESS = 'Visitor {0}, anonymousId {1} with context {2} has just fetched campaigns {3} in {4} ms'
+export const FETCH_CAMPAIGNS_FROM_CACHE = 'Visitor {0}, anonymousId {1} with context {2} has just fetched campaigns from cache {3} in {4} ms'
+export const FETCH_FLAGS_FROM_CAMPAIGNS = 'Visitor {0}, anonymousId {1} with context {2} has just fetched flags {3} from Campaigns'
+export const FETCH_FLAGS_STARTED = 'visitor `{0}` fetchFlags process is started'
+export const FETCH_FLAGS_PANIC_MODE = 'Panic mode is enabled : all feature are disabled except fetchFlags.'
+export const PROCESS_FETCHING_FLAGS = 'FETCH_FLAGS'
+export const GET_FLAG_MISSING_ERROR = 'Visitor {0}, No Flags found for key {1} : Default value is returned {2}'
+export const FLAG_VALUE = 'FLAG_VALUE'
+export const GET_FLAG_CAST_ERROR = 'Visitor {0}, Flag for key {1} has a different type with default value : Default value is returned {2}'
+export const GET_FLAG_VALUE = 'Visitor {0}, Flag for key {1} returns value {2}'
+export const USER_EXPOSED_FLAG_ERROR = 'Visitor {0}, No Flags found for key {1}: User exposition wont be sent'
+export const FLAG_USER_EXPOSED = 'FLAG_USER_EXPOSED'
+export const USER_EXPOSED_CAST_ERROR = 'Visitor {0}, Flag for key {1} has a different type with default value: User exposition wont be sent'

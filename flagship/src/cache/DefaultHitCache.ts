@@ -1,28 +1,43 @@
 import { HitCacheDTO } from '../types'
 import { IHitCacheImplementation } from './IHitCacheImplementation'
-export const FS_HIT_PREFIX = 'FS_DEFAULT_HIT_CACHE_'
+
+export const FS_HIT_PREFIX = 'FS_DEFAULT_HIT_CACHE'
+
 export class DefaultHitCache implements IHitCacheImplementation {
-  cacheHit (visitorId: string, data: HitCacheDTO): Promise<void> {
-    const localDatabase = localStorage.getItem(FS_HIT_PREFIX + visitorId)
-    let dataJson = ''
-    if (localDatabase) {
-      const localData = localDatabase.slice(0, -1)
-      dataJson = `${localData},${JSON.stringify(data)}]`
-    } else {
-      dataJson = `[${JSON.stringify(data)}]`
+  cacheHit (hits: Record<string, HitCacheDTO>): Promise<void> {
+    const localDatabaseJson = localStorage.getItem(FS_HIT_PREFIX) || '{}'
+    const localDatabase = JSON.parse(localDatabaseJson)
+
+    const newLocalDatabase = {
+      ...localDatabase,
+      ...hits
     }
-    localStorage.setItem(FS_HIT_PREFIX + visitorId, dataJson)
+
+    localStorage.setItem(FS_HIT_PREFIX, JSON.stringify(newLocalDatabase))
+
     return Promise.resolve()
   }
 
-  lookupHits (visitorId: string): Promise<HitCacheDTO[]> {
-    const data = localStorage.getItem(FS_HIT_PREFIX + visitorId)
-    localStorage.removeItem(FS_HIT_PREFIX + visitorId)
-    return Promise.resolve(data ? JSON.parse(data) : null)
+  lookupHits (): Promise<Record<string, HitCacheDTO>> {
+    const localDatabaseJson = localStorage.getItem(FS_HIT_PREFIX) || '{}'
+    const localDatabase = JSON.parse(localDatabaseJson)
+    return Promise.resolve(localDatabase)
   }
 
-  flushHits (visitorId: string):Promise<void> {
-    localStorage.removeItem(FS_HIT_PREFIX + visitorId)
+  flushHits (hitKeys: string[]): Promise<void> {
+    const localDatabaseJson = localStorage.getItem(FS_HIT_PREFIX) || '{}'
+    const localDatabase:Record<string, HitCacheDTO> = JSON.parse(localDatabaseJson)
+
+    hitKeys.forEach(key => {
+      delete localDatabase[key]
+    })
+
+    localStorage.setItem(FS_HIT_PREFIX, JSON.stringify(localDatabase))
+    return Promise.resolve()
+  }
+
+  flushAllHits (): Promise<void> {
+    localStorage.removeItem(FS_HIT_PREFIX)
     return Promise.resolve()
   }
 }

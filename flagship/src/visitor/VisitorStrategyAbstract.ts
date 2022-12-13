@@ -1,17 +1,16 @@
 import { FlagDTO } from '../index'
-import { HitAbstract, HitShape } from '../hit/index'
-import { primitive, modificationsRequested, IHit, VisitorCacheDTO, HitCacheDTO, IFlagMetadata } from '../types'
+import { Event, HitAbstract, HitShape } from '../hit/index'
+import { primitive, modificationsRequested, IHit, VisitorCacheDTO, IFlagMetadata } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
 import { CampaignDTO } from '../decision/api/models'
-import { ITrackingManager } from '../api/TrackingManagerAbstract'
 import { IDecisionManager } from '../decision/IDecisionManager'
-import { logError, logInfo, sprintf } from '../utils/utils'
-import { DEFAULT_HIT_CACHE_TIME, HIT_CACHE_VERSION, PROCESS_CACHE_HIT, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index'
-
+import { logDebugSprintf, logError, logInfo, sprintf } from '../utils/utils'
+import { CONSENT_CHANGED, FS_CONSENT, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index'
 import { BatchDTO } from '../hit/Batch'
-
+import { EventCategory } from '../hit/Monitoring'
+import { ITrackingManager } from '../api/ITrackingManager'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheDTO'
@@ -61,16 +60,26 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     const method = 'setConsent'
     this.visitor.hasConsented = hasConsented
     if (!hasConsented) {
-      this.flushHits()
       this.flushVisitor()
     }
     if (!this.hasTrackingManager(method)) {
       return
     }
 
-    this.trackingManager.sendConsentHit(this.visitor).catch((error) => {
-      logError(this.config, error.message || error, method)
+    const consentHit = new Event({
+      visitorId: this.visitor.visitorId,
+      anonymousId: this.visitor.anonymousId,
+      label: `${SDK_INFO.name}:${this.visitor.hasConsented}`,
+      action: FS_CONSENT,
+      category: EventCategory.USER_ENGAGEMENT
     })
+
+    consentHit.ds = SDK_APP
+    consentHit.config = this.config
+
+    this.trackingManager.addHit(consentHit)
+
+    logDebugSprintf(this.config, PROCESS_SET_CONSENT, CONSENT_CHANGED, this.visitor.visitorId, hasConsented)
   }
 
   protected checKLookupVisitorDataV1 (item:VisitorCacheDTO):boolean {
@@ -183,110 +192,9 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     }
   }
 
-  protected checKLookupHitData (item:HitCacheDTO):boolean {
-    if (item && item.version === 1 && item.data && item.data.type && item.data.visitorId) {
-      return true
-    }
-    logError(this.config, LOOKUP_HITS_JSON_OBJECT_ERROR, 'lookupHits')
-    return false
-  }
-
-  async lookupHits ():Promise<void> {
-    try {
-      const hitCacheImplementation = this.config.hitCacheImplementation
-      if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.lookupHits !== 'function') {
-        return
-      }
-
-      const hitsCache = await hitCacheImplementation.lookupHits(this.visitor.visitorId)
-      if (!hitsCache) {
-        return
-      }
-      if (!Array.isArray(hitsCache)) {
-        throw Error(LOOKUP_HITS_JSON_ERROR)
-      }
-
-      const checkHitTime = (time:number) => (((Date.now() - time) / 1000) <= DEFAULT_HIT_CACHE_TIME)
-
-      const batches:BatchDTO[] = [{
-        type: 'BATCH',
-        hits: []
-      }]
-      let batchSize = 0
-      let count = 0
-
-      hitsCache.filter(item => this.checKLookupHitData(item) && checkHitTime(item.data.time)).forEach((item) => {
-        if (item.data.type === 'ACTIVATE') {
-          this.sendActivate(item.data.content as FlagDTO)
-          return
-        }
-
-        if (item.data.type === 'BATCH') {
-          this.sendHit(item.data.content as IHit)
-          return
-        }
-
-        batchSize = JSON.stringify(batches[count]).length
-        if (batchSize > 2621440) {
-          count++
-          batches[count] = {
-            type: 'BATCH',
-            hits: [item.data.content as IHit]
-          }
-        } else {
-          batches[count].hits.push(item.data.content as IHit)
-        }
-      })
-
-      if (batches.length === 1 && !batches[0].hits.length) {
-        return
-      }
-
-      this.sendHits(batches)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
-      logError(this.config, error.message || error, 'lookupHits')
-    }
-  }
-
-  protected async cacheHit (hitInstance: HitAbstract|FlagDTO):Promise<void> {
-    try {
-      const hitCacheImplementation = this.config.hitCacheImplementation
-      if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.cacheHit !== 'function') {
-        return
-      }
-      const hitData: HitCacheDTO = {
-        version: HIT_CACHE_VERSION,
-        data: {
-          visitorId: this.visitor.visitorId,
-          anonymousId: this.visitor.anonymousId,
-          type: hitInstance instanceof HitAbstract ? hitInstance.type : 'ACTIVATE',
-          content: hitInstance instanceof HitAbstract ? hitInstance.toObject() : hitInstance,
-          time: Date.now()
-        }
-      }
-      await hitCacheImplementation.cacheHit(this.visitor.visitorId, hitData)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
-      logError(this.config, error.message || error, PROCESS_CACHE_HIT)
-    }
-  }
-
-  protected async flushHits (): Promise<void> {
-    try {
-      const hitCacheImplementation = this.config.hitCacheImplementation
-      if (this.config.disableCache || !hitCacheImplementation || typeof hitCacheImplementation.flushHits !== 'function') {
-        return
-      }
-
-      await hitCacheImplementation.flushHits(this.visitor.visitorId)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
-      logError(this.config, error.message || error, 'flushHits')
-    }
-  }
-
+    abstract updateContext(key: string, value: primitive):void
     abstract updateContext(context: Record<string, primitive>): void
+    abstract updateContext (context: Record<string, primitive> | string, value?:primitive): void
     abstract clearContext (): void
 
     abstract getModification<T>(params: modificationsRequested<T>): Promise<T>;
@@ -318,13 +226,11 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
     protected abstract sendActivate (modification: FlagDTO): Promise<void>
 
-    abstract sendHit(hit: BatchDTO): Promise<void>
     abstract sendHit(hit: HitAbstract): Promise<void>;
     abstract sendHit(hit: IHit): Promise<void>;
     abstract sendHit(hit: HitShape): Promise<void>;
     abstract sendHit(hit: IHit | HitAbstract | HitShape|BatchDTO): Promise<void>;
 
-    abstract sendHits(hits: BatchDTO[]): Promise<void>
     abstract sendHits(hit: HitAbstract[]): Promise<void>;
     abstract sendHits(hit: IHit[]): Promise<void>;
     abstract sendHits(hit: HitShape[]): Promise<void>;

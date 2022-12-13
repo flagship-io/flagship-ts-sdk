@@ -55,7 +55,7 @@ export class FlagshipLogManager implements IFlagshipLogManager {
   }
 
   protected formatOutput (level: LogLevel, message: string, tag: string):string {
-    const now = new Date()
+    const now = new Date(Date.now())
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const getTwoDigit = (value: any) => {
       return value.toString().length === 1 ? `0${value}` : value
@@ -69,7 +69,7 @@ export class FlagshipLogManager implements IFlagshipLogManager {
       getTwoDigit(
         now.getHours()
       )
-    }:${getTwoDigit(now.getMinutes())}] [${FLAGSHIP_SDK}] [${
+    }:${getTwoDigit(now.getMinutes())}:${getTwoDigit(now.getSeconds())}.${getTwoDigit(now.getMilliseconds())}] [${FLAGSHIP_SDK}] [${
       LogLevel[level]
     }] [${tag}] : ${message}`
   }

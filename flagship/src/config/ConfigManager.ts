@@ -1,6 +1,6 @@
 import { IFlagshipConfig } from './FlagshipConfig'
 import { IDecisionManager } from '../decision/IDecisionManager'
-import { ITrackingManager } from '../api/TrackingManagerAbstract'
+import { ITrackingManager } from '../api/ITrackingManager'
 
 export interface IConfigManager {
   config: IFlagshipConfig;

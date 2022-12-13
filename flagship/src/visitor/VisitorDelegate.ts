@@ -6,8 +6,10 @@ import { CampaignDTO } from '../decision/api/models'
 import { Flag, IFlag } from '../flag/Flags'
 
 export class VisitorDelegate extends VisitorAbstract {
-  updateContext (context: Record<string, primitive>): void {
-    this.getStrategy().updateContext(context)
+  updateContext (key: string, value: primitive):void
+  updateContext (context: Record<string, primitive>): void
+  updateContext (context: Record<string, primitive> | string, value?:primitive): void {
+    this.getStrategy().updateContext(context, value)
     this.loadPredefinedContext()
   }
 
@@ -45,7 +47,6 @@ export class VisitorDelegate extends VisitorAbstract {
 
   async synchronizeModifications (): Promise<void> {
     await this.getStrategy().lookupVisitor()
-    await this.getStrategy().lookupHits()
     await this.getStrategy().synchronizeModifications()
     await this.getStrategy().cacheVisitor()
   }
@@ -104,7 +105,6 @@ export class VisitorDelegate extends VisitorAbstract {
 
   async fetchFlags ():Promise<void> {
     await this.getStrategy().lookupVisitor()
-    await this.getStrategy().lookupHits()
     await this.getStrategy().fetchFlags()
     await this.getStrategy().cacheVisitor()
   }

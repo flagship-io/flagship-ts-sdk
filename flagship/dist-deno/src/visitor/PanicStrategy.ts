@@ -1,22 +1,18 @@
 import { CampaignDTO, FlagDTO } from '../index.ts'
-import { FlagshipStatus, METHOD_DEACTIVATED_ERROR, METHOD_DEACTIVATED_SEND_CONSENT_ERROR } from '../enum/index.ts'
-import { IFlagMetadata, IHit, modificationsRequested, primitive } from '../types.ts'
-import { logError, sprintf } from '../utils/utils.ts'
+import { FlagshipStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR } from '../enum/index.ts'
+import { IFlagMetadata, IHit, modificationsRequested } from '../types.ts'
+import { logErrorSprintf } from '../utils/utils.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
 import { BatchDTO } from '../hit/Batch.ts'
 import { FlagMetadata } from '../flag/FlagMetadata.ts'
 
 export class PanicStrategy extends DefaultStrategy {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   setConsent (hasConsented:boolean):void {
     this.visitor.hasConsented = hasConsented
-    const methodName = 'setConsent'
-    logError(this.config, sprintf(METHOD_DEACTIVATED_SEND_CONSENT_ERROR, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  updateContext (_context: Record<string, primitive>): void {
+  updateContext (): void {
     this.log('updateContext')
   }
 
@@ -94,7 +90,7 @@ export class PanicStrategy extends DefaultStrategy {
   }
 
   async userExposed (): Promise<void> {
-    this.log('userExposed')
+    this.log(FLAG_USER_EXPOSED)
   }
 
   getFlagMetadata ():IFlagMetadata {
@@ -103,6 +99,6 @@ export class PanicStrategy extends DefaultStrategy {
   }
 
   private log (methodName:string) {
-    logError(this.config, sprintf(METHOD_DEACTIVATED_ERROR, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+    logErrorSprintf(this.config, methodName, METHOD_DEACTIVATED_ERROR, this.visitor.visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON])
   }
 }

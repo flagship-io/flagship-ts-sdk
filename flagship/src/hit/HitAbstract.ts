@@ -9,32 +9,45 @@ import {
   USER_IP_API_ITEM,
   SCREEN_RESOLUTION_API_ITEM,
   SESSION_NUMBER,
-  USER_LANGUAGE
+  USER_LANGUAGE,
+  QT_API_ITEM,
+  SDK_APP
 } from '../enum/FlagshipConstant'
-import { HitType } from '../enum/HitType'
-import { primitive } from '../types'
+import { InternalHitType, primitive } from '../types'
 import { logError, sprintf } from '../utils/utils'
 
 export interface IHitAbstract{
-  visitorId?:string
+  visitorId:string
+  anonymousId?: string|null
   ds?: string
-  type: HitType|'BATCH'
+  type: InternalHitType
   userIp?: string
   screenResolution?: string
   locale?: string
-  sessionNumber?: string
+  sessionNumber?: string,
+  createdAt:number
 }
 
 export abstract class HitAbstract implements IHitAbstract {
   private _visitorId!: string
   private _config!: IFlagshipConfig
-  protected _type!: HitType|'BATCH'
+  protected _type!: InternalHitType
   private _ds!: string
-  private _anonymousId! : string|null
+  private _anonymousId? : string|null
   private _userIp! : string
   private _screenResolution! : string
   private _locale! : string
   private _sessionNumber! : string
+  private _key! : string
+  private _createdAt!: number
+
+  public get key () : string {
+    return this._key
+  }
+
+  public set key (v : string) {
+    this._key = v
+  }
 
   public get sessionNumber () : string {
     return this._sessionNumber
@@ -68,11 +81,11 @@ export abstract class HitAbstract implements IHitAbstract {
     this._userIp = v
   }
 
-  public get anonymousId () : string|null {
+  public get anonymousId () : string|undefined|null {
     return this._anonymousId
   }
 
-  public set anonymousId (v : string|null) {
+  public set anonymousId (v : string|undefined|null) {
     this._anonymousId = v
   }
 
@@ -92,7 +105,7 @@ export abstract class HitAbstract implements IHitAbstract {
     this._ds = v
   }
 
-  public get type (): HitType|'BATCH' {
+  public get type (): InternalHitType {
     return this._type
   }
 
@@ -104,8 +117,16 @@ export abstract class HitAbstract implements IHitAbstract {
     this._config = v
   }
 
-  protected constructor (hit: IHitAbstract) {
-    const { type, userIp, screenResolution, locale, sessionNumber } = hit
+  public get createdAt () : number {
+    return this._createdAt
+  }
+
+  public set createdAt (v : number) {
+    this._createdAt = v
+  }
+
+  protected constructor (hit: Omit<IHitAbstract, 'createdAt'>) {
+    const { type, userIp, screenResolution, locale, sessionNumber, visitorId, anonymousId, ds } = hit
     this._type = type
     if (userIp) {
       this.userIp = userIp
@@ -119,7 +140,10 @@ export abstract class HitAbstract implements IHitAbstract {
     if (sessionNumber) {
       this.sessionNumber = sessionNumber
     }
-    this._anonymousId = null
+    this.visitorId = visitorId
+    this._anonymousId = anonymousId || null
+    this.createdAt = Date.now()
+    this.ds = ds || SDK_APP
   }
 
   /**
@@ -162,7 +186,9 @@ export abstract class HitAbstract implements IHitAbstract {
       [VISITOR_ID_API_ITEM]: this.visitorId,
       [DS_API_ITEM]: this.ds,
       [CUSTOMER_ENV_ID_API_ITEM]: `${this.config?.envId}`,
-      [T_API_ITEM]: this.type
+      [T_API_ITEM]: this.type,
+      [CUSTOMER_UID]: null,
+      [QT_API_ITEM]: Date.now() - this._createdAt
     }
     if (this.userIp) {
       apiKeys[USER_IP_API_ITEM] = this.userIp
@@ -176,18 +202,16 @@ export abstract class HitAbstract implements IHitAbstract {
     if (this.sessionNumber) {
       apiKeys[SESSION_NUMBER] = this.sessionNumber
     }
-    if (this.visitorId && this._anonymousId) {
-      apiKeys[VISITOR_ID_API_ITEM] = this._anonymousId
+    if (this.visitorId && this.anonymousId) {
+      apiKeys[VISITOR_ID_API_ITEM] = this.anonymousId
       apiKeys[CUSTOMER_UID] = this.visitorId
-    } else {
-      apiKeys[VISITOR_ID_API_ITEM] = this._anonymousId || this.visitorId
-      apiKeys[CUSTOMER_UID] = null
     }
     return apiKeys
   }
 
   toObject ():Record<string, unknown> {
     return {
+      key: this.key,
       visitorId: this.visitorId,
       ds: this.ds,
       type: this.type,
@@ -195,7 +219,8 @@ export abstract class HitAbstract implements IHitAbstract {
       screenResolution: this.screenResolution,
       locale: this.locale,
       sessionNumber: this.sessionNumber,
-      anonymousId: this.anonymousId
+      anonymousId: this.anonymousId,
+      createdAt: this.createdAt
     }
   }
 

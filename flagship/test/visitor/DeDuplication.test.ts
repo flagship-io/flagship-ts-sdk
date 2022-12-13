@@ -19,29 +19,21 @@ describe('Name of the group', () => {
   }
 
   const logManager = new FlagshipLogManager()
-  const logError = jest.spyOn(logManager, 'error')
 
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
 
   const httpClient = new HttpClient()
 
-  const post: Mock<
-      Promise<IHttpResponse>,
-      [url: string, options: IHttpOptions]
-    > = jest.fn()
-  httpClient.postAsync = post
-  post.mockResolvedValue({} as IHttpResponse)
-
   const apiManager = new ApiManager(httpClient, config)
 
   const trackingManager = new TrackingManager(httpClient, config)
 
-  const sendActive = jest.spyOn(trackingManager, 'sendActive')
-  const sendHit = jest.spyOn(trackingManager, 'sendHit')
-  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+  const addHit = jest.spyOn(trackingManager, 'addHit')
+  const activateFlag = jest.spyOn(trackingManager, 'activateFlag')
 
-  sendConsentHit.mockResolvedValue()
+  addHit.mockResolvedValue()
+  activateFlag.mockResolvedValue()
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
@@ -71,7 +63,7 @@ describe('Name of the group', () => {
     await defaultStrategy.activateModification(key)
     await defaultStrategy.activateModification('keyNumber')
     await defaultStrategy.activateModification('keyNumber')
-    expect(sendActive).toBeCalledTimes(2)
+    expect(activateFlag).toBeCalledTimes(2)
   })
 
   it('test userExposed ', async () => {
@@ -96,37 +88,32 @@ describe('Name of the group', () => {
     await defaultStrategy.userExposed({ key: flag.key, flag, defaultValue: flag.value })
     await defaultStrategy.userExposed({ key: flag2.key, flag: flag2, defaultValue: flag2.value })
     await defaultStrategy.userExposed({ key: flag2.key, flag: flag2, defaultValue: flag2.value })
-    expect(sendActive).toBeCalledTimes(2)
+    expect(activateFlag).toBeCalledTimes(2)
   })
 
   it('test sendHitAsync with literal object Event ', async () => {
-    try {
-      const hit = {
-        type: HitType.EVENT,
-        action: 'action_1',
-        category: EventCategory.ACTION_TRACKING
-      }
-      await defaultStrategy.sendHit(hit)
-      await defaultStrategy.sendHit(hit)
-      await defaultStrategy.sendHit({ ...hit, action: 'action_2' })
-      await defaultStrategy.sendHit({ ...hit, action: 'action_2' })
-      await defaultStrategy.sendHit({ ...hit, action: 'action_2' })
-      expect(sendHit).toBeCalledTimes(2)
-    } catch (error) {
-      console.log(error)
-      expect(logError).toBeCalled()
+    const hit = {
+      type: HitType.EVENT,
+      action: 'action_1',
+      category: EventCategory.ACTION_TRACKING
     }
+    await defaultStrategy.sendHit(hit)
+    await defaultStrategy.sendHit(hit)
+    await defaultStrategy.sendHit({ ...hit, action: 'action_2' })
+    await defaultStrategy.sendHit({ ...hit, action: 'action_2' })
+    await defaultStrategy.sendHit({ ...hit, action: 'action_2' })
+    expect(addHit).toBeCalledTimes(2)
   })
 
   it('test activation ', async () => {
-    config.activateDeduplicationTime = 1
+    config.hitDeduplicationTime = 1
     const key = 'keyBoolean'
     await defaultStrategy.activateModification(key)
     await defaultStrategy.activateModification(key)
     await defaultStrategy.activateModification(key)
     await sleep(1200)
     await defaultStrategy.activateModification(key)
-    expect(sendActive).toBeCalledTimes(2)
+    expect(activateFlag).toBeCalledTimes(2)
   })
 })
 
@@ -139,7 +126,7 @@ describe('Clean cache', () => {
 
   const logManager = new FlagshipLogManager()
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', activateDeduplicationTime: 1, hitDeduplicationTime: 1 })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 1 })
   config.logManager = logManager
 
   const httpClient = new HttpClient()
@@ -155,10 +142,10 @@ describe('Clean cache', () => {
 
   const trackingManager = new TrackingManager(httpClient, config)
 
-  const sendActive = jest.spyOn(trackingManager, 'sendActive')
-  const sendConsentHit = jest.spyOn(trackingManager, 'sendConsentHit')
+  const addHit = jest.spyOn(trackingManager, 'addHit')
+  const activateFlag = jest.spyOn(trackingManager, 'activateFlag')
 
-  sendConsentHit.mockResolvedValue()
+  addHit.mockResolvedValue()
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
@@ -187,6 +174,6 @@ describe('Clean cache', () => {
     defaultStrategy.activateModification('array')
     await sleep(1200)
     await defaultStrategy.activateModification(keyBoolean)
-    expect(sendActive).toBeCalledTimes(4)
+    expect(activateFlag).toBeCalledTimes(4)
   })
 })
