@@ -14,11 +14,6 @@ var _ioredis2 = _interopRequireDefault(_ioredis);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const redis = new _ioredis2.default({
-  host: '127.0.0.1',
-  port: '6379'
-});
-
 const sleep = ms => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
@@ -29,29 +24,54 @@ const statusChangedCallback = status => {
 
 const check = {};
 
-const FS_HIT_PREFIX = 'FS_DEFAULT_HIT_CACHE_TS';
-const hitCacheImplementation = {
+function hitCacheImplementation(host, port, dbIndex) {
+  const redis = new _ioredis2.default({
+    host,
+    port
+  });
 
-  async cacheHit(hits) {
-    await redis.set(FS_HIT_PREFIX, JSON.stringify(hits));
-  },
-  async lookupHits() {
-    const data = await redis.get(FS_HIT_PREFIX);
-    return data ? JSON.parse(data) : data;
-  }
-};
+  redis.select(dbIndex);
+
+  return {
+
+    async cacheHit(hits) {
+      const multi = redis.multi();
+      Object.entries(hits).forEach(([key, value]) => {
+        multi.set(key, JSON.stringify(value));
+      });
+      await multi.exec();
+    },
+    async lookupHits() {
+      const keys = await redis.keys('*');
+      if (!keys.length) {
+        return null;
+      }
+      const redisData = await redis.mget(keys);
+      const hits = {};
+      redisData.forEach((value, index) => {
+        if (!value) {
+          return;
+        }
+        hits[keys[index]] = JSON.parse(value);
+      });
+      return hits;
+    },
+    async flushHits(hitKeys) {
+      await redis.del(hitKeys);
+    },
+
+    async flushAllHits() {
+      await redis.flushdb();
+    }
+  };
+}
 
 _2.default.start(_config.ENV_ID, _config.API_KEY, {
-  // decisionMode: DecisionMode.BUCKETING,
-  hitCacheImplementation,
-  statusChangedCallback,
-  logLevel: _.LogLevel.ALL,
-  fetchNow: false,
-  timeout: 10,
+  hitCacheImplementation: hitCacheImplementation('127.0.0.1', '6379', 2),
   trackingMangerConfig: {
-    batchIntervals: 30,
-    batchLength: 10,
-    batchStrategy: _.BatchStrategy.PERIODIC_CACHING
+    batchIntervals: 5,
+    poolMaxSize: 10,
+    cacheStrategy: _.CacheStrategy.PERIODIC_CACHING
   }
 });
 
@@ -104,7 +124,7 @@ const start = async (visitor, index) => {
 
 async function script() {
   await sleep(2000);
-  for (let index = 0; index < 10; index++) {
+  for (let index = 0; index < 1; index++) {
     const visitor = _2.default.newVisitor({ visitorId: 'visitor_a', context: { qa_report: true } });
     await start(visitor, index);
   }

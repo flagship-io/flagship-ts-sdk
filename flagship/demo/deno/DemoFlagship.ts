@@ -3,7 +3,7 @@ import {
   Flagship,
   FlagshipStatus,
   HitType,
-  Transaction
+  Transaction, CacheStrategy
 } from '../../dist-deno/src/mod.ts'
 import { API_KEY, ENV_ID } from './config.js'
 const sleep = (ms:number) => {
@@ -21,7 +21,12 @@ Flagship.start(ENV_ID, API_KEY, {
   statusChangedCallback,
   // logLevel: LogLevel.ERROR,
   fetchNow: false,
-  timeout: 10
+  timeout: 10,
+  trackingMangerConfig: {
+    cacheStrategy: CacheStrategy.CONTINUOUS_CACHING,
+    poolMaxSize: 5,
+    batchIntervals: 10
+  }
 })
 
 const start = async (visitor:any, index:number) => {

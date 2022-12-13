@@ -10,6 +10,7 @@ import Flagship, {
 import { API_KEY, ENV_ID } from './config.js'
 
 Flagship.start(ENV_ID, API_KEY, {
+  logLevel: LogLevel.INFO,
   timeout: 10,
   fetchNow: false
 })
