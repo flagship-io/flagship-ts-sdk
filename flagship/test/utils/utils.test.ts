@@ -1,4 +1,4 @@
-import { logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, sprintf } from '../../src/utils/utils'
+import { logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarning, logWarningSprintf, sprintf } from '../../src/utils/utils'
 import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig } from '../../src/config/index'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
@@ -20,6 +20,7 @@ describe('test logError function', () => {
   const errorMethod = jest.spyOn(logManager, 'error')
   const infoMethod = jest.spyOn(logManager, 'info')
   const debugMethod = jest.spyOn(logManager, 'debug')
+  const warningMethod = jest.spyOn(logManager, 'warning')
 
   const onLog = jest.fn<void, [level: LogLevel, tag: string, message: string]>()
   config.onLog = onLog
@@ -60,6 +61,10 @@ describe('test logError function', () => {
     logInfoSprintf(config, tag, messageNone)
     expect(infoMethod).toBeCalledTimes(0)
 
+    logWarning(config, messageNone, tag)
+    logWarningSprintf(config, tag, messageNone)
+    expect(warningMethod).toBeCalledTimes(0)
+
     expect(onLog).toBeCalledTimes(0)
   })
 
@@ -87,6 +92,13 @@ describe('test logError function', () => {
     config.logLevel = LogLevel.INFO
     const messageDebug = 'this a message with DEBUG level'
     logDebug(config, messageDebug, tag)
+    expect(debugMethod).toBeCalledTimes(0)
+  })
+
+  it('test level WARNING', () => {
+    config.logLevel = LogLevel.WARNING
+    const messageWarning = 'this a message with Warning level'
+    logDebug(config, messageWarning, tag)
     expect(debugMethod).toBeCalledTimes(0)
   })
 
