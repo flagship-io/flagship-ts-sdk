@@ -26,6 +26,8 @@ export enum DecisionMode {
    * Flagship SDK mode bucketing
    */
   BUCKETING = 'BUCKETING',
+
+  EDGE = 'EDGE'
 }
 
 export interface IFlagshipConfig {
@@ -168,6 +170,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _hitCacheImplementation!: IHitCacheImplementation
   private _disableCache!: boolean
   private _trackingMangerConfig : ITrackingManagerConfig
+  private _isLiteClient?: boolean
 
   public get trackingMangerConfig () : ITrackingManagerConfig {
     return this._trackingMangerConfig
