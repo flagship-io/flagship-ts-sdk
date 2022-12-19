@@ -35,4 +35,9 @@ export class DefaultHitCache implements IHitCacheImplementation {
     localStorage.setItem(FS_HIT_PREFIX, JSON.stringify(localDatabase))
     return Promise.resolve()
   }
+
+  flushAllHits (): Promise<void> {
+    localStorage.removeItem(FS_HIT_PREFIX)
+    return Promise.resolve()
+  }
 }

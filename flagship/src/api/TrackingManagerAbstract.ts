@@ -1,6 +1,6 @@
 import { IFlagshipConfig } from '../config/FlagshipConfig'
 import { DEFAULT_HIT_CACHE_TIME_MS, HitType, HIT_DATA_LOADED, PROCESS_LOOKUP_HIT } from '../enum/index'
-import { CacheStrategy } from '../enum/BatchStrategy'
+import { CacheStrategy } from '../enum/CacheStrategy'
 import { HitAbstract, IEvent, ITransaction, Transaction, Event, Item, IItem, Page, IPage, IScreen, Screen } from '../hit/index'
 import { ISegment, Segment } from '../hit/Segment'
 import { IHttpClient } from '../utils/HttpClient'
@@ -90,7 +90,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     this._isPooling = false
   }
 
-  protected checKLookupHitData (item:HitCacheDTO):boolean {
+  protected checkLookupHitData (item:HitCacheDTO):boolean {
     if (item?.version === 1 && item?.data?.type && item?.data?.content) {
       return true
     }
@@ -117,7 +117,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
       const wrongHitKeys:string[] = []
       Object.entries(hitsCache).forEach(([key, item]) => {
-        if (!this.checKLookupHitData(item) || !checkHitTime(item.data.time)) {
+        if (!this.checkLookupHitData(item) || !checkHitTime(item.data.time)) {
           wrongHitKeys.push(key)
           return
         }

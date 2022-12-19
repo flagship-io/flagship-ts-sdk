@@ -1,9 +1,9 @@
 import { DecisionMode, IFlagshipConfig } from '../config/index'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
-import { ACTIVATE_ADDED_IN_QUEUE, ADD_ACTIVATE, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, DEFAULT_HIT_CACHE_TIME_MS, FLUSH_ALL_HITS, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HIT_CACHE_VERSION, HIT_DATA_CACHED, HIT_DATA_FLUSHED, HIT_EVENT_URL, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_APP, SEND_BATCH } from '../enum/index'
+import { ACTIVATE_ADDED_IN_QUEUE, ADD_ACTIVATE, ADD_HIT, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, DEFAULT_HIT_CACHE_TIME_MS, FLUSH_ALL_HITS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HitType, HIT_ADDED_IN_QUEUE, HIT_CACHE_VERSION, HIT_DATA_CACHED, HIT_DATA_FLUSHED, HIT_EVENT_URL, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_APP, SDK_INFO, SEND_BATCH } from '../enum/index'
 import { Activate } from '../hit/Activate'
 import { Batch } from '../hit/Batch'
-import { HitAbstract } from '../hit/index'
+import { HitAbstract, Event } from '../hit/index'
 import { HitCacheDTO } from '../types'
 import { IHttpClient } from '../utils/HttpClient'
 import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
@@ -32,7 +32,24 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     this._activatePoolQueue = activatePoolQueue
   }
 
-    abstract addHit (hit: HitAbstract): Promise<void>
+  async addHit (hit: HitAbstract): Promise<void> {
+    const hitKey = `${hit.visitorId}:${uuidV4()}`
+    hit.key = hitKey
+
+    await this.addHitInPoolQueue(hit)
+
+    if (hit.type === HitType.EVENT && (hit as Event).action === FS_CONSENT && (hit as Event).label === `${SDK_INFO.name}:false`) {
+      await this.notConsent(hit.visitorId)
+    }
+
+    logDebug(this.config, sprintf(HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_HIT)
+
+    if (this.config.trackingMangerConfig?.poolMaxSize && this._hitsPoolQueue.size >= this.config.trackingMangerConfig.poolMaxSize) {
+      this.sendBatch()
+    }
+  }
+
+    abstract addHitInPoolQueue (hit: HitAbstract):Promise<void>
 
     async activateFlag (hit: Activate):Promise<void> {
       const hitKey = `${hit.visitorId}:${uuidV4()}`

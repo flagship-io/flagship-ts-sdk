@@ -1,25 +1,26 @@
+import { S_API_ITEM } from '../enum/index.ts'
 import { primitive } from '../types.ts'
 import { HitAbstract, IHitAbstract } from './HitAbstract.ts'
 
-export const ERROR_MESSAGE = 'sl is required'
+export const ERROR_MESSAGE = 'data property is required'
 
 export interface ISegment extends IHitAbstract{
-    data:Record<string, primitive>
+    context:Record<string, primitive>
 }
 
 export class Segment extends HitAbstract implements ISegment {
-  private _data!: Record<string, primitive>;
-  public get data (): Record<string, primitive> {
-    return this._data
+  private _context!: Record<string, primitive>
+  public get context (): Record<string, primitive> {
+    return this._context
   }
 
-  public set data (v: Record<string, primitive>) {
-    this._data = v
+  public set context (v: Record<string, primitive>) {
+    this._context = v
   }
 
   public constructor (param:Omit<ISegment, 'type'|'createdAt'>) {
     super({
-      type: 'CONTEXT',
+      type: 'SEGMENT',
       userIp: param.userIp,
       screenResolution: param.screenResolution,
       locale: param.locale,
@@ -27,25 +28,23 @@ export class Segment extends HitAbstract implements ISegment {
       visitorId: param.visitorId,
       anonymousId: param.anonymousId
     })
-    this.data = param.data
+    this.context = param.context
   }
 
   public isReady (checkParent = true):boolean {
-    return !!((!checkParent || super.isReady()) && this.data)
+    return !!((!checkParent || super.isReady()) && this.context)
   }
 
   public toApiKeys ():Record<string, unknown> {
-    return {
-      visitorId: this.visitorId,
-      data: this.data,
-      type: this.type
-    }
+    const apiKeys = super.toApiKeys()
+    apiKeys[S_API_ITEM] = this.context
+    return apiKeys
   }
 
   public toObject ():Record<string, unknown> {
     return {
       ...super.toObject(),
-      data: this.data
+      context: this.context
     }
   }
 

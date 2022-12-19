@@ -67,6 +67,7 @@ describe('test DefaultStrategy ', () => {
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(sprintf(
       PREDEFINED_CONTEXT_TYPE_ERROR,
+      visitorId,
       'sdk_internetConnection',
       'string'), PROCESS_UPDATE_CONTEXT)
   })

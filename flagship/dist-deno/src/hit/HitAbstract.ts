@@ -10,7 +10,8 @@ import {
   SCREEN_RESOLUTION_API_ITEM,
   SESSION_NUMBER,
   USER_LANGUAGE,
-  QT_API_ITEM
+  QT_API_ITEM,
+  SDK_APP
 } from '../enum/FlagshipConstant.ts'
 import { InternalHitType, primitive } from '../types.ts'
 import { logError, sprintf } from '../utils/utils.ts'
@@ -28,16 +29,16 @@ export interface IHitAbstract{
 }
 
 export abstract class HitAbstract implements IHitAbstract {
-  private _visitorId!: string;
-  private _config!: IFlagshipConfig;
-  protected _type!: InternalHitType;
-  private _ds!: string;
-  private _anonymousId? : string|null;
-  private _userIp! : string;
-  private _screenResolution! : string;
-  private _locale! : string;
-  private _sessionNumber! : string;
-  private _key! : string;
+  private _visitorId!: string
+  private _config!: IFlagshipConfig
+  protected _type!: InternalHitType
+  private _ds!: string
+  private _anonymousId? : string|null
+  private _userIp! : string
+  private _screenResolution! : string
+  private _locale! : string
+  private _sessionNumber! : string
+  private _key! : string
   private _createdAt!: number
 
   public get key () : string {
@@ -125,7 +126,7 @@ export abstract class HitAbstract implements IHitAbstract {
   }
 
   protected constructor (hit: Omit<IHitAbstract, 'createdAt'>) {
-    const { type, userIp, screenResolution, locale, sessionNumber, visitorId, anonymousId } = hit
+    const { type, userIp, screenResolution, locale, sessionNumber, visitorId, anonymousId, ds } = hit
     this._type = type
     if (userIp) {
       this.userIp = userIp
@@ -142,6 +143,7 @@ export abstract class HitAbstract implements IHitAbstract {
     this.visitorId = visitorId
     this._anonymousId = anonymousId || null
     this.createdAt = Date.now()
+    this.ds = ds || SDK_APP
   }
 
   /**
@@ -185,6 +187,7 @@ export abstract class HitAbstract implements IHitAbstract {
       [DS_API_ITEM]: this.ds,
       [CUSTOMER_ENV_ID_API_ITEM]: `${this.config?.envId}`,
       [T_API_ITEM]: this.type,
+      [CUSTOMER_UID]: null,
       [QT_API_ITEM]: Date.now() - this._createdAt
     }
     if (this.userIp) {
@@ -202,9 +205,6 @@ export abstract class HitAbstract implements IHitAbstract {
     if (this.visitorId && this.anonymousId) {
       apiKeys[VISITOR_ID_API_ITEM] = this.anonymousId
       apiKeys[CUSTOMER_UID] = this.visitorId
-    } else {
-      apiKeys[VISITOR_ID_API_ITEM] = this.anonymousId || this.visitorId
-      apiKeys[CUSTOMER_UID] = null
     }
     return apiKeys
   }

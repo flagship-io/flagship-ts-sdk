@@ -1,12 +1,23 @@
 import {
   ACTIVATE_MODIFICATION_ERROR,
   ACTIVATE_MODIFICATION_KEY_ERROR,
+  CLEAR_CONTEXT,
+  CONTEXT_KEY_ERROR,
+  CONTEXT_KEY_VALUE_UPDATE,
   CONTEXT_NULL_ERROR,
-  CONTEXT_PARAM_ERROR,
+  CONTEXT_OBJET_PARAM_UPDATE,
+  CONTEXT_VALUE_ERROR,
   EMIT_READY,
+  FETCH_CAMPAIGNS_FROM_CACHE,
+  FETCH_CAMPAIGNS_SUCCESS,
+  FETCH_FLAGS_FROM_CAMPAIGNS,
+  FETCH_FLAGS_STARTED,
   FLAGSHIP_VISITOR_NOT_AUTHENTICATE,
+  FLAG_USER_EXPOSED,
+  FLAG_VALUE,
   GET_FLAG_CAST_ERROR,
   GET_FLAG_MISSING_ERROR,
+  GET_FLAG_VALUE,
   GET_METADATA_CAST_ERROR,
   GET_MODIFICATION_CAST_ERROR,
   GET_MODIFICATION_ERROR,
@@ -16,6 +27,8 @@ import {
   METHOD_DEACTIVATED_BUCKETING_ERROR,
   PREDEFINED_CONTEXT_TYPE_ERROR,
   PROCESS_ACTIVE_MODIFICATION,
+  PROCESS_CLEAR_CONTEXT,
+  PROCESS_FETCHING_FLAGS,
   PROCESS_GET_MODIFICATION,
   PROCESS_GET_MODIFICATION_INFO,
   PROCESS_SEND_HIT,
@@ -42,7 +55,7 @@ import {
 } from '../hit/index'
 import { HitShape, ItemHit } from '../hit/Legacy'
 import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata } from '../types'
-import { errorFormat, hasSameType, logDebug, logError, logInfo, sprintf } from '../utils/utils'
+import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logWarningSprintf, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
 import { DecisionMode } from '../config/index'
@@ -73,37 +86,21 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
 
     if (!check) {
-      logError(
-        this.config,
-        sprintf(PREDEFINED_CONTEXT_TYPE_ERROR, key, type),
-        PROCESS_UPDATE_CONTEXT
-      )
+      logErrorSprintf(this.config, PROCESS_UPDATE_CONTEXT, PREDEFINED_CONTEXT_TYPE_ERROR, this.visitor.visitorId, key, type)
     }
     return check
   }
 
-  /**
-   *  Update the visitor context values, matching the given keys, used for targeting.
-   *
-   * A new context value associated with this key will be created if there is no previous matching value.
-   * Context key must be String, and value type must be one of the following : Number, Boolean, String.
-   * @param {string} key : context key.
-   * @param {primitive} value : context value.
-   */
   private updateContextKeyValue (key: string, value: primitive): void {
     const valueType = typeof value
-    if (
-      typeof key !== 'string' ||
-      key === '' ||
-      (valueType !== 'string' &&
-        valueType !== 'number' &&
-        valueType !== 'boolean')
-    ) {
-      logError(
-        this.visitor.config,
-        sprintf(CONTEXT_PARAM_ERROR, key),
-        PROCESS_UPDATE_CONTEXT
-      )
+
+    if (typeof key !== 'string' || key === '') {
+      logErrorSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_KEY_ERROR, this.visitor.visitorId, key)
+      return
+    }
+
+    if (valueType !== 'string' && valueType !== 'number' && valueType !== 'boolean') {
+      logErrorSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_VALUE_ERROR, this.visitor.visitorId, key)
       return
     }
 
@@ -119,7 +116,15 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     this.visitor.context[key] = value
   }
 
-  updateContext (context: Record<string, primitive>): void {
+  updateContext(key: string, value: primitive):void
+  updateContext (context: Record<string, primitive>): void
+  updateContext (context: Record<string, primitive> | string, value?:primitive): void {
+    if (typeof context === 'string') {
+      this.updateContextKeyValue(context, value as primitive)
+      logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_KEY_VALUE_UPDATE, this.visitor.visitorId, context, value, this.visitor.context)
+      return
+    }
+
     if (!context) {
       logError(this.visitor.config, CONTEXT_NULL_ERROR, PROCESS_UPDATE_CONTEXT)
       return
@@ -129,10 +134,13 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       const value = context[key]
       this.updateContextKeyValue(key, value)
     }
+    logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_OBJET_PARAM_UPDATE, this.visitor.visitorId, context, this.visitor.context)
   }
 
   clearContext (): void {
     this.visitor.context = {}
+    this.visitor.loadPredefinedContext()
+    logDebugSprintf(this.config, PROCESS_CLEAR_CONTEXT, CLEAR_CONTEXT, this.visitor.visitorId, this.visitor.context)
   }
 
   private checkAndGetModification<T> (
@@ -277,23 +285,40 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       isFromCache: false,
       duration: 0
     }
+    let campaigns: CampaignDTO[] | null = null
+    let fetchCampaignError:string|undefined
     try {
-      let campaigns = await this.decisionManager.getCampaignsAsync(this.visitor)
+      logDebugSprintf(this.config, functionName, FETCH_FLAGS_STARTED, this.visitor.visitorId)
 
+      campaigns = await this.decisionManager.getCampaignsAsync(this.visitor)
+
+      logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_SUCCESS,
+        this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
+      )
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      logError(this.config, error.message, functionName)
+      fetchCampaignError = error
+    }
+    try {
       if (!campaigns) {
         campaigns = this.fetchVisitorCampaigns(this.visitor)
         logData.isFromCache = true
+        if (campaigns) {
+          logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_FROM_CACHE,
+            this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
+          )
+        }
       }
 
-      if (!campaigns) {
-        return
-      }
+      campaigns = campaigns || []
 
       this.visitor.campaigns = campaigns
       this.visitor.flagsData = this.decisionManager.getModifications(this.visitor.campaigns)
-      this.visitor.emit(EMIT_READY)
-      logData.duration = Date.now() - now
-      logDebug(this.config, sprintf('{0} succeeded {1}', functionName, JSON.stringify(logData)), functionName)
+      this.visitor.emit(EMIT_READY, fetchCampaignError)
+
+      logDebugSprintf(this.config, functionName, FETCH_FLAGS_FROM_CAMPAIGNS,
+        this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, this.visitor.flagsData)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.visitor.emit(EMIT_READY, error)
@@ -619,7 +644,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   async fetchFlags (): Promise<void> {
-    return this.globalFetchFlags('fetchFlags')
+    return this.globalFetchFlags(PROCESS_FETCHING_FLAGS)
   }
 
   protected onUserExposedCallback ({ flag, visitor }:{flag:FlagDTO, visitor:IVisitor}): void {
@@ -652,19 +677,19 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     const functionName = 'userExposed'
     if (!flag) {
-      logInfo(
+      logWarningSprintf(
         this.visitor.config,
-        sprintf(USER_EXPOSED_FLAG_ERROR, key),
-        functionName
+        FLAG_USER_EXPOSED,
+        USER_EXPOSED_FLAG_ERROR, this.visitor.visitorId, key
       )
       return
     }
 
     if (defaultValue !== null && defaultValue !== undefined && flag.value !== null && !hasSameType(flag.value, defaultValue)) {
-      logInfo(
+      logWarningSprintf(
         this.visitor.config,
-        sprintf(USER_EXPOSED_CAST_ERROR, key),
-        functionName
+        FLAG_USER_EXPOSED,
+        USER_EXPOSED_CAST_ERROR, this.visitor.visitorId, key
       )
       return
     }
@@ -678,13 +703,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}): T {
     const { key, defaultValue, flag, userExposed } = param
-    const functionName = 'getFlag value'
+
     if (!flag) {
-      logInfo(
-        this.config,
-        sprintf(GET_FLAG_MISSING_ERROR, key),
-        functionName
-      )
+      logWarningSprintf(this.config, FLAG_VALUE, GET_FLAG_MISSING_ERROR, this.visitor.visitorId, key, defaultValue)
       return defaultValue
     }
 
@@ -696,17 +717,15 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
 
     if (defaultValue !== null && defaultValue !== undefined && !hasSameType(flag.value, defaultValue)) {
-      logInfo(
-        this.config,
-        sprintf(GET_FLAG_CAST_ERROR, key),
-        functionName
-      )
+      logWarningSprintf(this.config, FLAG_VALUE, GET_FLAG_CAST_ERROR, this.visitor.visitorId, key, defaultValue)
       return defaultValue
     }
 
     if (userExposed) {
       this.userExposed({ key, flag, defaultValue })
     }
+
+    logDebugSprintf(this.config, FLAG_VALUE, GET_FLAG_VALUE, this.visitor.visitorId, key, flag.value)
 
     return flag.value
   }
@@ -715,10 +734,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     const { metadata, hasSameType: checkType, key } = param
     const functionName = 'flag.metadata'
     if (!checkType) {
-      logInfo(
+      logWarningSprintf(
         this.visitor.config,
-        sprintf(GET_METADATA_CAST_ERROR, key),
-        functionName
+        functionName,
+        GET_METADATA_CAST_ERROR, key
       )
       return FlagMetadata.Empty()
     }

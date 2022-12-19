@@ -8,10 +8,19 @@ import { LogLevel } from '../enum/index'
 export function sprintf (format: string, ...value: any[]): string {
   let formatted = format
   for (let i = 0; i < value.length; i++) {
-    const element = value[i]
+    const item = value[i]
+    const element = typeof item === 'string' ? item : JSON.stringify(item instanceof Map ? Array.from(item.values()) : item)
     formatted = formatted.replace(new RegExp(`\\{${i}\\}`, 'g'), element)
   }
   return formatted
+}
+
+export function logErrorSprintf (config: IFlagshipConfig, tag: string, message: string, ...arg: unknown[]) {
+  if (!config || !config.logLevel || config.logLevel < LogLevel.ERROR) {
+    return
+  }
+  const customMessage = sprintf(message, ...arg)
+  logError(config, customMessage, tag)
 }
 
 export function logError (
@@ -32,6 +41,39 @@ export function logError (
   }
 }
 
+export function logWarningSprintf (config: IFlagshipConfig, tag: string, message: string, ...arg: unknown[]) {
+  if (!config || !config.logLevel || config.logLevel < LogLevel.WARNING) {
+    return
+  }
+  const customMessage = sprintf(message, ...arg)
+  logWarning(config, customMessage, tag)
+}
+
+export function logWarning (
+  config: IFlagshipConfig,
+  message: string,
+  tag: string
+):void {
+  if (!config || !config.logLevel || config.logLevel < LogLevel.WARNING) {
+    return
+  }
+
+  if (typeof config.onLog === 'function') {
+    config.onLog(LogLevel.WARNING, tag, message)
+  }
+
+  if (config.logManager && typeof config.logManager.warning === 'function') {
+    config.logManager.warning(message, tag)
+  }
+}
+
+export function logInfoSprintf (config: IFlagshipConfig, tag: string, message: string, ...arg: unknown[]) {
+  if (!config || !config.logLevel || config.logLevel < LogLevel.INFO) {
+    return
+  }
+  const customMessage = sprintf(message, ...arg)
+  logInfo(config, customMessage, tag)
+}
 export function logInfo (config: IFlagshipConfig, message: string, tag: string):void {
   if (!config || !config.logLevel || config.logLevel < LogLevel.INFO) {
     return
@@ -44,6 +86,14 @@ export function logInfo (config: IFlagshipConfig, message: string, tag: string):
   if (config.logManager && typeof config.logManager.info === 'function') {
     config.logManager.info(message, tag)
   }
+}
+
+export function logDebugSprintf (config: IFlagshipConfig, tag: string, message: string, ...arg: unknown[]):void {
+  if (!config || !config.logLevel || config.logLevel < LogLevel.DEBUG) {
+    return
+  }
+  const customMessage = sprintf(message, ...arg)
+  logDebug(config, customMessage, tag)
 }
 
 export function logDebug (config: IFlagshipConfig, message: string, tag: string):void {
@@ -88,9 +138,9 @@ export function uuidV4 (): string {
   })
 }
 
-export function errorFormat (errorMessage:string, errorData?:Record<string, unknown>):string {
+export function errorFormat (message:string, errorData?:Record<string, unknown>):string {
   return JSON.stringify({
-    errorMessage,
+    message,
     data: errorData
   })
 }

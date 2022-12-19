@@ -5,8 +5,10 @@ import {
   FlagshipStatus,
   INITIALIZATION_PARAM_ERROR,
   PROCESS_INITIALIZATION,
+  PROCESS_SDK_STATUS,
   SDK_INFO,
-  SDK_STARTED_INFO
+  SDK_STARTED_INFO,
+  SDK_STATUS_CHANGED
 } from '../../src/enum/index'
 import { Flagship } from '../../src/main/Flagship'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
@@ -149,8 +151,16 @@ describe('test Flagship with custom config', () => {
 
     expect(instance?.getStatus()).toBe(FlagshipStatus.READY)
 
-    expect(infoLog).toBeCalledTimes(1)
-    expect(infoLog).toBeCalledWith(
+    expect(infoLog).toBeCalledTimes(3)
+    expect(infoLog).toHaveBeenNthCalledWith(1,
+      sprintf(SDK_STATUS_CHANGED, FlagshipStatus[FlagshipStatus.STARTING]),
+      PROCESS_SDK_STATUS
+    )
+    expect(infoLog).toHaveBeenNthCalledWith(2,
+      sprintf(SDK_STATUS_CHANGED, FlagshipStatus[FlagshipStatus.READY]),
+      PROCESS_SDK_STATUS
+    )
+    expect(infoLog).toHaveBeenNthCalledWith(3,
       sprintf(SDK_STARTED_INFO, SDK_INFO.version),
       PROCESS_INITIALIZATION
     )

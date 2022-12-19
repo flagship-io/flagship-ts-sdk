@@ -1,4 +1,4 @@
-import { jest, expect, it, describe } from '@jest/globals'
+import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { DecisionApiConfig } from '../../src/config/index'
 import { ApiManager } from '../../src/decision/ApiManager'
@@ -18,8 +18,19 @@ import { IHttpResponse, HttpClient } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { campaigns } from './campaigns'
 import { CampaignDTO } from '../../src'
+import { errorFormat } from '../../src/utils/utils'
+import { Mock } from 'jest-mock'
 
 describe('test ApiManager', () => {
+  const methodNow = Date.now
+  const mockNow:Mock<number, []> = jest.fn()
+  beforeAll(() => {
+    Date.now = mockNow
+    mockNow.mockReturnValue(1)
+  })
+  afterAll(() => {
+    Date.now = methodNow
+  })
   const httpClient = new HttpClient()
   const postAsync = jest.spyOn(httpClient, 'postAsync')
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
@@ -90,6 +101,23 @@ describe('test ApiManager', () => {
     expect(modifications.get('object')?.value).toEqual({ value: 123456 })
   })
 
+  it('Test error ', async () => {
+    postAsync.mockRejectedValue(responseError)
+
+    try {
+      await apiManager.getCampaignsAsync(visitor)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err:any) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(err.message).toEqual(errorFormat(responseError as any, {
+        url,
+        headers,
+        body: postData,
+        duration: 0
+      }))
+    }
+  })
+
   it('test campaign with consent false', async () => {
     config.decisionApiUrl = 'http://new_decision_api_url'
     const url = `${config.decisionApiUrl}${config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
@@ -111,14 +139,5 @@ describe('test ApiManager', () => {
     expect(modifications.size).toBe(4)
     expect(modifications.get('array')?.value).toEqual([1, 1, 1])
     expect(modifications.get('object')?.value).toEqual({ value: 123456 })
-  })
-
-  it('Test error ', async () => {
-    postAsync.mockRejectedValue(responseError)
-
-    const campaigns = await apiManager.getCampaignsAsync(
-      visitor
-    )
-    expect(campaigns).toBeNull()
   })
 })

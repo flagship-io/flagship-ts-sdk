@@ -1,28 +1,15 @@
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
-import { ADD_HIT, BASE_API_URL, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_ADDED_IN_QUEUE, HIT_SENT_SUCCESS, SDK_INFO, SEND_ACTIVATE, URL_ACTIVATE_MODIFICATION } from '../enum/index'
+import { BASE_API_URL, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_SENT_SUCCESS, SDK_INFO, SEND_ACTIVATE, URL_ACTIVATE_MODIFICATION } from '../enum/index'
 import { Activate } from '../hit/Activate'
 import { ActivateBatch } from '../hit/ActivateBatch'
 import { HitAbstract, Event } from '../hit/index'
-import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
+import { errorFormat, logDebug, logError, sprintf } from '../utils/utils'
 import { BatchingCachingStrategyAbstract, SendActivate } from './BatchingCachingStrategyAbstract'
 
 export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAbstract {
-  async addHit (hit: HitAbstract): Promise<void> {
-    const hitKey = `${hit.visitorId}:${uuidV4()}`
-    hit.key = hitKey
-
-    this._hitsPoolQueue.set(hitKey, hit)
-    await this.cacheHit(new Map<string, HitAbstract>([[hitKey, hit]]))
-
-    if (hit.type === HitType.EVENT && (hit as Event).action === FS_CONSENT && (hit as Event).label === `${SDK_INFO.name}:false`) {
-      await this.notConsent(hit.visitorId)
-    }
-
-    logDebug(this.config, sprintf(HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_HIT)
-
-    if (this.config.trackingMangerConfig?.poolMaxSize && this._hitsPoolQueue.size >= this.config.trackingMangerConfig.poolMaxSize) {
-      this.sendBatch()
-    }
+  async addHitInPoolQueue (hit: HitAbstract) {
+    this._hitsPoolQueue.set(hit.key, hit)
+    await this.cacheHit(new Map<string, HitAbstract>([[hit.key, hit]]))
   }
 
   async notConsent (visitorId: string):Promise<void> {
@@ -68,7 +55,6 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     }
 
     const requestBody = activateBatch.toApiKeys()
-
     const url = BASE_API_URL + URL_ACTIVATE_MODIFICATION
     const now = Date.now()
 

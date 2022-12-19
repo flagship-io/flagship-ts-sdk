@@ -135,6 +135,20 @@ describe('test bucketing polling', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((bucketingManager as any)._bucketingContent).toEqual(bucketing)
   })
+
+  it('should ', async () => {
+    const lastModified = Date.now()
+    config.pollingInterval = 0.5
+    config.onBucketingUpdated = (lastUpdate) => {
+      expect(lastModified.toString()).toBe(lastUpdate.toString())
+    }
+    getAsync.mockResolvedValue({ body: null, status: 304, headers: { 'last-modified': lastModified.toString() } })
+    await bucketingManager.startPolling()
+    await sleep(1000)
+    bucketingManager.stopPolling()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((bucketingManager as any)._bucketingContent).toEqual(bucketing)
+  })
 })
 
 describe('test update', () => {

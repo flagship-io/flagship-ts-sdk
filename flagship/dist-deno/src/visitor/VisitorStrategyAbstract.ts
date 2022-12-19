@@ -1,28 +1,16 @@
 import { FlagDTO } from '../index.ts'
-<<<<<<< HEAD
 import { Event, HitAbstract, HitShape } from '../hit/index.ts'
-import { primitive, modificationsRequested, IHit, VisitorCacheDTO } from '../types.ts'
-=======
-import { HitAbstract, HitShape } from '../hit/index.ts'
-import { primitive, modificationsRequested, IHit, VisitorCacheDTO, HitCacheDTO, IFlagMetadata } from '../types.ts'
->>>>>>> origin/main
+import { primitive, modificationsRequested, IHit, VisitorCacheDTO, IFlagMetadata } from '../types.ts'
 import { IVisitor } from './IVisitor.ts'
 import { VisitorAbstract } from './VisitorAbstract.ts'
 import { IConfigManager, IFlagshipConfig } from '../config/index.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
-import { ITrackingManager } from '../api/TrackingManagerAbstract.ts'
 import { IDecisionManager } from '../decision/IDecisionManager.ts'
-import { logError, logInfo, sprintf } from '../utils/utils.ts'
-import { FS_CONSENT, SDK_APP, SDK_LANGUAGE, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index.ts'
-
+import { logDebugSprintf, logError, logInfo, sprintf } from '../utils/utils.ts'
+import { CONSENT_CHANGED, FS_CONSENT, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index.ts'
 import { BatchDTO } from '../hit/Batch.ts'
-
-<<<<<<< HEAD
-import { IFlagMetadata } from '../flag/FlagMetadata.ts'
 import { EventCategory } from '../hit/Monitoring.ts'
-
-=======
->>>>>>> origin/main
+import { ITrackingManager } from '../api/ITrackingManager.ts'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheDTO'
@@ -80,7 +68,8 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
     const consentHit = new Event({
       visitorId: this.visitor.visitorId,
-      label: `${SDK_LANGUAGE.name}:${this.visitor.hasConsented}`,
+      anonymousId: this.visitor.anonymousId,
+      label: `${SDK_INFO.name}:${this.visitor.hasConsented}`,
       action: FS_CONSENT,
       category: EventCategory.USER_ENGAGEMENT
     })
@@ -88,9 +77,9 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     consentHit.ds = SDK_APP
     consentHit.config = this.config
 
-    this.trackingManager.addHit(consentHit).catch((error) => {
-      logError(this.config, error.message || error, method)
-    })
+    this.trackingManager.addHit(consentHit)
+
+    logDebugSprintf(this.config, PROCESS_SET_CONSENT, CONSENT_CHANGED, this.visitor.visitorId, hasConsented)
   }
 
   protected checKLookupVisitorDataV1 (item:VisitorCacheDTO):boolean {
@@ -203,7 +192,9 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     }
   }
 
+    abstract updateContext(key: string, value: primitive):void
     abstract updateContext(context: Record<string, primitive>): void
+    abstract updateContext (context: Record<string, primitive> | string, value?:primitive): void
     abstract clearContext (): void
 
     abstract getModification<T>(params: modificationsRequested<T>): Promise<T>;

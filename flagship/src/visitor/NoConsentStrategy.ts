@@ -1,5 +1,5 @@
 import { IHit } from '../types'
-import { METHOD_DEACTIVATED_CONSENT_ERROR } from '../enum/index'
+import { FLAG_USER_EXPOSED, METHOD_DEACTIVATED_CONSENT_ERROR } from '../enum/index'
 import { HitAbstract, HitShape } from '../hit/index'
 import { logError, sprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
@@ -50,7 +50,7 @@ export class NoConsentStrategy extends DefaultStrategy {
   }
 
   async userExposed (): Promise<void> {
-    this.log('userExposed')
+    this.log(FLAG_USER_EXPOSED)
   }
 
   private log (methodName:string) {

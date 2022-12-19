@@ -1,46 +1,72 @@
-import { DEFAULT_BATCH_LENGTH, DEFAULT_TIME_INTERVAL, BatchStrategy } from '../enum/index.ts'
+import { CacheStrategy, DEFAULT_SERVER_TIME_INTERVAL, DEFAULT_BROWSER_TIME_INTERVAL, DEFAULT_BROWSER_POOL_MAX_SIZE, DEFAULT_SERVER_POOL_MAX_SIZE } from '../enum/index.ts'
+import { isBrowser } from '../utils/utils.ts'
 
 export interface ITrackingManagerConfig {
     /**
-     * Define the time intervals the SDK will use to send tracking batches.
+     * Define a regular interval in seconds to trigger batch processing
+     *
+     * Note:
+     * - The process will batch all hits from the pool whether poolMaxSize is reached or not
+     * - Must be between 1sec and 10800s (3hours). Otherwise default value will be applied
      */
     batchIntervals?: number
-    /**
-     * Define the maximum number of tracking hit that each batch can contain.
-     */
-    batchLength?: number
 
-    batchStrategy?: BatchStrategy
+    /**
+     * Define the minimum number of hits the pool must reach to automatically batch all hits in the pool and send it
+     *
+     * Note:
+     * - Must be greater than 5 otherwise default value will be used
+     * - Having a large poolMaxSize can lead to performance issues
+     */
+    poolMaxSize?: number
+
+    /**
+     * Define the strategy that will be used for hit caching
+     */
+    cacheStrategy?: CacheStrategy
 }
 
 export class TrackingManagerConfig implements ITrackingManagerConfig {
-private _batchIntervals : number;
-private _batchLength : number;
-private _batchStrategy : BatchStrategy;
+  private _batchIntervals! : number
+  private _poolMaxSize! : number
+  private _batchStrategy : CacheStrategy
 
-public constructor (param?: ITrackingManagerConfig) {
-  this._batchIntervals = param?.batchIntervals || DEFAULT_TIME_INTERVAL
-  this._batchLength = param?.batchLength || DEFAULT_BATCH_LENGTH
-  this._batchStrategy = param?.batchStrategy || BatchStrategy.CONTINUOUS_CACHING
-}
+  public constructor (param?: ITrackingManagerConfig) {
+    this.batchIntervals = param?.batchIntervals
+    this.poolMaxSize = param?.poolMaxSize
+    this._batchStrategy = this.getCacheStrategy(param?.cacheStrategy)
+  }
 
-public get batchIntervals () : number {
-  return this._batchIntervals
-}
+  protected getCacheStrategy (cacheStrategy?: CacheStrategy):CacheStrategy {
+    if (typeof cacheStrategy === 'number') {
+      return cacheStrategy
+    }
+    return (isBrowser() ? CacheStrategy.CONTINUOUS_CACHING : CacheStrategy.PERIODIC_CACHING)
+  }
 
-public set batchIntervals (v : number) {
-  this._batchIntervals = v
-}
+  public get batchIntervals () : number|undefined {
+    return this._batchIntervals
+  }
 
-public get batchLength () : number {
-  return this._batchLength
-}
+  public set batchIntervals (v : number|undefined) {
+    if (typeof v !== 'number' || v < 1 || v > 10800) {
+      v = isBrowser() ? DEFAULT_BROWSER_TIME_INTERVAL : DEFAULT_SERVER_TIME_INTERVAL
+    }
+    this._batchIntervals = v
+  }
 
-public set batchLength (v : number) {
-  this._batchLength = v
-}
+  public get poolMaxSize () : number|undefined {
+    return this._poolMaxSize
+  }
 
-public get batchStrategy () : BatchStrategy {
-  return this._batchStrategy
-}
+  public set poolMaxSize (v : number|undefined) {
+    if (typeof v !== 'number' || v < 5) {
+      v = isBrowser() ? DEFAULT_BROWSER_POOL_MAX_SIZE : DEFAULT_SERVER_POOL_MAX_SIZE
+    }
+    this._poolMaxSize = v
+  }
+
+  public get cacheStrategy () : CacheStrategy {
+    return this._batchStrategy
+  }
 }

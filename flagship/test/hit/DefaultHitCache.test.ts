@@ -19,9 +19,9 @@ describe('Test DefaultHitCache', () => {
   const storageMock = {
     getItem: jest.fn(),
     setItem: jest.fn(),
-    removeItem: jest.fn()
+    removeItem: jest.fn<void, string[]>()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any
+  }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   global.localStorage = storageMock as any
   const visitorId = 'visitorId'
@@ -72,6 +72,15 @@ describe('Test DefaultHitCache', () => {
 
     expect(global.localStorage.setItem).toBeCalledTimes(1)
     expect(global.localStorage.setItem).toHaveBeenCalledWith(FS_HIT_PREFIX, JSON.stringify({}))
+  })
+
+  it('test flushAllHits', async () => {
+    storageMock.removeItem.mockReturnValue()
+
+    await defaultHitCache.flushAllHits()
+
+    expect(global.localStorage.removeItem).toBeCalledTimes(1)
+    expect(global.localStorage.removeItem).toHaveBeenCalledWith(FS_HIT_PREFIX)
   })
 
   it('test lookupHits', async () => {

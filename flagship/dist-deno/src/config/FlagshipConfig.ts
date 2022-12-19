@@ -10,9 +10,18 @@ import { version as SDK_VERSION } from '../sdkVersion.ts'
 
 export enum DecisionMode {
   /**
+   *
+   * Flagship SDK mode decision api
+   * @deprecated use DECISION_API instead of
+   */
+  API = 'API',
+
+  /**
+   *   /**
    * Flagship SDK mode decision api
    */
-  DECISION_API = 'API',
+  DECISION_API = 'DECISION-API',
+
   /**
    * Flagship SDK mode bucketing
    */
@@ -95,12 +104,22 @@ export interface IFlagshipConfig {
 
   decisionApiUrl?: string
 
-  activateDeduplicationTime?: number
-
+  /**
+   * Specify delay in seconds of hit deduplication. After a hit is sent, all future sending of this hit will be blocked until the expiration of the delay.
+   *
+   * Note: if 0 is given, no deduplication process will be used
+   */
   hitDeduplicationTime?: number
 
+  /**
+   * Define an object that implement the interface visitorCacheImplementation, to handle the visitor cache.
+   *
+   */
   visitorCacheImplementation?: IVisitorCacheImplementation
 
+  /**
+   * Define an object that implement the interface IHitCacheImplementation, to handle the visitor cache.
+   */
   hitCacheImplementation?: IHitCacheImplementation
 
   /**
@@ -109,24 +128,21 @@ export interface IFlagshipConfig {
   disableCache?: boolean
 
   language?: 0 | 1 | 2
-<<<<<<< HEAD
 
+  /**
+   * Define options to configure hit batching
+   */
   trackingMangerConfig?: ITrackingManagerConfig
 
-=======
   /**
    * Define a callable to get callback each time  a Flag have been user exposed (activation hit has been sent) by SDK
    */
   onUserExposure?: (param: UserExposureInfo)=>void
-<<<<<<< HEAD
->>>>>>> origin/main
-=======
   sdkVersion?: string
-<<<<<<< HEAD
->>>>>>> origin/main
-=======
+  /**
+   * Define a callable to get a callback whenever the SDK needs to report a log
+   */
   onLog?: (level: LogLevel, tag: string, message: string)=>void
->>>>>>> origin/main
 }
 
 export const statusChangeError = 'statusChangedCallback must be a function'
@@ -147,22 +163,16 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _enableClientCache!: boolean
   private _initialBucketing?: BucketingDTO
   private _decisionApiUrl!: string
-<<<<<<< HEAD
-  private _activateDeduplicationTime!: number;
-  private _hitDeduplicationTime!: number;
-  private _visitorCacheImplementation!: IVisitorCacheImplementation;
-  private _hitCacheImplementation!: IHitCacheImplementation;
-  private _disableCache!: boolean;
-  private _trackingMangerConfig : ITrackingManagerConfig;
-
-  public get trackingMangerConfig () : ITrackingManagerConfig {
-    return this._trackingMangerConfig
-=======
-  private _activateDeduplicationTime!: number
   private _hitDeduplicationTime!: number
   private _visitorCacheImplementation!: IVisitorCacheImplementation
   private _hitCacheImplementation!: IHitCacheImplementation
   private _disableCache!: boolean
+  private _trackingMangerConfig : ITrackingManagerConfig
+
+  public get trackingMangerConfig () : ITrackingManagerConfig {
+    return this._trackingMangerConfig
+  }
+
   private _onLog? : (level: LogLevel, tag: string, message: string)=>void
 
   public get onLog () : ((level: LogLevel, tag: string, message: string)=>void)|undefined {
@@ -171,7 +181,6 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
 
   public set onLog (v :((level: LogLevel, tag: string, message: string)=>void)|undefined) {
     this._onLog = v
->>>>>>> origin/main
   }
 
   private _onUserExposure? : (param: UserExposureInfo)=>void
@@ -183,37 +192,18 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     const {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
-      activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-      disableCache, language, trackingMangerConfig
-=======
-      disableCache, language, onUserExposure
->>>>>>> origin/main
+      hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
+      disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig, onLog
     } = param
 
-    this.setSdkLanguageName(language)
+    this.initSDKInfo(language, sdkVersion)
 
     if (logManager) {
       this.logManager = logManager
     }
-=======
-      disableCache, language, onUserExposure, sdkVersion
-    } = param
-
-    this.initSDKInfo(language, sdkVersion)
->>>>>>> origin/main
 
     this._trackingMangerConfig = new TrackingManagerConfig(trackingMangerConfig || {})
-
-=======
-      disableCache, language, onUserExposure, sdkVersion, onLog
-    } = param
-
-    this.initSDKInfo(language, sdkVersion)
     this.onLog = onLog
->>>>>>> origin/main
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
     this._envId = envId
     this._apiKey = apiKey
@@ -223,7 +213,6 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this.enableClientCache = typeof enableClientCache === 'undefined' || enableClientCache
     this._decisionMode = decisionMode || DecisionMode.DECISION_API
     this._initialBucketing = initialBucketing
-    this.activateDeduplicationTime = activateDeduplicationTime ?? DEFAULT_DEDUPLICATION_TIME
     this.hitDeduplicationTime = hitDeduplicationTime ?? DEFAULT_DEDUPLICATION_TIME
     this.disableCache = !!disableCache
 
@@ -238,18 +227,6 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._onUserExposure = onUserExposure
   }
 
-<<<<<<< HEAD
-  protected setSdkLanguageName (language?:number):void {
-    switch (language) {
-      case 1:
-        SDK_LANGUAGE.name = 'ReactJS'
-        break
-      case 2:
-        SDK_LANGUAGE.name = 'React-Native'
-        break
-      default:
-        SDK_LANGUAGE.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'Typescript'
-=======
   protected initSDKInfo (language?:number, sdkVersion?:string) {
     switch (language) {
       case 1:
@@ -263,7 +240,6 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       default:
         SDK_INFO.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'Typescript'
         SDK_INFO.version = SDK_VERSION
->>>>>>> origin/main
         break
     }
   }
@@ -358,18 +334,6 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
 
   public set pollingInterval (v: number) {
     this._pollingInterval = v
-  }
-
-  public get activateDeduplicationTime (): number {
-    return this._activateDeduplicationTime
-  }
-
-  public set activateDeduplicationTime (v: number) {
-    if (typeof v !== 'number') {
-      logError(this, sprintf(TYPE_ERROR, 'activateDeduplicationTime', 'number'), 'activateDeduplicationTime')
-      return
-    }
-    this._activateDeduplicationTime = v
   }
 
   public get hitDeduplicationTime (): number {

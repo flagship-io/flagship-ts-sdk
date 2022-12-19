@@ -1,6 +1,6 @@
 import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
-import { DEFAULT_HIT_CACHE_TIME, DEFAULT_TIME_INTERVAL, HitType, HIT_DATA_LOADED, PROCESS_LOOKUP_HIT } from '../enum/index.ts'
-import { BatchStrategy } from '../enum/BatchStrategy.ts'
+import { DEFAULT_HIT_CACHE_TIME_MS, HitType, HIT_DATA_LOADED, PROCESS_LOOKUP_HIT } from '../enum/index.ts'
+import { CacheStrategy } from '../enum/CacheStrategy.ts'
 import { HitAbstract, IEvent, ITransaction, Transaction, Event, Item, IItem, Page, IPage, IScreen, Screen } from '../hit/index.ts'
 import { ISegment, Segment } from '../hit/Segment.ts'
 import { IHttpClient } from '../utils/HttpClient.ts'
@@ -11,52 +11,42 @@ import { BatchingPeriodicCachingStrategy } from './BatchingPeriodicCachingStrate
 import { HitCacheDTO } from '../types.ts'
 import { NoBatchingContinuousCachingStrategy } from './NoBatchingContinuousCachingStrategy.ts'
 import { Activate, IActivate } from '../hit/Activate.ts'
+import { BatchTriggeredBy } from '../enum/BatchTriggeredBy.ts'
+import { ITrackingManager } from './ITrackingManager.ts'
 
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 
-export interface ITrackingManagerCommon {
-  config:IFlagshipConfig
-
-  addHit(hit: HitAbstract): Promise<void>
-}
-
-export interface ITrackingManager extends ITrackingManagerCommon {
-
-  startBatchingLoop():void
-
-  stopBatchingLoop():void
-
-}
-
 export abstract class TrackingManagerAbstract implements ITrackingManager {
-  private _httpClient: IHttpClient;
-  private _config: IFlagshipConfig;
-  private _hitsPoolQueue: Map<string, HitAbstract>;
-  protected strategy: BatchingCachingStrategyAbstract;
+  private _httpClient: IHttpClient
+  private _config: IFlagshipConfig
+  private _hitsPoolQueue: Map<string, HitAbstract>
+  private _activatePoolQueue: Map<string, Activate>
+  protected strategy: BatchingCachingStrategyAbstract
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  protected _intervalID:any;
+  protected _intervalID:any
   protected _isPooling = false
 
   constructor (httpClient: IHttpClient, config: IFlagshipConfig) {
     this._hitsPoolQueue = new Map<string, HitAbstract>()
+    this._activatePoolQueue = new Map<string, Activate>()
     this._httpClient = httpClient
     this._config = config
-    this.lookupHits()
     this.strategy = this.initStrategy()
+    this.lookupHits()
   }
 
   protected initStrategy ():BatchingCachingStrategyAbstract {
     let strategy:BatchingCachingStrategyAbstract
-    switch (this.config.trackingMangerConfig?.batchStrategy) {
-      case BatchStrategy.PERIODIC_CACHING:
-        strategy = new BatchingPeriodicCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
+    switch (this.config.trackingMangerConfig?.cacheStrategy) {
+      case CacheStrategy.PERIODIC_CACHING:
+        strategy = new BatchingPeriodicCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue, this._activatePoolQueue)
         break
-      case BatchStrategy.CONTINUOUS_CACHING:
-        strategy = new BatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
+      case CacheStrategy.CONTINUOUS_CACHING:
+        strategy = new BatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue, this._activatePoolQueue)
         break
       default:
-        strategy = new NoBatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue)
+        strategy = new NoBatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue, this._activatePoolQueue)
         break
     }
     return strategy
@@ -72,8 +62,12 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
   public abstract addHit(hit: HitAbstract): Promise<void>
 
+  public abstract activateFlag (hit: Activate): Promise<void>
+
+  public abstract sendBatch(): Promise<void>
+
   public startBatchingLoop (): void {
-    const timeInterval = (this.config.trackingMangerConfig?.batchIntervals ?? DEFAULT_TIME_INTERVAL) * 1000
+    const timeInterval = (this.config.trackingMangerConfig?.batchIntervals) as number * 1000
     logInfo(this.config, 'Batching Loop have been started', 'startBatchingLoop')
 
     this._intervalID = setInterval(() => {
@@ -92,11 +86,11 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
       return
     }
     this._isPooling = true
-    await this.strategy.sendBatch()
+    await this.strategy.sendBatch(BatchTriggeredBy.Timer)
     this._isPooling = false
   }
 
-  protected checKLookupHitData (item:HitCacheDTO):boolean {
+  protected checkLookupHitData (item:HitCacheDTO):boolean {
     if (item?.version === 1 && item?.data?.type && item?.data?.content) {
       return true
     }
@@ -119,11 +113,11 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
       logDebug(this.config, sprintf(HIT_DATA_LOADED, JSON.stringify(hitsCache)), PROCESS_LOOKUP_HIT)
 
-      const checkHitTime = (time:number) => (((Date.now() - time) / 1000) <= DEFAULT_HIT_CACHE_TIME)
+      const checkHitTime = (time:number) => (((Date.now() - time)) <= DEFAULT_HIT_CACHE_TIME_MS)
 
       const wrongHitKeys:string[] = []
       Object.entries(hitsCache).forEach(([key, item]) => {
-        if (!this.checKLookupHitData(item) || !checkHitTime(item.data.time)) {
+        if (!this.checkLookupHitData(item) || !checkHitTime(item.data.time)) {
           wrongHitKeys.push(key)
           return
         }
@@ -141,12 +135,16 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
           case HitType.SCREEN:
             hit = new Screen(item.data.content as IScreen)
             break
-          case 'CONTEXT':
+          case 'SEGMENT':
             hit = new Segment(item.data.content as ISegment)
             break
           case 'ACTIVATE':
             hit = new Activate(item.data.content as IActivate)
-            break
+            hit.key = key
+            hit.createdAt = item.data.content.createdAt
+            hit.config = this.config
+            this._activatePoolQueue.set(key, hit as Activate)
+            return
           case HitType.TRANSACTION:
             hit = new Transaction(item.data.content as ITransaction)
             break

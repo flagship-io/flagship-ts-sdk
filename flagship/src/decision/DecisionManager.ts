@@ -3,9 +3,9 @@ import { IFlagshipConfig } from '../config/FlagshipConfig'
 import { IHttpClient } from '../utils/HttpClient'
 import { CampaignDTO } from './api/models'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
-import { BASE_API_URL, EXPOSE_ALL_KEYS, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, PROCESS_GET_CAMPAIGNS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
+import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, PROCESS_FETCHING_FLAGS, PROCESS_GET_CAMPAIGNS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
 import { FlagDTO } from '../types'
-import { logError } from '../utils/utils'
+import { logDebug, logError } from '../utils/utils'
 
 export abstract class DecisionManager implements IDecisionManager {
   protected _config: IFlagshipConfig
@@ -21,6 +21,9 @@ export abstract class DecisionManager implements IDecisionManager {
   protected set panic (v: boolean) {
     this.updateFlagshipStatus(v ? FlagshipStatus.READY_PANIC_ON : FlagshipStatus.READY)
     this._panic = v
+    if (v) {
+      logDebug(this.config, FETCH_FLAGS_PANIC_MODE, PROCESS_FETCHING_FLAGS)
+    }
   }
 
   public statusChangedCallback (v : (status: FlagshipStatus)=>void):void {

@@ -6,8 +6,10 @@ import { CampaignDTO } from '../decision/api/models.ts'
 import { Flag, IFlag } from '../flag/Flags.ts'
 
 export class VisitorDelegate extends VisitorAbstract {
-  updateContext (context: Record<string, primitive>): void {
-    this.getStrategy().updateContext(context)
+  updateContext (key: string, value: primitive):void
+  updateContext (context: Record<string, primitive>): void
+  updateContext (context: Record<string, primitive> | string, value?:primitive): void {
+    this.getStrategy().updateContext(context, value)
     this.loadPredefinedContext()
   }
 
