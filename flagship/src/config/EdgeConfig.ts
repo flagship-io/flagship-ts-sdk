@@ -1,7 +1,9 @@
-import { DecisionMode, FlagshipConfig, IFlagshipConfig } from './FlagshipConfig'
+import { IEdgeConfig } from './IEdgeConfig'
+import { DecisionMode } from './DecisionMode'
+import { FlagshipConfig } from './FlagshipConfig'
 
 export class EdgeConfig extends FlagshipConfig {
-  public constructor (param?: Omit<IFlagshipConfig, 'decisionMode'>) {
-    super({ ...param, decisionMode: DecisionMode.EDGE })
+  public constructor (param?: Omit<IEdgeConfig, 'decisionMode'>) {
+    super({ ...param, decisionMode: DecisionMode.BUCKETING_EDGE })
   }
 }

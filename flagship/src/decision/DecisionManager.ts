@@ -1,5 +1,5 @@
 import { IDecisionManager } from './IDecisionManager'
-import { IFlagshipConfig } from '../config/FlagshipConfig'
+import { IFlagshipConfig } from '../config/index'
 import { IHttpClient } from '../utils/HttpClient'
 import { CampaignDTO } from './api/models'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'

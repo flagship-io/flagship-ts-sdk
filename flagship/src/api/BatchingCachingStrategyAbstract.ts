@@ -46,7 +46,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
     if (this.config.trackingMangerConfig?.poolMaxSize &&
       this._hitsPoolQueue.size >= this.config.trackingMangerConfig.poolMaxSize &&
-      this.config.decisionMode !== DecisionMode.EDGE
+      this.config.decisionMode !== DecisionMode.BUCKETING_EDGE
     ) {
       this.sendBatch()
     }
@@ -58,7 +58,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       const hitKey = `${hit.visitorId}:${uuidV4()}`
       hit.key = hitKey
 
-      if (this.config.decisionMode === DecisionMode.EDGE) {
+      if (this.config.decisionMode === DecisionMode.BUCKETING_EDGE) {
         await this.activateFlagEdgeMode(hit)
         logDebug(this.config, sprintf(ACTIVATE_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_ACTIVATE)
         return
