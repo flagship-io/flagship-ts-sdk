@@ -1,4 +1,4 @@
-import { IFlagshipConfig } from '../config/FlagshipConfig'
+import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { HitAbstract } from '../hit/HitAbstract'
 import { Activate } from '../hit/Activate'
 
