@@ -1,4 +1,4 @@
-import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
+import { IFlagshipConfig } from '../config/IFlagshipConfig.ts'
 import { HitAbstract } from '../hit/HitAbstract.ts'
 import { Activate } from '../hit/Activate.ts'
 

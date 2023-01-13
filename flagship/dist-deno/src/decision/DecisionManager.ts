@@ -1,5 +1,5 @@
 import { IDecisionManager } from './IDecisionManager.ts'
-import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
+import { IFlagshipConfig } from '../config/index.ts'
 import { IHttpClient } from '../utils/HttpClient.ts'
 import { CampaignDTO } from './api/models.ts'
 import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
