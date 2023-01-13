@@ -93,63 +93,20 @@ describe('test logError function', () => {
     const messageDebug = 'this a message with DEBUG level'
     logDebug(config, messageDebug, tag)
     expect(debugMethod).toBeCalledTimes(0)
+    expect(onLog).toBeCalledTimes(0)
   })
 
   it('test level WARNING', () => {
     config.logLevel = LogLevel.WARNING
     const messageWarning = 'this a message with Warning level'
-    logDebug(config, messageWarning, tag)
-    expect(debugMethod).toBeCalledTimes(0)
+    logWarning(config, messageWarning, tag)
+    expect(warningMethod).toBeCalledTimes(1)
+    expect(onLog).toBeCalledTimes(1)
+    expect(onLog).toBeCalledWith(LogLevel.WARNING, tag, messageWarning)
   })
 
   it('test invalid config', () => {
     logError({} as DecisionApiConfig, messageAll, tag)
     expect(errorMethod).toBeCalledTimes(0)
-  })
-})
-
-describe('test logInfo function', () => {
-  const config = new DecisionApiConfig()
-
-  const logManager = new FlagshipLogManager()
-
-  const infoMethod = jest.spyOn(logManager, 'info')
-
-  config.logManager = logManager
-
-  const messageAll = 'this is a log message'
-  const tag = 'tag'
-
-  it('test logError level ALL', () => {
-    logInfo(config, messageAll, tag)
-    expect(infoMethod).toBeCalledTimes(1)
-    expect(infoMethod).toBeCalledWith(messageAll, tag)
-  })
-
-  it('test level EMERGENCY', () => {
-    config.logLevel = LogLevel.EMERGENCY
-    const messageEmergency = 'emergency'
-    logInfo(config, messageEmergency, tag)
-    expect(infoMethod).toBeCalledTimes(0)
-  })
-
-  it('test level NONE', () => {
-    config.logLevel = LogLevel.NONE
-    const messageNone = 'none'
-    logInfo(config, messageNone, tag)
-    expect(infoMethod).toBeCalledTimes(0)
-  })
-
-  it('test level INFO', () => {
-    config.logLevel = LogLevel.INFO
-    const messageInfo = 'this a message with info level'
-    logInfo(config, messageInfo, tag)
-    expect(infoMethod).toBeCalledTimes(1)
-    expect(infoMethod).toBeCalledWith(messageInfo, tag)
-  })
-
-  it('test invalid config', () => {
-    logError({} as DecisionApiConfig, messageAll, tag)
-    expect(infoMethod).toBeCalledTimes(0)
   })
 })

@@ -127,10 +127,7 @@ export class Flagship {
     return this.getInstance().getVisitor()
   }
 
-  private buildConfig (config?: IDecisionApiConfig| IBucketingConfig |IEdgeConfig|FlagshipConfig): FlagshipConfig {
-    if (config instanceof FlagshipConfig) {
-      return config
-    }
+  private buildConfig (config?: IDecisionApiConfig| IBucketingConfig |IEdgeConfig): FlagshipConfig {
     let newConfig: FlagshipConfig
     switch (config?.decisionMode) {
       case DecisionMode.BUCKETING:
