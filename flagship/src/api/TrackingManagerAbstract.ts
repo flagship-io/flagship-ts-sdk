@@ -1,4 +1,4 @@
-import type { IFlagshipConfig } from '../config/IFlagshipConfig'
+import { type IFlagshipConfig } from '../config/IFlagshipConfig'
 import { DEFAULT_HIT_CACHE_TIME_MS, HitType, HIT_DATA_LOADED, PROCESS_LOOKUP_HIT } from '../enum/index'
 import { CacheStrategy } from '../enum/CacheStrategy'
 import { HitAbstract, IEvent, type ITransaction, Transaction, Event, Item, type IItem, Page, type IPage, type IScreen, Screen } from '../hit/index'

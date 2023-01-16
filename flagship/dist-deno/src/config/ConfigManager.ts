@@ -1,6 +1,6 @@
-import type { IFlagshipConfig } from './IFlagshipConfig'
-import type { IDecisionManager } from '../decision/IDecisionManager'
-import type { ITrackingManager } from '../api/ITrackingManager'
+import { type IFlagshipConfig } from './IFlagshipConfig.ts'
+import { type IDecisionManager } from '../decision/IDecisionManager.ts'
+import { type ITrackingManager } from '../api/ITrackingManager.ts'
 
 export interface IConfigManager {
   config: IFlagshipConfig;

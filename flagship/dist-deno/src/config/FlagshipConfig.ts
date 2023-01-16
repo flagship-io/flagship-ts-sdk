@@ -7,7 +7,7 @@ import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementatio
 import { ITrackingManagerConfig, TrackingManagerConfig } from './TrackingManagerConfig.ts'
 import { UserExposureInfo } from '../types.ts'
 import { version as SDK_VERSION } from '../sdkVersion.ts'
-import type { IFlagshipConfig } from './IFlagshipConfig'
+import { IFlagshipConfig } from './IFlagshipConfig.ts'
 import { DecisionMode } from './DecisionMode.ts'
 
 export const statusChangeError = 'statusChangedCallback must be a function'

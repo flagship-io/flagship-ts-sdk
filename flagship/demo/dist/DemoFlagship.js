@@ -67,7 +67,7 @@ function hitCacheImplementation(host, port, dbIndex) {
 }
 
 _2.default.start(_config.ENV_ID, _config.API_KEY, {
-  hitCacheImplementation: hitCacheImplementation('127.0.0.1', '6379', 2),
+  // hitCacheImplementation: hitCacheImplementation('127.0.0.1', '6379', 2),
   trackingMangerConfig: {
     batchIntervals: 5,
     poolMaxSize: 10,

@@ -1,4 +1,4 @@
-import type { IFlagshipConfig } from '../config/IFlagshipConfig'
+import { type IFlagshipConfig } from '../config/IFlagshipConfig'
 import {
   CUSTOMER_ENV_ID_API_ITEM,
   DS_API_ITEM,
