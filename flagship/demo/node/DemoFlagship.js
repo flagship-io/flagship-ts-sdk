@@ -1,13 +1,11 @@
-import Flagship, {
+import {
   CacheStrategy,
-  DecisionMode,
+  Flagship,
   EventCategory,
   FlagshipStatus,
   HitType,
-  Item,
-  LogLevel,
   Transaction
-} from '../..'
+} from '@flagship.io/js-sdk/dist/index.lite'
 import { API_KEY, ENV_ID } from './config.js'
 import { campaigns } from './campaigns'
 import Redis from 'ioredis'

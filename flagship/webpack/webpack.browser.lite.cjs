@@ -3,7 +3,7 @@ const { merge } = require('webpack-merge')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const nodeExternals = require('webpack-node-externals')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const common = require('./webpack.common.js')
+const common = require('./webpack.common.cjs')
 
 module.exports = merge(common(), {
   target: 'web',
@@ -16,7 +16,7 @@ module.exports = merge(common(), {
     }
   },
   output: {
-    filename: 'index.lite.js',
+    filename: 'index.browser.lite.js',
     library: {
       type: 'umd'
     }

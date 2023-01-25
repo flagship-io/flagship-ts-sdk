@@ -1,33 +1,25 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const webpack = require('webpack')
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { merge } = require('webpack-merge')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const nodeExternals = require('webpack-node-externals')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const common = require('./webpack.common.js')
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const TerserPlugin = require('terser-webpack-plugin')
+const common = require('./webpack.common.cjs')
 
 module.exports = merge(common(), {
-  target: 'node',
-  output: {
-    filename: 'index.node.js',
-    library: {
-      type: 'commonjs2'
+  target: 'web',
+  resolve: {
+    alias: {
+      http: false,
+      https: false,
+      'node-fetch': false,
+      '../nodeDeps': '../nodeDeps.browser.ts'
     }
   },
-  optimization: {
-    minimize: process.env.NODE_ENV === 'production',
-    minimizer: [
-      new TerserPlugin({
-        terserOptions: {
-          keep_classnames: /AbortSignal/,
-          keep_fnames: /AbortSignal/
-        }
-      })
-    ]
+  output: {
+    filename: 'index.browser.js',
+    library: {
+      type: 'umd'
+    }
   },
   module: {
     rules: [
@@ -37,7 +29,7 @@ module.exports = merge(common(), {
         use: [{
           loader: 'babel-loader',
           options: {
-            targets: 'node >= 6',
+            targets: '> 0.5%, last 2 versions, ie >= 10',
             assumptions: {
               noDocumentAll: true,
               noClassCalls: true,
@@ -64,12 +56,14 @@ module.exports = merge(common(), {
       }
     ]
   },
-  plugins: [
-    new webpack.ProvidePlugin({
-      AbortController: 'abort-controller'
-    })
-  ],
   externals: [
-    nodeExternals()
+    nodeExternals({
+      importType: 'umd',
+      allowlist: [
+        'events',
+        /@babel\/runtime/,
+        /regenerator-runtime/
+      ]
+    })
   ]
 })
