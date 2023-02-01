@@ -16,7 +16,7 @@ module.exports = merge(common(), {
     }
   },
   output: {
-    filename: 'index.browser.js',
+    filename: 'index.browser.lite.js',
     library: {
       type: 'umd'
     }
@@ -27,30 +27,9 @@ module.exports = merge(common(), {
         test: /\.(js|ts)$/,
         exclude: /node_modules/,
         use: [{
-          loader: 'babel-loader',
+          loader: 'ts-loader',
           options: {
-            targets: '> 0.5%, last 2 versions, ie >= 10',
-            assumptions: {
-              noDocumentAll: true,
-              noClassCalls: true,
-              constantSuper: true,
-              enumerableModuleMeta: true,
-              noNewArrows: true
-            },
-            presets: [
-              ['@babel/preset-env',
-                {
-                  useBuiltIns: 'usage',
-                  corejs: 3
-                }
-              ],
-              ['@babel/preset-typescript', { allowNamespaces: true }]
-            ],
-            plugins: [
-              [
-                '@babel/plugin-transform-runtime'
-              ]
-            ]
+            transpileOnly: true
           }
         }]
       }
@@ -60,9 +39,7 @@ module.exports = merge(common(), {
     nodeExternals({
       importType: 'umd',
       allowlist: [
-        'events',
-        /@babel\/runtime/,
-        /regenerator-runtime/
+        'events'
       ]
     })
   ]

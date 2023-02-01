@@ -13,7 +13,7 @@ const TerserPlugin = require('terser-webpack-plugin')
 module.exports = merge(common(), {
   target: 'node',
   output: {
-    filename: 'index.node.js',
+    filename: 'index.node.cjs',
     library: {
       type: 'commonjs2'
     }
