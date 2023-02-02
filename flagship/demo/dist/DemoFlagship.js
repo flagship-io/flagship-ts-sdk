@@ -1,8 +1,6 @@
 'use strict';
 
-var _ = require('../..');
-
-var _2 = _interopRequireDefault(_);
+var _index = require('@flagship.io/js-sdk/dist/index.lite');
 
 var _config = require('./config.js');
 
@@ -19,7 +17,7 @@ const sleep = ms => {
 };
 
 const statusChangedCallback = status => {
-  console.log('status', _.FlagshipStatus[status]);
+  console.log('status', _index.FlagshipStatus[status]);
 };
 
 const check = {};
@@ -66,12 +64,12 @@ function hitCacheImplementation(host, port, dbIndex) {
   };
 }
 
-_2.default.start(_config.ENV_ID, _config.API_KEY, {
-  hitCacheImplementation: hitCacheImplementation('127.0.0.1', '6379', 2),
+_index.Flagship.start(_config.ENV_ID, _config.API_KEY, {
+  // hitCacheImplementation: hitCacheImplementation('127.0.0.1', '6379', 2),
   trackingMangerConfig: {
     batchIntervals: 5,
     poolMaxSize: 10,
-    cacheStrategy: _.CacheStrategy.PERIODIC_CACHING
+    cacheStrategy: _index.CacheStrategy.PERIODIC_CACHING
   }
 });
 
@@ -95,8 +93,8 @@ const start = async (visitor, index) => {
 
     // hit type Event
     await visitor.sendHit({
-      type: _.HitType.EVENT,
-      category: _.EventCategory.ACTION_TRACKING,
+      type: _index.HitType.EVENT,
+      category: _index.EventCategory.ACTION_TRACKING,
       action: 'KPI2',
       value: 10
     });
@@ -104,14 +102,14 @@ const start = async (visitor, index) => {
     console.log('hit type Event');
 
     // hit type Page
-    await visitor.sendHit({ type: _.HitType.PAGE, documentLocation: 'https://www.sdk.com/abtastylab/js/151021-' + index });
+    await visitor.sendHit({ type: _index.HitType.PAGE, documentLocation: 'https://www.sdk.com/abtastylab/js/151021-' + index });
     console.log('hit type Page');
 
     // hit type Screen
-    await visitor.sendHit({ type: _.HitType.SCREEN, documentLocation: 'abtastylab-js-' + index });
+    await visitor.sendHit({ type: _index.HitType.SCREEN, documentLocation: 'abtastylab-js-' + index });
 
     // hit type Transaction
-    const transaction = new _.Transaction({ transactionId: visitor.visitorId, affiliation: 'KPI1' });
+    const transaction = new _index.Transaction({ transactionId: visitor.visitorId, affiliation: 'KPI1' });
     await visitor.sendHit(transaction);
 
     console.log('hit type transaction');
@@ -125,7 +123,7 @@ const start = async (visitor, index) => {
 async function script() {
   await sleep(2000);
   for (let index = 0; index < 1; index++) {
-    const visitor = _2.default.newVisitor({ visitorId: 'visitor_a', context: { qa_report: true } });
+    const visitor = _index.Flagship.newVisitor({ visitorId: 'visitor_a', context: { qa_report: true } });
     await start(visitor, index);
   }
 }

@@ -1,13 +1,11 @@
-import Flagship, {
+import {
   CacheStrategy,
-  DecisionMode,
+  Flagship,
   EventCategory,
   FlagshipStatus,
   HitType,
-  Item,
-  LogLevel,
   Transaction
-} from '../..'
+} from '@flagship.io/js-sdk/dist/index.lite'
 import { API_KEY, ENV_ID } from './config.js'
 import { campaigns } from './campaigns'
 import Redis from 'ioredis'
@@ -65,7 +63,7 @@ function hitCacheImplementation (host, port, dbIndex) {
 }
 
 Flagship.start(ENV_ID, API_KEY, {
-  hitCacheImplementation: hitCacheImplementation('127.0.0.1', '6379', 2),
+  // hitCacheImplementation: hitCacheImplementation('127.0.0.1', '6379', 2),
   trackingMangerConfig: {
     batchIntervals: 5,
     poolMaxSize: 10,

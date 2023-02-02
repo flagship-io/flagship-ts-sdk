@@ -1,16 +1,32 @@
 {
   "name": "@flagship.io/js-sdk",
-  "version": "3.1.0",
+  "sideEffects": [
+    "./src/nodeDeps.ts"
+  ],
+  "version": "3.1.1",
   "license": "Apache-2.0",
   "description": "Flagship JS SDK",
-  "main": "dist/index.node.js",
+  "main": "dist/index.node.cjs",
   "module": "dist/index.js",
   "react-native": "dist/index.js",
-  "browser": "dist/index.browser.js",
+  "browser": "./dist/index.browser.lite.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist/*"
   ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.node.cjs",
+      "react-native": "./dist/index.js",
+      "browser": "./dist/index.browser.lite.js"
+    },
+    "./dist/index.browser.lite": "./dist/index.browser.lite.js",
+    "./dist/index.browser.lite.js": "./dist/index.browser.lite.js",
+    "./dist/index.browser.js": "./dist/index.browser.js",
+    "./dist/index.browser": "./dist/index.browser.js"
+  },
   "engines": {
     "node": ">=6"
   },
@@ -26,7 +42,7 @@
     "clean": "rm -rf dist-deno dist",
     "test:coverage": "jest --coverage",
     "build": "webpack",
-    "postbuild": "node denoTrans.mjs",
+    "postbuild": "node denoTrans.mjs && node generateDeclarationFile.mjs",
     "prebuild": "npm run clean && npm run generate:version && tsc",
     "generate:version": "genversion --es6 src/sdkVersion.ts",
     "build-prod": "NODE_ENV=production npm run build",

@@ -1,8 +1,10 @@
 import { DEFAULT_POLLING_INTERVAL } from '../enum/index'
-import { DecisionMode, FlagshipConfig, IFlagshipConfig } from './FlagshipConfig'
+import { DecisionMode } from './DecisionMode'
+import { FlagshipConfig } from './FlagshipConfig'
+import { IBucketingConfig } from './IBucketingConfig'
 
 export class BucketingConfig extends FlagshipConfig {
-  public constructor (param?: Omit<IFlagshipConfig, 'decisionMode'>) {
+  public constructor (param?: Omit<IBucketingConfig, 'decisionMode'>) {
     super({ ...param, decisionMode: DecisionMode.BUCKETING })
 
     this.pollingInterval = param?.pollingInterval ?? DEFAULT_POLLING_INTERVAL

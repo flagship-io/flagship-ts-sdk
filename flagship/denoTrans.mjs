@@ -10,7 +10,6 @@ function getDirectoryContent (dirPath) {
     .map((dirent) => dirent.name)
 }
 
-const src = 'src'
 function transformFromDir (dirPath, packageResolves = null) {
   const srcDirectory = getDirectoryContent(dirPath)
   srcDirectory.forEach((rootDir) => {
@@ -77,11 +76,11 @@ const packageResolve = {
   NodeHttpClient: 'DenoHttpClient',
   '../nodeDeps': '../deps'
 }
-
+const src = 'src'
 transformFromDir(src, packageResolve)
 
-const distDenoSrc = "dist-deno/src"
+const distDenoSrc = 'dist-deno/src'
 if (!existsSync(distDenoSrc)) {
   mkdirSync(distDenoSrc, { recursive: true })
 }
-copyFileSync("./README.md",distDenoSrc+"/README.md")
+copyFileSync('./README.md', distDenoSrc + '/README.md')

@@ -5,7 +5,7 @@ const { merge } = require('webpack-merge')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const nodeExternals = require('webpack-node-externals')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const common = require('./webpack.common.js')
+const common = require('./webpack.common.cjs')
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const TerserPlugin = require('terser-webpack-plugin')
@@ -13,13 +13,14 @@ const TerserPlugin = require('terser-webpack-plugin')
 module.exports = merge(common(), {
   target: 'node',
   output: {
-    filename: 'index.node.js',
+    filename: 'index.node.cjs',
     library: {
       type: 'commonjs2'
     }
   },
   optimization: {
     minimize: process.env.NODE_ENV === 'production',
+    usedExports: true,
     minimizer: [
       new TerserPlugin({
         terserOptions: {

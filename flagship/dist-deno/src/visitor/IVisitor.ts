@@ -1,4 +1,4 @@
-import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
+import { IFlagshipConfig } from '../config/index.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
 import { IFlag } from '../flag/Flags.ts'

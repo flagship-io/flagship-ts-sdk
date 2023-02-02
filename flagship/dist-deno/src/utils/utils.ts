@@ -1,4 +1,4 @@
-import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
+import { type IFlagshipConfig } from '../config/IFlagshipConfig.ts'
 import { LogLevel } from '../enum/index.ts'
 
 /**
