@@ -1,11 +1,9 @@
 {
   "name": "@flagship.io/js-sdk",
   "sideEffects": [
-    "./src/nodeDeps.browser.ts",
-    "./src/nodeDeps.ts",
-    "./src/nodeDeps.native.ts"
+    "./src/nodeDeps.ts"
   ],
-  "version": "3.1.1-alpha.5",
+  "version": "3.1.1-alpha.6",
   "license": "Apache-2.0",
   "description": "Flagship JS SDK",
   "main": "dist/index.node.cjs",
@@ -25,7 +23,9 @@
       "browser": "./dist/index.browser.lite.js"
     },
     "./dist/index.browser.lite": "./dist/index.browser.lite.js",
-    "./dist/index.browser.lite.js": "./dist/index.browser.lite.js"
+    "./dist/index.browser.lite.js": "./dist/index.browser.lite.js",
+    "./dist/index.browser.js": "./dist/index.browser.js",
+    "./dist/index.browser": "./dist/index.browser.js"
   },
   "engines": {
     "node": ">=6"

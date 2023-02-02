@@ -1,5 +1,5 @@
 import { REQUEST_TIME_OUT } from '../enum/index'
-import { fetch, globalOption } from '../nodeDeps'
+import { fetch } from '../nodeDeps'
 
 export interface IHttpOptions {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -49,7 +49,6 @@ export class HttpClient implements IHttpClient {
     const c = new AbortController()
     const id = setTimeout(() => c.abort(), (options?.timeout ? options.timeout : REQUEST_TIME_OUT) * 1000)
     return fetch(url, {
-      ...globalOption,
       method: 'GET',
       headers: options?.headers,
       signal: c.signal,
@@ -69,7 +68,6 @@ export class HttpClient implements IHttpClient {
     const c = new AbortController()
     const id = setTimeout(() => c.abort(), options.timeout ? options.timeout * 1000 : REQUEST_TIME_OUT * 1000)
     return fetch(url, {
-      ...globalOption,
       method: 'POST',
       headers: options.headers,
       body: JSON.stringify(options.body),
