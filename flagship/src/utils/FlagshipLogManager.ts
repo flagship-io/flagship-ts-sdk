@@ -72,9 +72,9 @@ export class FlagshipLogManager implements IFlagshipLogManager {
 
     return `[${getTwoDigit(now.getFullYear())}-${
       getTwoDigit(
-        now.getMonth()
+        now.getMonth() + 1
       )
-    }-${getTwoDigit(now.getDay())} ${
+    }-${getTwoDigit(now.getDate())} ${
       getTwoDigit(
         now.getHours()
       )
