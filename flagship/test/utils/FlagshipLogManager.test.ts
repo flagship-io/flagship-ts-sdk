@@ -10,8 +10,8 @@ const getTwoDigit = (value: any) => {
 const getOut = (level: LogLevel, message: string, tag: string) => {
   const now = new Date(Date.now())
   return `[${getTwoDigit(now.getFullYear())}-${getTwoDigit(
-    now.getMonth()
-  )}-${getTwoDigit(now.getDay())} ${getTwoDigit(now.getHours())}:${getTwoDigit(now.getMinutes())}:${getTwoDigit(now.getSeconds())}.${getTwoDigit(now.getMilliseconds())}] [${FLAGSHIP_SDK}] [${LogLevel[level]}] [${tag}] : ${message}`
+    now.getMonth() + 1
+  )}-${getTwoDigit(now.getDate())} ${getTwoDigit(now.getHours())}:${getTwoDigit(now.getMinutes())}:${getTwoDigit(now.getSeconds())}.${getTwoDigit(now.getMilliseconds())}] [${FLAGSHIP_SDK}] [${LogLevel[level]}] [${tag}] : ${message}`
 }
 describe('test FlagshipLogManager', () => {
   const methodNow = Date.now

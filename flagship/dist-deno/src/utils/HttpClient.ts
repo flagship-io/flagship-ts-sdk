@@ -45,42 +45,36 @@ export class HttpClient implements IHttpClient {
     }
   }
 
-  getAsync (url: string, options?: IHttpOptions): Promise<IHttpResponse> {
+  async getAsync (url: string, options?: IHttpOptions): Promise<IHttpResponse> {
     const c = new AbortController()
     const id = setTimeout(() => c.abort(), (options?.timeout ? options.timeout : REQUEST_TIME_OUT) * 1000)
-    return fetch(url, {
-      method: 'GET',
-      headers: options?.headers,
-      signal: c.signal,
-      keepalive: true
-    })
-      .then(this.getResponse)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .catch((error:any) => {
-        throw error
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: options?.headers,
+        signal: c.signal,
+        keepalive: true
       })
-      .finally(() => {
-        clearInterval(id)
-      })
+      return this.getResponse(response)
+    } finally {
+      clearTimeout(id)
+    }
   }
 
-  public postAsync (url: string, options: IHttpOptions): Promise<IHttpResponse> {
+  public async postAsync (url: string, options: IHttpOptions): Promise<IHttpResponse> {
     const c = new AbortController()
     const id = setTimeout(() => c.abort(), options.timeout ? options.timeout * 1000 : REQUEST_TIME_OUT * 1000)
-    return fetch(url, {
-      method: 'POST',
-      headers: options.headers,
-      body: JSON.stringify(options.body),
-      signal: c.signal,
-      keepalive: true
-    })
-      .then(this.getResponse)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .catch((error: any) => {
-        throw error
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: options.headers,
+        body: JSON.stringify(options.body),
+        signal: c.signal,
+        keepalive: true
       })
-      .finally(() => {
-        clearInterval(id)
-      })
+      return this.getResponse(response)
+    } finally {
+      clearTimeout(id)
+    }
   }
 }

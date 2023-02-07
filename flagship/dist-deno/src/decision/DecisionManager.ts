@@ -3,9 +3,9 @@ import { IFlagshipConfig } from '../config/index.ts'
 import { IHttpClient } from '../utils/HttpClient.ts'
 import { CampaignDTO } from './api/models.ts'
 import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
-import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, PROCESS_FETCHING_FLAGS, PROCESS_GET_CAMPAIGNS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index.ts'
+import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, PROCESS_FETCHING_FLAGS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index.ts'
 import { FlagDTO } from '../types.ts'
-import { logDebug, logError } from '../utils/utils.ts'
+import { errorFormat, logDebug } from '../utils/utils.ts'
 
 export abstract class DecisionManager implements IDecisionManager {
   protected _config: IFlagshipConfig
@@ -79,7 +79,7 @@ export abstract class DecisionManager implements IDecisionManager {
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
-    const postData = {
+    const requestBody = {
       visitorId: visitor.visitorId,
       anonymousId: visitor.anonymousId,
       trigger_hit: false,
@@ -88,23 +88,29 @@ export abstract class DecisionManager implements IDecisionManager {
     }
 
     const url = `${this.config.decisionApiUrl || BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
+    const now = Date.now()
+    try {
+      const response = await this._httpClient.postAsync(url, {
+        headers,
+        timeout: this.config.timeout,
+        body: requestBody
+      })
+      this.panic = !!response?.body?.panic
+      let campaigns: CampaignDTO[]|null = null
 
-    return this._httpClient.postAsync(url, {
-      headers,
-      timeout: this.config.timeout,
-      body: postData
-    })
-      .then(data => {
-        this.panic = !!data.body.panic
-        let response: CampaignDTO[]|null = null
-        if (data.body.campaigns) {
-          response = data.body.campaigns
-        }
-        return response
+      if (response?.body?.campaigns) {
+        campaigns = response.body.campaigns
+      }
+      return campaigns
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      const errorMessage = errorFormat(error.message || error, {
+        url,
+        headers,
+        body: requestBody,
+        duration: Date.now() - now
       })
-      .catch(error => {
-        logError(this.config, error.message || error, PROCESS_GET_CAMPAIGNS)
-        return null
-      })
+      throw new Error(errorMessage)
+    }
   }
 }

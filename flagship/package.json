@@ -3,7 +3,7 @@
   "sideEffects": [
     "./src/nodeDeps.ts"
   ],
-  "version": "3.1.1",
+  "version": "3.1.2",
   "license": "Apache-2.0",
   "description": "Flagship JS SDK",
   "main": "dist/index.node.cjs",
