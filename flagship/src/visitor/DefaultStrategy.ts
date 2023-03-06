@@ -381,12 +381,24 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return false
   }
 
-  protected async sendActivate (flagDto: FlagDTO):Promise<void> {
+  protected async sendActivate (flagDto: FlagDTO, defaultValue?: unknown):Promise<void> {
     const activateHit = new Activate({
       variationGroupId: flagDto.variationGroupId,
       variationId: flagDto.variationId,
       visitorId: this.visitor.visitorId,
-      anonymousId: this.visitor.anonymousId as string
+      anonymousId: this.visitor.anonymousId as string,
+      flagKey: flagDto.key,
+      flagValue: flagDto.value,
+      flagDefaultValue: defaultValue,
+      visitorContext: this.visitor.context,
+      flagMetadata: {
+        campaignId: flagDto.campaignId,
+        campaignType: flagDto.campaignType as string,
+        variationGroupId: flagDto.variationGroupId,
+        variationId: flagDto.variationId,
+        slug: flagDto.slug,
+        isReference: flagDto.isReference as boolean
+      }
     })
     activateHit.config = this.config
 
@@ -404,7 +416,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
 
     await this.trackingManager.activateFlag(activateHit)
-    this.onUserExposedCallback({ flag: flagDto, visitor: this.visitor })
   }
 
   private async activate (key: string) {
@@ -647,31 +658,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return this.globalFetchFlags(PROCESS_FETCHING_FLAGS)
   }
 
-  protected onUserExposedCallback ({ flag, visitor }:{flag:FlagDTO, visitor:IVisitor}): void {
-    if (typeof this.config.onUserExposure !== 'function') {
-      return
-    }
-    this.config.onUserExposure({
-      flagData: {
-        metadata: {
-          campaignId: flag.campaignId,
-          campaignType: flag.campaignType as string,
-          slug: flag.slug,
-          isReference: !!flag.isReference,
-          variationGroupId: flag.variationGroupId,
-          variationId: flag.variationId
-        },
-        key: flag.key,
-        value: flag.value
-      },
-      visitorData: {
-        visitorId: visitor.visitorId,
-        anonymousId: visitor.anonymousId,
-        context: visitor.context
-      }
-    })
-  }
-
   async userExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T}): Promise<void> {
     const { key, flag, defaultValue } = param
 
@@ -698,7 +684,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
-    await this.sendActivate(flag)
+    await this.sendActivate(flag, defaultValue)
   }
 
   getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}): T {

@@ -36,6 +36,7 @@ describe('test DecisionApiConfig', () => {
     expect(config.disableCache).toBeFalsy()
     expect(config.trackingMangerConfig).toBeInstanceOf(TrackingManagerConfig)
     expect(config.onLog).toBeUndefined()
+    expect(config.onVisitorExposed).toBeUndefined()
   })
 
   it('test config constructor', () => {
@@ -80,6 +81,7 @@ describe('test DecisionApiConfig', () => {
     }
 
     const onUserExposure = jest.fn()
+    const onVisitorExposed = jest.fn()
 
     const onLog = jest.fn()
 
@@ -98,8 +100,10 @@ describe('test DecisionApiConfig', () => {
       disableCache: true,
       hitDeduplicationTime: 20,
       onUserExposure,
-      onLog
+      onLog,
+      onVisitorExposed
     })
+
     expect(config.apiKey).toBe(apiKey)
     expect(config.envId).toBe(envId)
     expect(config.logLevel).toBe(LogLevel.DEBUG)
@@ -114,6 +118,7 @@ describe('test DecisionApiConfig', () => {
     expect(config.disableCache).toBeTruthy()
     expect(config.hitDeduplicationTime).toBe(20)
     expect(config.onUserExposure).toBe(onUserExposure)
+    expect(config.onVisitorExposed).toBe(onVisitorExposed)
     expect(config.onLog).toBe(onLog)
   })
 
