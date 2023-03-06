@@ -102,6 +102,24 @@ export interface IFlagMetadata{
   slug?:string|null
 }
 
+export interface IExposedFlag {
+  key: string
+  value: unknown
+  defaultValue: unknown
+  metadata: IFlagMetadata
+}
+
+export interface IExposedVisitor{
+  id: string
+  anonymousId?:string|null
+  context: Record<string, primitive>
+}
+
+export type OnVisitorExposed ={
+  exposedVisitor: IExposedVisitor
+  fromFlag: IExposedFlag
+}
+
 export type UserExposureInfo = {
   flagData: {
     key: string
