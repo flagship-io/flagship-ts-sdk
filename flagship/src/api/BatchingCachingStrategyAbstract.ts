@@ -78,6 +78,8 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       await this.cacheHit(new Map<string, HitAbstract>([[hit.key, hit]]))
     }
 
+    protected abstract onUserExposure (activate: Activate):void
+    protected abstract onVisitorExposed (activate: Activate):void
     protected abstract sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate): Promise<void>
 
     async sendBatch (batchTriggeredBy = BatchTriggeredBy.BatchLength): Promise<void> {
