@@ -1,4 +1,3 @@
-import { IExposedFlag, IExposedVisitor } from './../types'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 import { BASE_API_URL, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_SENT_SUCCESS, SDK_INFO, SEND_ACTIVATE, URL_ACTIVATE_MODIFICATION } from '../enum/index'
 import { Activate } from '../hit/Activate'
@@ -39,54 +38,6 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       return
     }
     await this.flushHits(keysToFlush)
-  }
-
-  protected onUserExposure (activate: Activate) {
-    const onUserExposure = this.config.onUserExposure
-    if (typeof onUserExposure !== 'function') {
-      return
-    }
-
-    const flagData = {
-      metadata: {
-        campaignId: activate.flagMetadata.campaignId,
-        campaignType: activate.flagMetadata.campaignType,
-        slug: activate.flagMetadata.slug,
-        isReference: activate.flagMetadata.isReference,
-        variationGroupId: activate.flagMetadata.variationGroupId,
-        variationId: activate.flagMetadata.variationId
-      },
-      key: activate.flagKey,
-      value: activate.flagValue
-    }
-
-    const visitorData = {
-      visitorId: activate.visitorId,
-      anonymousId: activate.anonymousId as string,
-      context: activate.visitorContext
-    }
-    onUserExposure({ flagData, visitorData })
-  }
-
-  protected onVisitorExposed (activate: Activate) {
-    const onVisitorExposed = this.config.onVisitorExposed
-    if (typeof onVisitorExposed !== 'function') {
-      return
-    }
-
-    const fromFlag : IExposedFlag = {
-      key: activate.flagKey,
-      value: activate.flagValue,
-      defaultValue: activate.flagDefaultValue,
-      metadata: activate.flagMetadata
-    }
-
-    const exposedVisitor: IExposedVisitor = {
-      id: activate.visitorId,
-      anonymousId: activate.anonymousId,
-      context: activate.visitorContext
-    }
-    onVisitorExposed({ exposedVisitor, fromFlag })
   }
 
   protected async sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate) {

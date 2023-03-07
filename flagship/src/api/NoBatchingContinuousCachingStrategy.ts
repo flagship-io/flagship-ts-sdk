@@ -140,7 +140,13 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })), SEND_ACTIVATE)
 
-      const hitKeysToRemove:string[] = activateHitsPool.map(item => item.key)
+      const hitKeysToRemove: string[] = []
+
+      activateHitsPool.forEach(item => {
+        hitKeysToRemove.push(item.key)
+        this.onVisitorExposed(item)
+        this.onUserExposure(item)
+      })
 
       if (hitKeysToRemove.length) {
         await this.flushHits(hitKeysToRemove)
