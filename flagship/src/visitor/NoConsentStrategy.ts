@@ -49,7 +49,7 @@ export class NoConsentStrategy extends DefaultStrategy {
     return Promise.resolve()
   }
 
-  async userExposed (): Promise<void> {
+  async visitorExposed (): Promise<void> {
     this.log(FLAG_USER_EXPOSED)
   }
 

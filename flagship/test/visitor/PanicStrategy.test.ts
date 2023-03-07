@@ -155,7 +155,7 @@ describe('test NotReadyStrategy', () => {
   })
 
   it('test userExposed', async () => {
-    await panicStrategy.userExposed()
+    await panicStrategy.visitorExposed()
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, FLAG_USER_EXPOSED, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), FLAG_USER_EXPOSED)
   })

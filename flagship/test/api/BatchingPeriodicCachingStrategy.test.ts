@@ -43,7 +43,19 @@ describe('Test BatchingPeriodicCachingStrategy', () => {
     const activateHit = new Activate({
       variationGroupId: 'variationGrID',
       variationId: 'campaignID',
-      visitorId
+      visitorId,
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      },
+      visitorContext: { key: 'value' }
     })
 
     activateHit.config = config
@@ -330,7 +342,19 @@ describe('test sendBatch method', () => {
     const activateHit = new Activate({
       visitorId,
       variationGroupId: 'variationGrID-activate',
-      variationId: 'variationId'
+      variationId: 'variationId',
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      },
+      visitorContext: { key: 'value' }
     })
     activateHit.config = config
     activateHit.key = visitorId
@@ -412,7 +436,19 @@ describe('test activateFlag method', () => {
     const activateHit = new Activate({
       visitorId,
       variationGroupId: 'variationGrID-activate',
-      variationId: 'variationId'
+      variationId: 'variationId',
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      },
+      visitorContext: { key: 'value' }
     })
     activateHit.config = config
     activateHit.key = visitorId
@@ -441,7 +477,19 @@ describe('test activateFlag method', () => {
     const activateHit = new Activate({
       visitorId,
       variationGroupId: 'variationGrID-activate',
-      variationId: 'variationId'
+      variationId: 'variationId',
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      },
+      visitorContext: { key: 'value' }
     })
     activateHit.config = config
     activateHit.key = visitorId
@@ -449,7 +497,19 @@ describe('test activateFlag method', () => {
     const activateHit2 = new Activate({
       visitorId,
       variationGroupId: 'variationGrID-activate-2',
-      variationId: 'variationId-2'
+      variationId: 'variationId-2',
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      },
+      visitorContext: { key: 'value' }
     })
 
     activateHit2.config = config
@@ -458,7 +518,19 @@ describe('test activateFlag method', () => {
     const activateHit3 = new Activate({
       visitorId,
       variationGroupId: 'variationGrID-activate-3',
-      variationId: 'variationId-3'
+      variationId: 'variationId-3',
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      },
+      visitorContext: { key: 'value' }
     })
     activateHit3.config = config
     activateHit3.key = visitorId + 'key-3'
@@ -491,7 +563,19 @@ describe('test activateFlag method', () => {
     const activateHit = new Activate({
       visitorId,
       variationGroupId: 'variationGrID-activate',
-      variationId: 'variationId'
+      variationId: 'variationId',
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      },
+      visitorContext: { key: 'value' }
     })
     activateHit.config = config
     activateHit.key = visitorId
@@ -499,7 +583,19 @@ describe('test activateFlag method', () => {
     const activateHit2 = new Activate({
       visitorId,
       variationGroupId: 'variationGrID-activate-2',
-      variationId: 'variationId-2'
+      variationId: 'variationId-2',
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      },
+      visitorContext: { key: 'value' }
     })
 
     activateHit2.config = config
@@ -508,7 +604,19 @@ describe('test activateFlag method', () => {
     const activateHit3 = new Activate({
       visitorId,
       variationGroupId: 'variationGrID-activate-3',
-      variationId: 'variationId-3'
+      variationId: 'variationId-3',
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      },
+      visitorContext: { key: 'value' }
     })
     activateHit3.config = config
     activateHit3.key = visitorId + 'key-3'

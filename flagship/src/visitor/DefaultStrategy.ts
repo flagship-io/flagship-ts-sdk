@@ -614,7 +614,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     if (activate) {
       this.visitor.flagsData.forEach((value) => {
         if (value.campaignId === campaignId) {
-          this.userExposed({ key: value.key, flag: value, defaultValue: value.value })
+          this.visitorExposed({ key: value.key, flag: value, defaultValue: value.value })
         }
       })
     }
@@ -658,7 +658,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return this.globalFetchFlags(PROCESS_FETCHING_FLAGS)
   }
 
-  async userExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T}): Promise<void> {
+  async visitorExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T}): Promise<void> {
     const { key, flag, defaultValue } = param
 
     const functionName = 'userExposed'
@@ -697,7 +697,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     if (flag.value === null) {
       if (userExposed) {
-        this.userExposed({ key, flag, defaultValue })
+        this.visitorExposed({ key, flag, defaultValue })
       }
       return defaultValue
     }
@@ -708,7 +708,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
 
     if (userExposed) {
-      this.userExposed({ key, flag, defaultValue })
+      this.visitorExposed({ key, flag, defaultValue })
     }
 
     logDebugSprintf(this.config, FLAG_VALUE, GET_FLAG_VALUE, this.visitor.visitorId, key, flag.value)

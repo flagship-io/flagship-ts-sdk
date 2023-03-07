@@ -146,7 +146,19 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     const activateHit = new Activate({
       visitorId,
       variationGroupId: 'varGroupId',
-      variationId: 'varId'
+      variationId: 'varId',
+      flagKey: 'key',
+      flagValue: 'value',
+      flagDefaultValue: 'default',
+      visitorContext: { key: 'value' },
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      }
     })
 
     activateHit.config = config
@@ -259,7 +271,19 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     const activateHit = new Activate({
       variationGroupId: 'varGrId',
       variationId: 'varId',
-      visitorId
+      visitorId,
+      flagKey: 'key',
+      flagValue: 'value',
+      flagDefaultValue: 'default',
+      visitorContext: { key: 'value' },
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      }
     })
     activateHit.config = config
 
@@ -294,7 +318,19 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     const activateHit = new Activate({
       variationGroupId: 'varGrId',
       variationId: 'varId',
-      visitorId
+      visitorId,
+      flagKey: 'key',
+      flagValue: 'value',
+      flagDefaultValue: 'default',
+      visitorContext: { key: 'value' },
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      }
     })
     activateHit.config = config
 
@@ -492,7 +528,19 @@ describe('test sendBatch method', () => {
     const activateHit = new Activate({
       visitorId,
       variationGroupId: 'variationGrID-activate',
-      variationId: 'variationId'
+      variationId: 'variationId',
+      flagKey: 'key',
+      flagValue: 'value',
+      flagDefaultValue: 'default',
+      visitorContext: { key: 'value' },
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      }
     })
     activateHit.config = config
     activateHit.key = visitorId

@@ -47,8 +47,20 @@ describe('test TrackingManager', () => {
   it('Test activateFlag method', async () => {
     const CampaignHit = new Activate({
       variationGroupId: 'variationGrID',
-      variationId: 'campaignID',
-      visitorId
+      variationId: 'varId',
+      visitorId,
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      },
+      visitorContext: { key: 'value' }
     })
 
     CampaignHit.config = config
@@ -185,7 +197,19 @@ describe('test TrackingManager lookupHits', () => {
     const campaignHit = new Activate({
       variationGroupId: 'variationGrID',
       variationId: 'campaignID',
-      visitorId
+      visitorId,
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      },
+      visitorContext: { key: 'value' }
     })
 
     const consentHit = new Event({
@@ -234,7 +258,19 @@ describe('test TrackingManager lookupHits', () => {
     const activate = new Activate({
       visitorId,
       variationGroupId: 'varGrId',
-      variationId: 'varId'
+      variationId: 'varId',
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      },
+      visitorContext: { key: 'value' }
     })
 
     const hits = [campaignHit, consentHit, eventHit, itemHit, pageHit, screenHit, segmentHit, transactionHit, activate]

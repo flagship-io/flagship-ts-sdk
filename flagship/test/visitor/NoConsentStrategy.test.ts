@@ -61,7 +61,7 @@ describe('test NoConsentStrategy', () => {
   })
 
   it('test userExposed', () => {
-    noConsentStrategy.userExposed().then(() => {
+    noConsentStrategy.visitorExposed().then(() => {
       expect(logError).toBeCalledTimes(1)
       expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, FLAG_USER_EXPOSED, visitorDelegate.visitorId), FLAG_USER_EXPOSED)
     })

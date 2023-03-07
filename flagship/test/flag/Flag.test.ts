@@ -43,7 +43,7 @@ describe('test Flag', () => {
 
   const visitorDelegate = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager })
 
-  const userExposed = jest.spyOn(visitorDelegate, 'userExposed')
+  const visitorExposed = jest.spyOn(visitorDelegate, 'visitorExposed')
   const getFlagValue = jest.spyOn(visitorDelegate, 'getFlagValue')
 
   const flagDto:FlagDTO = {
@@ -83,8 +83,8 @@ describe('test Flag', () => {
 
   it('test userExposed', () => {
     flag.userExposed()
-    expect(userExposed).toBeCalledTimes(1)
-    expect(userExposed).toBeCalledWith({
+    expect(visitorExposed).toBeCalledTimes(1)
+    expect(visitorExposed).toBeCalledWith({
       key: flagDto.key,
       flag: expect.objectContaining(flagDto),
       defaultValue
