@@ -4,7 +4,7 @@ import { ACTIVATE_ADDED_IN_QUEUE, ADD_ACTIVATE, ADD_HIT, BATCH_MAX_SIZE, BATCH_S
 import { Activate } from '../hit/Activate.ts'
 import { Batch } from '../hit/Batch.ts'
 import { HitAbstract, Event } from '../hit/index.ts'
-import { HitCacheDTO } from '../types.ts'
+import { HitCacheDTO, IExposedFlag, IExposedVisitor } from '../types.ts'
 import { IHttpClient } from '../utils/HttpClient.ts'
 import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils.ts'
 import { ITrackingManagerCommon } from './ITrackingManagerCommon.ts'
@@ -76,6 +76,54 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     protected async activateFlagEdgeMode (hit: Activate): Promise<void> {
       this._activatePoolQueue.set(hit.key, hit)
       await this.cacheHit(new Map<string, HitAbstract>([[hit.key, hit]]))
+    }
+
+    protected onUserExposure (activate: Activate) {
+      const onUserExposure = this.config.onUserExposure
+      if (typeof onUserExposure !== 'function') {
+        return
+      }
+
+      const flagData = {
+        metadata: {
+          campaignId: activate.flagMetadata.campaignId,
+          campaignType: activate.flagMetadata.campaignType,
+          slug: activate.flagMetadata.slug,
+          isReference: activate.flagMetadata.isReference,
+          variationGroupId: activate.flagMetadata.variationGroupId,
+          variationId: activate.flagMetadata.variationId
+        },
+        key: activate.flagKey,
+        value: activate.flagValue
+      }
+
+      const visitorData = {
+        visitorId: activate.visitorId,
+        anonymousId: activate.anonymousId as string,
+        context: activate.visitorContext
+      }
+      onUserExposure({ flagData, visitorData })
+    }
+
+    protected onVisitorExposed (activate: Activate) {
+      const onVisitorExposed = this.config.onVisitorExposed
+      if (typeof onVisitorExposed !== 'function') {
+        return
+      }
+
+      const fromFlag : IExposedFlag = {
+        key: activate.flagKey,
+        value: activate.flagValue,
+        defaultValue: activate.flagDefaultValue,
+        metadata: activate.flagMetadata
+      }
+
+      const exposedVisitor: IExposedVisitor = {
+        id: activate.visitorId,
+        anonymousId: activate.anonymousId,
+        context: activate.visitorContext
+      }
+      onVisitorExposed({ exposedVisitor, fromFlag })
     }
 
     protected abstract sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate): Promise<void>

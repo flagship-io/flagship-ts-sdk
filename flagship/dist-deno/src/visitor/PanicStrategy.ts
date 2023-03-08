@@ -89,7 +89,7 @@ export class PanicStrategy extends DefaultStrategy {
     return param.defaultValue
   }
 
-  async userExposed (): Promise<void> {
+  async visitorExposed (): Promise<void> {
     this.log(FLAG_USER_EXPOSED)
   }
 
