@@ -36,6 +36,11 @@ describe('test hit type Activate', () => {
   it('test constructor', () => {
     expect(activate.variationGroupId).toBe(variationGroupId)
     expect(activate.variationId).toBe(variationId)
+    expect(activate.flagKey).toBe(flagKey)
+    expect(activate.flagValue).toBe(flagValue)
+    expect(activate.flagDefaultValue).toBe(flagDefaultValue)
+    expect(activate.flagMetadata).toEqual(flagMetadata)
+    expect(activate.visitorContext).toEqual(visitorContext)
     expect(activate.getErrorMessage()).toBe(ERROR_MESSAGE)
   })
 

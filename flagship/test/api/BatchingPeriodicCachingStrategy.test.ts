@@ -1,6 +1,6 @@
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { Mock } from 'jest-mock'
-import { Event, EventCategory } from '../../src'
+import { Event, EventCategory, OnVisitorExposed, UserExposureInfo } from '../../src'
 import { BatchingPeriodicCachingStrategy } from '../../src/api/BatchingPeriodicCachingStrategy'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
 import { HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, SDK_INFO, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, SEND_BATCH, BASE_API_URL, URL_ACTIVATE_MODIFICATION, FS_CONSENT, LogLevel, DEFAULT_HIT_CACHE_TIME_MS } from '../../src/enum'
@@ -404,7 +404,10 @@ describe('test activateFlag method', () => {
 
   const postAsync = jest.spyOn(httpClient, 'postAsync')
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
+  const onVisitorExposed : Mock<void, [arg: OnVisitorExposed]> = jest.fn()
+  const onUserExposure: Mock<void, [param: UserExposureInfo]> = jest.fn()
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', onVisitorExposed, onUserExposure })
   const logManager = new FlagshipLogManager()
 
   config.logManager = logManager
@@ -469,6 +472,9 @@ describe('test activateFlag method', () => {
 
     expect(flushHits).toBeCalledTimes(0)
     expect(cacheHit).toBeCalledTimes(0)
+
+    expect(onVisitorExposed).toBeCalledTimes(1)
+    expect(onUserExposure).toBeCalledTimes(1)
   })
 
   it('test multiple activate success', async () => {
@@ -554,6 +560,9 @@ describe('test activateFlag method', () => {
 
     expect(cacheHit).toBeCalledTimes(0)
     expect(flushHits).toBeCalledTimes(0)
+
+    expect(onVisitorExposed).toBeCalledTimes(3)
+    expect(onUserExposure).toBeCalledTimes(3)
   })
 
   it('test multiple activate failed', async () => {
@@ -640,5 +649,8 @@ describe('test activateFlag method', () => {
 
     expect(flushHits).toBeCalledTimes(0)
     expect(cacheHit).toBeCalledTimes(0)
+
+    expect(onVisitorExposed).toBeCalledTimes(0)
+    expect(onUserExposure).toBeCalledTimes(0)
   })
 })
