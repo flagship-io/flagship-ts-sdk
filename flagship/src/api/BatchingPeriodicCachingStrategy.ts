@@ -35,7 +35,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         timeout: this.config.timeout
       })
 
-      activateHitsPool.forEach(item => {
+      activateBatch.hits.forEach(item => {
         this.onVisitorExposed(item)
         this.onUserExposure(item)
       })
