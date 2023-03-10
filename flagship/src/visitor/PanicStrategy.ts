@@ -1,7 +1,7 @@
 import { CampaignDTO, FlagDTO } from '../index'
 import { FlagshipStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR } from '../enum/index'
 import { IFlagMetadata, IHit, modificationsRequested } from '../types'
-import { logErrorSprintf } from '../utils/utils'
+import { logInfoSprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
 import { HitAbstract, HitShape } from '../hit/index'
 import { BatchDTO } from '../hit/Batch'
@@ -99,6 +99,6 @@ export class PanicStrategy extends DefaultStrategy {
   }
 
   private log (methodName:string) {
-    logErrorSprintf(this.config, methodName, METHOD_DEACTIVATED_ERROR, this.visitor.visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON])
+    logInfoSprintf(this.config, methodName, METHOD_DEACTIVATED_ERROR, this.visitor.visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON])
   }
 }

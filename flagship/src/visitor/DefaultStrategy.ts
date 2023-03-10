@@ -60,7 +60,7 @@ import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
 import { DecisionMode } from '../config/index'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
-import { IVisitor, VisitorDelegate } from './index'
+import { VisitorDelegate } from './index'
 import { FlagMetadata } from '../flag/FlagMetadata'
 import { Activate } from '../hit/Activate'
 
