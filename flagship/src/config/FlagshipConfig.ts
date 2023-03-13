@@ -7,127 +7,8 @@ import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementatio
 import { ITrackingManagerConfig, TrackingManagerConfig } from './TrackingManagerConfig'
 import { UserExposureInfo } from '../types'
 import { version as SDK_VERSION } from '../sdkVersion'
-
-export enum DecisionMode {
-  /**
-   *
-   * Flagship SDK mode decision api
-   * @deprecated use DECISION_API instead of
-   */
-  API = 'API',
-
-  /**
-   *   /**
-   * Flagship SDK mode decision api
-   */
-  DECISION_API = 'DECISION-API',
-
-  /**
-   * Flagship SDK mode bucketing
-   */
-  BUCKETING = 'BUCKETING',
-}
-
-export interface IFlagshipConfig {
-  /**
-   * Specify the environment id provided by Flagship, to use.
-   */
-  envId?: string
-
-  /**
-   * Specify the secure api key provided by Flagship, to use.
-   */
-  apiKey?: string
-
-  /**
-   * Specify timeout in seconds for api request.
-   * Default is 2s.
-   */
-  timeout?: number;
-
-  /**
-   * Set the maximum log level to display
-   */
-  logLevel?: LogLevel;
-
-  /**
-   * Specify the SDK running mode.
-   * BUCKETING or DECISION_API
-   */
-  decisionMode?: DecisionMode
-
-  /**
-   * Define a callable in order to get callback when the SDK status has changed.
-   */
-  statusChangedCallback?: (status: FlagshipStatus) => void;
-
-  /** Specify a custom implementation of LogManager in order to receive logs from the SDK. */
-  logManager?: IFlagshipLogManager;
-
-  /**
-   * Decide to fetch automatically modifications data when creating a new FlagshipVisitor
-   */
-  fetchNow?: boolean,
-
-  /**
-   * Specify delay between two bucketing polling. Default is 2s.
-   *
-   * Note: If 0 is given then it should poll only once at start time.
-   */
-  pollingInterval?: number
-
-  /**
-   * Indicates whether enables or disables the client cache manager.
-   * By enabling the client cache, it will allow you to keep cross sessions visitor experience.
-   */
-  enableClientCache?: boolean
-
-  /**
-   * Define a callable in order to get callback when the first bucketing polling succeed.
-   */
-  onBucketingSuccess?: (param: { status: number; payload: BucketingDTO }) => void
-
-  /**
-   * Define a callable to get callback when the first bucketing polling failed.
-   */
-  onBucketingFail?: (error: Error) => void
-
-  /**
-   * Define a callable to get callback each time bucketing data from Flagship has updated.
-   */
-  onBucketingUpdated?: (lastUpdate: Date) => void
-
-  /**
-   * This is a set of flag data provided to avoid the SDK to have an empty cache during the first initialization.
-   */
-  initialBucketing?: BucketingDTO
-
-  decisionApiUrl?: string
-
-  activateDeduplicationTime?: number
-
-  hitDeduplicationTime?: number
-
-  visitorCacheImplementation?: IVisitorCacheImplementation
-
-  hitCacheImplementation?: IHitCacheImplementation
-
-  /**
-   * If it's set to true, hit cache and visitor cache will be disabled otherwise will be enabled.
-   */
-  disableCache?: boolean
-
-  language?: 0 | 1 | 2
-
-  trackingMangerConfig?: ITrackingManagerConfig
-
-  /**
-   * Define a callable to get callback each time  a Flag have been user exposed (activation hit has been sent) by SDK
-   */
-  onUserExposure?: (param: UserExposureInfo)=>void
-  sdkVersion?: string
-  onLog?: (level: LogLevel, tag: string, message: string)=>void
-}
+import { IFlagshipConfig } from './IFlagshipConfig'
+import { DecisionMode } from './DecisionMode'
 
 export const statusChangeError = 'statusChangedCallback must be a function'
 
@@ -147,12 +28,12 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _enableClientCache!: boolean
   private _initialBucketing?: BucketingDTO
   private _decisionApiUrl!: string
-  private _activateDeduplicationTime!: number
   private _hitDeduplicationTime!: number
   private _visitorCacheImplementation!: IVisitorCacheImplementation
   private _hitCacheImplementation!: IHitCacheImplementation
   private _disableCache!: boolean
   private _trackingMangerConfig : ITrackingManagerConfig
+  private _isLiteClient?: boolean
 
   public get trackingMangerConfig () : ITrackingManagerConfig {
     return this._trackingMangerConfig
@@ -177,7 +58,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     const {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
-      activateDeduplicationTime, hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
+      hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
       disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig, onLog
     } = param
 
@@ -198,7 +79,6 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this.enableClientCache = typeof enableClientCache === 'undefined' || enableClientCache
     this._decisionMode = decisionMode || DecisionMode.DECISION_API
     this._initialBucketing = initialBucketing
-    this.activateDeduplicationTime = activateDeduplicationTime ?? DEFAULT_DEDUPLICATION_TIME
     this.hitDeduplicationTime = hitDeduplicationTime ?? DEFAULT_DEDUPLICATION_TIME
     this.disableCache = !!disableCache
 
@@ -320,18 +200,6 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
 
   public set pollingInterval (v: number) {
     this._pollingInterval = v
-  }
-
-  public get activateDeduplicationTime (): number {
-    return this._activateDeduplicationTime
-  }
-
-  public set activateDeduplicationTime (v: number) {
-    if (typeof v !== 'number') {
-      logError(this, sprintf(TYPE_ERROR, 'activateDeduplicationTime', 'number'), 'activateDeduplicationTime')
-      return
-    }
-    this._activateDeduplicationTime = v
   }
 
   public get hitDeduplicationTime (): number {

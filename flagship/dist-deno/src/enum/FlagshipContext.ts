@@ -66,7 +66,6 @@ export const OS_VERSION_CODE = 'sdk_osVersionCode'
 
 /**
   * Carrier operator
-
   */
 export const CARRIER_NAME = 'sdk_carrierName'
 

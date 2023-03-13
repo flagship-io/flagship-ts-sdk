@@ -1,8 +1,6 @@
 'use strict';
 
-var _ = require('../..');
-
-var _2 = _interopRequireDefault(_);
+var _index = require('@flagship.io/js-sdk/dist/index.lite');
 
 var _config = require('./config.js');
 
@@ -14,44 +12,64 @@ var _ioredis2 = _interopRequireDefault(_ioredis);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const redis = new _ioredis2.default({
-  host: '127.0.0.1',
-  port: '6379'
-});
-
 const sleep = ms => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
 
 const statusChangedCallback = status => {
-  console.log('status', _.FlagshipStatus[status]);
+  console.log('status', _index.FlagshipStatus[status]);
 };
 
 const check = {};
 
-const FS_HIT_PREFIX = 'FS_DEFAULT_HIT_CACHE_TS';
-const hitCacheImplementation = {
+function hitCacheImplementation(host, port, dbIndex) {
+  const redis = new _ioredis2.default({
+    host,
+    port
+  });
 
-  async cacheHit(hits) {
-    await redis.set(FS_HIT_PREFIX, JSON.stringify(hits));
-  },
-  async lookupHits() {
-    const data = await redis.get(FS_HIT_PREFIX);
-    return data ? JSON.parse(data) : data;
-  }
-};
+  redis.select(dbIndex);
 
-_2.default.start(_config.ENV_ID, _config.API_KEY, {
-  // decisionMode: DecisionMode.BUCKETING,
-  hitCacheImplementation,
-  statusChangedCallback,
-  logLevel: _.LogLevel.ALL,
-  fetchNow: false,
-  timeout: 10,
+  return {
+
+    async cacheHit(hits) {
+      const multi = redis.multi();
+      Object.entries(hits).forEach(([key, value]) => {
+        multi.set(key, JSON.stringify(value));
+      });
+      await multi.exec();
+    },
+    async lookupHits() {
+      const keys = await redis.keys('*');
+      if (!keys.length) {
+        return null;
+      }
+      const redisData = await redis.mget(keys);
+      const hits = {};
+      redisData.forEach((value, index) => {
+        if (!value) {
+          return;
+        }
+        hits[keys[index]] = JSON.parse(value);
+      });
+      return hits;
+    },
+    async flushHits(hitKeys) {
+      await redis.del(hitKeys);
+    },
+
+    async flushAllHits() {
+      await redis.flushdb();
+    }
+  };
+}
+
+_index.Flagship.start(_config.ENV_ID, _config.API_KEY, {
+  // hitCacheImplementation: hitCacheImplementation('127.0.0.1', '6379', 2),
   trackingMangerConfig: {
-    batchIntervals: 30,
-    batchLength: 10,
-    batchStrategy: _.BatchStrategy.PERIODIC_CACHING
+    batchIntervals: 5,
+    poolMaxSize: 10,
+    cacheStrategy: _index.CacheStrategy.PERIODIC_CACHING
   }
 });
 
@@ -75,8 +93,8 @@ const start = async (visitor, index) => {
 
     // hit type Event
     await visitor.sendHit({
-      type: _.HitType.EVENT,
-      category: _.EventCategory.ACTION_TRACKING,
+      type: _index.HitType.EVENT,
+      category: _index.EventCategory.ACTION_TRACKING,
       action: 'KPI2',
       value: 10
     });
@@ -84,14 +102,14 @@ const start = async (visitor, index) => {
     console.log('hit type Event');
 
     // hit type Page
-    await visitor.sendHit({ type: _.HitType.PAGE, documentLocation: 'https://www.sdk.com/abtastylab/js/151021-' + index });
+    await visitor.sendHit({ type: _index.HitType.PAGE, documentLocation: 'https://www.sdk.com/abtastylab/js/151021-' + index });
     console.log('hit type Page');
 
     // hit type Screen
-    await visitor.sendHit({ type: _.HitType.SCREEN, documentLocation: 'abtastylab-js-' + index });
+    await visitor.sendHit({ type: _index.HitType.SCREEN, documentLocation: 'abtastylab-js-' + index });
 
     // hit type Transaction
-    const transaction = new _.Transaction({ transactionId: visitor.visitorId, affiliation: 'KPI1' });
+    const transaction = new _index.Transaction({ transactionId: visitor.visitorId, affiliation: 'KPI1' });
     await visitor.sendHit(transaction);
 
     console.log('hit type transaction');
@@ -104,8 +122,8 @@ const start = async (visitor, index) => {
 
 async function script() {
   await sleep(2000);
-  for (let index = 0; index < 10; index++) {
-    const visitor = _2.default.newVisitor({ visitorId: 'visitor_a', context: { qa_report: true } });
+  for (let index = 0; index < 1; index++) {
+    const visitor = _index.Flagship.newVisitor({ visitorId: 'visitor_a', context: { qa_report: true } });
     await start(visitor, index);
   }
 }

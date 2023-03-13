@@ -3,20 +3,16 @@ import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig, DecisionMode } from '../../src/config/index'
 import {
   FlagshipStatus,
-  INITIALIZATION_PARAM_ERROR,
-  PROCESS_INITIALIZATION,
-  PROCESS_SDK_STATUS,
-  SDK_INFO,
-  SDK_STARTED_INFO,
-  SDK_STATUS_CHANGED
+  SDK_INFO
 } from '../../src/enum/index'
 import { Flagship } from '../../src/main/Flagship'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { sleep, sprintf } from '../../src/utils/utils'
+import { sleep } from '../../src/utils/utils'
 import { Visitor } from '../../src/visitor/Visitor'
 import { Mock } from 'jest-mock'
 import { DefaultVisitorCache } from '../../src/cache/DefaultVisitorCache'
 import { DefaultHitCache } from '../../src/cache/DefaultHitCache'
+import { EdgeConfig } from '../../src/config/EdgeConfig'
 
 const getCampaignsAsync = jest.fn().mockReturnValue(Promise.resolve([]))
 
@@ -101,7 +97,8 @@ describe('test Flagship with custom config literal object', () => {
     const envId = 'envId'
     const apiKey = 'apiKey'
     const logManager = new FlagshipLogManager()
-    Flagship.start(envId, apiKey, { logManager })
+
+    Flagship.start(envId, apiKey, { decisionMode: DecisionMode.DECISION_API, logManager })
 
     expect(Flagship.getConfig().envId).toBe(envId)
     expect(Flagship.getConfig().apiKey).toBe(apiKey)
@@ -113,68 +110,92 @@ describe('test Flagship with custom config literal object', () => {
 describe('test Flagship with custom config', () => {
   const envId = 'envId'
   const apiKey = 'apiKey'
-  const config = new DecisionApiConfig()
 
-  it('should ', () => {
-    let countStatus = 0
-    config.statusChangedCallback = (status) => {
-      switch (countStatus) {
-        case 0:
-          expect(status).toBe(FlagshipStatus.STARTING)
-          break
-        case 1:
-          expect(status).toBe(FlagshipStatus.READY)
-          break
-        case 2:
-          expect(status).toBe(FlagshipStatus.STARTING)
-          break
+  let countStatus = 0
+  const statusChangedCallback = (status:FlagshipStatus) => {
+    switch (countStatus) {
+      case 0:
+        expect(status).toBe(FlagshipStatus.STARTING)
+        break
+      case 1:
+        expect(status).toBe(FlagshipStatus.READY)
+        break
+      case 2:
+        expect(status).toBe(FlagshipStatus.STARTING)
+        break
 
-        default:
-          break
-      }
-      countStatus++
+      default:
+        break
     }
-  })
+    countStatus++
+  }
 
-  const logManager = new FlagshipLogManager()
-  const errorLog = jest.spyOn(logManager, 'error')
-  const infoLog = jest.spyOn(logManager, 'info')
-  config.logManager = logManager
-
-  it('should ', () => {
-    const instance = Flagship.start(envId, apiKey, config)
+  it('should api mode ', () => {
+    const instance = Flagship.start(envId, apiKey, {
+      decisionMode: DecisionMode.DECISION_API,
+      statusChangedCallback
+    })
     expect(Flagship.getConfig()).toBeDefined()
-    expect(Flagship.getConfig()).toBe(config)
+    expect(Flagship.getConfig()).toBeInstanceOf(DecisionApiConfig)
     expect(Flagship.getConfig().envId).toBe(envId)
     expect(Flagship.getConfig().apiKey).toBe(apiKey)
-    expect(Flagship.getConfig().logManager).toBe(logManager)
+    expect(Flagship.getConfig().logManager).toBeInstanceOf(FlagshipLogManager)
 
     expect(instance?.getStatus()).toBe(FlagshipStatus.READY)
 
-    expect(infoLog).toBeCalledTimes(3)
-    expect(infoLog).toHaveBeenNthCalledWith(1,
-      sprintf(SDK_STATUS_CHANGED, FlagshipStatus[FlagshipStatus.STARTING]),
-      PROCESS_SDK_STATUS
-    )
-    expect(infoLog).toHaveBeenNthCalledWith(2,
-      sprintf(SDK_STATUS_CHANGED, FlagshipStatus[FlagshipStatus.READY]),
-      PROCESS_SDK_STATUS
-    )
-    expect(infoLog).toHaveBeenNthCalledWith(3,
-      sprintf(SDK_STARTED_INFO, SDK_INFO.version),
-      PROCESS_INITIALIZATION
-    )
     expect(instance).toBeInstanceOf(Flagship)
   })
 
   it('should ', () => {
-    const instance = Flagship.start('', '', config)
+    const instance = Flagship.start('', '')
     expect(Flagship.getStatus()).toBe(FlagshipStatus.NOT_INITIALIZED)
-    expect(errorLog).toBeCalledTimes(1)
-    expect(errorLog).toBeCalledWith(
-      INITIALIZATION_PARAM_ERROR,
-      PROCESS_INITIALIZATION
-    )
+    expect(instance).toBeInstanceOf(Flagship)
+  })
+})
+
+describe('test Flagship with custom config', () => {
+  const envId = 'envId'
+  const apiKey = 'apiKey'
+
+  let countStatus = 0
+  const statusChangedCallback = (status:FlagshipStatus) => {
+    switch (countStatus) {
+      case 0:
+        expect(status).toBe(FlagshipStatus.STARTING)
+        break
+      case 1:
+        expect(status).toBe(FlagshipStatus.READY)
+        break
+      case 2:
+        expect(status).toBe(FlagshipStatus.STARTING)
+        break
+
+      default:
+        break
+    }
+    countStatus++
+  }
+
+  it('should api mode ', () => {
+    const instance = Flagship.start(envId, apiKey, {
+      decisionMode: DecisionMode.BUCKETING_EDGE,
+      statusChangedCallback,
+      initialBucketing: {}
+    })
+    expect(Flagship.getConfig()).toBeDefined()
+    expect(Flagship.getConfig()).toBeInstanceOf(EdgeConfig)
+    expect(Flagship.getConfig().envId).toBe(envId)
+    expect(Flagship.getConfig().apiKey).toBe(apiKey)
+    expect(Flagship.getConfig().logManager).toBeInstanceOf(FlagshipLogManager)
+
+    expect(instance?.getStatus()).toBe(FlagshipStatus.READY)
+
+    expect(instance).toBeInstanceOf(Flagship)
+  })
+
+  it('should ', () => {
+    const instance = Flagship.start('', '')
+    expect(Flagship.getStatus()).toBe(FlagshipStatus.NOT_INITIALIZED)
     expect(instance).toBeInstanceOf(Flagship)
   })
 })

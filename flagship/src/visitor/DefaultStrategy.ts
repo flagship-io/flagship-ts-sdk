@@ -60,7 +60,7 @@ import {
 } from '../hit/index'
 import { HitShape, ItemHit } from '../hit/Legacy'
 import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata } from '../types'
-import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, sprintf } from '../utils/utils'
+import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logWarningSprintf, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
 import { DecisionMode } from '../config/index'
@@ -684,7 +684,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     const functionName = 'userExposed'
     if (!flag) {
-      logErrorSprintf(
+      logWarningSprintf(
         this.visitor.config,
         FLAG_USER_EXPOSED,
         USER_EXPOSED_FLAG_ERROR, this.visitor.visitorId, key
@@ -693,7 +693,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
 
     if (defaultValue !== null && defaultValue !== undefined && flag.value !== null && !hasSameType(flag.value, defaultValue)) {
-      logErrorSprintf(
+      logWarningSprintf(
         this.visitor.config,
         FLAG_USER_EXPOSED,
         USER_EXPOSED_CAST_ERROR, this.visitor.visitorId, key
@@ -712,7 +712,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     const { key, defaultValue, flag, userExposed } = param
 
     if (!flag) {
-      logErrorSprintf(this.config, FLAG_VALUE, GET_FLAG_MISSING_ERROR, this.visitor.visitorId, key, defaultValue)
+      logWarningSprintf(this.config, FLAG_VALUE, GET_FLAG_MISSING_ERROR, this.visitor.visitorId, key, defaultValue)
       return defaultValue
     }
 
@@ -724,7 +724,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
 
     if (defaultValue !== null && defaultValue !== undefined && !hasSameType(flag.value, defaultValue)) {
-      logErrorSprintf(this.config, FLAG_VALUE, GET_FLAG_CAST_ERROR, this.visitor.visitorId, key, defaultValue)
+      logWarningSprintf(this.config, FLAG_VALUE, GET_FLAG_CAST_ERROR, this.visitor.visitorId, key, defaultValue)
       return defaultValue
     }
 
@@ -741,13 +741,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     const { metadata, hasSameType: checkType, key } = param
     const emptyMetaData = FlagMetadata.Empty()
     if (!checkType) {
-      logInfoSprintf(
+      logWarningSprintf(
         this.visitor.config,
-        FLAG_METADATA,
-        GET_METADATA_CAST_ERROR,
-        this.visitor.visitorId,
-        key,
-        emptyMetaData
+        functionName,
+        GET_METADATA_CAST_ERROR, key
       )
       return emptyMetaData
     }

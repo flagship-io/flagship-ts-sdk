@@ -1,4 +1,4 @@
-import { IFlagshipConfig } from '../config/FlagshipConfig.ts'
+import { type IFlagshipConfig } from '../config/IFlagshipConfig.ts'
 import { LogLevel } from '../enum/index.ts'
 
 /**
@@ -38,6 +38,32 @@ export function logError (
 
   if (config.logManager && typeof config.logManager.error === 'function') {
     config.logManager.error(message, tag)
+  }
+}
+
+export function logWarningSprintf (config: IFlagshipConfig, tag: string, message: string, ...arg: unknown[]) {
+  if (!config || !config.logLevel || config.logLevel < LogLevel.WARNING) {
+    return
+  }
+  const customMessage = sprintf(message, ...arg)
+  logWarning(config, customMessage, tag)
+}
+
+export function logWarning (
+  config: IFlagshipConfig,
+  message: string,
+  tag: string
+):void {
+  if (!config || !config.logLevel || config.logLevel < LogLevel.WARNING) {
+    return
+  }
+
+  if (typeof config.onLog === 'function') {
+    config.onLog(LogLevel.WARNING, tag, message)
+  }
+
+  if (config.logManager && typeof config.logManager.warning === 'function') {
+    config.logManager.warning(message, tag)
   }
 }
 

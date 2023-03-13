@@ -69,7 +69,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.setInitialFlags(initialFlagsData || initialModifications)
     this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
 
-    logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, visitorId, context, !!isAuthenticated, !!hasConsented)
+    logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
   }
 
   protected generateVisitorId ():string {

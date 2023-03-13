@@ -126,7 +126,7 @@ describe('Clean cache', () => {
 
   const logManager = new FlagshipLogManager()
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', activateDeduplicationTime: 1, hitDeduplicationTime: 1 })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 1 })
   config.logManager = logManager
 
   const httpClient = new HttpClient()

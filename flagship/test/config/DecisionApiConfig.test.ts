@@ -29,7 +29,6 @@ describe('test DecisionApiConfig', () => {
     expect(config.enableClientCache).toBeTruthy()
     expect(config.initialBucketing).toBeUndefined()
     expect(config.decisionApiUrl).toBe(BASE_API_URL)
-    expect(config.activateDeduplicationTime).toBe(DEFAULT_DEDUPLICATION_TIME)
     expect(config.hitDeduplicationTime).toBe(DEFAULT_DEDUPLICATION_TIME)
     expect(config.hitCacheImplementation).toBeUndefined()
     expect(config.visitorCacheImplementation).toBeUndefined()
@@ -97,7 +96,6 @@ describe('test DecisionApiConfig', () => {
       visitorCacheImplementation,
       hitCacheImplementation,
       disableCache: true,
-      activateDeduplicationTime: 10,
       hitDeduplicationTime: 20,
       onUserExposure,
       onLog
@@ -114,7 +112,6 @@ describe('test DecisionApiConfig', () => {
     expect(config.visitorCacheImplementation).toBe(visitorCacheImplementation)
     expect(config.hitCacheImplementation).toBe(hitCacheImplementation)
     expect(config.disableCache).toBeTruthy()
-    expect(config.activateDeduplicationTime).toBe(10)
     expect(config.hitDeduplicationTime).toBe(20)
     expect(config.onUserExposure).toBe(onUserExposure)
     expect(config.onLog).toBe(onLog)
@@ -161,14 +158,6 @@ describe('test DecisionApiConfig', () => {
     const url = 'https://decision.flagship.io/v2/?l=4'
     config.decisionApiUrl = url
     expect(config.decisionApiUrl).toBe(url)
-  })
-
-  it('Test deDuplicationTime', () => {
-    config.activateDeduplicationTime = {} as number
-    expect(config.activateDeduplicationTime).toBe(DEFAULT_DEDUPLICATION_TIME)
-    const activateDeduplicationTime = 3
-    config.activateDeduplicationTime = activateDeduplicationTime
-    expect(config.activateDeduplicationTime).toBe(activateDeduplicationTime)
   })
 
   it('Test deDuplicationTime', () => {

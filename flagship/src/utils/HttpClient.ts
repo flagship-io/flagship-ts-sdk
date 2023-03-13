@@ -1,5 +1,5 @@
 import { REQUEST_TIME_OUT } from '../enum/index'
-import { fetch, globalOption } from '../nodeDeps'
+import { fetch } from '../nodeDeps'
 
 export interface IHttpOptions {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -24,14 +24,14 @@ export class HttpClient implements IHttpClient {
   private async getResponse (response:Response) {
     const applicationType = response.headers.get('Content-Type')
     const checkJson = applicationType === 'application/json'
-    const bodyString = await response.text()
     let body:Record<string, unknown>|undefined
 
-    if (bodyString && checkJson) {
-      body = JSON.parse(bodyString)
+    if (checkJson && response.ok && response.status !== 204) {
+      body = await response.json()
     }
 
     if (response.status >= 400) {
+      const bodyString = await response.text()
       throw new Error(bodyString || response.statusText)
     }
     const headers:Record<string, string> = {}
@@ -45,44 +45,36 @@ export class HttpClient implements IHttpClient {
     }
   }
 
-  getAsync (url: string, options?: IHttpOptions): Promise<IHttpResponse> {
+  async getAsync (url: string, options?: IHttpOptions): Promise<IHttpResponse> {
     const c = new AbortController()
     const id = setTimeout(() => c.abort(), (options?.timeout ? options.timeout : REQUEST_TIME_OUT) * 1000)
-    return fetch(url, {
-      ...globalOption,
-      method: 'GET',
-      headers: options?.headers,
-      signal: c.signal,
-      keepalive: true
-    })
-      .then(this.getResponse)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .catch((error:any) => {
-        throw error
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: options?.headers,
+        signal: c.signal,
+        keepalive: true
       })
-      .finally(() => {
-        clearInterval(id)
-      })
+      return this.getResponse(response)
+    } finally {
+      clearTimeout(id)
+    }
   }
 
-  public postAsync (url: string, options: IHttpOptions): Promise<IHttpResponse> {
+  public async postAsync (url: string, options: IHttpOptions): Promise<IHttpResponse> {
     const c = new AbortController()
     const id = setTimeout(() => c.abort(), options.timeout ? options.timeout * 1000 : REQUEST_TIME_OUT * 1000)
-    return fetch(url, {
-      ...globalOption,
-      method: 'POST',
-      headers: options.headers,
-      body: JSON.stringify(options.body),
-      signal: c.signal,
-      keepalive: true
-    })
-      .then(this.getResponse)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .catch((error: any) => {
-        throw error
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: options.headers,
+        body: JSON.stringify(options.body),
+        signal: c.signal,
+        keepalive: true
       })
-      .finally(() => {
-        clearInterval(id)
-      })
+      return this.getResponse(response)
+    } finally {
+      clearTimeout(id)
+    }
   }
 }

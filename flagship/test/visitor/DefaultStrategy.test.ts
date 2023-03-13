@@ -39,8 +39,9 @@ describe('test DefaultStrategy ', () => {
   const logManager = new FlagshipLogManager()
   const logError = jest.spyOn(logManager, 'error')
   const logInfo = jest.spyOn(logManager, 'info')
+  const logWarning = jest.spyOn(logManager, 'warning')
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', activateDeduplicationTime: 0, hitDeduplicationTime: 0 })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0 })
   config.logManager = logManager
 
   const httpClient = new HttpClient()
@@ -386,8 +387,8 @@ describe('test DefaultStrategy ', () => {
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue })
     expect(value).toBe(defaultValue)
     expect(activateFlag).toBeCalledTimes(0)
-    expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(GET_FLAG_MISSING_ERROR, visitorId, 'keyString', defaultValue), FLAG_VALUE)
+    expect(logWarning).toBeCalledTimes(1)
+    expect(logWarning).toBeCalledWith(sprintf(GET_FLAG_MISSING_ERROR, visitorId, 'keyString', defaultValue), FLAG_VALUE)
   })
 
   it('test getFlagValue undefined flag', () => {
@@ -396,8 +397,8 @@ describe('test DefaultStrategy ', () => {
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue })
     expect<string>(value).toBe(defaultValue)
     expect(activateFlag).toBeCalledTimes(0)
-    expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(GET_FLAG_MISSING_ERROR, visitorId, 'keyString', defaultValue), FLAG_VALUE)
+    expect(logWarning).toBeCalledTimes(1)
+    expect(logWarning).toBeCalledWith(sprintf(GET_FLAG_MISSING_ERROR, visitorId, 'keyString', defaultValue), FLAG_VALUE)
   })
 
   it('test getFlagValue castError type', () => {
@@ -406,8 +407,8 @@ describe('test DefaultStrategy ', () => {
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue, flag: returnMod })
     expect(value).toBe(defaultValue)
     expect(activateFlag).toBeCalledTimes(0)
-    expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(GET_FLAG_CAST_ERROR, visitorId, 'keyString', defaultValue), FLAG_VALUE)
+    expect(logWarning).toBeCalledTimes(1)
+    expect(logWarning).toBeCalledWith(sprintf(GET_FLAG_CAST_ERROR, visitorId, 'keyString', defaultValue), FLAG_VALUE)
   })
 
   it('test getFlagValue castError type', () => {
@@ -423,8 +424,8 @@ describe('test DefaultStrategy ', () => {
     const defaultValue = {}
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue, flag: returnMod })
     expect(value).toEqual(defaultValue)
-    expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(GET_FLAG_CAST_ERROR, visitorId, 'array', defaultValue), FLAG_VALUE)
+    expect(logWarning).toBeCalledTimes(1)
+    expect(logWarning).toBeCalledWith(sprintf(GET_FLAG_CAST_ERROR, visitorId, 'array', defaultValue), FLAG_VALUE)
     expect(activateFlag).toBeCalledTimes(0)
   })
 
@@ -455,8 +456,8 @@ describe('test DefaultStrategy ', () => {
     }
     const flagMeta = defaultStrategy.getFlagMetadata({ key, metadata, hasSameType: false })
     expect(flagMeta).toEqual(FlagMetadata.Empty())
-    expect(logInfo).toBeCalledTimes(1)
-    expect(logInfo).toBeCalledWith(sprintf(GET_METADATA_CAST_ERROR, key), 'flag.metadata')
+    expect(logWarning).toBeCalledTimes(1)
+    expect(logWarning).toBeCalledWith(sprintf(GET_METADATA_CAST_ERROR, key), 'flag.metadata')
   })
 
   it('test getModification with array', () => {
@@ -708,7 +709,6 @@ describe('test DefaultStrategy ', () => {
     const newConfig = new DecisionApiConfig({
       envId: 'envId',
       apiKey: 'apiKey',
-      activateDeduplicationTime: 0,
       hitDeduplicationTime: 0,
       onUserExposure: ({ flagData: exposedFlag, visitorData }) => {
         expect(exposedFlag).toEqual({
@@ -742,8 +742,8 @@ describe('test DefaultStrategy ', () => {
   it('test userExposed with different type', async () => {
     await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: true })
     expect(addHit).toBeCalledTimes(0)
-    expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(
+    expect(logWarning).toBeCalledTimes(1)
+    expect(logWarning).toBeCalledWith(
       sprintf(USER_EXPOSED_CAST_ERROR, visitorId, returnMod.key),
       FLAG_USER_EXPOSED
     )
@@ -752,8 +752,8 @@ describe('test DefaultStrategy ', () => {
   it('test userExposed flag undefined', async () => {
     await defaultStrategy.userExposed({ key: notExitKey, flag: undefined, defaultValue: false })
     expect(activateFlag).toBeCalledTimes(0)
-    expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(
+    expect(logWarning).toBeCalledTimes(1)
+    expect(logWarning).toBeCalledWith(
       sprintf(USER_EXPOSED_FLAG_ERROR, visitorId, notExitKey),
       FLAG_USER_EXPOSED
     )

@@ -1,11 +1,11 @@
 import { IDecisionManager } from './IDecisionManager'
-import { IFlagshipConfig } from '../config/FlagshipConfig'
+import { IFlagshipConfig } from '../config/index'
 import { IHttpClient } from '../utils/HttpClient'
 import { CampaignDTO } from './api/models'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
-import { FETCH_FLAGS_PANIC_MODE, FlagshipStatus, PROCESS_FETCHING_FLAGS } from '../enum/index'
+import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, PROCESS_FETCHING_FLAGS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
 import { FlagDTO } from '../types'
-import { logDebug, logDebugSprintf } from '../utils/utils'
+import { errorFormat, logDebug } from '../utils/utils'
 
 export abstract class DecisionManager implements IDecisionManager {
   protected _config: IFlagshipConfig
@@ -69,5 +69,48 @@ export abstract class DecisionManager implements IDecisionManager {
 
   public isPanic (): boolean {
     return this._panic
+  }
+
+  protected async getDecisionApiCampaignsAsync (visitor: VisitorAbstract): Promise<CampaignDTO[]|null> {
+    const headers = {
+      [HEADER_X_API_KEY]: `${this.config.apiKey}`,
+      [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
+      [HEADER_X_SDK_VERSION]: SDK_INFO.version,
+      [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
+    }
+
+    const requestBody = {
+      visitorId: visitor.visitorId,
+      anonymousId: visitor.anonymousId,
+      trigger_hit: false,
+      context: visitor.context,
+      visitor_consent: visitor.hasConsented
+    }
+
+    const url = `${this.config.decisionApiUrl || BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
+    const now = Date.now()
+    try {
+      const response = await this._httpClient.postAsync(url, {
+        headers,
+        timeout: this.config.timeout,
+        body: requestBody
+      })
+      this.panic = !!response?.body?.panic
+      let campaigns: CampaignDTO[]|null = null
+
+      if (response?.body?.campaigns) {
+        campaigns = response.body.campaigns
+      }
+      return campaigns
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      const errorMessage = errorFormat(error.message || error, {
+        url,
+        headers,
+        body: requestBody,
+        duration: Date.now() - now
+      })
+      throw new Error(errorMessage)
+    }
   }
 }

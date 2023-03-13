@@ -1,7 +1,9 @@
+import { IBucketingConfig } from './../config/IBucketingConfig.ts'
+import { IDecisionApiConfig } from './../config/IDecisionApiConfig.ts'
+import { IEdgeConfig } from './../config/IEdgeConfig.ts'
 import { Visitor } from '../visitor/Visitor.ts'
 import { FlagshipStatus } from '../enum/FlagshipStatus.ts'
-import { DecisionMode, FlagshipConfig, IFlagshipConfig } from '../config/FlagshipConfig.ts'
-import { DecisionApiConfig } from '../config/DecisionApiConfig.ts'
+import { DecisionMode, FlagshipConfig, type IFlagshipConfig, BucketingConfig, DecisionApiConfig } from '../config/index.ts'
 import { ConfigManager, IConfigManager } from '../config/ConfigManager.ts'
 import { ApiManager } from '../decision/ApiManager.ts'
 import { TrackingManager } from '../api/TrackingManager.ts'
@@ -20,7 +22,7 @@ import {
   SAVE_VISITOR_INSTANCE
 } from '../enum/index.ts'
 import { VisitorDelegate } from '../visitor/VisitorDelegate.ts'
-import { BucketingConfig } from '../config/index.ts'
+
 import { BucketingManager } from '../decision/BucketingManager.ts'
 import { MurmurHash } from '../utils/MurmurHash.ts'
 import { DecisionManager } from '../decision/DecisionManager.ts'
@@ -29,6 +31,8 @@ import { FlagDTO, NewVisitor, primitive } from '../types.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { DefaultHitCache } from '../cache/DefaultHitCache.ts'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache.ts'
+import { EdgeManager } from '../decision/EdgeManager.ts'
+import { EdgeConfig } from '../config/EdgeConfig.ts'
 
 export class Flagship {
   // eslint-disable-next-line no-use-before-define
@@ -68,10 +72,12 @@ export class Flagship {
 
     logInfoSprintf(this._config, PROCESS_SDK_STATUS, SDK_STATUS_CHANGED, FlagshipStatus[status])
 
-    if (status === FlagshipStatus.READY) {
-      this.configManager?.trackingManager?.startBatchingLoop()
-    } else {
-      this.configManager?.trackingManager?.stopBatchingLoop()
+    if (this.getConfig().decisionMode !== DecisionMode.BUCKETING_EDGE) {
+      if (status === FlagshipStatus.READY) {
+        this.configManager?.trackingManager?.startBatchingLoop()
+      } else {
+        this.configManager?.trackingManager?.stopBatchingLoop()
+      }
     }
 
     if (this.getConfig() && statusChanged) {
@@ -121,15 +127,18 @@ export class Flagship {
     return this.getInstance().getVisitor()
   }
 
-  private buildConfig (config?: IFlagshipConfig | FlagshipConfig): FlagshipConfig {
-    if (config instanceof FlagshipConfig) {
-      return config
-    }
+  private buildConfig (config?: IDecisionApiConfig| IBucketingConfig |IEdgeConfig): FlagshipConfig {
     let newConfig: FlagshipConfig
-    if (config?.decisionMode === DecisionMode.BUCKETING) {
-      newConfig = new BucketingConfig(config)
-    } else {
-      newConfig = new DecisionApiConfig(config)
+    switch (config?.decisionMode) {
+      case DecisionMode.BUCKETING:
+        newConfig = new BucketingConfig(config)
+        break
+      case DecisionMode.BUCKETING_EDGE:
+        newConfig = new EdgeConfig(config)
+        break
+      default:
+        newConfig = new DecisionApiConfig(config)
+        break
     }
     return newConfig
   }
@@ -139,18 +148,26 @@ export class Flagship {
     const setStatus = (status: FlagshipStatus) => {
       flagship.setStatus(status)
     }
-    if (config.decisionMode === DecisionMode.BUCKETING) {
-      decisionManager = new BucketingManager(httpClient, config, new MurmurHash())
-      const bucketingManager = decisionManager as BucketingManager
-      decisionManager.statusChangedCallback(setStatus)
-      bucketingManager.startPolling()
-    } else {
-      decisionManager = new ApiManager(
-        httpClient,
-        config
-      )
-      decisionManager.statusChangedCallback(setStatus)
+
+    switch (config.decisionMode) {
+      case DecisionMode.BUCKETING:
+        decisionManager = new BucketingManager(httpClient, config, new MurmurHash())
+        decisionManager.statusChangedCallback(setStatus);
+        (decisionManager as BucketingManager).startPolling()
+        break
+      case DecisionMode.BUCKETING_EDGE:
+        decisionManager = new EdgeManager(httpClient, config, new MurmurHash())
+        decisionManager.statusChangedCallback(setStatus)
+        break
+      default:
+        decisionManager = new ApiManager(
+          httpClient,
+          config
+        )
+        decisionManager.statusChangedCallback(setStatus)
+        break
     }
+
     return decisionManager
   }
 
@@ -158,64 +175,64 @@ export class Flagship {
    * Start the flagship SDK, with a custom configuration implementation
    * @param {string} envId : Environment id provided by Flagship.
    * @param {string} apiKey : Secure api key provided by Flagship.
-   * @param {IFlagshipConfig} config : (optional) SDK configuration.
+   * @param {IFlagshipConfig} localConfig : (optional) SDK configuration.
    */
   public static start (
     envId: string,
     apiKey: string,
-    config?: IFlagshipConfig | FlagshipConfig
+    config?: IDecisionApiConfig| IBucketingConfig |IEdgeConfig
   ): Flagship {
     const flagship = this.getInstance()
 
-    config = flagship.buildConfig(config)
+    const localConfig = flagship.buildConfig(config)
 
-    config.envId = envId
-    config.apiKey = apiKey
+    localConfig.envId = envId
+    localConfig.apiKey = apiKey
 
-    flagship._config = config
+    flagship._config = localConfig
 
     flagship.setStatus(FlagshipStatus.STARTING)
 
     // check custom logger
-    if (!config.onLog && !config.logManager) {
-      config.logManager = new FlagshipLogManager()
+    if (!localConfig.onLog && !localConfig.logManager) {
+      localConfig.logManager = new FlagshipLogManager(localConfig.decisionMode === DecisionMode.BUCKETING_EDGE)
     }
 
     if (!envId || !apiKey) {
       flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
-      logError(config, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION)
+      logError(localConfig, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION)
       return flagship
     }
 
-    logDebugSprintf(config, PROCESS_INITIALIZATION, INITIALIZATION_STARTING, SDK_INFO.version, config.decisionMode, config)
+    logDebugSprintf(localConfig, PROCESS_INITIALIZATION, INITIALIZATION_STARTING, SDK_INFO.version, localConfig.decisionMode, localConfig)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!config.hitCacheImplementation && isBrowser()) {
-      config.hitCacheImplementation = new DefaultHitCache()
+    if (!localConfig.hitCacheImplementation && isBrowser()) {
+      localConfig.hitCacheImplementation = new DefaultHitCache()
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!config.visitorCacheImplementation && isBrowser()) {
-      config.visitorCacheImplementation = new DefaultVisitorCache()
+    if (!localConfig.visitorCacheImplementation && isBrowser()) {
+      localConfig.visitorCacheImplementation = new DefaultVisitorCache()
     }
 
     let decisionManager = flagship.configManager?.decisionManager
 
-    if (decisionManager instanceof BucketingManager) {
+    if (decisionManager instanceof BucketingManager && localConfig.decisionMode !== DecisionMode.BUCKETING_EDGE) {
       decisionManager.stopPolling()
     }
 
     const httpClient = new HttpClient()
 
-    decisionManager = flagship.buildDecisionManager(flagship, config as FlagshipConfig, httpClient)
+    decisionManager = flagship.buildDecisionManager(flagship, localConfig as FlagshipConfig, httpClient)
 
     let trackingManager = flagship.configManager?.trackingManager
     if (!trackingManager) {
-      trackingManager = new TrackingManager(httpClient, config)
+      trackingManager = new TrackingManager(httpClient, localConfig)
     }
 
     flagship.configManager = new ConfigManager(
-      config,
+      localConfig,
       decisionManager,
       trackingManager
     )
@@ -225,7 +242,7 @@ export class Flagship {
     }
 
     logInfo(
-      config,
+      localConfig,
       sprintf(SDK_STARTED_INFO, SDK_INFO.version),
       PROCESS_INITIALIZATION
     )
@@ -236,6 +253,9 @@ export class Flagship {
     await Flagship.close()
   }
 
+  /**
+   * When called, it will batch and send all hits that are in the pool before the application is closed
+   */
   public static async close () {
     await this._instance?.configManager?.trackingManager?.sendBatch()
   }
@@ -265,7 +285,7 @@ export class Flagship {
    * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
    * @returns {Visitor} a new visitor instance
    */
-  public static newVisitor(params?: NewVisitor): Visitor | null
+  public static newVisitor(params?: NewVisitor): Visitor
   public static newVisitor(param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor
   public static newVisitor (param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor {
     let visitorId: string | undefined
@@ -324,14 +344,14 @@ export class Flagship {
     const visitor = new Visitor(visitorDelegate)
 
     this.getInstance()._visitorInstance = !isNewInstance ? visitor : undefined
-
     if (!isNewInstance) {
       logDebugSprintf(this.getConfig(), PROCESS_NEW_VISITOR, SAVE_VISITOR_INSTANCE, visitor.visitorId)
     }
 
-    if (this.getConfig().fetchNow) {
+    if (this.getConfig().fetchNow && this.getConfig().decisionMode !== DecisionMode.BUCKETING_EDGE) {
       visitor.fetchFlags()
     }
+
     return visitor
   }
 }

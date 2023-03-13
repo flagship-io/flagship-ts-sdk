@@ -3,6 +3,7 @@ import { Mock } from 'jest-mock'
 import { Event, EventCategory, HitAbstract, HitCacheDTO, LogLevel, Page } from '../../src'
 import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinuousCachingStrategy'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
+import { EdgeConfig } from '../../src/config/EdgeConfig'
 import { BatchTriggeredBy } from '../../src/enum/BatchTriggeredBy'
 import { BASE_API_URL, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HIT_CACHE_VERSION, HIT_EVENT_URL, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_INFO, SDK_VERSION, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../../src/enum/FlagshipConstant'
 import { Activate } from '../../src/hit/Activate'
@@ -297,6 +298,41 @@ describe('test activateFlag method', () => {
     expect(flushHits).toBeCalledTimes(0)
     expect(cacheHit).toBeCalledTimes(1)
     expect(cacheHit).toHaveBeenCalledWith(new Map([[activateHit.key, activateHit]]))
+  })
+
+  it('test activate on BUCKETING_EDGE', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+    postAsync.mockResolvedValue({ status: 200, body: null })
+
+    const config = new EdgeConfig({ envId: 'envId', apiKey: 'apiKey', initialBucketing: {} })
+
+    const batchingStrategy = new BatchingContinuousCachingStrategy(config, httpClient, hitsPoolQueue, activatePoolQueue)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
+
+    const activateHit = new Activate({
+      visitorId,
+      variationGroupId: 'variationGrID-activate',
+      variationId: 'variationId'
+    })
+
+    activateHit.config = config
+    activateHit.key = visitorId
+
+    expect(hitsPoolQueue.size).toBe(0)
+
+    await batchingStrategy.activateFlag(activateHit)
+
+    expect(hitsPoolQueue.size).toBe(0)
+    expect(activatePoolQueue.size).toBe(4)
+
+    expect(cacheHit).toBeCalledTimes(1)
+
+    expect(flushHits).toBeCalledTimes(0)
   })
 })
 

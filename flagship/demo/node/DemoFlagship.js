@@ -1,21 +1,14 @@
-import Flagship, {
+import {
   CacheStrategy,
-  DecisionMode,
+  Flagship,
   EventCategory,
   FlagshipStatus,
   HitType,
-  Item,
-  LogLevel,
   Transaction
-} from '../..'
+} from '@flagship.io/js-sdk/dist/index.lite'
 import { API_KEY, ENV_ID } from './config.js'
 import { campaigns } from './campaigns'
 import Redis from 'ioredis'
-
-const redis = new Redis({
-  host: '127.0.0.1',
-  port: '6379'
-})
 
 const sleep = (ms) => {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -27,70 +20,54 @@ const statusChangedCallback = (status) => {
 
 const check = {}
 
-const FS_HIT_PREFIX = 'FS_DEFAULT_HIT_CACHE_TS'
-const hitCacheImplementation = {
+function hitCacheImplementation (host, port, dbIndex) {
+  const redis = new Redis({
+    host,
+    port
+  })
 
-  async cacheHit (hits) {
-    await redis.set(FS_HIT_PREFIX, JSON.stringify(hits))
-  },
-  async lookupHits () {
-    const redisData = await redis.get(FS_HIT_PREFIX)
-    return redisData ? JSON.parse(redisData) : redisData
-  },
-  async flushHits (hitKeys) {
-    const redisData = await redis.get(FS_HIT_PREFIX)
-    const hits = JSON.parse(redisData || '{}')
-    hitKeys.forEach(key => {
-      delete hits[key]
-    })
-    await redis.set(FS_HIT_PREFIX, JSON.stringify(hits))
-  },
-  async flushAllHits () {
-    await redis.del(FS_HIT_PREFIX)
-  }
-}
+  redis.select(dbIndex)
 
-const continuousStrategyHitCache = {
-  cacheHit (hits) {
-    const localDatabaseJson = localStorage.getItem(FS_HIT_PREFIX) || '{}'
-    const localDatabase = JSON.parse(localDatabaseJson)
+  return {
 
-    const newLocalDatabase = {
-      ...localDatabase,
-      ...hits
+    async cacheHit (hits) {
+      const multi = redis.multi()
+      Object.entries(hits).forEach(([key, value]) => {
+        multi.set(key, JSON.stringify(value))
+      })
+      await multi.exec()
+    },
+    async lookupHits () {
+      const keys = await redis.keys('*')
+      if (!keys.length) {
+        return null
+      }
+      const redisData = await redis.mget(keys)
+      const hits = {}
+      redisData.forEach((value, index) => {
+        if (!value) {
+          return
+        }
+        hits[keys[index]] = JSON.parse(value)
+      })
+      return hits
+    },
+    async flushHits (hitKeys) {
+      await redis.del(hitKeys)
+    },
+
+    async flushAllHits () {
+      await redis.flushdb()
     }
-
-    localStorage.setItem(FS_HIT_PREFIX, JSON.stringify(newLocalDatabase))
-    return Promise.resolve()
-  },
-  lookupHits () {
-    const localDatabaseJson = localStorage.getItem(FS_HIT_PREFIX) || '{}'
-    const localDatabase = JSON.parse(localDatabaseJson)
-    return Promise.resolve(localDatabase)
-  },
-  flushHits (hitKeys) {
-    const localDatabaseJson = localStorage.getItem(FS_HIT_PREFIX) || '{}'
-    const localDatabase = JSON.parse(localDatabaseJson)
-
-    hitKeys.forEach(key => {
-      delete localDatabase[key]
-    })
-
-    localStorage.setItem(FS_HIT_PREFIX, JSON.stringify(localDatabase))
-    return Promise.resolve()
-  },
-  flushAllHits () {
-    localStorage.removeItem(FS_HIT_PREFIX)
-    return Promise.resolve()
   }
 }
 
 Flagship.start(ENV_ID, API_KEY, {
-  hitCacheImplementation: continuousStrategyHitCache,
+  // hitCacheImplementation: hitCacheImplementation('127.0.0.1', '6379', 2),
   trackingMangerConfig: {
     batchIntervals: 5,
     poolMaxSize: 10,
-    cacheStrategy: CacheStrategy.CONTINUOUS_CACHING
+    cacheStrategy: CacheStrategy.PERIODIC_CACHING
   }
 })
 
@@ -143,7 +120,7 @@ const start = async (visitor, index) => {
 
 async function script () {
   await sleep(2000)
-  for (let index = 0; index < 10; index++) {
+  for (let index = 0; index < 1; index++) {
     const visitor = Flagship.newVisitor({ visitorId: 'visitor_a', context: { qa_report: true } })
     await start(visitor, index)
   }
