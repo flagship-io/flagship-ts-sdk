@@ -1,7 +1,7 @@
 import { CampaignDTO, FlagDTO } from '../index.ts'
 import { FlagshipStatus, FLAG_METADATA, FLAG_USER_EXPOSED, METADATA_PANIC_MODE, METHOD_DEACTIVATED_ERROR } from '../enum/index.ts'
 import { IFlagMetadata, IHit, modificationsRequested } from '../types.ts'
-import { logErrorSprintf, logInfoSprintf } from '../utils/utils.ts'
+import { logInfoSprintf } from '../utils/utils.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
 import { BatchDTO } from '../hit/Batch.ts'
@@ -89,7 +89,7 @@ export class PanicStrategy extends DefaultStrategy {
     return param.defaultValue
   }
 
-  async userExposed (): Promise<void> {
+  async visitorExposed (): Promise<void> {
     this.log(FLAG_USER_EXPOSED)
   }
 
@@ -100,6 +100,6 @@ export class PanicStrategy extends DefaultStrategy {
   }
 
   private log (methodName:string) {
-    logErrorSprintf(this.config, methodName, METHOD_DEACTIVATED_ERROR, this.visitor.visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON])
+    logInfoSprintf(this.config, methodName, METHOD_DEACTIVATED_ERROR, this.visitor.visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON])
   }
 }

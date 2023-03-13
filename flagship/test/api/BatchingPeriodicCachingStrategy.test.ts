@@ -1,6 +1,6 @@
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { Mock } from 'jest-mock'
-import { Event, EventCategory } from '../../src'
+import { Event, EventCategory, OnVisitorExposed, UserExposureInfo } from '../../src'
 import { BatchingPeriodicCachingStrategy } from '../../src/api/BatchingPeriodicCachingStrategy'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
 import { HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, SDK_INFO, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, SEND_BATCH, BASE_API_URL, URL_ACTIVATE_MODIFICATION, FS_CONSENT, LogLevel, DEFAULT_HIT_CACHE_TIME_MS } from '../../src/enum'
@@ -43,7 +43,19 @@ describe('Test BatchingPeriodicCachingStrategy', () => {
     const activateHit = new Activate({
       variationGroupId: 'variationGrID',
       variationId: 'campaignID',
-      visitorId
+      visitorId,
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      },
+      visitorContext: { key: 'value' }
     })
 
     activateHit.config = config
@@ -330,7 +342,19 @@ describe('test sendBatch method', () => {
     const activateHit = new Activate({
       visitorId,
       variationGroupId: 'variationGrID-activate',
-      variationId: 'variationId'
+      variationId: 'variationId',
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      },
+      visitorContext: { key: 'value' }
     })
     activateHit.config = config
     activateHit.key = visitorId
@@ -380,7 +404,10 @@ describe('test activateFlag method', () => {
 
   const postAsync = jest.spyOn(httpClient, 'postAsync')
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
+  const onVisitorExposed : Mock<void, [arg: OnVisitorExposed]> = jest.fn()
+  const onUserExposure: Mock<void, [param: UserExposureInfo]> = jest.fn()
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', onVisitorExposed, onUserExposure })
   const logManager = new FlagshipLogManager()
 
   config.logManager = logManager
@@ -412,7 +439,19 @@ describe('test activateFlag method', () => {
     const activateHit = new Activate({
       visitorId,
       variationGroupId: 'variationGrID-activate',
-      variationId: 'variationId'
+      variationId: 'variationId',
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      },
+      visitorContext: { key: 'value' }
     })
     activateHit.config = config
     activateHit.key = visitorId
@@ -433,6 +472,9 @@ describe('test activateFlag method', () => {
 
     expect(flushHits).toBeCalledTimes(0)
     expect(cacheHit).toBeCalledTimes(0)
+
+    expect(onVisitorExposed).toBeCalledTimes(1)
+    expect(onUserExposure).toBeCalledTimes(1)
   })
 
   it('test multiple activate success', async () => {
@@ -441,7 +483,19 @@ describe('test activateFlag method', () => {
     const activateHit = new Activate({
       visitorId,
       variationGroupId: 'variationGrID-activate',
-      variationId: 'variationId'
+      variationId: 'variationId',
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      },
+      visitorContext: { key: 'value' }
     })
     activateHit.config = config
     activateHit.key = visitorId
@@ -449,7 +503,19 @@ describe('test activateFlag method', () => {
     const activateHit2 = new Activate({
       visitorId,
       variationGroupId: 'variationGrID-activate-2',
-      variationId: 'variationId-2'
+      variationId: 'variationId-2',
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      },
+      visitorContext: { key: 'value' }
     })
 
     activateHit2.config = config
@@ -458,7 +524,19 @@ describe('test activateFlag method', () => {
     const activateHit3 = new Activate({
       visitorId,
       variationGroupId: 'variationGrID-activate-3',
-      variationId: 'variationId-3'
+      variationId: 'variationId-3',
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      },
+      visitorContext: { key: 'value' }
     })
     activateHit3.config = config
     activateHit3.key = visitorId + 'key-3'
@@ -482,6 +560,9 @@ describe('test activateFlag method', () => {
 
     expect(cacheHit).toBeCalledTimes(0)
     expect(flushHits).toBeCalledTimes(0)
+
+    expect(onVisitorExposed).toBeCalledTimes(3)
+    expect(onUserExposure).toBeCalledTimes(3)
   })
 
   it('test multiple activate failed', async () => {
@@ -491,7 +572,19 @@ describe('test activateFlag method', () => {
     const activateHit = new Activate({
       visitorId,
       variationGroupId: 'variationGrID-activate',
-      variationId: 'variationId'
+      variationId: 'variationId',
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      },
+      visitorContext: { key: 'value' }
     })
     activateHit.config = config
     activateHit.key = visitorId
@@ -499,7 +592,19 @@ describe('test activateFlag method', () => {
     const activateHit2 = new Activate({
       visitorId,
       variationGroupId: 'variationGrID-activate-2',
-      variationId: 'variationId-2'
+      variationId: 'variationId-2',
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      },
+      visitorContext: { key: 'value' }
     })
 
     activateHit2.config = config
@@ -508,7 +613,19 @@ describe('test activateFlag method', () => {
     const activateHit3 = new Activate({
       visitorId,
       variationGroupId: 'variationGrID-activate-3',
-      variationId: 'variationId-3'
+      variationId: 'variationId-3',
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug'
+      },
+      visitorContext: { key: 'value' }
     })
     activateHit3.config = config
     activateHit3.key = visitorId + 'key-3'
@@ -532,5 +649,8 @@ describe('test activateFlag method', () => {
 
     expect(flushHits).toBeCalledTimes(0)
     expect(cacheHit).toBeCalledTimes(0)
+
+    expect(onVisitorExposed).toBeCalledTimes(0)
+    expect(onUserExposure).toBeCalledTimes(0)
   })
 })

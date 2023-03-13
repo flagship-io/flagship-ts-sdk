@@ -109,8 +109,8 @@ export class VisitorDelegate extends VisitorAbstract {
     await this.getStrategy().cacheVisitor()
   }
 
-  userExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T}): Promise<void> {
-    return this.getStrategy().userExposed(param)
+  visitorExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T}): Promise<void> {
+    return this.getStrategy().visitorExposed(param)
   }
 
   getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}):T {

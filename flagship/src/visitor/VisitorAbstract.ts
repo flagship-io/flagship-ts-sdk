@@ -281,7 +281,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   abstract authenticate(visitorId: string): void
   abstract unauthenticate(): void
 
-  abstract userExposed<T>(param: { key: string, flag?: FlagDTO, defaultValue: T }): Promise<void>
+  abstract visitorExposed<T>(param: { key: string, flag?: FlagDTO, defaultValue: T }): Promise<void>
   abstract getFlagValue<T>(param: { key: string, defaultValue: T, flag?: FlagDTO, userExposed?: boolean }): T
   abstract fetchFlags(): Promise<void>
   abstract getFlagMetadata(param: { metadata: IFlagMetadata, key?: string, hasSameType: boolean }): IFlagMetadata

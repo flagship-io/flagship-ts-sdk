@@ -109,7 +109,7 @@ describe('test NotReadyStrategy', () => {
   })
 
   it('test userExposed', async () => {
-    await notReadyStrategy.userExposed()
+    await notReadyStrategy.visitorExposed()
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, FLAG_USER_EXPOSED, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), FLAG_USER_EXPOSED)
   })

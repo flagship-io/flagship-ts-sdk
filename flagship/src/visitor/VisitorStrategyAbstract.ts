@@ -248,7 +248,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     abstract unauthenticate(): void
 
     abstract fetchFlags(): Promise<void>
-    abstract userExposed<T>(param:{key:string, flag?:FlagDTO, defaultValue:T}):Promise<void>
+    abstract visitorExposed<T>(param:{key:string, flag?:FlagDTO, defaultValue:T}):Promise<void>
     abstract getFlagValue<T>(param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}):T
     abstract getFlagMetadata(param:{metadata:IFlagMetadata, key?:string, hasSameType:boolean}):IFlagMetadata
 }

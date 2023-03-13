@@ -3,7 +3,7 @@ import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementatio
 import { BucketingDTO } from '../decision/api/bucketingDTO'
 import { FlagshipStatus } from '../enum/index'
 import { LogLevel } from '../enum/LogLevel'
-import { UserExposureInfo } from '../types'
+import { OnVisitorExposed, UserExposureInfo } from '../types'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { DecisionMode } from './DecisionMode'
 import { ITrackingManagerConfig } from './TrackingManagerConfig'
@@ -116,8 +116,15 @@ export interface IFlagshipConfig {
 
     /**
      * Define a callable to get callback each time  a Flag have been user exposed (activation hit has been sent) by SDK
+     * @deprecated Use **onVisitorExposed** instead
      */
     onUserExposure?: (param: UserExposureInfo)=>void
+    /**
+     *
+     * @param arg
+     * @returns
+     */
+    onVisitorExposed?:(arg: OnVisitorExposed)=> void
     sdkVersion?: string
     /**
      * Define a callable to get a callback whenever the SDK needs to report a log
