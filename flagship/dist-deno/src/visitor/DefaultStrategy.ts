@@ -60,7 +60,7 @@ import { VisitorStrategyAbstract } from './VisitorStrategyAbstract.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { DecisionMode } from '../config/index.ts'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext.ts'
-import { IVisitor, VisitorDelegate } from './index.ts'
+import { VisitorDelegate } from './index.ts'
 import { FlagMetadata } from '../flag/FlagMetadata.ts'
 import { Activate } from '../hit/Activate.ts'
 
