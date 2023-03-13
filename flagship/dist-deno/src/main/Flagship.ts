@@ -327,7 +327,6 @@ export class Flagship {
         trackingManager
       )
       logError(this.getConfig(), NEW_VISITOR_NOT_READY, PROCESS_NEW_VISITOR)
-      // this.getInstance().configManager = new ConfigManager()
     }
 
     const visitorDelegate = new VisitorDelegate({

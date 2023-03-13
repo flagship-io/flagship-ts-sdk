@@ -109,8 +109,10 @@ export const SEND_ACTIVATE = 'SEND ACTIVATE'
 export const SEND_SEGMENT_HIT = 'SEND SEGMENT HIT'
 export const SEND_HIT = 'SEND HIT'
 export const EVENT_SUFFIX = 'events'
-export const HIT_SENT_SUCCESS = 'hit has been sent : {0}'
-export const NEW_VISITOR_NOT_READY = 'You can\'t create a new visitor without first calling the "Flagship.start" method'
+
+export const NEW_VISITOR_NOT_READY = `You can't create a new visitor without first calling the "Flagship.start" method.
+Learn more: ${JS_DOC_URL}#initialization
+`
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 export const ACTIVATE_BATCH_LENGTH = 5
 
@@ -242,7 +244,7 @@ export const FLAGSHIP_VISITOR_NOT_AUTHENTICATE = 'Visitor {0} is not authenticat
 export const ALLOCATION = 'ALLOCATION'
 export const BUCKETING_VARIATION_CACHE = 'Visitor {0}, Variation {1} selected from cache.'
 export const BUCKETING_NEW_ALLOCATION = 'Visitor {0}, Variation {1} selected with allocation {2}.'
-export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = `lookupVisitor method has loaded a bad format version ({1}) for visitor {2}.
+export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = `lookupVisitor method has loaded a bad format version ({0}) for visitor {1}.
 Learn more: ${JS_DOC_URL}#managing-visitor-cache`
 export const PROCESS_CACHE = 'CACHE'
 export const VISITOR_CACHE_ERROR = 'visitor {0}. {1} threw an exception {2}'
@@ -258,3 +260,7 @@ export const BATCH_LOOP_STARTED = 'The Batch Loop has been started with a time i
 export const TRACKING_MANAGER = 'TRACKING_MANAGER'
 export const BATCH_LOOP_STOPPED = 'The Batch Loop has been stopped'
 export const TRACKING_MANAGER_ERROR = '{0} Unexpected Error occurred {1}'
+export const HIT_SENT_SUCCESS = '{0} has been sent : {1}'
+export const ACTIVATE_HIT = 'ACTIVATE HIT'
+export const BATCH_HIT = 'BATCH HIT'
+export const DIRECT_HIT = 'HIT'
