@@ -1,3 +1,5 @@
+import { TRACKING_MANAGER_ERROR } from './../../dist-deno/src/enum/FlagshipConstant'
+import { TRACKER_MANAGER_MISSING_ERROR } from './../../src/enum/FlagshipConstant'
 import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig, IVisitorCacheImplementation } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
@@ -7,10 +9,10 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient, IHttpResponse, IHttpOptions } from '../../src/utils/HttpClient'
 import { VisitorDelegate, DefaultStrategy, NoConsentStrategy, NotReadyStrategy, PanicStrategy } from '../../src/visitor'
 import { Mock } from 'jest-mock'
-import { VISITOR_CACHE_VERSION } from '../../src/enum'
+import { LOOKUP_VISITOR_JSON_OBJECT_ERROR, VISITOR_CACHE_VERSION, VISITOR_CACHE_ERROR, PROCESS_CACHE } from '../../src/enum'
 import { campaigns } from '../decision/campaigns'
 import { VisitorCacheDTO } from '../../src/types'
-import { LOOKUP_VISITOR_JSON_OBJECT_ERROR, VISITOR_ID_MISMATCH_ERROR } from '../../src/visitor/VisitorStrategyAbstract'
+import { VISITOR_ID_MISMATCH_ERROR } from '../../src/visitor/VisitorStrategyAbstract'
 import { sprintf } from '../../src/utils/utils'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -135,7 +137,7 @@ describe('test visitor cache', () => {
     await visitorDelegate.synchronizeModifications()
     expect(cacheVisitor).toBeCalledTimes(1)
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(saveCacheError, 'cacheVisitor')
+    expect(logError).toBeCalledWith(sprintf(VISITOR_CACHE_ERROR, visitorId, 'cacheVisitor', saveCacheError), PROCESS_CACHE)
   })
 
   it('test fetchVisitorCacheCampaigns defaultStrategy', async () => {
@@ -228,7 +230,7 @@ describe('test visitor cache', () => {
     expect(lookupVisitor).toBeCalledTimes(1)
     expect(visitorDelegate.visitorCache).toBeUndefined()
     expect(logInfo).toBeCalledTimes(1)
-    expect(logInfo).toBeCalledWith(sprintf(VISITOR_ID_MISMATCH_ERROR, 'any', visitorDelegate.visitorId), 'lookupVisitor')
+    expect(logInfo).toBeCalledWith(sprintf(VISITOR_ID_MISMATCH_ERROR, 'any', visitorDelegate.visitorId), PROCESS_CACHE)
   })
 
   it('test lookupVisitor noConsentStrategy', async () => {
@@ -295,7 +297,7 @@ describe('test visitor cache', () => {
     expect(lookupVisitor).toBeCalledTimes(1)
     expect(visitorDelegate.visitorCache).toBeUndefined()
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(LOOKUP_VISITOR_JSON_OBJECT_ERROR, 'lookupVisitor')
+    expect(logError).toBeCalledWith(sprintf(LOOKUP_VISITOR_JSON_OBJECT_ERROR, VISITOR_CACHE_VERSION, visitorId), PROCESS_CACHE)
   })
 
   it('test lookupVisitor', async () => {
@@ -327,7 +329,7 @@ describe('test visitor cache', () => {
     expect(lookupVisitor).toBeCalledTimes(1)
     expect(visitorDelegate.visitorCache).toBeUndefined()
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(LOOKUP_VISITOR_JSON_OBJECT_ERROR, 'lookupVisitor')
+    expect(logError).toBeCalledWith(sprintf(LOOKUP_VISITOR_JSON_OBJECT_ERROR, VISITOR_CACHE_VERSION, visitorId), PROCESS_CACHE)
   })
 
   it('test lookupVisitor ', async () => {
@@ -345,7 +347,7 @@ describe('test visitor cache', () => {
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(1)
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(lookVisitorError, 'lookupVisitor')
+    expect(logError).toBeCalledWith(sprintf(VISITOR_CACHE_ERROR, visitorId, 'lookupVisitor', lookVisitorError), PROCESS_CACHE)
   })
 
   it('test flushVisitor ', async () => {
@@ -363,7 +365,7 @@ describe('test visitor cache', () => {
     visitorDelegate.setConsent(false)
     expect(flushVisitor).toBeCalledTimes(1)
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(flushVisitorError, 'flushVisitor')
+    expect(logError).toBeCalledWith(sprintf(VISITOR_CACHE_ERROR, visitorId, 'flushVisitor', flushVisitorError), PROCESS_CACHE)
   })
 
   it('test flushVisitor ', async () => {

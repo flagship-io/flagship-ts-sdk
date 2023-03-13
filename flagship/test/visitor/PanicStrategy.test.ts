@@ -3,7 +3,7 @@ import { DecisionApiConfig, IVisitorCacheImplementation, VisitorCacheDTO } from 
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
-import { FlagshipStatus, FLAG_USER_EXPOSED, HitType, LogLevel, METHOD_DEACTIVATED_ERROR, VISITOR_CACHE_VERSION } from '../../src/enum'
+import { FlagshipStatus, FLAG_METADATA, FLAG_USER_EXPOSED, HitType, LogLevel, METADATA_PANIC_MODE, METHOD_DEACTIVATED_ERROR, VISITOR_CACHE_VERSION } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
@@ -103,8 +103,21 @@ describe('test NotReadyStrategy', () => {
   })
 
   it('test getFlagMetadata', () => {
-    const metadata = panicStrategy.getFlagMetadata()
-    const methodName = 'flag.metadata'
+    const key = 'flagKey'
+    const metadata = panicStrategy.getFlagMetadata(
+      {
+        metadata: {
+          campaignId: '',
+          variationGroupId: '',
+          variationId: '',
+          slug: '',
+          campaignType: '',
+          isReference: false
+        },
+        key,
+        hasSameType: true
+      }
+    )
     expect(metadata).toEqual({
       campaignId: '',
       slug: null,
@@ -114,7 +127,7 @@ describe('test NotReadyStrategy', () => {
       isReference: false
     })
     expect(logInfo).toBeCalledTimes(1)
-    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+    expect(logInfo).toBeCalledWith(sprintf(METADATA_PANIC_MODE, visitorId, key, metadata), FLAG_METADATA)
   })
 
   it('test fetchVisitorCacheCampaigns', async () => {

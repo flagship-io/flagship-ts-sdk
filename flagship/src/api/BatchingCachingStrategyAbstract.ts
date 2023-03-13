@@ -1,12 +1,12 @@
 import { DecisionMode, IFlagshipConfig } from '../config/index'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
-import { ACTIVATE_ADDED_IN_QUEUE, ADD_ACTIVATE, ADD_HIT, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, DEFAULT_HIT_CACHE_TIME_MS, FLUSH_ALL_HITS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HitType, HIT_ADDED_IN_QUEUE, HIT_CACHE_VERSION, HIT_DATA_CACHED, HIT_DATA_FLUSHED, HIT_EVENT_URL, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_APP, SDK_INFO, SEND_BATCH } from '../enum/index'
+import { ACTIVATE_ADDED_IN_QUEUE, ADD_ACTIVATE, ALL_HITS_FLUSHED, BATCH_HIT, BATCH_MAX_SIZE, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HitType, HIT_ADDED_IN_QUEUE, HIT_CACHE_ERROR, HIT_CACHE_SAVED, HIT_CACHE_VERSION, HIT_DATA_FLUSHED, HIT_EVENT_URL, HIT_SENT_SUCCESS, PROCESS_CACHE, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_APP, SDK_INFO, TRACKING_MANAGER, TRACKING_MANAGER_ERROR } from '../enum/index'
 import { Activate } from '../hit/Activate'
 import { Batch } from '../hit/Batch'
 import { HitAbstract, Event } from '../hit/index'
 import { HitCacheDTO, IExposedFlag, IExposedVisitor } from '../types'
 import { IHttpClient } from '../utils/HttpClient'
-import { logDebug, logDebugSprintf, logErrorSprintf, uuidV4 } from '../utils/utils'
+import { logDebug, logDebugSprintf, logErrorSprintf, sprintf, uuidV4 } from '../utils/utils'
 import { ITrackingManagerCommon } from './ITrackingManagerCommon'
 
 export type SendActivate = {

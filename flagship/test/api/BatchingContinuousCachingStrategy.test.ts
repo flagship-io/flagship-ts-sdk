@@ -5,13 +5,13 @@ import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinu
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
 import { EdgeConfig } from '../../src/config/EdgeConfig'
 import { BatchTriggeredBy } from '../../src/enum/BatchTriggeredBy'
-import { BASE_API_URL, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HIT_CACHE_VERSION, HIT_EVENT_URL, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_INFO, SDK_VERSION, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../../src/enum/FlagshipConstant'
+import { BASE_API_URL, BATCH_HIT, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, PROCESS_CACHE, HEADER_X_SDK_VERSION, HIT_CACHE_ERROR, HIT_CACHE_VERSION, HIT_EVENT_URL, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_INFO, SDK_VERSION, SEND_BATCH, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, URL_ACTIVATE_MODIFICATION } from '../../src/enum/FlagshipConstant'
 import { Activate } from '../../src/hit/Activate'
 import { ActivateBatch } from '../../src/hit/ActivateBatch'
 import { Batch } from '../../src/hit/Batch'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
-import { errorFormat, sleep } from '../../src/utils/utils'
+import { sleep, sprintf } from '../../src/utils/utils'
 
 describe('Test BatchingContinuousCachingStrategy', () => {
   const visitorId = 'visitorId'
@@ -698,17 +698,21 @@ describe('test sendBatch method', () => {
       body: batch.toApiKeys(),
       timeout: config.timeout
     })
-    expect(flushHits).toBeCalledTimes(0)
-    expect(cacheHit).toBeCalledTimes(0)
-    expect(hitsPoolQueue.size).toBe(1)
-    expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(errorFormat(error, {
+
+    const errorFormatMessage = {
+      message: error,
       url: HIT_EVENT_URL,
       headers,
       body: batch.toApiKeys(),
       duration: 0,
       batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.BatchLength]
-    }), SEND_BATCH)
+    }
+
+    expect(flushHits).toBeCalledTimes(0)
+    expect(cacheHit).toBeCalledTimes(0)
+    expect(hitsPoolQueue.size).toBe(1)
+    expect(logError).toBeCalledTimes(1)
+    expect(logError).toBeCalledWith(sprintf(TRACKING_MANAGER_ERROR, BATCH_HIT, errorFormatMessage), TRACKING_MANAGER)
   })
 
   it('test sendActivate on batch', async () => {
@@ -839,7 +843,7 @@ describe('test cacheHit and flushHits methods', () => {
 
     expect(cacheHit).toBeCalledTimes(1)
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(error, PROCESS_CACHE_HIT)
+    expect(logError).toBeCalledWith(sprintf(HIT_CACHE_ERROR, 'cacheHit', error), PROCESS_CACHE)
   })
 
   it('test flushHits method', async () => {
@@ -857,7 +861,7 @@ describe('test cacheHit and flushHits methods', () => {
     expect(flushHits).toBeCalledTimes(1)
     expect(flushHits).toBeCalledWith(keys)
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(error, PROCESS_FLUSH_HIT)
+    expect(logError).toBeCalledWith(sprintf(HIT_CACHE_ERROR, 'flushHits', error), PROCESS_CACHE)
   })
 
   it('test flushAllHits method', async () => {
@@ -871,6 +875,6 @@ describe('test cacheHit and flushHits methods', () => {
     await batchingStrategy.flushAllHits()
     expect(flushAllHits).toBeCalledTimes(1)
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(error, PROCESS_FLUSH_HIT)
+    expect(logError).toBeCalledWith(sprintf(HIT_CACHE_ERROR, 'flushAllHits', error), PROCESS_CACHE)
   })
 })

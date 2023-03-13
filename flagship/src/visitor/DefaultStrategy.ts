@@ -729,7 +729,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     if (!checkType) {
       logWarningSprintf(
         this.visitor.config,
-        functionName,
+        FLAG_METADATA,
         GET_METADATA_CAST_ERROR, key
       )
       return emptyMetaData
