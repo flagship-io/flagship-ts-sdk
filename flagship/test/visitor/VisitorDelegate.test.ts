@@ -63,7 +63,7 @@ const updateCampaigns:Mock<void, [CampaignDTO[]]> = jest.fn()
 const lookupVisitor:Mock<void, []> = jest.fn()
 const lookupHits:Mock<void, []> = jest.fn()
 const cacheVisitorFn:Mock<Promise<void>, []> = jest.fn()
-const userExposed:Mock<Promise<void>, [{key:string, flag?:FlagDTO, defaultValue:unknown}]> = jest.fn()
+const visitorExposed:Mock<Promise<void>, [{key:string, flag?:FlagDTO, defaultValue:unknown}]> = jest.fn()
 const getFlagValue:Mock<unknown, [{ key:string, defaultValue: unknown, flag?:FlagDTO, userExposed?: boolean}]> = jest.fn()
 
 jest.mock('../../src/visitor/DefaultStrategy', () => {
@@ -99,7 +99,7 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         fetchFlags,
         getFlagMetadata,
         cacheVisitor: cacheVisitorFn,
-        userExposed,
+        visitorExposed,
         getFlagValue
       }
     })
@@ -417,12 +417,12 @@ describe('test VisitorDelegate methods', () => {
   })
 
   it('test userExposed', () => {
-    userExposed.mockResolvedValue()
+    visitorExposed.mockResolvedValue()
     const params = { key: 'key', flag: undefined, defaultValue: 'defaultValue' }
-    visitorDelegate.userExposed(params)
+    visitorDelegate.visitorExposed(params)
       .then(() => {
-        expect(userExposed).toBeCalledTimes(1)
-        expect(userExposed).toBeCalledWith(params)
+        expect(visitorExposed).toBeCalledTimes(1)
+        expect(visitorExposed).toBeCalledWith(params)
       }).catch(err => console.log(err))
   })
 

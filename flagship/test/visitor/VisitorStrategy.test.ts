@@ -18,6 +18,7 @@ describe('test getStrategy', () => {
 
   const logManager = new FlagshipLogManager()
   const logError = jest.spyOn(logManager, 'error')
+  const logInfo = jest.spyOn(logManager, 'info')
 
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
@@ -51,8 +52,8 @@ describe('test getStrategy', () => {
     const methodName = 'activateModification'
     await visitorDelegate.activateModification('key')
     await visitorDelegate.activateModification('key')
-    expect(logError).toBeCalledTimes(2)
-    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+    expect(logInfo).toBeCalledTimes(2)
+    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
   })
 
   it('test NoConsent', async () => {
@@ -61,8 +62,8 @@ describe('test getStrategy', () => {
     })
     const methodName = 'activateModification'
     await visitorDelegate.activateModification('key')
-    expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
+    expect(logInfo).toBeCalledTimes(1)
+    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
   })
 
   it('test DefaultStrategy', async () => {

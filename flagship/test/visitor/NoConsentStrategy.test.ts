@@ -17,9 +17,9 @@ describe('test NoConsentStrategy', () => {
   }
 
   const logManager = new FlagshipLogManager()
-  const logError = jest.spyOn(logManager, 'error')
+  const logInfo = jest.spyOn(logManager, 'info')
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', logLevel: LogLevel.ERROR })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', logLevel: LogLevel.INFO })
   config.logManager = logManager
 
   const trackingManager = new TrackingManager({} as HttpClient, config)
@@ -31,39 +31,39 @@ describe('test NoConsentStrategy', () => {
   it('test activateModification', () => {
     noConsentStrategy.activateModification('key').then(() => {
       const methodName = 'activateModification'
-      expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
+      expect(logInfo).toBeCalledTimes(1)
+      expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
     })
   })
 
   it('test activateModifications', () => {
     noConsentStrategy.activateModifications(['key']).then(() => {
       const methodName = 'activateModifications'
-      expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
+      expect(logInfo).toBeCalledTimes(1)
+      expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
     })
   })
 
   it('test sendHit', () => {
     noConsentStrategy.sendHit({ type: HitType.PAGE, documentLocation: 'home' }).then(() => {
       const methodName = 'sendHit'
-      expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
+      expect(logInfo).toBeCalledTimes(1)
+      expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
     })
   })
 
   it('test sendHits', () => {
     noConsentStrategy.sendHits([{ type: HitType.PAGE, documentLocation: 'home' }]).then(() => {
       const methodName = 'sendHits'
-      expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
+      expect(logInfo).toBeCalledTimes(1)
+      expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
     })
   })
 
   it('test userExposed', () => {
-    noConsentStrategy.userExposed().then(() => {
-      expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, FLAG_USER_EXPOSED, visitorDelegate.visitorId), FLAG_USER_EXPOSED)
+    noConsentStrategy.visitorExposed().then(() => {
+      expect(logInfo).toBeCalledTimes(1)
+      expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, FLAG_USER_EXPOSED, visitorDelegate.visitorId), FLAG_USER_EXPOSED)
     })
   })
 })

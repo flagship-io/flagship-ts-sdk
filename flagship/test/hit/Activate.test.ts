@@ -7,7 +7,28 @@ describe('test hit type Activate', () => {
   const variationGroupId = 'variationGroupId'
   const visitorId = 'visitorID'
   const variationId = 'variationId'
-  const activate = new Activate({ variationGroupId, variationId, visitorId })
+  const flagKey = 'flagKey'
+  const flagValue = 'value'
+  const flagDefaultValue = 'default-value'
+  const flagMetadata = {
+    campaignId: 'campaignId',
+    variationGroupId: 'variationGrID',
+    variationId: 'varId',
+    isReference: true,
+    campaignType: 'ab',
+    slug: 'slug'
+  }
+  const visitorContext = { key: 'value' }
+  const activate = new Activate({
+    variationGroupId,
+    variationId,
+    visitorId,
+    flagKey,
+    flagValue,
+    flagDefaultValue,
+    flagMetadata,
+    visitorContext
+  })
 
   const anonymousId = 'anonymousId'
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
@@ -15,6 +36,11 @@ describe('test hit type Activate', () => {
   it('test constructor', () => {
     expect(activate.variationGroupId).toBe(variationGroupId)
     expect(activate.variationId).toBe(variationId)
+    expect(activate.flagKey).toBe(flagKey)
+    expect(activate.flagValue).toBe(flagValue)
+    expect(activate.flagDefaultValue).toBe(flagDefaultValue)
+    expect(activate.flagMetadata).toEqual(flagMetadata)
+    expect(activate.visitorContext).toEqual(visitorContext)
     expect(activate.getErrorMessage()).toBe(ERROR_MESSAGE)
   })
 

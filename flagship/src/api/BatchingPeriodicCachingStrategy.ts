@@ -35,6 +35,11 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         timeout: this.config.timeout
       })
 
+      activateBatch.hits.forEach(item => {
+        this.onVisitorExposed(item)
+        this.onUserExposure(item)
+      })
+
       logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify({
         ...requestBody,
         duration: Date.now() - now,

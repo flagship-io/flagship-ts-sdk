@@ -175,7 +175,7 @@ export class Flagship {
    * Start the flagship SDK, with a custom configuration implementation
    * @param {string} envId : Environment id provided by Flagship.
    * @param {string} apiKey : Secure api key provided by Flagship.
-   * @param {IFlagshipConfig} localConfig : (optional) SDK configuration.
+   * @param {IFlagshipConfig} config : (optional) SDK configuration.
    */
   public static start (
     envId: string,

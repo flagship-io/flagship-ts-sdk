@@ -10,19 +10,26 @@ export type FlagValue<S> = {
 
 export interface IFlag<T>{
   /**
-   * Return the current flag value if the flag key exists in Flagship and activate it if needed.
-   * @param defaultValue
-   * @param userExposed
+   * Return the current flag value if the flag key exists in Flagship and expose it if needed.
+   * @param visitorExposed Default True, if true it will report the flag exposure
    */
-    getValue(userExposed?:boolean):T
+    getValue(visitorExposed?:boolean):T
     /**
      * Return true if the flag exists, false otherwise.
      */
     exists:()=>boolean
+
     /**
-     * activate the current key
+     * Tells Flagship the user have been exposed and have seen this flag
+     * @deprecated use **visitorExposed** instead
      */
     userExposed:()=>Promise<void>
+
+    /**
+     * Tells Flagship the visitor have been exposed and have seen this flag
+     * @returns
+     */
+    visitorExposed:()=>Promise<void>
     /**
      * Return The campaign metadata object.
      */
@@ -69,8 +76,12 @@ export class Flag<T> implements IFlag<T> {
   }
 
   userExposed ():Promise<void> {
+    return this.visitorExposed()
+  }
+
+  visitorExposed () : Promise<void> {
     const flagDTO = this._visitor.flagsData.get(this._key)
-    return this._visitor.userExposed({ key: this._key, flag: flagDTO, defaultValue: this._defaultValue })
+    return this._visitor.visitorExposed({ key: this._key, flag: flagDTO, defaultValue: this._defaultValue })
   }
 
   getValue (userExposed = true) : T {

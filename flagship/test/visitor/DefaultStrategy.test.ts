@@ -334,10 +334,27 @@ describe('test DefaultStrategy ', () => {
 
   it('test getFlagValue', () => {
     const returnMod = returnModification.get('keyString') as FlagDTO
+    const defaultValue = 'defaultValues'
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: 'defaultValues', flag: returnMod, userExposed: true })
     expect<string>(value).toBe(returnMod.value)
     expect(activateFlag).toBeCalledTimes(1)
-    const activateHit = new Activate({ variationGroupId: returnMod.variationGroupId, variationId: returnMod.variationId, visitorId })
+    const activateHit = new Activate({
+      variationGroupId: returnMod.variationGroupId,
+      variationId: returnMod.variationId,
+      visitorId,
+      flagKey: returnMod.key,
+      flagValue: returnMod.value,
+      flagDefaultValue: defaultValue,
+      visitorContext: visitorDelegate.context,
+      flagMetadata: {
+        campaignId: returnMod.campaignId,
+        variationGroupId: returnMod.variationGroupId,
+        variationId: returnMod.variationId,
+        isReference: returnMod.isReference as boolean,
+        campaignType: returnMod.campaignType as string,
+        slug: returnMod.slug
+      }
+    })
     activateHit.config = config
     activateHit.ds = SDK_APP
     expect(activateFlag).toBeCalledWith(activateHit)
@@ -348,7 +365,23 @@ describe('test DefaultStrategy ', () => {
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: null, flag: returnMod, userExposed: true })
     expect(value).toBe(returnMod.value)
     expect(activateFlag).toBeCalledTimes(1)
-    const campaignHit = new Activate({ variationGroupId: returnMod.variationGroupId, variationId: returnMod.variationId, visitorId })
+    const campaignHit = new Activate({
+      variationGroupId: returnMod.variationGroupId,
+      variationId: returnMod.variationId,
+      visitorId,
+      flagKey: returnMod.key,
+      flagValue: returnMod.value,
+      flagDefaultValue: null,
+      visitorContext: visitorDelegate.context,
+      flagMetadata: {
+        campaignId: returnMod.campaignId,
+        variationGroupId: returnMod.variationGroupId,
+        variationId: returnMod.variationId,
+        isReference: returnMod.isReference as boolean,
+        campaignType: returnMod.campaignType as string,
+        slug: returnMod.slug
+      }
+    })
     campaignHit.config = config
     campaignHit.ds = SDK_APP
     expect(activateFlag).toBeCalledWith(campaignHit)
@@ -360,7 +393,23 @@ describe('test DefaultStrategy ', () => {
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: undefined, flag: returnMod, userExposed: true })
     expect(value).toBe(returnMod.value)
     expect(activateFlag).toBeCalledTimes(1)
-    const campaignHit = new Activate({ variationGroupId: returnMod.variationGroupId, variationId: returnMod.variationId, visitorId })
+    const campaignHit = new Activate({
+      variationGroupId: returnMod.variationGroupId,
+      variationId: returnMod.variationId,
+      visitorId,
+      flagKey: returnMod.key,
+      flagValue: returnMod.value,
+      flagDefaultValue: undefined,
+      visitorContext: visitorDelegate.context,
+      flagMetadata: {
+        campaignId: returnMod.campaignId,
+        variationGroupId: returnMod.variationGroupId,
+        variationId: returnMod.variationId,
+        isReference: returnMod.isReference as boolean,
+        campaignType: returnMod.campaignType as string,
+        slug: returnMod.slug
+      }
+    })
     campaignHit.config = config
     campaignHit.ds = SDK_APP
     expect(activateFlag).toBeCalledWith(campaignHit)
@@ -373,7 +422,23 @@ describe('test DefaultStrategy ', () => {
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue, flag: returnMod, userExposed: true })
     expect(value).toBe(defaultValue)
     expect(activateFlag).toBeCalledTimes(1)
-    const campaignHit = new Activate({ variationGroupId: returnMod.variationGroupId, variationId: returnMod.variationId, visitorId })
+    const campaignHit = new Activate({
+      variationGroupId: returnMod.variationGroupId,
+      variationId: returnMod.variationId,
+      visitorId,
+      flagKey: returnMod.key,
+      flagValue: returnMod.value,
+      flagDefaultValue: defaultValue,
+      visitorContext: visitorDelegate.context,
+      flagMetadata: {
+        campaignId: returnMod.campaignId,
+        variationGroupId: returnMod.variationGroupId,
+        variationId: returnMod.variationId,
+        isReference: returnMod.isReference as boolean,
+        campaignType: returnMod.campaignType as string,
+        slug: returnMod.slug
+      }
+    })
     campaignHit.config = config
     campaignHit.visitorId = visitorId
     campaignHit.ds = SDK_APP
@@ -510,7 +575,23 @@ describe('test DefaultStrategy ', () => {
     testModificationType('keyString', 'defaultString', true)
     expect(activateFlag).toBeCalledTimes(1)
     const returnMod = returnModification.get('keyString') as FlagDTO
-    const activateHit = new Activate({ variationGroupId: returnMod.variationGroupId, variationId: returnMod.variationId, visitorId })
+    const activateHit = new Activate({
+      variationGroupId: returnMod.variationGroupId,
+      variationId: returnMod.variationId,
+      visitorId,
+      flagKey: returnMod.key,
+      flagValue: returnMod.value,
+      flagDefaultValue: undefined,
+      visitorContext: visitorDelegate.context,
+      flagMetadata: {
+        campaignId: returnMod.campaignId,
+        variationGroupId: returnMod.variationGroupId,
+        variationId: returnMod.variationId,
+        isReference: returnMod.isReference as boolean,
+        campaignType: returnMod.campaignType as string,
+        slug: returnMod.slug
+      }
+    })
     activateHit.config = config
     activateHit.ds = SDK_APP
     expect(activateFlag).toBeCalledWith(activateHit)
@@ -590,7 +671,23 @@ describe('test DefaultStrategy ', () => {
   it('test activateModification', async () => {
     await defaultStrategy.activateModification(returnMod.key)
     expect(activateFlag).toBeCalledTimes(1)
-    const activateHit = new Activate({ variationGroupId: returnMod.variationGroupId, variationId: returnMod.variationId, visitorId })
+    const activateHit = new Activate({
+      variationGroupId: returnMod.variationGroupId,
+      variationId: returnMod.variationId,
+      visitorId,
+      flagKey: returnMod.key,
+      flagValue: returnMod.value,
+      flagDefaultValue: undefined,
+      visitorContext: visitorDelegate.context,
+      flagMetadata: {
+        campaignId: returnMod.campaignId,
+        variationGroupId: returnMod.variationGroupId,
+        variationId: returnMod.variationId,
+        isReference: returnMod.isReference as boolean,
+        campaignType: returnMod.campaignType as string,
+        slug: returnMod.slug
+      }
+    })
     activateHit.config = config
     activateHit.ds = SDK_APP
     expect(activateFlag).toBeCalledWith(activateHit)
@@ -603,14 +700,46 @@ describe('test DefaultStrategy ', () => {
     expect(activateFlag).toBeCalledTimes(2)
 
     const modification1:FlagDTO = returnModification.get(key1) as FlagDTO
-    const activateHit = new Activate({ variationGroupId: modification1.variationGroupId, variationId: modification1.variationId, visitorId })
+    const activateHit = new Activate({
+      variationGroupId: modification1.variationGroupId,
+      variationId: modification1.variationId,
+      visitorId,
+      flagKey: modification1.key,
+      flagValue: modification1.value,
+      flagDefaultValue: undefined,
+      visitorContext: visitorDelegate.context,
+      flagMetadata: {
+        campaignId: modification1.campaignId,
+        variationGroupId: modification1.variationGroupId,
+        variationId: modification1.variationId,
+        isReference: modification1.isReference as boolean,
+        campaignType: modification1.campaignType as string,
+        slug: modification1.slug
+      }
+    })
     activateHit.config = config
     activateHit.visitorId = visitorId
     activateHit.ds = SDK_APP
     expect(activateFlag).toHaveBeenNthCalledWith(1, activateHit)
 
     const modification2:FlagDTO = returnModification.get(key2) as FlagDTO
-    const activateHit2 = new Activate({ variationGroupId: modification2?.variationGroupId, variationId: modification2.variationId, visitorId })
+    const activateHit2 = new Activate({
+      variationGroupId: modification2?.variationGroupId,
+      variationId: modification2.variationId,
+      visitorId,
+      flagKey: modification2.key,
+      flagValue: modification2.value,
+      flagDefaultValue: undefined,
+      visitorContext: visitorDelegate.context,
+      flagMetadata: {
+        campaignId: modification2.campaignId,
+        variationGroupId: modification2.variationGroupId,
+        variationId: modification2.variationId,
+        isReference: modification2.isReference as boolean,
+        campaignType: modification2.campaignType as string,
+        slug: modification2.slug
+      }
+    })
     activateHit2.config = config
     activateHit2.visitorId = visitorId
     activateHit2.ds = SDK_APP
@@ -624,14 +753,46 @@ describe('test DefaultStrategy ', () => {
     expect(activateFlag).toBeCalledTimes(2)
 
     const modification1:FlagDTO = returnModification.get(key1) as FlagDTO
-    const campaignHit = new Activate({ variationGroupId: modification1.variationGroupId, variationId: modification1.variationId, visitorId })
+    const campaignHit = new Activate({
+      variationGroupId: modification1.variationGroupId,
+      variationId: modification1.variationId,
+      visitorId,
+      flagKey: modification1.key,
+      flagValue: modification1.value,
+      flagDefaultValue: undefined,
+      visitorContext: visitorDelegate.context,
+      flagMetadata: {
+        campaignId: modification1.campaignId,
+        variationGroupId: modification1.variationGroupId,
+        variationId: modification1.variationId,
+        isReference: modification1.isReference as boolean,
+        campaignType: modification1.campaignType as string,
+        slug: modification1.slug
+      }
+    })
     campaignHit.config = config
     campaignHit.visitorId = visitorId
     campaignHit.ds = SDK_APP
     expect(activateFlag).toHaveBeenNthCalledWith(1, campaignHit)
 
     const modification2:FlagDTO = returnModification.get(key2) as FlagDTO
-    const campaignHit2 = new Activate({ variationGroupId: modification2.variationGroupId, variationId: modification2.variationId, visitorId })
+    const campaignHit2 = new Activate({
+      variationGroupId: modification2.variationGroupId,
+      variationId: modification2.variationId,
+      visitorId,
+      flagKey: modification2.key,
+      flagValue: modification2.value,
+      flagDefaultValue: undefined,
+      visitorContext: visitorDelegate.context,
+      flagMetadata: {
+        campaignId: modification2.campaignId,
+        variationGroupId: modification2.variationGroupId,
+        variationId: modification2.variationId,
+        isReference: modification2.isReference as boolean,
+        campaignType: modification2.campaignType as string,
+        slug: modification2.slug
+      }
+    })
     campaignHit2.config = config
     campaignHit2.visitorId = visitorId
     campaignHit2.ds = SDK_APP
@@ -696,9 +857,25 @@ describe('test DefaultStrategy ', () => {
   // })
 
   it('test userExposed', async () => {
-    await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
+    await defaultStrategy.visitorExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
     expect(activateFlag).toBeCalledTimes(1)
-    const activateHit = new Activate({ variationGroupId: returnMod.variationGroupId, variationId: returnMod.variationId, visitorId })
+    const activateHit = new Activate({
+      variationGroupId: returnMod.variationGroupId,
+      variationId: returnMod.variationId,
+      visitorId,
+      flagKey: returnMod.key,
+      flagValue: returnMod.value,
+      flagDefaultValue: returnMod.value,
+      visitorContext: visitorDelegate.context,
+      flagMetadata: {
+        campaignId: returnMod.campaignId,
+        variationGroupId: returnMod.variationGroupId,
+        variationId: returnMod.variationId,
+        isReference: returnMod.isReference as boolean,
+        campaignType: returnMod.campaignType as string,
+        slug: returnMod.slug
+      }
+    })
     activateHit.config = config
     activateHit.visitorId = visitorId
     activateHit.ds = SDK_APP
@@ -735,12 +912,12 @@ describe('test DefaultStrategy ', () => {
 
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
     const defaultStrategy = new DefaultStrategy(visitorDelegate)
-    await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
+    await defaultStrategy.visitorExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
     expect(activateFlag).toBeCalledTimes(1)
   })
 
   it('test userExposed with different type', async () => {
-    await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: true })
+    await defaultStrategy.visitorExposed({ key: returnMod.key, flag: returnMod, defaultValue: true })
     expect(addHit).toBeCalledTimes(0)
     expect(logWarning).toBeCalledTimes(1)
     expect(logWarning).toBeCalledWith(
@@ -750,7 +927,7 @@ describe('test DefaultStrategy ', () => {
   })
 
   it('test userExposed flag undefined', async () => {
-    await defaultStrategy.userExposed({ key: notExitKey, flag: undefined, defaultValue: false })
+    await defaultStrategy.visitorExposed({ key: notExitKey, flag: undefined, defaultValue: false })
     expect(activateFlag).toBeCalledTimes(0)
     expect(logWarning).toBeCalledTimes(1)
     expect(logWarning).toBeCalledWith(
@@ -762,7 +939,7 @@ describe('test DefaultStrategy ', () => {
   it('test hasTrackingManager userExposed', async () => {
     configManager.trackingManager = getNull()
 
-    await defaultStrategy.userExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
+    await defaultStrategy.visitorExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
 
     expect(activateFlag).toBeCalledTimes(0)
     expect(logError).toBeCalledTimes(1)

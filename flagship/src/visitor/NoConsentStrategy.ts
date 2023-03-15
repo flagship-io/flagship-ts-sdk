@@ -1,7 +1,7 @@
 import { IHit } from '../types'
 import { FLAG_USER_EXPOSED, METHOD_DEACTIVATED_CONSENT_ERROR } from '../enum/index'
 import { HitAbstract, HitShape } from '../hit/index'
-import { logError, sprintf } from '../utils/utils'
+import { logInfo, sprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
 import { CampaignDTO } from '../decision/api/models'
 import { BatchDTO } from '../hit/Batch'
@@ -49,11 +49,11 @@ export class NoConsentStrategy extends DefaultStrategy {
     return Promise.resolve()
   }
 
-  async userExposed (): Promise<void> {
+  async visitorExposed (): Promise<void> {
     this.log(FLAG_USER_EXPOSED)
   }
 
   private log (methodName:string) {
-    logError(this.config, sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, this.visitor.visitorId), methodName)
+    logInfo(this.config, sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, this.visitor.visitorId), methodName)
   }
 }
