@@ -19,7 +19,9 @@ import {
   SDK_STARTED_INFO,
   PROCESS_SDK_STATUS,
   SDK_STATUS_CHANGED,
-  SAVE_VISITOR_INSTANCE
+  SAVE_VISITOR_INSTANCE,
+  LogLevel,
+  CacheStrategy
 } from '../enum/index'
 import { VisitorDelegate } from '../visitor/VisitorDelegate'
 
@@ -33,6 +35,7 @@ import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 import { EdgeManager } from '../decision/EdgeManager'
 import { EdgeConfig } from '../config/EdgeConfig'
+import { Monitoring } from '../hit/Monitoring'
 
 export class Flagship {
   // eslint-disable-next-line no-use-before-define
@@ -246,6 +249,29 @@ export class Flagship {
       sprintf(SDK_STARTED_INFO, SDK_INFO.version),
       PROCESS_INITIALIZATION
     )
+
+    const initMonitoring = new Monitoring({
+      action: 'SDK-INITIALIZATION',
+      subComponent: 'Flagship.start',
+      logLevel: LogLevel.INFO,
+      message: 'Flagship initialized',
+      config: localConfig,
+      sdkConfigMode: localConfig.decisionMode,
+      sdkConfigTimeout: localConfig.timeout?.toString(),
+      sdkConfigPollingInterval: localConfig.pollingInterval?.toString(),
+      sdkConfigTrackingManagerConfigStrategy: CacheStrategy[localConfig.trackingMangerConfig.cacheStrategy as number],
+      sdkConfigTrackingManagerConfigBatchIntervals: localConfig.trackingMangerConfig.batchIntervals?.toString(),
+      sdkConfigTrackingManagerConfigPoolMaxSize: localConfig.trackingMangerConfig.poolMaxSize?.toString(),
+      sdkConfigFetchNow: localConfig.fetchNow,
+      sdkConfigEnableClientCache: localConfig.enableClientCache,
+      sdkConfigInitialBucketing: localConfig.initialBucketing,
+      sdkConfigDecisionApiUrl: localConfig.decisionApiUrl,
+      sdkConfigHitDeduplicationTime: localConfig.hitDeduplicationTime?.toString()
+
+    })
+
+    trackingManager.addHit(initMonitoring)
+
     return flagship
   }
 

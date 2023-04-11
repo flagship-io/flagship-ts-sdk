@@ -7,6 +7,7 @@ import {
   SDK_INFO
 } from '../enum/FlagshipConstant'
 import { HitAbstract, IHitAbstract } from './HitAbstract'
+import { BucketingDTO } from '../decision/api/bucketingDTO'
 
 export const ERROR_MESSAGE = 'event category and event action are required'
 export const CATEGORY_ERROR =
@@ -41,10 +42,15 @@ export interface IMonitoring extends IHitAbstract{
     sdkConfigCustomCacheManager?: boolean
     sdkConfigStatusListener?: boolean
     sdkConfigTimeout?: string
-    sdkConfigPollingTime?: string
+    sdkConfigPollingInterval?: string
+    sdkConfigFetchNow?: boolean
+    sdkConfigEnableClientCache?: boolean
+    sdkConfigInitialBucketing?:BucketingDTO
+    sdkConfigDecisionApiUrl?: string
+    sdkConfigHitDeduplicationTime?: string
     sdkConfigTrackingManagerConfigStrategy?: string
     sdkConfigTrackingManagerConfigBatchIntervals?: string
-    sdkConfigTrackingManagerConfigBatchLength?: string
+    sdkConfigTrackingManagerConfigPoolMaxSize?: string
 
     httpRequestUrl?:string
     httpRequestMethod?:string
@@ -131,6 +137,51 @@ export class Monitoring extends HitAbstract implements IMonitoring {
   private _flagMetadataVariationId? : string
   private _flagMetadataCampaignSlug? : string
   private _flagMetadataCampaignType? : string
+  private _sdkConfigFetchNow? : boolean
+  private _sdkConfigEnableClientCache? : boolean
+  private _sdkConfigInitialBucketing? : BucketingDTO
+  private _sdkConfigDecisionApiUrl? : string
+  private _sdkConfigHitDeduplicationTime? : string
+
+  public get sdkConfigHitDeduplicationTime () : string|undefined {
+    return this._sdkConfigHitDeduplicationTime
+  }
+
+  public set sdkConfigHitDeduplicationTime (v : string|undefined) {
+    this._sdkConfigHitDeduplicationTime = v
+  }
+
+  public get sdkConfigDecisionApiUrl () : string|undefined {
+    return this._sdkConfigDecisionApiUrl
+  }
+
+  public set sdkConfigDecisionApiUrl (v : string|undefined) {
+    this._sdkConfigDecisionApiUrl = v
+  }
+
+  public get sdkConfigInitialBucketing () : BucketingDTO|undefined {
+    return this._sdkConfigInitialBucketing
+  }
+
+  public set sdkConfigInitialBucketing (v : BucketingDTO|undefined) {
+    this._sdkConfigInitialBucketing = v
+  }
+
+  public get sdkConfigEnableClientCache () : boolean|undefined {
+    return this._sdkConfigEnableClientCache
+  }
+
+  public set sdkConfigEnableClientCache (v : boolean|undefined) {
+    this._sdkConfigEnableClientCache = v
+  }
+
+  public get sdkConfigFetchNow () : boolean|undefined {
+    return this._sdkConfigFetchNow
+  }
+
+  public set sdkConfigFetchNow (v : boolean|undefined) {
+    this._sdkConfigFetchNow = v
+  }
 
   public get flagMetadataCampaignType () : string|undefined {
     return this._flagMetadataCampaignType
@@ -341,11 +392,11 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     this._httpRequestUrl = v
   }
 
-  public get sdkConfigTrackingManagerConfigBatchLength () : string|undefined {
+  public get sdkConfigTrackingManagerConfigPoolMaxSize () : string|undefined {
     return this._sdkConfigTrackingManagerConfigBatchLength
   }
 
-  public set sdkConfigTrackingManagerConfigBatchLength (v : string|undefined) {
+  public set sdkConfigTrackingManagerConfigPoolMaxSize (v : string|undefined) {
     this._sdkConfigTrackingManagerConfigBatchLength = v
   }
 
@@ -365,11 +416,11 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     this._sdkConfigTrackingManagerConfigStrategy = v
   }
 
-  public get sdkConfigPollingTime () : string|undefined {
+  public get sdkConfigPollingInterval () : string|undefined {
     return this._sdkConfigPollingTime
   }
 
-  public set sdkConfigPollingTime (v : string|undefined) {
+  public set sdkConfigPollingInterval (v : string|undefined) {
     this._sdkConfigPollingTime = v
   }
 
@@ -545,24 +596,25 @@ export class Monitoring extends HitAbstract implements IMonitoring {
   }
 
   public constructor (param:Omit<IMonitoring & {config: IFlagshipConfig},
-        'type'|'createdAt'|'category'>) {
+        'type'|'createdAt'|'category'|'visitorId'>) {
     super({
       type: 'MONITORING',
       userIp: param.userIp,
       screenResolution: param.screenResolution,
       locale: param.locale,
       sessionNumber: param.sessionNumber,
-      visitorId: param.visitorId,
+      visitorId: '',
       anonymousId: param.anonymousId
     })
     const {
       action, logVersion, logLevel, accountId, envId, timestamp, component, subComponent, message, stackType,
       stackName, stackVersion, stackOriginName, stackOriginVersion, sdkStatus, sdkConfigMode, sdkConfigCustomLogManager,
-      sdkConfigCustomCacheManager, sdkConfigStatusListener, sdkConfigTimeout, sdkConfigPollingTime, sdkConfigTrackingManagerConfigStrategy, sdkConfigTrackingManagerConfigBatchIntervals,
-      sdkConfigTrackingManagerConfigBatchLength, httpRequestUrl: httRequestUrl, httpRequestMethod: httRequestMethod, httpRequestHeaders, httpRequestBody, httpRequestDetails,
+      sdkConfigCustomCacheManager, sdkConfigStatusListener, sdkConfigTimeout, sdkConfigPollingInterval: sdkConfigPollingTime, sdkConfigTrackingManagerConfigStrategy, sdkConfigTrackingManagerConfigBatchIntervals,
+      sdkConfigTrackingManagerConfigPoolMaxSize: sdkConfigTrackingManagerConfigBatchLength, httpRequestUrl: httRequestUrl, httpRequestMethod: httRequestMethod, httpRequestHeaders, httpRequestBody, httpRequestDetails,
       httpResponseUrl, httpResponseMethod, httpResponseHeaders, httpResponseCode, httpResponseBody, httpResponseDetails, visitorStatus, visitorInstanceType, visitorContext,
       visitorConsent, visitorAssignmentHistory, visitorFlags, visitorIsAuthenticated, config, flagKey, flagValue, flagDefault,
-      flagMetadataCampaignId, flagMetadataVariationGroupId, flagMetadataVariationId, flagMetadataCampaignSlug, flagMetadataCampaignType
+      flagMetadataCampaignId, flagMetadataVariationGroupId, flagMetadataVariationId, flagMetadataCampaignSlug, flagMetadataCampaignType, sdkConfigFetchNow, sdkConfigEnableClientCache,
+      sdkConfigInitialBucketing, sdkConfigDecisionApiUrl, sdkConfigHitDeduplicationTime
     } = param
     this.config = config
     this._category = 'monitoring' as EventCategory
@@ -586,10 +638,15 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     this.sdkConfigCustomCacheManager = sdkConfigCustomCacheManager
     this.sdkConfigStatusListener = sdkConfigStatusListener
     this.sdkConfigTimeout = sdkConfigTimeout
-    this.sdkConfigPollingTime = sdkConfigPollingTime
+    this.sdkConfigPollingInterval = sdkConfigPollingTime
     this.sdkConfigTrackingManagerConfigStrategy = sdkConfigTrackingManagerConfigStrategy
     this.sdkConfigTrackingManagerConfigBatchIntervals = sdkConfigTrackingManagerConfigBatchIntervals
-    this.sdkConfigTrackingManagerConfigBatchLength = sdkConfigTrackingManagerConfigBatchLength
+    this.sdkConfigTrackingManagerConfigPoolMaxSize = sdkConfigTrackingManagerConfigBatchLength
+    this.sdkConfigFetchNow = sdkConfigFetchNow
+    this.sdkConfigEnableClientCache = sdkConfigEnableClientCache
+    this.sdkConfigInitialBucketing = sdkConfigInitialBucketing
+    this.sdkConfigDecisionApiUrl = sdkConfigDecisionApiUrl
+    this.sdkConfigHitDeduplicationTime = sdkConfigHitDeduplicationTime
     this.httpRequestUrl = httRequestUrl
     this.httpRequestMethod = httRequestMethod
     this.httpRequestHeaders = httpRequestHeaders
@@ -668,8 +725,8 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     if (this.sdkConfigTimeout !== undefined) {
       customVariable[35] = `sdk.config.timeout, ${this.sdkConfigTimeout}`
     }
-    if (this.sdkConfigPollingTime !== undefined) {
-      customVariable[36] = `sdk.config.pollingTime, ${this.sdkConfigPollingTime}`
+    if (this.sdkConfigPollingInterval !== undefined) {
+      customVariable[36] = `sdk.config.pollingTime, ${this.sdkConfigPollingInterval}`
     }
     if (this.sdkConfigTrackingManagerConfigStrategy) {
       customVariable[37] = `sdk.config.trackingManager.config.strategy, ${this.sdkConfigTrackingManagerConfigStrategy}`
@@ -677,9 +734,25 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     if (this.sdkConfigTrackingManagerConfigBatchIntervals !== undefined) {
       customVariable[38] = `sdk.config.trackingManager.config.batchIntervals, ${this.sdkConfigTrackingManagerConfigBatchIntervals}`
     }
-    if (this.sdkConfigTrackingManagerConfigBatchLength !== undefined) {
-      customVariable[39] = `sdk.config.trackingManager.config.batchLength, ${this.sdkConfigTrackingManagerConfigBatchLength}`
+    if (this.sdkConfigTrackingManagerConfigPoolMaxSize !== undefined) {
+      customVariable[39] = `sdk.config.trackingManager.config.poolMaxSize, ${this.sdkConfigTrackingManagerConfigPoolMaxSize}`
     }
+    if (this.sdkConfigFetchNow !== undefined) {
+      customVariable[40] = `sdk.config.trackingManager.config.fetchNow, ${this.sdkConfigFetchNow}`
+    }
+    if (this.sdkConfigEnableClientCache !== undefined) {
+      customVariable[41] = `sdk.config.trackingManager.config.enableClientCache, ${this.sdkConfigEnableClientCache}`
+    }
+    if (this.sdkConfigInitialBucketing !== undefined) {
+      customVariable[42] = `sdk.config.trackingManager.config.initialBucketing, ${JSON.stringify(this.sdkConfigInitialBucketing)}`
+    }
+    if (this.sdkConfigDecisionApiUrl !== undefined) {
+      customVariable[43] = `sdk.config.trackingManager.config.decisionApiUrl, ${this.sdkConfigDecisionApiUrl}`
+    }
+    if (this.sdkConfigHitDeduplicationTime !== undefined) {
+      customVariable[44] = `sdk.config.trackingManager.config.deduplicationTime, ${this.sdkConfigHitDeduplicationTime}`
+    }
+
     if (this.httpRequestUrl) {
       customVariable[50] = `http.request.url, ${this.httpRequestUrl}`
     }
@@ -787,10 +860,10 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       sdkConfigCustomCacheManager: this.sdkConfigCustomCacheManager,
       sdkConfigStatusListener: this.sdkConfigStatusListener,
       sdkConfigTimeout: this.sdkConfigTimeout,
-      sdkConfigPollingTime: this.sdkConfigPollingTime,
+      sdkConfigPollingTime: this.sdkConfigPollingInterval,
       sdkConfigTrackingManagerConfigStrategy: this.sdkConfigTrackingManagerConfigStrategy,
       sdkConfigTrackingManagerConfigBatchIntervals: this.sdkConfigTrackingManagerConfigBatchIntervals,
-      sdkConfigTrackingManagerConfigBatchLength: this.sdkConfigTrackingManagerConfigBatchLength,
+      sdkConfigTrackingManagerConfigBatchLength: this.sdkConfigTrackingManagerConfigPoolMaxSize,
 
       httpRequestUrl: this.httpRequestUrl,
       httpRequestMethod: this.httpRequestMethod,
