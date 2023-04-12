@@ -31,6 +31,7 @@ export const BATCH_MAX_SIZE = 2500000
 export const BASE_API_URL = 'https://decision.flagship.io/v2/'
 export const HIT_API_URL = 'https://ariane.abtasty.com'
 export const HIT_EVENT_URL = 'https://events.flagship.io'
+export const TROUBLESHOOTING_HIT_URL = 'https://events.flagship.io/troubleshooting'
 export const BUCKETING_API_URL = 'https://cdn.flagship.io/{0}/bucketing.json'
 export const BUCKETING_API_CONTEXT_URL = 'https://decision.flagship.io/v2/{0}/events'
 export const HIT_CONSENT_URL = 'https://ariane.abtasty.com'

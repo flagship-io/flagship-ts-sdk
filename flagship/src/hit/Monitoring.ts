@@ -1,26 +1,19 @@
 import { IFlagshipConfig } from '../config/index'
 import { LogLevel } from '../enum/index'
 import {
-  EVENT_ACTION_API_ITEM,
-  EVENT_CATEGORY_API_ITEM,
+  CUSTOMER_ENV_ID_API_ITEM,
+  DS_API_ITEM,
   SDK_APP,
-  SDK_INFO
+  SDK_INFO,
+  T_API_ITEM,
+  VISITOR_ID_API_ITEM
 } from '../enum/FlagshipConstant'
 import { HitAbstract, IHitAbstract } from './HitAbstract'
 import { BucketingDTO } from '../decision/api/bucketingDTO'
 
 export const ERROR_MESSAGE = 'event category and event action are required'
-export const CATEGORY_ERROR =
-    'The category value must be either EventCategory::ACTION_TRACKING or EventCategory::ACTION_TRACKING'
-export const VALUE_FIELD_ERROR = 'value must be an integer and be >= 0'
-export enum EventCategory {
-    ACTION_TRACKING = 'Action Tracking',
-    USER_ENGAGEMENT = 'User Engagement',
-  }
 
 export interface IMonitoring extends IHitAbstract{
-    category: EventCategory
-    action: string
     logVersion?: string
     logLevel: LogLevel
     accountId?:string
@@ -86,9 +79,6 @@ export interface IMonitoring extends IHitAbstract{
   }
 
 export class Monitoring extends HitAbstract implements IMonitoring {
-  private _category: EventCategory
-  private _action!: string
-
   private _logVersion? : string
   private _logLevel! : LogLevel
   private _accountId? : string
@@ -576,29 +566,10 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     this._logVersion = v
   }
 
-  public get category (): EventCategory {
-    return this._category
-  }
-
-  public get action (): string {
-    return this._action
-  }
-
-  /**
-     * Specify Event name that will also serve as the KPI
-     * that you will have inside your reporting
-     */
-  public set action (v: string) {
-    if (!this.isNotEmptyString(v, 'action')) {
-      return
-    }
-    this._action = v
-  }
-
   public constructor (param:Omit<IMonitoring & {config: IFlagshipConfig},
-        'type'|'createdAt'|'category'|'visitorId'>) {
+        'createdAt'|'category'|'visitorId'>) {
     super({
-      type: 'MONITORING',
+      type: param.type,
       userIp: param.userIp,
       screenResolution: param.screenResolution,
       locale: param.locale,
@@ -607,7 +578,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       anonymousId: param.anonymousId
     })
     const {
-      action, logVersion, logLevel, accountId, envId, timestamp, component, subComponent, message, stackType,
+      logVersion, logLevel, accountId, envId, timestamp, component, subComponent, message, stackType,
       stackName, stackVersion, stackOriginName, stackOriginVersion, sdkStatus, sdkConfigMode, sdkConfigCustomLogManager,
       sdkConfigCustomCacheManager, sdkConfigStatusListener, sdkConfigTimeout, sdkConfigPollingInterval: sdkConfigPollingTime, sdkConfigTrackingManagerConfigStrategy, sdkConfigTrackingManagerConfigBatchIntervals,
       sdkConfigTrackingManagerConfigPoolMaxSize: sdkConfigTrackingManagerConfigBatchLength, httpRequestUrl: httRequestUrl, httpRequestMethod: httRequestMethod, httpRequestHeaders, httpRequestBody, httpRequestDetails,
@@ -617,8 +588,6 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       sdkConfigInitialBucketing, sdkConfigDecisionApiUrl, sdkConfigHitDeduplicationTime
     } = param
     this.config = config
-    this._category = 'monitoring' as EventCategory
-    this.action = action
     this.logVersion = logVersion || '1'
     this.logLevel = logLevel
     this.accountId = accountId
@@ -678,158 +647,162 @@ export class Monitoring extends HitAbstract implements IMonitoring {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, complexity
   public toApiKeys (): any {
-    const apiKeys = super.toApiKeys()
-    apiKeys[EVENT_CATEGORY_API_ITEM] = this.category
-    apiKeys[EVENT_ACTION_API_ITEM] = this.action
-    const customVariable:Record<number, string> = {
-      0: `logVersion, ${this.logVersion}`,
-      1: `LogLevel, ${LogLevel[this.logLevel]}`,
-      4: `timestamp, ${this.timestamp}`,
-      5: `component, ${this.component}`,
-      6: `subComponents, ${this.subComponent}`,
-      7: `message, ${this.message}`,
-      20: `stack.type, ${this.stackType} `,
-      21: `stack.name, ${this.stackName}`,
-      22: `stack.version, ${this.stackVersion}`
+    const apiKeys:Record<string, unknown> = {
+      [VISITOR_ID_API_ITEM]: this.visitorId,
+      [DS_API_ITEM]: this.ds,
+      [CUSTOMER_ENV_ID_API_ITEM]: `${this.config?.envId}`,
+      [T_API_ITEM]: this.type,
+      cv: {}
+    }
+    const customVariable:Record<string, string> = {
+      logVersion: `${this.logVersion}`,
+      LogLevel: `${LogLevel[this.logLevel]}`,
+      timestamp: `${this.timestamp}`,
+      component: `${this.component}`,
+      subComponents: `${this.subComponent}`,
+      message: `${this.message}`,
+      'stack.type': `${this.stackType}`,
+      'stack.name': `${this.stackName}`,
+      'stack.version': `${this.stackVersion}`
     }
 
     if (this.accountId) {
-      customVariable[2] = `accountId, ${this.accountId}`
+      customVariable.accountId = `${this.accountId}`
     }
 
     if (this.envId) {
-      customVariable[3] = `envId, ${this.envId}`
+      customVariable.envId = `${this.envId}`
     }
 
     if (this.stackOriginName) {
-      customVariable[23] = `stack.origin.name, ${this.stackOriginName}`
+      customVariable['stack.origin.name'] = `${this.stackOriginName}`
     }
     if (this.stackOriginVersion) {
-      customVariable[24] = `stack.origin.version, ${this.stackOriginVersion}`
+      customVariable['stack.origin.version'] = `${this.stackOriginVersion}`
     }
     if (this.sdkStatus) {
-      customVariable[30] = `sdk.status, ${this.sdkStatus}`
+      customVariable['sdk.status'] = `${this.sdkStatus}`
     }
     if (this.sdkConfigMode) {
-      customVariable[31] = `sdk.config.mode, ${this.sdkConfigMode}`
+      customVariable['sdk.config.mode'] = `${this.sdkConfigMode}`
     }
     if (this.sdkConfigCustomLogManager !== undefined) {
-      customVariable[32] = `sdk.config.customLogManager, ${this.sdkConfigCustomLogManager}`
+      customVariable['sdk.config.customLogManager'] = `${this.sdkConfigCustomLogManager}`
     }
     if (this.sdkConfigCustomCacheManager !== undefined) {
-      customVariable[33] = `sdk.config.customCacheManager, ${this.sdkConfigCustomCacheManager}`
+      customVariable['sdk.config.customCacheManager'] = `${this.sdkConfigCustomCacheManager}`
     }
     if (this.sdkConfigStatusListener !== undefined) {
-      customVariable[34] = `sdk.config.custom.StatusListener, ${this.sdkConfigStatusListener}`
+      customVariable['sdk.config.custom.StatusListener'] = `${this.sdkConfigStatusListener}`
     }
     if (this.sdkConfigTimeout !== undefined) {
-      customVariable[35] = `sdk.config.timeout, ${this.sdkConfigTimeout}`
+      customVariable['sdk.config.timeout'] = `${this.sdkConfigTimeout}`
     }
     if (this.sdkConfigPollingInterval !== undefined) {
-      customVariable[36] = `sdk.config.pollingTime, ${this.sdkConfigPollingInterval}`
+      customVariable['sdk.config.pollingTime'] = `${this.sdkConfigPollingInterval}`
     }
     if (this.sdkConfigTrackingManagerConfigStrategy) {
-      customVariable[37] = `sdk.config.trackingManager.config.strategy, ${this.sdkConfigTrackingManagerConfigStrategy}`
+      customVariable['sdk.config.trackingManager.config.strategy'] = `${this.sdkConfigTrackingManagerConfigStrategy}`
     }
     if (this.sdkConfigTrackingManagerConfigBatchIntervals !== undefined) {
-      customVariable[38] = `sdk.config.trackingManager.config.batchIntervals, ${this.sdkConfigTrackingManagerConfigBatchIntervals}`
+      customVariable['sdk.config.trackingManager.config.batchIntervals'] = `${this.sdkConfigTrackingManagerConfigBatchIntervals}`
     }
     if (this.sdkConfigTrackingManagerConfigPoolMaxSize !== undefined) {
-      customVariable[39] = `sdk.config.trackingManager.config.poolMaxSize, ${this.sdkConfigTrackingManagerConfigPoolMaxSize}`
+      customVariable['sdk.config.trackingManager.config.poolMaxSize'] = `${this.sdkConfigTrackingManagerConfigPoolMaxSize}`
     }
     if (this.sdkConfigFetchNow !== undefined) {
-      customVariable[40] = `sdk.config.trackingManager.config.fetchNow, ${this.sdkConfigFetchNow}`
+      customVariable['sdk.config.trackingManager.config.fetchNow'] = `${this.sdkConfigFetchNow}`
     }
     if (this.sdkConfigEnableClientCache !== undefined) {
-      customVariable[41] = `sdk.config.trackingManager.config.enableClientCache, ${this.sdkConfigEnableClientCache}`
+      customVariable['sdk.config.trackingManager.config.enableClientCache'] = `${this.sdkConfigEnableClientCache}`
     }
     if (this.sdkConfigInitialBucketing !== undefined) {
-      customVariable[42] = `sdk.config.trackingManager.config.initialBucketing, ${JSON.stringify(this.sdkConfigInitialBucketing)}`
+      customVariable['sdk.config.trackingManager.config.initialBucketing'] = `${JSON.stringify(this.sdkConfigInitialBucketing)}`
     }
     if (this.sdkConfigDecisionApiUrl !== undefined) {
-      customVariable[43] = `sdk.config.trackingManager.config.decisionApiUrl, ${this.sdkConfigDecisionApiUrl}`
+      customVariable['sdk.config.trackingManager.config.decisionApiUrl'] = `${this.sdkConfigDecisionApiUrl}`
     }
     if (this.sdkConfigHitDeduplicationTime !== undefined) {
-      customVariable[44] = `sdk.config.trackingManager.config.deduplicationTime, ${this.sdkConfigHitDeduplicationTime}`
+      customVariable['sdk.config.trackingManager.config.deduplicationTime'] = `${this.sdkConfigHitDeduplicationTime}`
     }
 
     if (this.httpRequestUrl) {
-      customVariable[50] = `http.request.url, ${this.httpRequestUrl}`
+      customVariable['http.request.url'] = `${this.httpRequestUrl}`
     }
     if (this.httpRequestMethod) {
-      customVariable[51] = `http.request.method, ${this.httpRequestMethod}`
+      customVariable['http.request.method'] = `${this.httpRequestMethod}`
     }
     if (this.httpRequestHeaders) {
-      customVariable[52] = `http.request.headers, ${this.httpRequestHeaders}`
+      customVariable['http.request.headers'] = `${this.httpRequestHeaders}`
     }
     if (this.httpRequestBody) {
-      customVariable[53] = `http.request.body, ${this.httpRequestBody}`
+      customVariable['http.request.body'] = `${this.httpRequestBody}`
     }
     if (this.httpRequestDetails) {
-      customVariable[54] = `http.request.details, ${this.httpRequestDetails}`
+      customVariable['http.request.details'] = `${this.httpRequestDetails}`
     }
     if (this.httpResponseUrl) {
-      customVariable[60] = `http.response.url, ${this.httpResponseUrl}`
+      customVariable['http.response.url'] = `${this.httpResponseUrl}`
     }
     if (this.httpResponseMethod) {
-      customVariable[61] = `http.response.method, ${this.httpResponseMethod}`
+      customVariable['http.response.method'] = `${this.httpResponseMethod}`
     }
     if (this.httpResponseHeaders) {
-      customVariable[62] = `http.response.headers, ${this.httpResponseHeaders}`
+      customVariable['http.response.headers'] = `${this.httpResponseHeaders}`
     }
     if (this.httpResponseCode) {
-      customVariable[63] = `http.response.code, ${this.httpResponseCode}`
+      customVariable['http.response.code'] = `${this.httpResponseCode}`
     }
     if (this.httpResponseBody) {
-      customVariable[64] = `http.response.body, ${this.httpResponseBody}`
+      customVariable['http.response.body'] = `${this.httpResponseBody}`
     }
     if (this.httpResponseDetails) {
-      customVariable[65] = `http.response.details, ${this.httpResponseDetails}`
+      customVariable['http.response.details'] = `${this.httpResponseDetails}`
     }
     if (this.visitorStatus) {
-      customVariable[80] = `visitor.status, ${this.visitorStatus}`
+      customVariable['visitor.status'] = `${this.visitorStatus}`
     }
     if (this.visitorInstanceType) {
-      customVariable[81] = `visitor.instanceType, ${this.visitorInstanceType}`
+      customVariable['visitor.instanceType'] = `${this.visitorInstanceType}`
     }
     if (this.visitorContext) {
-      customVariable[82] = `visitor.context, ${this.visitorContext}`
+      customVariable['visitor.context'] = `${this.visitorContext}`
     }
     if (this.visitorConsent) {
-      customVariable[83] = `visitor.consent, ${this.visitorConsent}`
+      customVariable['visitor.consent'] = `${this.visitorConsent}`
     }
     if (this.visitorAssignmentHistory) {
-      customVariable[84] = `visitor.assignmentsHistory, ${this.visitorAssignmentHistory}`
+      customVariable['visitor.assignmentsHistory'] = `${this.visitorAssignmentHistory}`
     }
     if (this.visitorFlags) {
-      customVariable[85] = `visitor.flags, ${this.visitorFlags}`
+      customVariable['visitor.flags'] = `${this.visitorFlags}`
     }
     if (this.visitorIsAuthenticated !== undefined) {
-      customVariable[86] = `visitor.isAuthenticated, ${this.visitorIsAuthenticated}`
+      customVariable['visitor.isAuthenticated'] = `${this.visitorIsAuthenticated}`
     }
     if (this.flagKey) {
-      customVariable[100] = `flag.key, ${this.flagKey}`
+      customVariable['flag.key'] = `${this.flagKey}`
     }
     if (this.flagValue) {
-      customVariable[101] = `flag.value, ${this.flagValue}`
+      customVariable['flag.value'] = `${this.flagValue}`
     }
     if (this.flagDefault) {
-      customVariable[102] = `flag.default, ${this.flagDefault}`
+      customVariable['flag.default'] = `${this.flagDefault}`
     }
     if (this.flagMetadataCampaignId) {
-      customVariable[103] = `flag.metadata.campaignId, ${this.flagMetadataCampaignId}`
+      customVariable['flag.metadata.campaignId'] = `${this.flagMetadataCampaignId}`
     }
     if (this.flagMetadataVariationGroupId) {
-      customVariable[104] = `flag.metadata.variationGroupId, ${this.flagMetadataVariationGroupId}`
+      customVariable['flag.metadata.variationGroupId'] = `${this.flagMetadataVariationGroupId}`
     }
     if (this.flagMetadataVariationId) {
-      customVariable[105] = `flag.metadata.variationId, ${this.flagMetadataVariationId}`
+      customVariable['flag.metadata.variationId'] = `${this.flagMetadataVariationId}`
     }
     if (this.flagMetadataCampaignSlug) {
-      customVariable[106] = `flag.metadata.campaignSlug, ${this.flagMetadataCampaignSlug}`
+      customVariable['flag.metadata.campaignSlug'] = `${this.flagMetadataCampaignSlug}`
     }
     if (this.flagMetadataCampaignType) {
-      customVariable[107] = `flag.metadata.campaignType, ${this.flagMetadataCampaignType}`
+      customVariable['flag.metadata.campaignType'] = `${this.flagMetadataCampaignType}`
     }
     apiKeys.cv = customVariable
     return apiKeys
@@ -838,8 +811,6 @@ export class Monitoring extends HitAbstract implements IMonitoring {
   public toObject ():Record<string, unknown> {
     return {
       ...super.toObject(),
-      category: this.category,
-      action: this.action,
       logVersion: this.logVersion,
       logLevel: this.logLevel,
       accountId: this.accountId,
@@ -898,7 +869,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
   }
 
   public isReady (checkParent = true): boolean {
-    return !!((!checkParent || super.isReady()) && this.category && this.action)
+    return !!((!checkParent || super.isReady()))
   }
 
   public getErrorMessage (): string {

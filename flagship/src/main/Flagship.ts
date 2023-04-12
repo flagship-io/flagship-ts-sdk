@@ -251,10 +251,10 @@ export class Flagship {
     )
 
     const initMonitoring = new Monitoring({
-      action: 'SDK-INITIALIZATION',
+      type: 'TROUBLESHOOTING',
       subComponent: 'Flagship.start',
       logLevel: LogLevel.INFO,
-      message: 'Flagship initialized',
+      message: 'SDK-INITIALIZATION',
       config: localConfig,
       sdkConfigMode: localConfig.decisionMode,
       sdkConfigTimeout: localConfig.timeout?.toString(),
@@ -267,10 +267,9 @@ export class Flagship {
       sdkConfigInitialBucketing: localConfig.initialBucketing,
       sdkConfigDecisionApiUrl: localConfig.decisionApiUrl,
       sdkConfigHitDeduplicationTime: localConfig.hitDeduplicationTime?.toString()
-
     })
 
-    trackingManager.addHit(initMonitoring)
+    trackingManager.addMonitoringHit(initMonitoring)
 
     return flagship
   }
