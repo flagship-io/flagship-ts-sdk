@@ -292,6 +292,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
       campaigns = await this.decisionManager.getCampaignsAsync(this.visitor)
 
+      this.configManager.trackingManager.troubleshooting = this.decisionManager.troubleshooting
+
       logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_SUCCESS,
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
       )

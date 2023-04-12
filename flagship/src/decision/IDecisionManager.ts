@@ -1,6 +1,6 @@
 import { IFlagshipConfig } from '../config/index'
 import { FlagshipStatus } from '../enum/index'
-import { FlagDTO } from '../types'
+import { FlagDTO, Troubleshooting } from '../types'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { CampaignDTO } from './api/models'
 
@@ -14,4 +14,6 @@ export interface IDecisionManager {
   getCampaignsAsync (visitor: VisitorAbstract):Promise<CampaignDTO[]|null>
 
   config:IFlagshipConfig
+
+  troubleshooting?: Troubleshooting
 }

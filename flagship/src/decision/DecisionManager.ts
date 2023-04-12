@@ -4,7 +4,7 @@ import { IHttpClient } from '../utils/HttpClient'
 import { CampaignDTO } from './api/models'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, PROCESS_FETCHING_FLAGS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
-import { FlagDTO } from '../types'
+import { FlagDTO, Troubleshooting } from '../types'
 import { errorFormat, logDebug } from '../utils/utils'
 
 export abstract class DecisionManager implements IDecisionManager {
@@ -12,6 +12,15 @@ export abstract class DecisionManager implements IDecisionManager {
   protected _panic = false
   protected _httpClient: IHttpClient
   private _statusChangedCallback! : (status: FlagshipStatus)=>void
+  private _troubleshooting? : Troubleshooting
+
+  public get troubleshooting () : Troubleshooting|undefined {
+    return this._troubleshooting
+  }
+
+  public set troubleshooting (v : Troubleshooting|undefined) {
+    this._troubleshooting = v
+  }
 
   public get config ():IFlagshipConfig {
     return this._config
@@ -101,6 +110,9 @@ export abstract class DecisionManager implements IDecisionManager {
       if (response?.body?.campaigns) {
         campaigns = response.body.campaigns
       }
+
+      this.troubleshooting = response?.body?.troubleshooting
+
       return campaigns
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
