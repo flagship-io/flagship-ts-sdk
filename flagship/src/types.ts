@@ -59,7 +59,7 @@ export type NewVisitor={
 
 }
 
-export type InternalHitType = HitType|'BATCH'|'ACTIVATE'|'MONITORING'|'SEGMENT'
+export type InternalHitType = HitType|'BATCH'|'ACTIVATE'|'MONITORING'|'SEGMENT'|'TROUBLESHOOTING'
 
 export type HitCacheDTO ={
   version: number,
@@ -131,4 +131,10 @@ export type UserExposureInfo = {
     anonymousId: string|null
     context: Record<string, primitive>
   }
+ }
+
+export type Troubleshooting = {
+  startDate: Date
+  endDate: Date
+  traffic: number
  }
