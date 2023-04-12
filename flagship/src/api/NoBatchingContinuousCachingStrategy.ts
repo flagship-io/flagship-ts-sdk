@@ -4,6 +4,7 @@ import { HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, H
 import { Activate } from '../hit/Activate'
 import { ActivateBatch } from '../hit/ActivateBatch'
 import { HitAbstract, Event } from '../hit/index'
+import { Monitoring } from '../hit/Monitoring'
 import { IHttpClient } from '../utils/HttpClient'
 import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
 import { BatchingCachingStrategyAbstract, SendActivate } from './BatchingCachingStrategyAbstract'
@@ -11,8 +12,8 @@ import { BatchingCachingStrategyAbstract, SendActivate } from './BatchingCaching
 export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategyAbstract {
   protected cacheHitKeys:Record<string, string>
 
-  constructor (config: IFlagshipConfig, httpClient: IHttpClient, hitsPoolQueue: Map<string, HitAbstract>, activatePoolQueue: Map<string, Activate>) {
-    super(config, httpClient, hitsPoolQueue, activatePoolQueue)
+  constructor (config: IFlagshipConfig, httpClient: IHttpClient, hitsPoolQueue: Map<string, HitAbstract>, activatePoolQueue: Map<string, Activate>, monitoringPoolQueue: Map<string, Monitoring>) {
+    super(config, httpClient, hitsPoolQueue, activatePoolQueue, monitoringPoolQueue)
     this.cacheHitKeys = {}
   }
 

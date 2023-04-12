@@ -1,9 +1,10 @@
 import { DecisionMode, IFlagshipConfig } from '../config/index'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
-import { ACTIVATE_ADDED_IN_QUEUE, ADD_ACTIVATE, ADD_HIT, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, DEFAULT_HIT_CACHE_TIME_MS, FLUSH_ALL_HITS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HitType, HIT_ADDED_IN_QUEUE, HIT_CACHE_VERSION, HIT_DATA_CACHED, HIT_DATA_FLUSHED, HIT_EVENT_URL, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_APP, SDK_INFO, SEND_BATCH } from '../enum/index'
+import { ACTIVATE_ADDED_IN_QUEUE, ADD_ACTIVATE, ADD_HIT, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, DEFAULT_HIT_CACHE_TIME_MS, FLUSH_ALL_HITS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HitType, HIT_ADDED_IN_QUEUE, HIT_CACHE_VERSION, HIT_DATA_CACHED, HIT_DATA_FLUSHED, HIT_EVENT_URL, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_APP, SDK_INFO, SEND_BATCH, TROUBLESHOOTING_HIT_URL } from '../enum/index'
 import { Activate } from '../hit/Activate'
 import { Batch } from '../hit/Batch'
 import { HitAbstract, Event } from '../hit/index'
+import { Monitoring } from '../hit/Monitoring'
 import { HitCacheDTO, IExposedFlag, IExposedVisitor } from '../types'
 import { IHttpClient } from '../utils/HttpClient'
 import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
@@ -20,16 +21,18 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   protected _hitsPoolQueue: Map<string, HitAbstract>
   protected _activatePoolQueue: Map<string, Activate>
   protected _httpClient: IHttpClient
+  protected _monitoringPoolQueue: Map<string, Monitoring>
 
   public get config () : IFlagshipConfig {
     return this._config
   }
 
-  constructor (config: IFlagshipConfig, httpClient: IHttpClient, hitsPoolQueue: Map<string, HitAbstract>, activatePoolQueue: Map<string, Activate>) {
+  constructor (config: IFlagshipConfig, httpClient: IHttpClient, hitsPoolQueue: Map<string, HitAbstract>, activatePoolQueue: Map<string, Activate>, monitoringPoolQueue: Map<string, Monitoring>) {
     this._config = config
     this._hitsPoolQueue = hitsPoolQueue
     this._httpClient = httpClient
     this._activatePoolQueue = activatePoolQueue
+    this._monitoringPoolQueue = monitoringPoolQueue
   }
 
   async addHit (hit: HitAbstract): Promise<void> {
@@ -50,6 +53,65 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     ) {
       this.sendBatch()
     }
+  }
+
+  clearMonitoringPoolQueue () {
+    this._monitoringPoolQueue.clear()
+  }
+
+  public async addMonitoringHit (hit: Monitoring): Promise<void> {
+    const hitKey = `${hit.visitorId}:${uuidV4()}`
+    hit.key = hitKey
+    this._monitoringPoolQueue.set(hitKey, hit)
+    await this.cacheHit(new Map<string, Monitoring>().set(hitKey, hit))
+  }
+
+  public async sendMonitoringHit (hit: Monitoring): Promise<void> {
+    const requestBody = hit.toApiKeys()
+    const now = Date.now()
+    try {
+      await this._httpClient.postAsync(TROUBLESHOOTING_HIT_URL, {
+        body: requestBody
+      })
+      logDebug(this.config, sprintf(BATCH_SENT_SUCCESS, JSON.stringify({
+        ...requestBody,
+        duration: Date.now() - now
+        // batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
+      })), SEND_BATCH)
+
+      if (hit.key) {
+        this._monitoringPoolQueue.delete(hit.key)
+        await this.flushHits([hit.key])
+      }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      if (!hit.key) {
+        await this.addMonitoringHit(hit)
+      }
+      logError(this.config, errorFormat(error.message || error, {
+        url: TROUBLESHOOTING_HIT_URL,
+        headers: {},
+        body: requestBody,
+        duration: Date.now() - now
+        // batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
+      }), SEND_BATCH)
+    }
+  }
+
+  public async sendMonitoringQueue () {
+    if (this._monitoringPoolQueue.size === 0) {
+      return
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for (const [_, item] of Array.from(this._monitoringPoolQueue)) {
+      await this.sendMonitoringHit(item)
+    }
+  }
+
+  protected async addMonitoringHitInPoolQueue (hit: Monitoring): Promise<void> {
+    this._monitoringPoolQueue.set(hit.key, hit)
+    this.cacheHit(new Map<string, Monitoring>().set(hit.key, hit))
   }
 
     abstract addHitInPoolQueue (hit: HitAbstract):Promise<void>
