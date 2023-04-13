@@ -8,7 +8,7 @@ import { ConfigManager, IConfigManager } from '../config/ConfigManager'
 import { ApiManager } from '../decision/ApiManager'
 import { TrackingManager } from '../api/TrackingManager'
 import { FlagshipLogManager } from '../utils/FlagshipLogManager'
-import { isBrowser, logDebugSprintf, logError, logInfo, logInfoSprintf, sprintf } from '../utils/utils'
+import { isBrowser, logDebugSprintf, logError, logInfo, logInfoSprintf, sprintf, uuidV4 } from '../utils/utils'
 import {
   INITIALIZATION_PARAM_ERROR,
   INITIALIZATION_STARTING,
@@ -44,6 +44,7 @@ export class Flagship {
   private _config!: IFlagshipConfig
   private _status!: FlagshipStatus
   private _visitorInstance?: Visitor
+  private instanceId:string
 
   private set configManager (value: IConfigManager) {
     this._configManger = value
@@ -55,6 +56,7 @@ export class Flagship {
 
   // eslint-disable-next-line no-useless-constructor
   private constructor () {
+    this.instanceId = uuidV4()
     // singleton
   }
 
@@ -74,6 +76,18 @@ export class Flagship {
     const statusChanged = this.getConfig().statusChangedCallback
 
     logInfoSprintf(this._config, PROCESS_SDK_STATUS, SDK_STATUS_CHANGED, FlagshipStatus[status])
+
+    const monitoringHit = new Monitoring({
+      type: 'TROUBLESHOOTING',
+      visitorId: this.instanceId,
+      subComponent: 'SDK-STATUS-CHANGED',
+      logLevel: LogLevel.INFO,
+      message: 'SDK-INITIALIZATION',
+      config: this.getConfig(),
+      sdkStatus: FlagshipStatus[status]
+    })
+
+    this.configManager?.trackingManager?.addMonitoringHit(monitoringHit)
 
     if (this.getConfig().decisionMode !== DecisionMode.BUCKETING_EDGE) {
       if (status === FlagshipStatus.READY) {
@@ -252,9 +266,10 @@ export class Flagship {
 
     const initMonitoring = new Monitoring({
       type: 'TROUBLESHOOTING',
-      subComponent: 'Flagship.start',
+      subComponent: 'SDK-INITIALIZATION',
       logLevel: LogLevel.INFO,
       message: 'SDK-INITIALIZATION',
+      visitorId: flagship.instanceId,
       config: localConfig,
       sdkConfigMode: localConfig.decisionMode,
       sdkConfigTimeout: localConfig.timeout?.toString(),
@@ -317,7 +332,7 @@ export class Flagship {
     let context: Record<string, primitive>
     let isAuthenticated = false
     let hasConsented = true
-    let initialModifications: Map<string, FlagDTO> | FlagDTO[] | undefined
+    let initialFlagsData: Map<string, FlagDTO> | FlagDTO[] | undefined
     let initialCampaigns: CampaignDTO[] | undefined
     const isServerSide = !isBrowser()
     let isNewInstance = isServerSide
@@ -330,7 +345,7 @@ export class Flagship {
       context = param1?.context || {}
       isAuthenticated = !!param1?.isAuthenticated
       hasConsented = param1?.hasConsented ?? true
-      initialModifications = param1?.initialFlagsData || param1?.initialModifications
+      initialFlagsData = param1?.initialFlagsData || param1?.initialModifications
       initialCampaigns = param1?.initialCampaigns
       isNewInstance = param1?.isNewInstance ?? isNewInstance
     }
@@ -361,9 +376,9 @@ export class Flagship {
       isAuthenticated,
       hasConsented,
       configManager: this.getInstance().configManager,
-      initialModifications,
+      initialModifications: initialFlagsData,
       initialCampaigns,
-      initialFlagsData: initialModifications
+      initialFlagsData
     })
 
     const visitor = new Visitor(visitorDelegate)
@@ -376,6 +391,23 @@ export class Flagship {
     if (this.getConfig().fetchNow && this.getConfig().decisionMode !== DecisionMode.BUCKETING_EDGE) {
       visitor.fetchFlags()
     }
+
+    const monitoring = new Monitoring({
+      type: 'TROUBLESHOOTING',
+      subComponent: 'VISITOR-CREATED',
+      logLevel: LogLevel.INFO,
+      message: 'SDK-INITIALIZATION',
+      visitorId: this.getInstance().instanceId,
+      config: this.getConfig(),
+      visitorConsent: visitor.hasConsented,
+      visitorIsAuthenticated: !!visitor.anonymousId,
+      visitorContext: visitor.context,
+      visitorInstanceType: isNewInstance ? 'NEW_INSTANCE' : 'SINGLE_INSTANCE',
+      visitorInitialCampaigns: initialCampaigns,
+      visitorInitialFlagsData: initialFlagsData
+    })
+
+    this.getInstance().configManager?.trackingManager?.addMonitoringHit(monitoring)
 
     return visitor
   }
