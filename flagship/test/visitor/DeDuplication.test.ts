@@ -5,9 +5,8 @@ import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
 import { HitType } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { HttpClient, IHttpResponse, IHttpOptions } from '../../src/utils/HttpClient'
+import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { VisitorDelegate, DefaultStrategy } from '../../src/visitor'
-import { Mock } from 'jest-mock'
 import { returnModification } from './modification'
 import { sleep } from '../../src/utils/utils'
 
@@ -131,10 +130,7 @@ describe('Clean cache', () => {
 
   const httpClient = new HttpClient()
 
-  const post: Mock<
-      Promise<IHttpResponse>,
-      [url: string, options: IHttpOptions]
-    > = jest.fn()
+  const post = jest.fn<typeof httpClient.postAsync>()
   httpClient.postAsync = post
   post.mockResolvedValue({} as IHttpResponse)
 

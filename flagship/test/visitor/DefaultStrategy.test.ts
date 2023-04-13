@@ -5,10 +5,9 @@ import { TrackingManager } from '../../src/api/TrackingManager'
 import { BucketingConfig, ConfigManager } from '../../src/config/index'
 import { ApiManager } from '../../src/decision/ApiManager'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { IHttpResponse, IHttpOptions, HttpClient } from '../../src/utils/HttpClient'
+import { IHttpResponse, HttpClient } from '../../src/utils/HttpClient'
 import { DefaultStrategy, HIT_NULL_ERROR, TYPE_HIT_REQUIRED_ERROR } from '../../src/visitor/DefaultStrategy'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
-import { Mock } from 'jest-mock'
 import { ACTIVATE_MODIFICATION_ERROR, ACTIVATE_MODIFICATION_KEY_ERROR, CONTEXT_NULL_ERROR, CONTEXT_VALUE_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, FLAG_VALUE, FS_CONSENT, GET_FLAG_CAST_ERROR, GET_FLAG_MISSING_ERROR, GET_METADATA_CAST_ERROR, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, METHOD_DEACTIVATED_BUCKETING_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, USER_EXPOSED_CAST_ERROR, USER_EXPOSED_FLAG_ERROR, VISITOR_ID_ERROR } from '../../src/enum'
 import { errorFormat, sprintf } from '../../src/utils/utils'
 import { returnModification } from './modification'
@@ -22,7 +21,7 @@ const getNull = (): any => {
 
 describe('test DefaultStrategy ', () => {
   const methodNow = Date.now
-  const mockNow:Mock<number, []> = jest.fn()
+  const mockNow = jest.fn<typeof Date.now>()
   beforeAll(() => {
     Date.now = mockNow
     mockNow.mockReturnValue(1)
@@ -46,10 +45,7 @@ describe('test DefaultStrategy ', () => {
 
   const httpClient = new HttpClient()
 
-  const post: Mock<
-    Promise<IHttpResponse>,
-    [url: string, options: IHttpOptions]
-  > = jest.fn()
+  const post = jest.fn<typeof httpClient.postAsync>()
   httpClient.postAsync = post
   post.mockResolvedValue({} as IHttpResponse)
 
@@ -1431,10 +1427,7 @@ describe('test fetchFlags errors', () => {
 
   const httpClient = new HttpClient()
 
-  const post: Mock<
-    Promise<IHttpResponse>,
-    [url: string, options: IHttpOptions]
-  > = jest.fn()
+  const post = jest.fn<typeof httpClient.postAsync>()
   httpClient.postAsync = post
   post.mockResolvedValue({} as IHttpResponse)
 
@@ -1470,7 +1463,7 @@ describe('test fetchFlags errors', () => {
 
 describe('test fetchFlags errors 2', () => {
   const methodNow = Date.now
-  const mockNow:Mock<number, []> = jest.fn()
+  const mockNow = jest.fn<typeof Date.now>()
   beforeAll(() => {
     Date.now = mockNow
     mockNow.mockReturnValue(1)
@@ -1490,10 +1483,7 @@ describe('test fetchFlags errors 2', () => {
 
   const httpClient = new HttpClient()
 
-  const post: Mock<
-    Promise<IHttpResponse>,
-    [url: string, options: IHttpOptions]
-  > = jest.fn()
+  const post = jest.fn<typeof httpClient.postAsync>()
   httpClient.postAsync = post
   post.mockResolvedValue({} as IHttpResponse)
 

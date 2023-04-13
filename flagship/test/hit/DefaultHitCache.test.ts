@@ -2,11 +2,10 @@ import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { HitCacheDTO, HitType, Screen } from '../../src'
 import { DefaultHitCache, FS_HIT_PREFIX } from '../../src/cache/DefaultHitCache'
 import { HIT_CACHE_VERSION } from '../../src/enum'
-import { Mock } from 'jest-mock'
 
 describe('Test DefaultHitCache', () => {
   const methodNow = Date.now
-  const mockNow:Mock<number, []> = jest.fn()
+  const mockNow = jest.fn<typeof Date.now>()
   beforeAll(() => {
     Date.now = mockNow
     mockNow.mockReturnValue(1)
@@ -19,7 +18,7 @@ describe('Test DefaultHitCache', () => {
   const storageMock = {
     getItem: jest.fn(),
     setItem: jest.fn(),
-    removeItem: jest.fn<void, string[]>()
+    removeItem: jest.fn<(items: string[])=>void>()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -181,10 +181,10 @@ describe('test TrackingManager lookupHits', () => {
 
   const trackingManager = new TrackingManager(httpClient, config)
 
-  const flushHits:Mock<Promise<void>, [hitKeys: string[]]> = jest.fn()
-  const lookupHits:Mock<Promise<Record<string, HitCacheDTO>>, []> = jest.fn()
-  const cacheHit:Mock<Promise<void>, [Record<string, HitCacheDTO>]> = jest.fn()
-  const flushAllHits:Mock<Promise<void>, []> = jest.fn()
+  const flushHits = jest.fn<typeof config.hitCacheImplementation.flushHits>()
+  const lookupHits = jest.fn<typeof config.hitCacheImplementation.lookupHits>()
+  const cacheHit = jest.fn<typeof config.hitCacheImplementation.cacheHit>()
+  const flushAllHits = jest.fn<typeof config.hitCacheImplementation.flushAllHits>()
   const hitCacheImplementation = {
     cacheHit,
     lookupHits,

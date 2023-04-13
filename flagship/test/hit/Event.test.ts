@@ -19,7 +19,6 @@ import {
 } from '../../src/enum/index'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { sprintf } from '../../src/utils/utils'
-import { Mock } from 'jest-mock'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getNull = (): any => {
@@ -28,7 +27,7 @@ const getNull = (): any => {
 
 describe('test hit type Event', () => {
   const methodNow = Date.now
-  const mockNow:Mock<number, []> = jest.fn()
+  const mockNow = jest.fn<typeof Date.now>()
   const visitorId = 'visitorId'
   beforeAll(() => {
     Date.now = mockNow
