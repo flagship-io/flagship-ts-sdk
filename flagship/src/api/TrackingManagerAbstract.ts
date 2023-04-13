@@ -30,16 +30,16 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   protected _isPooling = false
   private _troubleshooting? : Troubleshooting | 'started'
 
-  public get troubleShooting () : Troubleshooting|undefined| 'started' {
+  public get troubleshooting () : Troubleshooting|undefined| 'started' {
     return this._troubleshooting
   }
 
-  public set troubleShooting (v : Troubleshooting|undefined| 'started') {
+  public set troubleshooting (v : Troubleshooting|undefined| 'started') {
     this._troubleshooting = v
   }
 
   constructor (httpClient: IHttpClient, config: IFlagshipConfig) {
-    this.troubleShooting = 'started'
+    this.troubleshooting = 'started'
     this._hitsPoolQueue = new Map<string, HitAbstract>()
     this._activatePoolQueue = new Map<string, Activate>()
     this._monitoringPoolQueue = new Map<string, Monitoring>()
@@ -80,26 +80,27 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   public abstract sendBatch(): Promise<void>
 
   public async addMonitoringHit (hit: Monitoring) :Promise<void> {
-    if (this.troubleShooting === 'started') {
+    if (this.troubleshooting === 'started') {
       await this.strategy.addMonitoringHit(hit)
       return
     }
 
-    if (!this.troubleShooting) {
+    if (!this.troubleshooting) {
       this.strategy.clearMonitoringPoolQueue()
       return
     }
 
     const now = new Date()
-    const isStarted = now < this.troubleShooting.startDate
+    const isStarted = now > this.troubleshooting.startDate
 
     if (!isStarted) {
       return
     }
 
-    const isFinished = now > this.troubleShooting.endDate
+    const isFinished = now < this.troubleshooting.endDate
 
-    if (isFinished) {
+    if (!isFinished) {
+      this.strategy.clearMonitoringPoolQueue()
       return
     }
 
@@ -108,25 +109,26 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   }
 
   public async sendMonitoringQueue () : Promise<void> {
-    if (this.troubleShooting === 'started') {
+    if (this.troubleshooting === 'started') {
       return
     }
 
-    if (!this.troubleShooting) {
+    if (!this.troubleshooting) {
       this.strategy.clearMonitoringPoolQueue()
       return
     }
 
     const now = new Date()
-    const isStarted = now < this.troubleShooting.startDate
+    const isStarted = now > this.troubleshooting.startDate
 
     if (!isStarted) {
       return
     }
 
-    const isFinished = now > this.troubleShooting.endDate
+    const isFinished = now < this.troubleshooting.endDate
 
-    if (isFinished) {
+    if (!isFinished) {
+      this.strategy.clearMonitoringPoolQueue()
       return
     }
 
@@ -152,6 +154,9 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     if (this._isPooling) {
       return
     }
+
+    console.log('this', this)
+
     this._isPooling = true
     await this.strategy.sendBatch(BatchTriggeredBy.Timer)
     await this.sendMonitoringQueue()

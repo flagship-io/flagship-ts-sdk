@@ -111,7 +111,7 @@ export abstract class DecisionManager implements IDecisionManager {
         campaigns = response.body.campaigns
       }
 
-      this.troubleshooting = response?.body?.troubleshooting
+      this.troubleshooting = response?.body?.extras?.troubleshooting
 
       return campaigns
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
