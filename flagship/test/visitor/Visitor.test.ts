@@ -3,8 +3,7 @@ import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager, DecisionApiConfig } from '../../src/config/index'
 import { ApiManager } from '../../src/decision/ApiManager'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { IHttpResponse, IHttpOptions, HttpClient } from '../../src/utils/HttpClient'
-import { Mock } from 'jest-mock'
+import { IHttpResponse, HttpClient } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { Visitor } from '../../src/visitor/Visitor'
 import { HitType, FlagDTO } from '../../src'
@@ -26,10 +25,7 @@ describe('test visitor', () => {
 
   const httpClient = new HttpClient()
 
-  const post: Mock<
-    Promise<IHttpResponse>,
-    [url: string, options: IHttpOptions]
-  > = jest.fn()
+  const post = jest.fn<typeof httpClient.postAsync>()
   httpClient.postAsync = post
   post.mockResolvedValue({} as IHttpResponse)
 

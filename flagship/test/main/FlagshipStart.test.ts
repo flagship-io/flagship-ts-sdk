@@ -1,16 +1,15 @@
 import { jest, expect, it, describe } from '@jest/globals'
 import { Flagship, DecisionApiConfig, Visitor } from '../../src'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { Mock } from 'jest-mock'
 import { NEW_VISITOR_NOT_READY, PROCESS_NEW_VISITOR } from '../../src/enum'
 
-const startBatchingLoop: Mock<Promise<void>, []> = jest.fn()
+const startBatchingLoop = jest.fn<()=>Promise<void>>()
 startBatchingLoop.mockResolvedValue()
-const addHit: Mock<Promise<void>, []> = jest.fn()
+const addHit = jest.fn<()=>Promise<void>>()
 
 addHit.mockResolvedValue()
 
-const stopBatchingLoop:Mock<Promise<void>, []> = jest.fn()
+const stopBatchingLoop = jest.fn<()=>void>()
 
 jest.mock('../../src/api/TrackingManager', () => {
   return {

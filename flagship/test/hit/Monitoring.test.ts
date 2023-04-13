@@ -18,13 +18,12 @@ import {
 } from '../../src/enum/index'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { sprintf } from '../../src/utils/utils'
-import { Mock } from 'jest-mock'
 import { IMonitoring, Monitoring } from '../../src/hit/Monitoring'
 import { version } from '../../src/sdkVersion'
 
 describe('test hit type Monitoring', () => {
   const methodNow = Date.now
-  const mockNow:Mock<number, []> = jest.fn()
+  const mockNow = jest.fn<typeof Date.now>()
   const visitorId = 'visitorId'
   Date.now = mockNow
   mockNow.mockReturnValue(1657899294744)

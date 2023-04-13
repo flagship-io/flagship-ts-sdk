@@ -19,11 +19,10 @@ import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { campaigns } from './campaigns'
 import { CampaignDTO } from '../../src'
 import { errorFormat } from '../../src/utils/utils'
-import { Mock } from 'jest-mock'
 
 describe('test ApiManager', () => {
   const methodNow = Date.now
-  const mockNow:Mock<number, []> = jest.fn()
+  const mockNow = jest.fn<typeof Date.now>()
   beforeAll(() => {
     Date.now = mockNow
     mockNow.mockReturnValue(1)

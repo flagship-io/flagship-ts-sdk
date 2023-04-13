@@ -1,5 +1,4 @@
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
-import { Mock } from 'jest-mock'
 import { DecisionApiConfig, Event, EventCategory, HitAbstract, OnVisitorExposed, Page, UserExposureInfo } from '../../src'
 import { NoBatchingContinuousCachingStrategy } from '../../src/api/NoBatchingContinuousCachingStrategy'
 import { HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, SDK_INFO, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, SEND_BATCH, BASE_API_URL, URL_ACTIVATE_MODIFICATION, SEND_HIT, FS_CONSENT, LogLevel, DEFAULT_HIT_CACHE_TIME_MS } from '../../src/enum'
@@ -13,7 +12,7 @@ import { errorFormat } from '../../src/utils/utils'
 
 describe('Test NoBatchingContinuousCachingStrategy', () => {
   const methodNow = Date.now
-  const mockNow:Mock<number, []> = jest.fn()
+  const mockNow = jest.fn<typeof Date.now >()
   beforeAll(() => {
     Date.now = mockNow
     mockNow.mockReturnValue(1)
@@ -24,8 +23,8 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
   const visitorId = 'visitorId'
   const httpClient = new HttpClient()
 
-  const onVisitorExposed : Mock<void, [arg: OnVisitorExposed]> = jest.fn()
-  const onUserExposure: Mock<void, [param: UserExposureInfo]> = jest.fn()
+  const onVisitorExposed = jest.fn<(arg: OnVisitorExposed)=>void>()
+  const onUserExposure = jest.fn<(param: UserExposureInfo)=>void>()
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', onVisitorExposed, onUserExposure })
 
   const postAsync = jest.spyOn(httpClient, 'postAsync')
@@ -364,7 +363,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
 
 describe('test sendBatch method', () => {
   const methodNow = Date.now
-  const mockNow:Mock<number, []> = jest.fn()
+  const mockNow = jest.fn<typeof Date.now>()
   beforeAll(() => {
     Date.now = mockNow
     mockNow.mockReturnValue(1)

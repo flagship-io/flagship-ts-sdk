@@ -13,7 +13,6 @@ import { DecisionManager } from '../../src/decision/DecisionManager'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { CampaignDTO } from '../../src'
 import { Segment } from '../../src/hit/Segment'
-import { Mock } from 'jest-mock'
 
 describe('test BucketingManager', () => {
   const config = new BucketingConfig({ pollingInterval: 0, envId: 'envID', apiKey: 'apiKey' })
@@ -231,7 +230,7 @@ describe('test error', () => {
 
 describe('test sendContext', () => {
   const methodNow = Date.now
-  const mockNow:Mock<number, []> = jest.fn()
+  const mockNow = jest.fn<typeof Date.now>()
   beforeAll(() => {
     Date.now = mockNow
     mockNow.mockReturnValue(1)
