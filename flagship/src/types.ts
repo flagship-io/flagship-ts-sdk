@@ -137,4 +137,5 @@ export type Troubleshooting = {
   startDate: Date
   endDate: Date
   traffic: number
+  timezone: string,
  }
