@@ -10,6 +10,8 @@ import {
 } from '../enum/FlagshipConstant'
 import { HitAbstract, IHitAbstract } from './HitAbstract'
 import { BucketingDTO } from '../decision/api/bucketingDTO'
+import { FlagDTO, primitive } from '../types'
+import { CampaignDTO } from '../mod'
 
 export const ERROR_MESSAGE = 'event category and event action are required'
 
@@ -22,6 +24,7 @@ export interface IMonitoring extends IHitAbstract{
     component?: string
     subComponent: string
     message: string
+    instanceId?: string
 
     stackType?: string
     stackName?: string
@@ -60,11 +63,13 @@ export interface IMonitoring extends IHitAbstract{
 
     visitorStatus?: string
     visitorInstanceType?: string
-    visitorContext?: string
+    visitorContext?: Record<string, primitive>
     visitorConsent?: boolean
     visitorAssignmentHistory?: string
     visitorFlags?: string
     visitorIsAuthenticated?:boolean
+    visitorInitialCampaigns?:CampaignDTO[]
+    visitorInitialFlagsData? : Map<string, FlagDTO>|FlagDTO[]
 
     flagKey?: string
     flagValue?: string
@@ -114,7 +119,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
   private _httpResponseDetails? : string
   private _visitorStatus? : string
   private _visitorInstanceType? : string
-  private _visitorContext? : string
+  private _visitorContext? : Record<string, primitive>
   private _visitorConsent? : boolean
   private _visitorAssignmentHistory? : string
   private _visitorFlags? : string
@@ -132,6 +137,33 @@ export class Monitoring extends HitAbstract implements IMonitoring {
   private _sdkConfigInitialBucketing? : BucketingDTO
   private _sdkConfigDecisionApiUrl? : string
   private _sdkConfigHitDeduplicationTime? : string
+  private _instanceId? : string
+  private _visitorInitialCampaigns? : CampaignDTO[]
+  private _visitorInitialFlagsData? : Map<string, FlagDTO>|FlagDTO[]
+
+  public get visitorInitialFlagsData () : Map<string, FlagDTO>|FlagDTO[]|undefined {
+    return this._visitorInitialFlagsData
+  }
+
+  public set visitorInitialFlagsData (v : Map<string, FlagDTO>|FlagDTO[]|undefined) {
+    this._visitorInitialFlagsData = v
+  }
+
+  public get visitorInitialCampaigns () : CampaignDTO[]|undefined {
+    return this._visitorInitialCampaigns
+  }
+
+  public set visitorInitialCampaigns (v : CampaignDTO[]|undefined) {
+    this._visitorInitialCampaigns = v
+  }
+
+  public get instanceId () : string|undefined {
+    return this._instanceId
+  }
+
+  public set instanceId (v : string|undefined) {
+    this._instanceId = v
+  }
 
   public get sdkConfigHitDeduplicationTime () : string|undefined {
     return this._sdkConfigHitDeduplicationTime
@@ -269,11 +301,11 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     this._visitorConsent = v
   }
 
-  public get visitorContext () : string|undefined {
+  public get visitorContext () : Record<string, primitive>|undefined {
     return this._visitorContext
   }
 
-  public set visitorContext (v : string|undefined) {
+  public set visitorContext (v : Record<string, primitive>|undefined) {
     this._visitorContext = v
   }
 
@@ -567,14 +599,14 @@ export class Monitoring extends HitAbstract implements IMonitoring {
   }
 
   public constructor (param:Omit<IMonitoring & {config: IFlagshipConfig},
-        'createdAt'|'category'|'visitorId'>) {
+        'createdAt'|'category'>) {
     super({
       type: param.type,
       userIp: param.userIp,
       screenResolution: param.screenResolution,
       locale: param.locale,
       sessionNumber: param.sessionNumber,
-      visitorId: '',
+      visitorId: param.visitorId,
       anonymousId: param.anonymousId
     })
     const {
@@ -585,11 +617,12 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       httpResponseUrl, httpResponseMethod, httpResponseHeaders, httpResponseCode, httpResponseBody, httpResponseDetails, visitorStatus, visitorInstanceType, visitorContext,
       visitorConsent, visitorAssignmentHistory, visitorFlags, visitorIsAuthenticated, config, flagKey, flagValue, flagDefault,
       flagMetadataCampaignId, flagMetadataVariationGroupId, flagMetadataVariationId, flagMetadataCampaignSlug, flagMetadataCampaignType, sdkConfigFetchNow, sdkConfigEnableClientCache,
-      sdkConfigInitialBucketing, sdkConfigDecisionApiUrl, sdkConfigHitDeduplicationTime
+      sdkConfigInitialBucketing, sdkConfigDecisionApiUrl, sdkConfigHitDeduplicationTime, instanceId
     } = param
     this.config = config
     this.logVersion = logVersion || '1'
     this.logLevel = logLevel
+    this.instanceId = instanceId
     this.accountId = accountId
     this.envId = envId || config.envId
     this.timestamp = timestamp || new Date(Date.now()).toISOString()
@@ -666,6 +699,10 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       'stack.version': `${this.stackVersion}`
     }
 
+    if (this.instanceId) {
+      customVariable.instanceId = this.instanceId
+    }
+
     if (this.accountId) {
       customVariable.accountId = `${this.accountId}`
     }
@@ -674,16 +711,16 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       customVariable.envId = `${this.envId}`
     }
 
-    if (this.stackOriginName) {
+    if (this.stackOriginName !== undefined) {
       customVariable['stack.origin.name'] = `${this.stackOriginName}`
     }
-    if (this.stackOriginVersion) {
+    if (this.stackOriginVersion !== undefined) {
       customVariable['stack.origin.version'] = `${this.stackOriginVersion}`
     }
-    if (this.sdkStatus) {
+    if (this.sdkStatus !== undefined) {
       customVariable['sdk.status'] = `${this.sdkStatus}`
     }
-    if (this.sdkConfigMode) {
+    if (this.sdkConfigMode !== undefined) {
       customVariable['sdk.config.mode'] = `${this.sdkConfigMode}`
     }
     if (this.sdkConfigCustomLogManager !== undefined) {
@@ -701,7 +738,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     if (this.sdkConfigPollingInterval !== undefined) {
       customVariable['sdk.config.pollingTime'] = `${this.sdkConfigPollingInterval}`
     }
-    if (this.sdkConfigTrackingManagerConfigStrategy) {
+    if (this.sdkConfigTrackingManagerConfigStrategy !== undefined) {
       customVariable['sdk.config.trackingManager.config.strategy'] = `${this.sdkConfigTrackingManagerConfigStrategy}`
     }
     if (this.sdkConfigTrackingManagerConfigBatchIntervals !== undefined) {
@@ -717,7 +754,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       customVariable['sdk.config.trackingManager.config.enableClientCache'] = `${this.sdkConfigEnableClientCache}`
     }
     if (this.sdkConfigInitialBucketing !== undefined) {
-      customVariable['sdk.config.trackingManager.config.initialBucketing'] = `${JSON.stringify(this.sdkConfigInitialBucketing)}`
+      customVariable['sdk.config.trackingManager.config.initialBucketing'] = JSON.stringify(this.sdkConfigInitialBucketing)
     }
     if (this.sdkConfigDecisionApiUrl !== undefined) {
       customVariable['sdk.config.trackingManager.config.decisionApiUrl'] = `${this.sdkConfigDecisionApiUrl}`
@@ -726,82 +763,91 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       customVariable['sdk.config.trackingManager.config.deduplicationTime'] = `${this.sdkConfigHitDeduplicationTime}`
     }
 
-    if (this.httpRequestUrl) {
+    if (this.httpRequestUrl !== undefined) {
       customVariable['http.request.url'] = `${this.httpRequestUrl}`
     }
-    if (this.httpRequestMethod) {
+    if (this.httpRequestMethod !== undefined) {
       customVariable['http.request.method'] = `${this.httpRequestMethod}`
     }
-    if (this.httpRequestHeaders) {
+    if (this.httpRequestHeaders !== undefined) {
       customVariable['http.request.headers'] = `${this.httpRequestHeaders}`
     }
-    if (this.httpRequestBody) {
+    if (this.httpRequestBody !== undefined) {
       customVariable['http.request.body'] = `${this.httpRequestBody}`
     }
-    if (this.httpRequestDetails) {
+    if (this.httpRequestDetails !== undefined) {
       customVariable['http.request.details'] = `${this.httpRequestDetails}`
     }
-    if (this.httpResponseUrl) {
+    if (this.httpResponseUrl !== undefined) {
       customVariable['http.response.url'] = `${this.httpResponseUrl}`
     }
-    if (this.httpResponseMethod) {
+    if (this.httpResponseMethod !== undefined) {
       customVariable['http.response.method'] = `${this.httpResponseMethod}`
     }
-    if (this.httpResponseHeaders) {
+    if (this.httpResponseHeaders !== undefined) {
       customVariable['http.response.headers'] = `${this.httpResponseHeaders}`
     }
-    if (this.httpResponseCode) {
+    if (this.httpResponseCode !== undefined) {
       customVariable['http.response.code'] = `${this.httpResponseCode}`
     }
-    if (this.httpResponseBody) {
+    if (this.httpResponseBody !== undefined) {
       customVariable['http.response.body'] = `${this.httpResponseBody}`
     }
-    if (this.httpResponseDetails) {
+    if (this.httpResponseDetails !== undefined) {
       customVariable['http.response.details'] = `${this.httpResponseDetails}`
     }
-    if (this.visitorStatus) {
+    if (this.visitorStatus !== undefined) {
       customVariable['visitor.status'] = `${this.visitorStatus}`
     }
-    if (this.visitorInstanceType) {
+    if (this.visitorInstanceType !== undefined) {
       customVariable['visitor.instanceType'] = `${this.visitorInstanceType}`
     }
-    if (this.visitorContext) {
-      customVariable['visitor.context'] = `${this.visitorContext}`
+    if (this.visitorContext !== undefined) {
+      customVariable['visitor.context'] = JSON.stringify(this.visitorContext)
     }
-    if (this.visitorConsent) {
+    if (this.visitorConsent !== undefined) {
       customVariable['visitor.consent'] = `${this.visitorConsent}`
     }
-    if (this.visitorAssignmentHistory) {
+    if (this.visitorAssignmentHistory !== undefined) {
       customVariable['visitor.assignmentsHistory'] = `${this.visitorAssignmentHistory}`
     }
-    if (this.visitorFlags) {
+    if (this.visitorFlags !== undefined) {
       customVariable['visitor.flags'] = `${this.visitorFlags}`
     }
     if (this.visitorIsAuthenticated !== undefined) {
       customVariable['visitor.isAuthenticated'] = `${this.visitorIsAuthenticated}`
     }
-    if (this.flagKey) {
+
+    if (this.visitorInitialCampaigns !== undefined) {
+      customVariable['visitor.initialCampaigns'] = JSON.stringify(this.visitorInitialCampaigns)
+    }
+
+    if (this.visitorInitialFlagsData !== undefined) {
+      customVariable['visitor.initialFlagsData'] = JSON.stringify(Array.isArray(this.visitorInitialFlagsData) ? this.visitorInitialFlagsData : Array.from(this.visitorInitialFlagsData))
+    }
+
+    if (this.flagKey !== undefined) {
       customVariable['flag.key'] = `${this.flagKey}`
     }
-    if (this.flagValue) {
+    if (this.flagValue !== undefined) {
       customVariable['flag.value'] = `${this.flagValue}`
     }
-    if (this.flagDefault) {
+    if (this.flagDefault !== undefined) {
       customVariable['flag.default'] = `${this.flagDefault}`
     }
-    if (this.flagMetadataCampaignId) {
+    if (this.flagMetadataCampaignId !== undefined) {
       customVariable['flag.metadata.campaignId'] = `${this.flagMetadataCampaignId}`
     }
-    if (this.flagMetadataVariationGroupId) {
+    if (this.flagMetadataVariationGroupId !== undefined) {
       customVariable['flag.metadata.variationGroupId'] = `${this.flagMetadataVariationGroupId}`
     }
-    if (this.flagMetadataVariationId) {
+    if (this.flagMetadataVariationId !== undefined) {
       customVariable['flag.metadata.variationId'] = `${this.flagMetadataVariationId}`
     }
-    if (this.flagMetadataCampaignSlug) {
+    if (this.flagMetadataCampaignSlug !== undefined) {
       customVariable['flag.metadata.campaignSlug'] = `${this.flagMetadataCampaignSlug}`
     }
-    if (this.flagMetadataCampaignType) {
+    if (this.flagMetadataCampaignType !== undefined) {
       customVariable['flag.metadata.campaignType'] = `${this.flagMetadataCampaignType}`
     }
     apiKeys.cv = customVariable
