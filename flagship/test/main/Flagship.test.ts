@@ -9,7 +9,6 @@ import { Flagship } from '../../src/main/Flagship'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { sleep } from '../../src/utils/utils'
 import { Visitor } from '../../src/visitor/Visitor'
-import { Mock } from 'jest-mock'
 import { DefaultVisitorCache } from '../../src/cache/DefaultVisitorCache'
 import { DefaultHitCache } from '../../src/cache/DefaultHitCache'
 import { EdgeConfig } from '../../src/config/EdgeConfig'
@@ -27,13 +26,13 @@ jest.mock('../../src/decision/ApiManager', () => {
     })
   }
 })
-const startBatchingLoop: Mock<Promise<void>, []> = jest.fn()
+const startBatchingLoop = jest.fn<()=>Promise<void>>()
 startBatchingLoop.mockResolvedValue()
-const addHit: Mock<Promise<void>, []> = jest.fn()
+const addHit = jest.fn<()=>Promise<void>>()
 
-const stopBatchingLoop:Mock<Promise<void>, []> = jest.fn()
+const stopBatchingLoop = jest.fn<()=>Promise<void>>()
 
-const sendBatch:Mock<Promise<void>, []> = jest.fn()
+const sendBatch = jest.fn<()=>Promise<void>>()
 
 addHit.mockResolvedValue()
 

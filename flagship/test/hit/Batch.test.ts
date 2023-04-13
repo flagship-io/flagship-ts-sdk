@@ -2,11 +2,10 @@ import { expect, it, describe, beforeAll, afterAll, jest } from '@jest/globals'
 import { SDK_APP, DS_API_ITEM, CUSTOMER_ENV_ID_API_ITEM } from '../../src/enum'
 import { Page, Screen } from '../../src/hit'
 import { Batch, ERROR_MESSAGE } from '../../src/hit/Batch'
-import { Mock } from 'jest-mock'
 
 describe('test hit Batch', () => {
   const methodNow = Date.now
-  const mockNow:Mock<number, []> = jest.fn()
+  const mockNow = jest.fn<typeof Date.now >()
 
   const visitorId = 'visitorIds'
   beforeAll(() => {

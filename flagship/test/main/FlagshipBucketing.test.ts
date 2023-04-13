@@ -3,7 +3,6 @@ import { Flagship, DecisionMode, Visitor } from '../../src'
 import { IFlagshipConfig } from '../../src/config'
 import { MurmurHash } from '../../src/utils/MurmurHash'
 import { HttpClient } from '../../src/utils/HttpClient'
-import { Mock } from 'jest-mock'
 
 const startPolling = jest.fn()
 const stopPolling = jest.fn()
@@ -17,13 +16,13 @@ jest.mock('../../src/decision/BucketingManager', () => {
   }
 })
 
-const startBatchingLoop: Mock<Promise<void>, []> = jest.fn()
+const startBatchingLoop = jest.fn<()=>Promise<void>>()
 startBatchingLoop.mockResolvedValue()
-const addHit: Mock<Promise<void>, []> = jest.fn()
+const addHit = jest.fn<()=>Promise<void>>()
 
 addHit.mockResolvedValue()
 
-const stopBatchingLoop:Mock<Promise<void>, []> = jest.fn()
+const stopBatchingLoop = jest.fn<()=>Promise<void>>()
 
 jest.mock('../../src/api/TrackingManager', () => {
   return {

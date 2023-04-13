@@ -1,7 +1,6 @@
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { FLAGSHIP_SDK, LogLevel } from '../../src/enum/index'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { Mock } from 'jest-mock'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getTwoDigit = (value: any) => {
@@ -15,7 +14,7 @@ const getOut = (level: LogLevel, message: string, tag: string) => {
 }
 describe('test FlagshipLogManager', () => {
   const methodNow = Date.now
-  const mockNow:Mock<number, []> = jest.fn()
+  const mockNow = jest.fn<typeof Date.now >()
   beforeAll(() => {
     Date.now = mockNow
     mockNow.mockReturnValue(1)

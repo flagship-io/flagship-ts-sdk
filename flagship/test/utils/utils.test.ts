@@ -22,7 +22,7 @@ describe('test logError function', () => {
   const debugMethod = jest.spyOn(logManager, 'debug')
   const warningMethod = jest.spyOn(logManager, 'warning')
 
-  const onLog = jest.fn<void, [level: LogLevel, tag: string, message: string]>()
+  const onLog = jest.fn<(level: LogLevel, tag: string, message: string)=>void>()
   config.onLog = onLog
 
   config.logManager = logManager
