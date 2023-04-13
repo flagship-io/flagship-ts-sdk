@@ -32,4 +32,13 @@ export interface BucketingDTO {
         slug?:string|null
         variationGroups:Array<VariationGroupDTO>
     }>
+    accountSettings:{
+        enabledXPC: true
+        troubleshooting?:{
+            startDate: string
+            endDate: string
+            traffic: number
+            timezone: string,
+           }
+    }
 }

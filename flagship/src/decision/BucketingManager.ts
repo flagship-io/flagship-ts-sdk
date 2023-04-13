@@ -141,6 +141,18 @@ export class BucketingManager extends DecisionManager {
     if (!this._bucketingContent) {
       return null
     }
+
+    const troubleshooting = this._bucketingContent?.accountSettings?.troubleshooting
+    this.troubleshooting = undefined
+    if (troubleshooting) {
+      this.troubleshooting = {
+        startDate: new Date(troubleshooting.startDate),
+        endDate: new Date(troubleshooting.endDate),
+        timezone: troubleshooting.timezone,
+        traffic: troubleshooting.traffic
+      }
+    }
+
     if (this._bucketingContent.panic) {
       this.panic = true
       return []
