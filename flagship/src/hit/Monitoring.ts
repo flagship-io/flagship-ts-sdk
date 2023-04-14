@@ -25,6 +25,7 @@ export interface IMonitoring extends IHitAbstract{
     subComponent: string
     message: string
     instanceId?: string
+    visitorUniqueId?: string
 
     stackType?: string
     stackName?: string
@@ -50,9 +51,10 @@ export interface IMonitoring extends IHitAbstract{
 
     httpRequestUrl?:string
     httpRequestMethod?:string
-    httpRequestHeaders?: string
+    httpRequestHeaders?:string
     httpRequestBody?:string
     httpRequestDetails?:string
+    httRequestTime?:number
 
     httpResponseUrl?:string
     httpResponseMethod?: string
@@ -67,19 +69,23 @@ export interface IMonitoring extends IHitAbstract{
     visitorConsent?: boolean
     visitorAssignmentHistory?: string
     visitorFlags?: string
+    visitorCampaigns?: CampaignDTO[] | null
+    visitorCachedCampaigns?: CampaignDTO[] | null
     visitorIsAuthenticated?:boolean
     visitorInitialCampaigns?:CampaignDTO[]
     visitorInitialFlagsData? : Map<string, FlagDTO>|FlagDTO[]
 
     flagKey?: string
     flagValue?: string
-    flagDefault?: string
+    flagDefault?: unknown
 
     flagMetadataCampaignId?:string
     flagMetadataVariationGroupId?: string
     flagMetadataVariationId?: string
     flagMetadataCampaignSlug?: string
     flagMetadataCampaignType?: string
+
+    hitContent?: Record<string, unknown>
 
   }
 
@@ -126,7 +132,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
   private _visitorIsAuthenticated? : boolean
   private _flagKey? : string
   private _flagValue? : string
-  private _flagDefault? : string
+  private _flagDefault? : unknown
   private _flagMetadataCampaignId? : string
   private _flagMetadataVariationGroupId? : string
   private _flagMetadataVariationId? : string
@@ -140,6 +146,42 @@ export class Monitoring extends HitAbstract implements IMonitoring {
   private _instanceId? : string
   private _visitorInitialCampaigns? : CampaignDTO[]
   private _visitorInitialFlagsData? : Map<string, FlagDTO>|FlagDTO[]
+  private _visitorCampaign : CampaignDTO[]|null|undefined
+  private _httRequestTime? : number
+  private _hitContent? : Record<string, unknown>|undefined
+  private _visitorUniqueId : string|undefined
+
+  public get visitorUniqueId () : string|undefined {
+    return this._visitorUniqueId
+  }
+
+  public set visitorUniqueId (v : string|undefined) {
+    this._visitorUniqueId = v
+  }
+
+  public get hitContent () : Record<string, unknown>|undefined {
+    return this._hitContent
+  }
+
+  public set hitContent (v : Record<string, unknown>|undefined) {
+    this._hitContent = v
+  }
+
+  public get httRequestTime () : number|undefined {
+    return this._httRequestTime
+  }
+
+  public set httRequestTime (v : number|undefined) {
+    this._httRequestTime = v
+  }
+
+  public get visitorCampaigns () : CampaignDTO[]|null|undefined {
+    return this._visitorCampaign
+  }
+
+  public set visitorCampaigns (v : CampaignDTO[]|null|undefined) {
+    this._visitorCampaign = v
+  }
 
   public get visitorInitialFlagsData () : Map<string, FlagDTO>|FlagDTO[]|undefined {
     return this._visitorInitialFlagsData
@@ -245,11 +287,11 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     this._flagMetadataCampaignId = v
   }
 
-  public get flagDefault () : string|undefined {
+  public get flagDefault () : unknown|undefined {
     return this._flagDefault
   }
 
-  public set flagDefault (v : string|undefined) {
+  public set flagDefault (v : unknown|undefined) {
     this._flagDefault = v
   }
 
@@ -617,7 +659,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       httpResponseUrl, httpResponseMethod, httpResponseHeaders, httpResponseCode, httpResponseBody, httpResponseDetails, visitorStatus, visitorInstanceType, visitorContext,
       visitorConsent, visitorAssignmentHistory, visitorFlags, visitorIsAuthenticated, config, flagKey, flagValue, flagDefault,
       flagMetadataCampaignId, flagMetadataVariationGroupId, flagMetadataVariationId, flagMetadataCampaignSlug, flagMetadataCampaignType, sdkConfigFetchNow, sdkConfigEnableClientCache,
-      sdkConfigInitialBucketing, sdkConfigDecisionApiUrl, sdkConfigHitDeduplicationTime, instanceId
+      sdkConfigInitialBucketing, sdkConfigDecisionApiUrl, sdkConfigHitDeduplicationTime, instanceId, hitContent, visitorUniqueId
     } = param
     this.config = config
     this.logVersion = logVersion || '1'
@@ -675,6 +717,8 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     this.flagMetadataVariationId = flagMetadataVariationId
     this.flagMetadataCampaignSlug = flagMetadataCampaignSlug
     this.flagMetadataCampaignType = flagMetadataCampaignType
+    this.hitContent = hitContent
+    this.visitorUniqueId = visitorUniqueId
     this.ds = SDK_APP
   }
 
@@ -699,7 +743,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       'stack.version': `${this.stackVersion}`
     }
 
-    if (this.instanceId) {
+    if (this.instanceId !== undefined) {
       customVariable.instanceId = this.instanceId
     }
 
@@ -711,6 +755,9 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       customVariable.envId = `${this.envId}`
     }
 
+    if (this.visitorUniqueId !== undefined) {
+      customVariable['visitor.uniqueId'] = this.visitorUniqueId
+    }
     if (this.stackOriginName !== undefined) {
       customVariable['stack.origin.name'] = `${this.stackOriginName}`
     }
@@ -796,6 +843,9 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     if (this.httpResponseDetails !== undefined) {
       customVariable['http.response.details'] = `${this.httpResponseDetails}`
     }
+    if (this.httRequestTime !== undefined) {
+      customVariable['http.response.time'] = `${this.httRequestTime}`
+    }
     if (this.visitorStatus !== undefined) {
       customVariable['visitor.status'] = `${this.visitorStatus}`
     }
@@ -826,6 +876,10 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       customVariable['visitor.initialFlagsData'] = JSON.stringify(Array.isArray(this.visitorInitialFlagsData) ? this.visitorInitialFlagsData : Array.from(this.visitorInitialFlagsData))
     }
 
+    if (this.visitorCampaigns !== undefined) {
+      customVariable['visitor.campaigns'] = JSON.stringify(this.visitorCampaigns)
+    }
+
     if (this.flagKey !== undefined) {
       customVariable['flag.key'] = `${this.flagKey}`
     }
@@ -850,6 +904,10 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     if (this.flagMetadataCampaignType !== undefined) {
       customVariable['flag.metadata.campaignType'] = `${this.flagMetadataCampaignType}`
     }
+    if (this.hitContent !== undefined) {
+      customVariable['hit.content'] = JSON.stringify(this.hitContent)
+    }
+
     apiKeys.cv = customVariable
     return apiKeys
   }
