@@ -6,6 +6,7 @@ import { DefaultStrategy } from './DefaultStrategy'
 import { HitAbstract, HitShape } from '../hit/index'
 import { BatchDTO } from '../hit/Batch'
 import { FlagMetadata } from '../flag/FlagMetadata'
+import { Monitoring } from '../hit/Monitoring'
 
 export class NotReadyStrategy extends DefaultStrategy {
   async synchronizeModifications (): Promise<void> {
@@ -84,6 +85,12 @@ export class NotReadyStrategy extends DefaultStrategy {
   getFlagMetadata ():IFlagMetadata {
     this.log('flag.metadata')
     return FlagMetadata.Empty()
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public sendMonitoringHit (_hit: Monitoring): Promise<void> {
+    this.log('sendMonitoringHit')
+    return Promise.resolve()
   }
 
   private log (methodName:string) {

@@ -6,6 +6,7 @@ import { DefaultStrategy } from './DefaultStrategy'
 import { HitAbstract, HitShape } from '../hit/index'
 import { BatchDTO } from '../hit/Batch'
 import { FlagMetadata } from '../flag/FlagMetadata'
+import { Monitoring } from '../hit/Monitoring'
 
 export class PanicStrategy extends DefaultStrategy {
   setConsent (hasConsented:boolean):void {
@@ -96,6 +97,12 @@ export class PanicStrategy extends DefaultStrategy {
   getFlagMetadata ():IFlagMetadata {
     this.log('flag.metadata')
     return FlagMetadata.Empty()
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public sendMonitoringHit (_hit: Monitoring): Promise<void> {
+    this.log('sendMonitoringHit')
+    return Promise.resolve()
   }
 
   private log (methodName:string) {
