@@ -7,9 +7,10 @@ import { IConfigManager, IFlagshipConfig } from '../config/index'
 import { CampaignDTO } from '../decision/api/models'
 import { IDecisionManager } from '../decision/IDecisionManager'
 import { logDebugSprintf, logError, logInfo, sprintf } from '../utils/utils'
-import { CONSENT_CHANGED, FS_CONSENT, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index'
+import { CONSENT_CHANGED, FS_CONSENT, LogLevel, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index'
 import { BatchDTO } from '../hit/Batch'
 import { ITrackingManager } from '../api/ITrackingManager'
+import { Monitoring } from '../hit/Monitoring'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheDTO'
@@ -77,6 +78,19 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     consentHit.config = this.config
 
     this.trackingManager.addHit(consentHit)
+
+    const monitoring = new Monitoring({
+      type: 'TROUBLESHOOTING',
+      subComponent: 'VISITOR-SET-CONSENT',
+      logLevel: LogLevel.INFO,
+      message: 'VISITOR-SET-CONSENT',
+      visitorId: this.visitor.visitorId,
+      anonymousId: this.visitor.anonymousId,
+      config: this.config,
+      visitorConsent: hasConsented
+    })
+
+    this.sendMonitoringHit(monitoring)
 
     logDebugSprintf(this.config, PROCESS_SET_CONSENT, CONSENT_CHANGED, this.visitor.visitorId, hasConsented)
   }
@@ -250,4 +264,8 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     abstract visitorExposed<T>(param:{key:string, flag?:FlagDTO, defaultValue:T}):Promise<void>
     abstract getFlagValue<T>(param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}):T
     abstract getFlagMetadata(param:{metadata:IFlagMetadata, key?:string, hasSameType:boolean}):IFlagMetadata
+
+    public async sendMonitoringHit (hit: Monitoring) {
+      await this.trackingManager.addMonitoringHit(hit)
+    }
 }
