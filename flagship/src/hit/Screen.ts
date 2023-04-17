@@ -21,7 +21,7 @@ export class Screen extends HitAbstract implements IScreen {
     this._documentLocation = v
   }
 
-  public constructor (param: Omit<IScreen, 'type'|'createdAt'>) {
+  public constructor (param: Omit<IScreen, 'type'|'createdAt'|'visitorInstanceId'|'traffic'>) {
     super({
       type: HitType.SCREEN_VIEW,
       userIp: param.userIp,
