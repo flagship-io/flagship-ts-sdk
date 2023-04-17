@@ -1,14 +1,21 @@
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
-import { BASE_API_URL, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_EVENT_URL, HIT_SENT_SUCCESS, SDK_INFO, SEND_ACTIVATE, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../enum/index'
+import { ADD_MONITORING_HIT, BASE_API_URL, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_EVENT_URL, HIT_SENT_SUCCESS, LogLevel, MONITORING_HIT_ADDED_IN_QUEUE, SDK_INFO, SEND_ACTIVATE, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../enum/index'
 import { ActivateBatch } from '../hit/ActivateBatch'
 import { Batch } from '../hit/Batch'
 import { HitAbstract, Event } from '../hit/index'
-import { errorFormat, logDebug, logError, sprintf } from '../utils/utils'
-import { BatchingCachingStrategyAbstract, SendActivate } from './BatchingCachingStrategyAbstract'
+import { Monitoring } from '../hit/Monitoring'
+import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
+import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
+import { SendActivate } from './types'
 
 export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbstract {
   async addHitInPoolQueue (hit: HitAbstract) {
     this._hitsPoolQueue.set(hit.key, hit)
+  }
+
+  public async addMonitoringHit (hit: Monitoring): Promise<void> {
+    this._monitoringPoolQueue.set(hit.key, hit)
+    logDebug(this.config, sprintf(MONITORING_HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_MONITORING_HIT)
   }
 
   async sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate) {
@@ -28,8 +35,26 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
     const requestBody = activateBatch.toApiKeys()
     const url = BASE_API_URL + URL_ACTIVATE_MODIFICATION
     const now = Date.now()
+    const httpInstanceId = uuidV4()
     try {
-      await this._httpClient.postAsync(url, {
+      const monitoringHttpRequest = new Monitoring({
+        type: 'TROUBLESHOOTING',
+        subComponent: 'SEND-ACTIVATE-HIT-ROUTE-REQUEST',
+        logLevel: LogLevel.INFO,
+        message: 'SEND-ACTIVATE-HIT-ROUTE-REQUEST',
+        visitorId: `${this._flagshipInstanceId}`,
+        traffic: 0,
+        config: this.config,
+        httpInstanceId,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url
+      })
+
+      this.addMonitoringHit(monitoringHttpRequest)
+
+      const response = await this._httpClient.postAsync(url, {
         headers,
         body: requestBody,
         timeout: this.config.timeout
@@ -46,6 +71,25 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })), SEND_ACTIVATE)
 
+      const monitoringHttpResponse = new Monitoring({
+        type: 'TROUBLESHOOTING',
+        subComponent: 'SEND-ACTIVATE-HIT-ROUTE-RESPONSE',
+        logLevel: LogLevel.INFO,
+        message: 'SEND-ACTIVATE-HIT-ROUTE-RESPONSE',
+        visitorId: `${this._flagshipInstanceId}`,
+        traffic: 0,
+        config: this.config,
+        httpInstanceId,
+        httpResponseBody: response?.body,
+        httpResponseHeaders: response?.headers,
+        httpResponseMethod: 'POST',
+        httpResponseUrl: url,
+        httpResponseCode: response?.status,
+        httpResponseTime: Date.now() - now
+      })
+
+      this.addMonitoringHit(monitoringHttpResponse)
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       activateBatch.hits.forEach(item => {
@@ -59,6 +103,27 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       }), SEND_ACTIVATE)
+
+      const monitoringHttpResponse = new Monitoring({
+        type: 'TROUBLESHOOTING',
+        subComponent: 'SEND-ACTIVATE-HIT-ROUTE-ERROR',
+        logLevel: LogLevel.ERROR,
+        message: 'SEND-ACTIVATE-HIT-ROUTE-ERROR',
+        visitorId: `${this._flagshipInstanceId}`,
+        traffic: 0,
+        config: this.config,
+        httpInstanceId,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseMethod: 'POST',
+        httpResponseUrl: url,
+        httpResponseCode: error?.statusCode,
+        httpResponseTime: Date.now() - now
+      })
+
+      this.addMonitoringHit(monitoringHttpResponse)
     }
   }
 
@@ -130,17 +195,56 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
 
     const requestBody = batch.toApiKeys()
     const now = Date.now()
+    const httpInstanceId = uuidV4()
     try {
-      await this._httpClient.postAsync(HIT_EVENT_URL, {
+      const monitoringHttpRequest = new Monitoring({
+        type: 'TROUBLESHOOTING',
+        subComponent: 'SEND-BATCH-HIT-ROUTE-REQUEST',
+        logLevel: LogLevel.INFO,
+        message: 'SEND-BATCH-HIT-ROUTE-REQUEST',
+        visitorId: `${this._flagshipInstanceId}`,
+        traffic: 0,
+        config: this.config,
+        httpInstanceId,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: HIT_EVENT_URL
+      })
+
+      this.addMonitoringHit(monitoringHttpRequest)
+
+      const response = await this._httpClient.postAsync(HIT_EVENT_URL, {
         headers,
         body: requestBody,
         timeout: this.config.timeout
       })
+
       logDebug(this.config, sprintf(BATCH_SENT_SUCCESS, JSON.stringify({
         ...requestBody,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })), SEND_BATCH)
+
+      const monitoringHttpResponse = new Monitoring({
+        type: 'TROUBLESHOOTING',
+        subComponent: 'SEND-BATCH-HIT-ROUTE-RESPONSE',
+        logLevel: LogLevel.INFO,
+        message: 'SEND-BATCH-HIT-ROUTE-RESPONSE',
+        visitorId: `${this._flagshipInstanceId}`,
+        traffic: 0,
+        config: this.config,
+        httpInstanceId,
+        httpResponseBody: response?.body,
+        httpResponseHeaders: response?.headers,
+        httpResponseMethod: 'POST',
+        httpResponseUrl: HIT_EVENT_URL,
+        httpResponseCode: response?.status,
+        httpResponseTime: Date.now() - now
+      })
+
+      this.addMonitoringHit(monitoringHttpResponse)
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       batch.hits.forEach((hit) => {
@@ -153,6 +257,27 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       }), SEND_BATCH)
+
+      const monitoringHttpResponse = new Monitoring({
+        type: 'TROUBLESHOOTING',
+        subComponent: 'SEND-BATCH-HIT-ROUTE-RESPONSE-ERROR',
+        logLevel: LogLevel.ERROR,
+        message: 'SEND-BATCH-HIT-ROUTE-RESPONSE-ERROR',
+        visitorId: `${this._flagshipInstanceId}`,
+        traffic: 0,
+        config: this.config,
+        httpInstanceId,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseMethod: 'POST',
+        httpResponseUrl: HIT_EVENT_URL,
+        httpResponseCode: error?.statusCode,
+        httpResponseTime: Date.now() - now
+      })
+
+      this.addMonitoringHit(monitoringHttpResponse)
     }
     const mergedQueue = new Map<string, HitAbstract>([...this._hitsPoolQueue, ...this._activatePoolQueue])
     await this.flushAllHits()
