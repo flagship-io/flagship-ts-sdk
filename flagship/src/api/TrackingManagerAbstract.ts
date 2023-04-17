@@ -29,6 +29,11 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   protected _intervalID:any
   protected _isPooling = false
   private _troubleshooting? : Troubleshooting | 'started'
+  private _flagshipInstanceId?: string
+
+  public get flagshipInstanceId (): string|undefined {
+    return this._flagshipInstanceId
+  }
 
   public get troubleshooting () : Troubleshooting|undefined| 'started' {
     return this._troubleshooting
@@ -38,7 +43,8 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     this._troubleshooting = v
   }
 
-  constructor (httpClient: IHttpClient, config: IFlagshipConfig) {
+  constructor (httpClient: IHttpClient, config: IFlagshipConfig, flagshipInstanceId?:string) {
+    this._flagshipInstanceId = flagshipInstanceId
     this.troubleshooting = 'started'
     this._hitsPoolQueue = new Map<string, HitAbstract>()
     this._activatePoolQueue = new Map<string, Activate>()
@@ -53,13 +59,34 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     let strategy:BatchingCachingStrategyAbstract
     switch (this.config.trackingMangerConfig?.cacheStrategy) {
       case CacheStrategy.PERIODIC_CACHING:
-        strategy = new BatchingPeriodicCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue, this._activatePoolQueue, this._monitoringPoolQueue)
+        strategy = new BatchingPeriodicCachingStrategy({
+          config: this.config,
+          httpClient: this.httpClient,
+          hitsPoolQueue: this._hitsPoolQueue,
+          activatePoolQueue: this._activatePoolQueue,
+          monitoringPoolQueue: this._monitoringPoolQueue,
+          flagshipInstanceId: this.flagshipInstanceId
+        })
         break
       case CacheStrategy.CONTINUOUS_CACHING:
-        strategy = new BatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue, this._activatePoolQueue, this._monitoringPoolQueue)
+        strategy = new BatchingContinuousCachingStrategy({
+          config: this.config,
+          httpClient: this.httpClient,
+          hitsPoolQueue: this._hitsPoolQueue,
+          activatePoolQueue: this._activatePoolQueue,
+          monitoringPoolQueue: this._monitoringPoolQueue,
+          flagshipInstanceId: this.flagshipInstanceId
+        })
         break
       default:
-        strategy = new NoBatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue, this._activatePoolQueue, this._monitoringPoolQueue)
+        strategy = new NoBatchingContinuousCachingStrategy({
+          config: this.config,
+          httpClient: this.httpClient,
+          hitsPoolQueue: this._hitsPoolQueue,
+          activatePoolQueue: this._activatePoolQueue,
+          monitoringPoolQueue: this._monitoringPoolQueue,
+          flagshipInstanceId: this.flagshipInstanceId
+        })
         break
     }
     return strategy
@@ -90,6 +117,10 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
       return
     }
 
+    if (this.troubleshooting.traffic < hit.traffic) {
+      return
+    }
+
     const now = new Date()
     const isStarted = now > this.troubleshooting.startDate
 
@@ -105,7 +136,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     }
 
     await this.strategy.sendMonitoringHit(hit)
-    await this.strategy.sendMonitoringQueue()
+    await this.strategy.sendMonitoringPoolQueue()
   }
 
   public async sendMonitoringQueue () : Promise<void> {
@@ -132,7 +163,8 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
       return
     }
 
-    await this.strategy.sendMonitoringQueue()
+    this.strategy.clearMonitoringPoolQueue(this.troubleshooting.traffic)
+    await this.strategy.sendMonitoringPoolQueue()
   }
 
   public startBatchingLoop (): void {
