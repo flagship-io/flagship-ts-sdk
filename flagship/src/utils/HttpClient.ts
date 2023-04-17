@@ -1,3 +1,4 @@
+import { HttpError } from './HttpError'
 import { REQUEST_TIME_OUT } from '../enum/index'
 import { fetch } from '../nodeDeps'
 
@@ -25,6 +26,10 @@ export class HttpClient implements IHttpClient {
     const applicationType = response.headers.get('Content-Type')
     const checkJson = applicationType === 'application/json'
     let body:Record<string, unknown>|undefined
+    const headers:Record<string, string> = {}
+    response.headers.forEach((value, key) => {
+      headers[key] = value
+    })
 
     if (checkJson && response.ok && response.status !== 204) {
       body = await response.json()
@@ -32,12 +37,9 @@ export class HttpClient implements IHttpClient {
 
     if (response.status >= 400) {
       const bodyString = await response.text()
-      throw new Error(bodyString || response.statusText)
+      throw new HttpError(response.status, bodyString || response.statusText, headers)
     }
-    const headers:Record<string, string> = {}
-    response.headers.forEach((value, key) => {
-      headers[key] = value
-    })
+
     return {
       status: response.status,
       body,
