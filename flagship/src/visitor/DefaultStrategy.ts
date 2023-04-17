@@ -144,6 +144,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       logLevel: LogLevel.INFO,
       message: 'VISITOR-CONTEXT-UPDATED',
       visitorId: this.visitor.visitorId,
+      visitorInstanceId: this.visitor.instanceId,
+      traffic: this.visitor.traffic,
       config: this.config,
       visitorContext: this.visitor.context
     })
@@ -314,6 +316,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         message: 'VISITOR-FETCH-CAMPAIGNS',
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
+        visitorInstanceId: this.visitor.instanceId,
+        traffic: this.visitor.traffic,
         config: this.config,
         visitorContext: this.visitor.context,
         visitorCampaigns: campaigns
@@ -341,6 +345,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
             message: 'VISITOR-FETCH-CACHED-CAMPAIGNS',
             visitorId: this.visitor.visitorId,
             anonymousId: this.visitor.anonymousId,
+            visitorInstanceId: this.visitor.instanceId,
+            traffic: this.visitor.traffic,
             config: this.config,
             visitorContext: this.visitor.context,
             visitorCachedCampaigns: campaigns
@@ -467,6 +473,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       message: 'FLAG-VISITOR-EXPOSED',
       visitorId: this.visitor.visitorId,
       anonymousId: this.visitor.anonymousId,
+      traffic: this.visitor.traffic,
       config: this.config,
       visitorContext: this.visitor.context,
       flagKey: flagDto.key,
@@ -529,11 +536,11 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       Item: HitType.ITEM,
       Event: HitType.EVENT
     }
-    const commonProperties: Omit<IHitAbstract, 'createdAt'| 'visitorId'|'anonymousId'> = {
+    const commonProperties: Omit<IHitAbstract, 'createdAt'| 'visitorId'|'anonymousId'|'traffic'> = {
       type: hitTypeToEnum[hit.type]
     }
 
-    const hitData: Omit<IHitAbstract, 'createdAt'| 'visitorId'|'anonymousId'> = { ...commonProperties, ...hit.data }
+    const hitData: Omit<IHitAbstract, 'createdAt'| 'visitorId'|'anonymousId'|'traffic'> = { ...commonProperties, ...hit.data }
 
     switch (commonProperties.type?.toUpperCase()) {
       case HitType.EVENT:
@@ -617,6 +624,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     hitInstance.ds = SDK_APP
     hitInstance.config = this.config
     hitInstance.anonymousId = this.visitor.anonymousId as string
+    hitInstance.visitorInstanceId = this.visitor.instanceId
+    hitInstance.traffic = this.visitor.traffic
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { createdAt, ...hitInstanceItem } = hitInstance.toObject()
@@ -705,6 +714,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       message: 'VISITOR-AUTHENTICATE',
       visitorId: this.visitor.visitorId,
       anonymousId: this.visitor.anonymousId,
+      traffic: this.visitor.traffic,
       config: this.config
     })
 
@@ -731,6 +741,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       message: 'VISITOR-UNAUTHENTICATE',
       visitorId: this.visitor.visitorId,
       anonymousId: this.visitor.anonymousId,
+      traffic: this.visitor.traffic,
       config: this.config
     })
 
@@ -803,6 +814,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       message: 'VISITOR-GET-FLAG-VALUE',
       visitorId: this.visitor.visitorId,
       anonymousId: this.visitor.anonymousId,
+      traffic: this.visitor.traffic,
       config: this.config,
       visitorContext: this.visitor.context,
       flagKey: key,

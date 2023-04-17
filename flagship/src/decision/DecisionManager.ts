@@ -3,9 +3,10 @@ import { IFlagshipConfig } from '../config/index'
 import { IHttpClient } from '../utils/HttpClient'
 import { CampaignDTO } from './api/models'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
-import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, PROCESS_FETCHING_FLAGS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
+import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, PROCESS_FETCHING_FLAGS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
 import { FlagDTO, Troubleshooting } from '../types'
-import { errorFormat, logDebug } from '../utils/utils'
+import { errorFormat, logDebug, uuidV4 } from '../utils/utils'
+import { Monitoring } from '../hit/Monitoring'
 
 export abstract class DecisionManager implements IDecisionManager {
   protected _config: IFlagshipConfig
@@ -88,6 +89,8 @@ export abstract class DecisionManager implements IDecisionManager {
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
+    const httpInstanceId = uuidV4()
+
     const requestBody = {
       visitorId: visitor.visitorId,
       anonymousId: visitor.anonymousId,
@@ -98,7 +101,28 @@ export abstract class DecisionManager implements IDecisionManager {
 
     const url = `${this.config.decisionApiUrl || BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
     const now = Date.now()
+
     try {
+      const monitoringHttpRequest = new Monitoring({
+        type: 'TROUBLESHOOTING',
+        subComponent: 'GET-CAMPAIGNS-ROUTE-REQUEST',
+        logLevel: LogLevel.INFO,
+        message: 'GET-CAMPAIGNS-ROUTE-REQUEST',
+        visitorId: visitor.visitorId,
+        anonymousId: visitor.anonymousId,
+        visitorInstanceId: visitor.instanceId,
+        traffic: visitor.traffic,
+        config: this.config,
+        visitorContext: visitor.context,
+        httpInstanceId,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url
+      })
+
+      visitor.sendMonitoringHit(monitoringHttpRequest)
+
       const response = await this._httpClient.postAsync(url, {
         headers,
         timeout: this.config.timeout,
@@ -113,9 +137,55 @@ export abstract class DecisionManager implements IDecisionManager {
 
       this.troubleshooting = response?.body?.extras?.troubleshooting
 
+      const monitoringHttpResponse = new Monitoring({
+        type: 'TROUBLESHOOTING',
+        subComponent: 'GET-CAMPAIGNS-ROUTE-RESPONSE',
+        logLevel: LogLevel.INFO,
+        message: 'GET-CAMPAIGNS-ROUTE-RESPONSE',
+        visitorId: visitor.visitorId,
+        anonymousId: visitor.anonymousId,
+        visitorInstanceId: visitor.instanceId,
+        traffic: visitor.traffic,
+        config: this.config,
+        visitorContext: visitor.context,
+        httpInstanceId,
+        httpResponseBody: response?.body,
+        httpResponseHeaders: response?.headers,
+        httpResponseMethod: 'POST',
+        httpResponseUrl: url,
+        httpResponseCode: response?.status,
+        httpResponseTime: Date.now() - now
+      })
+
+      visitor.sendMonitoringHit(monitoringHttpResponse)
+
       return campaigns
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
+      const monitoringHttpResponse = new Monitoring({
+        type: 'TROUBLESHOOTING',
+        subComponent: 'GET-CAMPAIGNS-ROUTE-RESPONSE-ERROR',
+        logLevel: LogLevel.INFO,
+        message: 'GET-CAMPAIGNS-ROUTE-RESPONSE-ERROR',
+        visitorId: visitor.visitorId,
+        anonymousId: visitor.anonymousId,
+        visitorInstanceId: visitor.instanceId,
+        traffic: visitor.traffic,
+        config: this.config,
+        visitorContext: visitor.context,
+        httpInstanceId,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseMethod: 'POST',
+        httpResponseUrl: url,
+        httpResponseCode: error?.statusCode,
+        httpResponseTime: Date.now() - now
+      })
+
+      visitor.sendMonitoringHit(monitoringHttpResponse)
+
       const errorMessage = errorFormat(error.message || error, {
         url,
         headers,

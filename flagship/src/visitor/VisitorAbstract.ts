@@ -16,6 +16,7 @@ import { PanicStrategy } from './PanicStrategy'
 import { NoConsentStrategy } from './NoConsentStrategy'
 import { cacheVisitor } from './VisitorCache'
 import { IFlag } from '../flag/Flags'
+import { Monitoring } from '../hit/Monitoring'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -28,6 +29,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   public deDuplicationCache: Record<string, number>
   protected _isCleaningDeDuplicationCache: boolean
   public visitorCache?: VisitorCacheDTO
+  private _instanceId : string
+  private _traffic : number
 
   constructor (param: NewVisitor & {
     visitorId?: string
@@ -36,6 +39,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   }) {
     const { visitorId, configManager, context, isAuthenticated, hasConsented, initialModifications, initialFlagsData, initialCampaigns } = param
     super()
+    this._instanceId = uuidV4()
+    this._traffic = Math.floor(Math.random() * 100 + 1)
     this._isCleaningDeDuplicationCache = false
     this.deDuplicationCache = {}
     this._context = {}
@@ -49,15 +54,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     this.campaigns = []
 
-    this.updateContext(context)
-
     this._anonymousId = isAuthenticated && visitorCache?.anonymousId ? visitorCache?.anonymousId : null
-    this.loadPredefinedContext()
-    logDebugSprintf(this.config, PROCESS_NEW_VISITOR, PREDEFINED_CONTEXT_LOADED, {
-      fs_client: SDK_INFO.name,
-      fs_version: SDK_INFO.version,
-      fs_users: this.visitorId
-    })
 
     if (!this._anonymousId && isAuthenticated && (this.config.decisionMode === DecisionMode.DECISION_API || this.config.decisionMode === DecisionMode.API)) {
       this._anonymousId = uuidV4()
@@ -65,11 +62,28 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     this.setConsent(hasConsented ?? true)
 
+    this.updateContext(context)
+
+    this.loadPredefinedContext()
+    logDebugSprintf(this.config, PROCESS_NEW_VISITOR, PREDEFINED_CONTEXT_LOADED, {
+      fs_client: SDK_INFO.name,
+      fs_version: SDK_INFO.version,
+      fs_users: this.visitorId
+    })
+
     this.updateCache()
     this.setInitialFlags(initialFlagsData || initialModifications)
     this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
 
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
+  }
+
+  public get traffic () : number {
+    return this._traffic
+  }
+
+  public get instanceId () : string {
+    return this._instanceId
   }
 
   protected generateVisitorId ():string {
@@ -233,6 +247,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     }
 
     return strategy
+  }
+
+  public async sendMonitoringHit (hit: Monitoring) {
+    await this.getStrategy().sendMonitoringHit(hit)
   }
 
   abstract updateContext(key: string, value: primitive):void

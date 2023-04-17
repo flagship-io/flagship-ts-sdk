@@ -84,8 +84,10 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       subComponent: 'VISITOR-SET-CONSENT',
       logLevel: LogLevel.INFO,
       message: 'VISITOR-SET-CONSENT',
+      traffic: this.visitor.traffic,
       visitorId: this.visitor.visitorId,
       anonymousId: this.visitor.anonymousId,
+      visitorInstanceId: this.visitor.instanceId,
       config: this.config,
       visitorConsent: hasConsented
     })
