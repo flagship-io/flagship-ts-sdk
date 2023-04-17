@@ -16,8 +16,10 @@ export class TrackingManager extends TrackingManagerAbstract {
       type: 'TROUBLESHOOTING',
       subComponent: 'VISITOR-SEND-HIT',
       logLevel: LogLevel.INFO,
+      traffic: hit.traffic,
       message: 'VISITOR-SEND-HIT',
       visitorId: hit.visitorId,
+      visitorInstanceId: hit.visitorInstanceId,
       anonymousId: hit.anonymousId,
       config: this.config,
       hitContent: hit.toApiKeys()
