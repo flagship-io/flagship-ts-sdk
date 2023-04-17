@@ -73,14 +73,16 @@ export class Flagship {
     }
 
     this._status = status
-    const statusChanged = this.getConfig().statusChangedCallback
+    const statusChanged = this.getConfig()?.statusChangedCallback
 
     logInfoSprintf(this._config, PROCESS_SDK_STATUS, SDK_STATUS_CHANGED, FlagshipStatus[status])
 
     const monitoringHit = new Monitoring({
       type: 'TROUBLESHOOTING',
       visitorId: this.instanceId,
+      flagshipInstanceId: this.instanceId,
       subComponent: 'SDK-STATUS-CHANGED',
+      traffic: 100,
       logLevel: LogLevel.INFO,
       message: 'SDK-INITIALIZATION',
       config: this.getConfig(),
@@ -92,12 +94,13 @@ export class Flagship {
     if (this.getConfig().decisionMode !== DecisionMode.BUCKETING_EDGE) {
       if (status === FlagshipStatus.READY) {
         this.configManager?.trackingManager?.startBatchingLoop()
-      } else {
+      }
+      if (status === FlagshipStatus.NOT_INITIALIZED) {
         this.configManager?.trackingManager?.stopBatchingLoop()
       }
     }
 
-    if (this.getConfig() && statusChanged) {
+    if (statusChanged) {
       statusChanged(status)
     }
   }
@@ -233,19 +236,18 @@ export class Flagship {
       localConfig.visitorCacheImplementation = new DefaultVisitorCache()
     }
 
-    let decisionManager = flagship.configManager?.decisionManager
+    const httpClient = new HttpClient()
+
+    const decisionManager = flagship.configManager?.decisionManager
 
     if (decisionManager instanceof BucketingManager && localConfig.decisionMode !== DecisionMode.BUCKETING_EDGE) {
       decisionManager.stopPolling()
     }
 
-    const httpClient = new HttpClient()
-
-    decisionManager = flagship.buildDecisionManager(flagship, localConfig as FlagshipConfig, httpClient)
-
     let trackingManager = flagship.configManager?.trackingManager
+
     if (!trackingManager) {
-      trackingManager = new TrackingManager(httpClient, localConfig)
+      trackingManager = new TrackingManager(httpClient, localConfig, flagship.instanceId)
     }
 
     flagship.configManager = new ConfigManager(
@@ -254,13 +256,15 @@ export class Flagship {
       trackingManager
     )
 
+    flagship.configManager.decisionManager = flagship.buildDecisionManager(flagship, localConfig as FlagshipConfig, httpClient)
+
     if (flagship._status === FlagshipStatus.STARTING) {
       flagship.setStatus(FlagshipStatus.READY)
     }
 
     logInfo(
       localConfig,
-      sprintf(SDK_STARTED_INFO, SDK_INFO.version),
+      sprintf(SDK_STARTED_INFO, SDK_INFO.version, FlagshipStatus[flagship._status]),
       PROCESS_INITIALIZATION
     )
 
@@ -270,6 +274,8 @@ export class Flagship {
       logLevel: LogLevel.INFO,
       message: 'SDK-INITIALIZATION',
       visitorId: flagship.instanceId,
+      flagshipInstanceId: flagship.instanceId,
+      traffic: 100,
       config: localConfig,
       sdkConfigMode: localConfig.decisionMode,
       sdkConfigTimeout: localConfig.timeout?.toString(),
@@ -397,8 +403,10 @@ export class Flagship {
       subComponent: 'VISITOR-CREATED',
       logLevel: LogLevel.INFO,
       message: 'VISITOR-CREATED',
-      instanceId: this.getInstance().instanceId,
+      flagshipInstanceId: this.getInstance().instanceId,
       visitorId: visitor.visitorId,
+      visitorInstanceId: visitorDelegate.instanceId,
+      traffic: visitorDelegate.traffic,
       config: this.getConfig(),
       visitorConsent: visitor.hasConsented,
       visitorIsAuthenticated: !!visitor.anonymousId,
