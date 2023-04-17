@@ -56,7 +56,7 @@ export const DEFAULT_HIT_CACHE_TIME_MS = 14400000
  * Message Info
  */
 
-export const SDK_STARTED_INFO = 'Flagship SDK (version: {0}) READY'
+export const SDK_STARTED_INFO = 'Flagship SDK (version: {0}) {1}'
 export const FLAGSHIP_SDK = 'Flagship SDK'
 
 export const EMIT_READY = 'ready'
