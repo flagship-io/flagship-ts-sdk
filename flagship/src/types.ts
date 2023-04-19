@@ -139,3 +139,10 @@ export type Troubleshooting = {
   traffic: number
   timezone: string,
  }
+
+export type MonitoringData = {
+  instanceId: string,
+  lastInitializationTimestamp: string
+  initialCampaigns: CampaignDTO[] | undefined
+  initialFlagsData: Map<string, FlagDTO> | FlagDTO[] | undefined
+}
