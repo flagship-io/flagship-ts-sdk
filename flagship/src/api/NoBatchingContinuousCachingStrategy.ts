@@ -1,5 +1,5 @@
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
-import { HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, HIT_SENT_SUCCESS, SEND_HIT, FS_CONSENT, SDK_INFO, SEND_ACTIVATE, BASE_API_URL, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, URL_ACTIVATE_MODIFICATION, LogLevel, ADD_MONITORING_HIT, MONITORING_HIT_ADDED_IN_QUEUE } from '../enum/index'
+import { HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, HIT_SENT_SUCCESS, SEND_HIT, FS_CONSENT, SDK_INFO, SEND_ACTIVATE, BASE_API_URL, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, URL_ACTIVATE_MODIFICATION, LogLevel, MONITORING_HIT_ADDED_IN_QUEUE, ADD_MONITORING_HIT } from '../enum/index'
 import { Activate } from '../hit/Activate'
 import { ActivateBatch } from '../hit/ActivateBatch'
 import { HitAbstract, Event } from '../hit/index'
@@ -40,6 +40,10 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
   }
 
   public async addMonitoringHit (hit: Monitoring): Promise<void> {
+    if (!hit.key) {
+      const hitKey = `${hit.visitorId}:${uuidV4()}`
+      hit.key = hitKey
+    }
     await this.cacheHit(new Map<string, Monitoring>().set(hit.key, hit))
     logDebug(this.config, sprintf(MONITORING_HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_MONITORING_HIT)
   }
@@ -52,25 +56,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
     const requestBody = hit.toApiKeys()
 
     const now = Date.now()
-    const httpInstanceId = uuidV4()
     try {
-      const monitoringHttpRequest = new Monitoring({
-        type: 'TROUBLESHOOTING',
-        subComponent: 'SEND-HIT-ROUTE-REQUEST',
-        logLevel: LogLevel.INFO,
-        message: 'SEND-HIT-ROUTE-REQUEST',
-        visitorId: `${this._flagshipInstanceId}`,
-        traffic: 0,
-        config: this.config,
-        httpInstanceId,
-        httpRequestBody: requestBody,
-        httpRequestHeaders: headers,
-        httpRequestMethod: 'POST',
-        httpRequestUrl: HIT_EVENT_URL
-      })
-
-      this.sendMonitoringHit(monitoringHttpRequest)
-
       const response = await this._httpClient.postAsync(HIT_EVENT_URL, {
         headers,
         body: requestBody,
@@ -91,13 +77,15 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         visitorId: `${this._flagshipInstanceId}`,
         traffic: 0,
         config: this.config,
-        httpInstanceId,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: HIT_EVENT_URL,
         httpResponseBody: response?.body,
         httpResponseHeaders: response?.headers,
-        httpResponseMethod: 'POST',
-        httpResponseUrl: HIT_EVENT_URL,
         httpResponseCode: response?.status,
-        httpResponseTime: Date.now() - now
+        httpResponseTime: Date.now() - now,
+        batchTriggeredBy: BatchTriggeredBy.DirectHit
       })
 
       await this.sendMonitoringHit(monitoringHttpResponse)
@@ -124,18 +112,18 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         visitorId: `${this._flagshipInstanceId}`,
         traffic: 0,
         config: this.config,
-        httpInstanceId,
         httpRequestBody: requestBody,
         httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: HIT_EVENT_URL,
         httpResponseBody: error?.message,
         httpResponseHeaders: error?.headers,
-        httpResponseMethod: 'POST',
-        httpResponseUrl: HIT_EVENT_URL,
         httpResponseCode: error?.statusCode,
-        httpResponseTime: Date.now() - now
+        httpResponseTime: Date.now() - now,
+        batchTriggeredBy: BatchTriggeredBy.DirectHit
       })
 
-      this.sendMonitoringHit(monitoringHttpResponse)
+      await this.sendMonitoringHit(monitoringHttpResponse)
     }
   }
 
@@ -190,25 +178,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
 
     const url = BASE_API_URL + URL_ACTIVATE_MODIFICATION
     const now = Date.now()
-    const httpInstanceId = uuidV4()
     try {
-      const monitoringHttpRequest = new Monitoring({
-        type: 'TROUBLESHOOTING',
-        subComponent: 'SEND-ACTIVATE-HIT-ROUTE-REQUEST',
-        logLevel: LogLevel.INFO,
-        message: 'SEND-ACTIVATE-HIT-ROUTE-REQUEST',
-        visitorId: `${this._flagshipInstanceId}`,
-        traffic: 0,
-        config: this.config,
-        httpInstanceId,
-        httpRequestBody: requestBody,
-        httpRequestHeaders: headers,
-        httpRequestMethod: 'POST',
-        httpRequestUrl: url
-      })
-
-      this.sendMonitoringHit(monitoringHttpRequest)
-
       const response = await this._httpClient.postAsync(url, {
         headers,
         body: requestBody,
@@ -240,16 +210,18 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         visitorId: `${this._flagshipInstanceId}`,
         traffic: 0,
         config: this.config,
-        httpInstanceId,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
         httpResponseBody: response?.body,
         httpResponseHeaders: response?.headers,
-        httpResponseMethod: 'POST',
-        httpResponseUrl: url,
         httpResponseCode: response?.status,
-        httpResponseTime: Date.now() - now
+        httpResponseTime: Date.now() - now,
+        batchTriggeredBy
       })
 
-      this.sendMonitoringHit(monitoringHttpResponse)
+      await this.sendMonitoringHit(monitoringHttpResponse)
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
@@ -277,18 +249,20 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         visitorId: `${this._flagshipInstanceId}`,
         traffic: 0,
         config: this.config,
-        httpInstanceId,
         httpRequestBody: requestBody,
         httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
         httpResponseBody: error?.message,
         httpResponseHeaders: error?.headers,
         httpResponseMethod: 'POST',
         httpResponseUrl: url,
         httpResponseCode: error?.statusCode,
-        httpResponseTime: Date.now() - now
+        httpResponseTime: Date.now() - now,
+        batchTriggeredBy
       })
 
-      this.sendMonitoringHit(monitoringHttpResponse)
+      await this.sendMonitoringHit(monitoringHttpResponse)
     }
   }
 }
