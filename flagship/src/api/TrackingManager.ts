@@ -19,6 +19,7 @@ export class TrackingManager extends TrackingManagerAbstract {
       traffic: hit.traffic,
       message: 'VISITOR-SEND-HIT',
       visitorId: hit.visitorId,
+      flagshipInstanceId: hit.flagshipInstanceId,
       visitorInstanceId: hit.visitorInstanceId,
       anonymousId: hit.anonymousId,
       config: this.config,

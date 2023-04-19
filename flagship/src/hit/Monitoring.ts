@@ -1,5 +1,5 @@
 import { IFlagshipConfig } from '../config/index'
-import { LogLevel } from '../enum/index'
+import { CacheStrategy, LogLevel } from '../enum/index'
 import {
   CUSTOMER_ENV_ID_API_ITEM,
   DS_API_ITEM,
@@ -12,6 +12,7 @@ import { HitAbstract, IHitAbstract } from './HitAbstract'
 import { BucketingDTO } from '../decision/api/bucketingDTO'
 import { FlagDTO, primitive } from '../types'
 import { CampaignDTO } from '../mod'
+import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 
 export const ERROR_MESSAGE = 'event category and event action are required'
 
@@ -21,10 +22,12 @@ export interface IMonitoring extends IHitAbstract{
     accountId?:string
     envId?:string
     timestamp?:string
+    timeZone?: string
     component?: string
     subComponent: string
     message: string
-    flagshipInstanceId?: string
+    lastInitializationTimestamp?: string
+    lastBucketingTimestamp?: string
 
     stackType?: string
     stackName?: string
@@ -37,16 +40,16 @@ export interface IMonitoring extends IHitAbstract{
     sdkConfigCustomLogManager?: boolean
     sdkConfigCustomCacheManager?: boolean
     sdkConfigStatusListener?: boolean
-    sdkConfigTimeout?: string
-    sdkConfigPollingInterval?: string
+    sdkConfigTimeout?: number
+    sdkConfigPollingInterval?: number
     sdkConfigFetchNow?: boolean
     sdkConfigEnableClientCache?: boolean
     sdkConfigInitialBucketing?:BucketingDTO
     sdkConfigDecisionApiUrl?: string
-    sdkConfigHitDeduplicationTime?: string
-    sdkConfigTrackingManagerConfigStrategy?: string
-    sdkConfigTrackingManagerConfigBatchIntervals?: string
-    sdkConfigTrackingManagerConfigPoolMaxSize?: string
+    sdkConfigHitDeduplicationTime?: number
+    sdkConfigTrackingManagerConfigStrategy?: CacheStrategy
+    sdkConfigTrackingManagerConfigBatchIntervals?: number
+    sdkConfigTrackingManagerConfigPoolMaxSize?: number
 
     httpInstanceId?: string
     httpRequestUrl?:string
@@ -67,25 +70,31 @@ export interface IMonitoring extends IHitAbstract{
     visitorInstanceType?: string
     visitorContext?: Record<string, primitive>
     visitorConsent?: boolean
-    visitorAssignmentHistory?: string
-    visitorFlags?: string
+    visitorAssignmentHistory?: Record<string, string>
+    visitorFlags?: Record<string, unknown>
     visitorCampaigns?: CampaignDTO[] | null
-    visitorCachedCampaigns?: CampaignDTO[] | null
+    visitorCampaignFromCache?: CampaignDTO[] | null
     visitorIsAuthenticated?:boolean
     visitorInitialCampaigns?:CampaignDTO[]
     visitorInitialFlagsData? : Map<string, FlagDTO>|FlagDTO[]
 
+    contextKey?:string
+    contextValue?: unknown
+
     flagKey?: string
     flagValue?: string
     flagDefault?: unknown
+    visitorExposed?: boolean
 
     flagMetadataCampaignId?:string
     flagMetadataVariationGroupId?: string
     flagMetadataVariationId?: string
-    flagMetadataCampaignSlug?: string
+    flagMetadataCampaignSlug?: string|null
     flagMetadataCampaignType?: string
+    flagMetadataCampaignIsReference?: boolean
 
     hitContent?: Record<string, unknown>
+    batchTriggeredBy?: BatchTriggeredBy
 
   }
 
@@ -108,11 +117,11 @@ export class Monitoring extends HitAbstract implements IMonitoring {
   private _sdkConfigCustomLogManager? : boolean
   private _sdkConfigCustomCacheManager? : boolean
   private _sdkConfigStatusListener? : boolean
-  private _sdkConfigTimeout? : string
-  private _sdkConfigPollingTime? : string
-  private _sdkConfigTrackingManagerConfigStrategy? : string
-  private _sdkConfigTrackingManagerConfigBatchIntervals? : string
-  private _sdkConfigTrackingManagerConfigBatchLength? : string
+  private _sdkConfigTimeout? : number
+  private _sdkConfigPollingTime? : number
+  private _sdkConfigTrackingManagerConfigStrategy? : CacheStrategy
+  private _sdkConfigTrackingManagerConfigBatchIntervals? : number
+  private _sdkConfigTrackingManagerConfigBatchLength? : number
   private _httpRequestUrl? : string
   private _httpRequestMethod? : string
   private _httpRequestHeaders? : Record<string, unknown>
@@ -127,8 +136,8 @@ export class Monitoring extends HitAbstract implements IMonitoring {
   private _visitorInstanceType? : string
   private _visitorContext? : Record<string, primitive>
   private _visitorConsent? : boolean
-  private _visitorAssignmentHistory? : string
-  private _visitorFlags? : string
+  private _visitorAssignmentHistory? : Record<string, string>
+  private _visitorFlags? : Record<string, unknown>
   private _visitorIsAuthenticated? : boolean
   private _flagKey? : string
   private _flagValue? : string
@@ -136,20 +145,91 @@ export class Monitoring extends HitAbstract implements IMonitoring {
   private _flagMetadataCampaignId? : string
   private _flagMetadataVariationGroupId? : string
   private _flagMetadataVariationId? : string
-  private _flagMetadataCampaignSlug? : string
+  private _flagMetadataCampaignSlug? : string | null | undefined
   private _flagMetadataCampaignType? : string
   private _sdkConfigFetchNow? : boolean
   private _sdkConfigEnableClientCache? : boolean
   private _sdkConfigInitialBucketing? : BucketingDTO
   private _sdkConfigDecisionApiUrl? : string
-  private _sdkConfigHitDeduplicationTime? : string
-  private _flagshipInstanceId? : string
+  private _sdkConfigHitDeduplicationTime? : number
   private _visitorInitialCampaigns? : CampaignDTO[]
   private _visitorInitialFlagsData? : Map<string, FlagDTO>|FlagDTO[]
-  private _visitorCampaign : CampaignDTO[]|null|undefined
+  private _visitorCampaign? : CampaignDTO[]|null
   private _httRequestTime? : number
-  private _hitContent? : Record<string, unknown>|undefined
-  private _httpInstanceId : string|undefined
+  private _hitContent? : Record<string, unknown>
+  private _httpInstanceId? : string
+  private _lastInitializationTimestamp? : string
+  private _lastBucketingTimestamp? : string
+  private _batchTriggeredBy? : BatchTriggeredBy
+  private _visitorCampaignFromCache? : CampaignDTO[]|null
+  private _timeZone? : string
+  private _flagMetadataCampaignIsReference : boolean|undefined
+  private _contextKey? : string
+  private _contextValue? : unknown
+
+  public get contextValue () : unknown|undefined {
+    return this._contextValue
+  }
+
+  public set contextValue (v : unknown|undefined) {
+    this._contextValue = v
+  }
+
+  public get contextKey () : string|undefined {
+    return this._contextKey
+  }
+
+  public set contextKey (v : string|undefined) {
+    this._contextKey = v
+  }
+
+  public get flagMetadataCampaignIsReference () : boolean|undefined {
+    return this._flagMetadataCampaignIsReference
+  }
+
+  public set flagMetadataCampaignIsReference (v : boolean|undefined) {
+    this._flagMetadataCampaignIsReference = v
+  }
+
+  public get timeZone () : string|undefined {
+    return this._timeZone
+  }
+
+  public set timeZone (v : string|undefined) {
+    this._timeZone = v
+  }
+
+  public get visitorCampaignFromCache () : CampaignDTO[]|null|undefined {
+    return this._visitorCampaignFromCache
+  }
+
+  public set visitorCampaignFromCache (v : CampaignDTO[]|null|undefined) {
+    this._visitorCampaignFromCache = v
+  }
+
+  public get batchTriggeredBy () : BatchTriggeredBy|undefined {
+    return this._batchTriggeredBy
+  }
+
+  public set batchTriggeredBy (v : BatchTriggeredBy|undefined) {
+    this._batchTriggeredBy = v
+  }
+
+  public get lastBucketingTimestamp () : string|undefined {
+    return this._lastBucketingTimestamp
+  }
+
+  public set lastBucketingTimestamp (v : string|undefined) {
+    this._lastBucketingTimestamp = v
+  }
+
+  public get lastInitializationTimestamp () : string|undefined {
+    return this._lastInitializationTimestamp
+  }
+
+  public set lastInitializationTimestamp (v : string|undefined) {
+    this._lastInitializationTimestamp = v
+  }
 
   public get httpInstanceId () : string|undefined {
     return this._httpInstanceId
@@ -199,19 +279,11 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     this._visitorInitialCampaigns = v
   }
 
-  public get flagshipInstanceId () : string|undefined {
-    return this._flagshipInstanceId
-  }
-
-  public set flagshipInstanceId (v : string|undefined) {
-    this._flagshipInstanceId = v
-  }
-
-  public get sdkConfigHitDeduplicationTime () : string|undefined {
+  public get sdkConfigHitDeduplicationTime () : number|undefined {
     return this._sdkConfigHitDeduplicationTime
   }
 
-  public set sdkConfigHitDeduplicationTime (v : string|undefined) {
+  public set sdkConfigHitDeduplicationTime (v : number|undefined) {
     this._sdkConfigHitDeduplicationTime = v
   }
 
@@ -251,15 +323,15 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     return this._flagMetadataCampaignType
   }
 
-  public set flagMetadataCampaignType (v : string|undefined) {
+  public set flagMetadataCampaignType (v : string | undefined) {
     this._flagMetadataCampaignType = v
   }
 
-  public get flagMetadataCampaignSlug () : string|undefined {
+  public get flagMetadataCampaignSlug () : string | null | undefined {
     return this._flagMetadataCampaignSlug
   }
 
-  public set flagMetadataCampaignSlug (v : string|undefined) {
+  public set flagMetadataCampaignSlug (v : string | null | undefined) {
     this._flagMetadataCampaignSlug = v
   }
 
@@ -319,19 +391,19 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     this._visitorIsAuthenticated = v
   }
 
-  public get visitorFlags () : string|undefined {
+  public get visitorFlags () : Record<string, unknown>|undefined {
     return this._visitorFlags
   }
 
-  public set visitorFlags (v : string|undefined) {
+  public set visitorFlags (v : Record<string, unknown>|undefined) {
     this._visitorFlags = v
   }
 
-  public get visitorAssignmentHistory () : string|undefined {
+  public get visitorAssignmentHistory () : Record<string, string>|undefined {
     return this._visitorAssignmentHistory
   }
 
-  public set visitorAssignmentHistory (v : string|undefined) {
+  public set visitorAssignmentHistory (v : Record<string, string>|undefined) {
     this._visitorAssignmentHistory = v
   }
 
@@ -456,43 +528,43 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     this._httpRequestUrl = v
   }
 
-  public get sdkConfigTrackingManagerConfigPoolMaxSize () : string|undefined {
+  public get sdkConfigTrackingManagerConfigPoolMaxSize () : number|undefined {
     return this._sdkConfigTrackingManagerConfigBatchLength
   }
 
-  public set sdkConfigTrackingManagerConfigPoolMaxSize (v : string|undefined) {
+  public set sdkConfigTrackingManagerConfigPoolMaxSize (v : number|undefined) {
     this._sdkConfigTrackingManagerConfigBatchLength = v
   }
 
-  public get sdkConfigTrackingManagerConfigBatchIntervals () : string|undefined {
+  public get sdkConfigTrackingManagerConfigBatchIntervals () : number|undefined {
     return this._sdkConfigTrackingManagerConfigBatchIntervals
   }
 
-  public set sdkConfigTrackingManagerConfigBatchIntervals (v : string|undefined) {
+  public set sdkConfigTrackingManagerConfigBatchIntervals (v : number|undefined) {
     this._sdkConfigTrackingManagerConfigBatchIntervals = v
   }
 
-  public get sdkConfigTrackingManagerConfigStrategy () : string|undefined {
+  public get sdkConfigTrackingManagerConfigStrategy () : CacheStrategy|undefined {
     return this._sdkConfigTrackingManagerConfigStrategy
   }
 
-  public set sdkConfigTrackingManagerConfigStrategy (v : string|undefined) {
+  public set sdkConfigTrackingManagerConfigStrategy (v : CacheStrategy|undefined) {
     this._sdkConfigTrackingManagerConfigStrategy = v
   }
 
-  public get sdkConfigPollingInterval () : string|undefined {
+  public get sdkConfigPollingInterval () : number|undefined {
     return this._sdkConfigPollingTime
   }
 
-  public set sdkConfigPollingInterval (v : string|undefined) {
+  public set sdkConfigPollingInterval (v : number|undefined) {
     this._sdkConfigPollingTime = v
   }
 
-  public get sdkConfigTimeout () : string|undefined {
+  public get sdkConfigTimeout () : number|undefined {
     return this._sdkConfigTimeout
   }
 
-  public set sdkConfigTimeout (v : string|undefined) {
+  public set sdkConfigTimeout (v : number|undefined) {
     this._sdkConfigTimeout = v
   }
 
@@ -660,9 +732,22 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       httpResponseUrl, httpResponseMethod, httpResponseHeaders, httpResponseCode, httpResponseBody, httpResponseDetails, visitorStatus, visitorInstanceType, visitorContext,
       visitorConsent, visitorAssignmentHistory, visitorFlags, visitorIsAuthenticated, config, flagKey, flagValue, flagDefault,
       flagMetadataCampaignId, flagMetadataVariationGroupId, flagMetadataVariationId, flagMetadataCampaignSlug, flagMetadataCampaignType, sdkConfigFetchNow, sdkConfigEnableClientCache,
-      sdkConfigInitialBucketing, sdkConfigDecisionApiUrl, sdkConfigHitDeduplicationTime, flagshipInstanceId, hitContent, visitorInstanceId, traffic, httpInstanceId
+      sdkConfigInitialBucketing, sdkConfigDecisionApiUrl, sdkConfigHitDeduplicationTime, flagshipInstanceId, hitContent, visitorInstanceId, traffic, httpInstanceId,
+      lastInitializationTimestamp, lastBucketingTimestamp, batchTriggeredBy, visitorCampaigns, visitorCampaignFromCache, visitorInitialCampaigns,
+      visitorInitialFlagsData, flagMetadataCampaignIsReference, contextKey, contextValue
     } = param
     this.traffic = traffic
+    this.contextKey = contextKey
+    this.contextValue = contextValue
+    this.lastBucketingTimestamp = lastBucketingTimestamp
+    this.lastInitializationTimestamp = lastInitializationTimestamp
+    this.batchTriggeredBy = batchTriggeredBy
+    this.visitorCampaigns = visitorCampaigns
+    this.visitorAssignmentHistory = visitorAssignmentHistory
+    this.visitorInitialCampaigns = visitorInitialCampaigns
+    this.visitorInitialFlagsData = visitorInitialFlagsData
+    this.visitorCampaignFromCache = visitorCampaignFromCache
+    this.flagMetadataCampaignIsReference = flagMetadataCampaignIsReference
     this.config = config
     this.logVersion = logVersion || '1'
     this.logLevel = logLevel
@@ -670,6 +755,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     this.accountId = accountId
     this.envId = envId || config.envId
     this.timestamp = timestamp || new Date(Date.now()).toISOString()
+    this.timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
     this.component = component || `Flagship SDK ${SDK_INFO.name}`
     this.subComponent = subComponent
     this.message = message
@@ -735,16 +821,25 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       [T_API_ITEM]: this.type,
       cv: {}
     }
-    const customVariable:Record<string, string> = {
+    const customVariable:Record<string, unknown> = {
       logVersion: `${this.logVersion}`,
       LogLevel: `${LogLevel[this.logLevel]}`,
       timestamp: `${this.timestamp}`,
+      timeZone: `${this.timeZone}`,
       component: `${this.component}`,
       subComponents: `${this.subComponent}`,
       message: `${this.message}`,
       'stack.type': `${this.stackType}`,
       'stack.name': `${this.stackName}`,
       'stack.version': `${this.stackVersion}`
+    }
+
+    if (this.lastBucketingTimestamp !== undefined) {
+      customVariable.lastBucketingTimestamp = this.lastBucketingTimestamp
+    }
+
+    if (this.lastBucketingTimestamp !== undefined) {
+      customVariable.lastBucketingTimestamp = this.lastBucketingTimestamp
     }
 
     if (this.flagshipInstanceId !== undefined) {
@@ -790,7 +885,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       customVariable['sdk.config.pollingTime'] = `${this.sdkConfigPollingInterval}`
     }
     if (this.sdkConfigTrackingManagerConfigStrategy !== undefined) {
-      customVariable['sdk.config.trackingManager.config.strategy'] = `${this.sdkConfigTrackingManagerConfigStrategy}`
+      customVariable['sdk.config.trackingManager.config.strategy'] = CacheStrategy[this.sdkConfigTrackingManagerConfigStrategy]
     }
     if (this.sdkConfigTrackingManagerConfigBatchIntervals !== undefined) {
       customVariable['sdk.config.trackingManager.config.batchIntervals'] = `${this.sdkConfigTrackingManagerConfigBatchIntervals}`
@@ -805,7 +900,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       customVariable['sdk.config.trackingManager.config.enableClientCache'] = `${this.sdkConfigEnableClientCache}`
     }
     if (this.sdkConfigInitialBucketing !== undefined) {
-      customVariable['sdk.config.trackingManager.config.initialBucketing'] = JSON.stringify(this.sdkConfigInitialBucketing)
+      customVariable['sdk.config.trackingManager.config.initialBucketing'] = this.sdkConfigInitialBucketing
     }
     if (this.sdkConfigDecisionApiUrl !== undefined) {
       customVariable['sdk.config.trackingManager.config.decisionApiUrl'] = `${this.sdkConfigDecisionApiUrl}`
@@ -814,7 +909,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       customVariable['sdk.config.trackingManager.config.deduplicationTime'] = `${this.sdkConfigHitDeduplicationTime}`
     }
 
-    if (this.httpInstanceId) {
+    if (this.httpInstanceId !== undefined) {
       customVariable['http.instanceId'] = this.httpInstanceId
     }
     if (this.httpRequestUrl !== undefined) {
@@ -824,10 +919,10 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       customVariable['http.request.method'] = `${this.httpRequestMethod}`
     }
     if (this.httpRequestHeaders !== undefined) {
-      customVariable['http.request.headers'] = JSON.stringify(this.httpRequestHeaders)
+      customVariable['http.request.headers'] = this.httpRequestHeaders
     }
     if (this.httpRequestBody !== undefined) {
-      customVariable['http.request.body'] = JSON.stringify(this.httpRequestBody)
+      customVariable['http.request.body'] = this.httpRequestBody
     }
     if (this.httpRequestDetails !== undefined) {
       customVariable['http.request.details'] = `${this.httpRequestDetails}`
@@ -839,13 +934,13 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       customVariable['http.response.method'] = `${this.httpResponseMethod}`
     }
     if (this.httpResponseHeaders !== undefined) {
-      customVariable['http.response.headers'] = JSON.stringify(this.httpResponseHeaders)
+      customVariable['http.response.headers'] = this.httpResponseHeaders
     }
     if (this.httpResponseCode !== undefined) {
       customVariable['http.response.code'] = `${this.httpResponseCode}`
     }
     if (this.httpResponseBody !== undefined) {
-      customVariable['http.response.body'] = JSON.stringify(this.httpResponseBody)
+      customVariable['http.response.body'] = this.httpResponseBody
     }
     if (this.httpResponseDetails !== undefined) {
       customVariable['http.response.details'] = `${this.httpResponseDetails}`
@@ -860,31 +955,43 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       customVariable['visitor.instanceType'] = `${this.visitorInstanceType}`
     }
     if (this.visitorContext !== undefined) {
-      customVariable['visitor.context'] = JSON.stringify(this.visitorContext)
+      customVariable['visitor.context'] = this.visitorContext
     }
     if (this.visitorConsent !== undefined) {
       customVariable['visitor.consent'] = `${this.visitorConsent}`
     }
     if (this.visitorAssignmentHistory !== undefined) {
-      customVariable['visitor.assignmentsHistory'] = `${this.visitorAssignmentHistory}`
+      customVariable['visitor.assignmentsHistory'] = this.visitorAssignmentHistory
     }
     if (this.visitorFlags !== undefined) {
-      customVariable['visitor.flags'] = `${this.visitorFlags}`
+      customVariable['visitor.flags'] = this.visitorFlags
     }
     if (this.visitorIsAuthenticated !== undefined) {
       customVariable['visitor.isAuthenticated'] = `${this.visitorIsAuthenticated}`
     }
 
     if (this.visitorInitialCampaigns !== undefined) {
-      customVariable['visitor.initialCampaigns'] = JSON.stringify(this.visitorInitialCampaigns)
+      customVariable['visitor.initialCampaigns'] = this.visitorInitialCampaigns
     }
 
     if (this.visitorInitialFlagsData !== undefined) {
-      customVariable['visitor.initialFlagsData'] = JSON.stringify(Array.isArray(this.visitorInitialFlagsData) ? this.visitorInitialFlagsData : Array.from(this.visitorInitialFlagsData))
+      customVariable['visitor.initialFlagsData'] = Array.isArray(this.visitorInitialFlagsData) ? this.visitorInitialFlagsData : Array.from(this.visitorInitialFlagsData)
     }
 
     if (this.visitorCampaigns !== undefined) {
-      customVariable['visitor.campaigns'] = JSON.stringify(this.visitorCampaigns)
+      customVariable['visitor.campaigns'] = this.visitorCampaigns
+    }
+
+    if (this.visitorCampaignFromCache !== undefined) {
+      customVariable['visitor.campaignFromCache'] = this.visitorCampaignFromCache
+    }
+
+    if (this.contextKey !== undefined) {
+      customVariable.contextKey = this.contextKey
+    }
+
+    if (this.contextValue !== undefined) {
+      customVariable.contextValue = this.contextValue
     }
 
     if (this.flagKey !== undefined) {
@@ -911,8 +1018,15 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     if (this.flagMetadataCampaignType !== undefined) {
       customVariable['flag.metadata.campaignType'] = `${this.flagMetadataCampaignType}`
     }
+    if (this.flagMetadataCampaignIsReference !== undefined) {
+      customVariable['flag.metadata.isReference'] = this.flagMetadataCampaignIsReference
+    }
+
     if (this.hitContent !== undefined) {
-      customVariable['hit.content'] = JSON.stringify(this.hitContent)
+      customVariable['hit.content'] = this.hitContent
+    }
+    if (this.batchTriggeredBy !== undefined) {
+      customVariable.batchTriggeredBy = BatchTriggeredBy[this.batchTriggeredBy]
     }
 
     apiKeys.cv = customVariable

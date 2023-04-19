@@ -1,6 +1,6 @@
 import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
-import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata } from '../types'
+import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, MonitoringData } from '../types'
 
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
@@ -31,14 +31,21 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   public visitorCache?: VisitorCacheDTO
   private _instanceId : string
   private _traffic : number
+  protected _monitoringData?: MonitoringData
+
+  public get monitoringData ():MonitoringData|undefined {
+    return this._monitoringData
+  }
 
   constructor (param: NewVisitor & {
     visitorId?: string
     configManager: IConfigManager
     context: Record<string, primitive>
+    monitoringData?:MonitoringData
   }) {
-    const { visitorId, configManager, context, isAuthenticated, hasConsented, initialModifications, initialFlagsData, initialCampaigns } = param
+    const { visitorId, configManager, context, isAuthenticated, hasConsented, initialModifications, initialFlagsData, initialCampaigns, monitoringData } = param
     super()
+    this._monitoringData = monitoringData
     this._instanceId = uuidV4()
     this._traffic = Math.floor(Math.random() * 100 + 1)
     this._isCleaningDeDuplicationCache = false

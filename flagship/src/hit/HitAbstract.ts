@@ -28,6 +28,7 @@ export interface IHitAbstract{
   createdAt:number,
   visitorInstanceId?:string
   traffic: number
+  flagshipInstanceId?:string
 }
 
 export abstract class HitAbstract implements IHitAbstract {
@@ -44,13 +45,21 @@ export abstract class HitAbstract implements IHitAbstract {
   private _createdAt!: number
   private _visitorInstanceId? : string
   private _traffic!: number
-
+  private _flagshipInstanceId? : string
   public get traffic () : number {
     return this._traffic
   }
 
   public set traffic (v : number) {
     this._traffic = v
+  }
+
+  public get flagshipInstanceId () : string|undefined {
+    return this._flagshipInstanceId
+  }
+
+  public set flagshipInstanceId (v : string|undefined) {
+    this._flagshipInstanceId = v
   }
 
   public get visitorInstanceId () : string|undefined {

@@ -33,6 +33,7 @@ export class BucketingManager extends DecisionManager {
     if (response.status === 200) {
       logDebugSprintf(this.config, PROCESS_BUCKETING, POLLING_EVENT_200, response.body)
       this._bucketingContent = response.body
+      this._lastBucketingTimestamp = new Date().toISOString()
     } else if (response.status === 304) {
       logDebug(this.config, POLLING_EVENT_300, PROCESS_BUCKETING)
     }
