@@ -7,7 +7,7 @@ import { IConfigManager, IFlagshipConfig } from '../config/index'
 import { CampaignDTO } from '../decision/api/models'
 import { IDecisionManager } from '../decision/IDecisionManager'
 import { logDebugSprintf, logError, logInfo, sprintf } from '../utils/utils'
-import { CONSENT_CHANGED, FS_CONSENT, LogLevel, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index'
+import { CONSENT_CHANGED, FS_CONSENT, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index'
 import { BatchDTO } from '../hit/Batch'
 import { ITrackingManager } from '../api/ITrackingManager'
 import { Monitoring } from '../hit/Monitoring'
@@ -76,23 +76,11 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
     consentHit.ds = SDK_APP
     consentHit.config = this.config
+    consentHit.visitorInstanceId = this.visitor.instanceId
+    consentHit.traffic = this.visitor.traffic
+    consentHit.flagshipInstanceId = this.visitor.monitoringData?.instanceId
 
     this.trackingManager.addHit(consentHit)
-
-    const monitoring = new Monitoring({
-      type: 'TROUBLESHOOTING',
-      subComponent: 'VISITOR-SET-CONSENT',
-      logLevel: LogLevel.INFO,
-      message: 'VISITOR-SET-CONSENT',
-      traffic: this.visitor.traffic,
-      visitorId: this.visitor.visitorId,
-      anonymousId: this.visitor.anonymousId,
-      visitorInstanceId: this.visitor.instanceId,
-      config: this.config,
-      visitorConsent: hasConsented
-    })
-
-    this.sendMonitoringHit(monitoring)
 
     logDebugSprintf(this.config, PROCESS_SET_CONSENT, CONSENT_CHANGED, this.visitor.visitorId, hasConsented)
   }

@@ -20,8 +20,7 @@ import {
   PROCESS_SDK_STATUS,
   SDK_STATUS_CHANGED,
   SAVE_VISITOR_INSTANCE,
-  LogLevel,
-  CacheStrategy
+  LogLevel
 } from '../enum/index'
 import { VisitorDelegate } from '../visitor/VisitorDelegate'
 
@@ -45,6 +44,7 @@ export class Flagship {
   private _status!: FlagshipStatus
   private _visitorInstance?: Visitor
   private instanceId:string
+  private lastInitializationTimestamp!: string
 
   private set configManager (value: IConfigManager) {
     this._configManger = value
@@ -82,9 +82,9 @@ export class Flagship {
       visitorId: this.instanceId,
       flagshipInstanceId: this.instanceId,
       subComponent: 'SDK-STATUS-CHANGED',
-      traffic: 100,
+      traffic: 0,
       logLevel: LogLevel.INFO,
-      message: 'SDK-INITIALIZATION',
+      message: 'SDK-STATUS-CHANGED',
       config: this.getConfig(),
       sdkStatus: FlagshipStatus[status]
     })
@@ -268,6 +268,7 @@ export class Flagship {
       PROCESS_INITIALIZATION
     )
 
+    flagship.lastInitializationTimestamp = new Date().toISOString()
     const initMonitoring = new Monitoring({
       type: 'TROUBLESHOOTING',
       subComponent: 'SDK-INITIALIZATION',
@@ -275,19 +276,20 @@ export class Flagship {
       message: 'SDK-INITIALIZATION',
       visitorId: flagship.instanceId,
       flagshipInstanceId: flagship.instanceId,
-      traffic: 100,
+      traffic: 0,
       config: localConfig,
       sdkConfigMode: localConfig.decisionMode,
-      sdkConfigTimeout: localConfig.timeout?.toString(),
-      sdkConfigPollingInterval: localConfig.pollingInterval?.toString(),
-      sdkConfigTrackingManagerConfigStrategy: CacheStrategy[localConfig.trackingMangerConfig.cacheStrategy as number],
-      sdkConfigTrackingManagerConfigBatchIntervals: localConfig.trackingMangerConfig.batchIntervals?.toString(),
-      sdkConfigTrackingManagerConfigPoolMaxSize: localConfig.trackingMangerConfig.poolMaxSize?.toString(),
+      sdkConfigTimeout: localConfig.timeout,
+      sdkConfigPollingInterval: localConfig.pollingInterval,
+      sdkConfigTrackingManagerConfigStrategy: localConfig.trackingMangerConfig.cacheStrategy,
+      sdkConfigTrackingManagerConfigBatchIntervals: localConfig.trackingMangerConfig.batchIntervals,
+      sdkConfigTrackingManagerConfigPoolMaxSize: localConfig.trackingMangerConfig.poolMaxSize,
       sdkConfigFetchNow: localConfig.fetchNow,
       sdkConfigEnableClientCache: localConfig.enableClientCache,
       sdkConfigInitialBucketing: localConfig.initialBucketing,
       sdkConfigDecisionApiUrl: localConfig.decisionApiUrl,
-      sdkConfigHitDeduplicationTime: localConfig.hitDeduplicationTime?.toString()
+      sdkConfigHitDeduplicationTime: localConfig.hitDeduplicationTime,
+      lastInitializationTimestamp: flagship.lastInitializationTimestamp
     })
 
     trackingManager.addMonitoringHit(initMonitoring)
@@ -384,7 +386,13 @@ export class Flagship {
       configManager: this.getInstance().configManager,
       initialModifications: initialFlagsData,
       initialCampaigns,
-      initialFlagsData
+      initialFlagsData,
+      monitoringData: {
+        instanceId: this.getInstance().instanceId,
+        lastInitializationTimestamp: this.getInstance().lastInitializationTimestamp,
+        initialCampaigns,
+        initialFlagsData
+      }
     })
 
     const visitor = new Visitor(visitorDelegate)
@@ -397,26 +405,6 @@ export class Flagship {
     if (this.getConfig().fetchNow && this.getConfig().decisionMode !== DecisionMode.BUCKETING_EDGE) {
       visitor.fetchFlags()
     }
-
-    const monitoring = new Monitoring({
-      type: 'TROUBLESHOOTING',
-      subComponent: 'VISITOR-CREATED',
-      logLevel: LogLevel.INFO,
-      message: 'VISITOR-CREATED',
-      flagshipInstanceId: this.getInstance().instanceId,
-      visitorId: visitor.visitorId,
-      visitorInstanceId: visitorDelegate.instanceId,
-      traffic: visitorDelegate.traffic,
-      config: this.getConfig(),
-      visitorConsent: visitor.hasConsented,
-      visitorIsAuthenticated: !!visitor.anonymousId,
-      visitorContext: visitor.context,
-      visitorInstanceType: isNewInstance ? 'NEW_INSTANCE' : 'SINGLE_INSTANCE',
-      visitorInitialCampaigns: initialCampaigns,
-      visitorInitialFlagsData: initialFlagsData
-    })
-
-    this.getInstance().configManager?.trackingManager?.addMonitoringHit(monitoring)
 
     return visitor
   }

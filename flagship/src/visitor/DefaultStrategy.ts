@@ -98,11 +98,45 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     if (typeof key !== 'string' || key === '') {
       logErrorSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_KEY_ERROR, this.visitor.visitorId, key)
+      const monitoring = new Monitoring({
+        type: 'TROUBLESHOOTING',
+        subComponent: 'VISITOR-UPDATE-CONTEXT-KEY-ERROR',
+        logLevel: LogLevel.INFO,
+        message: 'VISITOR-UPDATE-CONTEXT-KEY-ERROR',
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorInstanceId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.monitoringData?.instanceId,
+        traffic: this.visitor.traffic,
+        config: this.config,
+        visitorContext: this.visitor.context,
+        contextKey: key,
+        contextValue: value
+      })
+
+      this.sendMonitoringHit(monitoring)
       return
     }
 
     if (valueType !== 'string' && valueType !== 'number' && valueType !== 'boolean') {
       logErrorSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_VALUE_ERROR, this.visitor.visitorId, key)
+      const monitoring = new Monitoring({
+        type: 'TROUBLESHOOTING',
+        subComponent: 'VISITOR-UPDATE-CONTEXT-VALUE-TYPE-ERROR',
+        logLevel: LogLevel.INFO,
+        message: 'VISITOR-UPDATE-CONTEXT-VALUE-TYPE-ERROR',
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorInstanceId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.monitoringData?.instanceId,
+        traffic: this.visitor.traffic,
+        config: this.config,
+        visitorContext: this.visitor.context,
+        contextKey: key,
+        contextValue: value
+      })
+
+      this.sendMonitoringHit(monitoring)
       return
     }
 
@@ -137,19 +171,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       this.updateContextKeyValue(key, value)
     }
     logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_OBJET_PARAM_UPDATE, this.visitor.visitorId, context, this.visitor.context)
-
-    const monitoring = new Monitoring({
-      type: 'TROUBLESHOOTING',
-      subComponent: 'VISITOR-CONTEXT-UPDATED',
-      logLevel: LogLevel.INFO,
-      message: 'VISITOR-CONTEXT-UPDATED',
-      visitorId: this.visitor.visitorId,
-      visitorInstanceId: this.visitor.instanceId,
-      traffic: this.visitor.traffic,
-      config: this.config,
-      visitorContext: this.visitor.context
-    })
-    this.sendMonitoringHit(monitoring)
   }
 
   clearContext (): void {
@@ -309,22 +330,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
       this.configManager.trackingManager.troubleshooting = this.decisionManager.troubleshooting
 
-      const monitoring = new Monitoring({
-        type: 'TROUBLESHOOTING',
-        subComponent: 'VISITOR-FETCH-CAMPAIGNS',
-        logLevel: LogLevel.INFO,
-        message: 'VISITOR-FETCH-CAMPAIGNS',
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
-        visitorInstanceId: this.visitor.instanceId,
-        traffic: this.visitor.traffic,
-        config: this.config,
-        visitorContext: this.visitor.context,
-        visitorCampaigns: campaigns
-      })
-
-      this.sendMonitoringHit(monitoring)
-
       logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_SUCCESS,
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
       )
@@ -338,22 +343,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         campaigns = this.fetchVisitorCampaigns(this.visitor)
         logData.isFromCache = true
         if (campaigns) {
-          const monitoring = new Monitoring({
-            type: 'TROUBLESHOOTING',
-            subComponent: 'VISITOR-FETCH-CACHED-CAMPAIGNS',
-            logLevel: LogLevel.INFO,
-            message: 'VISITOR-FETCH-CACHED-CAMPAIGNS',
-            visitorId: this.visitor.visitorId,
-            anonymousId: this.visitor.anonymousId,
-            visitorInstanceId: this.visitor.instanceId,
-            traffic: this.visitor.traffic,
-            config: this.config,
-            visitorContext: this.visitor.context,
-            visitorCachedCampaigns: campaigns
-          })
-
-          this.sendMonitoringHit(monitoring)
-
           logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_FROM_CACHE,
             this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
           )
@@ -368,6 +357,41 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
       logDebugSprintf(this.config, functionName, FETCH_FLAGS_FROM_CAMPAIGNS,
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, this.visitor.flagsData)
+
+      const flags: Record<string, unknown> = {}
+      const assignmentHistory: Record<string, string> = {}
+
+      this.visitor.flagsData.forEach(item => {
+        flags[item.key] = item.value
+        assignmentHistory[item.variationGroupId] = item.variationId
+      })
+
+      const monitoring = new Monitoring({
+        type: 'TROUBLESHOOTING',
+        subComponent: 'VISITOR-FETCH-CAMPAIGNS',
+        logLevel: LogLevel.INFO,
+        message: 'VISITOR-FETCH-CAMPAIGNS',
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorInstanceId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.monitoringData?.instanceId,
+        traffic: this.visitor.traffic,
+        config: this.config,
+        visitorContext: this.visitor.context,
+        visitorCampaigns: campaigns,
+        visitorCampaignFromCache: logData.isFromCache ? campaigns : undefined,
+        visitorConsent: this.visitor.hasConsented,
+        visitorIsAuthenticated: !!this.visitor.anonymousId,
+        visitorFlags: flags,
+        visitorAssignmentHistory: assignmentHistory,
+        visitorInitialCampaigns: this.visitor.monitoringData?.initialCampaigns,
+        visitorInitialFlagsData: this.visitor.monitoringData?.initialFlagsData,
+        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+        lastInitializationTimestamp: this.visitor.monitoringData?.lastInitializationTimestamp,
+        httpResponseTime: Date.now() - now
+      })
+
+      this.sendMonitoringHit(monitoring)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.visitor.emit(EMIT_READY, error)
@@ -377,6 +401,39 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         errorFormat(error.message || error, logData),
         functionName
       )
+      const flags: Record<string, unknown> = {}
+      const assignmentHistory: Record<string, string> = {}
+
+      this.visitor.flagsData?.forEach(item => {
+        flags[item.key] = item.value
+        assignmentHistory[item.variationGroupId] = item.variationId
+      })
+      const monitoring = new Monitoring({
+        type: 'TROUBLESHOOTING',
+        subComponent: 'VISITOR-FETCH-CAMPAIGNS-ERROR',
+        logLevel: LogLevel.INFO,
+        message: 'VISITOR-FETCH-CAMPAIGNS-ERROR',
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorInstanceId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.monitoringData?.instanceId,
+        traffic: this.visitor.traffic,
+        config: this.config,
+        visitorContext: this.visitor.context,
+        visitorCampaigns: campaigns,
+        visitorCampaignFromCache: logData.isFromCache ? campaigns : undefined,
+        visitorConsent: this.visitor.hasConsented,
+        visitorIsAuthenticated: !!this.visitor.anonymousId,
+        visitorFlags: flags,
+        visitorAssignmentHistory: assignmentHistory,
+        visitorInitialCampaigns: this.visitor.monitoringData?.initialCampaigns,
+        visitorInitialFlagsData: this.visitor.monitoringData?.initialFlagsData,
+        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+        lastInitializationTimestamp: this.visitor.monitoringData?.lastInitializationTimestamp,
+        httpResponseTime: Date.now() - now
+      })
+
+      this.sendMonitoringHit(monitoring)
     }
   }
 
@@ -465,23 +522,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
 
     await this.trackingManager.activateFlag(activateHit)
-
-    const monitoring = new Monitoring({
-      type: 'TROUBLESHOOTING',
-      subComponent: 'FLAG-VISITOR-EXPOSED',
-      logLevel: LogLevel.INFO,
-      message: 'FLAG-VISITOR-EXPOSED',
-      visitorId: this.visitor.visitorId,
-      anonymousId: this.visitor.anonymousId,
-      traffic: this.visitor.traffic,
-      config: this.config,
-      visitorContext: this.visitor.context,
-      flagKey: flagDto.key,
-      flagValue: flagDto.value,
-      flagDefault: defaultValue
-    })
-
-    this.sendMonitoringHit(monitoring)
   }
 
   private async activate (key: string) {
@@ -626,6 +666,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     hitInstance.anonymousId = this.visitor.anonymousId as string
     hitInstance.visitorInstanceId = this.visitor.instanceId
     hitInstance.traffic = this.visitor.traffic
+    hitInstance.flagshipInstanceId = this.visitor.monitoringData?.instanceId
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { createdAt, ...hitInstanceItem } = hitInstance.toObject()
@@ -714,6 +755,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       message: 'VISITOR-AUTHENTICATE',
       visitorId: this.visitor.visitorId,
       anonymousId: this.visitor.anonymousId,
+      visitorContext: this.visitor.context,
       traffic: this.visitor.traffic,
       config: this.config
     })
@@ -741,6 +783,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       message: 'VISITOR-UNAUTHENTICATE',
       visitorId: this.visitor.visitorId,
       anonymousId: this.visitor.anonymousId,
+      visitorContext: this.visitor.context,
       traffic: this.visitor.traffic,
       config: this.config
     })
@@ -762,6 +805,23 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         FLAG_USER_EXPOSED,
         USER_EXPOSED_FLAG_ERROR, this.visitor.visitorId, key
       )
+      const monitoring = new Monitoring({
+        type: 'TROUBLESHOOTING',
+        subComponent: 'VISITOR-EXPOSED-FLAG-NOT-FOUND',
+        logLevel: LogLevel.WARNING,
+        message: 'VISITOR-EXPOSED-FLAG-NOT-FOUND',
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorInstanceId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.monitoringData?.instanceId,
+        traffic: this.visitor.traffic,
+        config: this.config,
+        visitorContext: this.visitor.context,
+        flagKey: key,
+        flagDefault: defaultValue
+      })
+
+      this.sendMonitoringHit(monitoring)
       return
     }
 
@@ -771,6 +831,24 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         FLAG_USER_EXPOSED,
         USER_EXPOSED_CAST_ERROR, this.visitor.visitorId, key
       )
+
+      const monitoring = new Monitoring({
+        type: 'TROUBLESHOOTING',
+        subComponent: 'VISITOR-EXPOSED-TYPE-ERROR',
+        logLevel: LogLevel.WARNING,
+        message: 'VISITOR-EXPOSED-TYPE-ERROR',
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorInstanceId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.monitoringData?.instanceId,
+        traffic: this.visitor.traffic,
+        config: this.config,
+        visitorContext: this.visitor.context,
+        flagKey: key,
+        flagDefault: defaultValue
+      })
+
+      this.sendMonitoringHit(monitoring)
       return
     }
 
@@ -786,6 +864,24 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     if (!flag) {
       logWarningSprintf(this.config, FLAG_VALUE, GET_FLAG_MISSING_ERROR, this.visitor.visitorId, key, defaultValue)
+      const monitoring = new Monitoring({
+        type: 'TROUBLESHOOTING',
+        subComponent: 'GET-FLAG-VALUE-FLAG-NOT-FOUND',
+        logLevel: LogLevel.WARNING,
+        message: 'GET-FLAG-VALUE-FLAG-NOT-FOUND',
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorInstanceId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.monitoringData?.instanceId,
+        traffic: this.visitor.traffic,
+        config: this.config,
+        visitorContext: this.visitor.context,
+        flagKey: key,
+        flagDefault: defaultValue,
+        visitorExposed: userExposed
+      })
+
+      this.sendMonitoringHit(monitoring)
       return defaultValue
     }
 
@@ -798,6 +894,25 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     if (defaultValue !== null && defaultValue !== undefined && !hasSameType(flag.value, defaultValue)) {
       logWarningSprintf(this.config, FLAG_VALUE, GET_FLAG_CAST_ERROR, this.visitor.visitorId, key, defaultValue)
+      const monitoring = new Monitoring({
+        type: 'TROUBLESHOOTING',
+        subComponent: 'GET-FLAG-VALUE-TYPE-ERROR',
+        logLevel: LogLevel.WARNING,
+        message: 'GET-FLAG-VALUE-TYPE-ERROR',
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorInstanceId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.monitoringData?.instanceId,
+        traffic: this.visitor.traffic,
+        config: this.config,
+        visitorContext: this.visitor.context,
+        flagKey: key,
+        flagDefault: defaultValue,
+        visitorExposed: userExposed
+      })
+
+      this.sendMonitoringHit(monitoring)
+
       return defaultValue
     }
 
@@ -806,23 +921,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
 
     logDebugSprintf(this.config, FLAG_VALUE, GET_FLAG_VALUE, this.visitor.visitorId, key, flag.value)
-
-    const monitoring = new Monitoring({
-      type: 'TROUBLESHOOTING',
-      subComponent: 'VISITOR-GET-FLAG-VALUE',
-      logLevel: LogLevel.INFO,
-      message: 'VISITOR-GET-FLAG-VALUE',
-      visitorId: this.visitor.visitorId,
-      anonymousId: this.visitor.anonymousId,
-      traffic: this.visitor.traffic,
-      config: this.config,
-      visitorContext: this.visitor.context,
-      flagKey: key,
-      flagValue: flag.value,
-      flagDefault: defaultValue
-    })
-
-    this.sendMonitoringHit(monitoring)
 
     return flag.value
   }
@@ -836,6 +934,28 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         functionName,
         GET_METADATA_CAST_ERROR, key
       )
+      const monitoring = new Monitoring({
+        type: 'TROUBLESHOOTING',
+        subComponent: 'GET-FLAG-METADATA-TYPE-ERROR',
+        logLevel: LogLevel.WARNING,
+        message: 'GET-FLAG-METADATA-TYPE-ERROR',
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorInstanceId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.monitoringData?.instanceId,
+        traffic: this.visitor.traffic,
+        config: this.config,
+        visitorContext: this.visitor.context,
+        flagKey: key,
+        flagMetadataCampaignId: metadata.campaignId,
+        flagMetadataCampaignSlug: metadata.slug,
+        flagMetadataCampaignType: metadata.campaignType,
+        flagMetadataVariationGroupId: metadata.variationGroupId,
+        flagMetadataVariationId: metadata.variationGroupId,
+        flagMetadataCampaignIsReference: metadata.isReference
+      })
+
+      this.sendMonitoringHit(monitoring)
       return FlagMetadata.Empty()
     }
 

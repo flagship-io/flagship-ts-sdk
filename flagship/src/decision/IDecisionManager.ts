@@ -16,4 +16,6 @@ export interface IDecisionManager {
   config:IFlagshipConfig
 
   troubleshooting?: Troubleshooting
+
+  lastBucketingTimestamp?: string
 }
