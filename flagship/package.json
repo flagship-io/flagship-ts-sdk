@@ -3,12 +3,12 @@
   "sideEffects": [
     "./src/nodeDeps.ts"
   ],
-  "version": "3.1.4",
+  "version": "3.1.5-alpha.3",
   "license": "Apache-2.0",
   "description": "Flagship JS SDK",
-  "browser": "./dist/index.browser.js",
   "main": "dist/index.node.cjs",
   "module": "dist/index.js",
+  "browser": "./dist/index.browser.js",
   "react-native": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -17,10 +17,10 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "browser": "./dist/index.browser.js",
-      "react-native": "./dist/index.js",
       "import": "./dist/index.js",
-      "require": "./dist/index.node.cjs"
+      "require": "./dist/index.node.cjs",
+      "react-native": "./dist/index.js",
+      "browser": "./dist/index.browser.js"
     },
     "./dist/index.browser.lite": "./dist/index.browser.lite.js",
     "./dist/index.browser.lite.js": "./dist/index.browser.lite.js",
@@ -82,12 +82,12 @@
     "webpack-bundle-analyzer": "^4.8.0",
     "webpack-cli": "^5.0.1",
     "webpack-merge": "^5.8.0",
-    "webpack-node-externals": "^3.0.0"
+    "webpack-node-externals": "^3.0.0",
+    "core-js": "^3.30.0",
+    "@babel/runtime": "^7.21.0"
   },
   "dependencies": {
-    "@babel/runtime": "^7.21.0",
     "abort-controller": "^3.0.0",
-    "core-js": "^3.30.0",
     "events": "^3.3.0",
     "follow-redirects": "^1.15.2",
     "node-fetch": "^2.6.7"

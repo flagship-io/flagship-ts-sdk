@@ -1,5 +1,5 @@
 import { REQUEST_TIME_OUT } from '../enum/index'
-import { fetch } from '../nodeDeps'
+import { fetch } from '../depsNodeEsm'
 
 export interface IHttpOptions {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
