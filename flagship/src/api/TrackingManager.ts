@@ -8,6 +8,21 @@ import { TrackingManagerAbstract } from './TrackingManagerAbstract'
 export class TrackingManager extends TrackingManagerAbstract {
   public async activateFlag (hit: Activate): Promise<void> {
     await this.strategy.activateFlag(hit)
+    const monitoring = new Monitoring({
+      type: 'TROUBLESHOOTING',
+      subComponent: 'VISITOR-SEND-ACTIVATE',
+      logLevel: LogLevel.INFO,
+      traffic: hit.traffic,
+      message: 'VISITOR-SEND-ACTIVATE',
+      visitorId: hit.visitorId,
+      flagshipInstanceId: hit.flagshipInstanceId,
+      visitorInstanceId: hit.visitorInstanceId,
+      anonymousId: hit.anonymousId,
+      config: this.config,
+      hitContent: hit.toApiKeys()
+    })
+
+    this.addMonitoringHit(monitoring)
   }
 
   public async addHit (hit: HitAbstract): Promise<void> {

@@ -521,6 +521,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
+    activateHit.visitorInstanceId = this.visitor.instanceId
+    activateHit.traffic = this.visitor.traffic
+    activateHit.flagshipInstanceId = this.visitor.monitoringData?.instanceId
+
     await this.trackingManager.activateFlag(activateHit)
   }
 
