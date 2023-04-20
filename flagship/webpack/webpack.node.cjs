@@ -12,6 +12,11 @@ const TerserPlugin = require('terser-webpack-plugin')
 
 module.exports = merge(common(), {
   target: 'node',
+  resolve: {
+    alias: {
+      '../depsNodeEsm': '../depsNodeCommonJs.ts'
+    }
+  },
   output: {
     filename: 'index.node.cjs',
     library: {
@@ -71,6 +76,11 @@ module.exports = merge(common(), {
     })
   ],
   externals: [
-    nodeExternals()
+    nodeExternals({
+      allowlist: [
+        /@babel\/runtime/,
+        /regenerator-runtime/
+      ]
+    })
   ]
 })

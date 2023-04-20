@@ -12,7 +12,7 @@ module.exports = merge(common(), {
       http: false,
       https: false,
       'node-fetch': false,
-      '../nodeDeps': '../nodeDeps.browser.ts'
+      '../depsNodeEsm': '../depsBrowser.ts'
     }
   },
   output: {
