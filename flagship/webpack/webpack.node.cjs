@@ -43,7 +43,7 @@ module.exports = merge(common(), {
         use: [{
           loader: 'babel-loader',
           options: {
-            targets: 'node >= 6',
+            targets: { node: 6 },
             assumptions: {
               noDocumentAll: true,
               noClassCalls: true,
@@ -52,18 +52,16 @@ module.exports = merge(common(), {
               noNewArrows: true
             },
             presets: [
-              ['@babel/preset-env',
-                {
-                  useBuiltIns: 'usage',
-                  corejs: 3
-                }
-              ],
+              ['@babel/preset-env', {
+                targets: { node: 6 },
+                modules: false,
+                useBuiltIns: 'usage',
+                corejs: 3
+              }],
               ['@babel/preset-typescript', { allowNamespaces: true }]
             ],
             plugins: [
-              [
-                '@babel/plugin-transform-runtime'
-              ]
+              ['@babel/plugin-transform-runtime']
             ]
           }
         }]
@@ -78,6 +76,7 @@ module.exports = merge(common(), {
   externals: [
     nodeExternals({
       allowlist: [
+        /core-js/,
         /@babel\/runtime/,
         /regenerator-runtime/
       ]
