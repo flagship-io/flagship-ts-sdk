@@ -112,6 +112,64 @@ describe('test BucketingManager', () => {
   })
 })
 
+describe('test getCampaignsAsync campaign with thirdPartySegment', () => {
+  const config = new BucketingConfig({ pollingInterval: 0, envId: 'envID', apiKey: 'apiKey', fetchThirdPartyData: true })
+  const murmurHash = new MurmurHash()
+  const httpClient = new HttpClient()
+
+  const getAsync = jest.spyOn(httpClient, 'getAsync')
+
+  const bucketingManager = new BucketingManager(httpClient, config, murmurHash)
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sendContext = jest.spyOn(bucketingManager as any, 'sendContext')
+
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  sendContext.mockReturnValue(Promise.resolve())
+
+  const visitorId = 'visitor_1'
+  const context = {
+    age: 20
+  }
+
+  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager } })
+  it('test getCampaignsAsync campaign with thirdPartySegment', async () => {
+    getAsync.mockResolvedValue({ body: bucketing, status: 200 })
+    bucketingManager.startPolling()
+    await sleep(500)
+
+    const thirdPartySegment = {
+      visitor_id: visitorId,
+      segment: 'key',
+      value: 'value',
+      expiration: 123456,
+      partner: 'mixpanel'
+    }
+    const thirdPartySegment2 = {
+      visitor_id: visitorId,
+      segment: 'key2',
+      value: 'value2',
+      expiration: 123456,
+      partner: 'segment.com'
+    }
+    getAsync.mockResolvedValue({ body: [thirdPartySegment, thirdPartySegment2], status: 200 })
+    const campaigns = await bucketingManager.getCampaignsAsync(
+      visitor
+    )
+    const segment = {
+      [`${thirdPartySegment.partner}.${thirdPartySegment.segment}`]: thirdPartySegment.value,
+      [`${thirdPartySegment2.partner}.${thirdPartySegment2.segment}`]: thirdPartySegment2.value
+    }
+    expect(visitor.context).toMatchObject(segment)
+    const modifications = bucketingManager.getModifications(campaigns as CampaignDTO[])
+    expect(modifications.size).toBe(7)
+    expect(getAsync).toBeCalledTimes(2)
+    expect(modifications.has('thirdIntegration')).toBeTruthy()
+    expect(modifications.get('thirdIntegration')?.value).toEqual('value2')
+  })
+})
+
 describe('test bucketing polling', () => {
   const config = new BucketingConfig({ envId: 'envID', apiKey: 'apiKey' })
   const murmurHash = new MurmurHash()
@@ -865,5 +923,69 @@ describe('test initBucketing', () => {
     const modifications = bucketingManager.getModifications(campaigns as CampaignDTO[])
     expect(modifications.size).toBe(6)
     expect(getAsync).toBeCalledTimes(0)
+  })
+})
+
+describe('test getThirdPartySegment', () => {
+  const methodNow = Date.now
+  const mockNow = jest.fn<typeof Date.now>()
+  beforeAll(() => {
+    Date.now = mockNow
+    mockNow.mockReturnValue(1)
+  })
+  afterAll(() => {
+    Date.now = methodNow
+  })
+
+  const config = new BucketingConfig({ pollingInterval: 0, envId: 'envID', apiKey: 'apiKey' })
+  const murmurHash = new MurmurHash()
+  const httpClient = new HttpClient()
+  const logManager = new FlagshipLogManager()
+
+  config.logManager = logManager
+
+  const logError = jest.spyOn(logManager, 'error')
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const bucketingManager = new BucketingManager(httpClient, config, murmurHash)
+
+  const visitorId = 'visitor_1'
+
+  const getAsync = jest.spyOn(httpClient, 'getAsync')
+
+  const thirdPartySegment = {
+    visitor_id: visitorId,
+    segment: 'key',
+    value: 'value',
+    expiration: 123456,
+    partner: 'mixpanel'
+  }
+  const thirdPartySegment2 = {
+    visitor_id: visitorId,
+    segment: 'key2',
+    value: 'value2',
+    expiration: 123456,
+    partner: 'segment.com'
+  }
+  it('test getThirdPartySegment method', async () => {
+    getAsync.mockResolvedValue({
+      status: 200,
+      body: [thirdPartySegment, thirdPartySegment2]
+    })
+    const segments = await bucketingManager.getThirdPartySegment(visitorId)
+
+    expect(segments[`${thirdPartySegment.partner}.${thirdPartySegment.segment}`]).toEqual(thirdPartySegment.value)
+    expect(segments[`${thirdPartySegment2.partner}.${thirdPartySegment2.segment}`]).toEqual(thirdPartySegment2.value)
+  })
+
+  it('test getThirdPartySegment error', async () => {
+    const messageError = 'error'
+    getAsync.mockRejectedValue({
+      status: 403,
+      body: messageError
+    })
+    const segments = await bucketingManager.getThirdPartySegment(visitorId)
+    expect(logError).toBeCalledTimes(1)
+    expect(segments).toEqual({})
   })
 })

@@ -265,6 +265,57 @@ export const bucketing = {
           ]
         }
       ]
+    },
+    {
+      id: 'c2nrh1fgjg50l9thhu8bg',
+      type: 'perso',
+      slug: 'campaign_2',
+      variationGroups: [
+        {
+          id: 'c2nrhnpjg50lsf1ht9thg',
+          targeting: {
+            targetingGroups: [
+              {
+                targetings: [
+                  {
+                    operator: 'EQUALS',
+                    key: 'mixpanel.key',
+                    value: 'value'
+                  },
+                  {
+                    operator: 'EQUALS',
+                    key: 'segment.com.key2',
+                    value: 'value2'
+                  }
+                ]
+              }
+            ]
+          },
+          variations: [
+            {
+              id: 'c2nrhnpjg50la1ht9trd0',
+              modifications: {
+                type: 'JSON',
+                value: {
+                  thirdIntegration: 'value1'
+                }
+              },
+              allocation: 5,
+              reference: true
+            },
+            {
+              id: 'c2nrhnpjg50la1ht9tgig',
+              modifications: {
+                type: 'JSON',
+                value: {
+                  thirdIntegration: 'value2'
+                }
+              },
+              allocation: 95
+            }
+          ]
+        }
+      ]
     }
   ]
 }
