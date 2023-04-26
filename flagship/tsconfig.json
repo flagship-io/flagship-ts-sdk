@@ -11,8 +11,6 @@
     "moduleResolution": "node",
     "declaration": true,
     "esModuleInterop": true,
-    // "noEmit": true,
-    // "isolatedModules": true,
     "strict": true
   }
 }

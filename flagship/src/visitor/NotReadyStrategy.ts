@@ -1,6 +1,5 @@
-import { FlagDTO } from '../index'
 import { FlagshipStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR } from '../enum/index'
-import { IFlagMetadata, IHit, modificationsRequested } from '../types'
+import { FlagDTO, IFlagMetadata, IHit, modificationsRequested } from '../types'
 import { logErrorSprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
 import { HitAbstract, HitShape } from '../hit/index'

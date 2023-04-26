@@ -13,27 +13,17 @@ const TerserPlugin = require('terser-webpack-plugin')
 module.exports = merge(common(), {
   target: 'node',
   resolve: {
-    alias: {
-      // '../depsNodeEsm': '../depsNodeCommonJs.ts'
-    }
+    alias: {}
   },
   output: {
-    filename: 'index.node.cjs',
+    filename: 'index.cjs',
     library: {
       type: 'commonjs2'
     }
   },
   optimization: {
     minimize: process.env.NODE_ENV === 'production',
-    usedExports: true,
-    minimizer: [
-      new TerserPlugin({
-        terserOptions: {
-          keep_classnames: /AbortSignal/,
-          keep_fnames: /AbortSignal/
-        }
-      })
-    ]
+    usedExports: true
   },
   module: {
     rules: [
@@ -58,7 +48,7 @@ module.exports = merge(common(), {
                 useBuiltIns: 'usage',
                 corejs: 3
               }],
-              ['@babel/preset-typescript', { allowNamespaces: true }]
+              ['@babel/preset-typescript']
             ],
             plugins: [
               ['@babel/plugin-transform-runtime']
@@ -68,17 +58,11 @@ module.exports = merge(common(), {
       }
     ]
   },
-  plugins: [
-    new webpack.ProvidePlugin({
-      AbortController: 'abort-controller'
-    })
-  ],
   externals: [
     nodeExternals({
       allowlist: [
-        /core-js/,
-        /@babel\/runtime/,
-        /regenerator-runtime/
+        /core-js\/modules\/es/,
+        /@babel\/runtime/
       ]
     })
   ]

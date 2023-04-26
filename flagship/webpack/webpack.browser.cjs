@@ -12,14 +12,14 @@ module.exports = merge(common(), {
       http: false,
       https: false,
       'node-fetch': false,
-      '../depsNodeEsm': '../depsBrowser.ts'
+      '../depsNode': '../depsBrowser.ts'
     }
   },
   output: {
-    filename: 'index.browser.js',
     library: {
-      type: 'umd'
-    }
+      type: 'global'
+    },
+    filename: 'index.browser.js'
   },
   module: {
     rules: [
@@ -29,7 +29,6 @@ module.exports = merge(common(), {
         use: [{
           loader: 'babel-loader',
           options: {
-            targets: '> 0.5%, last 2 versions, ie >= 10',
             assumptions: {
               noDocumentAll: true,
               noClassCalls: true,
@@ -40,11 +39,13 @@ module.exports = merge(common(), {
             presets: [
               ['@babel/preset-env',
                 {
+                  targets: '>0.3%, last 2 versions, not dead',
                   useBuiltIns: 'usage',
-                  corejs: 3
+                  corejs: 3,
+                  debug: true
                 }
               ],
-              ['@babel/preset-typescript', { allowNamespaces: true }]
+              ['@babel/preset-typescript']
             ],
             plugins: [
               [
@@ -60,9 +61,10 @@ module.exports = merge(common(), {
     nodeExternals({
       importType: 'umd',
       allowlist: [
+        'node-abort-controller',
         'events',
-        /@babel\/runtime/,
-        /regenerator-runtime/
+        /core-js\/modules/,
+        /@babel\/runtime/
       ]
     })
   ]
