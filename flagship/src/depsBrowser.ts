@@ -11,3 +11,4 @@ export const fetch = (input: RequestInfo | URL, init?: RequestInit) => {
 }
 
 export { EventEmitter } from 'events'
+export * from 'node-abort-controller'

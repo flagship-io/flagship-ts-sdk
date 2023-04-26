@@ -1,5 +1,5 @@
 import { REQUEST_TIME_OUT } from '../enum/index'
-import { fetch } from '../depsNodeEsm'
+import { fetch, AbortController } from '../depsNode'
 
 export interface IHttpOptions {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -52,7 +52,7 @@ export class HttpClient implements IHttpClient {
       const response = await fetch(url, {
         method: 'GET',
         headers: options?.headers,
-        signal: c.signal,
+        signal: c.signal as AbortSignal,
         keepalive: true
       })
       return this.getResponse(response)
@@ -69,7 +69,7 @@ export class HttpClient implements IHttpClient {
         method: 'POST',
         headers: options.headers,
         body: JSON.stringify(options.body),
-        signal: c.signal,
+        signal: c.signal as AbortSignal,
         keepalive: true
       })
       return this.getResponse(response)

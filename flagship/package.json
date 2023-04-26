@@ -6,7 +6,7 @@
   "version": "3.1.5-alpha.4",
   "license": "Apache-2.0",
   "description": "Flagship JS SDK",
-  "main": "dist/index.node.cjs",
+  "main": "dist/index.cjs",
   "module": "dist/index.js",
   "browser": "./dist/index.browser.js",
   "react-native": "dist/index.js",
@@ -14,11 +14,12 @@
   "files": [
     "dist/*"
   ],
+  "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.node.cjs",
+      "require": "./dist/index.cjs",
       "react-native": "./dist/index.js",
       "browser": "./dist/index.browser.js"
     },
@@ -41,9 +42,9 @@
     "test": "jest",
     "clean": "rm -rf dist-deno dist",
     "test:coverage": "jest --coverage",
-    "build": "webpack",
+    "build": "rollup --config",
     "postbuild": "node denoTrans.mjs && node generateDeclarationFile.mjs",
-    "prebuild": "npm run clean && npm run generate:version && tsc",
+    "prebuild": "npm run clean && npm run generate:version",
     "generate:version": "genversion --es6 src/sdkVersion.ts",
     "build-prod": "NODE_ENV=production npm run build",
     "postbuild-prod": "node denoTrans.mjs",
@@ -51,16 +52,23 @@
     "analyze-prod": "NODE_ENV=production webpack --profile --json > stats.json && webpack-bundle-analyzer stats.json"
   },
   "devDependencies": {
-    "@babel/core": "^7.21.4",
     "@babel/plugin-transform-runtime": "^7.21.4",
     "@babel/preset-env": "^7.21.4",
     "@babel/preset-typescript": "^7.21.4",
+    "@babel/runtime": "^7.21.0",
+    "@rollup/plugin-alias": "^5.0.0",
+    "@rollup/plugin-babel": "^6.0.3",
+    "@rollup/plugin-commonjs": "^24.1.0",
+    "@rollup/plugin-node-resolve": "^15.0.2",
+    "@rollup/plugin-typescript": "^11.1.0",
     "@types/jest": "^29.5.0",
     "@types/node": "^18.15.11",
-    "@types/node-fetch": "2.6.3",
+    "@types/node-fetch": "^2.6.3",
     "@typescript-eslint/eslint-plugin": "^5.58.0",
     "@typescript-eslint/parser": "^5.58.0",
     "babel-loader": "^9.1.2",
+    "babel-plugin-module-resolver": "^5.0.0",
+    "core-js": "^3.30.0",
     "cross-env": "^7.0.3",
     "eslint": "^8.38.0",
     "eslint-config-prettier": "^8.8.0",
@@ -74,6 +82,9 @@
     "genversion": "^3.1.1",
     "jest": "^29.5.0",
     "prettier": "^2.8.7",
+    "rollup": "^3.20.2",
+    "rollup-plugin-polyfill-node": "^0.12.0",
+    "rollup-plugin-visualizer": "^5.9.0",
     "terser-webpack-plugin": "^5.3.7",
     "ts-jest": "^29.1.0",
     "ts-loader": "^9.4.2",
@@ -82,15 +93,14 @@
     "webpack-bundle-analyzer": "^4.8.0",
     "webpack-cli": "^5.0.1",
     "webpack-merge": "^5.8.0",
-    "webpack-node-externals": "^3.0.0",
-    "core-js": "^3.30.0",
-    "@babel/runtime": "^7.21.0"
+    "webpack-node-externals": "^3.0.0"
   },
   "dependencies": {
-    "abort-controller": "^3.0.0",
     "events": "^3.3.0",
     "follow-redirects": "^1.15.2",
-    "node-fetch": "^2.6.7"
+    "node-abort-controller": "^3.1.1",
+    "node-fetch": "^2.6.7",
+    "@babel/core": "^7.21.4"
   },
   "keywords": [
     "flagship",

@@ -14,7 +14,7 @@ module.exports = merge(common(), {
   target: 'node',
   resolve: {
     alias: {
-      '../depsNodeEsm': '../depsNodeCommonJs.ts'
+      // '../depsNodeEsm': '../depsNodeCommonJs.ts'
     }
   },
   output: {
