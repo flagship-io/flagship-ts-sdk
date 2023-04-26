@@ -158,8 +158,8 @@ describe('test getCampaignsAsync campaign with thirdPartySegment', () => {
       visitor
     )
     const segment = {
-      [`${thirdPartySegment.partner}.${thirdPartySegment.segment}`]: thirdPartySegment.value,
-      [`${thirdPartySegment2.partner}.${thirdPartySegment2.segment}`]: thirdPartySegment2.value
+      [`${thirdPartySegment.partner}::${thirdPartySegment.segment}`]: thirdPartySegment.value,
+      [`${thirdPartySegment2.partner}::${thirdPartySegment2.segment}`]: thirdPartySegment2.value
     }
     expect(visitor.context).toMatchObject(segment)
     const modifications = bucketingManager.getModifications(campaigns as CampaignDTO[])
@@ -974,8 +974,8 @@ describe('test getThirdPartySegment', () => {
     })
     const segments = await bucketingManager.getThirdPartySegment(visitorId)
 
-    expect(segments[`${thirdPartySegment.partner}.${thirdPartySegment.segment}`]).toEqual(thirdPartySegment.value)
-    expect(segments[`${thirdPartySegment2.partner}.${thirdPartySegment2.segment}`]).toEqual(thirdPartySegment2.value)
+    expect(segments[`${thirdPartySegment.partner}::${thirdPartySegment.segment}`]).toEqual(thirdPartySegment.value)
+    expect(segments[`${thirdPartySegment2.partner}::${thirdPartySegment2.segment}`]).toEqual(thirdPartySegment2.value)
   })
 
   it('test getThirdPartySegment error', async () => {

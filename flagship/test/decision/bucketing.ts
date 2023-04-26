@@ -279,12 +279,12 @@ export const bucketing = {
                 targetings: [
                   {
                     operator: 'EQUALS',
-                    key: 'mixpanel.key',
+                    key: 'mixpanel::key',
                     value: 'value'
                   },
                   {
                     operator: 'EQUALS',
-                    key: 'segment.com.key2',
+                    key: 'segment.com::key2',
                     value: 'value2'
                   }
                 ]

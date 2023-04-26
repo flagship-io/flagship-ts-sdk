@@ -146,7 +146,7 @@ export class BucketingManager extends DecisionManager {
       const content:ThirdPartySegment[] = response.body
       if (Array.isArray(content)) {
         for (const item of content) {
-          contexts[`${item.partner}.${item.segment}`] = item.value
+          contexts[`${item.partner}::${item.segment}`] = item.value
         }
       }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
