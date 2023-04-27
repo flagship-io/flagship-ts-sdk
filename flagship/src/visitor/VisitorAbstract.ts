@@ -10,7 +10,6 @@ import { HitAbstract, HitShape } from '../hit/index'
 import { DefaultStrategy } from './DefaultStrategy'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { EventEmitter } from '../nodeDeps'
-import { Flagship } from '../main/Flagship'
 import { NotReadyStrategy } from './NotReadyStrategy'
 import { PanicStrategy } from './PanicStrategy'
 import { NoConsentStrategy } from './NoConsentStrategy'
@@ -35,6 +34,12 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
   public get monitoringData ():MonitoringData|undefined {
     return this._monitoringData
+  }
+
+  public static SdkStatus?: FlagshipStatus
+
+  public getSdkStatus () : FlagshipStatus|undefined {
+    return VisitorAbstract.SdkStatus
   }
 
   constructor (param: NewVisitor & {
@@ -243,9 +248,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
   protected getStrategy (): VisitorStrategyAbstract {
     let strategy: VisitorStrategyAbstract
-    if (!Flagship.getStatus() || Flagship.getStatus() === FlagshipStatus.NOT_INITIALIZED) {
+    const status = this.getSdkStatus()
+    if (status === undefined || status === FlagshipStatus.NOT_INITIALIZED) {
       strategy = new NotReadyStrategy(this)
-    } else if (Flagship.getStatus() === FlagshipStatus.READY_PANIC_ON) {
+    } else if (status === FlagshipStatus.READY_PANIC_ON) {
       strategy = new PanicStrategy(this)
     } else if (!this.hasConsented) {
       strategy = new NoConsentStrategy(this)

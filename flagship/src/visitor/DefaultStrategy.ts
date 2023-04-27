@@ -98,45 +98,11 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     if (typeof key !== 'string' || key === '') {
       logErrorSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_KEY_ERROR, this.visitor.visitorId, key)
-      const monitoring = new Monitoring({
-        type: 'TROUBLESHOOTING',
-        subComponent: 'VISITOR-UPDATE-CONTEXT-KEY-ERROR',
-        logLevel: LogLevel.INFO,
-        message: 'VISITOR-UPDATE-CONTEXT-KEY-ERROR',
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
-        visitorInstanceId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.monitoringData?.instanceId,
-        traffic: this.visitor.traffic,
-        config: this.config,
-        visitorContext: this.visitor.context,
-        contextKey: key,
-        contextValue: value
-      })
-
-      this.sendMonitoringHit(monitoring)
       return
     }
 
     if (valueType !== 'string' && valueType !== 'number' && valueType !== 'boolean') {
       logErrorSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_VALUE_ERROR, this.visitor.visitorId, key)
-      const monitoring = new Monitoring({
-        type: 'TROUBLESHOOTING',
-        subComponent: 'VISITOR-UPDATE-CONTEXT-VALUE-TYPE-ERROR',
-        logLevel: LogLevel.INFO,
-        message: 'VISITOR-UPDATE-CONTEXT-VALUE-TYPE-ERROR',
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
-        visitorInstanceId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.monitoringData?.instanceId,
-        traffic: this.visitor.traffic,
-        config: this.config,
-        visitorContext: this.visitor.context,
-        contextKey: key,
-        contextValue: value
-      })
-
-      this.sendMonitoringHit(monitoring)
       return
     }
 
@@ -377,6 +343,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         flagshipInstanceId: this.visitor.monitoringData?.instanceId,
         traffic: this.visitor.traffic,
         config: this.config,
+        sdkStatus: this.visitor.getSdkStatus(),
         visitorContext: this.visitor.context,
         visitorCampaigns: campaigns,
         visitorCampaignFromCache: logData.isFromCache ? campaigns : undefined,
@@ -420,6 +387,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         traffic: this.visitor.traffic,
         config: this.config,
         visitorContext: this.visitor.context,
+        sdkStatus: this.visitor.getSdkStatus(),
         visitorCampaigns: campaigns,
         visitorCampaignFromCache: logData.isFromCache ? campaigns : undefined,
         visitorConsent: this.visitor.hasConsented,

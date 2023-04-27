@@ -1,5 +1,5 @@
 import { IFlagshipConfig } from '../config/index'
-import { CacheStrategy, LogLevel } from '../enum/index'
+import { CacheStrategy, FlagshipStatus, LogLevel } from '../enum/index'
 import {
   CUSTOMER_ENV_ID_API_ITEM,
   DS_API_ITEM,
@@ -35,7 +35,7 @@ export interface IMonitoring extends IHitAbstract{
     stackOriginName?: string
     stackOriginVersion?: string
 
-    sdkStatus?: string
+    sdkStatus?: FlagshipStatus
     sdkConfigMode?: string
     sdkConfigCustomLogManager?: boolean
     sdkConfigCustomCacheManager?: boolean
@@ -112,7 +112,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
   private _stackVersion? : string
   private _stackOriginName? : string
   private _stackOriginVersion? : string
-  private _sdkStatus? : string
+  private _sdkStatus? : FlagshipStatus
   private _sdkConfigMode? : string
   private _sdkConfigCustomLogManager? : boolean
   private _sdkConfigCustomCacheManager? : boolean
@@ -600,11 +600,11 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     this._sdkConfigMode = v
   }
 
-  public get sdkStatus () : string|undefined {
+  public get sdkStatus () : FlagshipStatus|undefined {
     return this._sdkStatus
   }
 
-  public set sdkStatus (v : string|undefined) {
+  public set sdkStatus (v : FlagshipStatus|undefined) {
     this._sdkStatus = v
   }
 
@@ -864,7 +864,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       customVariable['stack.origin.version'] = `${this.stackOriginVersion}`
     }
     if (this.sdkStatus !== undefined) {
-      customVariable['sdk.status'] = `${this.sdkStatus}`
+      customVariable['sdk.status'] = FlagshipStatus[this.sdkStatus]
     }
     if (this.sdkConfigMode !== undefined) {
       customVariable['sdk.config.mode'] = `${this.sdkConfigMode}`

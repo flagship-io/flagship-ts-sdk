@@ -35,6 +35,7 @@ import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 import { EdgeManager } from '../decision/EdgeManager'
 import { EdgeConfig } from '../config/EdgeConfig'
 import { Monitoring } from '../hit/Monitoring'
+import { VisitorAbstract } from '../visitor/VisitorAbstract'
 
 export class Flagship {
   // eslint-disable-next-line no-use-before-define
@@ -73,6 +74,8 @@ export class Flagship {
     }
 
     this._status = status
+    VisitorAbstract.SdkStatus = status
+
     const statusChanged = this.getConfig()?.statusChangedCallback
 
     logInfoSprintf(this._config, PROCESS_SDK_STATUS, SDK_STATUS_CHANGED, FlagshipStatus[status])
@@ -86,7 +89,7 @@ export class Flagship {
       logLevel: LogLevel.INFO,
       message: 'SDK-STATUS-CHANGED',
       config: this.getConfig(),
-      sdkStatus: FlagshipStatus[status]
+      sdkStatus: status
     })
 
     this.configManager?.trackingManager?.addMonitoringHit(monitoringHit)
@@ -278,6 +281,7 @@ export class Flagship {
       flagshipInstanceId: flagship.instanceId,
       traffic: 0,
       config: localConfig,
+      sdkStatus: flagship._status,
       sdkConfigMode: localConfig.decisionMode,
       sdkConfigTimeout: localConfig.timeout,
       sdkConfigPollingInterval: localConfig.pollingInterval,
