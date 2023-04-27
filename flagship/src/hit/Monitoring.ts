@@ -50,6 +50,7 @@ export interface IMonitoring extends IHitAbstract{
     sdkConfigTrackingManagerConfigStrategy?: CacheStrategy
     sdkConfigTrackingManagerConfigBatchIntervals?: number
     sdkConfigTrackingManagerConfigPoolMaxSize?: number
+    sdkBucketingFile?: BucketingDTO
 
     httpInstanceId?: string
     httpRequestUrl?:string
@@ -166,6 +167,15 @@ export class Monitoring extends HitAbstract implements IMonitoring {
   private _flagMetadataCampaignIsReference : boolean|undefined
   private _contextKey? : string
   private _contextValue? : unknown
+  private _sdkBucketingFile? : BucketingDTO
+
+  public get sdkBucketingFile () : BucketingDTO|undefined {
+    return this._sdkBucketingFile
+  }
+
+  public set sdkBucketingFile (v : BucketingDTO|undefined) {
+    this._sdkBucketingFile = v
+  }
 
   public get contextValue () : unknown|undefined {
     return this._contextValue
@@ -734,9 +744,10 @@ export class Monitoring extends HitAbstract implements IMonitoring {
       flagMetadataCampaignId, flagMetadataVariationGroupId, flagMetadataVariationId, flagMetadataCampaignSlug, flagMetadataCampaignType, sdkConfigFetchNow, sdkConfigEnableClientCache,
       sdkConfigInitialBucketing, sdkConfigDecisionApiUrl, sdkConfigHitDeduplicationTime, flagshipInstanceId, hitContent, visitorInstanceId, traffic, httpInstanceId,
       lastInitializationTimestamp, lastBucketingTimestamp, batchTriggeredBy, visitorCampaigns, visitorCampaignFromCache, visitorInitialCampaigns,
-      visitorInitialFlagsData, flagMetadataCampaignIsReference, contextKey, contextValue
+      visitorInitialFlagsData, flagMetadataCampaignIsReference, contextKey, contextValue, sdkBucketingFile
     } = param
     this.traffic = traffic
+    this.sdkBucketingFile = sdkBucketingFile
     this.contextKey = contextKey
     this.contextValue = contextValue
     this.lastBucketingTimestamp = lastBucketingTimestamp
@@ -852,6 +863,10 @@ export class Monitoring extends HitAbstract implements IMonitoring {
 
     if (this.envId) {
       customVariable.envId = `${this.envId}`
+    }
+
+    if (this.sdkBucketingFile !== undefined) {
+      customVariable.sdkBucketingFile = this.sdkBucketingFile
     }
 
     if (this.visitorInstanceId !== undefined) {

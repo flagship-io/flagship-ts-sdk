@@ -1,6 +1,6 @@
 import { POLLING_EVENT_300, POLLING_EVENT_FAILED } from './../enum/FlagshipConstant'
 import { IFlagshipConfig } from '../config/index'
-import { BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, POLLING_EVENT_200, PROCESS_BUCKETING, SDK_INFO } from '../enum/index'
+import { BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, POLLING_EVENT_200, PROCESS_BUCKETING, SDK_INFO } from '../enum/index'
 import { Segment } from '../hit/Segment'
 import { primitive } from '../types'
 import { IHttpClient, IHttpResponse } from '../utils/HttpClient'
@@ -10,6 +10,7 @@ import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { BucketingDTO, Targetings, VariationGroupDTO } from './api/bucketingDTO'
 import { CampaignDTO, VariationDTO } from './api/models'
 import { DecisionManager } from './DecisionManager'
+import { Monitoring } from '../hit/Monitoring'
 
 export class BucketingManager extends DecisionManager {
   private _bucketingContent!: BucketingDTO
@@ -34,6 +35,18 @@ export class BucketingManager extends DecisionManager {
       logDebugSprintf(this.config, PROCESS_BUCKETING, POLLING_EVENT_200, response.body)
       this._bucketingContent = response.body
       this._lastBucketingTimestamp = new Date().toISOString()
+      const monitoringHit = new Monitoring({
+        type: 'TROUBLESHOOTING',
+        visitorId: this.flagshipInstanceId,
+        flagshipInstanceId: this.flagshipInstanceId,
+        subComponent: 'SDK-BUCKETING-FILE',
+        traffic: 0,
+        logLevel: LogLevel.INFO,
+        message: 'SDK-BUCKETING-FILE',
+        sdkBucketingFile: this._bucketingContent,
+        config: this.config
+      })
+      this.trackingManager.addMonitoringHit(monitoringHit)
     } else if (response.status === 304) {
       logDebug(this.config, POLLING_EVENT_300, PROCESS_BUCKETING)
     }

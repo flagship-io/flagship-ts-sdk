@@ -1,3 +1,4 @@
+import { ITrackingManager } from '../api/ITrackingManager'
 import { IFlagshipConfig } from '../config/index'
 import { FlagshipStatus } from '../enum/index'
 import { FlagDTO, Troubleshooting } from '../types'
@@ -18,4 +19,8 @@ export interface IDecisionManager {
   troubleshooting?: Troubleshooting
 
   lastBucketingTimestamp?: string
+
+  trackingManager : ITrackingManager
+  flagshipInstanceId : string
+
 }

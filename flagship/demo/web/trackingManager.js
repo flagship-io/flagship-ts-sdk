@@ -1,17 +1,18 @@
 // import { DecisionMode, EventCategory, Flagship, HitType, CacheStrategy } from '../../'
 
-const ENV_ID = ''
-const API_KEY = ''
+const ENV_ID = 'c1ndrd07m0300ro0jf20'
+const API_KEY = 'QzdTI1M9iqaIhnJ66a34C5xdzrrvzq6q8XSVOsS6'
 
 const btnAction1 = document.getElementById('btn-action-1')
 
 btnAction1.addEventListener('click', async () => {
 // Initialize the SDK and send Initialize monitoring hit
   Flagship.start(ENV_ID, API_KEY, {
-    // decisionMode: DecisionMode.BUCKETING,
+    decisionMode: DecisionMode.BUCKETING,
     // initialBucketing: bucketing
     // disableCache: true,
     fetchNow: false,
+    pollingInterval: 15,
     trackingMangerConfig: {
       // cacheStrategy: 3,
       poolMaxSize: 5,

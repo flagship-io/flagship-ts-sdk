@@ -261,6 +261,9 @@ export class Flagship {
 
     flagship.configManager.decisionManager = flagship.buildDecisionManager(flagship, localConfig as FlagshipConfig, httpClient)
 
+    flagship.configManager.decisionManager.trackingManager = trackingManager
+    flagship.configManager.decisionManager.flagshipInstanceId = flagship.instanceId
+
     if (flagship._status === FlagshipStatus.STARTING) {
       flagship.setStatus(FlagshipStatus.READY)
     }

@@ -7,6 +7,7 @@ import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FlagshipStatus, 
 import { FlagDTO, Troubleshooting } from '../types'
 import { errorFormat, logDebug } from '../utils/utils'
 import { Monitoring } from '../hit/Monitoring'
+import { ITrackingManager } from '../api/ITrackingManager'
 
 export abstract class DecisionManager implements IDecisionManager {
   protected _config: IFlagshipConfig
@@ -16,6 +17,25 @@ export abstract class DecisionManager implements IDecisionManager {
   private _troubleshooting? : Troubleshooting
 
   protected _lastBucketingTimestamp?:string
+
+  private _trackingManager! : ITrackingManager
+  private _flagshipInstanceId! : string
+
+  public get trackingManager () : ITrackingManager {
+    return this._trackingManager
+  }
+
+  public set trackingManager (v : ITrackingManager) {
+    this._trackingManager = v
+  }
+
+  public get flagshipInstanceId () : string {
+    return this._flagshipInstanceId
+  }
+
+  public set flagshipInstanceId (v : string) {
+    this._flagshipInstanceId = v
+  }
 
   public get lastBucketingTimestamp ():string|undefined {
     return this._lastBucketingTimestamp
