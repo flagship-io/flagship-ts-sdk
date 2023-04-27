@@ -1,5 +1,4 @@
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
-import { Mock } from 'jest-mock'
 import { Event, EventCategory, OnVisitorExposed, UserExposureInfo } from '../../src'
 import { BatchingPeriodicCachingStrategy } from '../../src/api/BatchingPeriodicCachingStrategy'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
@@ -131,7 +130,7 @@ describe('Test BatchingPeriodicCachingStrategy', () => {
 
 describe('test sendBatch method', () => {
   const methodNow = Date.now
-  const mockNow:Mock<number, []> = jest.fn()
+  const mockNow = jest.fn<typeof Date.now>()
   beforeAll(() => {
     Date.now = mockNow
     mockNow.mockReturnValue(1)
@@ -392,7 +391,7 @@ describe('test sendBatch method', () => {
 
 describe('test activateFlag method', () => {
   const methodNow = Date.now
-  const mockNow:Mock<number, []> = jest.fn()
+  const mockNow = jest.fn<typeof Date.now>()
   beforeAll(() => {
     Date.now = mockNow
     mockNow.mockReturnValue(1)
@@ -405,8 +404,8 @@ describe('test activateFlag method', () => {
 
   const postAsync = jest.spyOn(httpClient, 'postAsync')
 
-  const onVisitorExposed : Mock<void, [arg: OnVisitorExposed]> = jest.fn()
-  const onUserExposure: Mock<void, [param: UserExposureInfo]> = jest.fn()
+  const onVisitorExposed = jest.fn<(arg: OnVisitorExposed)=>void>()
+  const onUserExposure = jest.fn<(param: UserExposureInfo)=>void>()
 
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', onVisitorExposed, onUserExposure })
   const logManager = new FlagshipLogManager()

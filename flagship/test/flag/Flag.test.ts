@@ -5,9 +5,8 @@ import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
 import { Flag } from '../../src/flag/Flags'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { HttpClient, IHttpOptions, IHttpResponse } from '../../src/utils/HttpClient'
+import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor'
-import { Mock } from 'jest-mock'
 
 describe('test Flag', () => {
   const visitorId = 'visitorId'
@@ -24,10 +23,7 @@ describe('test Flag', () => {
 
   const httpClient = new HttpClient()
 
-  const post: Mock<
-  Promise<IHttpResponse>,
-  [url: string, options: IHttpOptions]
-> = jest.fn()
+  const post = jest.fn<typeof httpClient.postAsync>()
   httpClient.postAsync = post
   post.mockResolvedValue({} as IHttpResponse)
 
@@ -37,7 +33,7 @@ describe('test Flag', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const getStatus:Mock<FlagshipStatus, []> = jest.fn()
+  const getStatus = jest.fn<()=>FlagshipStatus>()
 
   Flagship.getStatus = getStatus
 

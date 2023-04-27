@@ -8,63 +8,62 @@ import { HitType, VISITOR_ID_ERROR } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
-import { Mock } from 'jest-mock'
 import { IFlagMetadata, IHit, modificationsRequested } from '../../src/types'
 import { CampaignDTO } from '../../src/decision/api/models'
 import { DecisionManager } from '../../src/decision/DecisionManager'
-import { cacheVisitor, VisitorProfil } from '../../src/visitor/VisitorCache'
+import { cacheVisitor } from '../../src/visitor/VisitorCache'
 
 const updateContext = jest.fn()
 const clearContext = jest.fn()
-const getModification:Mock<Promise<unknown>, [params: modificationsRequested<unknown>, activateAll?: boolean]> = jest.fn()
+const getModification = jest.fn<(params: modificationsRequested<unknown>, activateAll?: boolean)=>Promise<unknown>>()
 const getModificationSync = jest.fn()
-const getModifications:Mock<Promise<Record<string, unknown>>, [params: modificationsRequested<unknown>[], activateAll?: boolean]> = jest.fn()
+const getModifications = jest.fn<(params: modificationsRequested<unknown>[], activateAll?: boolean) =>Promise<Record<string, unknown>>>()
 const getModificationsSync = jest.fn()
-const getModificationInfo:Mock<Promise<FlagDTO>, [key: string]> = jest.fn()
+const getModificationInfo = jest.fn<(key: string)=>Promise<FlagDTO>>()
 const getModificationInfoSync = jest.fn()
-const synchronizeModifications:Mock<Promise<void>, []> = jest.fn()
-const fetchFlags:Mock<Promise<void>, []> = jest.fn()
-const activateModification:Mock<Promise<void>, [keys: string]> = jest.fn()
-const activateModifications:Mock<Promise<void>, [keys: string[]]> = jest.fn()
-const activateModificationSync:Mock<void, [keys: string]> = jest.fn()
-const activateModificationsSync:Mock<void, [keys: string[]]> = jest.fn()
+const synchronizeModifications = jest.fn<()=>Promise<void>>()
+const fetchFlags = jest.fn<()=>Promise<void>>()
+const activateModification = jest.fn<(keys: string)=>Promise<void>>()
+const activateModifications = jest.fn<(keys: string[])=>Promise<void>>()
+const activateModificationSync = jest.fn<(keys: string)=>void>()
+const activateModificationsSync = jest.fn<(keys: string[])=>void>()
 
-const getFlagMetadata:Mock<IFlagMetadata, [metadata:IFlagMetadata]> = jest.fn()
-const sendHit:Mock<Promise<void>, [hit: IHit]> = jest.fn()
+const getFlagMetadata = jest.fn<(metadata:IFlagMetadata)=>IFlagMetadata>()
+const sendHit = jest.fn<(hit: IHit)=> Promise<void>>()
 
-const sendHits:Mock<Promise<void>, [hit: IHit[]]> = jest.fn()
-const sendHitsSync:Mock<void, [hit: IHit[]]> = jest.fn()
+const sendHits = jest.fn<(hit: IHit[])=>Promise<void>>()
+const sendHitsSync = jest.fn<(hit: IHit[])=>void>()
 
-const getAllModifications:Mock<Promise<{
+const getAllModifications = jest.fn<(activate: boolean)=>Promise<{
   visitorId: string;
   campaigns: CampaignDTO[];
-}>, [activate: boolean]> = jest.fn()
+}>>()
 
-const getAllFlagsData:Mock<Promise<{
+const getAllFlagsData = jest.fn<(activate: boolean)=>Promise<{
   visitorId: string;
   campaigns: CampaignDTO[];
-}>, [activate: boolean]> = jest.fn()
+}>>()
 
-const getModificationsForCampaign:Mock<Promise<{
+const getModificationsForCampaign = jest.fn<(campaignId: string, activate?: boolean)=>Promise<{
   visitorId: string;
   campaigns: CampaignDTO[];
-}>, [campaignId: string, activate?: boolean]> = jest.fn()
+}>>()
 
-const getFlatsDataForCampaign:Mock<Promise<{
+const getFlatsDataForCampaign = jest.fn<(campaignId: string, activate?: boolean)=>Promise<{
   visitorId: string;
   campaigns: CampaignDTO[];
-}>, [campaignId: string, activate?: boolean]> = jest.fn()
+}>>()
 
-const authenticate:Mock<void, [visitorId:string]> = jest.fn()
-const unauthenticate:Mock<void, []> = jest.fn()
-const setConsent:Mock<void, [boolean]> = jest.fn()
+const authenticate = jest.fn<(visitorId:string)=>void>()
+const unauthenticate = jest.fn<()=>void>()
+const setConsent = jest.fn<(hasConsented: boolean)=>void>()
 
-const updateCampaigns:Mock<void, [CampaignDTO[]]> = jest.fn()
-const lookupVisitor:Mock<void, []> = jest.fn()
-const lookupHits:Mock<void, []> = jest.fn()
-const cacheVisitorFn:Mock<Promise<void>, []> = jest.fn()
-const visitorExposed:Mock<Promise<void>, [{key:string, flag?:FlagDTO, defaultValue:unknown}]> = jest.fn()
-const getFlagValue:Mock<unknown, [{ key:string, defaultValue: unknown, flag?:FlagDTO, userExposed?: boolean}]> = jest.fn()
+const updateCampaigns = jest.fn<(campaigns: CampaignDTO[])=>void>()
+const lookupVisitor = jest.fn<()=>void>()
+const lookupHits = jest.fn()
+const cacheVisitorFn = jest.fn<()=>Promise<void>>()
+const visitorExposed = jest.fn<(param:{key:string, flag?:FlagDTO, defaultValue:unknown})=>Promise<void>>()
+const getFlagValue = jest.fn<(param:{ key:string, defaultValue: unknown, flag?:FlagDTO, userExposed?: boolean})=>unknown>()
 
 jest.mock('../../src/visitor/DefaultStrategy', () => {
   return {
@@ -533,7 +532,7 @@ describe('Name of the group', () => {
   const anonymousId = 'anonymousId'
 
   it('should ', () => {
-    const loadVisitorProfile:Mock<VisitorProfil, []> = jest.fn()
+    const loadVisitorProfile = jest.fn<typeof cacheVisitor.loadVisitorProfile>()
     cacheVisitor.loadVisitorProfile = loadVisitorProfile
     loadVisitorProfile.mockReturnValue({ visitorId, anonymousId })
     const visitorDelegate = new VisitorDelegate({
@@ -549,7 +548,7 @@ describe('Name of the group', () => {
   })
 
   it('should ', () => {
-    const loadVisitorProfile:Mock<VisitorProfil, []> = jest.fn()
+    const loadVisitorProfile = jest.fn<typeof cacheVisitor.loadVisitorProfile>()
     cacheVisitor.loadVisitorProfile = loadVisitorProfile
     loadVisitorProfile.mockReturnValue({ visitorId, anonymousId })
     const visitorDelegate = new VisitorDelegate({
@@ -565,7 +564,7 @@ describe('Name of the group', () => {
     expect(visitorDelegate.anonymousId).toBe(anonymousId)
   })
   it('should ', () => {
-    const loadVisitorProfile:Mock<VisitorProfil, []> = jest.fn()
+    const loadVisitorProfile = jest.fn<typeof cacheVisitor.loadVisitorProfile>()
     cacheVisitor.loadVisitorProfile = loadVisitorProfile
     loadVisitorProfile.mockReturnValue({ visitorId, anonymousId: null })
     const visitorDelegate = new VisitorDelegate({
@@ -582,7 +581,7 @@ describe('Name of the group', () => {
   })
 
   it('should ', () => {
-    const loadVisitorProfile:Mock<VisitorProfil, []> = jest.fn()
+    const loadVisitorProfile = jest.fn<typeof cacheVisitor.loadVisitorProfile>()
     cacheVisitor.loadVisitorProfile = loadVisitorProfile
     loadVisitorProfile.mockReturnValue({ visitorId, anonymousId: null })
     const visitorDelegate = new VisitorDelegate({

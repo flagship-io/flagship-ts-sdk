@@ -1,15 +1,13 @@
-import { TRACKING_MANAGER_ERROR } from './../../dist-deno/src/enum/FlagshipConstant'
-import { TRACKER_MANAGER_MISSING_ERROR } from './../../src/enum/FlagshipConstant'
+import { LOOKUP_VISITOR_JSON_OBJECT_ERROR, PROCESS_CACHE, VISITOR_CACHE_ERROR } from './../../src/enum/FlagshipConstant'
 import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig, IVisitorCacheImplementation } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { HttpClient, IHttpResponse, IHttpOptions } from '../../src/utils/HttpClient'
+import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { VisitorDelegate, DefaultStrategy, NoConsentStrategy, NotReadyStrategy, PanicStrategy } from '../../src/visitor'
-import { Mock } from 'jest-mock'
-import { LOOKUP_VISITOR_JSON_OBJECT_ERROR, VISITOR_CACHE_VERSION, VISITOR_CACHE_ERROR, PROCESS_CACHE } from '../../src/enum'
+import { VISITOR_CACHE_VERSION } from '../../src/enum'
 import { campaigns } from '../decision/campaigns'
 import { VisitorCacheDTO } from '../../src/types'
 import { VISITOR_ID_MISMATCH_ERROR } from '../../src/visitor/VisitorStrategyAbstract'
@@ -29,9 +27,9 @@ describe('test visitor cache', () => {
   const logError = jest.spyOn(logManager, 'error')
   const logInfo = jest.spyOn(logManager, 'info')
 
-  const cacheVisitor:Mock<Promise<void>, [visitorId: string, data: VisitorCacheDTO]> = jest.fn()
-  const lookupVisitor:Mock<Promise<VisitorCacheDTO>, [visitorId: string]> = jest.fn()
-  const flushVisitor:Mock<Promise<void>, [visitorId: string]> = jest.fn()
+  const cacheVisitor = jest.fn<(visitorId: string, data: VisitorCacheDTO)=>Promise<void>>()
+  const lookupVisitor = jest.fn<(visitorId: string)=>Promise<VisitorCacheDTO>>()
+  const flushVisitor = jest.fn<(visitorId: string)=>Promise<void>>()
   const visitorCacheImplementation:IVisitorCacheImplementation = {
     cacheVisitor,
     lookupVisitor,
@@ -43,10 +41,7 @@ describe('test visitor cache', () => {
 
   const httpClient = new HttpClient()
 
-  const post: Mock<
-      Promise<IHttpResponse>,
-      [url: string, options: IHttpOptions]
-    > = jest.fn()
+  const post = jest.fn<typeof httpClient.postAsync>()
   httpClient.postAsync = post
   post.mockResolvedValue({} as IHttpResponse)
 
@@ -385,9 +380,9 @@ describe('test visitorCache with disabledCache', () => {
 
   const logManager = new FlagshipLogManager()
 
-  const cacheVisitor:Mock<Promise<void>, [visitorId: string, data: VisitorCacheDTO]> = jest.fn()
-  const lookupVisitor:Mock<Promise<VisitorCacheDTO>, [visitorId: string]> = jest.fn()
-  const flushVisitor:Mock<Promise<void>, [visitorId: string]> = jest.fn()
+  const cacheVisitor = jest.fn<(visitorId: string, data: VisitorCacheDTO)=>Promise<void>>()
+  const lookupVisitor = jest.fn<(visitorId: string)=>Promise<VisitorCacheDTO>>()
+  const flushVisitor = jest.fn<(visitorId: string)=>Promise<void>>()
   const visitorCacheImplementation:IVisitorCacheImplementation = {
     cacheVisitor,
     lookupVisitor,
@@ -399,10 +394,7 @@ describe('test visitorCache with disabledCache', () => {
 
   const httpClient = new HttpClient()
 
-  const post: Mock<
-      Promise<IHttpResponse>,
-      [url: string, options: IHttpOptions]
-    > = jest.fn()
+  const post = jest.fn<typeof httpClient.postAsync>()
   httpClient.postAsync = post
   post.mockResolvedValue({} as IHttpResponse)
 

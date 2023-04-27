@@ -1,6 +1,5 @@
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
-import { Mock } from 'jest-mock'
-import { Event, EventCategory, HitAbstract, HitCacheDTO, IExposedFlag, IExposedVisitor, LogLevel, OnVisitorExposed, Page, UserExposureInfo } from '../../src'
+import { Event, EventCategory, HitAbstract, IExposedFlag, IExposedVisitor, LogLevel, OnVisitorExposed, Page, UserExposureInfo } from '../../src'
 import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinuousCachingStrategy'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
 import { EdgeConfig } from '../../src/config/EdgeConfig'
@@ -155,7 +154,7 @@ describe('Test BatchingContinuousCachingStrategy', () => {
 
 describe('test activateFlag method', () => {
   const methodNow = Date.now
-  const mockNow:Mock<number, []> = jest.fn()
+  const mockNow = jest.fn<typeof Date.now>()
   beforeAll(() => {
     Date.now = mockNow
     mockNow.mockReturnValue(1)
@@ -168,8 +167,8 @@ describe('test activateFlag method', () => {
 
   const postAsync = jest.spyOn(httpClient, 'postAsync')
 
-  const onVisitorExposed : Mock<void, [arg: OnVisitorExposed]> = jest.fn()
-  const onUserExposure: Mock<void, [param: UserExposureInfo]> = jest.fn()
+  const onVisitorExposed = jest.fn<(arg: OnVisitorExposed)=>void>()
+  const onUserExposure = jest.fn<(param: UserExposureInfo)=>void>()
 
   const config = new DecisionApiConfig({
     envId: 'envId',
@@ -512,7 +511,7 @@ describe('test activateFlag method', () => {
 
 describe('test sendBatch method', () => {
   const methodNow = Date.now
-  const mockNow:Mock<number, []> = jest.fn()
+  const mockNow = jest.fn<typeof Date.now>()
   beforeAll(() => {
     Date.now = mockNow
     mockNow.mockReturnValue(1)
@@ -766,7 +765,7 @@ describe('test sendBatch method', () => {
 
 describe('test cacheHit and flushHits methods', () => {
   const methodNow = Date.now
-  const mockNow:Mock<number, []> = jest.fn()
+  const mockNow = jest.fn<typeof Date.now>()
   beforeAll(() => {
     Date.now = mockNow
     mockNow.mockReturnValue(1)
@@ -778,10 +777,10 @@ describe('test cacheHit and flushHits methods', () => {
   const httpClient = new HttpClient()
 
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
-  const flushHits:Mock<Promise<void>, [hitKeys: string[]]> = jest.fn()
-  const lookupHits:Mock<Promise<Record<string, HitCacheDTO>>, []> = jest.fn()
-  const cacheHit:Mock<Promise<void>, [Record<string, HitCacheDTO>]> = jest.fn()
-  const flushAllHits:Mock<Promise<void>, []> = jest.fn()
+  const flushHits = jest.fn<typeof config.hitCacheImplementation.flushHits>()
+  const lookupHits = jest.fn<typeof config.hitCacheImplementation.lookupHits>()
+  const cacheHit = jest.fn<typeof config.hitCacheImplementation.cacheHit>()
+  const flushAllHits = jest.fn<typeof config.hitCacheImplementation.flushAllHits>()
   const hitCacheImplementation = {
     cacheHit,
     lookupHits,
