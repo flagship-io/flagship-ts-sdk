@@ -1,13 +1,15 @@
 {
   "name": "@flagship.io/js-sdk",
   "sideEffects": false,
-  "version": "3.1.5-alpha.7",
+  "version": "3.1.5-alpha.8",
   "license": "Apache-2.0",
   "description": "Flagship JS SDK",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
-  "browser": "./dist/index.browser.js",
+  "browser": "dist/index.browser.lite.js",
   "react-native": "dist/index.js",
+  "jsdelivr": "./dist/index.browser.js",
+  "unpkg": "./dist/index.browser.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist/*"
@@ -18,7 +20,7 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs",
       "react-native": "./dist/index.native.js",
-      "browser": "./dist/index.browser.js"
+      "browser": "./dist/index.browser.lite.js"
     },
     "./dist/index.browser.lite": "./dist/index.browser.lite.js",
     "./dist/index.browser.lite.js": "./dist/index.browser.lite.js",
