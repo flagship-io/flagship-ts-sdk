@@ -1,7 +1,7 @@
 // import { DecisionMode, EventCategory, Flagship, HitType, CacheStrategy } from '../../'
 
-const ENV_ID = 'c1ndrd07m0300ro0jf20'
-const API_KEY = 'QzdTI1M9iqaIhnJ66a34C5xdzrrvzq6q8XSVOsS6'
+const ENV_ID = ''
+const API_KEY = ''
 
 const btnAction1 = document.getElementById('btn-action-1')
 
