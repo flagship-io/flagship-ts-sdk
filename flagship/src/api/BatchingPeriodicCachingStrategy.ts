@@ -1,5 +1,5 @@
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
-import { BASE_API_URL, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_EVENT_URL, HIT_SENT_SUCCESS, LogLevel, SDK_INFO, SEND_ACTIVATE, SEND_BATCH, URL_ACTIVATE_MODIFICATION, MONITORING_HIT_ADDED_IN_QUEUE, ADD_MONITORING_HIT } from '../enum/index'
+import { BASE_API_URL, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_EVENT_URL, HIT_SENT_SUCCESS, LogLevel, SDK_INFO, SEND_ACTIVATE, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../enum/index'
 import { ActivateBatch } from '../hit/ActivateBatch'
 import { Batch } from '../hit/Batch'
 import { HitAbstract, Event } from '../hit/index'
@@ -11,15 +11,6 @@ import { SendActivate } from './types'
 export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbstract {
   async addHitInPoolQueue (hit: HitAbstract) {
     this._hitsPoolQueue.set(hit.key, hit)
-  }
-
-  public async addMonitoringHit (hit: Monitoring): Promise<void> {
-    if (!hit.key) {
-      const hitKey = `${hit.visitorId}:${uuidV4()}`
-      hit.key = hitKey
-    }
-    this._monitoringPoolQueue.set(hit.key, hit)
-    logDebug(this.config, sprintf(MONITORING_HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_MONITORING_HIT)
   }
 
   async sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate) {

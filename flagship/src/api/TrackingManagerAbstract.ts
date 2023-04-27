@@ -186,9 +186,6 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     if (this._isPooling) {
       return
     }
-
-    console.log('this', this)
-
     this._isPooling = true
     await this.strategy.sendBatch(BatchTriggeredBy.Timer)
     await this.sendMonitoringQueue()

@@ -1,5 +1,5 @@
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
-import { HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, HIT_SENT_SUCCESS, SEND_HIT, FS_CONSENT, SDK_INFO, SEND_ACTIVATE, BASE_API_URL, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, URL_ACTIVATE_MODIFICATION, LogLevel, MONITORING_HIT_ADDED_IN_QUEUE, ADD_MONITORING_HIT } from '../enum/index'
+import { HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, HIT_SENT_SUCCESS, SEND_HIT, FS_CONSENT, SDK_INFO, SEND_ACTIVATE, BASE_API_URL, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, URL_ACTIVATE_MODIFICATION, LogLevel } from '../enum/index'
 import { Activate } from '../hit/Activate'
 import { ActivateBatch } from '../hit/ActivateBatch'
 import { HitAbstract, Event } from '../hit/index'
@@ -37,15 +37,6 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   addHitInPoolQueue (_hit: HitAbstract): Promise<void> {
     return Promise.resolve()
-  }
-
-  public async addMonitoringHit (hit: Monitoring): Promise<void> {
-    if (!hit.key) {
-      const hitKey = `${hit.visitorId}:${uuidV4()}`
-      hit.key = hitKey
-    }
-    await this.cacheHit(new Map<string, Monitoring>().set(hit.key, hit))
-    logDebug(this.config, sprintf(MONITORING_HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_MONITORING_HIT)
   }
 
   async sendHit (hit:HitAbstract):Promise<void> {
