@@ -18,6 +18,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   protected _httpClient: IHttpClient
   protected _monitoringPoolQueue: Map<string, Monitoring>
   protected _flagshipInstanceId?: string
+  protected _isLoopingMonitoringPoolQueue: boolean
 
   public get config () : IFlagshipConfig {
     return this._config
@@ -30,6 +31,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     this._activatePoolQueue = activatePoolQueue
     this._monitoringPoolQueue = monitoringPoolQueue
     this._flagshipInstanceId = flagshipInstanceId
+    this._isLoopingMonitoringPoolQueue = false
   }
 
   public abstract addHitInPoolQueue (hit: HitAbstract):Promise<void>
@@ -120,14 +122,16 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   }
 
   public async sendMonitoringPoolQueue () {
-    if (this._monitoringPoolQueue.size === 0) {
+    if (this._isLoopingMonitoringPoolQueue || this._monitoringPoolQueue.size === 0) {
       return
     }
 
+    this._isLoopingMonitoringPoolQueue = true
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (const [_, item] of Array.from(this._monitoringPoolQueue)) {
       await this.sendMonitoringHit(item)
     }
+    this._isLoopingMonitoringPoolQueue = false
   }
 
   async activateFlag (hit: Activate):Promise<void> {
