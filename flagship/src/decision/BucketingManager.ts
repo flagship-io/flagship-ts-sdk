@@ -268,6 +268,24 @@ export class BucketingManager extends DecisionManager {
     let check = false
 
     for (const { key, value, operator } of targetings) {
+      if (operator === 'EXISTS') {
+        if (key in visitor.context) {
+          check = true
+          continue
+        }
+        check = false
+        break
+      }
+
+      if (operator === 'NOT_EXISTS') {
+        if (key in visitor.context) {
+          check = false
+          break
+        }
+        check = true
+        continue
+      }
+
       if (key === 'fs_all_users') {
         check = true
         continue
