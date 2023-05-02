@@ -544,6 +544,73 @@ describe('test bucketing method', () => {
     expect(testOperator).toBeCalledTimes(1)
   })
 
+  it('test checkAndTargeting key EXISTS 1', () => {
+    const testOperator = jest.spyOn(bucketingManagerAny, 'testOperator')
+    const targetingFsUsers = [{
+      key: 'partner::key1',
+      operator: 'EXISTS',
+      value: '2'
+    }, {
+      key: 'fs_users',
+      operator: 'ENDS_WITH',
+      value: '6'
+    }]
+    const response = bucketingManagerAny.checkAndTargeting(targetingFsUsers, visitor)
+    expect(response).toBeFalsy()
+    expect(testOperator).toBeCalledTimes(0)
+  })
+
+  it('test checkAndTargeting key EXISTS 2', () => {
+    const testOperator = jest.spyOn(bucketingManagerAny, 'testOperator')
+    const targetingFsUsers = [{
+      key: 'partner::key1',
+      operator: 'EXISTS',
+      value: false
+    }, {
+      key: 'fs_users',
+      operator: 'ENDS_WITH',
+      value: '6'
+    }]
+    visitor.updateContext({ 'partner::key1': false })
+    const response = bucketingManagerAny.checkAndTargeting(targetingFsUsers, visitor)
+    expect(response).toBeTruthy()
+    expect(testOperator).toBeCalledTimes(1)
+  })
+
+  it('test checkAndTargeting key NOT_EXISTS 1', () => {
+    const testOperator = jest.spyOn(bucketingManagerAny, 'testOperator')
+    const targetingFsUsers = [{
+      key: 'partner::key2',
+      operator: 'NOT_EXISTS',
+      value: false
+    }, {
+      key: 'fs_users',
+      operator: 'ENDS_WITH',
+      value: '6'
+    }]
+    // visitor.updateContext({ 'partner::key1': false })
+    const response = bucketingManagerAny.checkAndTargeting(targetingFsUsers, visitor)
+    expect(response).toBeTruthy()
+    expect(testOperator).toBeCalledTimes(1)
+  })
+
+  it('test checkAndTargeting key NOT_EXISTS 2', () => {
+    const testOperator = jest.spyOn(bucketingManagerAny, 'testOperator')
+    const targetingFsUsers = [{
+      key: 'partner::key2',
+      operator: 'NOT_EXISTS',
+      value: false
+    }, {
+      key: 'fs_users',
+      operator: 'ENDS_WITH',
+      value: '6'
+    }]
+    visitor.updateContext({ 'partner::key2': false })
+    const response = bucketingManagerAny.checkAndTargeting(targetingFsUsers, visitor)
+    expect(response).toBeFalsy()
+    expect(testOperator).toBeCalledTimes(0)
+  })
+
   it('test checkAndTargeting key not match context', () => {
     const testOperator = jest.spyOn(bucketingManagerAny, 'testOperator')
     const targetingKeyContext = {
