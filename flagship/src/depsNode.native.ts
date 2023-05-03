@@ -1,6 +1,3 @@
-export const fetch = (input: RequestInfo | URL, init?: RequestInit) => global.fetch(input, init)
-
+export const myFetch = (input: RequestInfo | URL, init?: RequestInit) => fetch(input, init)
 export { EventEmitter } from 'events'
-
-export const AbortController = global.AbortController
-export const AbortSignal = global.AbortSignal
+export const LocalAbortController = AbortController

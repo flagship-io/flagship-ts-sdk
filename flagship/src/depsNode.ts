@@ -1,6 +1,6 @@
 import { Agent as HttpAgent } from 'http'
 import { Agent as HttpAgents } from 'https'
-import myFetch from 'node-fetch'
+import fetch from 'node-fetch'
 
 function getHttpAgent ():Record<string, unknown> {
   const globalOption:Record<string, unknown> = {}
@@ -12,10 +12,10 @@ function getHttpAgent ():Record<string, unknown> {
   return globalOption
 }
 
-export const fetch = async (input: URL | RequestInfo, init?: RequestInit): Promise<Response> => {
+export const myFetch = async (input: URL | RequestInfo, init?: RequestInit): Promise<Response> => {
   const globalOption:Record<string, unknown> = getHttpAgent()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return myFetch(input as any, {
+  return fetch(input as any, {
     ...globalOption,
     ...init
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -23,4 +23,4 @@ export const fetch = async (input: URL | RequestInfo, init?: RequestInit): Promi
 }
 
 export { EventEmitter } from 'events'
-export * from 'node-abort-controller'
+export { AbortController as LocalAbortController } from 'node-abort-controller'

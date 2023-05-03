@@ -12,7 +12,7 @@ module.exports = merge(common(), {
       http: false,
       https: false,
       'node-fetch': false,
-      '../depsNode': '../depsBrowser.ts'
+      '../depsNode': '../depsNode.native'
     }
   },
   output: {
@@ -41,8 +41,7 @@ module.exports = merge(common(), {
                 {
                   targets: '>0.3%, last 2 versions, not dead',
                   useBuiltIns: 'usage',
-                  corejs: 3,
-                  debug: true
+                  corejs: 3
                 }
               ],
               ['@babel/preset-typescript']

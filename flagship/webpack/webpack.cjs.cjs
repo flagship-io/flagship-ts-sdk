@@ -1,5 +1,4 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const webpack = require('webpack')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { merge } = require('webpack-merge')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -8,7 +7,6 @@ const nodeExternals = require('webpack-node-externals')
 const common = require('./webpack.common.cjs')
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const TerserPlugin = require('terser-webpack-plugin')
 
 module.exports = merge(common(), {
   target: 'node',
