@@ -1,16 +1,18 @@
 // import { DecisionMode, EventCategory, Flagship, HitType, CacheStrategy } from '../../'
 
-const ENV_ID = 'c1ndrd07m0300ro0jf20'
-const API_KEY = 'QzdTI1M9iqaIhnJ66a34C5xdzrrvzq6q8XSVOsS6'
+const ENV_ID = ''
+const API_KEY = ''
 
 const btnAction1 = document.getElementById('btn-action-1')
 
 btnAction1.addEventListener('click', async () => {
 // Initialize the SDK and send Initialize monitoring hit
   Flagship.start(ENV_ID, API_KEY, {
-    // decisionMode: DecisionMode.BUCKETING,
+    decisionMode: DecisionMode.BUCKETING,
     // initialBucketing: bucketing
     // disableCache: true,
+    pollingInterval: 30,
+    fetchThirdPartyData: true,
     fetchNow: false,
     trackingMangerConfig: {
       // cacheStrategy: 3,
@@ -27,10 +29,10 @@ let visitor
 btnAction2.addEventListener('click', async () => {
   // Create a visitor and send consent hit
   visitor = Flagship.newVisitor({
-    visitorId: 'visitor-A',
+    visitorId: 'wonderful_visitor_1',
     // isAuthenticated: true,
     context: {
-      testing_tracking_manager: true
+      qa_bucketing_integration: true
     }
   })
 })
@@ -47,9 +49,13 @@ const btnAction4 = document.getElementById('btn-action-4')
 // scenario 1 action 1
 btnAction4.addEventListener('click', async () => {
   // Send an activate hit
-  const value = visitor.getFlag('my_flag', 'defaultValue').getValue()
+  const value = visitor.getFlag('appName', 'defaultValue').getValue()
 
   console.log('flag value', value)
+
+  const value2 = visitor.getFlag('btnColor', 'defaultValue').getValue()
+
+  console.log('flag value2', value2)
 })
 
 const btnAction5 = document.getElementById('btn-action-5')
