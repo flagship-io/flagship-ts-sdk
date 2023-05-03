@@ -7,7 +7,7 @@ import * as nodeDeps from '../../src/depsNode'
 globalThis.AbortController = require('node-abort-controller')
 
 describe('test Post method NOdeHttpClient', () => {
-  const fetch = jest.spyOn(nodeDeps, 'fetch') as any
+  const fetch = jest.spyOn(nodeDeps, 'myFetch') as any
   const nodeHttpClient = new HttpClient()
   const url = 'https://localhost'
   const timeout = 2000
@@ -55,7 +55,7 @@ describe('test Post method NOdeHttpClient', () => {
 })
 
 describe('test Get method NOdeHttpClient', () => {
-  const fetch = jest.spyOn(nodeDeps, 'fetch') as any
+  const fetch = jest.spyOn(nodeDeps, 'myFetch') as any
   const nodeHttpClient = new HttpClient()
   const url = 'https://localhost'
   const timeout = 2000
