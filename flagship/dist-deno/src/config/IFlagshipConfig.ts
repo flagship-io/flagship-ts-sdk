@@ -56,6 +56,8 @@ export interface IFlagshipConfig {
      */
     pollingInterval?: number
 
+    fetchThirdPartyData?: boolean
+
     /**
      * Indicates whether enables or disables the client cache manager.
      * By enabling the client cache, it will allow you to keep cross sessions visitor experience.

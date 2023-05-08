@@ -1,11 +1,12 @@
-import { CampaignDTO, FlagDTO } from '../index.ts'
+
 import { FlagshipStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR } from '../enum/index.ts'
-import { IFlagMetadata, IHit, modificationsRequested } from '../types.ts'
+import { FlagDTO, IFlagMetadata, IHit, modificationsRequested } from '../types.ts'
 import { logInfoSprintf } from '../utils/utils.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
 import { BatchDTO } from '../hit/Batch.ts'
 import { FlagMetadata } from '../flag/FlagMetadata.ts'
+import { CampaignDTO } from '../decision/api/models.ts'
 
 export class PanicStrategy extends DefaultStrategy {
   setConsent (hasConsented:boolean):void {

@@ -11,5 +11,6 @@ export class BucketingConfig extends FlagshipConfig {
     this.onBucketingFail = param?.onBucketingFail
     this.onBucketingSuccess = param?.onBucketingSuccess
     this.onBucketingUpdated = param?.onBucketingUpdated
+    this.fetchThirdPartyData = param?.fetchThirdPartyData
   }
 }
