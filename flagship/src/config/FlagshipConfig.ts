@@ -35,6 +35,15 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _trackingMangerConfig : ITrackingManagerConfig
   private _onUserExposure? : (param: UserExposureInfo)=>void
   private _onVisitorExposed?:(arg: OnVisitorExposed)=> void
+  private _fetchThirdPartyData : boolean|undefined
+
+  public get fetchThirdPartyData () : boolean|undefined {
+    return this._fetchThirdPartyData
+  }
+
+  public set fetchThirdPartyData (v : boolean|undefined) {
+    this._fetchThirdPartyData = v
+  }
 
   public get trackingMangerConfig () : ITrackingManagerConfig {
     return this._trackingMangerConfig

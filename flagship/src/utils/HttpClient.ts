@@ -1,5 +1,5 @@
 import { REQUEST_TIME_OUT } from '../enum/index'
-import { fetch } from '../nodeDeps'
+import { myFetch, LocalAbortController } from '../depsNode'
 
 export interface IHttpOptions {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -46,13 +46,13 @@ export class HttpClient implements IHttpClient {
   }
 
   async getAsync (url: string, options?: IHttpOptions): Promise<IHttpResponse> {
-    const c = new AbortController()
+    const c = new LocalAbortController()
     const id = setTimeout(() => c.abort(), (options?.timeout ? options.timeout : REQUEST_TIME_OUT) * 1000)
     try {
-      const response = await fetch(url, {
+      const response = await myFetch(url, {
         method: 'GET',
         headers: options?.headers,
-        signal: c.signal,
+        signal: c.signal as AbortSignal,
         keepalive: true
       })
       return this.getResponse(response)
@@ -62,14 +62,14 @@ export class HttpClient implements IHttpClient {
   }
 
   public async postAsync (url: string, options: IHttpOptions): Promise<IHttpResponse> {
-    const c = new AbortController()
+    const c = new LocalAbortController()
     const id = setTimeout(() => c.abort(), options.timeout ? options.timeout * 1000 : REQUEST_TIME_OUT * 1000)
     try {
-      const response = await fetch(url, {
+      const response = await myFetch(url, {
         method: 'POST',
         headers: options.headers,
         body: JSON.stringify(options.body),
-        signal: c.signal,
+        signal: c.signal as AbortSignal,
         keepalive: true
       })
       return this.getResponse(response)

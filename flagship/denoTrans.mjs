@@ -74,7 +74,7 @@ function transformFile (filePath, dirPath, packageResolves = null) {
 
 const packageResolve = {
   NodeHttpClient: 'DenoHttpClient',
-  '../nodeDeps': '../deps'
+  '../depsNode': '../depsDeno'
 }
 const src = 'src'
 transformFromDir(src, packageResolve)

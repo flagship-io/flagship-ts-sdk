@@ -3,6 +3,8 @@ import { IFlagshipConfig } from './IFlagshipConfig'
 
 export interface IBucketingConfig extends IFlagshipConfig{
     decisionMode: DecisionMode.BUCKETING,
+
+    fetchThirdPartyData?: boolean
     /**
      * Specify delay between two bucketing polling. Default is 2s.
      *

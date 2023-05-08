@@ -1,6 +1,5 @@
-import { FlagDTO } from '../index'
 import { HitAbstract, HitShape } from '../hit/index'
-import { primitive, modificationsRequested, IHit, IFlagMetadata } from '../types'
+import { primitive, modificationsRequested, IHit, IFlagMetadata, FlagDTO } from '../types'
 import { VisitorAbstract } from './VisitorAbstract'
 import { CampaignDTO } from '../decision/api/models'
 import { Flag, IFlag } from '../flag/Flags'
