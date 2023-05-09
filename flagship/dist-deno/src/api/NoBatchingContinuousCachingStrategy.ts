@@ -63,7 +63,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       if (hit.type !== HitType.EVENT || (hit as Event).action !== FS_CONSENT) {
-        this.cacheHitKeys[hit.key] = hit.key
+        this.cacheHitKeys[hit.key] = hit.visitorId
       }
       await this.cacheHit(new Map<string, HitAbstract>().set(hit.key, hit))
       logError(this.config, errorFormat(error.message || error, {
@@ -77,7 +77,12 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
   }
 
   async notConsent (visitorId: string): Promise<void> {
-    const keys = Object.keys(this.cacheHitKeys)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const cacheHitKeysEntries = Object.entries(this.cacheHitKeys).filter(([_, value]) => value === visitorId)
+    const keys:string[] = []
+    for (const [key] of cacheHitKeysEntries) {
+      keys.push(key)
+    }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const hitsKeys = Array.from(this._hitsPoolQueue).filter(([_, item]) => {
       return (item?.type !== HitType.EVENT || (item as Event)?.action !== FS_CONSENT) && (item.visitorId === visitorId || item.anonymousId === visitorId)
@@ -154,7 +159,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       activateBatch.hits.forEach((item) => {
-        this.cacheHitKeys[item.key] = item.key
+        this.cacheHitKeys[item.key] = item.visitorId
       })
 
       if (currentActivate) {
