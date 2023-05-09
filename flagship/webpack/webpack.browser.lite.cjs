@@ -11,8 +11,7 @@ module.exports = merge(common(), {
     alias: {
       http: false,
       https: false,
-      'node-fetch': false,
-      '../depsNode': '../depsNode.native'
+      'node-fetch': false
     }
   },
   output: {

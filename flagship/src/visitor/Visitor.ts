@@ -1,5 +1,5 @@
 import { HitShape, IHit, FlagDTO, modificationsRequested, primitive } from '../types'
-import { EventEmitter } from '../depsNode'
+import { EventEmitter } from '../depsNode.native'
 import { IVisitor } from './IVisitor'
 import { IFlagshipConfig } from '../config/index'
 import { EMIT_READY } from '../enum/index'
