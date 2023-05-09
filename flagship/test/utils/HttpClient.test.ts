@@ -2,9 +2,9 @@
 import { jest, expect, it, describe } from '@jest/globals'
 import { HttpClient, IHttpOptions } from '../../src/utils/HttpClient'
 import { Response } from 'node-fetch'
-import * as nodeDeps from '../../src/depsNode'
+import * as nodeDeps from '../../src/depsNode.native'
 
-globalThis.AbortController = require('node-abort-controller')
+// globalThis.AbortController = require('node-abort-controller')
 
 describe('test Post method NOdeHttpClient', () => {
   const fetch = jest.spyOn(nodeDeps, 'myFetch') as any
