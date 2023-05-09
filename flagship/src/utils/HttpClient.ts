@@ -1,5 +1,5 @@
 import { REQUEST_TIME_OUT } from '../enum/index'
-import { myFetch, LocalAbortController } from '../depsNode'
+import { myFetch, LocalAbortController } from '../depsNode.native'
 
 export interface IHttpOptions {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

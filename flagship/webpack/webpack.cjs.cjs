@@ -11,7 +11,9 @@ const common = require('./webpack.common.cjs')
 module.exports = merge(common(), {
   target: 'node',
   resolve: {
-    alias: {}
+    alias: {
+      '../depsNode.native': '../depsNode'
+    }
   },
   output: {
     filename: 'index.cjs',
