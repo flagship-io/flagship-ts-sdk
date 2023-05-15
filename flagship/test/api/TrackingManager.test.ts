@@ -5,9 +5,9 @@ import { HttpClient } from '../../src/utils/HttpClient'
 import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinuousCachingStrategy'
 import { BatchingPeriodicCachingStrategy } from '../../src/api/BatchingPeriodicCachingStrategy'
 import { CacheStrategy, Event, EventCategory, HitCacheDTO, Item, Page, Screen, Transaction } from '../../src'
-import { FS_CONSENT, HIT_CACHE_VERSION, NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY, PROCESS_LOOKUP_HIT, SDK_INFO } from '../../src/enum'
+import { FS_CONSENT, HIT_CACHE_VERSION, NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY, PROCESS_CACHE, HIT_CACHE_ERROR, SDK_INFO } from '../../src/enum'
 import { NoBatchingContinuousCachingStrategy } from '../../src/api/NoBatchingContinuousCachingStrategy'
-import { sleep, uuidV4 } from '../../src/utils/utils'
+import { sleep, sprintf, uuidV4 } from '../../src/utils/utils'
 import { Mock } from 'jest-mock'
 import { Segment } from '../../src/hit/Segment'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
@@ -359,7 +359,7 @@ describe('test TrackingManager lookupHits', () => {
     expect(flushHits).toBeCalledTimes(0)
 
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(error.message, PROCESS_LOOKUP_HIT)
+    expect(logError).toBeCalledWith(sprintf(HIT_CACHE_ERROR, 'lookupHits', error.message), PROCESS_CACHE)
   })
 
   it('test lookupHits empty ', async () => {

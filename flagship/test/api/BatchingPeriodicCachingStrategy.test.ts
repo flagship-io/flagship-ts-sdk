@@ -2,7 +2,7 @@ import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { Event, EventCategory, OnVisitorExposed, UserExposureInfo } from '../../src'
 import { BatchingPeriodicCachingStrategy } from '../../src/api/BatchingPeriodicCachingStrategy'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
-import { HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, SDK_INFO, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, SEND_BATCH, BASE_API_URL, URL_ACTIVATE_MODIFICATION, FS_CONSENT, LogLevel, DEFAULT_HIT_CACHE_TIME_MS } from '../../src/enum'
+import { HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, SDK_INFO, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, SEND_BATCH, BASE_API_URL, URL_ACTIVATE_MODIFICATION, FS_CONSENT, LogLevel, DEFAULT_HIT_CACHE_TIME_MS, HIT_SENT_SUCCESS, BATCH_HIT, TRACKING_MANAGER, TRACKING_MANAGER_ERROR } from '../../src/enum'
 import { BatchTriggeredBy } from '../../src/enum/BatchTriggeredBy'
 import { Activate } from '../../src/hit/Activate'
 import { ActivateBatch } from '../../src/hit/ActivateBatch'
@@ -11,7 +11,7 @@ import { HitAbstract } from '../../src/hit/HitAbstract'
 import { Page } from '../../src/hit/Page'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
-import { errorFormat, sleep } from '../../src/utils/utils'
+import { sleep, sprintf } from '../../src/utils/utils'
 describe('Test BatchingPeriodicCachingStrategy', () => {
   const visitorId = 'visitorId'
   it('test addHit method', async () => {
@@ -325,13 +325,14 @@ describe('test sendBatch method', () => {
     expect(cacheHit).toBeCalledTimes(1)
     expect(hitsPoolQueue.size).toBe(1)
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(errorFormat(error, {
+    expect(logError).toBeCalledWith(sprintf(TRACKING_MANAGER_ERROR, BATCH_HIT, {
+      message: error,
       url: HIT_EVENT_URL,
       headers,
       body: batch.toApiKeys(),
       duration: 0,
       batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.BatchLength]
-    }), SEND_BATCH)
+    }), TRACKING_MANAGER)
   })
 
   it('test sendActivate on batch', async () => {
