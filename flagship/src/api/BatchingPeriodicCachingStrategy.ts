@@ -1,8 +1,8 @@
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
-import { BASE_API_URL, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_EVENT_URL, HIT_SENT_SUCCESS, SDK_INFO, SEND_ACTIVATE, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../enum/index'
+import { BASE_API_URL, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, DEFAULT_HIT_CACHE_TIME_MS, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HIT_EVENT_URL, HIT_SENT_SUCCESS, SDK_INFO, SEND_ACTIVATE, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../enum/index'
 import { ActivateBatch } from '../hit/ActivateBatch'
 import { Batch } from '../hit/Batch'
-import { HitAbstract, Event } from '../hit/index'
+import { HitAbstract } from '../hit/index'
 import { errorFormat, logDebug, logError, sprintf } from '../utils/utils'
 import { BatchingCachingStrategyAbstract, SendActivate } from './BatchingCachingStrategyAbstract'
 
@@ -60,30 +60,6 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       }), SEND_ACTIVATE)
     }
-  }
-
-  async notConsent (visitorId: string):Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const HitKeys = Array.from(this._hitsPoolQueue).filter(([_, item]) => {
-      return (item.type !== HitType.EVENT || (item as Event)?.action !== FS_CONSENT) && (item.visitorId === visitorId || item.anonymousId === visitorId)
-    })
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const activateKeys = Array.from(this._activatePoolQueue).filter(([_, item]) => {
-      return item.visitorId === visitorId || item.anonymousId === visitorId
-    })
-
-    HitKeys.forEach(([key]) => {
-      this._hitsPoolQueue.delete(key)
-    })
-
-    activateKeys.forEach(([key]) => {
-      this._activatePoolQueue.delete(key)
-    })
-
-    const mergedQueue = new Map<string, HitAbstract>([...this._hitsPoolQueue, ...this._activatePoolQueue])
-    await this.flushAllHits()
-    await this.cacheHit(mergedQueue)
   }
 
   async sendBatch (batchTriggeredBy = BatchTriggeredBy.BatchLength): Promise<void> {

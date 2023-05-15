@@ -199,7 +199,33 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       }
     }
 
-    abstract notConsent(visitorId: string): Promise<void>
+    async notConsent (visitorId: string):Promise<void> {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const hitKeys = Array.from(this._hitsPoolQueue).filter(([_, item]) => {
+        return (item?.type !== HitType.EVENT || (item as Event)?.action !== FS_CONSENT) && (item.visitorId === visitorId || item.anonymousId === visitorId)
+      })
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const activateKeys = Array.from(this._activatePoolQueue).filter(([_, item]) => {
+        return item.visitorId === visitorId || item.anonymousId === visitorId
+      })
+
+      const keysToFlush:string[] = []
+      hitKeys.forEach(([key]) => {
+        this._hitsPoolQueue.delete(key)
+        keysToFlush.push(key)
+      })
+
+      activateKeys.forEach(([key]) => {
+        this._activatePoolQueue.delete(key)
+        keysToFlush.push(key)
+      })
+
+      if (!keysToFlush.length) {
+        return
+      }
+      await this.flushHits(keysToFlush)
+    }
 
     protected async cacheHit (hits:Map<string, HitAbstract>):Promise<void> {
       try {
