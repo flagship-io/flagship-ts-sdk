@@ -1,4 +1,4 @@
-import { FLAG_METADATA, NO_FLAG_METADATA } from '../enum'
+import { FLAG_METADATA, NO_FLAG_METADATA } from '../enum/index'
 import { IFlagMetadata } from '../types'
 import { hasSameType, logDebugSprintf } from '../utils/utils'
 import { VisitorDelegate } from '../visitor/index'

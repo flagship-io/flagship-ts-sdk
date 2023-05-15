@@ -1,4 +1,4 @@
-import { FLAG_METADATA, NO_FLAG_METADATA } from '../enum.ts'
+import { FLAG_METADATA, NO_FLAG_METADATA } from '../enum/index.ts'
 import { IFlagMetadata } from '../types.ts'
 import { hasSameType, logDebugSprintf } from '../utils/utils.ts'
 import { VisitorDelegate } from '../visitor/index.ts'
