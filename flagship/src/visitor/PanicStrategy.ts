@@ -1,11 +1,12 @@
-import { CampaignDTO, FlagDTO } from '../index'
-import { FlagshipStatus, FLAG_METADATA, FLAG_USER_EXPOSED, METADATA_PANIC_MODE, METHOD_DEACTIVATED_ERROR } from '../enum/index'
-import { IFlagMetadata, IHit, modificationsRequested } from '../types'
+
+import { FlagshipStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_PANIC_MODE } from '../enum/index'
+import { FlagDTO, IFlagMetadata, IHit, modificationsRequested } from '../types'
 import { logInfoSprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
 import { HitAbstract, HitShape } from '../hit/index'
 import { BatchDTO } from '../hit/Batch'
 import { FlagMetadata } from '../flag/FlagMetadata'
+import { CampaignDTO } from '../decision/api/models'
 
 export class PanicStrategy extends DefaultStrategy {
   setConsent (hasConsented:boolean):void {

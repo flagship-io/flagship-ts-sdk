@@ -22,9 +22,13 @@ export class FlagshipLogManager implements IFlagshipLogManager {
   consoleError: { (...data: any[]): void; (message?: any, ...optionalParams: any[]): void; }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   consoleWarn: { (...data: any[]): void; (message?: any, ...optionalParams: any[]): void; }
-  constructor (isEdge = false) {
-    this.consoleError = isEdge ? console.log : console.error
-    this.consoleWarn = isEdge ? console.log : console.warn
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  consoleDebug: { (...data: any[]): void; (message?: any, ...optionalParams: any[]): void; }
+
+  constructor () {
+    this.consoleError = console.error ?? console.log
+    this.consoleWarn = console.warn ?? console.log
+    this.consoleDebug = console.debug ?? console.log
   }
 
   emergency (message: string, tag: string): void {
@@ -56,7 +60,7 @@ export class FlagshipLogManager implements IFlagshipLogManager {
   }
 
   debug (message: string, tag: string): void {
-    console.debug(this.formatOutput(LogLevel.DEBUG, message, tag))
+    this.consoleDebug(this.formatOutput(LogLevel.DEBUG, message, tag))
   }
 
   log (level: LogLevel, message: string, tag: string): void {

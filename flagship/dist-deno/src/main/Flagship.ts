@@ -195,7 +195,7 @@ export class Flagship {
 
     // check custom logger
     if (!localConfig.onLog && !localConfig.logManager) {
-      localConfig.logManager = new FlagshipLogManager(localConfig.decisionMode === DecisionMode.BUCKETING_EDGE)
+      localConfig.logManager = new FlagshipLogManager()
     }
 
     if (!envId || !apiKey) {

@@ -1,6 +1,5 @@
-import { FlagDTO } from '../index'
 import { Event, HitAbstract, HitShape } from '../hit/index'
-import { primitive, modificationsRequested, IHit, VisitorCacheDTO, IFlagMetadata } from '../types'
+import { primitive, modificationsRequested, IHit, VisitorCacheDTO, IFlagMetadata, FlagDTO } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { IConfigManager, IFlagshipConfig } from '../config/index'

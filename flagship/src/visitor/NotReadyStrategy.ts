@@ -1,6 +1,5 @@
-import { FlagDTO } from '../index'
-import { FlagshipStatus, FLAG_METADATA, FLAG_USER_EXPOSED, METADATA_SDK_NOT_READY, METHOD_DEACTIVATED_ERROR } from '../enum/index'
-import { IFlagMetadata, IHit, modificationsRequested } from '../types'
+import { FlagshipStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_SDK_NOT_READY } from '../enum/index'
+import { FlagDTO, IFlagMetadata, IHit, modificationsRequested } from '../types'
 import { logErrorSprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
 import { HitAbstract, HitShape } from '../hit/index'

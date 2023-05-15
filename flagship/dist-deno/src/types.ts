@@ -132,3 +132,11 @@ export type UserExposureInfo = {
     context: Record<string, primitive>
   }
  }
+
+export type ThirdPartySegment = {
+  visitor_id: string,
+  segment: string,
+  value: string,
+  expiration: number,
+  partner: string
+}

@@ -1,15 +1,15 @@
 {
   "name": "@flagship.io/js-sdk",
-  "sideEffects": [
-    "./src/nodeDeps.ts"
-  ],
-  "version": "3.1.4",
+  "sideEffects": false,
+  "version": "3.2.1",
   "license": "Apache-2.0",
   "description": "Flagship JS SDK",
-  "browser": "./dist/index.browser.js",
-  "main": "dist/index.node.cjs",
+  "main": "dist/index.cjs",
   "module": "dist/index.js",
+  "browser": "dist/index.browser.lite.js",
   "react-native": "dist/index.js",
+  "jsdelivr": "./dist/index.browser.js",
+  "unpkg": "./dist/index.browser.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist/*"
@@ -17,10 +17,10 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "browser": "./dist/index.browser.js",
-      "react-native": "./dist/index.js",
       "import": "./dist/index.js",
-      "require": "./dist/index.node.cjs"
+      "require": "./dist/index.cjs",
+      "react-native": "./dist/index.native.js",
+      "browser": "./dist/index.browser.lite.js"
     },
     "./dist/index.browser.lite": "./dist/index.browser.lite.js",
     "./dist/index.browser.lite.js": "./dist/index.browser.lite.js",
@@ -43,7 +43,7 @@
     "test:coverage": "jest --coverage",
     "build": "webpack",
     "postbuild": "node denoTrans.mjs && node generateDeclarationFile.mjs",
-    "prebuild": "npm run clean && npm run generate:version && tsc",
+    "prebuild": "npm run clean && npm run generate:version && tsc ",
     "generate:version": "genversion --es6 src/sdkVersion.ts",
     "build-prod": "NODE_ENV=production npm run build",
     "postbuild-prod": "node denoTrans.mjs",
@@ -55,12 +55,14 @@
     "@babel/plugin-transform-runtime": "^7.21.4",
     "@babel/preset-env": "^7.21.4",
     "@babel/preset-typescript": "^7.21.4",
+    "@babel/runtime": "^7.21.0",
     "@types/jest": "^29.5.0",
     "@types/node": "^18.15.11",
-    "@types/node-fetch": "2.6.3",
+    "@types/node-fetch": "^2.6.3",
     "@typescript-eslint/eslint-plugin": "^5.58.0",
     "@typescript-eslint/parser": "^5.58.0",
     "babel-loader": "^9.1.2",
+    "core-js": "^3.30.1",
     "cross-env": "^7.0.3",
     "eslint": "^8.38.0",
     "eslint-config-prettier": "^8.8.0",
@@ -85,11 +87,9 @@
     "webpack-node-externals": "^3.0.0"
   },
   "dependencies": {
-    "@babel/runtime": "^7.21.0",
-    "abort-controller": "^3.0.0",
-    "core-js": "^3.30.0",
     "events": "^3.3.0",
     "follow-redirects": "^1.15.2",
+    "node-abort-controller": "^3.1.1",
     "node-fetch": "^2.6.7"
   },
   "keywords": [
