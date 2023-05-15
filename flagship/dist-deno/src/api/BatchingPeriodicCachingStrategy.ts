@@ -1,9 +1,9 @@
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy.ts'
-import { BASE_API_URL, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_EVENT_URL, HIT_SENT_SUCCESS, SDK_INFO, SEND_ACTIVATE, SEND_BATCH, URL_ACTIVATE_MODIFICATION } from '../enum/index.ts'
+import { BASE_API_URL, BATCH_HIT, BATCH_MAX_SIZE, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_EVENT_URL, HIT_SENT_SUCCESS, SDK_INFO, SEND_ACTIVATE, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, URL_ACTIVATE_MODIFICATION } from '../enum/index.ts'
 import { ActivateBatch } from '../hit/ActivateBatch.ts'
 import { Batch } from '../hit/Batch.ts'
 import { HitAbstract, Event } from '../hit/index.ts'
-import { errorFormat, logDebug, logError, sprintf } from '../utils/utils.ts'
+import { errorFormat, logDebug, logDebugSprintf, logError, logErrorSprintf, sprintf } from '../utils/utils.ts'
 import { BatchingCachingStrategyAbstract, SendActivate } from './BatchingCachingStrategyAbstract.ts'
 
 export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbstract {
@@ -136,23 +136,28 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         body: requestBody,
         timeout: this.config.timeout
       })
-      logDebug(this.config, sprintf(BATCH_SENT_SUCCESS, JSON.stringify({
-        ...requestBody,
+
+      logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, BATCH_HIT, {
+        url: HIT_EVENT_URL,
+        body: requestBody,
+        headers,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
-      })), SEND_BATCH)
+      })
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       batch.hits.forEach((hit) => {
         this._hitsPoolQueue.set(hit.key, hit)
       })
-      logError(this.config, errorFormat(error.message || error, {
+      logErrorSprintf(this.config, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, BATCH_HIT, {
+        message: error.message || error,
         url: HIT_EVENT_URL,
         headers,
         body: requestBody,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
-      }), SEND_BATCH)
+      })
     }
     const mergedQueue = new Map<string, HitAbstract>([...this._hitsPoolQueue, ...this._activatePoolQueue])
     await this.flushAllHits()

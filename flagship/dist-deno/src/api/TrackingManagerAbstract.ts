@@ -1,10 +1,10 @@
 import { type IFlagshipConfig } from '../config/IFlagshipConfig.ts'
-import { DEFAULT_HIT_CACHE_TIME_MS, HitType, HIT_DATA_LOADED, PROCESS_LOOKUP_HIT } from '../enum/index.ts'
+import { BATCH_LOOP_STARTED, BATCH_LOOP_STOPPED, DEFAULT_HIT_CACHE_TIME_MS, HitType, HIT_CACHE_ERROR, HIT_CACHE_LOADED, PROCESS_CACHE, PROCESS_LOOKUP_HIT, TRACKING_MANAGER } from '../enum/index.ts'
 import { CacheStrategy } from '../enum/CacheStrategy.ts'
 import { HitAbstract, IEvent, type ITransaction, Transaction, Event, Item, type IItem, Page, type IPage, type IScreen, Screen } from '../hit/index.ts'
 import { type ISegment, Segment } from '../hit/Segment.ts'
 import { type IHttpClient } from '../utils/HttpClient.ts'
-import { logDebug, logError, logInfo, sprintf } from '../utils/utils.ts'
+import { logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf } from '../utils/utils.ts'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract.ts'
 import { BatchingContinuousCachingStrategy } from './BatchingContinuousCachingStrategy.ts'
 import { BatchingPeriodicCachingStrategy } from './BatchingPeriodicCachingStrategy.ts'
@@ -68,7 +68,8 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
   public startBatchingLoop (): void {
     const timeInterval = (this.config.trackingMangerConfig?.batchIntervals) as number * 1000
-    logInfo(this.config, 'Batching Loop have been started', 'startBatchingLoop')
+
+    logInfoSprintf(this.config, TRACKING_MANAGER, BATCH_LOOP_STARTED, timeInterval)
 
     this._intervalID = setInterval(() => {
       this.batchingLoop()
@@ -78,7 +79,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   public stopBatchingLoop (): void {
     clearInterval(this._intervalID)
     this._isPooling = false
-    logInfo(this.config, 'Batching Loop have been stopped', 'stopBatchingLoop')
+    logInfo(this.config, BATCH_LOOP_STOPPED, TRACKING_MANAGER)
   }
 
   protected async batchingLoop ():Promise<void> {
@@ -107,11 +108,12 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
       }
 
       const hitsCache = await hitCacheImplementation.lookupHits()
+
+      logDebugSprintf(this.config, PROCESS_CACHE, HIT_CACHE_LOADED, hitsCache)
+
       if (!hitsCache || !Object.keys(hitsCache).length) {
         return
       }
-
-      logDebug(this.config, sprintf(HIT_DATA_LOADED, JSON.stringify(hitsCache)), PROCESS_LOOKUP_HIT)
 
       const checkHitTime = (time:number) => (((Date.now() - time)) <= DEFAULT_HIT_CACHE_TIME_MS)
 
@@ -163,7 +165,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      logError(this.config, error.message || error, PROCESS_LOOKUP_HIT)
+      logErrorSprintf(this.config, PROCESS_CACHE, HIT_CACHE_ERROR, 'lookupHits', error.message || error)
     }
   }
 }

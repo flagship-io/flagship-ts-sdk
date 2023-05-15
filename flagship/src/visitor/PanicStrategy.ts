@@ -1,5 +1,5 @@
 
-import { FlagshipStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR } from '../enum/index'
+import { FlagshipStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_PANIC_MODE } from '../enum/index'
 import { FlagDTO, IFlagMetadata, IHit, modificationsRequested } from '../types'
 import { logInfoSprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
@@ -94,9 +94,10 @@ export class PanicStrategy extends DefaultStrategy {
     this.log(FLAG_USER_EXPOSED)
   }
 
-  getFlagMetadata ():IFlagMetadata {
-    this.log('flag.metadata')
-    return FlagMetadata.Empty()
+  getFlagMetadata (param:{metadata:IFlagMetadata, key?:string, hasSameType:boolean}):IFlagMetadata {
+    const emptyMetaData = FlagMetadata.Empty()
+    logInfoSprintf(this.config, FLAG_METADATA, METADATA_PANIC_MODE, this.visitor.visitorId, param.key, emptyMetaData)
+    return emptyMetaData
   }
 
   private log (methodName:string) {
