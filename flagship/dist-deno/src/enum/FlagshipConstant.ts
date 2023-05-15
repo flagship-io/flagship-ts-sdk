@@ -227,7 +227,6 @@ export const GET_FLAG_VALUE = 'Visitor {0}, Flag for key {1} returns value {2}'
 export const USER_EXPOSED_FLAG_ERROR = 'Visitor {0}, No Flags found for key {1}: User exposition wont be sent'
 export const FLAG_USER_EXPOSED = 'FLAG_USER_EXPOSED'
 export const USER_EXPOSED_CAST_ERROR = 'Visitor {0}, Flag for key {1} has a different type with default value: User exposition wont be sent'
-<<<<<<< HEAD
 export const GET_METADATA_CAST_ERROR = 'Visitor {0}, Flag for key {1} has a different type with default value: Empty metadata object is returned {2}'
 export const FLAG_METADATA = 'FLAG_METADATA'
 export const NO_FLAG_METADATA = 'Visitor {0}, No Flags found for key {1}:  Empty metadata object is returned {2}'
@@ -266,6 +265,4 @@ export const HIT_SENT_SUCCESS = '{0} has been sent : {1}'
 export const ACTIVATE_HIT = 'ACTIVATE HIT'
 export const BATCH_HIT = 'BATCH HIT'
 export const DIRECT_HIT = 'HIT'
-=======
 export const GET_THIRD_PARTY_SEGMENT = 'GET_THIRD_PARTY_SEGMENT'
->>>>>>> origin/main

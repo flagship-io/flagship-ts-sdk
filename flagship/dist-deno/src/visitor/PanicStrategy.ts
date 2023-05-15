@@ -1,12 +1,6 @@
-<<<<<<< HEAD
-import { CampaignDTO, FlagDTO } from '../index.ts'
-import { FlagshipStatus, FLAG_METADATA, FLAG_USER_EXPOSED, METADATA_PANIC_MODE, METHOD_DEACTIVATED_ERROR } from '../enum/index.ts'
-import { IFlagMetadata, IHit, modificationsRequested } from '../types.ts'
-=======
 
-import { FlagshipStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR } from '../enum/index.ts'
+import { FlagshipStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_PANIC_MODE } from '../enum/index.ts'
 import { FlagDTO, IFlagMetadata, IHit, modificationsRequested } from '../types.ts'
->>>>>>> origin/main
 import { logInfoSprintf } from '../utils/utils.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
