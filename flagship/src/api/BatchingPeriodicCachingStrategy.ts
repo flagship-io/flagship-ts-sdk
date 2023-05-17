@@ -19,7 +19,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
-    const activateBatch = new ActivateBatch(Array.from(activateHitsPool), this.config)
+    const activateBatch = new ActivateBatch(Array.from(activateHitsPool.filter(item => (Date.now() - item.createdAt) < DEFAULT_HIT_CACHE_TIME_MS)), this.config)
 
     if (currentActivate) {
       activateBatch.hits.push(currentActivate)
