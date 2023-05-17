@@ -1,7 +1,7 @@
 // import { DecisionMode, EventCategory, Flagship, HitType, CacheStrategy } from '../../'
 
-const ENV_ID = ''
-const API_KEY = ''
+const ENV_ID = 'bkk4s7gcmjcg07fke9dg'
+const API_KEY = 'Q6FDmj6F188nh75lhEato2MwoyXDS7y34VrAL4Aa'
 
 const btnAction1 = document.getElementById('btn-action-1')
 
@@ -49,13 +49,9 @@ const btnAction4 = document.getElementById('btn-action-4')
 // scenario 1 action 1
 btnAction4.addEventListener('click', async () => {
   // Send an activate hit
-  const value = visitor.getFlag('appName', 'defaultValue').getValue()
+  const value = visitor.getFlag('not_exists_flag', 'defaultValue').getValue()
 
   console.log('flag value', value)
-
-  const value2 = visitor.getFlag('btnColor', 'defaultValue').getValue()
-
-  console.log('flag value2', value2)
 })
 
 const btnAction5 = document.getElementById('btn-action-5')

@@ -4,7 +4,7 @@ import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinu
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
 import { EdgeConfig } from '../../src/config/EdgeConfig'
 import { BatchTriggeredBy } from '../../src/enum/BatchTriggeredBy'
-import { BASE_API_URL, BATCH_HIT, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, PROCESS_CACHE, HEADER_X_SDK_VERSION, HIT_CACHE_ERROR, HIT_CACHE_VERSION, HIT_EVENT_URL, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_INFO, SDK_VERSION, SEND_BATCH, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, URL_ACTIVATE_MODIFICATION } from '../../src/enum/FlagshipConstant'
+import { BASE_API_URL, BATCH_HIT, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, PROCESS_CACHE, HEADER_X_SDK_VERSION, HIT_CACHE_ERROR, HIT_CACHE_VERSION, HIT_EVENT_URL, SDK_INFO, SDK_VERSION, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, URL_ACTIVATE_MODIFICATION } from '../../src/enum/FlagshipConstant'
 import { Activate } from '../../src/hit/Activate'
 import { ActivateBatch } from '../../src/hit/ActivateBatch'
 import { Batch } from '../../src/hit/Batch'
