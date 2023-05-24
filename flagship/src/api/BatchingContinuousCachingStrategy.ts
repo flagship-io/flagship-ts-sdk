@@ -3,7 +3,7 @@ import { BASE_API_URL, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE,
 import { Activate } from '../hit/Activate'
 import { ActivateBatch } from '../hit/ActivateBatch'
 import { HitAbstract, Event } from '../hit/index'
-import { Monitoring } from '../hit/Monitoring'
+import { Troubleshooting } from '../hit/Troubleshooting'
 import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
 import { SendActivate } from './types'
@@ -103,7 +103,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       }), SEND_ACTIVATE)
 
-      const monitoringHttpResponse = new Monitoring({
+      const monitoringHttpResponse = new Troubleshooting({
         type: 'TROUBLESHOOTING',
         subComponent: 'SEND-ACTIVATE-HIT-ROUTE-ERROR',
         logLevel: LogLevel.ERROR,
@@ -123,7 +123,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
         batchTriggeredBy
       })
 
-      await this.sendMonitoringHit(monitoringHttpResponse)
+      await this.sendTroubleshootingHit(monitoringHttpResponse)
     }
   }
 }

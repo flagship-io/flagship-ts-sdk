@@ -6,7 +6,7 @@ import { DefaultStrategy } from './DefaultStrategy'
 import { HitAbstract, HitShape } from '../hit/index'
 import { BatchDTO } from '../hit/Batch'
 import { FlagMetadata } from '../flag/FlagMetadata'
-import { Monitoring } from '../hit/Monitoring'
+import { Troubleshooting } from '../hit/Troubleshooting'
 
 export class NotReadyStrategy extends DefaultStrategy {
   async synchronizeModifications (): Promise<void> {
@@ -88,7 +88,7 @@ export class NotReadyStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public sendMonitoringHit (_hit: Monitoring): Promise<void> {
+  public sendMonitoringHit (_hit: Troubleshooting): Promise<void> {
     this.log('sendMonitoringHit')
     return Promise.resolve()
   }

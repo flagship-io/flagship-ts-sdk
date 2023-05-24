@@ -4,7 +4,7 @@ import { ACTIVATE_ADDED_IN_QUEUE, ADD_ACTIVATE, ADD_HIT, BATCH_MAX_SIZE, BATCH_S
 import { Activate } from '../hit/Activate'
 import { Batch } from '../hit/Batch'
 import { HitAbstract, Event } from '../hit/index'
-import { Monitoring } from '../hit/Monitoring'
+import { Troubleshooting } from '../hit/Troubleshooting'
 import { HitCacheDTO, IExposedFlag, IExposedVisitor } from '../types'
 import { IHttpClient } from '../utils/HttpClient'
 import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
@@ -16,7 +16,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   protected _hitsPoolQueue: Map<string, HitAbstract>
   protected _activatePoolQueue: Map<string, Activate>
   protected _httpClient: IHttpClient
-  protected _monitoringPoolQueue: Map<string, Monitoring>
+  protected _monitoringPoolQueue: Map<string, Troubleshooting>
   protected _flagshipInstanceId?: string
   protected _isLoopingMonitoringPoolQueue: boolean
 
@@ -24,7 +24,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     return this._config
   }
 
-  constructor ({ config, hitsPoolQueue, httpClient, activatePoolQueue, monitoringPoolQueue, flagshipInstanceId }: BatchingCachingStrategyConstruct) {
+  constructor ({ config, hitsPoolQueue, httpClient, activatePoolQueue, troubleshootingQueue: monitoringPoolQueue, flagshipInstanceId }: BatchingCachingStrategyConstruct) {
     this._config = config
     this._hitsPoolQueue = hitsPoolQueue
     this._httpClient = httpClient
@@ -40,7 +40,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
   protected abstract sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate): Promise<void>
 
-  public async addMonitoringHit (hit: Monitoring): Promise<void> {
+  public async addTroubleshootingHit (hit: Troubleshooting): Promise<void> {
     if (!hit.key) {
       const hitKey = `${hit.visitorId}:${uuidV4()}`
       hit.key = hitKey
@@ -69,7 +69,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     }
   }
 
-  public clearMonitoringPoolQueue (traffic?:number) {
+  public clearTroubleshootingQueue (traffic?:number) {
     if (traffic === undefined) {
       this._monitoringPoolQueue.clear()
       return
@@ -89,7 +89,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     }
   }
 
-  public async sendMonitoringHit (hit: Monitoring): Promise<void> {
+  public async sendTroubleshootingHit (hit: Troubleshooting): Promise<void> {
     const requestBody = hit.toApiKeys()
     const now = Date.now()
     try {
@@ -110,7 +110,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       if (!hit.key) {
         const hitKey = `${hit.visitorId}:${uuidV4()}`
         hit.key = hitKey
-        await this.addMonitoringHit(hit)
+        await this.addTroubleshootingHit(hit)
       }
       logError(this.config, errorFormat(error.message || error, {
         url: TROUBLESHOOTING_HIT_URL,
@@ -121,7 +121,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     }
   }
 
-  public async sendMonitoringPoolQueue () {
+  public async sendTroubleshootingQueue () {
     if (this._isLoopingMonitoringPoolQueue || this._monitoringPoolQueue.size === 0) {
       return
     }
@@ -129,7 +129,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     this._isLoopingMonitoringPoolQueue = true
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (const [_, item] of Array.from(this._monitoringPoolQueue)) {
-      await this.sendMonitoringHit(item)
+      await this.sendTroubleshootingHit(item)
     }
     this._isLoopingMonitoringPoolQueue = false
   }
@@ -275,7 +275,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       }), SEND_BATCH)
 
-      const monitoringHttpResponse = new Monitoring({
+      const monitoringHttpResponse = new Troubleshooting({
         type: 'TROUBLESHOOTING',
         subComponent: 'SEND-BATCH-HIT-ROUTE-RESPONSE-ERROR',
         logLevel: LogLevel.ERROR,
@@ -295,7 +295,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
         batchTriggeredBy
       })
 
-      await this.sendMonitoringHit(monitoringHttpResponse)
+      await this.sendTroubleshootingHit(monitoringHttpResponse)
     }
   }
 

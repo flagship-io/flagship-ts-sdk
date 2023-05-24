@@ -10,13 +10,13 @@ import {
 } from '../enum/FlagshipConstant'
 import { HitAbstract, IHitAbstract } from './HitAbstract'
 import { BucketingDTO } from '../decision/api/bucketingDTO'
-import { FlagDTO, primitive } from '../types'
+import { FlagDTO, SubComponent, primitive } from '../types'
 import { CampaignDTO } from '../mod'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 
 export const ERROR_MESSAGE = 'event category and event action are required'
 
-export interface IMonitoring extends IHitAbstract{
+export interface ITroubleshooting extends IHitAbstract{
     logVersion?: string
     logLevel: LogLevel
     accountId?:string
@@ -24,7 +24,7 @@ export interface IMonitoring extends IHitAbstract{
     timestamp?:string
     timeZone?: string
     component?: string
-    subComponent: string
+    subComponent: SubComponent
     message: string
     lastInitializationTimestamp?: string
     lastBucketingTimestamp?: string
@@ -99,14 +99,14 @@ export interface IMonitoring extends IHitAbstract{
 
   }
 
-export class Monitoring extends HitAbstract implements IMonitoring {
+export class Troubleshooting extends HitAbstract implements ITroubleshooting {
   private _logVersion? : string
   private _logLevel! : LogLevel
   private _accountId? : string
   private _envId? : string
   private _timestamp? : string
   private _component? : string
-  private _subComponent! : string
+  private _subComponent! : SubComponent
   private _message! : string
   private _stackType? : string
   private _stackName? : string
@@ -666,11 +666,11 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     this._message = v
   }
 
-  public get subComponent () : string {
+  public get subComponent () : SubComponent {
     return this._subComponent
   }
 
-  public set subComponent (v : string) {
+  public set subComponent (v : SubComponent) {
     this._subComponent = v
   }
 
@@ -722,7 +722,7 @@ export class Monitoring extends HitAbstract implements IMonitoring {
     this._logVersion = v
   }
 
-  public constructor (param:Omit<IMonitoring & {config: IFlagshipConfig},
+  public constructor (param:Omit<ITroubleshooting & {config: IFlagshipConfig},
         'createdAt'|'category'>) {
     super({
       type: param.type,

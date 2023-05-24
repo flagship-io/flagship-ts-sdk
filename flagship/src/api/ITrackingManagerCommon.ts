@@ -1,17 +1,17 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { HitAbstract } from '../hit/HitAbstract'
 import { Activate } from '../hit/Activate'
-import { Monitoring } from '../hit/Monitoring'
-import { Troubleshooting } from '../types'
+import { Troubleshooting } from '../hit/Troubleshooting'
+import { TroubleshootingData } from '../types'
 
 export interface ITrackingManagerCommon {
     config:IFlagshipConfig
 
-    troubleshooting?:Troubleshooting | 'started'
+    troubleshootingData?:TroubleshootingData | 'started'
 
     addHit(hit: HitAbstract): Promise<void>
 
-    addMonitoringHit(hit: Monitoring): Promise<void>
+    addTroubleshootingHit(hit: Troubleshooting): Promise<void>
 
     activateFlag (hit: Activate): Promise<void>
   }

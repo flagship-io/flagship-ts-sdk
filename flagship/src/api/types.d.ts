@@ -2,7 +2,7 @@ import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 import { HitAbstract } from '../hit'
 import { Activate } from '../hit/Activate'
-import { Monitoring } from '../hit/Monitoring'
+import { Troubleshooting } from '../hit/Troubleshooting'
 import { IHttpClient } from '../utils/HttpClient'
 
 export type BatchingCachingStrategyConstruct = {
@@ -10,7 +10,7 @@ export type BatchingCachingStrategyConstruct = {
     httpClient: IHttpClient,
     hitsPoolQueue: Map<string, HitAbstract>,
     activatePoolQueue: Map<string, Activate>,
-    monitoringPoolQueue: Map<string, Monitoring>
+    troubleshootingQueue: Map<string, Troubleshooting>
     flagshipInstanceId?:string
    }
 

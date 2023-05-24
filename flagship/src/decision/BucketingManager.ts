@@ -10,7 +10,7 @@ import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { BucketingDTO, Targetings, VariationGroupDTO } from './api/bucketingDTO'
 import { CampaignDTO, VariationDTO } from './api/models'
 import { DecisionManager } from './DecisionManager'
-import { Monitoring } from '../hit/Monitoring'
+import { Troubleshooting } from '../hit/Troubleshooting'
 
 export class BucketingManager extends DecisionManager {
   private _bucketingContent!: BucketingDTO
@@ -35,7 +35,7 @@ export class BucketingManager extends DecisionManager {
       logDebugSprintf(this.config, PROCESS_BUCKETING, POLLING_EVENT_200, response.body)
       this._bucketingContent = response.body
       this._lastBucketingTimestamp = new Date().toISOString()
-      const monitoringHit = new Monitoring({
+      const monitoringHit = new Troubleshooting({
         type: 'TROUBLESHOOTING',
         visitorId: this.flagshipInstanceId,
         flagshipInstanceId: this.flagshipInstanceId,
@@ -46,7 +46,7 @@ export class BucketingManager extends DecisionManager {
         sdkBucketingFile: this._bucketingContent,
         config: this.config
       })
-      this.trackingManager.addMonitoringHit(monitoringHit)
+      this.trackingManager.addTroubleshootingHit(monitoringHit)
     } else if (response.status === 304) {
       logDebug(this.config, POLLING_EVENT_300, PROCESS_BUCKETING)
     }

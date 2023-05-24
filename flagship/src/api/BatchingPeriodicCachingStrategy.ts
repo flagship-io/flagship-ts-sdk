@@ -3,7 +3,7 @@ import { BASE_API_URL, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, DEFAULT_HIT_CACHE_TIM
 import { ActivateBatch } from '../hit/ActivateBatch'
 import { Batch } from '../hit/Batch'
 import { HitAbstract, Event } from '../hit/index'
-import { Monitoring } from '../hit/Monitoring'
+import { Troubleshooting } from '../hit/Troubleshooting'
 import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
 import { SendActivate } from './types'
@@ -63,7 +63,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       }), SEND_ACTIVATE)
 
-      const monitoringHttpResponse = new Monitoring({
+      const monitoringHttpResponse = new Troubleshooting({
         type: 'TROUBLESHOOTING',
         subComponent: 'SEND-ACTIVATE-HIT-ROUTE-ERROR',
         logLevel: LogLevel.ERROR,
@@ -83,7 +83,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         batchTriggeredBy
       })
 
-      await this.sendMonitoringHit(monitoringHttpResponse)
+      await this.sendTroubleshootingHit(monitoringHttpResponse)
     }
   }
 
@@ -157,7 +157,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
     const now = Date.now()
     const httpInstanceId = uuidV4()
     try {
-      const monitoringHttpRequest = new Monitoring({
+      const monitoringHttpRequest = new Troubleshooting({
         type: 'TROUBLESHOOTING',
         subComponent: 'SEND-BATCH-HIT-ROUTE-REQUEST',
         logLevel: LogLevel.INFO,
@@ -172,7 +172,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         httpRequestUrl: HIT_EVENT_URL
       })
 
-      this.addMonitoringHit(monitoringHttpRequest)
+      this.addTroubleshootingHit(monitoringHttpRequest)
 
       const response = await this._httpClient.postAsync(HIT_EVENT_URL, {
         headers,
@@ -186,7 +186,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })), SEND_BATCH)
 
-      const monitoringHttpResponse = new Monitoring({
+      const monitoringHttpResponse = new Troubleshooting({
         type: 'TROUBLESHOOTING',
         subComponent: 'SEND-BATCH-HIT-ROUTE-RESPONSE',
         logLevel: LogLevel.INFO,
@@ -203,7 +203,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         httpResponseTime: Date.now() - now
       })
 
-      this.addMonitoringHit(monitoringHttpResponse)
+      this.addTroubleshootingHit(monitoringHttpResponse)
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
@@ -218,7 +218,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       }), SEND_BATCH)
 
-      const monitoringHttpResponse = new Monitoring({
+      const monitoringHttpResponse = new Troubleshooting({
         type: 'TROUBLESHOOTING',
         subComponent: 'SEND-BATCH-HIT-ROUTE-RESPONSE-ERROR',
         logLevel: LogLevel.ERROR,
@@ -237,7 +237,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         httpResponseTime: Date.now() - now
       })
 
-      this.addMonitoringHit(monitoringHttpResponse)
+      this.addTroubleshootingHit(monitoringHttpResponse)
     }
     const mergedQueue = new Map<string, HitAbstract>([...this._hitsPoolQueue, ...this._activatePoolQueue])
     await this.flushAllHits()

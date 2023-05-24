@@ -8,12 +8,12 @@ import { logDebug, logError, logInfo, sprintf } from '../utils/utils'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
 import { BatchingContinuousCachingStrategy } from './BatchingContinuousCachingStrategy'
 import { BatchingPeriodicCachingStrategy } from './BatchingPeriodicCachingStrategy'
-import { HitCacheDTO, Troubleshooting } from '../types'
+import { HitCacheDTO, TroubleshootingData } from '../types'
 import { NoBatchingContinuousCachingStrategy } from './NoBatchingContinuousCachingStrategy'
 import { Activate, IActivate } from '../hit/Activate'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 import { ITrackingManager } from './ITrackingManager'
-import { Monitoring } from '../hit/Monitoring'
+import { Troubleshooting } from '../hit/Troubleshooting'
 
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
@@ -23,32 +23,31 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   private _config: IFlagshipConfig
   private _hitsPoolQueue: Map<string, HitAbstract>
   private _activatePoolQueue: Map<string, Activate>
-  private _monitoringPoolQueue: Map<string, Monitoring>
+  private _troubleshootingQueue: Map<string, Troubleshooting>
   protected strategy: BatchingCachingStrategyAbstract
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected _intervalID:any
   protected _isPooling = false
-  private _troubleshooting? : Troubleshooting | 'started'
+  private _troubleshootingData? : TroubleshootingData
   private _flagshipInstanceId?: string
 
   public get flagshipInstanceId (): string|undefined {
     return this._flagshipInstanceId
   }
 
-  public get troubleshooting () : Troubleshooting|undefined| 'started' {
-    return this._troubleshooting
+  public get troubleshootingData () : TroubleshootingData|undefined {
+    return this._troubleshootingData
   }
 
-  public set troubleshooting (v : Troubleshooting|undefined| 'started') {
-    this._troubleshooting = v
+  public set troubleshootingData (v : TroubleshootingData|undefined) {
+    this._troubleshootingData = v
   }
 
   constructor (httpClient: IHttpClient, config: IFlagshipConfig, flagshipInstanceId?:string) {
     this._flagshipInstanceId = flagshipInstanceId
-    this.troubleshooting = 'started'
     this._hitsPoolQueue = new Map<string, HitAbstract>()
     this._activatePoolQueue = new Map<string, Activate>()
-    this._monitoringPoolQueue = new Map<string, Monitoring>()
+    this._troubleshootingQueue = new Map<string, Troubleshooting>()
     this._httpClient = httpClient
     this._config = config
     this.strategy = this.initStrategy()
@@ -64,7 +63,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
           httpClient: this.httpClient,
           hitsPoolQueue: this._hitsPoolQueue,
           activatePoolQueue: this._activatePoolQueue,
-          monitoringPoolQueue: this._monitoringPoolQueue,
+          troubleshootingQueue: this._troubleshootingQueue,
           flagshipInstanceId: this.flagshipInstanceId
         })
         break
@@ -74,7 +73,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
           httpClient: this.httpClient,
           hitsPoolQueue: this._hitsPoolQueue,
           activatePoolQueue: this._activatePoolQueue,
-          monitoringPoolQueue: this._monitoringPoolQueue,
+          troubleshootingQueue: this._troubleshootingQueue,
           flagshipInstanceId: this.flagshipInstanceId
         })
         break
@@ -84,7 +83,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
           httpClient: this.httpClient,
           hitsPoolQueue: this._hitsPoolQueue,
           activatePoolQueue: this._activatePoolQueue,
-          monitoringPoolQueue: this._monitoringPoolQueue,
+          troubleshootingQueue: this._troubleshootingQueue,
           flagshipInstanceId: this.flagshipInstanceId
         })
         break
@@ -106,65 +105,58 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
   public abstract sendBatch(): Promise<void>
 
-  public async addMonitoringHit (hit: Monitoring) :Promise<void> {
-    if (this.troubleshooting === 'started') {
-      await this.strategy.addMonitoringHit(hit)
+  public async addTroubleshootingHit (hit: Troubleshooting) :Promise<void> {
+    console.log('hit', hit)
+
+    if (!this.troubleshootingData) {
+      this.strategy.clearTroubleshootingQueue()
       return
     }
 
-    if (!this.troubleshooting) {
-      this.strategy.clearMonitoringPoolQueue()
-      return
-    }
-
-    if (this.troubleshooting.traffic < hit.traffic) {
+    if (this.troubleshootingData.traffic < hit.traffic) {
       return
     }
 
     const now = new Date()
-    const isStarted = now > this.troubleshooting.startDate
+    const isStarted = now > this.troubleshootingData.startDate
 
     if (!isStarted) {
       return
     }
 
-    const isFinished = now < this.troubleshooting.endDate
+    const isFinished = now < this.troubleshootingData.endDate
 
     if (!isFinished) {
-      this.strategy.clearMonitoringPoolQueue()
+      this.strategy.clearTroubleshootingQueue()
       return
     }
 
-    await this.strategy.sendMonitoringHit(hit)
-    await this.strategy.sendMonitoringPoolQueue()
+    await this.strategy.sendTroubleshootingHit(hit)
+    await this.strategy.sendTroubleshootingQueue()
   }
 
-  public async sendMonitoringQueue () : Promise<void> {
-    if (this.troubleshooting === 'started') {
-      return
-    }
-
-    if (!this.troubleshooting) {
-      this.strategy.clearMonitoringPoolQueue()
+  public async sendTroubleshootingQueue () : Promise<void> {
+    if (!this.troubleshootingData) {
+      this.strategy.clearTroubleshootingQueue()
       return
     }
 
     const now = new Date()
-    const isStarted = now > this.troubleshooting.startDate
+    const isStarted = now > this.troubleshootingData.startDate
 
     if (!isStarted) {
       return
     }
 
-    const isFinished = now < this.troubleshooting.endDate
+    const isFinished = now < this.troubleshootingData.endDate
 
     if (!isFinished) {
-      this.strategy.clearMonitoringPoolQueue()
+      this.strategy.clearTroubleshootingQueue()
       return
     }
 
-    this.strategy.clearMonitoringPoolQueue(this.troubleshooting.traffic)
-    await this.strategy.sendMonitoringPoolQueue()
+    this.strategy.clearTroubleshootingQueue(this.troubleshootingData.traffic)
+    await this.strategy.sendTroubleshootingQueue()
   }
 
   public startBatchingLoop (): void {
@@ -188,7 +180,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     }
     this._isPooling = true
     await this.strategy.sendBatch(BatchTriggeredBy.Timer)
-    await this.sendMonitoringQueue()
+    await this.sendTroubleshootingQueue()
     this._isPooling = false
   }
 

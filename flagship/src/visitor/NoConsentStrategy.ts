@@ -5,7 +5,7 @@ import { logInfo, sprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
 import { CampaignDTO } from '../decision/api/models'
 import { BatchDTO } from '../hit/Batch'
-import { Monitoring } from '../hit/Monitoring'
+import { Troubleshooting } from '../hit/Troubleshooting'
 
 export class NoConsentStrategy extends DefaultStrategy {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -55,7 +55,7 @@ export class NoConsentStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public sendMonitoringHit (_hit: Monitoring): Promise<void> {
+  public sendMonitoringHit (_hit: Troubleshooting): Promise<void> {
     this.log('sendMonitoringHit')
     return Promise.resolve()
   }

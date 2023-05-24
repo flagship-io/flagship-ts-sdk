@@ -1,7 +1,7 @@
 import { ITrackingManager } from '../api/ITrackingManager'
 import { IFlagshipConfig } from '../config/index'
 import { FlagshipStatus } from '../enum/index'
-import { FlagDTO, Troubleshooting } from '../types'
+import { FlagDTO, TroubleshootingData } from '../types'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { CampaignDTO } from './api/models'
 
@@ -16,7 +16,7 @@ export interface IDecisionManager {
 
   config:IFlagshipConfig
 
-  troubleshooting?: Troubleshooting
+  troubleshooting?: TroubleshootingData
 
   lastBucketingTimestamp?: string
 

@@ -3,7 +3,7 @@ import { HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, H
 import { Activate } from '../hit/Activate'
 import { ActivateBatch } from '../hit/ActivateBatch'
 import { HitAbstract, Event } from '../hit/index'
-import { Monitoring } from '../hit/Monitoring'
+import { Troubleshooting } from '../hit/Troubleshooting'
 import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
 import { BatchingCachingStrategyConstruct, SendActivate } from './types'
@@ -74,7 +74,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.DirectHit]
       }), SEND_HIT)
 
-      const monitoringHttpResponse = new Monitoring({
+      const monitoringHttpResponse = new Troubleshooting({
         type: 'TROUBLESHOOTING',
         subComponent: 'SEND-HIT-ROUTE-ERROR',
         logLevel: LogLevel.ERROR,
@@ -93,7 +93,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         batchTriggeredBy: BatchTriggeredBy.DirectHit
       })
 
-      await this.sendMonitoringHit(monitoringHttpResponse)
+      await this.sendTroubleshootingHit(monitoringHttpResponse)
     }
   }
 
@@ -172,7 +172,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         await this.flushHits(hitKeysToRemove)
       }
 
-      const monitoringHttpResponse = new Monitoring({
+      const monitoringHttpResponse = new Troubleshooting({
         type: 'TROUBLESHOOTING',
         subComponent: 'SEND-ACTIVATE-HIT-ROUTE-RESPONSE',
         logLevel: LogLevel.INFO,
@@ -191,7 +191,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         batchTriggeredBy
       })
 
-      await this.sendMonitoringHit(monitoringHttpResponse)
+      await this.sendTroubleshootingHit(monitoringHttpResponse)
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
@@ -211,7 +211,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       }), SEND_ACTIVATE)
 
-      const monitoringHttpResponse = new Monitoring({
+      const monitoringHttpResponse = new Troubleshooting({
         type: 'TROUBLESHOOTING',
         subComponent: 'SEND-ACTIVATE-HIT-ROUTE-ERROR',
         logLevel: LogLevel.ERROR,
@@ -232,7 +232,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         batchTriggeredBy
       })
 
-      await this.sendMonitoringHit(monitoringHttpResponse)
+      await this.sendTroubleshootingHit(monitoringHttpResponse)
     }
   }
 }

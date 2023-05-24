@@ -4,9 +4,9 @@ import { IHttpClient } from '../utils/HttpClient'
 import { CampaignDTO } from './api/models'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, PROCESS_FETCHING_FLAGS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
-import { FlagDTO, Troubleshooting } from '../types'
+import { FlagDTO, TroubleshootingData } from '../types'
 import { errorFormat, logDebug } from '../utils/utils'
-import { Monitoring } from '../hit/Monitoring'
+import { Troubleshooting } from '../hit/Troubleshooting'
 import { ITrackingManager } from '../api/ITrackingManager'
 
 export abstract class DecisionManager implements IDecisionManager {
@@ -14,7 +14,7 @@ export abstract class DecisionManager implements IDecisionManager {
   protected _panic = false
   protected _httpClient: IHttpClient
   private _statusChangedCallback! : (status: FlagshipStatus)=>void
-  private _troubleshooting? : Troubleshooting
+  private _troubleshooting? : TroubleshootingData
 
   protected _lastBucketingTimestamp?:string
 
@@ -41,11 +41,11 @@ export abstract class DecisionManager implements IDecisionManager {
     return this._lastBucketingTimestamp
   }
 
-  public get troubleshooting () : Troubleshooting|undefined {
+  public get troubleshooting () : TroubleshootingData|undefined {
     return this._troubleshooting
   }
 
-  public set troubleshooting (v : Troubleshooting|undefined) {
+  public set troubleshooting (v : TroubleshootingData|undefined) {
     this._troubleshooting = v
   }
 
@@ -141,7 +141,7 @@ export abstract class DecisionManager implements IDecisionManager {
 
       this.troubleshooting = response?.body?.extras?.troubleshooting
 
-      const monitoringHttpResponse = new Monitoring({
+      const monitoringHttpResponse = new Troubleshooting({
         type: 'TROUBLESHOOTING',
         subComponent: 'GET-CAMPAIGNS-ROUTE-RESPONSE',
         logLevel: LogLevel.INFO,
@@ -167,7 +167,7 @@ export abstract class DecisionManager implements IDecisionManager {
       return campaigns
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      const monitoringHttpResponse = new Monitoring({
+      const monitoringHttpResponse = new Troubleshooting({
         type: 'TROUBLESHOOTING',
         subComponent: 'GET-CAMPAIGNS-ROUTE-RESPONSE-ERROR',
         logLevel: LogLevel.INFO,
