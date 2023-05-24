@@ -10,11 +10,17 @@ import { logDebugSprintf, logError, logInfo, sprintf } from '../utils/utils'
 import { CONSENT_CHANGED, FS_CONSENT, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION } from '../enum/index'
 import { BatchDTO } from '../hit/Batch'
 import { ITrackingManager } from '../api/ITrackingManager'
-import { Monitoring } from '../hit/Monitoring'
+import { Troubleshooting } from '../hit/Troubleshooting'
+import { MurmurHash } from '../utils/MurmurHash'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheDTO'
 export const VISITOR_ID_MISMATCH_ERROR = 'Visitor ID mismatch: {0} vs {1}'
+
+export type StrategyAbstractConstruct = {
+  visitor:VisitorAbstract,
+  murmurHash: MurmurHash
+}
 export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'anonymousId'|'flagsData'|'modifications'|'context'|'hasConsented'|'getModificationsArray'|'getFlagsDataArray'|'getFlag'> {
   protected visitor:VisitorAbstract
 
@@ -34,8 +40,12 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     return this.visitor.config
   }
 
-  public constructor (visitor:VisitorAbstract) {
+  protected _murmurHash: MurmurHash
+
+  public constructor (param: StrategyAbstractConstruct) {
+    const { visitor, murmurHash } = param
     this.visitor = visitor
+    this._murmurHash = murmurHash
   }
 
   public updateCampaigns (campaigns:CampaignDTO[]):void {
@@ -80,6 +90,9 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     consentHit.traffic = this.visitor.traffic
     consentHit.flagshipInstanceId = this.visitor.monitoringData?.instanceId
 
+    if (this.visitor.traffic === undefined) {
+      this.visitor.visitorHits.push(consentHit)
+    }
     this.trackingManager.addHit(consentHit)
 
     logDebugSprintf(this.config, PROCESS_SET_CONSENT, CONSENT_CHANGED, this.visitor.visitorId, hasConsented)
@@ -255,7 +268,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     abstract getFlagValue<T>(param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}):T
     abstract getFlagMetadata(param:{metadata:IFlagMetadata, key?:string, hasSameType:boolean}):IFlagMetadata
 
-    public async sendMonitoringHit (hit: Monitoring) {
-      await this.trackingManager.addMonitoringHit(hit)
+    public async sendMonitoringHit (hit: Troubleshooting) {
+      await this.trackingManager.addTroubleshootingHit(hit)
     }
 }

@@ -64,7 +64,7 @@ import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
 import { VisitorDelegate } from './index'
 import { FlagMetadata } from '../flag/FlagMetadata'
 import { Activate } from '../hit/Activate'
-import { Monitoring } from '../hit/Monitoring'
+import { Troubleshooting } from '../hit/Troubleshooting'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'
@@ -294,7 +294,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
       campaigns = await this.decisionManager.getCampaignsAsync(this.visitor)
 
-      this.configManager.trackingManager.troubleshooting = this.decisionManager.troubleshooting
+      this.configManager.trackingManager.troubleshootingData = this.decisionManager.troubleshooting
 
       logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_SUCCESS,
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
@@ -332,7 +332,33 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         assignmentHistory[item.variationGroupId] = item.variationId
       })
 
-      const monitoring = new Monitoring({
+      const uniqueId = this.visitor.visitorId + this.decisionManager.troubleshooting?.endDate.toUTCString()
+      const hash = this._murmurHash.murmurHash3Int32(uniqueId)
+      const traffic = hash % 100
+
+      this.visitor.traffic = traffic
+
+      this.visitor.visitorHits.forEach(item => {
+        const hitTroubleshooting = new Troubleshooting({
+          type: 'TROUBLESHOOTING',
+          subComponent: 'VISITOR-SEND-HIT',
+          logLevel: LogLevel.INFO,
+          traffic,
+          message: 'VISITOR-SEND-HIT',
+          visitorId: this.visitor.visitorId,
+          visitorInstanceId: this.visitor.instanceId,
+          flagshipInstanceId: this.visitor.monitoringData?.instanceId,
+          anonymousId: this.visitor.anonymousId,
+          config: this.config,
+          hitContent: item.toApiKeys()
+        })
+
+        this.sendMonitoringHit(hitTroubleshooting)
+      })
+
+      this.visitor.visitorHits = []
+
+      const fetchFlagTroubleshooting = new Troubleshooting({
         type: 'TROUBLESHOOTING',
         subComponent: 'VISITOR-FETCH-CAMPAIGNS',
         logLevel: LogLevel.INFO,
@@ -341,7 +367,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         anonymousId: this.visitor.anonymousId,
         visitorInstanceId: this.visitor.instanceId,
         flagshipInstanceId: this.visitor.monitoringData?.instanceId,
-        traffic: this.visitor.traffic,
+        traffic,
         config: this.config,
         sdkStatus: this.visitor.getSdkStatus(),
         visitorContext: this.visitor.context,
@@ -355,10 +381,22 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         visitorInitialFlagsData: this.visitor.monitoringData?.initialFlagsData,
         lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
         lastInitializationTimestamp: this.visitor.monitoringData?.lastInitializationTimestamp,
-        httpResponseTime: Date.now() - now
+        httpResponseTime: Date.now() - now,
+        sdkConfigMode: this.config.decisionMode,
+        sdkConfigTimeout: this.config.timeout,
+        sdkConfigPollingInterval: this.config.pollingInterval,
+        sdkConfigTrackingManagerConfigStrategy: this.config.trackingMangerConfig?.cacheStrategy,
+        sdkConfigTrackingManagerConfigBatchIntervals: this.config.trackingMangerConfig?.batchIntervals,
+        sdkConfigTrackingManagerConfigPoolMaxSize: this.config.trackingMangerConfig?.poolMaxSize,
+        sdkConfigFetchNow: this.config.fetchNow,
+        sdkConfigEnableClientCache: this.config.enableClientCache,
+        sdkConfigInitialBucketing: this.config.initialBucketing,
+        sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
+        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
       })
 
-      this.sendMonitoringHit(monitoring)
+      this.sendMonitoringHit(fetchFlagTroubleshooting)
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.visitor.emit(EMIT_READY, error)
@@ -375,7 +413,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         flags[item.key] = item.value
         assignmentHistory[item.variationGroupId] = item.variationId
       })
-      const monitoring = new Monitoring({
+      const monitoring = new Troubleshooting({
         type: 'TROUBLESHOOTING',
         subComponent: 'VISITOR-FETCH-CAMPAIGNS-ERROR',
         logLevel: LogLevel.INFO,
@@ -398,7 +436,18 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         visitorInitialFlagsData: this.visitor.monitoringData?.initialFlagsData,
         lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
         lastInitializationTimestamp: this.visitor.monitoringData?.lastInitializationTimestamp,
-        httpResponseTime: Date.now() - now
+        httpResponseTime: Date.now() - now,
+        sdkConfigMode: this.config.decisionMode,
+        sdkConfigTimeout: this.config.timeout,
+        sdkConfigPollingInterval: this.config.pollingInterval,
+        sdkConfigTrackingManagerConfigStrategy: this.config.trackingMangerConfig?.cacheStrategy,
+        sdkConfigTrackingManagerConfigBatchIntervals: this.config.trackingMangerConfig?.batchIntervals,
+        sdkConfigTrackingManagerConfigPoolMaxSize: this.config.trackingMangerConfig?.poolMaxSize,
+        sdkConfigFetchNow: this.config.fetchNow,
+        sdkConfigEnableClientCache: this.config.enableClientCache,
+        sdkConfigInitialBucketing: this.config.initialBucketing,
+        sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
+        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
       })
 
       this.sendMonitoringHit(monitoring)
@@ -494,6 +543,22 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     activateHit.flagshipInstanceId = this.visitor.monitoringData?.instanceId
 
     await this.trackingManager.activateFlag(activateHit)
+
+    const activateTroubleshooting = new Troubleshooting({
+      type: 'TROUBLESHOOTING',
+      subComponent: 'VISITOR-SEND-ACTIVATE',
+      logLevel: LogLevel.INFO,
+      traffic: this.visitor.traffic,
+      message: 'VISITOR-SEND-ACTIVATE',
+      visitorId: activateHit.visitorId,
+      flagshipInstanceId: activateHit.flagshipInstanceId,
+      visitorInstanceId: activateHit.visitorInstanceId,
+      anonymousId: activateHit.anonymousId,
+      config: this.config,
+      hitContent: activateHit.toApiKeys()
+    })
+
+    this.sendMonitoringHit(activateTroubleshooting)
   }
 
   private async activate (key: string) {
@@ -651,6 +716,26 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
     try {
       await this.trackingManager.addHit(hitInstance)
+      if (this.visitor.traffic === undefined) {
+        this.visitor.visitorHits.push(hitInstance)
+        console.log('not traffic', hitInstance)
+
+        return
+      }
+      const sendHitTroubleshooting = new Troubleshooting({
+        type: 'TROUBLESHOOTING',
+        subComponent: 'VISITOR-SEND-HIT',
+        logLevel: LogLevel.INFO,
+        traffic: this.visitor.traffic,
+        message: 'VISITOR-SEND-HIT',
+        visitorId: hitInstance.visitorId,
+        flagshipInstanceId: hitInstance.flagshipInstanceId,
+        visitorInstanceId: hitInstance.visitorInstanceId,
+        anonymousId: hitInstance.anonymousId,
+        config: this.config,
+        hitContent: hitInstance.toApiKeys()
+      })
+      this.sendMonitoringHit(sendHitTroubleshooting)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logError(this.config, error.message || error, functionName)
@@ -720,7 +805,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     this.visitor.anonymousId = this.visitor.visitorId
     this.visitor.visitorId = visitorId
 
-    const monitoring = new Monitoring({
+    const monitoring = new Troubleshooting({
       type: 'TROUBLESHOOTING',
       subComponent: 'VISITOR-AUTHENTICATE',
       logLevel: LogLevel.INFO,
@@ -748,7 +833,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     this.visitor.visitorId = this.visitor.anonymousId
     this.visitor.anonymousId = null
 
-    const monitoring = new Monitoring({
+    const monitoring = new Troubleshooting({
       type: 'TROUBLESHOOTING',
       subComponent: 'VISITOR-UNAUTHENTICATE',
       logLevel: LogLevel.INFO,
@@ -777,7 +862,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         FLAG_USER_EXPOSED,
         USER_EXPOSED_FLAG_ERROR, this.visitor.visitorId, key
       )
-      const monitoring = new Monitoring({
+      const monitoring = new Troubleshooting({
         type: 'TROUBLESHOOTING',
         subComponent: 'VISITOR-EXPOSED-FLAG-NOT-FOUND',
         logLevel: LogLevel.WARNING,
@@ -804,7 +889,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         USER_EXPOSED_CAST_ERROR, this.visitor.visitorId, key
       )
 
-      const monitoring = new Monitoring({
+      const monitoring = new Troubleshooting({
         type: 'TROUBLESHOOTING',
         subComponent: 'VISITOR-EXPOSED-TYPE-ERROR',
         logLevel: LogLevel.WARNING,
@@ -836,7 +921,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     if (!flag) {
       logWarningSprintf(this.config, FLAG_VALUE, GET_FLAG_MISSING_ERROR, this.visitor.visitorId, key, defaultValue)
-      const monitoring = new Monitoring({
+      const monitoring = new Troubleshooting({
         type: 'TROUBLESHOOTING',
         subComponent: 'GET-FLAG-VALUE-FLAG-NOT-FOUND',
         logLevel: LogLevel.WARNING,
@@ -866,7 +951,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     if (defaultValue !== null && defaultValue !== undefined && !hasSameType(flag.value, defaultValue)) {
       logWarningSprintf(this.config, FLAG_VALUE, GET_FLAG_CAST_ERROR, this.visitor.visitorId, key, defaultValue)
-      const monitoring = new Monitoring({
+      const monitoring = new Troubleshooting({
         type: 'TROUBLESHOOTING',
         subComponent: 'GET-FLAG-VALUE-TYPE-ERROR',
         logLevel: LogLevel.WARNING,
@@ -906,7 +991,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         functionName,
         GET_METADATA_CAST_ERROR, key
       )
-      const monitoring = new Monitoring({
+      const monitoring = new Troubleshooting({
         type: 'TROUBLESHOOTING',
         subComponent: 'GET-FLAG-METADATA-TYPE-ERROR',
         logLevel: LogLevel.WARNING,

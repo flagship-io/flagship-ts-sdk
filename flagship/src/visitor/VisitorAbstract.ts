@@ -15,7 +15,8 @@ import { PanicStrategy } from './PanicStrategy'
 import { NoConsentStrategy } from './NoConsentStrategy'
 import { cacheVisitor } from './VisitorCache'
 import { IFlag } from '../flag/Flags'
-import { Monitoring } from '../hit/Monitoring'
+import { Troubleshooting } from '../hit/Troubleshooting'
+import { MurmurHash } from '../utils/MurmurHash'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -29,8 +30,17 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _isCleaningDeDuplicationCache: boolean
   public visitorCache?: VisitorCacheDTO
   private _instanceId : string
-  private _traffic : number
+  private _traffic! : number
   protected _monitoringData?: MonitoringData
+
+  private _visitorHits : HitAbstract[]
+  public get visitorHits () : HitAbstract[] {
+    return this._visitorHits
+  }
+
+  public set visitorHits (v : HitAbstract[]) {
+    this._visitorHits = v
+  }
 
   public get monitoringData ():MonitoringData|undefined {
     return this._monitoringData
@@ -52,11 +62,11 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     super()
     this._monitoringData = monitoringData
     this._instanceId = uuidV4()
-    this._traffic = Math.floor(Math.random() * 100 + 1)
     this._isCleaningDeDuplicationCache = false
     this.deDuplicationCache = {}
     this._context = {}
     this._configManager = configManager
+    this._visitorHits = []
 
     const visitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
     if (visitorCache) {
@@ -92,6 +102,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
   public get traffic () : number {
     return this._traffic
+  }
+
+  public set traffic (v:number) {
+    this._traffic = v
   }
 
   public get instanceId () : string {
@@ -248,21 +262,25 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
   protected getStrategy (): VisitorStrategyAbstract {
     let strategy: VisitorStrategyAbstract
+    const params = {
+      visitor: this,
+      murmurHash: new MurmurHash()
+    }
     const status = this.getSdkStatus()
     if (status === undefined || status === FlagshipStatus.NOT_INITIALIZED) {
-      strategy = new NotReadyStrategy(this)
+      strategy = new NotReadyStrategy(params)
     } else if (status === FlagshipStatus.READY_PANIC_ON) {
-      strategy = new PanicStrategy(this)
+      strategy = new PanicStrategy(params)
     } else if (!this.hasConsented) {
-      strategy = new NoConsentStrategy(this)
+      strategy = new NoConsentStrategy(params)
     } else {
-      strategy = new DefaultStrategy(this)
+      strategy = new DefaultStrategy(params)
     }
 
     return strategy
   }
 
-  public async sendMonitoringHit (hit: Monitoring) {
+  public async sendMonitoringHit (hit: Troubleshooting) {
     await this.getStrategy().sendMonitoringHit(hit)
   }
 
