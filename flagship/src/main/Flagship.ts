@@ -19,8 +19,7 @@ import {
   SDK_STARTED_INFO,
   PROCESS_SDK_STATUS,
   SDK_STATUS_CHANGED,
-  SAVE_VISITOR_INSTANCE,
-  LogLevel
+  SAVE_VISITOR_INSTANCE
 } from '../enum/index'
 import { VisitorDelegate } from '../visitor/VisitorDelegate'
 
@@ -34,7 +33,6 @@ import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 import { EdgeManager } from '../decision/EdgeManager'
 import { EdgeConfig } from '../config/EdgeConfig'
-import { Monitoring } from '../hit/Monitoring'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 
 export class Flagship {
@@ -79,20 +77,6 @@ export class Flagship {
     const statusChanged = this.getConfig()?.statusChangedCallback
 
     logInfoSprintf(this._config, PROCESS_SDK_STATUS, SDK_STATUS_CHANGED, FlagshipStatus[status])
-
-    const monitoringHit = new Monitoring({
-      type: 'TROUBLESHOOTING',
-      visitorId: this.instanceId,
-      flagshipInstanceId: this.instanceId,
-      subComponent: 'SDK-STATUS-CHANGED',
-      traffic: 0,
-      logLevel: LogLevel.INFO,
-      message: 'SDK-STATUS-CHANGED',
-      config: this.getConfig(),
-      sdkStatus: status
-    })
-
-    this.configManager?.trackingManager?.addMonitoringHit(monitoringHit)
 
     if (this.getConfig().decisionMode !== DecisionMode.BUCKETING_EDGE) {
       if (status === FlagshipStatus.READY) {
@@ -275,31 +259,6 @@ export class Flagship {
     )
 
     flagship.lastInitializationTimestamp = new Date().toISOString()
-    const initMonitoring = new Monitoring({
-      type: 'TROUBLESHOOTING',
-      subComponent: 'SDK-INITIALIZATION',
-      logLevel: LogLevel.INFO,
-      message: 'SDK-INITIALIZATION',
-      visitorId: flagship.instanceId,
-      flagshipInstanceId: flagship.instanceId,
-      traffic: 0,
-      config: localConfig,
-      sdkStatus: flagship._status,
-      sdkConfigMode: localConfig.decisionMode,
-      sdkConfigTimeout: localConfig.timeout,
-      sdkConfigPollingInterval: localConfig.pollingInterval,
-      sdkConfigTrackingManagerConfigStrategy: localConfig.trackingMangerConfig.cacheStrategy,
-      sdkConfigTrackingManagerConfigBatchIntervals: localConfig.trackingMangerConfig.batchIntervals,
-      sdkConfigTrackingManagerConfigPoolMaxSize: localConfig.trackingMangerConfig.poolMaxSize,
-      sdkConfigFetchNow: localConfig.fetchNow,
-      sdkConfigEnableClientCache: localConfig.enableClientCache,
-      sdkConfigInitialBucketing: localConfig.initialBucketing,
-      sdkConfigDecisionApiUrl: localConfig.decisionApiUrl,
-      sdkConfigHitDeduplicationTime: localConfig.hitDeduplicationTime,
-      lastInitializationTimestamp: flagship.lastInitializationTimestamp
-    })
-
-    trackingManager.addMonitoringHit(initMonitoring)
 
     return flagship
   }
