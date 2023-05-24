@@ -1,47 +1,15 @@
-import { LogLevel } from '../enum'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 import { Activate } from '../hit/Activate'
 import { HitAbstract } from '../hit/index'
-import { Monitoring } from '../hit/Monitoring'
 import { TrackingManagerAbstract } from './TrackingManagerAbstract'
 
 export class TrackingManager extends TrackingManagerAbstract {
   public async activateFlag (hit: Activate): Promise<void> {
     await this.strategy.activateFlag(hit)
-    const monitoring = new Monitoring({
-      type: 'TROUBLESHOOTING',
-      subComponent: 'VISITOR-SEND-ACTIVATE',
-      logLevel: LogLevel.INFO,
-      traffic: hit.traffic,
-      message: 'VISITOR-SEND-ACTIVATE',
-      visitorId: hit.visitorId,
-      flagshipInstanceId: hit.flagshipInstanceId,
-      visitorInstanceId: hit.visitorInstanceId,
-      anonymousId: hit.anonymousId,
-      config: this.config,
-      hitContent: hit.toApiKeys()
-    })
-
-    this.addMonitoringHit(monitoring)
   }
 
   public async addHit (hit: HitAbstract): Promise<void> {
     await this.strategy.addHit(hit)
-    const monitoring = new Monitoring({
-      type: 'TROUBLESHOOTING',
-      subComponent: 'VISITOR-SEND-HIT',
-      logLevel: LogLevel.INFO,
-      traffic: hit.traffic,
-      message: 'VISITOR-SEND-HIT',
-      visitorId: hit.visitorId,
-      flagshipInstanceId: hit.flagshipInstanceId,
-      visitorInstanceId: hit.visitorInstanceId,
-      anonymousId: hit.anonymousId,
-      config: this.config,
-      hitContent: hit.toApiKeys()
-    })
-
-    this.addMonitoringHit(monitoring)
   }
 
   public async sendBatch (): Promise<void> {
