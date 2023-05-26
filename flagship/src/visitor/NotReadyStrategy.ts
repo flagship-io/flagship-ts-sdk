@@ -88,8 +88,7 @@ export class NotReadyStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public sendMonitoringHit (_hit: Troubleshooting): Promise<void> {
-    this.log('sendMonitoringHit')
+  public sendTroubleshootingHit (_hit: Troubleshooting): Promise<void> {
     return Promise.resolve()
   }
 

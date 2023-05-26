@@ -88,7 +88,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     consentHit.config = this.config
     consentHit.visitorInstanceId = this.visitor.instanceId
     consentHit.traffic = this.visitor.traffic
-    consentHit.flagshipInstanceId = this.visitor.monitoringData?.instanceId
+    consentHit.flagshipInstanceId = this.visitor.sdkInitialData?.instanceId
 
     if (this.visitor.traffic === undefined) {
       this.visitor.visitorHits.push(consentHit)
@@ -268,7 +268,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     abstract getFlagValue<T>(param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}):T
     abstract getFlagMetadata(param:{metadata:IFlagMetadata, key?:string, hasSameType:boolean}):IFlagMetadata
 
-    public async sendMonitoringHit (hit: Troubleshooting) {
+    public async sendTroubleshootingHit (hit: Troubleshooting) {
       await this.trackingManager.addTroubleshootingHit(hit)
     }
 }

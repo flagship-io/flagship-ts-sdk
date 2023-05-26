@@ -140,7 +140,7 @@ export type TroubleshootingData = {
   timezone: string,
  }
 
-export type MonitoringData = {
+export type sdkInitialData = {
   instanceId: string,
   lastInitializationTimestamp: string
   initialCampaigns: CampaignDTO[] | undefined

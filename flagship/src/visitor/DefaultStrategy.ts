@@ -347,13 +347,13 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
           message: 'VISITOR-SEND-HIT',
           visitorId: this.visitor.visitorId,
           visitorInstanceId: this.visitor.instanceId,
-          flagshipInstanceId: this.visitor.monitoringData?.instanceId,
+          flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
           anonymousId: this.visitor.anonymousId,
           config: this.config,
           hitContent: item.toApiKeys()
         })
 
-        this.sendMonitoringHit(hitTroubleshooting)
+        this.sendTroubleshootingHit(hitTroubleshooting)
       })
 
       this.visitor.visitorHits = []
@@ -366,7 +366,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
         visitorInstanceId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.monitoringData?.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         traffic,
         config: this.config,
         sdkStatus: this.visitor.getSdkStatus(),
@@ -377,10 +377,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         visitorIsAuthenticated: !!this.visitor.anonymousId,
         visitorFlags: flags,
         visitorAssignmentHistory: assignmentHistory,
-        visitorInitialCampaigns: this.visitor.monitoringData?.initialCampaigns,
-        visitorInitialFlagsData: this.visitor.monitoringData?.initialFlagsData,
+        visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
+        visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
         lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
-        lastInitializationTimestamp: this.visitor.monitoringData?.lastInitializationTimestamp,
+        lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
         httpResponseTime: Date.now() - now,
         sdkConfigMode: this.config.decisionMode,
         sdkConfigTimeout: this.config.timeout,
@@ -395,7 +395,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
       })
 
-      this.sendMonitoringHit(fetchFlagTroubleshooting)
+      this.sendTroubleshootingHit(fetchFlagTroubleshooting)
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
@@ -421,7 +421,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
         visitorInstanceId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.monitoringData?.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         traffic: this.visitor.traffic,
         config: this.config,
         visitorContext: this.visitor.context,
@@ -432,10 +432,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         visitorIsAuthenticated: !!this.visitor.anonymousId,
         visitorFlags: flags,
         visitorAssignmentHistory: assignmentHistory,
-        visitorInitialCampaigns: this.visitor.monitoringData?.initialCampaigns,
-        visitorInitialFlagsData: this.visitor.monitoringData?.initialFlagsData,
+        visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
+        visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
         lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
-        lastInitializationTimestamp: this.visitor.monitoringData?.lastInitializationTimestamp,
+        lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
         httpResponseTime: Date.now() - now,
         sdkConfigMode: this.config.decisionMode,
         sdkConfigTimeout: this.config.timeout,
@@ -450,7 +450,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
       })
 
-      this.sendMonitoringHit(monitoring)
+      this.sendTroubleshootingHit(monitoring)
     }
   }
 
@@ -540,7 +540,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     activateHit.visitorInstanceId = this.visitor.instanceId
     activateHit.traffic = this.visitor.traffic
-    activateHit.flagshipInstanceId = this.visitor.monitoringData?.instanceId
+    activateHit.flagshipInstanceId = this.visitor.sdkInitialData?.instanceId
 
     await this.trackingManager.activateFlag(activateHit)
 
@@ -558,7 +558,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       hitContent: activateHit.toApiKeys()
     })
 
-    this.sendMonitoringHit(activateTroubleshooting)
+    this.sendTroubleshootingHit(activateTroubleshooting)
   }
 
   private async activate (key: string) {
@@ -703,7 +703,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     hitInstance.anonymousId = this.visitor.anonymousId as string
     hitInstance.visitorInstanceId = this.visitor.instanceId
     hitInstance.traffic = this.visitor.traffic
-    hitInstance.flagshipInstanceId = this.visitor.monitoringData?.instanceId
+    hitInstance.flagshipInstanceId = this.visitor.sdkInitialData?.instanceId
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { createdAt, ...hitInstanceItem } = hitInstance.toObject()
@@ -735,7 +735,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         config: this.config,
         hitContent: hitInstance.toApiKeys()
       })
-      this.sendMonitoringHit(sendHitTroubleshooting)
+      this.sendTroubleshootingHit(sendHitTroubleshooting)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logError(this.config, error.message || error, functionName)
@@ -817,7 +817,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       config: this.config
     })
 
-    this.sendMonitoringHit(monitoring)
+    this.sendTroubleshootingHit(monitoring)
   }
 
   unauthenticate (): void {
@@ -845,7 +845,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       config: this.config
     })
 
-    this.sendMonitoringHit(monitoring)
+    this.sendTroubleshootingHit(monitoring)
   }
 
   async fetchFlags (): Promise<void> {
@@ -870,7 +870,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
         visitorInstanceId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.monitoringData?.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         traffic: this.visitor.traffic,
         config: this.config,
         visitorContext: this.visitor.context,
@@ -878,7 +878,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         flagDefault: defaultValue
       })
 
-      this.sendMonitoringHit(monitoring)
+      this.sendTroubleshootingHit(monitoring)
       return
     }
 
@@ -897,7 +897,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
         visitorInstanceId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.monitoringData?.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         traffic: this.visitor.traffic,
         config: this.config,
         visitorContext: this.visitor.context,
@@ -905,7 +905,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         flagDefault: defaultValue
       })
 
-      this.sendMonitoringHit(monitoring)
+      this.sendTroubleshootingHit(monitoring)
       return
     }
 
@@ -929,7 +929,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
         visitorInstanceId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.monitoringData?.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         traffic: this.visitor.traffic,
         config: this.config,
         visitorContext: this.visitor.context,
@@ -938,7 +938,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         visitorExposed: userExposed
       })
 
-      this.sendMonitoringHit(monitoring)
+      this.sendTroubleshootingHit(monitoring)
       return defaultValue
     }
 
@@ -959,7 +959,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
         visitorInstanceId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.monitoringData?.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         traffic: this.visitor.traffic,
         config: this.config,
         visitorContext: this.visitor.context,
@@ -968,7 +968,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         visitorExposed: userExposed
       })
 
-      this.sendMonitoringHit(monitoring)
+      this.sendTroubleshootingHit(monitoring)
 
       return defaultValue
     }
@@ -999,7 +999,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
         visitorInstanceId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.monitoringData?.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         traffic: this.visitor.traffic,
         config: this.config,
         visitorContext: this.visitor.context,
@@ -1012,7 +1012,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         flagMetadataCampaignIsReference: metadata.isReference
       })
 
-      this.sendMonitoringHit(monitoring)
+      this.sendTroubleshootingHit(monitoring)
       return FlagMetadata.Empty()
     }
 

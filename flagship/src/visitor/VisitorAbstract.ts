@@ -1,6 +1,6 @@
 import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
-import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, MonitoringData } from '../types'
+import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, sdkInitialData } from '../types'
 
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
@@ -31,7 +31,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   public visitorCache?: VisitorCacheDTO
   private _instanceId : string
   private _traffic! : number
-  protected _monitoringData?: MonitoringData
+  protected _sdkInitialData?: sdkInitialData
 
   private _visitorHits : HitAbstract[]
   public get visitorHits () : HitAbstract[] {
@@ -42,8 +42,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._visitorHits = v
   }
 
-  public get monitoringData ():MonitoringData|undefined {
-    return this._monitoringData
+  public get sdkInitialData ():sdkInitialData|undefined {
+    return this._sdkInitialData
   }
 
   public static SdkStatus?: FlagshipStatus
@@ -56,11 +56,11 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     visitorId?: string
     configManager: IConfigManager
     context: Record<string, primitive>
-    monitoringData?:MonitoringData
+    monitoringData?:sdkInitialData
   }) {
     const { visitorId, configManager, context, isAuthenticated, hasConsented, initialModifications, initialFlagsData, initialCampaigns, monitoringData } = param
     super()
-    this._monitoringData = monitoringData
+    this._sdkInitialData = monitoringData
     this._instanceId = uuidV4()
     this._isCleaningDeDuplicationCache = false
     this.deDuplicationCache = {}
@@ -281,7 +281,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   }
 
   public async sendMonitoringHit (hit: Troubleshooting) {
-    await this.getStrategy().sendMonitoringHit(hit)
+    await this.getStrategy().sendTroubleshootingHit(hit)
   }
 
   abstract updateContext(key: string, value: primitive):void
