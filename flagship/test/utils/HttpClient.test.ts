@@ -2,12 +2,12 @@
 import { jest, expect, it, describe } from '@jest/globals'
 import { HttpClient, IHttpOptions } from '../../src/utils/HttpClient'
 import { Response } from 'node-fetch'
-import * as nodeDeps from '../../src/nodeDeps'
+import * as nodeDeps from '../../src/depsNode.native'
 
-globalThis.AbortController = require('abort-controller')
+// globalThis.AbortController = require('node-abort-controller')
 
 describe('test Post method NOdeHttpClient', () => {
-  const fetch = jest.spyOn(nodeDeps, 'fetch') as any
+  const fetch = jest.spyOn(nodeDeps, 'myFetch') as any
   const nodeHttpClient = new HttpClient()
   const url = 'https://localhost'
   const timeout = 2000
@@ -55,7 +55,7 @@ describe('test Post method NOdeHttpClient', () => {
 })
 
 describe('test Get method NOdeHttpClient', () => {
-  const fetch = jest.spyOn(nodeDeps, 'fetch') as any
+  const fetch = jest.spyOn(nodeDeps, 'myFetch') as any
   const nodeHttpClient = new HttpClient()
   const url = 'https://localhost'
   const timeout = 2000

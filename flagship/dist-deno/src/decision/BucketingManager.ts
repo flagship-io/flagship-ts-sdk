@@ -1,8 +1,8 @@
-import { POLLING_EVENT_300, POLLING_EVENT_FAILED } from './../enum/FlagshipConstant.ts'
+import { ALLOCATION, BUCKETING_NEW_ALLOCATION, BUCKETING_VARIATION_CACHE, GET_THIRD_PARTY_SEGMENT, POLLING_EVENT_300, POLLING_EVENT_FAILED, THIRD_PARTY_SEGMENT_URL } from './../enum/FlagshipConstant.ts'
 import { IFlagshipConfig } from '../config/index.ts'
 import { BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, POLLING_EVENT_200, PROCESS_BUCKETING, SDK_INFO } from '../enum/index.ts'
 import { Segment } from '../hit/Segment.ts'
-import { primitive } from '../types.ts'
+import { ThirdPartySegment, primitive } from '../types.ts'
 import { IHttpClient, IHttpResponse } from '../utils/HttpClient.ts'
 import { MurmurHash } from '../utils/MurmurHash.ts'
 import { errorFormat, logDebug, logDebugSprintf, logError, logInfo, sprintf } from '../utils/utils.ts'
@@ -137,6 +137,28 @@ export class BucketingManager extends DecisionManager {
     }
   }
 
+  public async getThirdPartySegment (visitorId:string): Promise<Record<string, primitive>> {
+    const url = sprintf(THIRD_PARTY_SEGMENT_URL, this.config.envId, visitorId)
+    const now = Date.now()
+    const contexts:Record<string, primitive> = {}
+    try {
+      const response = await this._httpClient.getAsync(url)
+      const content:ThirdPartySegment[] = response.body
+      if (Array.isArray(content)) {
+        for (const item of content) {
+          contexts[`${item.partner}::${item.segment}`] = item.value
+        }
+      }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      logError(this.config, errorFormat(error.message || error, {
+        url,
+        duration: Date.now() - now
+      }), GET_THIRD_PARTY_SEGMENT)
+    }
+    return contexts
+  }
+
   async getCampaignsAsync (visitor: VisitorAbstract): Promise<CampaignDTO[]|null> {
     if (!this._bucketingContent) {
       return null
@@ -149,6 +171,11 @@ export class BucketingManager extends DecisionManager {
 
     if (!this._bucketingContent.campaigns) {
       return null
+    }
+
+    if (this.config.fetchThirdPartyData) {
+      const thirdPartySegments = await this.getThirdPartySegment(visitor.visitorId)
+      visitor.updateContext(thirdPartySegments)
     }
 
     this.sendContext(visitor)
@@ -200,6 +227,7 @@ export class BucketingManager extends DecisionManager {
         if (!newVariation) {
           continue
         }
+        logDebugSprintf(this.config, ALLOCATION, BUCKETING_VARIATION_CACHE, visitor.visitorId, newVariation.id)
         return {
           id: newVariation.id,
           modifications: newVariation.modifications,
@@ -213,6 +241,7 @@ export class BucketingManager extends DecisionManager {
       totalAllocation += variation.allocation
 
       if (hashAllocation <= totalAllocation) {
+        logDebugSprintf(this.config, ALLOCATION, BUCKETING_NEW_ALLOCATION, visitor.visitorId, variation.id, totalAllocation)
         return {
           id: variation.id,
           modifications: variation.modifications,
@@ -241,6 +270,24 @@ export class BucketingManager extends DecisionManager {
     let check = false
 
     for (const { key, value, operator } of targetings) {
+      if (operator === 'EXISTS') {
+        if (key in visitor.context) {
+          check = true
+          continue
+        }
+        check = false
+        break
+      }
+
+      if (operator === 'NOT_EXISTS') {
+        if (key in visitor.context) {
+          check = false
+          break
+        }
+        check = true
+        continue
+      }
+
       if (key === 'fs_all_users') {
         check = true
         continue

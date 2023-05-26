@@ -1,4 +1,4 @@
-import { CONTEXT_KEY_ERROR, FLAG_USER_EXPOSED, PROCESS_FETCHING_FLAGS } from './../../src/enum/FlagshipConstant'
+import { AUTHENTICATE, CONTEXT_KEY_ERROR, FLAG_USER_EXPOSED, PROCESS_FETCHING_FLAGS, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, UNAUTHENTICATE, FLAG_METADATA } from './../../src/enum/FlagshipConstant'
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { DecisionApiConfig, Event, EventCategory, FlagDTO, FlagMetadata, Screen } from '../../src/index'
 import { TrackingManager } from '../../src/api/TrackingManager'
@@ -8,7 +8,7 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { IHttpResponse, HttpClient } from '../../src/utils/HttpClient'
 import { DefaultStrategy, HIT_NULL_ERROR, TYPE_HIT_REQUIRED_ERROR } from '../../src/visitor/DefaultStrategy'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
-import { ACTIVATE_MODIFICATION_ERROR, ACTIVATE_MODIFICATION_KEY_ERROR, CONTEXT_NULL_ERROR, CONTEXT_VALUE_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, FLAG_VALUE, FS_CONSENT, GET_FLAG_CAST_ERROR, GET_FLAG_MISSING_ERROR, GET_METADATA_CAST_ERROR, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, METHOD_DEACTIVATED_BUCKETING_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, USER_EXPOSED_CAST_ERROR, USER_EXPOSED_FLAG_ERROR, VISITOR_ID_ERROR } from '../../src/enum'
+import { ACTIVATE_MODIFICATION_ERROR, ACTIVATE_MODIFICATION_KEY_ERROR, CONTEXT_NULL_ERROR, CONTEXT_VALUE_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, FLAG_VALUE, FS_CONSENT, GET_FLAG_CAST_ERROR, GET_FLAG_MISSING_ERROR, GET_METADATA_CAST_ERROR, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, METHOD_DEACTIVATED_BUCKETING_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, USER_EXPOSED_CAST_ERROR, USER_EXPOSED_FLAG_ERROR } from '../../src/enum'
 import { errorFormat, sprintf } from '../../src/utils/utils'
 import { returnModification } from './modification'
 import { HitShape } from '../../src/hit/Legacy'
@@ -518,7 +518,7 @@ describe('test DefaultStrategy ', () => {
     const flagMeta = defaultStrategy.getFlagMetadata({ key, metadata, hasSameType: false })
     expect(flagMeta).toEqual(FlagMetadata.Empty())
     expect(logWarning).toBeCalledTimes(1)
-    expect(logWarning).toBeCalledWith(sprintf(GET_METADATA_CAST_ERROR, key), 'flag.metadata')
+    expect(logWarning).toBeCalledWith(sprintf(GET_METADATA_CAST_ERROR, key), FLAG_METADATA)
   })
 
   it('test getModification with array', () => {
@@ -1306,7 +1306,7 @@ describe('test DefaultStrategy ', () => {
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBe(null)
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(FLAGSHIP_VISITOR_NOT_AUTHENTICATE, 'unauthenticate')
+    expect(logError).toBeCalledWith(sprintf(FLAGSHIP_VISITOR_NOT_AUTHENTICATE, visitorId), UNAUTHENTICATE)
   })
 
   it('test authenticate with null visitorId', () => {
@@ -1314,7 +1314,7 @@ describe('test DefaultStrategy ', () => {
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBeNull()
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(VISITOR_ID_ERROR, 'authenticate')
+    expect(logError).toBeCalledWith(sprintf(VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, visitorId), AUTHENTICATE)
   })
 
   const authenticateId = 'authenticateId'
@@ -1402,7 +1402,7 @@ describe('test authenticate on bucketing mode', () => {
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBe(null)
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_BUCKETING_ERROR, 'authenticate'), 'authenticate')
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_BUCKETING_ERROR, visitorId, AUTHENTICATE), AUTHENTICATE)
   })
 
   it('test unauthenticate on bucketing mode', () => {
@@ -1410,7 +1410,7 @@ describe('test authenticate on bucketing mode', () => {
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBe(null)
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_BUCKETING_ERROR, 'unauthenticate'), 'unauthenticate')
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_BUCKETING_ERROR, visitorId, UNAUTHENTICATE), UNAUTHENTICATE)
   })
 })
 

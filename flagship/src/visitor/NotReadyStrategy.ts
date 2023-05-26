@@ -1,6 +1,5 @@
-import { FlagDTO } from '../index'
-import { FlagshipStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR } from '../enum/index'
-import { IFlagMetadata, IHit, modificationsRequested } from '../types'
+import { FlagshipStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_SDK_NOT_READY } from '../enum/index'
+import { FlagDTO, IFlagMetadata, IHit, modificationsRequested } from '../types'
 import { logErrorSprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
 import { HitAbstract, HitShape } from '../hit/index'
@@ -82,9 +81,10 @@ export class NotReadyStrategy extends DefaultStrategy {
     this.log(FLAG_USER_EXPOSED)
   }
 
-  getFlagMetadata ():IFlagMetadata {
-    this.log('flag.metadata')
-    return FlagMetadata.Empty()
+  getFlagMetadata (param:{metadata:IFlagMetadata, key?:string, hasSameType:boolean}):IFlagMetadata {
+    const emptyMetaData = FlagMetadata.Empty()
+    logErrorSprintf(this.config, FLAG_METADATA, METADATA_SDK_NOT_READY, this.visitor.visitorId, param.key, emptyMetaData)
+    return emptyMetaData
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

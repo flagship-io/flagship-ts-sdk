@@ -34,6 +34,7 @@ export const HIT_EVENT_URL = 'https://events.flagship.io'
 export const TROUBLESHOOTING_HIT_URL = 'https://events.flagship.io/troubleshooting'
 export const BUCKETING_API_URL = 'https://cdn.flagship.io/{0}/bucketing.json'
 export const BUCKETING_API_CONTEXT_URL = 'https://decision.flagship.io/v2/{0}/events'
+export const THIRD_PARTY_SEGMENT_URL = 'https://api-data-connector.flagship.io/accounts/{0}/segments/{1}'
 export const HIT_CONSENT_URL = 'https://ariane.abtasty.com'
 export const URL_CAMPAIGNS = '/campaigns'
 export const URL_ACTIVATE_MODIFICATION = 'activate'
@@ -64,6 +65,8 @@ export const EMIT_READY = 'ready'
 export const NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY = 3
 
 export const JS_DOC_URL = 'https://docs.developers.flagship.io/docs/js-v3'
+
+export const PANIC_MODE_DOC_URL = 'https://docs.developers.flagship.io/docs/glossary#panic-mode'
 /**
  * Message Error
  */
@@ -83,7 +86,6 @@ export const ACTIVATE_MODIFICATION_KEY_ERROR =
   'Key {0} must not be null, no activate will be sent.'
 export const GET_MODIFICATION_ERROR = 'No modification for key {0}.'
 export const GET_FLAG_ERROR = 'No flag for key {0}.'
-export const GET_METADATA_CAST_ERROR = 'Flag for key {0} has a different type with defaultValue, an empty metadata object is returned'
 export const ACTIVATE_MODIFICATION_ERROR = 'No modification for key {0}, no activate will be sent.'
 export const DECISION_MANAGER_MISSING_ERROR =
   'decisionManager must not be null.'
@@ -96,12 +98,11 @@ export const VISITOR_ID_ERROR = 'visitorId must not be null or empty'
 export const PANIC_MODE_ERROR = '{0} deactivated while panic mode is on.'
 export const METHOD_DEACTIVATED_CONSENT_ERROR = 'Method {0} is deactivated for visitor {1} : visitor did not consent.'
 export const METHOD_DEACTIVATED_ERROR = 'Visitor {0}, method {1} is deactivated while SDK status is: {2}.'
-export const METHOD_DEACTIVATED_BUCKETING_ERROR = 'Method {0} is deactivated on Bucketing mode.'
-export const FLAGSHIP_VISITOR_NOT_AUTHENTICATE = 'Visitor is not authenticated yet'
+
 export const METHOD_DEACTIVATED_SEND_CONSENT_ERROR = 'Send consent hit is deactivated while SDK status is: {1}.'
-export const HIT_ADDED_IN_QUEUE = 'The HIT has been added to the pool queue : {0}'
 export const TROUBLESHOOTING_HIT_ADDED_IN_QUEUE = 'The TROUBLESHOOTING HIT has been added to the pool queue : {0}'
 export const ACTIVATE_ADDED_IN_QUEUE = 'The ACTIVATE has been added to the pool queue : {0}'
+export const HIT_ADDED_IN_QUEUE = 'The HIT has been added into the pool queue : {0}'
 export const ADD_HIT = 'ADD HIT'
 export const ADD_TROUBLESHOOTING_HIT = 'ADD TROUBLESHOOTING HIT'
 export const ADD_ACTIVATE = 'ADD ACTIVATE'
@@ -114,15 +115,13 @@ export const SEND_ACTIVATE = 'SEND ACTIVATE'
 export const SEND_SEGMENT_HIT = 'SEND SEGMENT HIT'
 export const SEND_HIT = 'SEND HIT'
 export const EVENT_SUFFIX = 'events'
-export const HIT_DATA_CACHED = 'Hit data has been saved into database : {0}'
-export const HIT_DATA_FLUSHED = 'The following hit keys have been flushed from database : {0}'
-export const HIT_SENT_SUCCESS = 'hit has been sent : {0}'
-export const HIT_DATA_LOADED = 'Hits data has been loaded from database: {0}'
-export const NEW_VISITOR_NOT_READY = 'You can\'t create a new visitor without first calling the "Flagship.start" method'
+
+export const NEW_VISITOR_NOT_READY = `You can't create a new visitor without first calling the "Flagship.start" method.
+Learn more: ${JS_DOC_URL}#initialization
+`
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
-export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = 'JSON DATA must fit the type VisitorCacheDTO'
 export const ACTIVATE_BATCH_LENGTH = 5
-export const FLUSH_ALL_HITS = 'All hits have been flushed from database'
+
 // Process
 export const PROCESS = 'process'
 export const PROCESS_INITIALIZATION = 'INITIALIZATION'
@@ -233,3 +232,42 @@ export const GET_FLAG_VALUE = 'Visitor {0}, Flag for key {1} returns value {2}'
 export const USER_EXPOSED_FLAG_ERROR = 'Visitor {0}, No Flags found for key {1}: User exposition wont be sent'
 export const FLAG_USER_EXPOSED = 'FLAG_USER_EXPOSED'
 export const USER_EXPOSED_CAST_ERROR = 'Visitor {0}, Flag for key {1} has a different type with default value: User exposition wont be sent'
+export const GET_METADATA_CAST_ERROR = 'Visitor {0}, Flag for key {1} has a different type with default value: Empty metadata object is returned {2}'
+export const FLAG_METADATA = 'FLAG_METADATA'
+export const NO_FLAG_METADATA = 'Visitor {0}, No Flags found for key {1}:  Empty metadata object is returned {2}'
+export const METADATA_SDK_NOT_READY = `Visitor {0}, Flag for key {1} Method Flag.metadata is deactivated while SDK status is NOT_READY: Empty metadata object is returned {2}
+Learn more: ${JS_DOC_URL}#getting-flags-campaigns-metadata`
+export const METADATA_PANIC_MODE = `Visitor {0}, Flag for key {1} Method Flag.metadata is deactivated while SDK status is PANIC: Empty metadata object is returned {2}
+Learn more: ${PANIC_MODE_DOC_URL}`
+export const AUTHENTICATE = 'AUTHENTICATE'
+export const VISITOR_AUTHENTICATE = 'The visitor is authenticated with new visitor ID {0} anonymous ID {1}'
+export const METHOD_DEACTIVATED_BUCKETING_ERROR = 'Visitor {0}, Method {1} is deactivated on Bucketing mode'
+export const VISITOR_AUTHENTICATE_VISITOR_ID_ERROR = `Visitor {0}, visitorId must not be null or empty
+Learn more: ${JS_DOC_URL}#authenticate`
+export const VISITOR_UNAUTHENTICATE = 'The visitor is unauthenticated with visitor ID {0}'
+export const UNAUTHENTICATE = 'UNAUTHENTICATE'
+export const FLAGSHIP_VISITOR_NOT_AUTHENTICATE = 'Visitor {0} is not authenticated yet'
+export const ALLOCATION = 'ALLOCATION'
+export const BUCKETING_VARIATION_CACHE = 'Visitor {0}, Variation {1} selected from cache.'
+export const BUCKETING_NEW_ALLOCATION = 'Visitor {0}, Variation {1} selected with allocation {2}.'
+export const LOOKUP_VISITOR_JSON_OBJECT_ERROR = `lookupVisitor method has loaded a bad format version ({0}) for visitor {1}.
+Learn more: ${JS_DOC_URL}#managing-visitor-cache`
+export const PROCESS_CACHE = 'CACHE'
+export const VISITOR_CACHE_ERROR = 'visitor {0}. {1} threw an exception {2}'
+export const HIT_CACHE_ERROR = '{0} threw an exception {1}'
+export const VISITOR_CACHE_LOADED = 'Visitor {0}, visitor cache has been loaded from database: {1}'
+export const VISITOR_CACHE_SAVED = 'Visitor {0}, visitor cache has been saved into database : {0}'
+export const VISITOR_CACHE_FLUSHED = 'Visitor {0}, visitor cache has been flushed from database.'
+export const HIT_CACHE_LOADED = 'Hits cache has been loaded from database: {0}'
+export const HIT_CACHE_SAVED = 'Hit cache has been saved into database : {0}'
+export const HIT_DATA_FLUSHED = 'The following hit keys have been flushed from database : {0}'
+export const ALL_HITS_FLUSHED = 'All hits cache has been flushed from database'
+export const BATCH_LOOP_STARTED = 'The Batch Loop has been started with a time interval of {0} ms'
+export const TRACKING_MANAGER = 'TRACKING_MANAGER'
+export const BATCH_LOOP_STOPPED = 'The Batch Loop has been stopped'
+export const TRACKING_MANAGER_ERROR = '{0} Unexpected Error occurred {1}'
+export const HIT_SENT_SUCCESS = '{0} has been sent : {1}'
+export const ACTIVATE_HIT = 'ACTIVATE HIT'
+export const BATCH_HIT = 'BATCH HIT'
+export const DIRECT_HIT = 'HIT'
+export const GET_THIRD_PARTY_SEGMENT = 'GET_THIRD_PARTY_SEGMENT'

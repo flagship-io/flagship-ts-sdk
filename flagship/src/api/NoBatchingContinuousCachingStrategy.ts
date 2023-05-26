@@ -1,10 +1,10 @@
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
-import { HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, HIT_SENT_SUCCESS, SEND_HIT, FS_CONSENT, SDK_INFO, SEND_ACTIVATE, BASE_API_URL, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, URL_ACTIVATE_MODIFICATION, LogLevel } from '../enum/index'
+import { HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, HIT_SENT_SUCCESS, FS_CONSENT, SDK_INFO, BASE_API_URL, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, URL_ACTIVATE_MODIFICATION, LogLevel, ACTIVATE_HIT, DIRECT_HIT, TRACKING_MANAGER, TRACKING_MANAGER_ERROR } from '../enum/index'
 import { Activate } from '../hit/Activate'
 import { ActivateBatch } from '../hit/ActivateBatch'
 import { HitAbstract, Event } from '../hit/index'
 import { Troubleshooting } from '../hit/Troubleshooting'
-import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils'
+import { logDebugSprintf, logErrorSprintf, uuidV4 } from '../utils/utils'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
 import { BatchingCachingStrategyConstruct, SendActivate } from './types'
 
@@ -54,25 +54,29 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         timeout: this.config.timeout
       })
 
-      logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify({
-        ...requestBody,
+      logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, DIRECT_HIT, {
+        url: HIT_EVENT_URL,
+        body: requestBody,
+        headers,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.DirectHit]
-      })), SEND_HIT)
+      })
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       if (hit.type !== HitType.EVENT || (hit as Event).action !== FS_CONSENT) {
-        this.cacheHitKeys[hit.key] = hit.key
+        this.cacheHitKeys[hit.key] = hit.visitorId
       }
       await this.cacheHit(new Map<string, HitAbstract>().set(hit.key, hit))
-      logError(this.config, errorFormat(error.message || error, {
+
+      logErrorSprintf(this.config, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, DIRECT_HIT, {
+        message: error.message || error,
         url: HIT_EVENT_URL,
         headers,
         body: requestBody,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.DirectHit]
-      }), SEND_HIT)
+      })
 
       const monitoringHttpResponse = new Troubleshooting({
         type: 'TROUBLESHOOTING',
@@ -98,7 +102,12 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
   }
 
   async notConsent (visitorId: string): Promise<void> {
-    const keys = Object.keys(this.cacheHitKeys)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const cacheHitKeysEntries = Object.entries(this.cacheHitKeys).filter(([_, value]) => value === visitorId)
+    const keys:string[] = []
+    for (const [key] of cacheHitKeysEntries) {
+      keys.push(key)
+    }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const hitsKeys = Array.from(this._hitsPoolQueue).filter(([_, item]) => {
       return (item?.type !== HitType.EVENT || (item as Event)?.action !== FS_CONSENT) && (item.visitorId === visitorId || item.anonymousId === visitorId)
@@ -155,11 +164,13 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         timeout: this.config.timeout
       })
 
-      logDebug(this.config, sprintf(HIT_SENT_SUCCESS, JSON.stringify({
-        ...requestBody,
+      logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, ACTIVATE_HIT, {
+        url,
+        headers,
+        body: requestBody,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
-      })), SEND_ACTIVATE)
+      })
 
       const hitKeysToRemove: string[] = activateHitsPool.map(item => item.key)
 
@@ -196,20 +207,21 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       activateBatch.hits.forEach((item) => {
-        this.cacheHitKeys[item.key] = item.key
+        this.cacheHitKeys[item.key] = item.visitorId
       })
 
       if (currentActivate) {
         await this.cacheHit(new Map<string, Activate>([[currentActivate.key, currentActivate]]))
       }
 
-      logError(this.config, errorFormat(error.message || error, {
+      logErrorSprintf(this.config, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, ACTIVATE_HIT, {
+        message: error.message || error,
         url,
         headers,
         body: requestBody,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
-      }), SEND_ACTIVATE)
+      })
 
       const monitoringHttpResponse = new Troubleshooting({
         type: 'TROUBLESHOOTING',

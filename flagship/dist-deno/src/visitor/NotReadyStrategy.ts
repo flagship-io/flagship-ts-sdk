@@ -1,6 +1,5 @@
-import { FlagDTO } from '../index.ts'
-import { FlagshipStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR } from '../enum/index.ts'
-import { IFlagMetadata, IHit, modificationsRequested } from '../types.ts'
+import { FlagshipStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_SDK_NOT_READY } from '../enum/index.ts'
+import { FlagDTO, IFlagMetadata, IHit, modificationsRequested } from '../types.ts'
 import { logErrorSprintf } from '../utils/utils.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
@@ -81,9 +80,10 @@ export class NotReadyStrategy extends DefaultStrategy {
     this.log(FLAG_USER_EXPOSED)
   }
 
-  getFlagMetadata ():IFlagMetadata {
-    this.log('flag.metadata')
-    return FlagMetadata.Empty()
+  getFlagMetadata (param:{metadata:IFlagMetadata, key?:string, hasSameType:boolean}):IFlagMetadata {
+    const emptyMetaData = FlagMetadata.Empty()
+    logErrorSprintf(this.config, FLAG_METADATA, METADATA_SDK_NOT_READY, this.visitor.visitorId, param.key, emptyMetaData)
+    return emptyMetaData
   }
 
   private log (methodName:string) {

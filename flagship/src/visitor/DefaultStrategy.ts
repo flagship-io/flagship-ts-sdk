@@ -1,6 +1,7 @@
 import {
   ACTIVATE_MODIFICATION_ERROR,
   ACTIVATE_MODIFICATION_KEY_ERROR,
+  AUTHENTICATE,
   CLEAR_CONTEXT,
   CONTEXT_KEY_ERROR,
   CONTEXT_KEY_VALUE_UPDATE,
@@ -13,6 +14,7 @@ import {
   FETCH_FLAGS_FROM_CAMPAIGNS,
   FETCH_FLAGS_STARTED,
   FLAGSHIP_VISITOR_NOT_AUTHENTICATE,
+  FLAG_METADATA,
   FLAG_USER_EXPOSED,
   FLAG_VALUE,
   GET_FLAG_CAST_ERROR,
@@ -36,9 +38,12 @@ import {
   PROCESS_SYNCHRONIZED_MODIFICATION,
   PROCESS_UPDATE_CONTEXT,
   SDK_APP,
+  UNAUTHENTICATE,
   USER_EXPOSED_CAST_ERROR,
   USER_EXPOSED_FLAG_ERROR,
-  VISITOR_ID_ERROR
+  VISITOR_AUTHENTICATE,
+  VISITOR_AUTHENTICATE_VISITOR_ID_ERROR,
+  VISITOR_UNAUTHENTICATE
 } from '../enum/index'
 import {
   HitAbstract,
@@ -792,16 +797,16 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   authenticate (visitorId: string): void {
-    const functionName = 'authenticate'
     if (this.config.decisionMode === DecisionMode.BUCKETING) {
-      this.logDeactivateOnBucketing(functionName)
+      this.logDeactivateOnBucketing(AUTHENTICATE)
       return
     }
 
     if (!visitorId) {
-      logError(this.config, VISITOR_ID_ERROR, functionName)
+      logErrorSprintf(this.config, AUTHENTICATE, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, this.visitor.visitorId)
       return
     }
+
     this.visitor.anonymousId = this.visitor.visitorId
     this.visitor.visitorId = visitorId
 
@@ -818,16 +823,16 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     })
 
     this.sendTroubleshootingHit(monitoring)
+    logDebugSprintf(this.config, AUTHENTICATE, VISITOR_AUTHENTICATE, this.visitor.visitorId, this.visitor.anonymousId)
   }
 
   unauthenticate (): void {
-    const functionName = 'unauthenticate'
     if (this.config.decisionMode === DecisionMode.BUCKETING) {
-      this.logDeactivateOnBucketing(functionName)
+      this.logDeactivateOnBucketing(UNAUTHENTICATE)
       return
     }
     if (!this.visitor.anonymousId) {
-      logError(this.config, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, functionName)
+      logErrorSprintf(this.config, UNAUTHENTICATE, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, this.visitor.visitorId)
       return
     }
     this.visitor.visitorId = this.visitor.anonymousId
@@ -846,6 +851,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     })
 
     this.sendTroubleshootingHit(monitoring)
+    logDebugSprintf(this.config, UNAUTHENTICATE, VISITOR_UNAUTHENTICATE, this.visitor.visitorId)
   }
 
   async fetchFlags (): Promise<void> {
@@ -984,11 +990,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   getFlagMetadata (param:{metadata:IFlagMetadata, key?:string, hasSameType:boolean}):IFlagMetadata {
     const { metadata, hasSameType: checkType, key } = param
-    const functionName = 'flag.metadata'
     if (!checkType) {
       logWarningSprintf(
         this.visitor.config,
-        functionName,
+        FLAG_METADATA,
         GET_METADATA_CAST_ERROR, key
       )
       const monitoring = new Troubleshooting({
@@ -1020,9 +1025,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   protected logDeactivateOnBucketing (functionName: string): void {
-    logError(
+    logErrorSprintf(
       this.config,
-      sprintf(METHOD_DEACTIVATED_BUCKETING_ERROR, functionName),
+      functionName,
+      METHOD_DEACTIVATED_BUCKETING_ERROR, this.visitor.visitorId,
       functionName
     )
   }

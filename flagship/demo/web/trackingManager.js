@@ -11,6 +11,8 @@ btnAction1.addEventListener('click', async () => {
     decisionMode: DecisionMode.BUCKETING,
     // initialBucketing: bucketing
     // disableCache: true,
+    pollingInterval: 30,
+    fetchThirdPartyData: true,
     fetchNow: false,
     pollingInterval: 15,
     trackingMangerConfig: {
@@ -28,10 +30,10 @@ let visitor
 btnAction2.addEventListener('click', async () => {
   // Create a visitor and send consent hit
   visitor = Flagship.newVisitor({
-    visitorId: 'visitor-A',
+    visitorId: 'wonderful_visitor_1',
     // isAuthenticated: true,
     context: {
-      testing_tracking_manager: true
+      qa_bucketing_integration: true
     }
   })
 })
@@ -48,9 +50,13 @@ const btnAction4 = document.getElementById('btn-action-4')
 // scenario 1 action 1
 btnAction4.addEventListener('click', async () => {
   // Send an activate hit
-  const value = visitor.getFlag('my_flag', 'defaultValue').getValue()
+  const value = visitor.getFlag('appName', 'defaultValue').getValue()
 
   console.log('flag value', value)
+
+  const value2 = visitor.getFlag('btnColor', 'defaultValue').getValue()
+
+  console.log('flag value2', value2)
 })
 
 const btnAction5 = document.getElementById('btn-action-5')

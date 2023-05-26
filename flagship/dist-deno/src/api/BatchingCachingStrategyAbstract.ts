@@ -1,12 +1,12 @@
 import { DecisionMode, IFlagshipConfig } from '../config/index.ts'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy.ts'
-import { ACTIVATE_ADDED_IN_QUEUE, ADD_ACTIVATE, ADD_HIT, BATCH_MAX_SIZE, BATCH_SENT_SUCCESS, DEFAULT_HIT_CACHE_TIME_MS, FLUSH_ALL_HITS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HitType, HIT_ADDED_IN_QUEUE, HIT_CACHE_VERSION, HIT_DATA_CACHED, HIT_DATA_FLUSHED, HIT_EVENT_URL, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_APP, SDK_INFO, SEND_BATCH } from '../enum/index.ts'
+import { ACTIVATE_ADDED_IN_QUEUE, ADD_ACTIVATE, ALL_HITS_FLUSHED, BATCH_HIT, BATCH_MAX_SIZE, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HitType, HIT_ADDED_IN_QUEUE, HIT_CACHE_ERROR, HIT_CACHE_SAVED, HIT_CACHE_VERSION, HIT_DATA_FLUSHED, HIT_EVENT_URL, HIT_SENT_SUCCESS, PROCESS_CACHE, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_APP, SDK_INFO, TRACKING_MANAGER, TRACKING_MANAGER_ERROR } from '../enum/index.ts'
 import { Activate } from '../hit/Activate.ts'
 import { Batch } from '../hit/Batch.ts'
 import { HitAbstract, Event } from '../hit/index.ts'
 import { HitCacheDTO, IExposedFlag, IExposedVisitor } from '../types.ts'
 import { IHttpClient } from '../utils/HttpClient.ts'
-import { errorFormat, logDebug, logError, sprintf, uuidV4 } from '../utils/utils.ts'
+import { logDebug, logDebugSprintf, logErrorSprintf, sprintf, uuidV4 } from '../utils/utils.ts'
 import { ITrackingManagerCommon } from './ITrackingManagerCommon.ts'
 
 export type SendActivate = {
@@ -42,7 +42,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       await this.notConsent(hit.visitorId)
     }
 
-    logDebug(this.config, sprintf(HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_HIT)
+    logDebugSprintf(this.config, TRACKING_MANAGER, HIT_ADDED_IN_QUEUE, hit.toApiKeys())
 
     if (this.config.trackingMangerConfig?.poolMaxSize &&
       this._hitsPoolQueue.size >= this.config.trackingMangerConfig.poolMaxSize &&
@@ -175,11 +175,13 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
           timeout: this.config.timeout
         })
 
-        logDebug(this.config, sprintf(BATCH_SENT_SUCCESS, JSON.stringify({
-          ...requestBody,
+        logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, BATCH_HIT, {
+          url: HIT_EVENT_URL,
+          body: requestBody,
+          headers,
           duration: Date.now() - now,
           batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
-        })), SEND_BATCH)
+        })
 
         await this.flushHits(hitKeysToRemove)
 
@@ -189,13 +191,14 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
           this._hitsPoolQueue.set(hit.key, hit)
         })
 
-        logError(this.config, errorFormat(error.message || error, {
+        logErrorSprintf(this.config, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, BATCH_HIT, {
+          message: error.message || error,
           url: HIT_EVENT_URL,
           headers,
           body: requestBody,
           duration: Date.now() - now,
           batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
-        }), SEND_BATCH)
+        })
       }
     }
 
@@ -226,10 +229,10 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
         })
 
         await hitCacheImplementation.cacheHit(data)
-        logDebug(this.config, sprintf(HIT_DATA_CACHED, JSON.stringify(data)), PROCESS_CACHE_HIT)
+        logDebugSprintf(this.config, PROCESS_CACHE_HIT, HIT_CACHE_SAVED, data)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error:any) {
-        logError(this.config, error.message || error, PROCESS_CACHE_HIT)
+        logErrorSprintf(this.config, PROCESS_CACHE, HIT_CACHE_ERROR, 'cacheHit', error.message || error)
       }
     }
 
@@ -241,10 +244,10 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
         }
 
         await hitCacheImplementation.flushHits(hitKeys)
-        logDebug(this.config, sprintf(HIT_DATA_FLUSHED, JSON.stringify(hitKeys)), PROCESS_FLUSH_HIT)
+        logDebugSprintf(this.config, PROCESS_CACHE, HIT_DATA_FLUSHED, hitKeys)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error:any) {
-        logError(this.config, error.message || error, PROCESS_FLUSH_HIT)
+        logErrorSprintf(this.config, PROCESS_CACHE, HIT_CACHE_ERROR, 'flushHits', error.message || error)
       }
     }
 
@@ -255,10 +258,10 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
           return
         }
         await hitCacheImplementation.flushAllHits()
-        logDebug(this.config, FLUSH_ALL_HITS, PROCESS_FLUSH_HIT)
+        logDebug(this.config, ALL_HITS_FLUSHED, PROCESS_FLUSH_HIT)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error:any) {
-        logError(this.config, error.message || error, PROCESS_FLUSH_HIT)
+        logErrorSprintf(this.config, PROCESS_CACHE, HIT_CACHE_ERROR, 'flushAllHits', error.message || error)
       }
     }
 }
