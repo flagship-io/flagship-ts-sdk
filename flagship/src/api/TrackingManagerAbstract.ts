@@ -131,8 +131,9 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
       return
     }
 
-    await this.strategy.sendTroubleshootingHit(hit)
-    await this.strategy.sendTroubleshootingQueue()
+    await this.strategy.addTroubleshootingHit(hit)
+    // await this.strategy.sendTroubleshootingHit(hit)
+    // await this.strategy.sendTroubleshootingQueue()
   }
 
   public async sendTroubleshootingQueue () : Promise<void> {
