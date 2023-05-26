@@ -158,7 +158,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
     const url = BASE_API_URL + URL_ACTIVATE_MODIFICATION
     const now = Date.now()
     try {
-      const response = await this._httpClient.postAsync(url, {
+      await this._httpClient.postAsync(url, {
         headers,
         body: requestBody,
         timeout: this.config.timeout
@@ -182,27 +182,6 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       if (hitKeysToRemove.length) {
         await this.flushHits(hitKeysToRemove)
       }
-
-      const monitoringHttpResponse = new Troubleshooting({
-        type: 'TROUBLESHOOTING',
-        subComponent: 'SEND-ACTIVATE-HIT-ROUTE-RESPONSE',
-        logLevel: LogLevel.INFO,
-        message: 'SEND-ACTIVATE-HIT-ROUTE-RESPONSE',
-        visitorId: `${this._flagshipInstanceId}`,
-        traffic: 0,
-        config: this.config,
-        httpRequestBody: requestBody,
-        httpRequestHeaders: headers,
-        httpRequestMethod: 'POST',
-        httpRequestUrl: url,
-        httpResponseBody: response?.body,
-        httpResponseHeaders: response?.headers,
-        httpResponseCode: response?.status,
-        httpResponseTime: Date.now() - now,
-        batchTriggeredBy
-      })
-
-      await this.sendTroubleshootingHit(monitoringHttpResponse)
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {

@@ -155,49 +155,12 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
 
     const requestBody = batch.toApiKeys()
     const now = Date.now()
-    const httpInstanceId = uuidV4()
     try {
-      const monitoringHttpRequest = new Troubleshooting({
-        type: 'TROUBLESHOOTING',
-        subComponent: 'SEND-BATCH-HIT-ROUTE-REQUEST',
-        logLevel: LogLevel.INFO,
-        message: 'SEND-BATCH-HIT-ROUTE-REQUEST',
-        visitorId: `${this._flagshipInstanceId}`,
-        traffic: 0,
-        config: this.config,
-        httpInstanceId,
-        httpRequestBody: requestBody,
-        httpRequestHeaders: headers,
-        httpRequestMethod: 'POST',
-        httpRequestUrl: HIT_EVENT_URL
-      })
-
-      this.addTroubleshootingHit(monitoringHttpRequest)
-
-      const response = await this._httpClient.postAsync(HIT_EVENT_URL, {
+      await this._httpClient.postAsync(HIT_EVENT_URL, {
         headers,
         body: requestBody,
         timeout: this.config.timeout
       })
-
-      const monitoringHttpResponse = new Troubleshooting({
-        type: 'TROUBLESHOOTING',
-        subComponent: 'SEND-BATCH-HIT-ROUTE-RESPONSE',
-        logLevel: LogLevel.INFO,
-        message: 'SEND-BATCH-HIT-ROUTE-RESPONSE',
-        visitorId: `${this._flagshipInstanceId}`,
-        traffic: 0,
-        config: this.config,
-        httpInstanceId,
-        httpResponseBody: response?.body,
-        httpResponseHeaders: response?.headers,
-        httpResponseMethod: 'POST',
-        httpResponseUrl: HIT_EVENT_URL,
-        httpResponseCode: response?.status,
-        httpResponseTime: Date.now() - now
-      })
-
-      this.addTroubleshootingHit(monitoringHttpResponse)
 
       logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, BATCH_HIT, {
         url: HIT_EVENT_URL,
@@ -229,7 +192,6 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         visitorId: `${this._flagshipInstanceId}`,
         traffic: 0,
         config: this.config,
-        httpInstanceId,
         httpRequestBody: requestBody,
         httpRequestHeaders: headers,
         httpResponseBody: error?.message,

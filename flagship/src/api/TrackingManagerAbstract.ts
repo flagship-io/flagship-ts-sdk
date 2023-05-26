@@ -106,8 +106,6 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   public abstract sendBatch(): Promise<void>
 
   public async addTroubleshootingHit (hit: Troubleshooting) :Promise<void> {
-    console.log('hit', hit)
-
     if (!this.troubleshootingData) {
       this.strategy.clearTroubleshootingQueue()
       return
@@ -131,9 +129,9 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
       return
     }
 
-    await this.strategy.addTroubleshootingHit(hit)
-    // await this.strategy.sendTroubleshootingHit(hit)
-    // await this.strategy.sendTroubleshootingQueue()
+    // await this.strategy.addTroubleshootingHit(hit)
+    await this.strategy.sendTroubleshootingHit(hit)
+    await this.strategy.sendTroubleshootingQueue()
   }
 
   public async sendTroubleshootingQueue () : Promise<void> {
@@ -156,7 +154,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
       return
     }
 
-    this.strategy.clearTroubleshootingQueue(this.troubleshootingData.traffic)
+    // this.strategy.clearTroubleshootingQueue(this.troubleshootingData.traffic)
     await this.strategy.sendTroubleshootingQueue()
   }
 
