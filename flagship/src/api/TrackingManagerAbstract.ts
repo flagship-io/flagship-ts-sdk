@@ -28,19 +28,18 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected _intervalID:any
   protected _isPooling = false
-  private _troubleshootingData? : TroubleshootingData
   private _flagshipInstanceId?: string
 
   public get flagshipInstanceId (): string|undefined {
     return this._flagshipInstanceId
   }
 
-  public get troubleshootingData () : TroubleshootingData|undefined {
-    return this._troubleshootingData
+  public get troubleshootingData () : TroubleshootingData | 'started' | undefined {
+    return this.strategy.troubleshootingData
   }
 
-  public set troubleshootingData (v : TroubleshootingData|undefined) {
-    this._troubleshootingData = v
+  public set troubleshootingData (v : TroubleshootingData | 'started' | undefined) {
+    this.strategy.troubleshootingData = v
   }
 
   constructor (httpClient: IHttpClient, config: IFlagshipConfig, flagshipInstanceId?:string) {
@@ -106,55 +105,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   public abstract sendBatch(): Promise<void>
 
   public async addTroubleshootingHit (hit: Troubleshooting) :Promise<void> {
-    if (!this.troubleshootingData) {
-      this.strategy.clearTroubleshootingQueue()
-      return
-    }
-
-    if (this.troubleshootingData.traffic < hit.traffic) {
-      return
-    }
-
-    const now = new Date()
-    const isStarted = now > this.troubleshootingData.startDate
-
-    if (!isStarted) {
-      return
-    }
-
-    const isFinished = now < this.troubleshootingData.endDate
-
-    if (!isFinished) {
-      this.strategy.clearTroubleshootingQueue()
-      return
-    }
-
-    // await this.strategy.addTroubleshootingHit(hit)
     await this.strategy.sendTroubleshootingHit(hit)
-    await this.strategy.sendTroubleshootingQueue()
-  }
-
-  public async sendTroubleshootingQueue () : Promise<void> {
-    if (!this.troubleshootingData) {
-      this.strategy.clearTroubleshootingQueue()
-      return
-    }
-
-    const now = new Date()
-    const isStarted = now > this.troubleshootingData.startDate
-
-    if (!isStarted) {
-      return
-    }
-
-    const isFinished = now < this.troubleshootingData.endDate
-
-    if (!isFinished) {
-      this.strategy.clearTroubleshootingQueue()
-      return
-    }
-
-    // this.strategy.clearTroubleshootingQueue(this.troubleshootingData.traffic)
     await this.strategy.sendTroubleshootingQueue()
   }
 
@@ -180,7 +131,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     }
     this._isPooling = true
     await this.strategy.sendBatch(BatchTriggeredBy.Timer)
-    await this.sendTroubleshootingQueue()
+    await this.strategy.sendTroubleshootingQueue()
     this._isPooling = false
   }
 
