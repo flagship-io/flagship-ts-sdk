@@ -70,9 +70,10 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       })
 
       logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, ACTIVATE_HIT, {
-        url,
-        headers,
-        body: requestBody,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
@@ -99,10 +100,13 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       }
 
       logErrorSprintf(this.config, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, ACTIVATE_HIT, {
-        message: error.message || error,
-        url,
-        headers,
-        body: requestBody,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseCode: error?.statusCode,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })

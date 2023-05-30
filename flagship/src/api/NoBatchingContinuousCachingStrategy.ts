@@ -55,9 +55,10 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       })
 
       logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, DIRECT_HIT, {
-        url: HIT_EVENT_URL,
-        body: requestBody,
-        headers,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: HIT_EVENT_URL,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.DirectHit]
       })
@@ -70,10 +71,13 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       await this.cacheHit(new Map<string, HitAbstract>().set(hit.key, hit))
 
       logErrorSprintf(this.config, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, DIRECT_HIT, {
-        message: error.message || error,
-        url: HIT_EVENT_URL,
-        headers,
-        body: requestBody,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: HIT_EVENT_URL,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseCode: error?.statusCode,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.DirectHit]
       })
@@ -165,9 +169,10 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       })
 
       logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, ACTIVATE_HIT, {
-        url,
-        headers,
-        body: requestBody,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
@@ -194,10 +199,13 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       }
 
       logErrorSprintf(this.config, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, ACTIVATE_HIT, {
-        message: error.message || error,
-        url,
-        headers,
-        body: requestBody,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseCode: error?.statusCode,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })

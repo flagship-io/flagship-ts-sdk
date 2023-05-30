@@ -39,9 +39,10 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       })
 
       logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, ACTIVATE_HIT, {
-        url,
-        headers,
-        body: requestBody,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
@@ -57,10 +58,13 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       })
 
       logErrorSprintf(this.config, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, ACTIVATE_HIT, {
-        message: error.message || error,
-        url,
-        headers,
-        body: requestBody,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseCode: error?.statusCode,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
@@ -165,9 +169,10 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       })
 
       logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, BATCH_HIT, {
-        url: HIT_EVENT_URL,
-        body: requestBody,
-        headers,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: HIT_EVENT_URL,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
@@ -178,10 +183,13 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         this._hitsPoolQueue.set(hit.key, hit)
       })
       logErrorSprintf(this.config, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, BATCH_HIT, {
-        message: error.message || error,
-        url: HIT_EVENT_URL,
-        headers,
-        body: requestBody,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: HIT_EVENT_URL,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseCode: error?.statusCode,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })

@@ -5,7 +5,7 @@ import { Activate } from '../hit/Activate'
 import { Batch } from '../hit/Batch'
 import { HitAbstract, Event } from '../hit/index'
 import { Troubleshooting } from '../hit/Troubleshooting'
-import { HitCacheDTO, IExposedFlag, IExposedVisitor } from '../types'
+import { HitCacheDTO, IExposedFlag, IExposedVisitor, TroubleshootingData } from '../types'
 import { IHttpClient } from '../utils/HttpClient'
 import { errorFormat, logDebug, logDebugSprintf, logError, logErrorSprintf, sprintf, uuidV4 } from '../utils/utils'
 import { ITrackingManagerCommon } from './ITrackingManagerCommon'
@@ -16,20 +16,34 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   protected _hitsPoolQueue: Map<string, HitAbstract>
   protected _activatePoolQueue: Map<string, Activate>
   protected _httpClient: IHttpClient
-  protected _monitoringPoolQueue: Map<string, Troubleshooting>
+  protected _troubleshootingQueue: Map<string, Troubleshooting>
   protected _flagshipInstanceId?: string
   protected _isLoopingMonitoringPoolQueue: boolean
+  private _troubleshootingData? : TroubleshootingData|'started'
+
+  public get flagshipInstanceId (): string|undefined {
+    return this._flagshipInstanceId
+  }
+
+  public get troubleshootingData () : TroubleshootingData|undefined|'started' {
+    return this._troubleshootingData
+  }
+
+  public set troubleshootingData (v : TroubleshootingData|undefined|'started') {
+    this._troubleshootingData = v
+  }
 
   public get config () : IFlagshipConfig {
     return this._config
   }
 
-  constructor ({ config, hitsPoolQueue, httpClient, activatePoolQueue, troubleshootingQueue: monitoringPoolQueue, flagshipInstanceId }: BatchingCachingStrategyConstruct) {
+  constructor ({ config, hitsPoolQueue, httpClient, activatePoolQueue, troubleshootingQueue, flagshipInstanceId }: BatchingCachingStrategyConstruct) {
+    this.troubleshootingData = 'started'
     this._config = config
     this._hitsPoolQueue = hitsPoolQueue
     this._httpClient = httpClient
     this._activatePoolQueue = activatePoolQueue
-    this._monitoringPoolQueue = monitoringPoolQueue
+    this._troubleshootingQueue = troubleshootingQueue
     this._flagshipInstanceId = flagshipInstanceId
     this._isLoopingMonitoringPoolQueue = false
   }
@@ -40,13 +54,93 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
   protected abstract sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate): Promise<void>
 
-  public async addTroubleshootingHit (hit: Troubleshooting): Promise<void> {
+  protected isTroubleshootingActivated () {
+    if (!this.troubleshootingData || this.troubleshootingData === 'started') {
+      return false
+    }
+
+    const now = new Date()
+
+    const isStarted = now >= this.troubleshootingData.startDate
+    if (!isStarted) {
+      return false
+    }
+
+    const isFinished = now > this.troubleshootingData.endDate
+    if (isFinished) {
+      return false
+    }
+    return true
+  }
+
+  protected async addTroubleshootingHit (hit: Troubleshooting): Promise<void> {
+    if (this.troubleshootingData !== 'started' && !this.isTroubleshootingActivated()) {
+      return
+    }
     if (!hit.key) {
       const hitKey = `${hit.visitorId}:${uuidV4()}`
       hit.key = hitKey
     }
-    this._monitoringPoolQueue.set(hit.key, hit)
+    this._troubleshootingQueue.set(hit.key, hit)
     logDebug(this.config, sprintf(TROUBLESHOOTING_HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_TROUBLESHOOTING_HIT)
+  }
+
+  public async sendTroubleshootingHit (hit: Troubleshooting): Promise<void> {
+    if (this.troubleshootingData === 'started') {
+      this.addTroubleshootingHit(hit)
+      return
+    }
+    if (!this.isTroubleshootingActivated()) {
+      return
+    }
+    if ((this.troubleshootingData as TroubleshootingData).traffic < hit.traffic) {
+      return
+    }
+    const requestBody = hit.toApiKeys()
+    const now = Date.now()
+    try {
+      await this._httpClient.postAsync(TROUBLESHOOTING_HIT_URL, {
+        body: requestBody
+      })
+      logDebug(this.config, sprintf(TROUBLESHOOTING_SENT_SUCCESS, JSON.stringify({
+        ...requestBody,
+        duration: Date.now() - now
+      })), SEND_TROUBLESHOOTING)
+
+      if (hit.key) {
+        this._troubleshootingQueue.delete(hit.key)
+        await this.flushHits([hit.key])
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      if (!hit.key) {
+        const hitKey = `${hit.visitorId}:${uuidV4()}`
+        hit.key = hitKey
+        await this.addTroubleshootingHit(hit)
+      }
+      logError(this.config, errorFormat(error.message || error, {
+        url: TROUBLESHOOTING_HIT_URL,
+        headers: {},
+        body: requestBody,
+        duration: Date.now() - now
+      }), SEND_BATCH)
+    }
+  }
+
+  public async sendTroubleshootingQueue () {
+    if (!this.isTroubleshootingActivated()) {
+      return
+    }
+    if (this._isLoopingMonitoringPoolQueue || this._troubleshootingQueue.size === 0) {
+      return
+    }
+
+    this._isLoopingMonitoringPoolQueue = true
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for (const [_, item] of Array.from(this._troubleshootingQueue)) {
+      await this.sendTroubleshootingHit(item)
+    }
+    this._isLoopingMonitoringPoolQueue = false
   }
 
   public async addHit (hit: HitAbstract): Promise<void> {
@@ -67,71 +161,6 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     ) {
       this.sendBatch()
     }
-  }
-
-  public clearTroubleshootingQueue (traffic?:number) {
-    if (traffic === undefined) {
-      this._monitoringPoolQueue.clear()
-      return
-    }
-    if (this._monitoringPoolQueue.size === 0) {
-      return
-    }
-    const keys:string[] = []
-    for (const [key, item] of this._monitoringPoolQueue) {
-      if (item.traffic > traffic) {
-        keys.push(key)
-      }
-    }
-
-    for (const key of keys) {
-      this._monitoringPoolQueue.delete(key)
-    }
-  }
-
-  public async sendTroubleshootingHit (hit: Troubleshooting): Promise<void> {
-    const requestBody = hit.toApiKeys()
-    const now = Date.now()
-    try {
-      await this._httpClient.postAsync(TROUBLESHOOTING_HIT_URL, {
-        body: requestBody
-      })
-      logDebug(this.config, sprintf(TROUBLESHOOTING_SENT_SUCCESS, JSON.stringify({
-        ...requestBody,
-        duration: Date.now() - now
-      })), SEND_TROUBLESHOOTING)
-
-      if (hit.key) {
-        this._monitoringPoolQueue.delete(hit.key)
-        await this.flushHits([hit.key])
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
-      if (!hit.key) {
-        const hitKey = `${hit.visitorId}:${uuidV4()}`
-        hit.key = hitKey
-        await this.addTroubleshootingHit(hit)
-      }
-      logError(this.config, errorFormat(error.message || error, {
-        url: TROUBLESHOOTING_HIT_URL,
-        headers: {},
-        body: requestBody,
-        duration: Date.now() - now
-      }), SEND_BATCH)
-    }
-  }
-
-  public async sendTroubleshootingQueue () {
-    if (this._isLoopingMonitoringPoolQueue || this._monitoringPoolQueue.size === 0) {
-      return
-    }
-
-    this._isLoopingMonitoringPoolQueue = true
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for (const [_, item] of Array.from(this._monitoringPoolQueue)) {
-      await this.sendTroubleshootingHit(item)
-    }
-    this._isLoopingMonitoringPoolQueue = false
   }
 
   async activateFlag (hit: Activate):Promise<void> {
@@ -254,9 +283,10 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       })
 
       logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, BATCH_HIT, {
-        url: HIT_EVENT_URL,
-        body: requestBody,
-        headers,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: HIT_EVENT_URL,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
@@ -270,10 +300,13 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       })
 
       logErrorSprintf(this.config, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, BATCH_HIT, {
-        message: error.message || error,
-        url: HIT_EVENT_URL,
-        headers,
-        body: requestBody,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: HIT_EVENT_URL,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseCode: error?.statusCode,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })

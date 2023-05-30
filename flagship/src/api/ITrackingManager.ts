@@ -1,3 +1,4 @@
+import { Troubleshooting } from '../hit/Troubleshooting'
 import { ITrackingManagerCommon } from './ITrackingManagerCommon'
 
 export interface ITrackingManager extends ITrackingManagerCommon {
@@ -7,5 +8,7 @@ export interface ITrackingManager extends ITrackingManagerCommon {
     stopBatchingLoop():void
 
     sendBatch():Promise<void>
+
+    addTroubleshootingHit(hit: Troubleshooting): Promise<void>
 
   }
