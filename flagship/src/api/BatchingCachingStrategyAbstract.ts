@@ -55,7 +55,12 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   protected abstract sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate): Promise<void>
 
   protected isTroubleshootingActivated () {
-    if (!this.troubleshootingData || this.troubleshootingData === 'started') {
+    if (!this.troubleshootingData) {
+      this._troubleshootingQueue.clear()
+      return false
+    }
+
+    if (this.troubleshootingData === 'started') {
       return false
     }
 

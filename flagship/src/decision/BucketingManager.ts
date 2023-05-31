@@ -30,12 +30,13 @@ export class BucketingManager extends DecisionManager {
     }
   }
 
-  private finishLoop (response: IHttpResponse) {
+  private finishLoop (params: {response: IHttpResponse, headers: Record<string, string>, url: string, now: number}) {
+    const { response, headers, url, now } = params
     if (response.status === 200) {
       logDebugSprintf(this.config, PROCESS_BUCKETING, POLLING_EVENT_200, response.body)
       this._bucketingContent = response.body
       this._lastBucketingTimestamp = new Date().toISOString()
-      const monitoringHit = new Troubleshooting({
+      const troubleshootingHit = new Troubleshooting({
         type: 'TROUBLESHOOTING',
         visitorId: this.flagshipInstanceId,
         flagshipInstanceId: this.flagshipInstanceId,
@@ -43,10 +44,16 @@ export class BucketingManager extends DecisionManager {
         traffic: 0,
         logLevel: LogLevel.INFO,
         message: 'SDK-BUCKETING-FILE',
-        sdkBucketingFile: this._bucketingContent,
-        config: this.config
+        config: this.config,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
+        httpResponseBody: response?.body,
+        httpResponseHeaders: response?.headers,
+        httpResponseCode: response?.status,
+        httpResponseTime: Date.now() - now
       })
-      this.trackingManager.addTroubleshootingHit(monitoringHit)
+      this.trackingManager.addTroubleshootingHit(troubleshootingHit)
     } else if (response.status === 304) {
       logDebug(this.config, POLLING_EVENT_300, PROCESS_BUCKETING)
     }
@@ -107,7 +114,7 @@ export class BucketingManager extends DecisionManager {
 
       const response = await this._httpClient.getAsync(url, { headers, timeout: this.config.timeout })
 
-      this.finishLoop(response)
+      this.finishLoop({ response, headers, url, now })
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
@@ -124,6 +131,24 @@ export class BucketingManager extends DecisionManager {
       if (typeof this.config.onBucketingFail === 'function') {
         this.config.onBucketingFail(new Error(error))
       }
+      const troubleshootingHit = new Troubleshooting({
+        type: 'TROUBLESHOOTING',
+        visitorId: this.flagshipInstanceId,
+        flagshipInstanceId: this.flagshipInstanceId,
+        subComponent: 'SDK-BUCKETING-FILE-ERROR',
+        traffic: 0,
+        logLevel: LogLevel.INFO,
+        message: 'SDK-BUCKETING-FILE-ERROR',
+        config: this.config,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseCode: error?.statusCode,
+        httpResponseTime: Date.now() - now
+      })
+      this.trackingManager.addTroubleshootingHit(troubleshootingHit)
     }
   }
 
