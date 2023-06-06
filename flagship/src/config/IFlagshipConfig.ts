@@ -132,4 +132,5 @@ export interface IFlagshipConfig {
      * Define a callable to get a callback whenever the SDK needs to report a log
      */
     onLog?: (level: LogLevel, tag: string, message: string)=>void
+    nextFetchConfig?: Record<string, unknown>
   }

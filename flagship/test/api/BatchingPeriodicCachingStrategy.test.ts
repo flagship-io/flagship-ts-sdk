@@ -2,7 +2,7 @@ import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { Event, EventCategory, OnVisitorExposed, UserExposureInfo } from '../../src'
 import { BatchingPeriodicCachingStrategy } from '../../src/api/BatchingPeriodicCachingStrategy'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
-import { HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, SDK_INFO, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, SEND_BATCH, BASE_API_URL, URL_ACTIVATE_MODIFICATION, FS_CONSENT, LogLevel, DEFAULT_HIT_CACHE_TIME_MS, HIT_SENT_SUCCESS, BATCH_HIT, TRACKING_MANAGER, TRACKING_MANAGER_ERROR } from '../../src/enum'
+import { HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, SDK_INFO, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, BASE_API_URL, URL_ACTIVATE_MODIFICATION, FS_CONSENT, LogLevel, DEFAULT_HIT_CACHE_TIME_MS, BATCH_HIT, TRACKING_MANAGER, TRACKING_MANAGER_ERROR } from '../../src/enum'
 import { BatchTriggeredBy } from '../../src/enum/BatchTriggeredBy'
 import { Activate } from '../../src/hit/Activate'
 import { ActivateBatch } from '../../src/hit/ActivateBatch'
@@ -178,7 +178,9 @@ describe('test sendBatch method', () => {
     [HEADER_X_SDK_VERSION]: SDK_VERSION,
     [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
   }
-
+  const nextFetchConfig = {
+    revalidate: 20
+  }
   const urlActivate = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
   it('test sendBatch method success', async () => {
     postAsync.mockResolvedValue({ status: 200, body: null })
@@ -209,6 +211,7 @@ describe('test sendBatch method', () => {
 
     expect(postAsync).toHaveBeenNthCalledWith(1, HIT_EVENT_URL, {
       headers,
+      nextFetchConfig,
       body: batch.toApiKeys(),
       timeout: config.timeout
     })
@@ -260,6 +263,7 @@ describe('test sendBatch method', () => {
     expect(postAsync).toBeCalledTimes(1)
     expect(postAsync).toHaveBeenNthCalledWith(1, HIT_EVENT_URL, {
       headers,
+      nextFetchConfig,
       body: batch.toApiKeys(),
       timeout: config.timeout
     })
@@ -297,6 +301,7 @@ describe('test sendBatch method', () => {
     expect(postAsync).toBeCalledTimes(1)
     expect(postAsync).toHaveBeenNthCalledWith(1, HIT_EVENT_URL, {
       headers,
+      nextFetchConfig,
       body: batch.toApiKeys(),
       timeout: config.timeout
     })
@@ -319,6 +324,7 @@ describe('test sendBatch method', () => {
     expect(postAsync).toBeCalledTimes(1)
     expect(postAsync).toBeCalledWith(HIT_EVENT_URL, {
       headers,
+      nextFetchConfig,
       body: batch.toApiKeys(),
       timeout: config.timeout
     })
@@ -330,6 +336,7 @@ describe('test sendBatch method', () => {
       message: error,
       url: HIT_EVENT_URL,
       headers,
+      nextFetchConfig,
       body: batch.toApiKeys(),
       duration: 0,
       batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.BatchLength]
@@ -375,6 +382,7 @@ describe('test sendBatch method', () => {
 
     expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
       headers: headersActivate,
+      nextFetchConfig,
       body: new ActivateBatch([activateHit], config).toApiKeys(),
       timeout: config.timeout
     })
@@ -429,7 +437,9 @@ describe('test activateFlag method', () => {
     [HEADER_X_SDK_VERSION]: SDK_VERSION,
     [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
   }
-
+  const nextFetchConfig = {
+    revalidate: 20
+  }
   const urlActivate = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
   it('test activate success', async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -466,6 +476,7 @@ describe('test activateFlag method', () => {
     expect(postAsync).toBeCalledTimes(1)
     expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
       headers: headersActivate,
+      nextFetchConfig,
       body: new ActivateBatch([activateHit], config).toApiKeys(),
       timeout: config.timeout
     })
@@ -554,6 +565,7 @@ describe('test activateFlag method', () => {
     expect(postAsync).toBeCalledTimes(1)
     expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
       headers: headersActivate,
+      nextFetchConfig,
       body: new ActivateBatch([activateHit2, activateHit3, activateHit], config).toApiKeys(),
       timeout: config.timeout
     })
@@ -643,6 +655,7 @@ describe('test activateFlag method', () => {
     expect(postAsync).toBeCalledTimes(1)
     expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
       headers: headersActivate,
+      nextFetchConfig,
       body: new ActivateBatch([activateHit2, activateHit3, activateHit], config).toApiKeys(),
       timeout: config.timeout
     })

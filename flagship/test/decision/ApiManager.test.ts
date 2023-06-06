@@ -73,6 +73,9 @@ describe('test ApiManager', () => {
 
     expect(postAsync).toHaveBeenCalledWith(url, {
       headers,
+      nextFetchConfig: {
+        revalidate: 20
+      },
       timeout: config.timeout,
       body: postData
     })
@@ -91,6 +94,9 @@ describe('test ApiManager', () => {
 
     expect(postAsync).toHaveBeenCalledWith(url, {
       headers,
+      nextFetchConfig: {
+        revalidate: 20
+      },
       timeout: config.timeout,
       body: postData
     })
@@ -131,6 +137,9 @@ describe('test ApiManager', () => {
 
     expect(postAsync).toHaveBeenCalledWith(url, {
       headers,
+      nextFetchConfig: {
+        revalidate: 20
+      },
       timeout: config.timeout,
       body: { ...postData, visitor_consent: visitor.hasConsented }
     })
