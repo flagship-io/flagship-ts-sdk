@@ -1,6 +1,6 @@
 import { IFlagshipConfig } from '../config/index.ts'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy.ts'
-import { HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, HIT_SENT_SUCCESS, FS_CONSENT, SDK_INFO, BASE_API_URL, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, URL_ACTIVATE_MODIFICATION, ACTIVATE_HIT, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, DIRECT_HIT } from '../enum/index.ts'
+import { HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, HIT_SENT_SUCCESS, FS_CONSENT, SDK_INFO, BASE_API_URL, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, URL_ACTIVATE_MODIFICATION, ACTIVATE_HIT, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, DIRECT_HIT, DEFAULT_HIT_CACHE_TIME_MS } from '../enum/index.ts'
 import { Activate } from '../hit/Activate.ts'
 import { ActivateBatch } from '../hit/ActivateBatch.ts'
 import { HitAbstract, Event } from '../hit/index.ts'
@@ -126,7 +126,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
-    const activateBatch = new ActivateBatch(Array.from(activateHitsPool), this.config)
+    const activateBatch = new ActivateBatch(Array.from(activateHitsPool.filter(item => (Date.now() - item.createdAt) < DEFAULT_HIT_CACHE_TIME_MS)), this.config)
 
     if (currentActivate) {
       activateBatch.hits.push(currentActivate)
