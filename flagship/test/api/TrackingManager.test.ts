@@ -8,7 +8,6 @@ import { CacheStrategy, Event, EventCategory, HitCacheDTO, Item, Page, Screen, T
 import { FS_CONSENT, HIT_CACHE_VERSION, NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY, PROCESS_CACHE, HIT_CACHE_ERROR, SDK_INFO } from '../../src/enum'
 import { NoBatchingContinuousCachingStrategy } from '../../src/api/NoBatchingContinuousCachingStrategy'
 import { sleep, sprintf, uuidV4 } from '../../src/utils/utils'
-import { Mock } from 'jest-mock'
 import { Segment } from '../../src/hit/Segment'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { Activate } from '../../src/hit/Activate'
