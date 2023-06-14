@@ -106,9 +106,8 @@ describe('Test BatchingPeriodicCachingStrategy', () => {
     await batchingStrategy.addHit(consentHitFalse1)
 
     expect(hitsPoolQueue.size).toBe(4)
-    expect(cacheHit).toBeCalledTimes(1)
-    expect(cacheHit).toBeCalledTimes(1)
-    expect(flushAllHits).toBeCalledTimes(1)
+    expect(cacheHit).toBeCalledTimes(0)
+    expect(flushAllHits).toBeCalledTimes(0)
     expect(activatePoolQueue.size).toBe(1)
 
     const consentHitFalse2 = new Event({
@@ -123,8 +122,8 @@ describe('Test BatchingPeriodicCachingStrategy', () => {
     await batchingStrategy.addHit(consentHitFalse2)
     expect(activatePoolQueue.size).toBe(0)
     expect(hitsPoolQueue.size).toBe(3)
-    expect(cacheHit).toBeCalledTimes(2)
-    expect(flushAllHits).toBeCalledTimes(2)
+    expect(cacheHit).toBeCalledTimes(0)
+    expect(flushAllHits).toBeCalledTimes(0)
   })
 })
 

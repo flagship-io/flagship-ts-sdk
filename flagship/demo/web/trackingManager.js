@@ -49,13 +49,9 @@ const btnAction4 = document.getElementById('btn-action-4')
 // scenario 1 action 1
 btnAction4.addEventListener('click', async () => {
   // Send an activate hit
-  const value = visitor.getFlag('appName', 'defaultValue').getValue()
+  const value = visitor.getFlag('not_exists_flag', 'defaultValue').getValue()
 
   console.log('flag value', value)
-
-  const value2 = visitor.getFlag('btnColor', 'defaultValue').getValue()
-
-  console.log('flag value2', value2)
 })
 
 const btnAction5 = document.getElementById('btn-action-5')
