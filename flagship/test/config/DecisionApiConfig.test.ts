@@ -16,7 +16,9 @@ import { FlagshipLogManager, IFlagshipLogManager } from '../../src/utils/Flagshi
 
 describe('test DecisionApiConfig', () => {
   const config = new DecisionApiConfig()
-
+  const nextFetchConfig = {
+    revalidate: 20
+  }
   it('should ', () => {
     expect(config.apiKey).toBeUndefined()
     expect(config.envId).toBeUndefined()
@@ -37,6 +39,8 @@ describe('test DecisionApiConfig', () => {
     expect(config.trackingMangerConfig).toBeInstanceOf(TrackingManagerConfig)
     expect(config.onLog).toBeUndefined()
     expect(config.onVisitorExposed).toBeUndefined()
+    expect(config.nextFetchConfig).toEqual(nextFetchConfig)
+    expect(config.fetchThirdPartyData).toBeFalsy()
   })
 
   it('test config constructor', () => {

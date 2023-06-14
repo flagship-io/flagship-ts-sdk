@@ -47,6 +47,10 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
   }
 
+  const nextFetchConfig = {
+    revalidate: 20
+  }
+
   const urlActivate = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
   it('test addHit method', async () => {
     postAsync.mockResolvedValue({ status: 200, body: null })
@@ -73,6 +77,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(postAsync).toHaveBeenCalledTimes(1)
     expect(postAsync).toHaveBeenNthCalledWith(1, HIT_EVENT_URL, {
       headers,
+      nextFetchConfig,
       body: consentHit.toApiKeys(),
       timeout: config.timeout
     })
@@ -91,6 +96,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(postAsync).toHaveBeenCalledTimes(2)
     expect(postAsync).toHaveBeenNthCalledWith(2, HIT_EVENT_URL, {
       headers,
+      nextFetchConfig,
       body: pageHit.toApiKeys(),
       timeout: config.timeout
     })
@@ -223,6 +229,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
       message: error,
       url: HIT_EVENT_URL,
       headers,
+      nextFetchConfig,
       body: pageHit.toApiKeys(),
       duration: 0,
       batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.DirectHit]
@@ -254,6 +261,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
       message: error,
       url: HIT_EVENT_URL,
       headers,
+      nextFetchConfig,
       body: consentHitFalse.toApiKeys(),
       duration: 0,
       batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.DirectHit]
@@ -296,6 +304,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(postAsync).toHaveBeenCalledTimes(1)
     expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
       headers: headersActivate,
+      nextFetchConfig,
       body: new ActivateBatch([activateHit], config).toApiKeys(),
       timeout: config.timeout
     })
@@ -346,6 +355,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(postAsync).toHaveBeenCalledTimes(1)
     expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
       headers: headersActivate,
+      nextFetchConfig,
       body: new ActivateBatch([activateHit], config).toApiKeys(),
       timeout: config.timeout
     })
@@ -399,6 +409,9 @@ describe('test sendBatch method', () => {
     documentLocation: 'http://localhost',
     visitorId
   })
+  const nextFetchConfig = {
+    revalidate: 20
+  }
 
   const headers = {
     [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
@@ -446,6 +459,7 @@ describe('test sendBatch method', () => {
     expect(postAsync).toBeCalledTimes(1)
     expect(postAsync).toHaveBeenNthCalledWith(1, HIT_EVENT_URL, {
       headers,
+      nextFetchConfig,
       body: batch.toApiKeys(),
       timeout: config.timeout
     })
@@ -494,6 +508,9 @@ describe('test sendBatch method', () => {
     expect(postAsync).toBeCalledTimes(1)
     expect(postAsync).toHaveBeenNthCalledWith(1, HIT_EVENT_URL, {
       headers,
+      nextFetchConfig: {
+        revalidate: 20
+      },
       body: batch.toApiKeys(),
       timeout: config.timeout
     })
@@ -516,6 +533,9 @@ describe('test sendBatch method', () => {
     expect(postAsync).toBeCalledTimes(1)
     expect(postAsync).toBeCalledWith(HIT_EVENT_URL, {
       headers,
+      nextFetchConfig: {
+        revalidate: 20
+      },
       body: batch.toApiKeys(),
       timeout: config.timeout
     })
@@ -568,6 +588,9 @@ describe('test sendBatch method', () => {
     expect(postAsync).toBeCalledTimes(1)
     expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
       headers: headersActivate,
+      nextFetchConfig: {
+        revalidate: 20
+      },
       body: new ActivateBatch([activateHit], config).toApiKeys(),
       timeout: config.timeout
     })

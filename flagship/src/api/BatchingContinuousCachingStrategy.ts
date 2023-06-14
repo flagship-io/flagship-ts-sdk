@@ -35,12 +35,14 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       await this._httpClient.postAsync(url, {
         headers,
         body: requestBody,
-        timeout: this.config.timeout
+        timeout: this.config.timeout,
+        nextFetchConfig: this.config.nextFetchConfig
       })
 
       logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, ACTIVATE_HIT, {
         url,
         headers,
+        nextFetchConfig: this.config.nextFetchConfig,
         body: requestBody,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]

@@ -6,6 +6,7 @@ export interface IHttpOptions {
   body?: any;
   headers?: Record<string, string>;
   timeout?: number;
+  nextFetchConfig?: Record<string, unknown>
 }
 
 export interface IHttpResponse {
@@ -53,8 +54,9 @@ export class HttpClient implements IHttpClient {
         method: 'GET',
         headers: options?.headers,
         signal: c.signal as AbortSignal,
-        keepalive: true
-      })
+        keepalive: true,
+        next: options?.nextFetchConfig
+      } as Record<string, unknown>)
       return this.getResponse(response)
     } finally {
       clearTimeout(id)
@@ -70,8 +72,9 @@ export class HttpClient implements IHttpClient {
         headers: options.headers,
         body: JSON.stringify(options.body),
         signal: c.signal as AbortSignal,
-        keepalive: true
-      })
+        keepalive: true,
+        next: options?.nextFetchConfig
+      }as Record<string, unknown>)
       return this.getResponse(response)
     } finally {
       clearTimeout(id)
