@@ -51,13 +51,15 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       await this._httpClient.postAsync(HIT_EVENT_URL, {
         headers,
         body: requestBody,
-        timeout: this.config.timeout
+        timeout: this.config.timeout,
+        nextFetchConfig: this.config.nextFetchConfig
       })
 
       logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, DIRECT_HIT, {
         url: HIT_EVENT_URL,
         body: requestBody,
         headers,
+        nextFetchConfig: this.config.nextFetchConfig,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.DirectHit]
       })
@@ -73,6 +75,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         message: error.message || error,
         url: HIT_EVENT_URL,
         headers,
+        nextFetchConfig: this.config.nextFetchConfig,
         body: requestBody,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.DirectHit]
@@ -140,12 +143,14 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       await this._httpClient.postAsync(url, {
         headers,
         body: requestBody,
-        timeout: this.config.timeout
+        timeout: this.config.timeout,
+        nextFetchConfig: this.config.nextFetchConfig
       })
 
       logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, ACTIVATE_HIT, {
         url,
         headers,
+        nextFetchConfig: this.config.nextFetchConfig,
         body: requestBody,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
@@ -176,6 +181,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         message: error.message || error,
         url,
         headers,
+        nextFetchConfig: this.config.nextFetchConfig,
         body: requestBody,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]

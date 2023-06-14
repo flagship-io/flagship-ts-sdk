@@ -93,7 +93,8 @@ export abstract class DecisionManager implements IDecisionManager {
       const response = await this._httpClient.postAsync(url, {
         headers,
         timeout: this.config.timeout,
-        body: requestBody
+        body: requestBody,
+        nextFetchConfig: this.config.nextFetchConfig
       })
       this.panic = !!response?.body?.panic
       let campaigns: CampaignDTO[]|null = null
