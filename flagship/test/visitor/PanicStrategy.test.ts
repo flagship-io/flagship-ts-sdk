@@ -10,7 +10,6 @@ import { sprintf } from '../../src/utils/utils'
 import { VisitorDelegate, PanicStrategy } from '../../src/visitor'
 import { campaigns } from '../decision/campaigns'
 
-import { Mock } from 'jest-mock'
 
 describe('test NotReadyStrategy', () => {
   const visitorId = 'visitorId'
