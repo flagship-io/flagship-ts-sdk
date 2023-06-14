@@ -9,7 +9,6 @@ import { HttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
 import { VisitorDelegate, PanicStrategy } from '../../src/visitor'
 import { campaigns } from '../decision/campaigns'
-
 describe('test NotReadyStrategy', () => {
   const visitorId = 'visitorId'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

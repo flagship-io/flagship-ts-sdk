@@ -1,4 +1,4 @@
-import { ACTIVATE_HIT, HIT_SENT_SUCCESS, TRACKING_MANAGER, TRACKING_MANAGER_ERROR } from './../enum/FlagshipConstant'
+import { ACTIVATE_HIT, DEFAULT_HIT_CACHE_TIME_MS, HIT_SENT_SUCCESS, TRACKING_MANAGER, TRACKING_MANAGER_ERROR } from './../enum/FlagshipConstant'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 import { BASE_API_URL, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, SDK_INFO, URL_ACTIVATE_MODIFICATION } from '../enum/index'
 import { Activate } from '../hit/Activate'
@@ -21,7 +21,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
-    const activateBatch = new ActivateBatch(Array.from(activateHitsPool), this.config)
+    const activateBatch = new ActivateBatch(Array.from(activateHitsPool.filter(item => (Date.now() - item.createdAt) < DEFAULT_HIT_CACHE_TIME_MS)), this.config)
 
     if (currentActivate) {
       activateBatch.hits.push(currentActivate)

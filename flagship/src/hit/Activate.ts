@@ -1,4 +1,4 @@
-import { ANONYMOUS_ID, CUSTOMER_ENV_ID_API_ACTIVATE, VARIATION_GROUP_ID_API_ITEM_ACTIVATE, VARIATION_ID_API_ITEM, VISITOR_ID_API_ITEM } from '../enum/index'
+import { ANONYMOUS_ID, CUSTOMER_ENV_ID_API_ACTIVATE, QT_API_ITEM, VARIATION_GROUP_ID_API_ITEM_ACTIVATE, VARIATION_ID_API_ITEM, VISITOR_ID_API_ITEM } from '../enum/index'
 import { IFlagMetadata, primitive } from '../types'
 import { HitAbstract, IHitAbstract } from './HitAbstract'
 
@@ -112,7 +112,8 @@ export class Activate extends HitAbstract implements IActivate {
       [VARIATION_ID_API_ITEM]: this.variationId,
       [VARIATION_GROUP_ID_API_ITEM_ACTIVATE]: this.variationGroupId,
       [CUSTOMER_ENV_ID_API_ACTIVATE]: this.config.envId,
-      [ANONYMOUS_ID]: null
+      [ANONYMOUS_ID]: null,
+      [QT_API_ITEM]: Date.now() - this.createdAt
     }
 
     if (this.visitorId && this.anonymousId) {
