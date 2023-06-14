@@ -185,7 +185,7 @@ export class BucketingManager extends DecisionManager {
     this._bucketingContent.campaigns.forEach(campaign => {
       const currentCampaigns = this.getVisitorCampaigns(campaign.variationGroups, campaign.id, campaign.type, visitor)
       if (currentCampaigns) {
-        currentCampaigns.slug = campaign.slug
+        currentCampaigns.slug = campaign.slug ?? null
         visitorCampaigns.push(currentCampaigns)
       }
     })
