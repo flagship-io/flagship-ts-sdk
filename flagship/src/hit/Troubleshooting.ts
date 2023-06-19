@@ -846,15 +846,15 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
     }
 
     if (this.lastBucketingTimestamp !== undefined) {
-      customVariable.lastBucketingTimestamp = this.lastBucketingTimestamp
+      customVariable.lastBucketingTimestamp = `${this.lastBucketingTimestamp}`
     }
 
     if (this.lastBucketingTimestamp !== undefined) {
-      customVariable.lastBucketingTimestamp = this.lastBucketingTimestamp
+      customVariable.lastBucketingTimestamp = `${this.lastBucketingTimestamp}`
     }
 
     if (this.flagshipInstanceId !== undefined) {
-      customVariable.flagshipInstanceId = this.flagshipInstanceId
+      customVariable.flagshipInstanceId = `${this.flagshipInstanceId}`
     }
 
     if (this.accountId) {
@@ -866,11 +866,11 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
     }
 
     if (this.sdkBucketingFile !== undefined) {
-      customVariable.sdkBucketingFile = this.sdkBucketingFile
+      customVariable.sdkBucketingFile = JSON.stringify(this.sdkBucketingFile)
     }
 
     if (this.visitorInstanceId !== undefined) {
-      customVariable['visitor.instanceId'] = this.visitorInstanceId
+      customVariable['visitor.instanceId'] = `${this.visitorInstanceId}`
     }
     if (this.stackOriginName !== undefined) {
       customVariable['stack.origin.name'] = `${this.stackOriginName}`
@@ -879,7 +879,7 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
       customVariable['stack.origin.version'] = `${this.stackOriginVersion}`
     }
     if (this.sdkStatus !== undefined) {
-      customVariable['sdk.status'] = FlagshipStatus[this.sdkStatus]
+      customVariable['sdk.status'] = `${FlagshipStatus[this.sdkStatus]}`
     }
     if (this.sdkConfigMode !== undefined) {
       customVariable['sdk.config.mode'] = `${this.sdkConfigMode}`
@@ -900,7 +900,7 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
       customVariable['sdk.config.pollingTime'] = `${this.sdkConfigPollingInterval}`
     }
     if (this.sdkConfigTrackingManagerConfigStrategy !== undefined) {
-      customVariable['sdk.config.trackingManager.config.strategy'] = CacheStrategy[this.sdkConfigTrackingManagerConfigStrategy]
+      customVariable['sdk.config.trackingManager.config.strategy'] = `${CacheStrategy[this.sdkConfigTrackingManagerConfigStrategy]}`
     }
     if (this.sdkConfigTrackingManagerConfigBatchIntervals !== undefined) {
       customVariable['sdk.config.trackingManager.config.batchIntervals'] = `${this.sdkConfigTrackingManagerConfigBatchIntervals}`
@@ -915,7 +915,7 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
       customVariable['sdk.config.trackingManager.config.enableClientCache'] = `${this.sdkConfigEnableClientCache}`
     }
     if (this.sdkConfigInitialBucketing !== undefined) {
-      customVariable['sdk.config.trackingManager.config.initialBucketing'] = this.sdkConfigInitialBucketing
+      customVariable['sdk.config.trackingManager.config.initialBucketing'] = JSON.stringify(this.sdkConfigInitialBucketing)
     }
     if (this.sdkConfigDecisionApiUrl !== undefined) {
       customVariable['sdk.config.trackingManager.config.decisionApiUrl'] = `${this.sdkConfigDecisionApiUrl}`
@@ -925,7 +925,7 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
     }
 
     if (this.httpInstanceId !== undefined) {
-      customVariable['http.instanceId'] = this.httpInstanceId
+      customVariable['http.instanceId'] = `${this.httpInstanceId}`
     }
     if (this.httpRequestUrl !== undefined) {
       customVariable['http.request.url'] = `${this.httpRequestUrl}`
@@ -934,10 +934,10 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
       customVariable['http.request.method'] = `${this.httpRequestMethod}`
     }
     if (this.httpRequestHeaders !== undefined) {
-      customVariable['http.request.headers'] = this.httpRequestHeaders
+      customVariable['http.request.headers'] = JSON.stringify(this.httpRequestHeaders)
     }
     if (this.httpRequestBody !== undefined) {
-      customVariable['http.request.body'] = this.httpRequestBody
+      customVariable['http.request.body'] = JSON.stringify(this.httpRequestBody)
     }
     if (this.httpRequestDetails !== undefined) {
       customVariable['http.request.details'] = `${this.httpRequestDetails}`
@@ -949,13 +949,13 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
       customVariable['http.response.method'] = `${this.httpResponseMethod}`
     }
     if (this.httpResponseHeaders !== undefined) {
-      customVariable['http.response.headers'] = this.httpResponseHeaders
+      customVariable['http.response.headers'] = JSON.stringify(this.httpResponseHeaders)
     }
     if (this.httpResponseCode !== undefined) {
       customVariable['http.response.code'] = `${this.httpResponseCode}`
     }
     if (this.httpResponseBody !== undefined) {
-      customVariable['http.response.body'] = this.httpResponseBody
+      customVariable['http.response.body'] = JSON.stringify(this.httpResponseBody)
     }
     if (this.httpResponseDetails !== undefined) {
       customVariable['http.response.details'] = `${this.httpResponseDetails}`
@@ -970,43 +970,43 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
       customVariable['visitor.instanceType'] = `${this.visitorInstanceType}`
     }
     if (this.visitorContext !== undefined) {
-      customVariable['visitor.context'] = this.visitorContext
+      customVariable['visitor.context'] = JSON.stringify(this.visitorContext)
     }
     if (this.visitorConsent !== undefined) {
       customVariable['visitor.consent'] = `${this.visitorConsent}`
     }
     if (this.visitorAssignmentHistory !== undefined) {
-      customVariable['visitor.assignmentsHistory'] = this.visitorAssignmentHistory
+      customVariable['visitor.assignmentsHistory'] = JSON.stringify(this.visitorAssignmentHistory)
     }
     if (this.visitorFlags !== undefined) {
-      customVariable['visitor.flags'] = this.visitorFlags
+      customVariable['visitor.flags'] = JSON.stringify(this.visitorFlags)
     }
     if (this.visitorIsAuthenticated !== undefined) {
       customVariable['visitor.isAuthenticated'] = `${this.visitorIsAuthenticated}`
     }
 
     if (this.visitorInitialCampaigns !== undefined) {
-      customVariable['visitor.initialCampaigns'] = this.visitorInitialCampaigns
+      customVariable['visitor.initialCampaigns'] = JSON.stringify(this.visitorInitialCampaigns)
     }
 
     if (this.visitorInitialFlagsData !== undefined) {
-      customVariable['visitor.initialFlagsData'] = Array.isArray(this.visitorInitialFlagsData) ? this.visitorInitialFlagsData : Array.from(this.visitorInitialFlagsData)
+      customVariable['visitor.initialFlagsData'] = JSON.stringify(Array.isArray(this.visitorInitialFlagsData) ? this.visitorInitialFlagsData : Array.from(this.visitorInitialFlagsData))
     }
 
     if (this.visitorCampaigns !== undefined) {
-      customVariable['visitor.campaigns'] = this.visitorCampaigns
+      customVariable['visitor.campaigns'] = JSON.stringify(this.visitorCampaigns)
     }
 
     if (this.visitorCampaignFromCache !== undefined) {
-      customVariable['visitor.campaignFromCache'] = this.visitorCampaignFromCache
+      customVariable['visitor.campaignFromCache'] = JSON.stringify(this.visitorCampaignFromCache)
     }
 
     if (this.contextKey !== undefined) {
-      customVariable.contextKey = this.contextKey
+      customVariable.contextKey = `${this.contextKey}`
     }
 
     if (this.contextValue !== undefined) {
-      customVariable.contextValue = this.contextValue
+      customVariable.contextValue = `${this.contextValue}`
     }
 
     if (this.flagKey !== undefined) {
@@ -1016,7 +1016,7 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
       customVariable['flag.value'] = `${this.flagValue}`
     }
     if (this.flagDefault !== undefined) {
-      customVariable['flag.default'] = `${this.flagDefault}`
+      customVariable['flag.default'] = JSON.stringify(this.flagDefault)
     }
     if (this.flagMetadataCampaignId !== undefined) {
       customVariable['flag.metadata.campaignId'] = `${this.flagMetadataCampaignId}`
@@ -1034,14 +1034,14 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
       customVariable['flag.metadata.campaignType'] = `${this.flagMetadataCampaignType}`
     }
     if (this.flagMetadataCampaignIsReference !== undefined) {
-      customVariable['flag.metadata.isReference'] = this.flagMetadataCampaignIsReference
+      customVariable['flag.metadata.isReference'] = `${this.flagMetadataCampaignIsReference}`
     }
 
     if (this.hitContent !== undefined) {
-      customVariable['hit.content'] = this.hitContent
+      customVariable['hit.content'] = JSON.stringify(this.hitContent)
     }
     if (this.batchTriggeredBy !== undefined) {
-      customVariable.batchTriggeredBy = BatchTriggeredBy[this.batchTriggeredBy]
+      customVariable.batchTriggeredBy = `${BatchTriggeredBy[this.batchTriggeredBy]}`
     }
 
     apiKeys.cv = customVariable
