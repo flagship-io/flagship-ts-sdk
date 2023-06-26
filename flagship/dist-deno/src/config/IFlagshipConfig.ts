@@ -56,6 +56,11 @@ export interface IFlagshipConfig {
      */
     pollingInterval?: number
 
+    /**
+     * Bucketing mode only
+     *
+     * If true, will fetch the visitor's segment from universal data connector each time fetchFlags is called and append those segments in the visitor context
+     */
     fetchThirdPartyData?: boolean
 
     /**
