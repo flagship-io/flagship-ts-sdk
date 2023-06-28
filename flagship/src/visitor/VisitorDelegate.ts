@@ -3,6 +3,9 @@ import { primitive, modificationsRequested, IHit, IFlagMetadata, FlagDTO } from 
 import { VisitorAbstract } from './VisitorAbstract'
 import { CampaignDTO } from '../decision/api/models'
 import { Flag, IFlag } from '../flag/Flags'
+import { logWarningSprintf, visitorStatusMessage } from '../utils/utils'
+import { GET_FLAG } from '../enum/FlagshipConstant'
+import { VisitorStatus } from '../enum/VisitorStatus'
 
 export class VisitorDelegate extends VisitorAbstract {
   updateContext (key: string, value: primitive):void
@@ -17,6 +20,9 @@ export class VisitorDelegate extends VisitorAbstract {
   }
 
   getFlag<T> (key:string, defaultValue: T):IFlag<T> {
+    if (this.status !== VisitorStatus.FLAGS_FETCHED) {
+      logWarningSprintf(this.config, GET_FLAG, visitorStatusMessage(this.status), this.visitorId, key)
+    }
     return new Flag({ key, visitor: this, defaultValue })
   }
 
