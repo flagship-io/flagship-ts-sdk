@@ -1,5 +1,5 @@
 import { type IFlagshipConfig } from '../config/IFlagshipConfig'
-import { VisitorStatus } from '../enum/VisitorStatus'
+import { FlagSynchStatus } from '../enum/FlagSynchStatus'
 import { LogLevel } from '../enum/index'
 
 /**
@@ -146,21 +146,21 @@ export function errorFormat (message:string, errorData?:Record<string, unknown>)
   })
 }
 
-export function visitorStatusMessage (status: VisitorStatus) {
+export function visitorStatusMessage (status: FlagSynchStatus) {
   let message = ''
   const message2 = 'without calling `fetchFlags` method afterwards, the value of the flag `{1}` may be outdated'
   switch (status) {
-    case VisitorStatus.CREATED:
+    case FlagSynchStatus.CREATED:
       message = `Visitor \`{0}\` has been created ${message2}`
       break
-    case VisitorStatus.CONTEXT_UPDATED:
+    case FlagSynchStatus.CONTEXT_UPDATED:
       message = `Visitor context for visitor \`{0}\` has been updated ${message2}`
       break
-    case VisitorStatus.AUTHENTICATED:
+    case FlagSynchStatus.AUTHENTICATED:
       message = `Visitor \`{0}\` has been authenticated ${message2}`
       break
-    case VisitorStatus.UNAUTHENTICATE :
-      message = `Visitor \`{0}\` has been unthenticated ${message2}`
+    case FlagSynchStatus.UNAUTHENTICATED :
+      message = `Visitor \`{0}\` has been unauthenticated ${message2}`
       break
     default:
       break

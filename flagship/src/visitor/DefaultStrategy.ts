@@ -68,7 +68,7 @@ import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
 import { VisitorDelegate } from './index'
 import { FlagMetadata } from '../flag/FlagMetadata'
 import { Activate } from '../hit/Activate'
-import { VisitorStatus } from '../enum/VisitorStatus'
+import { FlagSynchStatus } from '../enum/FlagSynchStatus'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'
@@ -127,7 +127,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   updateContext (context: Record<string, primitive> | string, value?:primitive): void {
     if (typeof context === 'string') {
       this.updateContextKeyValue(context, value as primitive)
-      this.visitor.status = VisitorStatus.CONTEXT_UPDATED
+      this.visitor.FlagSynchStatus = FlagSynchStatus.CONTEXT_UPDATED
       logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_KEY_VALUE_UPDATE, this.visitor.visitorId, context, value, this.visitor.context)
       return
     }
@@ -141,7 +141,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       const value = context[key]
       this.updateContextKeyValue(key, value)
     }
-    this.visitor.status = VisitorStatus.CONTEXT_UPDATED
+    this.visitor.FlagSynchStatus = FlagSynchStatus.CONTEXT_UPDATED
     logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_OBJET_PARAM_UPDATE, this.visitor.visitorId, context, this.visitor.context)
   }
 
@@ -296,18 +296,16 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     let campaigns: CampaignDTO[] | null = null
     let fetchCampaignError:string|undefined
     try {
-      this.visitor.status = VisitorStatus.FLAGS_FETCHING
       logDebugSprintf(this.config, functionName, FETCH_FLAGS_STARTED, this.visitor.visitorId)
 
       campaigns = await this.decisionManager.getCampaignsAsync(this.visitor)
 
-      this.visitor.status = VisitorStatus.FLAGS_FETCHED
+      this.visitor.FlagSynchStatus = FlagSynchStatus.FLAGS_FETCHED
       logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_SUCCESS,
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
       )
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      this.visitor.status = VisitorStatus.FETCH_FLAGS_FAILED
       logError(this.config, error.message, functionName)
       fetchCampaignError = error
     }
@@ -316,7 +314,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         campaigns = this.fetchVisitorCampaigns(this.visitor)
         logData.isFromCache = true
         if (campaigns) {
-          this.visitor.status = VisitorStatus.CACHE_FLAGS_FETCHED
           logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_FROM_CACHE,
             this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
           )
@@ -650,7 +647,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     this.visitor.anonymousId = this.visitor.visitorId
     this.visitor.visitorId = visitorId
-    this.visitor.status = VisitorStatus.AUTHENTICATED
+    this.visitor.FlagSynchStatus = FlagSynchStatus.AUTHENTICATED
     logDebugSprintf(this.config, AUTHENTICATE, VISITOR_AUTHENTICATE, this.visitor.visitorId, this.visitor.anonymousId)
   }
 
@@ -665,7 +662,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
     this.visitor.visitorId = this.visitor.anonymousId
     this.visitor.anonymousId = null
-    this.visitor.status = VisitorStatus.UNAUTHENTICATE
+    this.visitor.FlagSynchStatus = FlagSynchStatus.UNAUTHENTICATED
     logDebugSprintf(this.config, UNAUTHENTICATE, VISITOR_UNAUTHENTICATE, this.visitor.visitorId)
   }
 

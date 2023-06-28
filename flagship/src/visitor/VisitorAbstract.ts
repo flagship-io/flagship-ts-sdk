@@ -1,4 +1,4 @@
-import { EMIT_STATUS, PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
+import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
 import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata } from '../types'
 
@@ -16,7 +16,7 @@ import { PanicStrategy } from './PanicStrategy'
 import { NoConsentStrategy } from './NoConsentStrategy'
 import { cacheVisitor } from './VisitorCache'
 import { IFlag } from '../flag/Flags'
-import { VisitorStatus } from '../enum/VisitorStatus'
+import { FlagSynchStatus } from '../enum/FlagSynchStatus'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -29,15 +29,14 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   public deDuplicationCache: Record<string, number>
   protected _isCleaningDeDuplicationCache: boolean
   public visitorCache?: VisitorCacheDTO
-  private _status : VisitorStatus
+  private _status : FlagSynchStatus
 
-  public get status () : VisitorStatus {
+  public get FlagSynchStatus () : FlagSynchStatus {
     return this._status
   }
 
-  public set status (v : VisitorStatus) {
+  public set FlagSynchStatus (v : FlagSynchStatus) {
     this._status = v
-    this.emit(EMIT_STATUS, v)
   }
 
   constructor (param: NewVisitor & {
@@ -79,7 +78,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.updateCache()
     this.setInitialFlags(initialFlagsData || initialModifications)
     this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
-    this._status = VisitorStatus.CREATED
+    this._status = FlagSynchStatus.CREATED
 
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
   }
@@ -247,8 +246,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     return strategy
   }
 
-  public getStatus (): VisitorStatus {
-    return this.status
+  public getStatus (): FlagSynchStatus {
+    return this.FlagSynchStatus
   }
 
   abstract updateContext(key: string, value: primitive):void

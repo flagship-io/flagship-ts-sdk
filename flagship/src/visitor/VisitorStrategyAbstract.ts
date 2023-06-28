@@ -10,7 +10,6 @@ import { VISITOR_CACHE_ERROR, CONSENT_CHANGED, FS_CONSENT, LOOKUP_VISITOR_JSON_O
 import { BatchDTO } from '../hit/Batch'
 import { EventCategory } from '../hit/Monitoring'
 import { ITrackingManager } from '../api/ITrackingManager'
-import { VisitorStatus } from '../enum/VisitorStatus'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 
@@ -36,10 +35,6 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
   public constructor (visitor:VisitorAbstract) {
     this.visitor = visitor
-  }
-
-  getStatus (): VisitorStatus {
-    return this.visitor.getStatus()
   }
 
   public updateCampaigns (campaigns:CampaignDTO[]):void {
