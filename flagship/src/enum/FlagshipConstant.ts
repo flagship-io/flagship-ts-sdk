@@ -61,6 +61,8 @@ export const FLAGSHIP_SDK = 'Flagship SDK'
 
 export const EMIT_READY = 'ready'
 
+export const EMIT_STATUS = 'status'
+
 export const NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY = 3
 
 export const JS_DOC_URL = 'https://docs.developers.flagship.io/docs/js-v3'
@@ -221,7 +223,9 @@ export const FETCH_FLAGS_STARTED = 'visitor `{0}` fetchFlags process is started'
 export const FETCH_FLAGS_PANIC_MODE = 'Panic mode is enabled : all feature are disabled except fetchFlags.'
 export const PROCESS_FETCHING_FLAGS = 'FETCH_FLAGS'
 export const GET_FLAG_MISSING_ERROR = 'Visitor {0}, No Flags found for key {1} : Default value is returned {2}'
+export const FETCH_FLAGS_MISSING = 'Visitor {0} has {1} without calling fetchFlags method, '
 export const FLAG_VALUE = 'FLAG_VALUE'
+export const GET_FLAG = 'GET_FLAG'
 export const GET_FLAG_CAST_ERROR = 'Visitor {0}, Flag for key {1} has a different type with default value : Default value is returned {2}'
 export const GET_FLAG_VALUE = 'Visitor {0}, Flag for key {1} returns value {2}'
 export const USER_EXPOSED_FLAG_ERROR = 'Visitor {0}, No Flags found for key {1}: User exposition wont be sent'
