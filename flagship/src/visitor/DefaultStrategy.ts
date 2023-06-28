@@ -127,7 +127,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   updateContext (context: Record<string, primitive> | string, value?:primitive): void {
     if (typeof context === 'string') {
       this.updateContextKeyValue(context, value as primitive)
-      this.visitor.FlagSynchStatus = FlagSynchStatus.CONTEXT_UPDATED
+      this.visitor.flagSynchStatus = FlagSynchStatus.CONTEXT_UPDATED
       logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_KEY_VALUE_UPDATE, this.visitor.visitorId, context, value, this.visitor.context)
       return
     }
@@ -141,7 +141,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       const value = context[key]
       this.updateContextKeyValue(key, value)
     }
-    this.visitor.FlagSynchStatus = FlagSynchStatus.CONTEXT_UPDATED
+    this.visitor.flagSynchStatus = FlagSynchStatus.CONTEXT_UPDATED
     logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_OBJET_PARAM_UPDATE, this.visitor.visitorId, context, this.visitor.context)
   }
 
@@ -300,7 +300,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
       campaigns = await this.decisionManager.getCampaignsAsync(this.visitor)
 
-      this.visitor.FlagSynchStatus = FlagSynchStatus.FLAGS_FETCHED
+      this.visitor.flagSynchStatus = FlagSynchStatus.FLAGS_FETCHED
       logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_SUCCESS,
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
       )
@@ -647,7 +647,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     this.visitor.anonymousId = this.visitor.visitorId
     this.visitor.visitorId = visitorId
-    this.visitor.FlagSynchStatus = FlagSynchStatus.AUTHENTICATED
+    this.visitor.flagSynchStatus = FlagSynchStatus.AUTHENTICATED
     logDebugSprintf(this.config, AUTHENTICATE, VISITOR_AUTHENTICATE, this.visitor.visitorId, this.visitor.anonymousId)
   }
 
@@ -662,7 +662,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
     this.visitor.visitorId = this.visitor.anonymousId
     this.visitor.anonymousId = null
-    this.visitor.FlagSynchStatus = FlagSynchStatus.UNAUTHENTICATED
+    this.visitor.flagSynchStatus = FlagSynchStatus.UNAUTHENTICATED
     logDebugSprintf(this.config, UNAUTHENTICATE, VISITOR_UNAUTHENTICATE, this.visitor.visitorId)
   }
 

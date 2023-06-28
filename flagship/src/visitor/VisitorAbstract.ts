@@ -29,14 +29,14 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   public deDuplicationCache: Record<string, number>
   protected _isCleaningDeDuplicationCache: boolean
   public visitorCache?: VisitorCacheDTO
-  private _status : FlagSynchStatus
+  private _flagSynchStatus : FlagSynchStatus
 
-  public get FlagSynchStatus () : FlagSynchStatus {
-    return this._status
+  public get flagSynchStatus () : FlagSynchStatus {
+    return this._flagSynchStatus
   }
 
-  public set FlagSynchStatus (v : FlagSynchStatus) {
-    this._status = v
+  public set flagSynchStatus (v : FlagSynchStatus) {
+    this._flagSynchStatus = v
   }
 
   constructor (param: NewVisitor & {
@@ -78,7 +78,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.updateCache()
     this.setInitialFlags(initialFlagsData || initialModifications)
     this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
-    this._status = FlagSynchStatus.CREATED
+    this._flagSynchStatus = FlagSynchStatus.CREATED
 
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
   }
@@ -247,7 +247,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   }
 
   public getStatus (): FlagSynchStatus {
-    return this.FlagSynchStatus
+    return this.flagSynchStatus
   }
 
   abstract updateContext(key: string, value: primitive):void

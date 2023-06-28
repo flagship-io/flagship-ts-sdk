@@ -20,8 +20,8 @@ export class VisitorDelegate extends VisitorAbstract {
   }
 
   getFlag<T> (key:string, defaultValue: T):IFlag<T> {
-    if (this.FlagSynchStatus !== FlagSynchStatus.FLAGS_FETCHED) {
-      logWarningSprintf(this.config, GET_FLAG, visitorStatusMessage(this.FlagSynchStatus), this.visitorId, key)
+    if (this.flagSynchStatus !== FlagSynchStatus.FLAGS_FETCHED) {
+      logWarningSprintf(this.config, GET_FLAG, visitorStatusMessage(this.flagSynchStatus), this.visitorId, key)
     }
     return new Flag({ key, visitor: this, defaultValue })
   }
