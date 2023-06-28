@@ -2,11 +2,12 @@ import { HitShape, IHit, FlagDTO, modificationsRequested, primitive } from '../t
 import { EventEmitter } from '../depsNode.native'
 import { IVisitor } from './IVisitor'
 import { IFlagshipConfig } from '../config/index'
-import { EMIT_READY } from '../enum/index'
+import { EMIT_READY, EMIT_STATUS } from '../enum/index'
 import { CampaignDTO } from '../decision/api/models'
 import { HitAbstract } from '../hit/HitAbstract'
 import { VisitorAbstract } from './VisitorAbstract'
 import { IFlag } from '../flag/Flags'
+import { VisitorStatus } from '../enum/VisitorStatus'
 
 export class Visitor extends EventEmitter implements IVisitor {
   private visitorDelegate:VisitorAbstract
@@ -17,6 +18,13 @@ export class Visitor extends EventEmitter implements IVisitor {
     this.visitorDelegate.on(EMIT_READY, (err:any) => {
       this.emit(EMIT_READY, err)
     })
+    this.visitorDelegate.on(EMIT_STATUS, (status) => {
+      this.emit(EMIT_STATUS, status)
+    })
+  }
+
+  getStatus (): VisitorStatus {
+    return this.visitorDelegate.getStatus()
   }
 
   getModificationsArray (): FlagDTO[] {

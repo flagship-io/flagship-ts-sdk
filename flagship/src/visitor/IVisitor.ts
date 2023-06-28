@@ -3,6 +3,7 @@ import { CampaignDTO } from '../decision/api/models'
 import { HitAbstract, HitShape } from '../hit/index'
 import { IFlag } from '../flag/Flags'
 import { IHit, FlagDTO, modificationsRequested, primitive, Modification } from '../types'
+import { VisitorStatus } from '../enum/VisitorStatus'
 
 export interface IVisitor {
   visitorId: string;
@@ -240,4 +241,9 @@ export interface IVisitor {
    * This function change authenticated Visitor to anonymous visitor
    */
   unauthenticate(): void;
+
+  /**
+   *
+   */
+  getStatus(): VisitorStatus
 }
