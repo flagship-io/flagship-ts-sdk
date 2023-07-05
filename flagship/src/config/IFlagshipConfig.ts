@@ -141,4 +141,9 @@ export interface IFlagshipConfig {
      * In Next.js 13, you can define the time in seconds for storing SDK route cache before revalidation.
      */
     nextFetchConfig?: Record<string, unknown>
+
+    /**
+     *
+     */
+    fetchFlagBufferingTime?: number
   }
