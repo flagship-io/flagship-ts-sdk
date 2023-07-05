@@ -3,15 +3,17 @@ import { IFlagshipConfig } from '../config/index'
 import { IHttpClient } from '../utils/HttpClient'
 import { CampaignDTO } from './api/models'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
-import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, PROCESS_FETCHING_FLAGS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
+import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FlagSynchStatus, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, PROCESS_FETCHING_FLAGS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
 import { FlagDTO } from '../types'
-import { errorFormat, logDebug } from '../utils/utils'
+import { errorFormat, logDebug, logInfoSprintf } from '../utils/utils'
 
 export abstract class DecisionManager implements IDecisionManager {
   protected _config: IFlagshipConfig
   protected _panic = false
   protected _httpClient: IHttpClient
   private _statusChangedCallback! : (status: FlagshipStatus)=>void
+  protected isFlagFetching = false
+  protected _lastFetchFlagsTimestamp = 0
 
   public get config ():IFlagshipConfig {
     return this._config
@@ -72,6 +74,15 @@ export abstract class DecisionManager implements IDecisionManager {
   }
 
   protected async getDecisionApiCampaignsAsync (visitor: VisitorAbstract): Promise<CampaignDTO[]|null> {
+    const time = Date.now() - this._lastFetchFlagsTimestamp
+    const flagSyncStatus = visitor.flagSynchStatus === FlagSynchStatus.FLAGS_FETCHED
+    if (flagSyncStatus && this.isFlagFetching) {
+      return null
+    }
+    if (flagSyncStatus && time < (this.config.fetchFlagBufferingTime as number * 1000)) {
+      logInfoSprintf(this.config, 'FetchFlags', 'Visitor {0}, fetchFlags has been ignored and will continue to be ignored for the next {1}ms', visitor.visitorId, time)
+      return null
+    }
     const headers = {
       [HEADER_X_API_KEY]: `${this.config.apiKey}`,
       [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
@@ -90,21 +101,25 @@ export abstract class DecisionManager implements IDecisionManager {
     const url = `${this.config.decisionApiUrl || BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
     const now = Date.now()
     try {
+      this.isFlagFetching = true
       const response = await this._httpClient.postAsync(url, {
         headers,
         timeout: this.config.timeout,
         body: requestBody,
         nextFetchConfig: this.config.nextFetchConfig
       })
+      this._lastFetchFlagsTimestamp = Date.now()
       this.panic = !!response?.body?.panic
       let campaigns: CampaignDTO[]|null = null
 
       if (response?.body?.campaigns) {
         campaigns = response.body.campaigns
       }
+      this.isFlagFetching = false
       return campaigns
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
+      this.isFlagFetching = false
       const errorMessage = errorFormat(error.message || error, {
         url,
         headers,
