@@ -1,9 +1,9 @@
 import { jest } from '@jest/globals'
-import { BucketingDTO, CampaignDTO, DecisionMode, FlagDTO, FlagMetadata, FlagshipStatus, IFlag, IFlagshipLogManager, IHitCacheImplementation, IVisitorCacheImplementation, LogLevel, NewVisitor, OnVisitorExposed, UserExposureInfo, primitive } from '..'
+import { BucketingDTO, CampaignDTO, DecisionMode, FlagDTO, FlagMetadata, FlagshipStatus, IFlagshipLogManager, IHitCacheImplementation, IVisitorCacheImplementation, LogLevel, NewVisitor, OnVisitorExposed, primitive } from '..'
 import { IFlagshipConfig, ITrackingManagerConfig } from '../config'
 import { uuidV4 } from '../utils/utils'
 import { EMIT_READY } from '../enum/FlagshipConstant'
-import { IHit } from '../types'
+import { IFlagMetadata, IHit } from '../types'
 import { Mock } from 'jest-mock'
 
 type ConfigMock = {
@@ -28,7 +28,6 @@ type ConfigMock = {
   hitCacheImplementation?: IHitCacheImplementation
   disableCache?: boolean
   trackingMangerConfig?: ITrackingManagerConfig
-  onUserExposure?: Mock<(param: UserExposureInfo)=>void>
   onVisitorExposed?: Mock<(arg: OnVisitorExposed)=> void>
   onLog?: Mock<(level: LogLevel, tag: string, message: string)=>void>
   nextFetchConfig?: Record<string, unknown>
@@ -58,6 +57,14 @@ type visitorMock = {
 
 }
 
+type FlagMock<T> = {
+  getValue: Mock<(visitorExposed?: boolean) => T>;
+  visitorExposed: Mock<() => Promise<void>>;
+  userExposed: Mock<() => Promise<void>>;
+  metadata: IFlagMetadata;
+  exists: Mock<() => boolean>;
+}
+
 type FlagshipMock = {
   start: Mock<(envId: string, apiKey: string, config?: ConfigMock) => FlagshipMock>;
   newVisitor: Mock<(arg?: NewVisitor) => visitorMock>;
@@ -66,6 +73,10 @@ type FlagshipMock = {
   getVisitor: Mock<() => visitorMock>
   close: Mock<() => Promise<void>>
   throwErrorFetchFlags?: Error;
+  setFlagMock:<T>(key:string, value:T, metadata?:IFlagMetadata) => FlagMock<T>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getFlagMock:(key:string) => FlagMock<any> | undefined
+  clearFlagMock:(key:string) =>FlagshipMock
 }
 
 let SDKConfig:ConfigMock = {
@@ -74,6 +85,16 @@ let SDKConfig:ConfigMock = {
   statusChangedCallback: jest.fn<(status: FlagshipStatus) => void>(),
   fetchNow: true
 }
+
+const VisitorFlagsMock:Record<string, {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  value: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  defaultValue?: any,
+  metadata?: IFlagMetadata
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  flag: FlagMock<any>
+}> = {}
 
 let SDKFsVisitor:visitorMock = {
   on: jest.fn(visitorEventOn),
@@ -98,6 +119,7 @@ let SDKFsVisitor:visitorMock = {
   unauthenticate: jest.fn<()=> void>(_unauthenticate)
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let visitorEventOnReadyListener:(...args: any[]) => void
 
 export const Flagship:FlagshipMock = {
@@ -106,7 +128,33 @@ export const Flagship:FlagshipMock = {
   getStatus: jest.fn(_getStatus),
   getConfig: jest.fn(_getConfig),
   getVisitor: jest.fn(_getVisitor),
-  close: jest.fn<()=> Promise<void>>()
+  close: jest.fn<() => Promise<void>>(),
+  setFlagMock: function <T> (key: string, value: T, metadata?: IFlagMetadata | undefined): FlagMock<T> {
+    const flag = {
+      // eslint-disable-next-line no-extra-parens
+      getValue: jest.fn<(visitorExposed?:boolean)=>T>((visitorExposed = true) => {
+        const value = VisitorFlagsMock[key].value
+        if (visitorExposed) {
+          flag.visitorExposed()
+        }
+        return value
+      }),
+      visitorExposed: jest.fn<()=>Promise<void>>(),
+      userExposed: jest.fn<()=>Promise<void>>(),
+      metadata: VisitorFlagsMock[key]?.metadata ?? FlagMetadata.Empty(),
+      exists: jest.fn<()=>boolean>()
+    }
+    VisitorFlagsMock[key] = { value, metadata, flag }
+    return flag
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getFlagMock: function (key: string): FlagMock<any>|undefined {
+    return VisitorFlagsMock[key].flag
+  },
+  clearFlagMock: function (key: string): FlagshipMock {
+    delete VisitorFlagsMock[key]
+    return Flagship
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -178,26 +226,25 @@ function _getStatus () {
   return FlagshipStatus.READY
 }
 
-function _getFlag <T> (key:string, defaultValue:T):IFlag<T> {
-  return {
-    getValue: jest.fn<(visitorExposed?:boolean)=>T>(),
-    visitorExposed: jest.fn<()=>Promise<void>>(),
-    userExposed: jest.fn<()=>Promise<void>>(),
-    metadata: FlagMetadata.Empty(),
-    exists: jest.fn<()=>boolean>()
+function _getFlag <T> (key:string, defaultValue:T): FlagMock<T> {
+  if (!VisitorFlagsMock[key]) {
+    const flag = Flagship.setFlagMock(key, defaultValue)
+    VisitorFlagsMock[key] = { value: defaultValue, flag, defaultValue }
   }
+  return VisitorFlagsMock[key].flag
 }
 
 async function _fetchFlags ():Promise<void> {
-  setTimeout(() => {
-    if (Flagship.throwErrorFetchFlags) {
-      visitorEventOnReadyListener(Flagship.throwErrorFetchFlags.message || Flagship.throwErrorFetchFlags)
-      throw Flagship.throwErrorFetchFlags
-    }
+  await sleep(5)
+  if (Flagship.throwErrorFetchFlags) {
     if (visitorEventOnReadyListener) {
-      visitorEventOnReadyListener(null)
+      visitorEventOnReadyListener(Flagship.throwErrorFetchFlags.message || Flagship.throwErrorFetchFlags)
     }
-  }, 1)
+    throw Flagship.throwErrorFetchFlags
+  }
+  if (visitorEventOnReadyListener) {
+    visitorEventOnReadyListener(null)
+  }
 }
 
 function _authenticate (visitorId: string):void {
@@ -207,6 +254,10 @@ function _authenticate (visitorId: string):void {
 
 function _unauthenticate () {
   SDKFsVisitor.visitorId = SDKFsVisitor.anonymousId || ''
+}
+
+function sleep (ms: number): Promise<unknown> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 export type { IFlagshipConfig } from '../config/index'

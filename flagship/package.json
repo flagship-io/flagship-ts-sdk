@@ -56,7 +56,6 @@
     "@babel/preset-env": "^7.21.4",
     "@babel/preset-typescript": "^7.21.4",
     "@babel/runtime": "^7.21.0",
-    "@types/jest": "^29.5.0",
     "@types/node": "^18.15.11",
     "@types/node-fetch": "^2.6.3",
     "@typescript-eslint/eslint-plugin": "^5.58.0",
