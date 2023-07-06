@@ -11,6 +11,7 @@ import {
   EMIT_READY,
   FETCH_CAMPAIGNS_FROM_CACHE,
   FETCH_CAMPAIGNS_SUCCESS,
+  FETCH_FLAGS_BUFFERING_MESSAGE,
   FETCH_FLAGS_FROM_CAMPAIGNS,
   FETCH_FLAGS_STARTED,
   FLAGSHIP_VISITOR_NOT_AUTHENTICATE,
@@ -60,7 +61,7 @@ import {
 } from '../hit/index'
 import { HitShape, ItemHit } from '../hit/Legacy'
 import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata } from '../types'
-import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logWarningSprintf, sprintf } from '../utils/utils'
+import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
 import { DecisionMode } from '../config/index'
@@ -296,16 +297,34 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     let campaigns: CampaignDTO[] | null = null
     let fetchCampaignError:string|undefined
     try {
+      const time = Date.now() - this.visitor.lastFetchFlagsTimestamp
+      const flagSyncStatus = this.visitor.flagSynchStatus === FlagSynchStatus.FLAGS_FETCHED
+
+      if (flagSyncStatus && this.visitor.isFlagFetching) {
+        return
+      }
+
+      const fetchFlagBufferingTime = (this.config.fetchFlagBufferingTime as number * 1000)
+
+      if (flagSyncStatus && time < fetchFlagBufferingTime) {
+        logInfoSprintf(this.config, functionName, FETCH_FLAGS_BUFFERING_MESSAGE, this.visitor.visitorId, fetchFlagBufferingTime - time)
+        return
+      }
+
       logDebugSprintf(this.config, functionName, FETCH_FLAGS_STARTED, this.visitor.visitorId)
 
+      this.visitor.isFlagFetching = true
       campaigns = await this.decisionManager.getCampaignsAsync(this.visitor)
-
+      this.visitor.lastFetchFlagsTimestamp = Date.now()
       this.visitor.flagSynchStatus = FlagSynchStatus.FLAGS_FETCHED
+      this.visitor.isFlagFetching = false
+
       logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_SUCCESS,
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
       )
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
+      this.visitor.isFlagFetching = false
       logError(this.config, error.message, functionName)
       fetchCampaignError = error
     }

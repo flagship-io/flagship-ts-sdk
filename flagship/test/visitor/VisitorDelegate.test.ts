@@ -2,9 +2,9 @@ import { primitive } from './../../src/types'
 import { jest, expect, it, describe } from '@jest/globals'
 import { FlagDTO } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
-import { ConfigManager, DecisionApiConfig, FlagshipConfig } from '../../src/config'
+import { ConfigManager, DecisionApiConfig } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
-import { HitType, VISITOR_ID_ERROR } from '../../src/enum'
+import { FlagSynchStatus, HitType, VISITOR_ID_ERROR } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
@@ -258,7 +258,13 @@ describe('test VisitorDelegate', () => {
 })
 
 describe('test VisitorDelegate methods', () => {
-  const visitorDelegate = new VisitorDelegate({ visitorId: 'visitorId', context: {}, configManager: { config: {} as FlagshipConfig, decisionManager: {} as DecisionManager, trackingManager: {} as TrackingManager } })
+  const logManager = new FlagshipLogManager()
+  const logWarning = jest.spyOn(logManager, 'warning')
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
+  config.logManager = logManager
+
+  const visitorDelegate = new VisitorDelegate({ visitorId: 'visitorId', context: {}, configManager: { config, decisionManager: {} as DecisionManager, trackingManager: {} as TrackingManager } })
 
   it('test setConsent', () => {
     visitorDelegate.setConsent(true)
@@ -295,6 +301,7 @@ describe('test VisitorDelegate methods', () => {
       isReference: true,
       value: 'value'
     }
+
     getFlagMetadata.mockReturnValue({
       campaignId: flagDTO.campaignId,
       variationGroupId: flagDTO.variationGroupId,
@@ -302,8 +309,11 @@ describe('test VisitorDelegate methods', () => {
       isReference: flagDTO.isReference,
       campaignType: ''
     })
+
+    visitorDelegate.flagSynchStatus = FlagSynchStatus.FLAGS_FETCHED
+
     visitorDelegate.flagsData.set('newKey', flagDTO)
-    const flag = visitorDelegate.getFlag('newKey', 'defaultValue')
+    let flag = visitorDelegate.getFlag('newKey', 'defaultValue')
 
     expect(flag).toBeDefined()
     expect(flag.exists()).toBeTruthy()
@@ -314,6 +324,10 @@ describe('test VisitorDelegate methods', () => {
       isReference: flagDTO.isReference,
       campaignType: ''
     }))
+
+    visitorDelegate.flagSynchStatus = FlagSynchStatus.AUTHENTICATED
+    flag = visitorDelegate.getFlag('newKey', 'defaultValue')
+    expect(logWarning).toBeCalledTimes(1)
   })
 
   it('test getModification', () => {

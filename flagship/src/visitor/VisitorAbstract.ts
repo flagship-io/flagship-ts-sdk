@@ -31,6 +31,9 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   public visitorCache?: VisitorCacheDTO
   private _flagSynchStatus : FlagSynchStatus
 
+  public lastFetchFlagsTimestamp = 0
+  public isFlagFetching = false
+
   public get flagSynchStatus () : FlagSynchStatus {
     return this._flagSynchStatus
   }
@@ -244,10 +247,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     }
 
     return strategy
-  }
-
-  public getStatus (): FlagSynchStatus {
-    return this.flagSynchStatus
   }
 
   abstract updateContext(key: string, value: primitive):void
