@@ -123,7 +123,7 @@ export abstract class DecisionManager implements IDecisionManager {
       visitor_consent: visitor.hasConsented
     }
 
-    const url = `${this.config.decisionApiUrl || BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
+    const url = `${this.config.decisionApiUrl || BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true&extras[]=accountSettings`
     const now = Date.now()
 
     try {
@@ -139,7 +139,15 @@ export abstract class DecisionManager implements IDecisionManager {
         campaigns = response.body.campaigns
       }
 
-      this.troubleshooting = response?.body?.extras?.troubleshooting
+      const troubleshooting = response?.body?.extras?.accountSettings?.troubleshooting
+      if (troubleshooting) {
+        this.troubleshooting = {
+          startDate: new Date(troubleshooting.startDate),
+          endDate: new Date(troubleshooting.endDate),
+          timezone: troubleshooting.timezone,
+          traffic: troubleshooting.traffic
+        }
+      }
 
       const monitoringHttpResponse = new Troubleshooting({
         type: 'TROUBLESHOOTING',

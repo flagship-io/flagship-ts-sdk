@@ -98,7 +98,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     if (!this.isTroubleshootingActivated()) {
       return
     }
-    if ((this.troubleshootingData as TroubleshootingData).traffic < hit.traffic) {
+    if (hit.traffic === undefined || (this.troubleshootingData as TroubleshootingData).traffic < hit.traffic) {
       return
     }
     const requestBody = hit.toApiKeys()
