@@ -8,6 +8,7 @@ import { NoConsentStrategy } from '../../src/visitor/index'
 import { FLAG_USER_EXPOSED, HitType, LogLevel, METHOD_DEACTIVATED_CONSENT_ERROR } from '../../src/enum/index'
 import { sprintf } from '../../src/utils/utils'
 import { HttpClient } from '../../src/utils/HttpClient'
+import { MurmurHash } from '../../src/utils/MurmurHash'
 
 describe('test NoConsentStrategy', () => {
   const visitorId = 'visitorId'
@@ -26,7 +27,8 @@ describe('test NoConsentStrategy', () => {
 
   const configManager = new ConfigManager(config, {} as DecisionManager, trackingManager)
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
-  const noConsentStrategy = new NoConsentStrategy(visitorDelegate)
+  const murmurHash = new MurmurHash()
+  const noConsentStrategy = new NoConsentStrategy({ visitor: visitorDelegate, murmurHash })
 
   it('test activateModification', () => {
     noConsentStrategy.activateModification('key').then(() => {

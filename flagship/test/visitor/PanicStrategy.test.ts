@@ -9,8 +9,7 @@ import { HttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
 import { VisitorDelegate, PanicStrategy } from '../../src/visitor'
 import { campaigns } from '../decision/campaigns'
-
-import { Mock } from 'jest-mock'
+import { MurmurHash } from '../../src/utils/MurmurHash'
 
 describe('test NotReadyStrategy', () => {
   const visitorId = 'visitorId'
@@ -42,7 +41,9 @@ describe('test NotReadyStrategy', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
-  const panicStrategy = new PanicStrategy(visitorDelegate)
+  const murmurHash = new MurmurHash()
+
+  const panicStrategy = new PanicStrategy({ visitor: visitorDelegate, murmurHash })
 
   it('test setConsent', () => {
     panicStrategy.setConsent(true)

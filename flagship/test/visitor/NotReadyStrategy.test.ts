@@ -8,6 +8,7 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
 import { VisitorDelegate, NotReadyStrategy } from '../../src/visitor'
+import { MurmurHash } from '../../src/utils/MurmurHash'
 
 describe('test NotReadyStrategy', () => {
   const visitorId = 'visitorId'
@@ -26,7 +27,8 @@ describe('test NotReadyStrategy', () => {
 
   const configManager = new ConfigManager(config, {} as DecisionManager, trackingManager)
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
-  const notReadyStrategy = new NotReadyStrategy(visitorDelegate)
+  const murmurHash = new MurmurHash()
+  const notReadyStrategy = new NotReadyStrategy({ visitor: visitorDelegate, murmurHash })
 
   it('test synchronizedModifications', () => {
     notReadyStrategy.synchronizeModifications().then(() => {

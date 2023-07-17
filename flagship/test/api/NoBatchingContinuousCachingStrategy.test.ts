@@ -1,14 +1,15 @@
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { DecisionApiConfig, Event, EventCategory, HitAbstract, OnVisitorExposed, Page, UserExposureInfo } from '../../src'
 import { NoBatchingContinuousCachingStrategy } from '../../src/api/NoBatchingContinuousCachingStrategy'
-import { HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, SDK_INFO, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, BASE_API_URL, URL_ACTIVATE_MODIFICATION, SEND_HIT, FS_CONSENT, LogLevel, DEFAULT_HIT_CACHE_TIME_MS, TRACKING_MANAGER_ERROR, DIRECT_HIT, TRACKING_MANAGER, BATCH_HIT } from '../../src/enum'
+import { HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, SDK_INFO, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, BASE_API_URL, URL_ACTIVATE_MODIFICATION, FS_CONSENT, LogLevel, DEFAULT_HIT_CACHE_TIME_MS, TRACKING_MANAGER_ERROR, DIRECT_HIT, TRACKING_MANAGER, BATCH_HIT } from '../../src/enum'
 import { BatchTriggeredBy } from '../../src/enum/BatchTriggeredBy'
 import { Activate } from '../../src/hit/Activate'
 import { ActivateBatch } from '../../src/hit/ActivateBatch'
 import { Batch } from '../../src/hit/Batch'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
-import { errorFormat, sprintf } from '../../src/utils/utils'
+import { sprintf } from '../../src/utils/utils'
+import { Troubleshooting } from '../../src/hit/Troubleshooting'
 
 describe('Test NoBatchingContinuousCachingStrategy', () => {
   const methodNow = Date.now
@@ -52,7 +53,8 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     postAsync.mockResolvedValue({ status: 200, body: null })
     const hitsPoolQueue = new Map<string, HitAbstract>()
     const activatePoolQueue = new Map<string, Activate>()
-    const batchingStrategy = new NoBatchingContinuousCachingStrategy(config, httpClient, hitsPoolQueue, activatePoolQueue)
+    const troubleshootingQueue = new Map<string, Troubleshooting>()
+    const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
@@ -120,7 +122,8 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     postAsync.mockResolvedValue({ status: 200, body: null })
     const hitsPoolQueue = new Map<string, HitAbstract>()
     const activatePoolQueue = new Map<string, Activate>()
-    const batchingStrategy = new NoBatchingContinuousCachingStrategy(config, httpClient, hitsPoolQueue, activatePoolQueue)
+    const troubleshootingQueue = new Map<string, Troubleshooting>()
+    const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
@@ -194,7 +197,8 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
 
     const hitsPoolQueue = new Map<string, HitAbstract>()
     const activatePoolQueue = new Map<string, Activate>()
-    const batchingStrategy = new NoBatchingContinuousCachingStrategy(config, httpClient, hitsPoolQueue, activatePoolQueue)
+    const troubleshootingQueue = new Map<string, Troubleshooting>()
+    const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
@@ -220,10 +224,10 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
 
     expect(logError).toBeCalledTimes(1)
     expect(logError).toHaveBeenNthCalledWith(1, sprintf(TRACKING_MANAGER_ERROR, DIRECT_HIT, {
-      message: error,
-      url: HIT_EVENT_URL,
-      headers,
-      body: pageHit.toApiKeys(),
+      httpRequestBody: pageHit.toApiKeys(),
+      httpRequestHeaders: headers,
+      httpRequestMethod: 'POST',
+      httpRequestUrl: HIT_EVENT_URL,
       duration: 0,
       batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.DirectHit]
     }), TRACKING_MANAGER)
@@ -251,10 +255,10 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(cacheHitKeys.length).toBe(0)
     expect(logError).toBeCalledTimes(2)
     expect(logError).toHaveBeenNthCalledWith(2, sprintf(TRACKING_MANAGER_ERROR, DIRECT_HIT, {
-      message: error,
-      url: HIT_EVENT_URL,
-      headers,
-      body: consentHitFalse.toApiKeys(),
+      httpRequestBody: consentHitFalse.toApiKeys(),
+      httpRequestHeaders: headers,
+      httpRequestMethod: 'POST',
+      httpRequestUrl: HIT_EVENT_URL,
       duration: 0,
       batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.DirectHit]
     }), TRACKING_MANAGER)
@@ -264,7 +268,8 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     postAsync.mockResolvedValue({ status: 200, body: null })
     const hitsPoolQueue = new Map<string, HitAbstract>()
     const activatePoolQueue = new Map<string, Activate>()
-    const batchingStrategy = new NoBatchingContinuousCachingStrategy(config, httpClient, hitsPoolQueue, activatePoolQueue)
+    const troubleshootingQueue = new Map<string, Troubleshooting>()
+    const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
@@ -314,7 +319,8 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
 
     const hitsPoolQueue = new Map<string, HitAbstract>()
     const activatePoolQueue = new Map<string, Activate>()
-    const batchingStrategy = new NoBatchingContinuousCachingStrategy(config, httpClient, hitsPoolQueue, activatePoolQueue)
+    const troubleshootingQueue = new Map<string, Troubleshooting>()
+    const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
@@ -386,7 +392,8 @@ describe('test sendBatch method', () => {
 
   const hitsPoolQueue = new Map<string, HitAbstract>()
   const activatePoolQueue = new Map<string, Activate>()
-  const batchingStrategy = new NoBatchingContinuousCachingStrategy(config, httpClient, hitsPoolQueue, activatePoolQueue)
+  const troubleshootingQueue = new Map<string, Troubleshooting>()
+  const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
@@ -524,10 +531,11 @@ describe('test sendBatch method', () => {
     expect(hitsPoolQueue.size).toBe(1)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(sprintf(TRACKING_MANAGER_ERROR, BATCH_HIT, {
-      message: error,
-      url: HIT_EVENT_URL,
-      headers,
-      body: batch.toApiKeys(),
+
+      httpRequestBody: batch.toApiKeys(),
+      httpRequestHeaders: headers,
+      httpRequestMethod: 'POST',
+      httpRequestUrl: HIT_EVENT_URL,
       duration: 0,
       batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.BatchLength]
     }), TRACKING_MANAGER)
@@ -576,7 +584,8 @@ describe('test sendBatch method', () => {
   it('test sendBatch method with empty hitsPoolQueue', async () => {
     const hitsPoolQueue = new Map<string, HitAbstract>()
     const activatePoolQueue = new Map<string, Activate>()
-    const batchingStrategy = new NoBatchingContinuousCachingStrategy(config, httpClient, hitsPoolQueue, activatePoolQueue)
+    const troubleshootingQueue = new Map<string, Troubleshooting>()
+    const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue })
     await batchingStrategy.sendBatch()
     expect(postAsync).toBeCalledTimes(0)
   })

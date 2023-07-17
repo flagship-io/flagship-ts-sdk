@@ -13,6 +13,7 @@ import { errorFormat, sprintf } from '../../src/utils/utils'
 import { returnModification } from './modification'
 import { HitShape } from '../../src/hit/Legacy'
 import { Activate } from '../../src/hit/Activate'
+import { MurmurHash } from '../../src/utils/MurmurHash'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getNull = (): any => {
@@ -71,8 +72,9 @@ describe('test DefaultStrategy ', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
+  const murmurHash = new MurmurHash()
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
-  const defaultStrategy = new DefaultStrategy(visitorDelegate)
+  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
   const predefinedContext = {
     fs_client: SDK_INFO.name,
@@ -113,7 +115,8 @@ describe('test DefaultStrategy ', () => {
     consentHit.ds = SDK_APP
     consentHit.config = config
 
-    expect(addHit).toBeCalledWith(consentHit)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect(addHit).toBeCalledWith({ ...consentHit, _visitorInstanceId: expect.anything() })
   })
 
   it('test updateContext', () => {
@@ -181,38 +184,29 @@ describe('test DefaultStrategy ', () => {
   ]
 
   it('test synchronizeModifications', async () => {
-    try {
-      visitorDelegate.on('ready', (err) => {
-        expect(err).toBeUndefined()
-      })
-      getCampaignsAsync.mockResolvedValue(campaignDTO)
-      getModifications.mockReturnValue(returnModification)
-      await defaultStrategy.synchronizeModifications()
-      expect(getCampaignsAsync).toBeCalledTimes(1)
-      expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
-      expect(getModifications).toBeCalledTimes(1)
-      expect(getModifications).toBeCalledWith(campaignDTO)
-    } catch (error) {
-      console.log('test-jest', error)
-      expect(logError).toBeCalled()
-    }
+    visitorDelegate.on('ready', (err) => {
+      expect(err).toBeUndefined()
+    })
+    getCampaignsAsync.mockResolvedValue(campaignDTO)
+    getModifications.mockReturnValue(returnModification)
+    await defaultStrategy.synchronizeModifications()
+    expect(getCampaignsAsync).toBeCalledTimes(1)
+    expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
+    expect(getModifications).toBeCalledTimes(1)
+    expect(getModifications).toBeCalledWith(campaignDTO)
   })
 
   it('test fetchFlags', async () => {
-    try {
-      visitorDelegate.on('ready', (err) => {
-        expect(err).toBeUndefined()
-      })
-      getCampaignsAsync.mockResolvedValue(campaignDTO)
-      getModifications.mockReturnValue(returnModification)
-      await defaultStrategy.fetchFlags()
-      expect(getCampaignsAsync).toBeCalledTimes(1)
-      expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
-      expect(getModifications).toBeCalledTimes(1)
-      expect(getModifications).toBeCalledWith(campaignDTO)
-    } catch (error) {
-      expect(logError).toBeCalled()
-    }
+    visitorDelegate.on('ready', (err) => {
+      expect(err).toBeUndefined()
+    })
+    getCampaignsAsync.mockResolvedValue(campaignDTO)
+    getModifications.mockReturnValue(returnModification)
+    await defaultStrategy.fetchFlags()
+    expect(getCampaignsAsync).toBeCalledTimes(1)
+    expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
+    expect(getModifications).toBeCalledTimes(1)
+    expect(getModifications).toBeCalledWith(campaignDTO)
   })
 
   const testModificationType = async <T>(
@@ -220,19 +214,15 @@ describe('test DefaultStrategy ', () => {
     defaultValue: T,
     activate = false
   ) => {
-    try {
-      const returnMod = returnModification.get(key) as FlagDTO
-      const modification = await defaultStrategy.getModification(
-        {
-          key: returnMod.key,
-          defaultValue,
-          activate
-        }
-      )
-      expect<T>(modification).toEqual(returnMod.value)
-    } catch (error) {
-      expect(logError).toBeCalled()
-    }
+    const returnMod = returnModification.get(key) as FlagDTO
+    const modification = await defaultStrategy.getModification(
+      {
+        key: returnMod.key,
+        defaultValue,
+        activate
+      }
+    )
+    expect<T>(modification).toEqual(returnMod.value)
   }
 
   const testModificationTypeArray = async <T>(
@@ -242,18 +232,16 @@ describe('test DefaultStrategy ', () => {
       activate?: boolean
     }[], activateAll = false
   ) => {
-    try {
-      const returnMod: Record<string, T> = {}
-      params.forEach(item => {
-        returnMod[item.key] = (returnModification.get(item.key) as FlagDTO).value
-      })
-      const modifications = await defaultStrategy.getModifications(params, activateAll)
-      expect<Record<string, T>>(modifications).toEqual(returnMod)
-    } catch (error) {
-      console.log('error', error)
+    const returnMod: Record<string, T> = {}
+    params.forEach(item => {
+      returnMod[item.key] = (returnModification.get(item.key) as FlagDTO).value ?? item.defaultValue
+    })
+    getCampaignsAsync.mockResolvedValue(campaignDTO)
+    getModifications.mockReturnValue(returnModification)
+    await defaultStrategy.fetchFlags()
+    const modifications = await defaultStrategy.getModifications(params, activateAll)
 
-      expect(logError).toBeCalled()
-    }
+    expect<Record<string, T>>(modifications).toEqual(returnMod)
   }
 
   const testModificationErrorCast = <T>(
@@ -351,6 +339,11 @@ describe('test DefaultStrategy ', () => {
         slug: returnMod.slug
       }
     })
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    activateHit.traffic = expect.anything() as any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    activateHit.visitorInstanceId = expect.anything() as any
     activateHit.config = config
     activateHit.ds = SDK_APP
     expect(activateFlag).toBeCalledWith(activateHit)
@@ -380,6 +373,10 @@ describe('test DefaultStrategy ', () => {
     })
     campaignHit.config = config
     campaignHit.ds = SDK_APP
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    campaignHit.traffic = expect.anything() as any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    campaignHit.visitorInstanceId = expect.anything() as any
     expect(activateFlag).toBeCalledWith(campaignHit)
     expect(logInfo).toBeCalledTimes(0)
   })
@@ -408,6 +405,10 @@ describe('test DefaultStrategy ', () => {
     })
     campaignHit.config = config
     campaignHit.ds = SDK_APP
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    campaignHit.traffic = expect.anything() as any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    campaignHit.visitorInstanceId = expect.anything() as any
     expect(activateFlag).toBeCalledWith(campaignHit)
     expect(logInfo).toBeCalledTimes(0)
   })
@@ -438,6 +439,10 @@ describe('test DefaultStrategy ', () => {
     campaignHit.config = config
     campaignHit.visitorId = visitorId
     campaignHit.ds = SDK_APP
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    campaignHit.traffic = expect.anything() as any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    campaignHit.visitorInstanceId = expect.anything() as any
     expect(activateFlag).toBeCalledWith(campaignHit)
     expect(logInfo).toBeCalledTimes(0)
   })
@@ -521,16 +526,16 @@ describe('test DefaultStrategy ', () => {
     expect(logWarning).toBeCalledWith(sprintf(GET_METADATA_CAST_ERROR, key), FLAG_METADATA)
   })
 
-  it('test getModification with array', () => {
-    testModificationTypeArray<string | number>([
+  it('test getModification with array 1', async () => {
+    await testModificationTypeArray<string | number>([
       { key: 'keyString', defaultValue: 'defaultString' },
       { key: 'keyNumber', defaultValue: 10 }
     ])
     expect(activateFlag).toBeCalledTimes(0)
   })
 
-  it('test getModification with array and activateAll', () => {
-    testModificationTypeArray<string | number>([
+  it('test getModification with array and activateAll', async () => {
+    await testModificationTypeArray<string | number>([
       { key: 'keyString', defaultValue: 'defaultString' },
       { key: 'keyNumber', defaultValue: 10 },
       { key: 'keyNull', defaultValue: 10 }
@@ -590,6 +595,10 @@ describe('test DefaultStrategy ', () => {
     })
     activateHit.config = config
     activateHit.ds = SDK_APP
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    activateHit.traffic = expect.anything() as any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    activateHit.visitorInstanceId = expect.anything() as any
     expect(activateFlag).toBeCalledWith(activateHit)
   })
 
@@ -686,6 +695,10 @@ describe('test DefaultStrategy ', () => {
     })
     activateHit.config = config
     activateHit.ds = SDK_APP
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    activateHit.traffic = expect.anything() as any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    activateHit.visitorInstanceId = expect.anything() as any
     expect(activateFlag).toBeCalledWith(activateHit)
   })
 
@@ -716,6 +729,10 @@ describe('test DefaultStrategy ', () => {
     activateHit.config = config
     activateHit.visitorId = visitorId
     activateHit.ds = SDK_APP
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    activateHit.traffic = expect.anything() as any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    activateHit.visitorInstanceId = expect.anything() as any
     expect(activateFlag).toHaveBeenNthCalledWith(1, activateHit)
 
     const modification2:FlagDTO = returnModification.get(key2) as FlagDTO
@@ -739,6 +756,10 @@ describe('test DefaultStrategy ', () => {
     activateHit2.config = config
     activateHit2.visitorId = visitorId
     activateHit2.ds = SDK_APP
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    activateHit2.traffic = expect.anything() as any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    activateHit2.visitorInstanceId = expect.anything() as any
     expect(activateFlag).toHaveBeenNthCalledWith(2, activateHit2)
   })
 
@@ -769,6 +790,11 @@ describe('test DefaultStrategy ', () => {
     campaignHit.config = config
     campaignHit.visitorId = visitorId
     campaignHit.ds = SDK_APP
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    campaignHit.traffic = expect.anything() as any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    campaignHit.visitorInstanceId = expect.anything() as any
+
     expect(activateFlag).toHaveBeenNthCalledWith(1, campaignHit)
 
     const modification2:FlagDTO = returnModification.get(key2) as FlagDTO
@@ -792,6 +818,10 @@ describe('test DefaultStrategy ', () => {
     campaignHit2.config = config
     campaignHit2.visitorId = visitorId
     campaignHit2.ds = SDK_APP
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    campaignHit2.traffic = expect.anything() as any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    campaignHit2.visitorInstanceId = expect.anything() as any
     expect(activateFlag).toHaveBeenNthCalledWith(2, campaignHit2)
   })
 
@@ -875,6 +905,10 @@ describe('test DefaultStrategy ', () => {
     activateHit.config = config
     activateHit.visitorId = visitorId
     activateHit.ds = SDK_APP
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    activateHit.traffic = expect.anything() as any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    activateHit.visitorInstanceId = expect.anything() as any
     expect(activateFlag).toBeCalledWith(activateHit)
   })
 
@@ -907,7 +941,7 @@ describe('test DefaultStrategy ', () => {
     const configManager = new ConfigManager(newConfig, apiManager, trackingManager)
 
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
-    const defaultStrategy = new DefaultStrategy(visitorDelegate)
+    const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
     await defaultStrategy.visitorExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
     expect(activateFlag).toBeCalledTimes(1)
   })
@@ -1394,7 +1428,8 @@ describe('test authenticate on bucketing mode', () => {
   const configManager = new ConfigManager(config, {} as ApiManager, trackingManager)
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
-  const defaultStrategy = new DefaultStrategy(visitorDelegate)
+  const murmurHash = new MurmurHash()
+  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
   it('test authenticate on bucketing mode', () => {
     const authenticateId = 'authenticateId'
@@ -1444,7 +1479,9 @@ describe('test fetchFlags errors', () => {
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
 
-  const defaultStrategy = new DefaultStrategy(visitorDelegate)
+  const murmurHash = new MurmurHash()
+
+  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
   it('test fetchFlags error', async () => {
     const error = new Error('message 1')
@@ -1505,7 +1542,9 @@ describe('test fetchFlags errors 2', () => {
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
 
-  const defaultStrategy = new DefaultStrategy(visitorDelegate)
+  const murmurHash = new MurmurHash()
+
+  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
   it('test fetchFlags error 2', async () => {
     const error = new Error('message 2')
