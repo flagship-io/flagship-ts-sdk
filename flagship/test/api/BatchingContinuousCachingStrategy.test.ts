@@ -4,7 +4,7 @@ import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinu
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
 import { EdgeConfig } from '../../src/config/EdgeConfig'
 import { BatchTriggeredBy } from '../../src/enum/BatchTriggeredBy'
-import { BASE_API_URL, BATCH_HIT, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, PROCESS_CACHE, HEADER_X_SDK_VERSION, HIT_CACHE_ERROR, HIT_CACHE_VERSION, HIT_EVENT_URL, SDK_INFO, SDK_VERSION, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, URL_ACTIVATE_MODIFICATION } from '../../src/enum/FlagshipConstant'
+import { BASE_API_URL, BATCH_HIT, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, PROCESS_CACHE, HEADER_X_SDK_VERSION, HIT_CACHE_ERROR, HIT_CACHE_VERSION, HIT_EVENT_URL, SDK_INFO, SDK_VERSION, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, URL_ACTIVATE_MODIFICATION, TROUBLESHOOTING_HIT_URL } from '../../src/enum/FlagshipConstant'
 import { Activate } from '../../src/hit/Activate'
 import { ActivateBatch } from '../../src/hit/ActivateBatch'
 import { Batch } from '../../src/hit/Batch'
@@ -882,4 +882,276 @@ describe('test cacheHit and flushHits methods', () => {
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(sprintf(HIT_CACHE_ERROR, 'flushAllHits', error), PROCESS_CACHE)
   })
+})
+
+describe('test addTroubleshootingHit method', () => {
+  const methodNow = Date.now
+  const mockNow = jest.fn<typeof Date.now>()
+  beforeAll(() => {
+    Date.now = mockNow
+    mockNow.mockReturnValue(1)
+  })
+  afterAll(() => {
+    Date.now = methodNow
+  })
+
+  const httpClient = new HttpClient()
+
+  const postAsync = jest.spyOn(httpClient, 'postAsync')
+
+  const config = new DecisionApiConfig({
+    envId: 'envId',
+    apiKey: 'apiKey'
+  })
+  const logManager = new FlagshipLogManager()
+
+  config.logManager = logManager
+
+  const hitsPoolQueue = new Map<string, HitAbstract>()
+  const activatePoolQueue = new Map<string, Activate>()
+  const troubleshootingQueue = new Map<string, Troubleshooting>()
+  const flagshipInstanceId = 'flagshipInstanceId'
+  const batchingStrategy = new BatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, flagshipInstanceId })
+
+  const visitorId = 'visitorId'
+
+  it('test addTroubleshootingHit', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+    postAsync.mockResolvedValue({ status: 200, body: null })
+
+    const variationGroupId = 'variationGrID-activate'
+    const variationId = 'variationId'
+    const flagKey = 'flagKey'
+    const flagValue = 'value'
+    const flagDefaultValue = 'default-value'
+    const flagMetadata = {
+      campaignId: 'campaignId',
+      variationGroupId: 'variationGrID',
+      variationId: 'varId',
+      isReference: true,
+      campaignType: 'ab',
+      slug: 'slug'
+    }
+    const visitorContext = { key: 'value' }
+
+    const activateHit = new Activate({
+      visitorId,
+      variationGroupId,
+      variationId,
+      flagKey,
+      flagValue,
+      flagDefaultValue,
+      flagMetadata,
+      visitorContext
+    })
+
+    activateHit.config = config
+
+    const activateTroubleshooting = new Troubleshooting({
+      label: 'VISITOR-SEND-ACTIVATE',
+      logLevel: LogLevel.INFO,
+      traffic: 2,
+      visitorId: activateHit.visitorId,
+      flagshipInstanceId: activateHit.flagshipInstanceId,
+      visitorInstanceId: activateHit.visitorInstanceId,
+      anonymousId: activateHit.anonymousId,
+      config,
+      hitContent: activateHit.toApiKeys()
+    })
+
+    batchingStrategy.troubleshootingData = {
+      startDate: new Date(),
+      endDate: new Date(),
+      traffic: 100,
+      timezone: ''
+    }
+
+    expect(troubleshootingQueue.size).toBe(0)
+
+    await batchingStrategy.sendTroubleshootingHit(activateTroubleshooting)
+
+    expect(troubleshootingQueue.size).toBe(0)
+
+    expect(postAsync).toBeCalledTimes(1)
+
+    expect(postAsync).toHaveBeenNthCalledWith(1,
+      TROUBLESHOOTING_HIT_URL, {
+        body: activateTroubleshooting.toApiKeys()
+      })
+  })
+  // it('test activate success', async () => {
+  //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+  //   getAsync.mockResolvedValue({ status: 200, body: null })
+
+  //   const variationGroupId = 'variationGrID-activate'
+  //   const variationId = 'variationId'
+  //   const flagKey = 'flagKey'
+  //   const flagValue = 'value'
+  //   const flagDefaultValue = 'default-value'
+  //   const flagMetadata = {
+  //     campaignId: 'campaignId',
+  //     variationGroupId: 'variationGrID',
+  //     variationId: 'varId',
+  //     isReference: true,
+  //     campaignType: 'ab',
+  //     slug: 'slug'
+  //   }
+  //   const visitorContext = { key: 'value' }
+
+  //   const activateHit = new Activate({
+  //     visitorId,
+  //     variationGroupId,
+  //     variationId,
+  //     flagKey,
+  //     flagValue,
+  //     flagDefaultValue,
+  //     flagMetadata,
+  //     visitorContext
+  //   })
+  //   activateHit.config = config
+  //   activateHit.key = visitorId
+
+  //   expect(hitsPoolQueue.size).toBe(0)
+
+  //   await batchingStrategy.activateFlag(activateHit)
+
+  //   expect(hitsPoolQueue.size).toBe(0)
+  //   expect(activatePoolQueue.size).toBe(0)
+
+  //   expect(getAsync).toBeCalledTimes(1)
+  //   expect(getAsync).toHaveBeenNthCalledWith(1,
+  //     urlActivate, {
+  //       headers: headersActivate,
+  //       body: new ActivateBatch([activateHit], config).toApiKeys(),
+  //       timeout: config.timeout
+  //     })
+
+  //   const fromFlag : IExposedFlag = {
+  //     key: activateHit.flagKey,
+  //     value: activateHit.flagValue,
+  //     defaultValue: activateHit.flagDefaultValue,
+  //     metadata: activateHit.flagMetadata
+  //   }
+
+  //   const exposedVisitor: IExposedVisitor = {
+  //     id: activateHit.visitorId,
+  //     anonymousId: activateHit.anonymousId,
+  //     context: activateHit.visitorContext
+  //   }
+  //   expect(onVisitorExposed).toBeCalledTimes(1)
+  //   expect(onVisitorExposed).toBeCalledWith({ exposedVisitor, fromFlag })
+
+  //   const flagData = {
+  //     metadata: {
+  //       campaignId: activateHit.flagMetadata.campaignId,
+  //       campaignType: activateHit.flagMetadata.campaignType,
+  //       slug: activateHit.flagMetadata.slug,
+  //       isReference: activateHit.flagMetadata.isReference,
+  //       variationGroupId: activateHit.flagMetadata.variationGroupId,
+  //       variationId: activateHit.flagMetadata.variationId
+  //     },
+  //     key: activateHit.flagKey,
+  //     value: activateHit.flagValue
+  //   }
+
+  //   const visitorData = {
+  //     visitorId: activateHit.visitorId,
+  //     anonymousId: activateHit.anonymousId as string,
+  //     context: activateHit.visitorContext
+  //   }
+  //   expect(onUserExposure).toBeCalledTimes(1)
+  //   expect(onUserExposure).toBeCalledWith({ flagData, visitorData })
+
+  //   expect(flushHits).toBeCalledTimes(0)
+  // })
+
+  // it('test multiple activate failed', async () => {
+  //   const error = 'message error'
+  //   getAsync.mockRejectedValue(error)
+
+  //   const activateHit = new Activate({
+  //     visitorId,
+  //     variationGroupId: 'variationGrID-activate',
+  //     variationId: 'variationId',
+  //     flagKey: 'flagKey',
+  //     flagValue: 'value',
+  //     flagDefaultValue: 'default-value',
+  //     flagMetadata: {
+  //       campaignId: 'campaignId',
+  //       variationGroupId: 'variationGrID',
+  //       variationId: 'varId',
+  //       isReference: true,
+  //       campaignType: 'ab',
+  //       slug: 'slug'
+  //     },
+  //     visitorContext: { key: 'value' }
+  //   })
+  //   activateHit.config = config
+  //   activateHit.key = visitorId
+
+  //   const activateHit2 = new Activate({
+  //     visitorId,
+  //     variationGroupId: 'variationGrID-activate-2',
+  //     variationId: 'variationId-2',
+  //     flagKey: 'flagKey',
+  //     flagValue: 'value',
+  //     flagDefaultValue: 'default-value',
+  //     flagMetadata: {
+  //       campaignId: 'campaignId',
+  //       variationGroupId: 'variationGrID',
+  //       variationId: 'varId',
+  //       isReference: true,
+  //       campaignType: 'ab',
+  //       slug: 'slug'
+  //     },
+  //     visitorContext: { key: 'value' }
+  //   })
+
+  //   activateHit2.config = config
+  //   activateHit2.key = visitorId + 'key-2'
+
+  //   const activateHit3 = new Activate({
+  //     visitorId,
+  //     variationGroupId: 'variationGrID-activate-3',
+  //     variationId: 'variationId-3',
+  //     flagKey: 'flagKey',
+  //     flagValue: 'value',
+  //     flagDefaultValue: 'default-value',
+  //     flagMetadata: {
+  //       campaignId: 'campaignId',
+  //       variationGroupId: 'variationGrID',
+  //       variationId: 'varId',
+  //       isReference: true,
+  //       campaignType: 'ab',
+  //       slug: 'slug'
+  //     },
+  //     visitorContext: { key: 'value' }
+  //   })
+  //   activateHit3.config = config
+  //   activateHit3.key = visitorId + 'key-3'
+
+  //   activatePoolQueue.set(activateHit2.key, activateHit2).set(activateHit3.key, activateHit3)
+
+  //   expect(hitsPoolQueue.size).toBe(0)
+  //   expect(activatePoolQueue.size).toBe(2)
+
+  //   await batchingStrategy.activateFlag(activateHit)
+
+  //   expect(hitsPoolQueue.size).toBe(0)
+  //   expect(activatePoolQueue.size).toBe(3)
+
+  //   expect(getAsync).toBeCalledTimes(1)
+  //   expect(getAsync).toHaveBeenNthCalledWith(1, urlActivate, {
+  //     headers: headersActivate,
+  //     body: new ActivateBatch([activateHit2, activateHit3, activateHit], config).toApiKeys(),
+  //     timeout: config.timeout
+  //   })
+
+  //   expect(onVisitorExposed).toBeCalledTimes(0)
+  //   expect(flushHits).toBeCalledTimes(0)
+  //   expect(cacheHit).toBeCalledTimes(1)
+  //   expect(cacheHit).toHaveBeenCalledWith(new Map([[activateHit.key, activateHit]]))
+  // })
 })

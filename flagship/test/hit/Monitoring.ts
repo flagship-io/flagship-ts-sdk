@@ -18,7 +18,6 @@ import {
 } from '../../src/enum/index'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { sprintf } from '../../src/utils/utils'
-import { IMonitoring, Monitoring } from '../../src/hit/Monitoring'
 import { version } from '../../src/sdkVersion'
 
 describe('test hit type Monitoring', () => {
