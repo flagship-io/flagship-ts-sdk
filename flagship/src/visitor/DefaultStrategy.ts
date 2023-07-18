@@ -345,11 +345,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
       this.visitor.visitorHits.forEach(item => {
         const hitTroubleshooting = new Troubleshooting({
-          type: 'TROUBLESHOOTING',
-          subComponent: 'VISITOR-SEND-HIT',
+
+          label: 'VISITOR-SEND-HIT',
           logLevel: LogLevel.INFO,
           traffic,
-          message: 'VISITOR-SEND-HIT',
           visitorId: this.visitor.visitorId,
           visitorInstanceId: this.visitor.instanceId,
           flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
@@ -364,10 +363,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       this.visitor.visitorHits = []
 
       const fetchFlagTroubleshooting = new Troubleshooting({
-        type: 'TROUBLESHOOTING',
-        subComponent: 'VISITOR-FETCH-CAMPAIGNS',
+
+        label: 'VISITOR-FETCH-CAMPAIGNS',
         logLevel: LogLevel.INFO,
-        message: 'VISITOR-FETCH-CAMPAIGNS',
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
         visitorInstanceId: this.visitor.instanceId,
@@ -419,10 +417,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         assignmentHistory[item.variationGroupId] = item.variationId
       })
       const monitoring = new Troubleshooting({
-        type: 'TROUBLESHOOTING',
-        subComponent: 'VISITOR-FETCH-CAMPAIGNS-ERROR',
+
+        label: 'VISITOR-FETCH-CAMPAIGNS-ERROR',
         logLevel: LogLevel.INFO,
-        message: 'VISITOR-FETCH-CAMPAIGNS-ERROR',
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
         visitorInstanceId: this.visitor.instanceId,
@@ -550,11 +547,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     await this.trackingManager.activateFlag(activateHit)
 
     const activateTroubleshooting = new Troubleshooting({
-      type: 'TROUBLESHOOTING',
-      subComponent: 'VISITOR-SEND-ACTIVATE',
+
+      label: 'VISITOR-SEND-ACTIVATE',
       logLevel: LogLevel.INFO,
       traffic: this.visitor.traffic,
-      message: 'VISITOR-SEND-ACTIVATE',
       visitorId: activateHit.visitorId,
       flagshipInstanceId: activateHit.flagshipInstanceId,
       visitorInstanceId: activateHit.visitorInstanceId,
@@ -728,11 +724,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         return
       }
       const sendHitTroubleshooting = new Troubleshooting({
-        type: 'TROUBLESHOOTING',
-        subComponent: 'VISITOR-SEND-HIT',
+
+        label: 'VISITOR-SEND-HIT',
         logLevel: LogLevel.INFO,
         traffic: this.visitor.traffic,
-        message: 'VISITOR-SEND-HIT',
         visitorId: hitInstance.visitorId,
         flagshipInstanceId: hitInstance.flagshipInstanceId,
         visitorInstanceId: hitInstance.visitorInstanceId,
@@ -811,10 +806,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     this.visitor.visitorId = visitorId
 
     const monitoring = new Troubleshooting({
-      type: 'TROUBLESHOOTING',
-      subComponent: 'VISITOR-AUTHENTICATE',
+
+      label: 'VISITOR-AUTHENTICATE',
       logLevel: LogLevel.INFO,
-      message: 'VISITOR-AUTHENTICATE',
       visitorId: this.visitor.visitorId,
       anonymousId: this.visitor.anonymousId,
       visitorContext: this.visitor.context,
@@ -839,10 +833,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     this.visitor.anonymousId = null
 
     const monitoring = new Troubleshooting({
-      type: 'TROUBLESHOOTING',
-      subComponent: 'VISITOR-UNAUTHENTICATE',
+
+      label: 'VISITOR-UNAUTHENTICATE',
       logLevel: LogLevel.INFO,
-      message: 'VISITOR-UNAUTHENTICATE',
       visitorId: this.visitor.visitorId,
       anonymousId: this.visitor.anonymousId,
       visitorContext: this.visitor.context,
@@ -869,10 +862,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         USER_EXPOSED_FLAG_ERROR, this.visitor.visitorId, key
       )
       const monitoring = new Troubleshooting({
-        type: 'TROUBLESHOOTING',
-        subComponent: 'VISITOR-EXPOSED-FLAG-NOT-FOUND',
+
+        label: 'VISITOR-EXPOSED-FLAG-NOT-FOUND',
         logLevel: LogLevel.WARNING,
-        message: 'VISITOR-EXPOSED-FLAG-NOT-FOUND',
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
         visitorInstanceId: this.visitor.instanceId,
@@ -896,10 +888,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       )
 
       const monitoring = new Troubleshooting({
-        type: 'TROUBLESHOOTING',
-        subComponent: 'VISITOR-EXPOSED-TYPE-ERROR',
+
+        label: 'VISITOR-EXPOSED-TYPE-ERROR',
         logLevel: LogLevel.WARNING,
-        message: 'VISITOR-EXPOSED-TYPE-ERROR',
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
         visitorInstanceId: this.visitor.instanceId,
@@ -928,10 +919,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     if (!flag) {
       logWarningSprintf(this.config, FLAG_VALUE, GET_FLAG_MISSING_ERROR, this.visitor.visitorId, key, defaultValue)
       const monitoring = new Troubleshooting({
-        type: 'TROUBLESHOOTING',
-        subComponent: 'GET-FLAG-VALUE-FLAG-NOT-FOUND',
+
+        label: 'GET-FLAG-VALUE-FLAG-NOT-FOUND',
         logLevel: LogLevel.WARNING,
-        message: 'GET-FLAG-VALUE-FLAG-NOT-FOUND',
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
         visitorInstanceId: this.visitor.instanceId,
@@ -958,10 +948,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     if (defaultValue !== null && defaultValue !== undefined && !hasSameType(flag.value, defaultValue)) {
       logWarningSprintf(this.config, FLAG_VALUE, GET_FLAG_CAST_ERROR, this.visitor.visitorId, key, defaultValue)
       const monitoring = new Troubleshooting({
-        type: 'TROUBLESHOOTING',
-        subComponent: 'GET-FLAG-VALUE-TYPE-ERROR',
+
+        label: 'GET-FLAG-VALUE-TYPE-ERROR',
         logLevel: LogLevel.WARNING,
-        message: 'GET-FLAG-VALUE-TYPE-ERROR',
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
         visitorInstanceId: this.visitor.instanceId,
@@ -997,10 +986,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         GET_METADATA_CAST_ERROR, key
       )
       const monitoring = new Troubleshooting({
-        type: 'TROUBLESHOOTING',
-        subComponent: 'GET-FLAG-METADATA-TYPE-ERROR',
+
+        label: 'GET-FLAG-METADATA-TYPE-ERROR',
         logLevel: LogLevel.WARNING,
-        message: 'GET-FLAG-METADATA-TYPE-ERROR',
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
         visitorInstanceId: this.visitor.instanceId,

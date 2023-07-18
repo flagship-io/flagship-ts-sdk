@@ -1,5 +1,5 @@
 import { expect, it, describe, jest } from '@jest/globals'
-import Flagship, { DecisionApiConfig, FlagDTO, FlagshipStatus } from '../../src'
+import { DecisionApiConfig, FlagDTO, FlagshipStatus } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
@@ -7,6 +7,7 @@ import { Flag } from '../../src/flag/Flags'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor'
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 
 describe('test Flag', () => {
   const visitorId = 'visitorId'
@@ -33,9 +34,7 @@ describe('test Flag', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const getStatus = jest.fn<()=>FlagshipStatus>()
-
-  Flagship.getStatus = getStatus
+  VisitorAbstract.SdkStatus = FlagshipStatus.READY
 
   const visitorDelegate = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager })
 
@@ -66,7 +65,7 @@ describe('test Flag', () => {
   })
 
   it('test metadata', () => {
-    getStatus.mockReturnValue(FlagshipStatus.READY)
+    VisitorDelegate.SdkStatus = FlagshipStatus.READY
     expect(flag.metadata).toEqual({
       campaignId: flagDto.campaignId,
       variationGroupId: flagDto.variationGroupId,

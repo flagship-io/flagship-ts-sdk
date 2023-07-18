@@ -150,10 +150,8 @@ export abstract class DecisionManager implements IDecisionManager {
       }
 
       const monitoringHttpResponse = new Troubleshooting({
-        type: 'TROUBLESHOOTING',
-        subComponent: 'GET-CAMPAIGNS-ROUTE-RESPONSE',
+        label: 'GET-CAMPAIGNS-ROUTE-RESPONSE',
         logLevel: LogLevel.INFO,
-        message: 'GET-CAMPAIGNS-ROUTE-RESPONSE',
         visitorId: visitor.visitorId,
         anonymousId: visitor.anonymousId,
         visitorInstanceId: visitor.instanceId,
@@ -176,10 +174,8 @@ export abstract class DecisionManager implements IDecisionManager {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       const monitoringHttpResponse = new Troubleshooting({
-        type: 'TROUBLESHOOTING',
-        subComponent: 'GET-CAMPAIGNS-ROUTE-RESPONSE-ERROR',
+        label: 'GET-CAMPAIGNS-ROUTE-RESPONSE-ERROR',
         logLevel: LogLevel.INFO,
-        message: 'GET-CAMPAIGNS-ROUTE-RESPONSE-ERROR',
         visitorId: visitor.visitorId,
         anonymousId: visitor.anonymousId,
         visitorInstanceId: visitor.instanceId,

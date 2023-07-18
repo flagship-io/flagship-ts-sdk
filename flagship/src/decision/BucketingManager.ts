@@ -37,13 +37,11 @@ export class BucketingManager extends DecisionManager {
       this._bucketingContent = response.body
       this._lastBucketingTimestamp = new Date().toISOString()
       const troubleshootingHit = new Troubleshooting({
-        type: 'TROUBLESHOOTING',
         visitorId: this.flagshipInstanceId,
         flagshipInstanceId: this.flagshipInstanceId,
-        subComponent: 'SDK-BUCKETING-FILE',
+        label: 'SDK-BUCKETING-FILE',
         traffic: 0,
         logLevel: LogLevel.INFO,
-        message: 'SDK-BUCKETING-FILE',
         config: this.config,
         httpRequestHeaders: headers,
         httpRequestMethod: 'POST',
@@ -132,13 +130,11 @@ export class BucketingManager extends DecisionManager {
         this.config.onBucketingFail(new Error(error))
       }
       const troubleshootingHit = new Troubleshooting({
-        type: 'TROUBLESHOOTING',
         visitorId: this.flagshipInstanceId,
         flagshipInstanceId: this.flagshipInstanceId,
-        subComponent: 'SDK-BUCKETING-FILE-ERROR',
+        label: 'SDK-BUCKETING-FILE-ERROR',
         traffic: 0,
         logLevel: LogLevel.INFO,
-        message: 'SDK-BUCKETING-FILE-ERROR',
         config: this.config,
         httpRequestHeaders: headers,
         httpRequestMethod: 'POST',

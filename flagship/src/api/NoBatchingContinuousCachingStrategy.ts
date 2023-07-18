@@ -83,10 +83,8 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       })
 
       const monitoringHttpResponse = new Troubleshooting({
-        type: 'TROUBLESHOOTING',
-        subComponent: 'SEND-HIT-ROUTE-ERROR',
+        label: 'SEND-HIT-ROUTE-ERROR',
         logLevel: LogLevel.ERROR,
-        message: 'SEND-HIT-ROUTE-ERROR',
         visitorId: `${this._flagshipInstanceId}`,
         traffic: 0,
         config: this.config,
@@ -211,10 +209,8 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       })
 
       const monitoringHttpResponse = new Troubleshooting({
-        type: 'TROUBLESHOOTING',
-        subComponent: 'SEND-ACTIVATE-HIT-ROUTE-ERROR',
+        label: 'SEND-ACTIVATE-HIT-ROUTE-ERROR',
         logLevel: LogLevel.ERROR,
-        message: 'SEND-ACTIVATE-HIT-ROUTE-ERROR',
         visitorId: `${this._flagshipInstanceId}`,
         traffic: 0,
         config: this.config,

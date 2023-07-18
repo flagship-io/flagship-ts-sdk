@@ -10,22 +10,20 @@ import {
 } from '../enum/FlagshipConstant'
 import { HitAbstract, IHitAbstract } from './HitAbstract'
 import { BucketingDTO } from '../decision/api/bucketingDTO'
-import { FlagDTO, SubComponent, primitive } from '../types'
+import { FlagDTO, TroubleshootingLabel, primitive } from '../types'
 import { CampaignDTO } from '../mod'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 
 export const ERROR_MESSAGE = 'event category and event action are required'
 
 export interface ITroubleshooting extends IHitAbstract{
-    logVersion?: string
+    version?: string
     logLevel: LogLevel
     accountId?:string
     envId?:string
     timestamp?:string
     timeZone?: string
-    component?: string
-    subComponent: SubComponent
-    message: string
+    label: TroubleshootingLabel
     lastInitializationTimestamp?: string
     lastBucketingTimestamp?: string
 
@@ -106,7 +104,7 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
   private _envId? : string
   private _timestamp? : string
   private _component? : string
-  private _subComponent! : SubComponent
+  private _subComponent! : TroubleshootingLabel
   private _message! : string
   private _stackType? : string
   private _stackName? : string
@@ -666,11 +664,11 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
     this._message = v
   }
 
-  public get subComponent () : SubComponent {
+  public get label () : TroubleshootingLabel {
     return this._subComponent
   }
 
-  public set subComponent (v : SubComponent) {
+  public set label (v : TroubleshootingLabel) {
     this._subComponent = v
   }
 
@@ -714,18 +712,18 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
     this._logLevel = v
   }
 
-  public get logVersion () : string|undefined {
+  public get version () : string|undefined {
     return this._logVersion
   }
 
-  public set logVersion (v : string|undefined) {
+  public set version (v : string|undefined) {
     this._logVersion = v
   }
 
   public constructor (param:Omit<ITroubleshooting & {config: IFlagshipConfig},
-        'createdAt'|'category'>) {
+        'createdAt'|'category'|'type'>) {
     super({
-      type: param.type,
+      type: 'TROUBLESHOOTING',
       userIp: param.userIp,
       screenResolution: param.screenResolution,
       locale: param.locale,
@@ -734,7 +732,7 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
       anonymousId: param.anonymousId
     })
     const {
-      logVersion, logLevel, accountId, envId, timestamp, component, subComponent, message, stackType,
+      version: logVersion, logLevel, accountId, envId, timestamp, label, stackType,
       stackName, stackVersion, stackOriginName, stackOriginVersion, sdkStatus, sdkConfigMode, sdkConfigCustomLogManager,
       sdkConfigCustomCacheManager, sdkConfigStatusListener, sdkConfigTimeout, sdkConfigPollingInterval, sdkConfigTrackingManagerConfigStrategy, sdkConfigTrackingManagerConfigBatchIntervals,
       sdkConfigTrackingManagerConfigPoolMaxSize, httpRequestUrl, httpRequestMethod,
@@ -760,16 +758,14 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
     this.visitorCampaignFromCache = visitorCampaignFromCache
     this.flagMetadataCampaignIsReference = flagMetadataCampaignIsReference
     this.config = config
-    this.logVersion = logVersion || '1'
+    this.version = logVersion || '1'
     this.logLevel = logLevel
     this.flagshipInstanceId = flagshipInstanceId
     this.accountId = accountId
     this.envId = envId || config.envId
     this.timestamp = timestamp || new Date(Date.now()).toISOString()
     this.timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
-    this.component = component || `Flagship SDK ${SDK_INFO.name}`
-    this.subComponent = subComponent
-    this.message = message
+    this.label = label
     this.stackType = stackType || 'SDK'
     this.stackName = stackName || SDK_INFO.name
     this.stackVersion = stackVersion || SDK_INFO.version
@@ -833,13 +829,11 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
       cv: {}
     }
     const customVariable:Record<string, unknown> = {
-      logVersion: `${this.logVersion}`,
+      version: `${this.version}`,
       LogLevel: `${LogLevel[this.logLevel]}`,
       timestamp: `${this.timestamp}`,
       timeZone: `${this.timeZone}`,
-      component: `${this.component}`,
-      subComponents: `${this.subComponent}`,
-      message: `${this.message}`,
+      label: `${this.label}`,
       'stack.type': `${this.stackType}`,
       'stack.name': `${this.stackName}`,
       'stack.version': `${this.stackVersion}`
@@ -1051,14 +1045,12 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
   public toObject ():Record<string, unknown> {
     return {
       ...super.toObject(),
-      logVersion: this.logVersion,
+      logVersion: this.version,
       logLevel: this.logLevel,
       accountId: this.accountId,
       envId: this.envId,
       timestamp: this.timestamp,
-      component: this.component,
-      subComponent: this.subComponent,
-      message: this.message,
+      label: this.label,
       stackType: this.stackType,
       stackName: this.stackName,
       stackVersion: this.stackVersion,
