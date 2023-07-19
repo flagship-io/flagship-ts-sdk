@@ -1,5 +1,5 @@
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
-import { Event, EventCategory, OnVisitorExposed, UserExposureInfo } from '../../src'
+import { Event, EventCategory, OnVisitorExposed, TroubleshootingLabel, UserExposureInfo } from '../../src'
 import { BatchingPeriodicCachingStrategy } from '../../src/api/BatchingPeriodicCachingStrategy'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
 import { HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, SDK_INFO, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, BASE_API_URL, URL_ACTIVATE_MODIFICATION, FS_CONSENT, LogLevel, DEFAULT_HIT_CACHE_TIME_MS, BATCH_HIT, TRACKING_MANAGER, TRACKING_MANAGER_ERROR } from '../../src/enum'
@@ -312,6 +312,9 @@ describe('test sendBatch method', () => {
     const error = 'message error'
     postAsync.mockRejectedValue(error)
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const addTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'addTroubleshootingHit')
+
     const batch:Batch = new Batch({ hits: [globalPageHit] })
     batch.config = config
     config.logLevel = LogLevel.ALL
@@ -337,6 +340,10 @@ describe('test sendBatch method', () => {
       duration: 0,
       batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.BatchLength]
     }), TRACKING_MANAGER)
+
+    expect(addTroubleshootingHit).toBeCalledTimes(1)
+    const label: TroubleshootingLabel = 'SEND-BATCH-HIT-ROUTE-RESPONSE-ERROR'
+    expect(addTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 
   it('test sendActivate on batch', async () => {
@@ -574,6 +581,9 @@ describe('test activateFlag method', () => {
     const error = 'message error'
     postAsync.mockRejectedValue(error)
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const addTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'addTroubleshootingHit')
+
     const activateHit = new Activate({
       visitorId,
       variationGroupId: 'variationGrID-activate',
@@ -657,5 +667,9 @@ describe('test activateFlag method', () => {
 
     expect(onVisitorExposed).toBeCalledTimes(0)
     expect(onUserExposure).toBeCalledTimes(0)
+
+    expect(addTroubleshootingHit).toBeCalledTimes(1)
+    const label: TroubleshootingLabel = 'SEND-ACTIVATE-HIT-ROUTE-ERROR'
+    expect(addTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 })

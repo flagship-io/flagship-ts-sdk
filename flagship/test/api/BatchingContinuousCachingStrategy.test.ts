@@ -1,5 +1,5 @@
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
-import { Event, EventCategory, HitAbstract, IExposedFlag, IExposedVisitor, LogLevel, OnVisitorExposed, Page, UserExposureInfo } from '../../src'
+import { Event, EventCategory, HitAbstract, IExposedFlag, IExposedVisitor, LogLevel, OnVisitorExposed, Page, TroubleshootingLabel, UserExposureInfo } from '../../src'
 import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinuousCachingStrategy'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
 import { EdgeConfig } from '../../src/config/EdgeConfig'
@@ -178,6 +178,7 @@ describe('test activateFlag method', () => {
     onVisitorExposed,
     onUserExposure
   })
+
   const logManager = new FlagshipLogManager()
 
   config.logManager = logManager
@@ -380,6 +381,9 @@ describe('test activateFlag method', () => {
     const error = 'message error'
     postAsync.mockRejectedValue(error)
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const addTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'addTroubleshootingHit')
+
     const activateHit = new Activate({
       visitorId,
       variationGroupId: 'variationGrID-activate',
@@ -462,6 +466,10 @@ describe('test activateFlag method', () => {
     expect(flushHits).toBeCalledTimes(0)
     expect(cacheHit).toBeCalledTimes(1)
     expect(cacheHit).toHaveBeenCalledWith(new Map([[activateHit.key, activateHit]]))
+
+    expect(addTroubleshootingHit).toBeCalledTimes(1)
+    const label: TroubleshootingLabel = 'SEND-ACTIVATE-HIT-ROUTE-ERROR'
+    expect(addTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 
   it('test activate on BUCKETING_EDGE', async () => {
@@ -687,6 +695,8 @@ describe('test sendBatch method', () => {
   it('test sendBatch method throw exception ', async () => {
     const error = 'message error'
     postAsync.mockRejectedValue(error)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const addTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'addTroubleshootingHit')
 
     config.logLevel = LogLevel.ALL
     const batch:Batch = new Batch({ hits: [globalPageHit] })
@@ -716,6 +726,8 @@ describe('test sendBatch method', () => {
     expect(hitsPoolQueue.size).toBe(1)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(sprintf(TRACKING_MANAGER_ERROR, BATCH_HIT, errorFormatMessage), TRACKING_MANAGER)
+    const label: TroubleshootingLabel = 'SEND-BATCH-HIT-ROUTE-RESPONSE-ERROR'
+    expect(addTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 
   it('test sendActivate on batch', async () => {
@@ -884,7 +896,7 @@ describe('test cacheHit and flushHits methods', () => {
   })
 })
 
-describe('test addTroubleshootingHit method', () => {
+describe('test send troubleshooting hit', () => {
   const methodNow = Date.now
   const mockNow = jest.fn<typeof Date.now>()
   beforeAll(() => {
@@ -915,38 +927,188 @@ describe('test addTroubleshootingHit method', () => {
 
   const visitorId = 'visitorId'
 
-  it('test addTroubleshootingHit', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-
-    postAsync.mockResolvedValue({ status: 200, body: null })
-
-    const variationGroupId = 'variationGrID-activate'
-    const variationId = 'variationId'
-    const flagKey = 'flagKey'
-    const flagValue = 'value'
-    const flagDefaultValue = 'default-value'
-    const flagMetadata = {
+  const activateHit = new Activate({
+    visitorId,
+    variationGroupId: 'variationGrID-activate',
+    variationId: 'variationId',
+    flagKey: 'flagKey',
+    flagValue: 'value',
+    flagDefaultValue: 'default-value',
+    flagMetadata: {
       campaignId: 'campaignId',
       variationGroupId: 'variationGrID',
       variationId: 'varId',
       isReference: true,
       campaignType: 'ab',
       slug: 'slug'
-    }
-    const visitorContext = { key: 'value' }
+    },
+    visitorContext: { key: 'value' }
+  })
 
-    const activateHit = new Activate({
-      visitorId,
-      variationGroupId,
-      variationId,
-      flagKey,
-      flagValue,
-      flagDefaultValue,
-      flagMetadata,
-      visitorContext
+  activateHit.config = config
+
+  const activateTroubleshooting = new Troubleshooting({
+    label: 'VISITOR-SEND-ACTIVATE',
+    logLevel: LogLevel.INFO,
+    traffic: 2,
+    visitorId: activateHit.visitorId,
+    flagshipInstanceId: activateHit.flagshipInstanceId,
+    visitorInstanceId: activateHit.visitorInstanceId,
+    anonymousId: activateHit.anonymousId,
+    config,
+    hitContent: activateHit.toApiKeys()
+  })
+
+  it('test troubleshootingData === undefined', async () => {
+    postAsync.mockResolvedValue({ status: 200, body: null })
+
+    const activateTroubleshooting = new Troubleshooting({
+      label: 'VISITOR-SEND-ACTIVATE',
+      logLevel: LogLevel.INFO,
+      traffic: 50,
+      visitorId: activateHit.visitorId,
+      flagshipInstanceId: activateHit.flagshipInstanceId,
+      visitorInstanceId: activateHit.visitorInstanceId,
+      anonymousId: activateHit.anonymousId,
+      config,
+      hitContent: activateHit.toApiKeys()
     })
 
-    activateHit.config = config
+    batchingStrategy.troubleshootingData = undefined
+
+    expect(batchingStrategy.flagshipInstanceId).toBe(flagshipInstanceId)
+    expect(troubleshootingQueue.size).toBe(0)
+    await batchingStrategy.sendTroubleshootingHit(activateTroubleshooting)
+    expect(troubleshootingQueue.size).toBe(0)
+    expect(postAsync).toBeCalledTimes(0)
+  })
+
+  it('test troubleshooting has not started yet', async () => {
+    postAsync.mockResolvedValue({ status: 200, body: null })
+
+    const activateTroubleshooting = new Troubleshooting({
+      label: 'VISITOR-SEND-ACTIVATE',
+      logLevel: LogLevel.INFO,
+      traffic: 50,
+      visitorId: activateHit.visitorId,
+      flagshipInstanceId: activateHit.flagshipInstanceId,
+      visitorInstanceId: activateHit.visitorInstanceId,
+      anonymousId: activateHit.anonymousId,
+      config,
+      hitContent: activateHit.toApiKeys()
+    })
+
+    const startDate = new Date()
+    startDate.setMinutes(startDate.getMinutes() + 2)
+    const endDate = new Date()
+    endDate.setMinutes(startDate.getMinutes() + 2)
+
+    batchingStrategy.troubleshootingData = {
+      startDate,
+      endDate,
+      traffic: 100,
+      timezone: ''
+    }
+
+    expect(troubleshootingQueue.size).toBe(0)
+    await batchingStrategy.sendTroubleshootingHit(activateTroubleshooting)
+    expect(troubleshootingQueue.size).toBe(0)
+    expect(postAsync).toBeCalledTimes(0)
+  })
+
+  it('test troubleshooting is finished', async () => {
+    postAsync.mockResolvedValue({ status: 200, body: null })
+
+    const activateTroubleshooting = new Troubleshooting({
+      label: 'VISITOR-SEND-ACTIVATE',
+      logLevel: LogLevel.INFO,
+      traffic: 50,
+      visitorId: activateHit.visitorId,
+      flagshipInstanceId: activateHit.flagshipInstanceId,
+      visitorInstanceId: activateHit.visitorInstanceId,
+      anonymousId: activateHit.anonymousId,
+      config,
+      hitContent: activateHit.toApiKeys()
+    })
+
+    const startDate = new Date()
+    startDate.setMinutes(startDate.getMinutes() - 5)
+    const endDate = new Date()
+    endDate.setMinutes(endDate.getMinutes() - 2)
+
+    batchingStrategy.troubleshootingData = {
+      startDate,
+      endDate,
+      traffic: 100,
+      timezone: ''
+    }
+
+    expect(troubleshootingQueue.size).toBe(0)
+    await batchingStrategy.sendTroubleshootingHit(activateTroubleshooting)
+    expect(troubleshootingQueue.size).toBe(0)
+    expect(postAsync).toBeCalledTimes(0)
+  })
+
+  it('test troubleshooting.traffic < hit.traffic', async () => {
+    postAsync.mockResolvedValue({ status: 200, body: null })
+
+    const activateTroubleshooting = new Troubleshooting({
+      label: 'VISITOR-SEND-ACTIVATE',
+      logLevel: LogLevel.INFO,
+      traffic: 50,
+      visitorId: activateHit.visitorId,
+      flagshipInstanceId: activateHit.flagshipInstanceId,
+      visitorInstanceId: activateHit.visitorInstanceId,
+      anonymousId: activateHit.anonymousId,
+      config,
+      hitContent: activateHit.toApiKeys()
+    })
+
+    const startDate = new Date()
+    const endDate = new Date(startDate)
+    endDate.setMinutes(startDate.getMinutes() + 2)
+
+    batchingStrategy.troubleshootingData = {
+      startDate,
+      endDate,
+      traffic: 30,
+      timezone: ''
+    }
+
+    expect(troubleshootingQueue.size).toBe(0)
+    await batchingStrategy.sendTroubleshootingHit(activateTroubleshooting)
+    expect(troubleshootingQueue.size).toBe(0)
+    expect(postAsync).toBeCalledTimes(0)
+  })
+
+  it('test sendTroubleshootingHit', async () => {
+    postAsync.mockResolvedValue({ status: 200, body: null })
+
+    const startDate = new Date()
+    const endDate = new Date(startDate)
+    endDate.setMinutes(startDate.getMinutes() + 2)
+
+    batchingStrategy.troubleshootingData = {
+      startDate,
+      endDate,
+      traffic: 100,
+      timezone: ''
+    }
+
+    expect(troubleshootingQueue.size).toBe(0)
+
+    await batchingStrategy.sendTroubleshootingHit(activateTroubleshooting)
+    expect(troubleshootingQueue.size).toBe(0)
+    expect(postAsync).toBeCalledTimes(1)
+    expect(postAsync).toHaveBeenNthCalledWith(1,
+      TROUBLESHOOTING_HIT_URL, {
+        body: activateTroubleshooting.toApiKeys()
+      })
+  })
+
+  it('test sendTroubleshootingHit failed', async () => {
+    const error = new Error()
+    postAsync.mockRejectedValue(error)
 
     const activateTroubleshooting = new Troubleshooting({
       label: 'VISITOR-SEND-ACTIVATE',
@@ -960,198 +1122,87 @@ describe('test addTroubleshootingHit method', () => {
       hitContent: activateHit.toApiKeys()
     })
 
+    const startDate = new Date()
+    const endDate = new Date(startDate)
+    endDate.setMinutes(startDate.getMinutes() + 2)
+
     batchingStrategy.troubleshootingData = {
-      startDate: new Date(),
-      endDate: new Date(),
+      startDate,
+      endDate,
       traffic: 100,
       timezone: ''
     }
 
     expect(troubleshootingQueue.size).toBe(0)
-
     await batchingStrategy.sendTroubleshootingHit(activateTroubleshooting)
-
-    expect(troubleshootingQueue.size).toBe(0)
-
+    expect(troubleshootingQueue.size).toBe(1)
     expect(postAsync).toBeCalledTimes(1)
-
     expect(postAsync).toHaveBeenNthCalledWith(1,
       TROUBLESHOOTING_HIT_URL, {
         body: activateTroubleshooting.toApiKeys()
       })
   })
-  // it('test activate success', async () => {
-  //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 
-  //   getAsync.mockResolvedValue({ status: 200, body: null })
+  it('test sendTroubleshootingHit when troubleshootingData === started', async () => {
+    postAsync.mockResolvedValue({ status: 200, body: null })
 
-  //   const variationGroupId = 'variationGrID-activate'
-  //   const variationId = 'variationId'
-  //   const flagKey = 'flagKey'
-  //   const flagValue = 'value'
-  //   const flagDefaultValue = 'default-value'
-  //   const flagMetadata = {
-  //     campaignId: 'campaignId',
-  //     variationGroupId: 'variationGrID',
-  //     variationId: 'varId',
-  //     isReference: true,
-  //     campaignType: 'ab',
-  //     slug: 'slug'
-  //   }
-  //   const visitorContext = { key: 'value' }
+    const activateTroubleshooting = new Troubleshooting({
+      label: 'VISITOR-SEND-ACTIVATE',
+      logLevel: LogLevel.INFO,
+      traffic: 2,
+      visitorId: activateHit.visitorId,
+      flagshipInstanceId: activateHit.flagshipInstanceId,
+      visitorInstanceId: activateHit.visitorInstanceId,
+      anonymousId: activateHit.anonymousId,
+      config,
+      hitContent: activateHit.toApiKeys()
+    })
 
-  //   const activateHit = new Activate({
-  //     visitorId,
-  //     variationGroupId,
-  //     variationId,
-  //     flagKey,
-  //     flagValue,
-  //     flagDefaultValue,
-  //     flagMetadata,
-  //     visitorContext
-  //   })
-  //   activateHit.config = config
-  //   activateHit.key = visitorId
+    batchingStrategy.troubleshootingData = 'started'
 
-  //   expect(hitsPoolQueue.size).toBe(0)
+    expect(troubleshootingQueue.size).toBe(1)
+    await batchingStrategy.sendTroubleshootingHit(activateTroubleshooting)
+    expect(troubleshootingQueue.size).toBe(2)
+    expect(postAsync).toBeCalledTimes(0)
+  })
 
-  //   await batchingStrategy.activateFlag(activateHit)
+  it('test sendTroubleshootingQueue when troubleshootingData === started', async () => {
+    postAsync.mockResolvedValue({ status: 200, body: null })
 
-  //   expect(hitsPoolQueue.size).toBe(0)
-  //   expect(activatePoolQueue.size).toBe(0)
+    const startDate = new Date()
+    const endDate = new Date(startDate)
+    endDate.setMinutes(startDate.getMinutes() + 2)
 
-  //   expect(getAsync).toBeCalledTimes(1)
-  //   expect(getAsync).toHaveBeenNthCalledWith(1,
-  //     urlActivate, {
-  //       headers: headersActivate,
-  //       body: new ActivateBatch([activateHit], config).toApiKeys(),
-  //       timeout: config.timeout
-  //     })
+    batchingStrategy.troubleshootingData = 'started'
 
-  //   const fromFlag : IExposedFlag = {
-  //     key: activateHit.flagKey,
-  //     value: activateHit.flagValue,
-  //     defaultValue: activateHit.flagDefaultValue,
-  //     metadata: activateHit.flagMetadata
-  //   }
+    expect(troubleshootingQueue.size).toBe(2)
 
-  //   const exposedVisitor: IExposedVisitor = {
-  //     id: activateHit.visitorId,
-  //     anonymousId: activateHit.anonymousId,
-  //     context: activateHit.visitorContext
-  //   }
-  //   expect(onVisitorExposed).toBeCalledTimes(1)
-  //   expect(onVisitorExposed).toBeCalledWith({ exposedVisitor, fromFlag })
+    await batchingStrategy.sendTroubleshootingQueue()
+    expect(troubleshootingQueue.size).toBe(2)
+    expect(postAsync).toBeCalledTimes(0)
+  })
+  it('test sendTroubleshootingQueue', async () => {
+    postAsync.mockResolvedValue({ status: 200, body: null })
 
-  //   const flagData = {
-  //     metadata: {
-  //       campaignId: activateHit.flagMetadata.campaignId,
-  //       campaignType: activateHit.flagMetadata.campaignType,
-  //       slug: activateHit.flagMetadata.slug,
-  //       isReference: activateHit.flagMetadata.isReference,
-  //       variationGroupId: activateHit.flagMetadata.variationGroupId,
-  //       variationId: activateHit.flagMetadata.variationId
-  //     },
-  //     key: activateHit.flagKey,
-  //     value: activateHit.flagValue
-  //   }
+    const startDate = new Date()
+    const endDate = new Date(startDate)
+    endDate.setMinutes(startDate.getMinutes() + 2)
 
-  //   const visitorData = {
-  //     visitorId: activateHit.visitorId,
-  //     anonymousId: activateHit.anonymousId as string,
-  //     context: activateHit.visitorContext
-  //   }
-  //   expect(onUserExposure).toBeCalledTimes(1)
-  //   expect(onUserExposure).toBeCalledWith({ flagData, visitorData })
+    batchingStrategy.troubleshootingData = {
+      startDate,
+      endDate,
+      traffic: 100,
+      timezone: ''
+    }
 
-  //   expect(flushHits).toBeCalledTimes(0)
-  // })
+    expect(troubleshootingQueue.size).toBe(2)
 
-  // it('test multiple activate failed', async () => {
-  //   const error = 'message error'
-  //   getAsync.mockRejectedValue(error)
+    await batchingStrategy.sendTroubleshootingQueue()
+    expect(troubleshootingQueue.size).toBe(0)
+    expect(postAsync).toBeCalledTimes(2)
 
-  //   const activateHit = new Activate({
-  //     visitorId,
-  //     variationGroupId: 'variationGrID-activate',
-  //     variationId: 'variationId',
-  //     flagKey: 'flagKey',
-  //     flagValue: 'value',
-  //     flagDefaultValue: 'default-value',
-  //     flagMetadata: {
-  //       campaignId: 'campaignId',
-  //       variationGroupId: 'variationGrID',
-  //       variationId: 'varId',
-  //       isReference: true,
-  //       campaignType: 'ab',
-  //       slug: 'slug'
-  //     },
-  //     visitorContext: { key: 'value' }
-  //   })
-  //   activateHit.config = config
-  //   activateHit.key = visitorId
-
-  //   const activateHit2 = new Activate({
-  //     visitorId,
-  //     variationGroupId: 'variationGrID-activate-2',
-  //     variationId: 'variationId-2',
-  //     flagKey: 'flagKey',
-  //     flagValue: 'value',
-  //     flagDefaultValue: 'default-value',
-  //     flagMetadata: {
-  //       campaignId: 'campaignId',
-  //       variationGroupId: 'variationGrID',
-  //       variationId: 'varId',
-  //       isReference: true,
-  //       campaignType: 'ab',
-  //       slug: 'slug'
-  //     },
-  //     visitorContext: { key: 'value' }
-  //   })
-
-  //   activateHit2.config = config
-  //   activateHit2.key = visitorId + 'key-2'
-
-  //   const activateHit3 = new Activate({
-  //     visitorId,
-  //     variationGroupId: 'variationGrID-activate-3',
-  //     variationId: 'variationId-3',
-  //     flagKey: 'flagKey',
-  //     flagValue: 'value',
-  //     flagDefaultValue: 'default-value',
-  //     flagMetadata: {
-  //       campaignId: 'campaignId',
-  //       variationGroupId: 'variationGrID',
-  //       variationId: 'varId',
-  //       isReference: true,
-  //       campaignType: 'ab',
-  //       slug: 'slug'
-  //     },
-  //     visitorContext: { key: 'value' }
-  //   })
-  //   activateHit3.config = config
-  //   activateHit3.key = visitorId + 'key-3'
-
-  //   activatePoolQueue.set(activateHit2.key, activateHit2).set(activateHit3.key, activateHit3)
-
-  //   expect(hitsPoolQueue.size).toBe(0)
-  //   expect(activatePoolQueue.size).toBe(2)
-
-  //   await batchingStrategy.activateFlag(activateHit)
-
-  //   expect(hitsPoolQueue.size).toBe(0)
-  //   expect(activatePoolQueue.size).toBe(3)
-
-  //   expect(getAsync).toBeCalledTimes(1)
-  //   expect(getAsync).toHaveBeenNthCalledWith(1, urlActivate, {
-  //     headers: headersActivate,
-  //     body: new ActivateBatch([activateHit2, activateHit3, activateHit], config).toApiKeys(),
-  //     timeout: config.timeout
-  //   })
-
-  //   expect(onVisitorExposed).toBeCalledTimes(0)
-  //   expect(flushHits).toBeCalledTimes(0)
-  //   expect(cacheHit).toBeCalledTimes(1)
-  //   expect(cacheHit).toHaveBeenCalledWith(new Map([[activateHit.key, activateHit]]))
-  // })
+    await batchingStrategy.sendTroubleshootingQueue()
+    expect(troubleshootingQueue.size).toBe(0)
+    expect(postAsync).toBeCalledTimes(2)
+  })
 })

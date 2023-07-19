@@ -56,7 +56,6 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
   protected isTroubleshootingActivated () {
     if (!this.troubleshootingData) {
-      this._troubleshootingQueue.clear()
       return false
     }
 
@@ -95,10 +94,8 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       this.addTroubleshootingHit(hit)
       return
     }
-    if (!this.isTroubleshootingActivated()) {
-      return
-    }
-    if (hit.traffic === undefined || (this.troubleshootingData as TroubleshootingData).traffic < hit.traffic) {
+
+    if (!this.isTroubleshootingActivated() || hit.traffic === undefined || (this.troubleshootingData as TroubleshootingData).traffic < hit.traffic) {
       return
     }
     const requestBody = hit.toApiKeys()
@@ -133,10 +130,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   }
 
   public async sendTroubleshootingQueue () {
-    if (!this.isTroubleshootingActivated()) {
-      return
-    }
-    if (this._isLoopingMonitoringPoolQueue || this._troubleshootingQueue.size === 0) {
+    if (!this.isTroubleshootingActivated() || this._isLoopingMonitoringPoolQueue || this._troubleshootingQueue.size === 0) {
       return
     }
 
