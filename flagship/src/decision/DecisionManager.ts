@@ -149,27 +149,6 @@ export abstract class DecisionManager implements IDecisionManager {
         }
       }
 
-      const monitoringHttpResponse = new Troubleshooting({
-        label: 'GET-CAMPAIGNS-ROUTE-RESPONSE',
-        logLevel: LogLevel.INFO,
-        visitorId: visitor.visitorId,
-        anonymousId: visitor.anonymousId,
-        visitorInstanceId: visitor.instanceId,
-        traffic: visitor.traffic,
-        config: this.config,
-        visitorContext: visitor.context,
-        httpRequestBody: requestBody,
-        httpRequestHeaders: headers,
-        httpRequestMethod: 'POST',
-        httpRequestUrl: url,
-        httpResponseBody: response?.body,
-        httpResponseHeaders: response?.headers,
-        httpResponseCode: response?.status,
-        httpResponseTime: Date.now() - now
-      })
-
-      visitor.sendMonitoringHit(monitoringHttpResponse)
-
       return campaigns
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {

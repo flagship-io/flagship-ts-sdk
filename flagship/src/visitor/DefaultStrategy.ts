@@ -719,8 +719,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       await this.trackingManager.addHit(hitInstance)
       if (this.visitor.traffic === undefined) {
         this.visitor.visitorHits.push(hitInstance)
-        console.log('not traffic', hitInstance)
-
         return
       }
       const sendHitTroubleshooting = new Troubleshooting({

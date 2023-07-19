@@ -1,6 +1,6 @@
 import { AUTHENTICATE, CONTEXT_KEY_ERROR, FLAG_USER_EXPOSED, PROCESS_FETCHING_FLAGS, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, UNAUTHENTICATE, FLAG_METADATA } from './../../src/enum/FlagshipConstant'
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
-import { DecisionApiConfig, Event, EventCategory, FlagDTO, FlagMetadata, Screen } from '../../src/index'
+import { DecisionApiConfig, Event, EventCategory, FlagDTO, FlagMetadata, Screen, TroubleshootingLabel } from '../../src/index'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { BucketingConfig, ConfigManager } from '../../src/config/index'
 import { ApiManager } from '../../src/decision/ApiManager'
@@ -1567,5 +1567,82 @@ describe('test fetchFlags errors 2', () => {
       isFromCache: false,
       duration: 0
     }), PROCESS_FETCHING_FLAGS)
+  })
+})
+
+describe('test DefaultStrategy troubleshootingHit', () => {
+  const methodNow = Date.now
+  const mockNow = jest.fn<typeof Date.now>()
+  beforeAll(() => {
+    Date.now = mockNow
+    mockNow.mockReturnValue(1)
+  })
+  afterAll(() => {
+    Date.now = methodNow
+  })
+  const visitorId = 'visitorId'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const context: any = {
+    isVip: true
+  }
+
+  const logManager = new FlagshipLogManager()
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0 })
+  config.logManager = logManager
+
+  const httpClient = new HttpClient()
+
+  const post = jest.fn<typeof httpClient.postAsync>()
+  httpClient.postAsync = post
+  post.mockResolvedValue({} as IHttpResponse)
+
+  const apiManager = new ApiManager(httpClient, config)
+
+  const getCampaignsAsync = jest.spyOn(
+    apiManager,
+    'getCampaignsAsync'
+  )
+
+  const getModifications = jest.spyOn(
+    apiManager,
+    'getModifications'
+  )
+
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  const addHit = jest.spyOn(trackingManager, 'addHit')
+  addHit.mockResolvedValue()
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'addTroubleshootingHit')
+
+  const activateFlag = jest.spyOn(trackingManager, 'activateFlag')
+  activateFlag.mockResolvedValue()
+
+  const configManager = new ConfigManager(config, apiManager, trackingManager)
+
+  const murmurHash = new MurmurHash()
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
+  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
+
+  it('test fetchFlags', async () => {
+    const flagDTO: FlagDTO = {
+      key: 'key',
+      campaignId: 'campaignId',
+      variationGroupId: 'variationGroupId',
+      variationId: 'variationId',
+      value: 'value'
+    }
+    const flags = new Map<string, FlagDTO>().set(flagDTO.key, flagDTO)
+    getCampaignsAsync.mockResolvedValue([])
+    getModifications.mockReturnValue(flags)
+    await defaultStrategy.fetchFlags()
+    expect(sendTroubleshootingHit).toBeCalledTimes(2)
+    const label: TroubleshootingLabel = 'VISITOR-SEND-HIT'
+    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+
+    const label2: TroubleshootingLabel = 'VISITOR-FETCH-CAMPAIGNS'
+    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ label: label2 }))
   })
 })
