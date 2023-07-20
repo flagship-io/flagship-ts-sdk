@@ -98,6 +98,9 @@ describe('test ApiManager', () => {
     expect(modifications.size).toBe(4)
     expect(modifications.get('array')?.value).toEqual([1, 1, 1])
     expect(modifications.get('object')?.value).toEqual({ value: 123456 })
+    expect(apiManager.troubleshooting?.startDate.toISOString()).toBe('2023-04-13T09:33:38.049Z')
+    expect(apiManager.troubleshooting?.endDate.toISOString()).toBe('2023-04-13T10:03:38.049Z')
+    expect(apiManager.troubleshooting?.traffic).toBe(40)
   })
 
   it('Test error ', async () => {

@@ -118,6 +118,9 @@ describe('test BucketingManager', () => {
       },
       timeout: config.timeout
     })
+    expect(bucketingManager.troubleshooting?.startDate.toISOString()).toBe('2023-04-13T09:33:38.049Z')
+    expect(bucketingManager.troubleshooting?.endDate.toISOString()).toBe('2023-04-13T10:03:38.049Z')
+    expect(bucketingManager.troubleshooting?.traffic).toBe(40)
   })
 })
 
@@ -211,6 +214,9 @@ describe('test bucketing polling', () => {
     bucketingManager.stopPolling()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((bucketingManager as any)._bucketingContent).toEqual(bucketing)
+
+    const label: TroubleshootingLabel = 'SDK-BUCKETING-FILE-ERROR'
+    expect(addTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 
   it('should ', async () => {
