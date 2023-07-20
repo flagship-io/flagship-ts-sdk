@@ -41,5 +41,18 @@ export const campaigns = {
         reference: false
       }
     }
-  ]
+  ],
+  extras: {
+    accountSettings: {
+      '@type': 'type.googleapis.com/flagship.protobuf.AccountSettings',
+      enabledXPC: false,
+      enabled1V1T: false,
+      troubleshooting: {
+        startDate: '2023-04-13T09:33:38.049Z',
+        endDate: '2023-04-13T10:03:38.049Z',
+        timezone: 'Europe/Paris',
+        traffic: 40
+      }
+    }
+  }
 }
