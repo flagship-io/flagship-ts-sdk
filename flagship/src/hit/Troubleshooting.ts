@@ -50,12 +50,10 @@ export interface ITroubleshooting extends IHitAbstract{
     sdkConfigTrackingManagerConfigPoolMaxSize?: number
     sdkBucketingFile?: BucketingDTO
 
-    httpInstanceId?: string
     httpRequestUrl?:string
     httpRequestMethod?:string
     httpRequestHeaders?:Record<string, unknown>
     httpRequestBody?:unknown
-    httpRequestDetails?:string
 
     httpResponseUrl?:string
     httpResponseMethod?: string
@@ -63,7 +61,6 @@ export interface ITroubleshooting extends IHitAbstract{
     httpResponseCode?: number
     httpResponseBody?: unknown
     httpResponseTime?:number
-    httpResponseDetails?: string
 
     visitorStatus?: string
     visitorInstanceType?: string
@@ -103,9 +100,7 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
   private _accountId? : string
   private _envId? : string
   private _timestamp? : string
-  private _component? : string
-  private _subComponent! : TroubleshootingLabel
-  private _message! : string
+  private _label! : TroubleshootingLabel
   private _stackType? : string
   private _stackName? : string
   private _stackVersion? : string
@@ -130,7 +125,6 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
   private _httpResponseMethod? : string
   private _httpResponseHeaders? : Record<string, unknown>
   private _httpResponseBody? : unknown
-  private _httpResponseDetails? : string
   private _visitorStatus? : string
   private _visitorInstanceType? : string
   private _visitorContext? : Record<string, primitive>
@@ -237,14 +231,6 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
 
   public set lastInitializationTimestamp (v : string|undefined) {
     this._lastInitializationTimestamp = v
-  }
-
-  public get httpInstanceId () : string|undefined {
-    return this._httpInstanceId
-  }
-
-  public set httpInstanceId (v : string|undefined) {
-    this._httpInstanceId = v
   }
 
   public get hitContent () : Record<string, unknown>|undefined {
@@ -445,14 +431,6 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
 
   public set visitorStatus (v : string|undefined) {
     this._visitorStatus = v
-  }
-
-  public get httpResponseDetails () : string|undefined {
-    return this._httpResponseDetails
-  }
-
-  public set httpResponseDetails (v : string|undefined) {
-    this._httpResponseDetails = v
   }
 
   public get httpResponseBody () : unknown|undefined {
@@ -656,28 +634,12 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
     this._stackType = v
   }
 
-  public get message () : string {
-    return this._message
-  }
-
-  public set message (v : string) {
-    this._message = v
-  }
-
   public get label () : TroubleshootingLabel {
-    return this._subComponent
+    return this._label
   }
 
   public set label (v : TroubleshootingLabel) {
-    this._subComponent = v
-  }
-
-  public get component () : string|undefined {
-    return this._component
-  }
-
-  public set component (v : string|undefined) {
-    this._component = v
+    this._label = v
   }
 
   public get timestamp () : string|undefined {
@@ -736,11 +698,11 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
       stackName, stackVersion, stackOriginName, stackOriginVersion, sdkStatus, sdkConfigMode, sdkConfigCustomLogManager,
       sdkConfigCustomCacheManager, sdkConfigStatusListener, sdkConfigTimeout, sdkConfigPollingInterval, sdkConfigTrackingManagerConfigStrategy, sdkConfigTrackingManagerConfigBatchIntervals,
       sdkConfigTrackingManagerConfigPoolMaxSize, httpRequestUrl, httpRequestMethod,
-      httpRequestHeaders, httpRequestBody, httpRequestDetails, httpResponseTime,
-      httpResponseUrl, httpResponseMethod, httpResponseHeaders, httpResponseCode, httpResponseBody, httpResponseDetails, visitorStatus, visitorInstanceType, visitorContext,
+      httpRequestHeaders, httpRequestBody, httpResponseTime,
+      httpResponseUrl, httpResponseMethod, httpResponseHeaders, httpResponseCode, httpResponseBody, visitorStatus, visitorInstanceType, visitorContext,
       visitorConsent, visitorAssignmentHistory, visitorFlags, visitorIsAuthenticated, config, flagKey, flagValue, flagDefault,
       flagMetadataCampaignId, flagMetadataVariationGroupId, flagMetadataVariationId, flagMetadataCampaignSlug, flagMetadataCampaignType, sdkConfigFetchNow, sdkConfigEnableClientCache,
-      sdkConfigInitialBucketing, sdkConfigDecisionApiUrl, sdkConfigHitDeduplicationTime, flagshipInstanceId, hitContent, visitorInstanceId, traffic, httpInstanceId,
+      sdkConfigInitialBucketing, sdkConfigDecisionApiUrl, sdkConfigHitDeduplicationTime, flagshipInstanceId, hitContent, visitorInstanceId, traffic,
       lastInitializationTimestamp, lastBucketingTimestamp, batchTriggeredBy, visitorCampaigns, visitorCampaignFromCache, visitorInitialCampaigns,
       visitorInitialFlagsData, flagMetadataCampaignIsReference, contextKey, contextValue, sdkBucketingFile
     } = param
@@ -786,18 +748,15 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
     this.sdkConfigInitialBucketing = sdkConfigInitialBucketing
     this.sdkConfigDecisionApiUrl = sdkConfigDecisionApiUrl
     this.sdkConfigHitDeduplicationTime = sdkConfigHitDeduplicationTime
-    this.httpInstanceId = httpInstanceId
     this.httpRequestUrl = httpRequestUrl
     this.httpRequestMethod = httpRequestMethod
     this.httpRequestHeaders = httpRequestHeaders
     this.httpRequestBody = httpRequestBody
-    this.httpRequestDetails = httpRequestDetails
     this.httpResponseUrl = httpResponseUrl
     this.httpResponseMethod = httpResponseMethod
     this.httpResponseHeaders = httpResponseHeaders
     this.httpResponseCode = httpResponseCode
     this.httpResponseBody = httpResponseBody
-    this.httpResponseDetails = httpResponseDetails
     this.httpResponseTime = httpResponseTime
     this.visitorStatus = visitorStatus
     this.visitorInstanceType = visitorInstanceType
@@ -830,7 +789,7 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
     }
     const customVariable:Record<string, unknown> = {
       version: `${this.version}`,
-      LogLevel: `${LogLevel[this.logLevel]}`,
+      logLevel: `${LogLevel[this.logLevel]}`,
       timestamp: `${this.timestamp}`,
       timeZone: `${this.timeZone}`,
       label: `${this.label}`,
@@ -843,8 +802,8 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
       customVariable.lastBucketingTimestamp = `${this.lastBucketingTimestamp}`
     }
 
-    if (this.lastBucketingTimestamp !== undefined) {
-      customVariable.lastBucketingTimestamp = `${this.lastBucketingTimestamp}`
+    if (this.lastInitializationTimestamp !== undefined) {
+      customVariable.lastInitializationTimestamp = `${this.lastInitializationTimestamp}`
     }
 
     if (this.flagshipInstanceId !== undefined) {
@@ -918,9 +877,6 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
       customVariable['sdk.config.trackingManager.config.deduplicationTime'] = `${this.sdkConfigHitDeduplicationTime}`
     }
 
-    if (this.httpInstanceId !== undefined) {
-      customVariable['http.instanceId'] = `${this.httpInstanceId}`
-    }
     if (this.httpRequestUrl !== undefined) {
       customVariable['http.request.url'] = `${this.httpRequestUrl}`
     }
@@ -932,9 +888,6 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
     }
     if (this.httpRequestBody !== undefined) {
       customVariable['http.request.body'] = JSON.stringify(this.httpRequestBody)
-    }
-    if (this.httpRequestDetails !== undefined) {
-      customVariable['http.request.details'] = `${this.httpRequestDetails}`
     }
     if (this.httpResponseUrl !== undefined) {
       customVariable['http.response.url'] = `${this.httpResponseUrl}`
@@ -950,9 +903,6 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
     }
     if (this.httpResponseBody !== undefined) {
       customVariable['http.response.body'] = JSON.stringify(this.httpResponseBody)
-    }
-    if (this.httpResponseDetails !== undefined) {
-      customVariable['http.response.details'] = `${this.httpResponseDetails}`
     }
     if (this.httpResponseTime !== undefined) {
       customVariable['http.response.time'] = `${this.httpResponseTime}`
@@ -1079,7 +1029,6 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
       httpResponseHeaders: this.httpResponseHeaders,
       httpResponseCode: this.httpResponseCode,
       httpResponseBody: this.httpResponseBody,
-      httpResponseDetails: this.httpResponseDetails,
 
       visitorStatus: this.visitorStatus,
       visitorInstanceType: this.visitorInstanceType,
