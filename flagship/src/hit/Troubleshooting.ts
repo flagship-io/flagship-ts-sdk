@@ -120,7 +120,6 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
   private _httpRequestMethod? : string
   private _httpRequestHeaders? : Record<string, unknown>
   private _httpRequestBody? : unknown
-  private _httpRequestDetails? : string
   private _httpResponseUrl? : string
   private _httpResponseMethod? : string
   private _httpResponseHeaders? : Record<string, unknown>
@@ -472,14 +471,6 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
 
   public set httpResponseUrl (v : string|undefined) {
     this._httpResponseUrl = v
-  }
-
-  public get httpRequestDetails () : string|undefined {
-    return this._httpRequestDetails
-  }
-
-  public set httpRequestDetails (v : string|undefined) {
-    this._httpRequestDetails = v
   }
 
   public get httpRequestBody () : unknown|undefined {
@@ -990,63 +981,6 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
 
     apiKeys.cv = customVariable
     return apiKeys
-  }
-
-  public toObject ():Record<string, unknown> {
-    return {
-      ...super.toObject(),
-      logVersion: this.version,
-      logLevel: this.logLevel,
-      accountId: this.accountId,
-      envId: this.envId,
-      timestamp: this.timestamp,
-      label: this.label,
-      stackType: this.stackType,
-      stackName: this.stackName,
-      stackVersion: this.stackVersion,
-      stackOriginName: this.stackOriginName,
-      stackOriginVersion: this.stackOriginVersion,
-
-      sdkStatus: this.sdkStatus,
-      sdkConfigMode: this.sdkConfigMode,
-      sdkConfigCustomLogManager: this.sdkConfigCustomLogManager,
-      sdkConfigCustomCacheManager: this.sdkConfigCustomCacheManager,
-      sdkConfigStatusListener: this.sdkConfigStatusListener,
-      sdkConfigTimeout: this.sdkConfigTimeout,
-      sdkConfigPollingTime: this.sdkConfigPollingInterval,
-      sdkConfigTrackingManagerConfigStrategy: this.sdkConfigTrackingManagerConfigStrategy,
-      sdkConfigTrackingManagerConfigBatchIntervals: this.sdkConfigTrackingManagerConfigBatchIntervals,
-      sdkConfigTrackingManagerConfigBatchLength: this.sdkConfigTrackingManagerConfigPoolMaxSize,
-
-      httpRequestUrl: this.httpRequestUrl,
-      httpRequestMethod: this.httpRequestMethod,
-      httpRequestHeaders: this.httpRequestHeaders,
-      httpRequestBody: this.httpRequestBody,
-      httpRequestDetails: this.httpRequestDetails,
-
-      httpResponseUrl: this.httpResponseUrl,
-      httpResponseMethod: this.httpResponseMethod,
-      httpResponseHeaders: this.httpResponseHeaders,
-      httpResponseCode: this.httpResponseCode,
-      httpResponseBody: this.httpResponseBody,
-
-      visitorStatus: this.visitorStatus,
-      visitorInstanceType: this.visitorInstanceType,
-      visitorContext: this.visitorContext,
-      visitorConsent: this.visitorConsent,
-      visitorAssignmentHistory: this.visitorAssignmentHistory,
-      visitorFlags: this.visitorFlags,
-      visitorIsAuthenticated: this.visitorIsAuthenticated,
-
-      flagKey: this.flagKey,
-      flagValue: this.flagValue,
-      flagDefault: this.flagDefault,
-      flagMetadataCampaignId: this.flagMetadataCampaignId,
-      flagMetadataVariationGroupId: this.flagMetadataVariationGroupId,
-      flagMetadataVariationId: this.flagMetadataVariationId,
-      flagMetadataCampaignSlug: this.flagMetadataCampaignSlug,
-      flagMetadataCampaignType: this.flagMetadataCampaignType
-    }
   }
 
   public isReady (checkParent = true): boolean {

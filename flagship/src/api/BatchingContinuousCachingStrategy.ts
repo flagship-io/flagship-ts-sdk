@@ -5,7 +5,7 @@ import { Activate } from '../hit/Activate'
 import { ActivateBatch } from '../hit/ActivateBatch'
 import { HitAbstract, Event } from '../hit/index'
 import { Troubleshooting } from '../hit/Troubleshooting'
-import { logDebugSprintf, logErrorSprintf, uuidV4 } from '../utils/utils'
+import { logDebugSprintf, logErrorSprintf } from '../utils/utils'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
 import { SendActivate } from './types'
 
@@ -60,8 +60,6 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     const requestBody = activateBatch.toApiKeys()
     const url = BASE_API_URL + URL_ACTIVATE_MODIFICATION
     const now = Date.now()
-    const httpInstanceId = uuidV4()
-
     try {
       await this._httpClient.postAsync(url, {
         headers,
@@ -117,7 +115,6 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
         visitorId: `${this._flagshipInstanceId}`,
         traffic: 0,
         config: this.config,
-        httpInstanceId,
         httpRequestBody: requestBody,
         httpRequestHeaders: headers,
         httpRequestMethod: 'POST',
