@@ -44,8 +44,8 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
     logDebugSprintf(this.config, TRACKING_MANAGER, HIT_ADDED_IN_QUEUE, hit.toApiKeys())
 
-    if (this.config.trackingMangerConfig?.poolMaxSize &&
-      this._hitsPoolQueue.size >= this.config.trackingMangerConfig.poolMaxSize &&
+    if (this.config.trackingManagerConfig?.poolMaxSize &&
+      this._hitsPoolQueue.size >= this.config.trackingManagerConfig.poolMaxSize &&
       this.config.decisionMode !== DecisionMode.BUCKETING_EDGE
     ) {
       this.sendBatch()

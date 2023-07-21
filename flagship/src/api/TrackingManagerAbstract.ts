@@ -38,7 +38,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
   protected initStrategy ():BatchingCachingStrategyAbstract {
     let strategy:BatchingCachingStrategyAbstract
-    switch (this.config.trackingMangerConfig?.cacheStrategy) {
+    switch (this.config.trackingManagerConfig?.cacheStrategy) {
       case CacheStrategy.PERIODIC_CACHING:
         strategy = new BatchingPeriodicCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue, this._activatePoolQueue)
         break
@@ -67,7 +67,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   public abstract sendBatch(): Promise<void>
 
   public startBatchingLoop (): void {
-    const timeInterval = (this.config.trackingMangerConfig?.batchIntervals) as number * 1000
+    const timeInterval = (this.config.trackingManagerConfig?.batchIntervals) as number * 1000
 
     logInfoSprintf(this.config, TRACKING_MANAGER, BATCH_LOOP_STARTED, timeInterval)
 

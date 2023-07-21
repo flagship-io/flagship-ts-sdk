@@ -32,7 +32,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _visitorCacheImplementation!: IVisitorCacheImplementation
   private _hitCacheImplementation!: IHitCacheImplementation
   private _disableCache!: boolean
-  private _trackingMangerConfig : ITrackingManagerConfig
+  private _trackingManagerConfig : ITrackingManagerConfig
   private _onUserExposure? : (param: UserExposureInfo)=>void
   private _onVisitorExposed?:(arg: OnVisitorExposed)=> void
   private _fetchThirdPartyData : boolean|undefined
@@ -54,8 +54,8 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._fetchThirdPartyData = v
   }
 
-  public get trackingMangerConfig () : ITrackingManagerConfig {
-    return this._trackingMangerConfig
+  public get trackingManagerConfig () : ITrackingManagerConfig {
+    return this._trackingManagerConfig
   }
 
   private _onLog? : (level: LogLevel, tag: string, message: string)=>void
@@ -81,7 +81,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
-      disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig, onLog, onVisitorExposed, nextFetchConfig
+      disableCache, language, onUserExposure, sdkVersion, trackingManagerConfig, onLog, onVisitorExposed, nextFetchConfig
     } = param
 
     this.initSDKInfo(language, sdkVersion)
@@ -91,7 +91,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     }
 
     this.nextFetchConfig = nextFetchConfig || { revalidate: 20 }
-    this._trackingMangerConfig = new TrackingManagerConfig(trackingMangerConfig || {})
+    this._trackingManagerConfig = new TrackingManagerConfig(trackingManagerConfig || {})
     this.onLog = onLog
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
     this._envId = envId
