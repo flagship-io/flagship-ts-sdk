@@ -8,18 +8,18 @@ const btnAction1 = document.getElementById('btn-action-1')
 btnAction1.addEventListener('click', async () => {
 // Initialize the SDK and send Initialize monitoring hit
   Flagship.start(ENV_ID, API_KEY, {
-    decisionMode: DecisionMode.BUCKETING,
+    // decisionMode: DecisionMode.BUCKETING,
     // initialBucketing: bucketing
     // disableCache: true,
-    pollingInterval: 30,
-    fetchThirdPartyData: true,
-    fetchNow: false,
-    pollingInterval: 15,
-    trackingMangerConfig: {
-      // cacheStrategy: 3,
-      poolMaxSize: 5,
-      batchIntervals: 30
-    }
+    // pollingInterval: 30,
+    // fetchThirdPartyData: true,
+    fetchNow: false
+    // pollingInterval: 15,
+    // trackingMangerConfig: {
+    //   // cacheStrategy: 3,
+    //   poolMaxSize: 5,
+    //   batchIntervals: 30
+    // }
   })
 })
 
@@ -33,7 +33,7 @@ btnAction2.addEventListener('click', async () => {
     visitorId: 'wonderful_visitor_1',
     // isAuthenticated: true,
     context: {
-      qa_bucketing_integration: true
+      testDut: true
     }
   })
 })
@@ -50,13 +50,9 @@ const btnAction4 = document.getElementById('btn-action-4')
 // scenario 1 action 1
 btnAction4.addEventListener('click', async () => {
   // Send an activate hit
-  const value = visitor.getFlag('appName', 'defaultValue').getValue()
+  const value = visitor.getFlag('myDutFlag', 'defaultValue').getValue()
 
   console.log('flag value', value)
-
-  const value2 = visitor.getFlag('btnColor', 'defaultValue').getValue()
-
-  console.log('flag value2', value2)
 })
 
 const btnAction5 = document.getElementById('btn-action-5')
