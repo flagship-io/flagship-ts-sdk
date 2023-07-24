@@ -111,7 +111,7 @@ describe('test hit type Monitoring', () => {
       sdkConfigStatusListener: false,
       sdkConfigTimeout: config.timeout.toString(),
       sdkConfigPollingTime: '10',
-      sdkConfigTrackingManagerConfigStrategy: CacheStrategy[config.trackingMangerConfig.cacheStrategy as number],
+      sdkConfigTrackingManagerConfigStrategy: CacheStrategy[config.trackingManagerConfig.cacheStrategy as number],
       sdkConfigTrackingManagerConfigBatchIntervals: '30',
       sdkConfigTrackingManagerConfigBatchLength: '10',
 

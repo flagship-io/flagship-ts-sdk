@@ -118,8 +118,14 @@ export interface IFlagshipConfig {
 
     /**
      * Define options to configure hit batching
+     * @deprecated use trackingManagerConfig instead
      */
     trackingMangerConfig?: ITrackingManagerConfig
+
+    /**
+     * Define options to configure hit batching
+    */
+    trackingManagerConfig?: ITrackingManagerConfig
 
     /**
      * You can define a callback function that will be called each time a flag is exposed to a user (i.e., when an activation hit is sent by the SDK).

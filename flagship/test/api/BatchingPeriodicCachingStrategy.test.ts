@@ -233,7 +233,7 @@ describe('test sendBatch method', () => {
 
     const batch:Batch = new Batch({ hits: [] })
     batch.config = config
-    config.trackingMangerConfig.batchIntervals = 25
+    config.trackingManagerConfig.batchIntervals = 25
     config.logLevel = LogLevel.NONE
 
     const pageHit = new Page({
@@ -280,7 +280,7 @@ describe('test sendBatch method', () => {
 
     const batch:Batch = new Batch({ hits: [] })
     batch.config = config
-    config.trackingMangerConfig.poolMaxSize = 20
+    config.trackingManagerConfig.poolMaxSize = 20
 
     for (let index = 0; index < 20; index++) {
       const pageHit = new Page({
