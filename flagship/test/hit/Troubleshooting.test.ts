@@ -52,7 +52,9 @@ describe('test hit type Monitoring', () => {
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         'stack.type': 'SDK',
         'stack.name': `${SDK_INFO.name}`,
-        'stack.version': `${version}`
+        'stack.version': `${version}`,
+        'visitor.visitorId': visitorId,
+        'visitor.anonymousId': 'null'
       }
     }
 
@@ -209,7 +211,9 @@ describe('test hit type Monitoring', () => {
         lastBucketingTimestamp: `${params.lastBucketingTimestamp}`,
         lastInitializationTimestamp: `${params.lastInitializationTimestamp}`,
         'visitor.instanceId': `${params.visitorInstanceId}`,
-        sdkBucketingFile: JSON.stringify(params.sdkBucketingFile)
+        sdkBucketingFile: JSON.stringify(params.sdkBucketingFile),
+        'visitor.visitorId': visitorId,
+        'visitor.anonymousId': 'null'
       }
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

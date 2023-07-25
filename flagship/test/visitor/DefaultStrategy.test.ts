@@ -481,7 +481,7 @@ describe('test DefaultStrategy ', () => {
     expect(logWarning).toBeCalledTimes(1)
     expect(logWarning).toBeCalledWith(sprintf(GET_FLAG_CAST_ERROR, visitorId, 'keyString', defaultValue), FLAG_VALUE)
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'GET-FLAG-VALUE-TYPE-ERROR'
+    const label: TroubleshootingLabel = 'GET-FLAG-VALUE-TYPE-WARNING'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
@@ -533,7 +533,7 @@ describe('test DefaultStrategy ', () => {
     expect(logWarning).toBeCalledTimes(1)
     expect(logWarning).toBeCalledWith(sprintf(GET_METADATA_CAST_ERROR, key), FLAG_METADATA)
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'GET-FLAG-METADATA-TYPE-ERROR'
+    const label: TroubleshootingLabel = 'GET-FLAG-METADATA-TYPE-WARNING'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
@@ -969,7 +969,7 @@ describe('test DefaultStrategy ', () => {
       FLAG_USER_EXPOSED
     )
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'VISITOR-EXPOSED-TYPE-ERROR'
+    const label: TroubleshootingLabel = 'VISITOR-EXPOSED-TYPE-WARNING'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
@@ -1667,12 +1667,14 @@ describe('test DefaultStrategy troubleshootingHit', () => {
     getCampaignsAsync.mockResolvedValue([])
     getModifications.mockReturnValue(flags)
     await defaultStrategy.fetchFlags()
-    expect(sendTroubleshootingHit).toBeCalledTimes(2)
-    const label: TroubleshootingLabel = 'VISITOR-SEND-HIT'
+    expect(sendTroubleshootingHit).toBeCalledTimes(1)
+
+    const label: TroubleshootingLabel = 'VISITOR-FETCH-CAMPAIGNS'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
 
-    const label2: TroubleshootingLabel = 'VISITOR-FETCH-CAMPAIGNS'
-    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ label: label2 }))
+    defaultStrategy.setConsent(true)
+    const label1: TroubleshootingLabel = 'VISITOR-SEND-HIT'
+    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ label: label1 }))
   })
 
   it('test fetchFlags throw error', async () => {
