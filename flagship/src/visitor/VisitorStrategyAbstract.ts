@@ -6,7 +6,7 @@ import { IConfigManager, IFlagshipConfig } from '../config/index'
 import { CampaignDTO } from '../decision/api/models'
 import { IDecisionManager } from '../decision/IDecisionManager'
 import { logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, sprintf } from '../utils/utils'
-import { VISITOR_CACHE_ERROR, CONSENT_CHANGED, FS_CONSENT, LOOKUP_VISITOR_JSON_OBJECT_ERROR, PROCESS_CACHE, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION, VISITOR_CACHE_FLUSHED, VISITOR_CACHE_LOADED, VISITOR_CACHE_SAVED } from '../enum/index'
+import { VISITOR_CACHE_ERROR, CONSENT_CHANGED, FS_CONSENT, LOOKUP_VISITOR_JSON_OBJECT_ERROR, PROCESS_CACHE, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION, VISITOR_CACHE_FLUSHED, VISITOR_CACHE_LOADED, VISITOR_CACHE_SAVED, LogLevel } from '../enum/index'
 import { BatchDTO } from '../hit/Batch'
 import { ITrackingManager } from '../api/ITrackingManager'
 import { Troubleshooting } from '../hit/Troubleshooting'
@@ -89,8 +89,21 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     consentHit.traffic = this.visitor.traffic
     consentHit.flagshipInstanceId = this.visitor.sdkInitialData?.instanceId
 
-    if (this.visitor.traffic === undefined) {
-      this.visitor.visitorHits.push(consentHit)
+    if (this.visitor.traffic !== undefined) {
+      const hitTroubleshooting = new Troubleshooting({
+
+        label: 'VISITOR-SEND-HIT',
+        logLevel: LogLevel.INFO,
+        traffic: this.visitor.traffic,
+        visitorId: this.visitor.visitorId,
+        visitorInstanceId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        anonymousId: this.visitor.anonymousId,
+        config: this.config,
+        hitContent: consentHit.toApiKeys()
+      })
+
+      this.sendTroubleshootingHit(hitTroubleshooting)
     }
     this.trackingManager.addHit(consentHit)
 

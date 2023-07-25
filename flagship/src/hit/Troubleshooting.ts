@@ -813,9 +813,6 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
       customVariable.sdkBucketingFile = JSON.stringify(this.sdkBucketingFile)
     }
 
-    if (this.visitorInstanceId !== undefined) {
-      customVariable['visitor.instanceId'] = `${this.visitorInstanceId}`
-    }
     if (this.stackOriginName !== undefined) {
       customVariable['stack.origin.name'] = `${this.stackOriginName}`
     }
@@ -897,6 +894,18 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
     }
     if (this.httpResponseTime !== undefined) {
       customVariable['http.response.time'] = `${this.httpResponseTime}`
+    }
+
+    if (this.visitorId !== undefined) {
+      customVariable['visitor.visitorId'] = `${this.visitorId}`
+    }
+
+    if (this.anonymousId !== undefined) {
+      customVariable['visitor.anonymousId'] = `${this.anonymousId}`
+    }
+
+    if (this.visitorInstanceId !== undefined) {
+      customVariable['visitor.instanceId'] = `${this.visitorInstanceId}`
     }
     if (this.visitorStatus !== undefined) {
       customVariable['visitor.status'] = `${this.visitorStatus}`

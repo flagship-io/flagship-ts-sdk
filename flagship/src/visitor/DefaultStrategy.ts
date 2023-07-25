@@ -887,7 +887,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
       const monitoring = new Troubleshooting({
 
-        label: 'VISITOR-EXPOSED-TYPE-ERROR',
+        label: 'VISITOR-EXPOSED-TYPE-WARNING',
         logLevel: LogLevel.WARNING,
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
@@ -947,7 +947,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       logWarningSprintf(this.config, FLAG_VALUE, GET_FLAG_CAST_ERROR, this.visitor.visitorId, key, defaultValue)
       const monitoring = new Troubleshooting({
 
-        label: 'GET-FLAG-VALUE-TYPE-ERROR',
+        label: 'GET-FLAG-VALUE-TYPE-WARNING',
         logLevel: LogLevel.WARNING,
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
@@ -985,7 +985,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       )
       const monitoring = new Troubleshooting({
 
-        label: 'GET-FLAG-METADATA-TYPE-ERROR',
+        label: 'GET-FLAG-METADATA-TYPE-WARNING',
         logLevel: LogLevel.WARNING,
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
