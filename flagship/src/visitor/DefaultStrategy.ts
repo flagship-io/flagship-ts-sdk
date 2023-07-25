@@ -304,7 +304,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         return
       }
 
-      const fetchFlagBufferingTime = (this.config.fetchFlagBufferingTime as number * 1000)
+      const fetchFlagBufferingTime = (this.config.fetchFlagsBufferingTime as number * 1000)
 
       if (flagSyncStatus && time < fetchFlagBufferingTime) {
         logInfoSprintf(this.config, functionName, FETCH_FLAGS_BUFFERING_MESSAGE, this.visitor.visitorId, fetchFlagBufferingTime - time)

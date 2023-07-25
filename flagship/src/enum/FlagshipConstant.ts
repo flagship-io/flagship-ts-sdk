@@ -114,7 +114,7 @@ export const SEND_ACTIVATE = 'SEND ACTIVATE'
 export const SEND_SEGMENT_HIT = 'SEND SEGMENT HIT'
 export const SEND_HIT = 'SEND HIT'
 export const EVENT_SUFFIX = 'events'
-export const FETCH_FLAGS_BUFFERING_MESSAGE = 'Visitor {0}, fetchFlags has been ignored and will continue to be ignored for the next {1}ms'
+export const FETCH_FLAGS_BUFFERING_MESSAGE = 'Visitor {0}, fetchFlags has been ignored and will continue to be ignored for the next {1}ms, this delay can be changed with `fetchFlagsBufferingTime` option in the SDK config'
 export const VISITOR_SYNC_FLAGS_MESSAGE = 'without calling `fetchFlags` method afterwards, the value of the flag `{1}` may be outdated'
 
 export const NEW_VISITOR_NOT_READY = `You can't create a new visitor without first calling the "Flagship.start" method.

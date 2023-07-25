@@ -40,7 +40,7 @@ describe('test DefaultStrategy ', () => {
   const logInfo = jest.spyOn(logManager, 'info')
   const logWarning = jest.spyOn(logManager, 'warning')
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0, fetchFlagBufferingTime: 0 })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0, fetchFlagsBufferingTime: 0 })
   config.logManager = logManager
 
   const httpClient = new HttpClient()
@@ -1377,7 +1377,7 @@ describe('test DefaultStrategy ', () => {
   const logManager = new FlagshipLogManager()
   const logError = jest.spyOn(logManager, 'error')
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0, fetchFlagBufferingTime: 0 })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0, fetchFlagsBufferingTime: 0 })
   config.logManager = logManager
 
   const httpClient = new HttpClient()
@@ -1465,7 +1465,7 @@ describe('test DefaultStrategy fetch flags buffering', () => {
   const logManager = new FlagshipLogManager()
   const logInfo = jest.spyOn(logManager, 'info')
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0, fetchFlagBufferingTime: 0 })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0, fetchFlagsBufferingTime: 0 })
   config.logManager = logManager
 
   const httpClient = new HttpClient()
@@ -1523,7 +1523,7 @@ describe('test DefaultStrategy fetch flags buffering', () => {
     getCampaignsAsync.mockResolvedValue(campaignDTO)
     getModifications.mockReturnValue(returnModification)
     await defaultStrategy.fetchFlags()
-    defaultStrategy.fetchFlags()
+    await defaultStrategy.fetchFlags()
     expect(getCampaignsAsync).toBeCalledTimes(1)
     expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
     expect(getModifications).toBeCalledTimes(1)
@@ -1533,6 +1533,38 @@ describe('test DefaultStrategy fetch flags buffering', () => {
     visitorDelegate.updateContext('key', 'value1')
     await defaultStrategy.fetchFlags()
     expect(getCampaignsAsync).toBeCalledTimes(2)
+  })
+
+  it('test fetchFlags', async () => {
+    visitorDelegate.on('ready', (err) => {
+      expect(err).toBeUndefined()
+    })
+    getCampaignsAsync.mockResolvedValue(campaignDTO)
+    getModifications.mockReturnValue(returnModification)
+    config.fetchFlagsBufferingTime = -1
+    await defaultStrategy.fetchFlags()
+    await defaultStrategy.fetchFlags()
+    expect(getCampaignsAsync).toBeCalledTimes(2)
+    expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
+    expect(getModifications).toBeCalledTimes(2)
+    expect(getModifications).toBeCalledWith(campaignDTO)
+    expect(logInfo).toBeCalledTimes(0)
+  })
+
+  it('test fetchFlags', async () => {
+    visitorDelegate.on('ready', (err) => {
+      expect(err).toBeUndefined()
+    })
+    getCampaignsAsync.mockResolvedValue(campaignDTO)
+    getModifications.mockReturnValue(returnModification)
+    config.fetchFlagsBufferingTime = 0
+    await defaultStrategy.fetchFlags()
+    await defaultStrategy.fetchFlags()
+    expect(getCampaignsAsync).toBeCalledTimes(2)
+    expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
+    expect(getModifications).toBeCalledTimes(2)
+    expect(getModifications).toBeCalledWith(campaignDTO)
+    expect(logInfo).toBeCalledTimes(0)
   })
 })
 

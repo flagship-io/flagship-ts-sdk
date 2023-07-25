@@ -37,14 +37,14 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _onVisitorExposed?:(arg: OnVisitorExposed)=> void
   private _fetchThirdPartyData : boolean|undefined
   private _nextFetchConfig? : Record<string, unknown>
-  private _fetchFlagBufferingTime? : number
+  private _fetchFlagsBufferingTime? : number
 
-  public get fetchFlagBufferingTime () : number|undefined {
-    return this._fetchFlagBufferingTime
+  public get fetchFlagsBufferingTime () : number|undefined {
+    return this._fetchFlagsBufferingTime
   }
 
-  public set fetchFlagBufferingTime (v : number|undefined) {
-    this._fetchFlagBufferingTime = v
+  public set fetchFlagsBufferingTime (v : number|undefined) {
+    this._fetchFlagsBufferingTime = v
   }
 
   public get nextFetchConfig () : Record<string, unknown>|undefined {
@@ -91,7 +91,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
       disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig, onLog,
-      onVisitorExposed, nextFetchConfig, fetchFlagBufferingTime
+      onVisitorExposed, nextFetchConfig, fetchFlagsBufferingTime
     } = param
 
     this.initSDKInfo(language, sdkVersion)
@@ -100,7 +100,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       this.logManager = logManager
     }
 
-    this.fetchFlagBufferingTime = fetchFlagBufferingTime || FETCH_FLAG_BUFFERING_DEFAULT_TIME
+    this.fetchFlagsBufferingTime = fetchFlagsBufferingTime || FETCH_FLAG_BUFFERING_DEFAULT_TIME
     this.nextFetchConfig = nextFetchConfig || { revalidate: 20 }
     this._trackingMangerConfig = new TrackingManagerConfig(trackingMangerConfig || {})
     this.onLog = onLog
