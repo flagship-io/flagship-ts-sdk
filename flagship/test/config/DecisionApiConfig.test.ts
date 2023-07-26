@@ -36,7 +36,7 @@ describe('test DecisionApiConfig', () => {
     expect(config.visitorCacheImplementation).toBeUndefined()
     expect(config.onUserExposure).toBeUndefined()
     expect(config.disableCache).toBeFalsy()
-    expect(config.trackingMangerConfig).toBeInstanceOf(TrackingManagerConfig)
+    expect(config.trackingManagerConfig).toBeInstanceOf(TrackingManagerConfig)
     expect(config.onLog).toBeUndefined()
     expect(config.onVisitorExposed).toBeUndefined()
     expect(config.nextFetchConfig).toEqual(nextFetchConfig)

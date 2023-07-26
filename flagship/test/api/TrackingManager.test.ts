@@ -107,7 +107,7 @@ describe('test TrackingManager Strategy ', () => {
 
   it('Test instance of BatchingContinuousCachingStrategy ', async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (config.trackingMangerConfig as any)._batchStrategy = CacheStrategy.CONTINUOUS_CACHING
+    (config.trackingManagerConfig as any)._batchStrategy = CacheStrategy.CONTINUOUS_CACHING
     const trackingManager = new TrackingManager(httpClient, config)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((trackingManager as any).strategy).toBeInstanceOf(BatchingContinuousCachingStrategy)
@@ -115,7 +115,7 @@ describe('test TrackingManager Strategy ', () => {
 
   it('Test instance of BatchingContinuousCachingStrategy ', async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (config.trackingMangerConfig as any)._batchStrategy = CacheStrategy.PERIODIC_CACHING
+    (config.trackingManagerConfig as any)._batchStrategy = CacheStrategy.PERIODIC_CACHING
     const trackingManager = new TrackingManager(httpClient, config)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((trackingManager as any).strategy).toBeInstanceOf(BatchingPeriodicCachingStrategy)
@@ -123,7 +123,7 @@ describe('test TrackingManager Strategy ', () => {
 
   it('Test instance of BatchingContinuousCachingStrategy ', async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (config.trackingMangerConfig as any)._batchStrategy = NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY
+    (config.trackingManagerConfig as any)._batchStrategy = NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY
     const trackingManager = new TrackingManager(httpClient, config)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((trackingManager as any).strategy).toBeInstanceOf(NoBatchingContinuousCachingStrategy)
@@ -154,7 +154,7 @@ describe('test TrackingManager Strategy ', () => {
 
     pageHit.config = config
 
-    config.trackingMangerConfig.batchIntervals = 1
+    config.trackingManagerConfig.batchIntervals = 1
 
     await trackingManager.addHit(pageHit)
 
