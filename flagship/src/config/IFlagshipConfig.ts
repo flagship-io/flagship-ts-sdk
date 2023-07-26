@@ -156,4 +156,6 @@ export interface IFlagshipConfig {
      * - If visitor data has changed, the buffering will be bypassed.
      */
     fetchFlagsBufferingTime?: number
+
+    enableAnalytics?: boolean
   }
