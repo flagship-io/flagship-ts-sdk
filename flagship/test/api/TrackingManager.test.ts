@@ -206,7 +206,7 @@ describe('test TrackingManager Strategy ', () => {
 
     pageHit.config = config
 
-    config.trackingMangerConfig.batchIntervals = 1
+    config.trackingManagerConfig.batchIntervals = 1
 
     await trackingManager.addTroubleshootingHit(activateTroubleshooting)
 

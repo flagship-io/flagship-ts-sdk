@@ -1492,9 +1492,9 @@ describe('test DefaultStrategy ', () => {
   activateFlag.mockResolvedValue()
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
-
+  const murmurHash = new MurmurHash()
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
-  const defaultStrategy = new DefaultStrategy(visitorDelegate)
+  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
   const campaignDtoId = 'c2nrh1hjg50l9stringgu8bg'
   const campaignDTO = [
@@ -1580,9 +1580,9 @@ describe('test DefaultStrategy fetch flags buffering', () => {
   activateFlag.mockResolvedValue()
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
-
+  const murmurHash = new MurmurHash()
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
-  const defaultStrategy = new DefaultStrategy(visitorDelegate)
+  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
   const campaignDtoId = 'c2nrh1hjg50l9stringgu8bg'
   const campaignDTO = [
@@ -1879,7 +1879,7 @@ describe('test DefaultStrategy troubleshootingHit', () => {
     }
     const flags = new Map<string, FlagDTO>().set(flagDTO.key, flagDTO)
     getCampaignsAsync.mockResolvedValue([])
-    getModifications.mockReturnValue(flags)
+    getModifications.mockReturnValueOnce(flags)
     await defaultStrategy.fetchFlags()
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
 
@@ -1890,13 +1890,69 @@ describe('test DefaultStrategy troubleshootingHit', () => {
     const label1: TroubleshootingLabel = 'VISITOR-SEND-HIT'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ label: label1 }))
   })
+})
 
-  it('test fetchFlags throw error', async () => {
+describe('test DefaultStrategy troubleshootingHit', () => {
+  const methodNow = Date.now
+  const mockNow = jest.fn<typeof Date.now>()
+  beforeAll(() => {
+    Date.now = mockNow
+    mockNow.mockReturnValue(1)
+  })
+  afterAll(() => {
+    Date.now = methodNow
+  })
+  const visitorId = 'visitorId'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const context: any = {
+    isVip: true
+  }
+
+  const logManager = new FlagshipLogManager()
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0 })
+  config.logManager = logManager
+
+  const httpClient = new HttpClient()
+
+  const post = jest.fn<typeof httpClient.postAsync>()
+  httpClient.postAsync = post
+  post.mockResolvedValue({} as IHttpResponse)
+
+  const apiManager = new ApiManager(httpClient, config)
+
+  const getCampaignsAsync = jest.spyOn(
+    apiManager,
+    'getCampaignsAsync'
+  )
+
+  const getModifications = jest.spyOn(
+    apiManager,
+    'getModifications'
+  )
+
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  const addHit = jest.spyOn(trackingManager, 'addHit')
+  addHit.mockResolvedValue()
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'addTroubleshootingHit')
+
+  const activateFlag = jest.spyOn(trackingManager, 'activateFlag')
+  activateFlag.mockResolvedValue()
+
+  const configManager = new ConfigManager(config, apiManager, trackingManager)
+
+  const murmurHash = new MurmurHash()
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
+  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
+
+  it('test fetchFlags throw error here ', async () => {
     getCampaignsAsync.mockResolvedValue([])
     getModifications.mockImplementation(() => {
       throw new Error('error')
     })
-
     await defaultStrategy.fetchFlags()
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
     const label: TroubleshootingLabel = 'VISITOR-FETCH-CAMPAIGNS-ERROR'

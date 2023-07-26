@@ -682,7 +682,8 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
       locale: param.locale,
       sessionNumber: param.sessionNumber,
       visitorId: param.visitorId,
-      anonymousId: param.anonymousId
+      anonymousId: param.anonymousId,
+      visitorInstanceId: param.visitorInstanceId
     })
     const {
       version: logVersion, logLevel, accountId, envId, timestamp, label, stackType,
@@ -693,7 +694,7 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
       httpResponseUrl, httpResponseMethod, httpResponseHeaders, httpResponseCode, httpResponseBody, visitorStatus, visitorInstanceType, visitorContext,
       visitorConsent, visitorAssignmentHistory, visitorFlags, visitorIsAuthenticated, config, flagKey, flagValue, flagDefault,
       flagMetadataCampaignId, flagMetadataVariationGroupId, flagMetadataVariationId, flagMetadataCampaignSlug, flagMetadataCampaignType, sdkConfigFetchNow, sdkConfigEnableClientCache,
-      sdkConfigInitialBucketing, sdkConfigDecisionApiUrl, sdkConfigHitDeduplicationTime, flagshipInstanceId, hitContent, visitorInstanceId, traffic,
+      sdkConfigInitialBucketing, sdkConfigDecisionApiUrl, sdkConfigHitDeduplicationTime, flagshipInstanceId, hitContent, traffic,
       lastInitializationTimestamp, lastBucketingTimestamp, batchTriggeredBy, visitorCampaigns, visitorCampaignFromCache, visitorInitialCampaigns,
       visitorInitialFlagsData, flagMetadataCampaignIsReference, contextKey, contextValue, sdkBucketingFile
     } = param
@@ -765,7 +766,6 @@ export class Troubleshooting extends HitAbstract implements ITroubleshooting {
     this.flagMetadataCampaignSlug = flagMetadataCampaignSlug
     this.flagMetadataCampaignType = flagMetadataCampaignType
     this.hitContent = hitContent
-    this.visitorInstanceId = visitorInstanceId
     this.ds = SDK_APP
   }
 
