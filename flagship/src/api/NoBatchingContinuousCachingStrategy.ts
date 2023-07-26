@@ -51,7 +51,8 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       await this._httpClient.postAsync(HIT_EVENT_URL, {
         headers,
         body: requestBody,
-        timeout: this.config.timeout
+        timeout: this.config.timeout,
+        nextFetchConfig: this.config.nextFetchConfig
       })
 
       logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, DIRECT_HIT, {
@@ -149,7 +150,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
-    const activateBatch = new ActivateBatch(Array.from(activateHitsPool), this.config)
+    const activateBatch = new ActivateBatch(Array.from(activateHitsPool.filter(item => (Date.now() - item.createdAt) < DEFAULT_HIT_CACHE_TIME_MS)), this.config)
 
     if (currentActivate) {
       activateBatch.hits.push(currentActivate)
@@ -163,7 +164,8 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       await this._httpClient.postAsync(url, {
         headers,
         body: requestBody,
-        timeout: this.config.timeout
+        timeout: this.config.timeout,
+        nextFetchConfig: this.config.nextFetchConfig
       })
 
       logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, ACTIVATE_HIT, {

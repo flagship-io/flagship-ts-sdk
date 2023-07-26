@@ -110,7 +110,11 @@ export class BucketingManager extends DecisionManager {
         headers['if-modified-since'] = this._lastModified
       }
 
-      const response = await this._httpClient.getAsync(url, { headers, timeout: this.config.timeout })
+      const response = await this._httpClient.getAsync(url, {
+        headers,
+        timeout: this.config.timeout,
+        nextFetchConfig: this.config.nextFetchConfig
+      })
 
       this.finishLoop({ response, headers, url, now })
 
@@ -120,6 +124,7 @@ export class BucketingManager extends DecisionManager {
       logError(this.config, errorFormat(POLLING_EVENT_FAILED, {
         url,
         headers,
+        nextFetchConfig: this.config.nextFetchConfig,
         method: 'GET',
         duration: Date.now() - now
       }), PROCESS_BUCKETING)
@@ -177,7 +182,9 @@ export class BucketingManager extends DecisionManager {
     const now = Date.now()
     const contexts:Record<string, primitive> = {}
     try {
-      const response = await this._httpClient.getAsync(url)
+      const response = await this._httpClient.getAsync(url, {
+        nextFetchConfig: this.config.nextFetchConfig
+      })
       const content:ThirdPartySegment[] = response.body
       if (Array.isArray(content)) {
         for (const item of content) {
@@ -188,6 +195,7 @@ export class BucketingManager extends DecisionManager {
     } catch (error: any) {
       logError(this.config, errorFormat(error.message || error, {
         url,
+        nextFetchConfig: this.config.nextFetchConfig,
         duration: Date.now() - now
       }), GET_THIRD_PARTY_SEGMENT)
     }
@@ -232,7 +240,7 @@ export class BucketingManager extends DecisionManager {
     this._bucketingContent.campaigns.forEach(campaign => {
       const currentCampaigns = this.getVisitorCampaigns(campaign.variationGroups, campaign.id, campaign.type, visitor)
       if (currentCampaigns) {
-        currentCampaigns.slug = campaign.slug
+        currentCampaigns.slug = campaign.slug ?? null
         visitorCampaigns.push(currentCampaigns)
       }
     })

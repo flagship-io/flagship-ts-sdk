@@ -54,7 +54,7 @@ export abstract class DecisionManager implements IDecisionManager {
             campaignId: campaign.id,
             variationGroupId: campaign.variationGroupId,
             variationId: campaign.variation.id,
-            isReference: campaign.variation.reference,
+            isReference: !!campaign.variation.reference,
             campaignType: campaign.type,
             slug: campaign.slug,
             value
@@ -93,8 +93,10 @@ export abstract class DecisionManager implements IDecisionManager {
       const response = await this._httpClient.postAsync(url, {
         headers,
         timeout: this.config.timeout,
-        body: requestBody
+        body: requestBody,
+        nextFetchConfig: this.config.nextFetchConfig
       })
+
       this.panic = !!response?.body?.panic
       let campaigns: CampaignDTO[]|null = null
 

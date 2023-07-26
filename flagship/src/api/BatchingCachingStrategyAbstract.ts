@@ -50,8 +50,6 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
   public abstract addHitInPoolQueue (hit: HitAbstract):Promise<void>
 
-  public abstract notConsent(visitorId: string): Promise<void>
-
   protected abstract sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate): Promise<void>
 
   protected isTroubleshootingActivated () {
@@ -154,8 +152,8 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
     logDebugSprintf(this.config, TRACKING_MANAGER, HIT_ADDED_IN_QUEUE, hit.toApiKeys())
 
-    if (this.config.trackingMangerConfig?.poolMaxSize &&
-      this._hitsPoolQueue.size >= this.config.trackingMangerConfig.poolMaxSize &&
+    if (this.config.trackingManagerConfig?.poolMaxSize &&
+      this._hitsPoolQueue.size >= this.config.trackingManagerConfig.poolMaxSize &&
       this.config.decisionMode !== DecisionMode.BUCKETING_EDGE
     ) {
       this.sendBatch()
@@ -278,14 +276,15 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       await this._httpClient.postAsync(HIT_EVENT_URL, {
         headers,
         body: requestBody,
-        timeout: this.config.timeout
+        timeout: this.config.timeout,
+        nextFetchConfig: this.config.nextFetchConfig
       })
 
       logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, BATCH_HIT, {
-        httpRequestBody: requestBody,
-        httpRequestHeaders: headers,
-        httpRequestMethod: 'POST',
-        httpRequestUrl: HIT_EVENT_URL,
+        url: HIT_EVENT_URL,
+        body: requestBody,
+        headers,
+        nextFetchConfig: this.config.nextFetchConfig,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
@@ -330,6 +329,34 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
       await this.sendTroubleshootingHit(monitoringHttpResponse)
     }
+  }
+
+  async notConsent (visitorId: string):Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const hitKeys = Array.from(this._hitsPoolQueue).filter(([_, item]) => {
+      return (item?.type !== HitType.EVENT || (item as Event)?.action !== FS_CONSENT) && (item.visitorId === visitorId || item.anonymousId === visitorId)
+    })
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const activateKeys = Array.from(this._activatePoolQueue).filter(([_, item]) => {
+      return item.visitorId === visitorId || item.anonymousId === visitorId
+    })
+
+    const keysToFlush:string[] = []
+    hitKeys.forEach(([key]) => {
+      this._hitsPoolQueue.delete(key)
+      keysToFlush.push(key)
+    })
+
+    activateKeys.forEach(([key]) => {
+      this._activatePoolQueue.delete(key)
+      keysToFlush.push(key)
+    })
+
+    if (!keysToFlush.length) {
+      return
+    }
+    await this.flushHits(keysToFlush)
   }
 
   protected async cacheHit (hits:Map<string, HitAbstract>):Promise<void> {

@@ -1,8 +1,8 @@
-import { logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarning, logWarningSprintf, sprintf } from '../../src/utils/utils'
+import { logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarning, logWarningSprintf, sprintf, visitorFlagSyncStatusMessage } from '../../src/utils/utils'
 import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig } from '../../src/config/index'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { LogLevel } from '../../src/enum/index'
+import { FlagSynchStatus, LogLevel } from '../../src/enum/index'
 
 describe('test sprintf function', () => {
   it('should ', () => {
@@ -108,5 +108,20 @@ describe('test logError function', () => {
   it('test invalid config', () => {
     logError({} as DecisionApiConfig, messageAll, tag)
     expect(errorMethod).toBeCalledTimes(0)
+  })
+})
+
+describe('Test visitorFlagSyncStatusMessage', () => {
+  it('should', () => {
+    let message = visitorFlagSyncStatusMessage(FlagSynchStatus.CREATED)
+    expect(message).toEqual(expect.stringContaining('created'))
+    message = visitorFlagSyncStatusMessage(FlagSynchStatus.CONTEXT_UPDATED)
+    expect(message).toEqual(expect.stringContaining('updated'))
+    message = visitorFlagSyncStatusMessage(FlagSynchStatus.AUTHENTICATED)
+    expect(message).toEqual(expect.stringContaining('authenticated'))
+    message = visitorFlagSyncStatusMessage(FlagSynchStatus.UNAUTHENTICATED)
+    expect(message).toEqual(expect.stringContaining('unauthenticated'))
+    message = visitorFlagSyncStatusMessage(FlagSynchStatus.FLAGS_FETCHED)
+    expect(message).toBe('')
   })
 })

@@ -38,7 +38,7 @@ import { VisitorAbstract } from '../visitor/VisitorAbstract'
 export class Flagship {
   // eslint-disable-next-line no-use-before-define
   private static _instance: Flagship
-  private _configManger!: IConfigManager
+  private _configManager!: IConfigManager
   private _config!: IFlagshipConfig
   private _status!: FlagshipStatus
   private _visitorInstance?: Visitor
@@ -46,11 +46,11 @@ export class Flagship {
   private lastInitializationTimestamp!: string
 
   private set configManager (value: IConfigManager) {
-    this._configManger = value
+    this._configManager = value
   }
 
   private get configManager (): IConfigManager {
-    return this._configManger
+    return this._configManager
   }
 
   // eslint-disable-next-line no-useless-constructor

@@ -56,6 +56,11 @@ export interface IFlagshipConfig {
      */
     pollingInterval?: number
 
+    /**
+     * Bucketing mode only
+     *
+     * If true, will fetch the visitor's segment from universal data connector each time fetchFlags is called and append those segments in the visitor context
+     */
     fetchThirdPartyData?: boolean
 
     /**
@@ -80,16 +85,16 @@ export interface IFlagshipConfig {
     onBucketingUpdated?: (lastUpdate: Date) => void
 
     /**
-     * This is a set of flag data provided to avoid the SDK to have an empty cache during the first initialization.
+     * You can define an object containing the data received when fetching the bucketing endpoint. Providing this object will make bucketing ready to use and the first polling will immediately check for updates.
      */
     initialBucketing?: BucketingDTO
 
     decisionApiUrl?: string
 
     /**
-     * Specify delay in seconds of hit deduplication. After a hit is sent, all future sending of this hit will be blocked until the expiration of the delay.
+     * You can specify a delay in seconds for hit deduplication. After a hit is sent, any future attempts to send the same hit will be blocked until the specified delay has expired.
      *
-     * Note: if 0 is given, no deduplication process will be used
+     * Note: If a value of 0 is given, no deduplication process will be used.
      */
     hitDeduplicationTime?: number
 
@@ -100,7 +105,7 @@ export interface IFlagshipConfig {
     visitorCacheImplementation?: IVisitorCacheImplementation
 
     /**
-     * Define an object that implement the interface IHitCacheImplementation, to handle the visitor cache.
+     * You can define an object that implements the IHitCacheImplementation interface to manage hits cache.
      */
     hitCacheImplementation?: IHitCacheImplementation
 
@@ -113,16 +118,22 @@ export interface IFlagshipConfig {
 
     /**
      * Define options to configure hit batching
+     * @deprecated use trackingManagerConfig instead
      */
     trackingMangerConfig?: ITrackingManagerConfig
 
     /**
-     * Define a callable to get callback each time  a Flag have been user exposed (activation hit has been sent) by SDK
+     * Define options to configure hit batching
+    */
+    trackingManagerConfig?: ITrackingManagerConfig
+
+    /**
+     * You can define a callback function that will be called each time a flag is exposed to a user (i.e., when an activation hit is sent by the SDK).
      * @deprecated Use **onVisitorExposed** instead
      */
     onUserExposure?: (param: UserExposureInfo)=>void
     /**
-     *
+     *You can define a callback function that will be called each time a flag is exposed to a visitor (i.e., when an activation hit is sent by the SDK).
      * @param arg
      * @returns
      */
@@ -132,4 +143,17 @@ export interface IFlagshipConfig {
      * Define a callable to get a callback whenever the SDK needs to report a log
      */
     onLog?: (level: LogLevel, tag: string, message: string)=>void
+    /**
+     * In Next.js 13, you can define the time in seconds for storing SDK route cache before revalidation.
+     */
+    nextFetchConfig?: Record<string, unknown>
+
+    /**
+     * (Default value 2) You can specify a delay in seconds for fetch flags call buffering. This means that after the SDK has fetched flags, they will be buffered for the specified delay. During this delay, any subsequent fetch flags calls will return the same flags.
+     *
+     * Note:
+     * - If a value of 0 is given, no buffering process will be used.
+     * - If visitor data has changed, the buffering will be bypassed.
+     */
+    fetchFlagsBufferingTime?: number
   }

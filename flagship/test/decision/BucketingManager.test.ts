@@ -94,6 +94,9 @@ describe('test BucketingManager', () => {
         [HEADER_X_SDK_VERSION]: SDK_INFO.version,
         [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
       },
+      nextFetchConfig: {
+        revalidate: 20
+      },
       timeout: config.timeout
     })
   })
@@ -115,6 +118,9 @@ describe('test BucketingManager', () => {
         [HEADER_X_SDK_VERSION]: SDK_INFO.version,
         [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON,
         'if-modified-since': 'Fri, 06 Aug 2021 11:16:19 GMT'
+      },
+      nextFetchConfig: {
+        revalidate: 20
       },
       timeout: config.timeout
     })

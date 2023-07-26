@@ -1,8 +1,8 @@
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
-import { BASE_API_URL, BATCH_MAX_SIZE, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HitType, HIT_EVENT_URL, HIT_SENT_SUCCESS, LogLevel, SDK_INFO, URL_ACTIVATE_MODIFICATION, BATCH_HIT, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, ACTIVATE_HIT } from '../enum/index'
+import { BASE_API_URL, BATCH_MAX_SIZE, DEFAULT_HIT_CACHE_TIME_MS, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HIT_EVENT_URL, HIT_SENT_SUCCESS, LogLevel, SDK_INFO, URL_ACTIVATE_MODIFICATION, BATCH_HIT, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, ACTIVATE_HIT } from '../enum/index'
 import { ActivateBatch } from '../hit/ActivateBatch'
 import { Batch } from '../hit/Batch'
-import { HitAbstract, Event } from '../hit/index'
+import { HitAbstract } from '../hit/index'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { logDebugSprintf, logErrorSprintf } from '../utils/utils'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
@@ -21,7 +21,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
-    const activateBatch = new ActivateBatch(Array.from(activateHitsPool), this.config)
+    const activateBatch = new ActivateBatch(Array.from(activateHitsPool.filter(item => (Date.now() - item.createdAt) < DEFAULT_HIT_CACHE_TIME_MS)), this.config)
 
     if (currentActivate) {
       activateBatch.hits.push(currentActivate)
@@ -34,7 +34,8 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       await this._httpClient.postAsync(url, {
         headers,
         body: requestBody,
-        timeout: this.config.timeout
+        timeout: this.config.timeout,
+        nextFetchConfig: this.config.nextFetchConfig
       })
 
       logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, ACTIVATE_HIT, {
@@ -89,30 +90,6 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
     }
   }
 
-  async notConsent (visitorId: string):Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const HitKeys = Array.from(this._hitsPoolQueue).filter(([_, item]) => {
-      return (item.type !== HitType.EVENT || (item as Event)?.action !== FS_CONSENT) && (item.visitorId === visitorId || item.anonymousId === visitorId)
-    })
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const activateKeys = Array.from(this._activatePoolQueue).filter(([_, item]) => {
-      return item.visitorId === visitorId || item.anonymousId === visitorId
-    })
-
-    HitKeys.forEach(([key]) => {
-      this._hitsPoolQueue.delete(key)
-    })
-
-    activateKeys.forEach(([key]) => {
-      this._activatePoolQueue.delete(key)
-    })
-
-    const mergedQueue = new Map<string, HitAbstract>([...this._hitsPoolQueue, ...this._activatePoolQueue])
-    await this.flushAllHits()
-    await this.cacheHit(mergedQueue)
-  }
-
   async sendBatch (batchTriggeredBy = BatchTriggeredBy.BatchLength): Promise<void> {
     let hasActivateHit = false
     if (this._activatePoolQueue.size) {
@@ -161,7 +138,8 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       await this._httpClient.postAsync(HIT_EVENT_URL, {
         headers,
         body: requestBody,
-        timeout: this.config.timeout
+        timeout: this.config.timeout,
+        nextFetchConfig: this.config.nextFetchConfig
       })
 
       logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, BATCH_HIT, {

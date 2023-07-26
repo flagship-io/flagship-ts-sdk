@@ -1,5 +1,6 @@
 import { type IFlagshipConfig } from '../config/IFlagshipConfig'
-import { LogLevel } from '../enum/index'
+import { FlagSynchStatus } from '../enum/FlagSynchStatus'
+import { LogLevel, VISITOR_SYNC_FLAGS_MESSAGE } from '../enum/index'
 
 /**
  * Return a formatted string
@@ -143,4 +144,25 @@ export function errorFormat (message:string, errorData?:Record<string, unknown>)
     message,
     data: errorData
   })
+}
+
+export function visitorFlagSyncStatusMessage (status: FlagSynchStatus) {
+  let message = ''
+  switch (status) {
+    case FlagSynchStatus.CREATED:
+      message = `Visitor \`{0}\` has been created ${VISITOR_SYNC_FLAGS_MESSAGE}`
+      break
+    case FlagSynchStatus.CONTEXT_UPDATED:
+      message = `Visitor context for visitor \`{0}\` has been updated ${VISITOR_SYNC_FLAGS_MESSAGE}`
+      break
+    case FlagSynchStatus.AUTHENTICATED:
+      message = `Visitor \`{0}\` has been authenticated ${VISITOR_SYNC_FLAGS_MESSAGE}`
+      break
+    case FlagSynchStatus.UNAUTHENTICATED :
+      message = `Visitor \`{0}\` has been unauthenticated ${VISITOR_SYNC_FLAGS_MESSAGE}`
+      break
+    default:
+      break
+  }
+  return message
 }

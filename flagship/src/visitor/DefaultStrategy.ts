@@ -11,6 +11,7 @@ import {
   EMIT_READY,
   FETCH_CAMPAIGNS_FROM_CACHE,
   FETCH_CAMPAIGNS_SUCCESS,
+  FETCH_FLAGS_BUFFERING_MESSAGE,
   FETCH_FLAGS_FROM_CAMPAIGNS,
   FETCH_FLAGS_STARTED,
   FLAGSHIP_VISITOR_NOT_AUTHENTICATE,
@@ -61,7 +62,7 @@ import {
 } from '../hit/index'
 import { HitShape, ItemHit } from '../hit/Legacy'
 import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata } from '../types'
-import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logWarningSprintf, sprintf } from '../utils/utils'
+import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
 import { DecisionMode } from '../config/index'
@@ -70,6 +71,7 @@ import { VisitorDelegate } from './index'
 import { FlagMetadata } from '../flag/FlagMetadata'
 import { Activate } from '../hit/Activate'
 import { Troubleshooting } from '../hit/Troubleshooting'
+import { FlagSynchStatus } from '../enum/FlagSynchStatus'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'
@@ -128,6 +130,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   updateContext (context: Record<string, primitive> | string, value?:primitive): void {
     if (typeof context === 'string') {
       this.updateContextKeyValue(context, value as primitive)
+      this.visitor.flagSynchStatus = FlagSynchStatus.CONTEXT_UPDATED
       logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_KEY_VALUE_UPDATE, this.visitor.visitorId, context, value, this.visitor.context)
       return
     }
@@ -141,6 +144,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       const value = context[key]
       this.updateContextKeyValue(key, value)
     }
+    this.visitor.flagSynchStatus = FlagSynchStatus.CONTEXT_UPDATED
     logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_OBJET_PARAM_UPDATE, this.visitor.visitorId, context, this.visitor.context)
   }
 
@@ -295,9 +299,27 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     let campaigns: CampaignDTO[] | null = null
     let fetchCampaignError:string|undefined
     try {
+      const time = Date.now() - this.visitor.lastFetchFlagsTimestamp
+      const flagSyncStatus = this.visitor.flagSynchStatus === FlagSynchStatus.FLAGS_FETCHED
+
+      if (flagSyncStatus && this.visitor.isFlagFetching) {
+        return
+      }
+
+      const fetchFlagBufferingTime = (this.config.fetchFlagsBufferingTime as number * 1000)
+
+      if (flagSyncStatus && time < fetchFlagBufferingTime) {
+        logInfoSprintf(this.config, functionName, FETCH_FLAGS_BUFFERING_MESSAGE, this.visitor.visitorId, fetchFlagBufferingTime - time)
+        return
+      }
+
       logDebugSprintf(this.config, functionName, FETCH_FLAGS_STARTED, this.visitor.visitorId)
 
+      this.visitor.isFlagFetching = true
       campaigns = await this.decisionManager.getCampaignsAsync(this.visitor)
+      this.visitor.lastFetchFlagsTimestamp = Date.now()
+      this.visitor.flagSynchStatus = FlagSynchStatus.FLAGS_FETCHED
+      this.visitor.isFlagFetching = false
 
       this.configManager.trackingManager.troubleshootingData = this.decisionManager.troubleshooting
 
@@ -306,6 +328,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       )
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
+      this.visitor.isFlagFetching = false
       logError(this.config, error.message, functionName)
       fetchCampaignError = error
     }
@@ -815,6 +838,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     })
 
     this.sendTroubleshootingHit(monitoring)
+    this.visitor.flagSynchStatus = FlagSynchStatus.AUTHENTICATED
     logDebugSprintf(this.config, AUTHENTICATE, VISITOR_AUTHENTICATE, this.visitor.visitorId, this.visitor.anonymousId)
   }
 
@@ -842,6 +866,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     })
 
     this.sendTroubleshootingHit(monitoring)
+    this.visitor.flagSynchStatus = FlagSynchStatus.UNAUTHENTICATED
     logDebugSprintf(this.config, UNAUTHENTICATE, VISITOR_UNAUTHENTICATE, this.visitor.visitorId)
   }
 

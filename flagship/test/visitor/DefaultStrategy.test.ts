@@ -1,4 +1,4 @@
-import { AUTHENTICATE, CONTEXT_KEY_ERROR, FLAG_USER_EXPOSED, PROCESS_FETCHING_FLAGS, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, UNAUTHENTICATE, FLAG_METADATA } from './../../src/enum/FlagshipConstant'
+import { AUTHENTICATE, CONTEXT_KEY_ERROR, FLAG_USER_EXPOSED, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, UNAUTHENTICATE, FLAG_METADATA, METHOD_DEACTIVATED_BUCKETING_ERROR, PROCESS_FETCHING_FLAGS } from './../../src/enum/FlagshipConstant'
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { DecisionApiConfig, Event, EventCategory, FlagDTO, FlagMetadata, Screen, TroubleshootingLabel } from '../../src/index'
 import { TrackingManager } from '../../src/api/TrackingManager'
@@ -8,7 +8,7 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { IHttpResponse, HttpClient } from '../../src/utils/HttpClient'
 import { DefaultStrategy, HIT_NULL_ERROR, TYPE_HIT_REQUIRED_ERROR } from '../../src/visitor/DefaultStrategy'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
-import { ACTIVATE_MODIFICATION_ERROR, ACTIVATE_MODIFICATION_KEY_ERROR, CONTEXT_NULL_ERROR, CONTEXT_VALUE_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, FLAG_VALUE, FS_CONSENT, GET_FLAG_CAST_ERROR, GET_FLAG_MISSING_ERROR, GET_METADATA_CAST_ERROR, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, METHOD_DEACTIVATED_BUCKETING_ERROR, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, USER_EXPOSED_CAST_ERROR, USER_EXPOSED_FLAG_ERROR } from '../../src/enum'
+import { ACTIVATE_MODIFICATION_ERROR, ACTIVATE_MODIFICATION_KEY_ERROR, CONTEXT_NULL_ERROR, CONTEXT_VALUE_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, FLAG_VALUE, FS_CONSENT, FlagSynchStatus, GET_FLAG_CAST_ERROR, GET_FLAG_MISSING_ERROR, GET_METADATA_CAST_ERROR, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, USER_EXPOSED_CAST_ERROR, USER_EXPOSED_FLAG_ERROR } from '../../src/enum'
 import { errorFormat, sprintf } from '../../src/utils/utils'
 import { returnModification } from './modification'
 import { HitShape } from '../../src/hit/Legacy'
@@ -41,7 +41,7 @@ describe('test DefaultStrategy ', () => {
   const logInfo = jest.spyOn(logManager, 'info')
   const logWarning = jest.spyOn(logManager, 'warning')
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0 })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0, fetchFlagsBufferingTime: 0 })
   config.logManager = logManager
 
   const httpClient = new HttpClient()
@@ -124,6 +124,7 @@ describe('test DefaultStrategy ', () => {
   it('test updateContext', () => {
     defaultStrategy.updateContext(newContext)
     expect(visitorDelegate.context).toStrictEqual({ ...context, ...newContext, ...predefinedContext })
+    expect(visitorDelegate.flagSynchStatus).toBe(FlagSynchStatus.CONTEXT_UPDATED)
   })
 
   it('test updateContext null', () => {
@@ -209,6 +210,7 @@ describe('test DefaultStrategy ', () => {
     expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
     expect(getModifications).toBeCalledTimes(1)
     expect(getModifications).toBeCalledWith(campaignDTO)
+    expect(visitorDelegate.flagSynchStatus).toBe(FlagSynchStatus.FLAGS_FETCHED)
   })
 
   const testModificationType = async <T>(
@@ -1382,12 +1384,14 @@ describe('test DefaultStrategy ', () => {
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
     const label: TroubleshootingLabel = 'VISITOR-AUTHENTICATE'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+    expect(visitorDelegate.flagSynchStatus).toBe(FlagSynchStatus.AUTHENTICATED)
   })
 
   it('test unauthenticate', () => {
     defaultStrategy.unauthenticate()
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBeNull()
+    expect(visitorDelegate.flagSynchStatus).toBe(FlagSynchStatus.UNAUTHENTICATED)
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
     const label: TroubleshootingLabel = 'VISITOR-UNAUTHENTICATE'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
@@ -1436,6 +1440,216 @@ describe('test DefaultStrategy ', () => {
     }]
     defaultStrategy.updateCampaigns(campaigns)
     expect(logError).toBeCalledTimes(1)
+  })
+})
+
+describe('test DefaultStrategy ', () => {
+  const methodNow = Date.now
+  const mockNow = jest.fn<typeof Date.now>()
+  beforeAll(() => {
+    Date.now = mockNow
+    mockNow.mockReturnValue(1)
+  })
+  afterAll(() => {
+    Date.now = methodNow
+  })
+  const visitorId = 'visitorId'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const context: any = {
+    isVip: true
+  }
+
+  const logManager = new FlagshipLogManager()
+  const logError = jest.spyOn(logManager, 'error')
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0, fetchFlagsBufferingTime: 0 })
+  config.logManager = logManager
+
+  const httpClient = new HttpClient()
+
+  const post = jest.fn<typeof httpClient.postAsync>()
+  httpClient.postAsync = post
+  post.mockResolvedValue({} as IHttpResponse)
+
+  const apiManager = new ApiManager(httpClient, config)
+
+  const getCampaignsAsync = jest.spyOn(
+    apiManager,
+    'getCampaignsAsync'
+  )
+
+  const getModifications = jest.spyOn(
+    apiManager,
+    'getModifications'
+  )
+
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  const addHit = jest.spyOn(trackingManager, 'addHit')
+  addHit.mockResolvedValue()
+
+  const activateFlag = jest.spyOn(trackingManager, 'activateFlag')
+  activateFlag.mockResolvedValue()
+
+  const configManager = new ConfigManager(config, apiManager, trackingManager)
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
+  const defaultStrategy = new DefaultStrategy(visitorDelegate)
+
+  const campaignDtoId = 'c2nrh1hjg50l9stringgu8bg'
+  const campaignDTO = [
+    {
+      id: campaignDtoId,
+      slug: 'slug',
+      variationGroupId: 'id',
+      variation: {
+        id: '1dl',
+        reference: false,
+        modifications: {
+          type: 'number',
+          value: 12
+        }
+      }
+    }
+  ]
+
+  it('test synchronizeModifications', async () => {
+    try {
+      visitorDelegate.on('ready', (err) => {
+        expect(err).toBeUndefined()
+      })
+      getCampaignsAsync.mockResolvedValue(campaignDTO)
+      getModifications.mockReturnValue(returnModification)
+      await defaultStrategy.synchronizeModifications()
+      expect(getCampaignsAsync).toBeCalledTimes(1)
+      expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
+      expect(getModifications).toBeCalledTimes(1)
+      expect(getModifications).toBeCalledWith(campaignDTO)
+    } catch (error) {
+      expect(logError).toBeCalled()
+    }
+  })
+})
+
+describe('test DefaultStrategy fetch flags buffering', () => {
+  const methodNow = Date.now
+  const mockNow = jest.fn<typeof Date.now>()
+  beforeAll(() => {
+    Date.now = mockNow
+    mockNow.mockReturnValue(1)
+  })
+  afterAll(() => {
+    Date.now = methodNow
+  })
+  const visitorId = 'visitorId'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const context: any = {
+    isVip: true
+  }
+
+  const logManager = new FlagshipLogManager()
+  const logInfo = jest.spyOn(logManager, 'info')
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0 })
+  config.logManager = logManager
+
+  const httpClient = new HttpClient()
+
+  const post = jest.fn<typeof httpClient.postAsync>()
+  httpClient.postAsync = post
+  post.mockResolvedValue({} as IHttpResponse)
+
+  const apiManager = new ApiManager(httpClient, config)
+
+  const getCampaignsAsync = jest.spyOn(
+    apiManager,
+    'getCampaignsAsync'
+  )
+
+  const getModifications = jest.spyOn(
+    apiManager,
+    'getModifications'
+  )
+
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  const addHit = jest.spyOn(trackingManager, 'addHit')
+  addHit.mockResolvedValue()
+
+  const activateFlag = jest.spyOn(trackingManager, 'activateFlag')
+  activateFlag.mockResolvedValue()
+
+  const configManager = new ConfigManager(config, apiManager, trackingManager)
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
+  const defaultStrategy = new DefaultStrategy(visitorDelegate)
+
+  const campaignDtoId = 'c2nrh1hjg50l9stringgu8bg'
+  const campaignDTO = [
+    {
+      id: campaignDtoId,
+      slug: 'slug',
+      variationGroupId: 'id',
+      variation: {
+        id: '1dl',
+        reference: false,
+        modifications: {
+          type: 'number',
+          value: 12
+        }
+      }
+    }
+  ]
+
+  it('test fetchFlags', async () => {
+    visitorDelegate.on('ready', (err) => {
+      expect(err).toBeUndefined()
+    })
+    getCampaignsAsync.mockResolvedValue(campaignDTO)
+    getModifications.mockReturnValue(returnModification)
+    await defaultStrategy.fetchFlags()
+    await defaultStrategy.fetchFlags()
+    expect(getCampaignsAsync).toBeCalledTimes(1)
+    expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
+    expect(getModifications).toBeCalledTimes(1)
+    expect(getModifications).toBeCalledWith(campaignDTO)
+    expect(logInfo).toBeCalledTimes(1)
+
+    visitorDelegate.updateContext('key', 'value1')
+    await defaultStrategy.fetchFlags()
+    expect(getCampaignsAsync).toBeCalledTimes(2)
+  })
+
+  it('test fetchFlags', async () => {
+    visitorDelegate.on('ready', (err) => {
+      expect(err).toBeUndefined()
+    })
+    getCampaignsAsync.mockResolvedValue(campaignDTO)
+    getModifications.mockReturnValue(returnModification)
+    config.fetchFlagsBufferingTime = -1
+    await defaultStrategy.fetchFlags()
+    await defaultStrategy.fetchFlags()
+    expect(getCampaignsAsync).toBeCalledTimes(2)
+    expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
+    expect(getModifications).toBeCalledTimes(2)
+    expect(getModifications).toBeCalledWith(campaignDTO)
+    expect(logInfo).toBeCalledTimes(0)
+  })
+
+  it('test fetchFlags', async () => {
+    visitorDelegate.on('ready', (err) => {
+      expect(err).toBeUndefined()
+    })
+    getCampaignsAsync.mockResolvedValue(campaignDTO)
+    getModifications.mockReturnValue(returnModification)
+    config.fetchFlagsBufferingTime = 0
+    await defaultStrategy.fetchFlags()
+    await defaultStrategy.fetchFlags()
+    expect(getCampaignsAsync).toBeCalledTimes(2)
+    expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
+    expect(getModifications).toBeCalledTimes(2)
+    expect(getModifications).toBeCalledWith(campaignDTO)
+    expect(logInfo).toBeCalledTimes(0)
   })
 })
 

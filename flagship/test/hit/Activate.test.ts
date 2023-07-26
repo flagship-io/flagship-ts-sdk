@@ -1,9 +1,19 @@
-import { expect, it, describe } from '@jest/globals'
+import { expect, it, describe, beforeAll, afterAll, jest } from '@jest/globals'
 import { DecisionApiConfig } from '../../src'
-import { ANONYMOUS_ID, CUSTOMER_ENV_ID_API_ACTIVATE, SDK_APP, VARIATION_GROUP_ID_API_ITEM_ACTIVATE, VARIATION_ID_API_ITEM, VISITOR_ID_API_ITEM } from '../../src/enum'
+import { ANONYMOUS_ID, CUSTOMER_ENV_ID_API_ACTIVATE, QT_API_ITEM, SDK_APP, VARIATION_GROUP_ID_API_ITEM_ACTIVATE, VARIATION_ID_API_ITEM, VISITOR_ID_API_ITEM } from '../../src/enum'
 import { Activate, ERROR_MESSAGE } from '../../src/hit/Activate'
 
 describe('test hit type Activate', () => {
+  const methodNow = Date.now
+  const mockNow = jest.fn<typeof Date.now >()
+  beforeAll(() => {
+    Date.now = mockNow
+    mockNow.mockReturnValue(1)
+  })
+  afterAll(() => {
+    Date.now = methodNow
+  })
+
   const variationGroupId = 'variationGroupId'
   const visitorId = 'visitorID'
   const variationId = 'variationId'
@@ -63,7 +73,8 @@ describe('test hit type Activate', () => {
     [VARIATION_ID_API_ITEM]: variationId,
     [VARIATION_GROUP_ID_API_ITEM_ACTIVATE]: variationGroupId,
     [CUSTOMER_ENV_ID_API_ACTIVATE]: config.envId,
-    [ANONYMOUS_ID]: null
+    [ANONYMOUS_ID]: null,
+    [QT_API_ITEM]: expect.anything()
   }
 
   it('test toApiKeys method ', () => {

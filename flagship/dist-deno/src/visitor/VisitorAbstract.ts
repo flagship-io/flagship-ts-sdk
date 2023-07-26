@@ -16,6 +16,7 @@ import { PanicStrategy } from './PanicStrategy.ts'
 import { NoConsentStrategy } from './NoConsentStrategy.ts'
 import { cacheVisitor } from './VisitorCache.ts'
 import { IFlag } from '../flag/Flags.ts'
+import { FlagSynchStatus } from '../enum/FlagSynchStatus.ts'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -28,6 +29,18 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   public deDuplicationCache: Record<string, number>
   protected _isCleaningDeDuplicationCache: boolean
   public visitorCache?: VisitorCacheDTO
+  private _flagSynchStatus : FlagSynchStatus
+
+  public lastFetchFlagsTimestamp = 0
+  public isFlagFetching = false
+
+  public get flagSynchStatus () : FlagSynchStatus {
+    return this._flagSynchStatus
+  }
+
+  public set flagSynchStatus (v : FlagSynchStatus) {
+    this._flagSynchStatus = v
+  }
 
   constructor (param: NewVisitor & {
     visitorId?: string
@@ -68,6 +81,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.updateCache()
     this.setInitialFlags(initialFlagsData || initialModifications)
     this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
+    this._flagSynchStatus = FlagSynchStatus.CREATED
 
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
   }

@@ -17,6 +17,7 @@ import { cacheVisitor } from './VisitorCache'
 import { IFlag } from '../flag/Flags'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { MurmurHash } from '../utils/MurmurHash'
+import { FlagSynchStatus } from '../enum/FlagSynchStatus'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -50,6 +51,19 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
   public getSdkStatus () : FlagshipStatus|undefined {
     return VisitorAbstract.SdkStatus
+  }
+
+  private _flagSynchStatus : FlagSynchStatus
+
+  public lastFetchFlagsTimestamp = 0
+  public isFlagFetching = false
+
+  public get flagSynchStatus () : FlagSynchStatus {
+    return this._flagSynchStatus
+  }
+
+  public set flagSynchStatus (v : FlagSynchStatus) {
+    this._flagSynchStatus = v
   }
 
   constructor (param: NewVisitor & {
@@ -96,6 +110,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.updateCache()
     this.setInitialFlags(initialFlagsData || initialModifications)
     this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
+    this._flagSynchStatus = FlagSynchStatus.CREATED
 
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
   }
