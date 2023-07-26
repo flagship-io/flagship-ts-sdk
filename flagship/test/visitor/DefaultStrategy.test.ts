@@ -1465,7 +1465,7 @@ describe('test DefaultStrategy fetch flags buffering', () => {
   const logManager = new FlagshipLogManager()
   const logInfo = jest.spyOn(logManager, 'info')
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0, fetchFlagsBufferingTime: 0 })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0 })
   config.logManager = logManager
 
   const httpClient = new HttpClient()
