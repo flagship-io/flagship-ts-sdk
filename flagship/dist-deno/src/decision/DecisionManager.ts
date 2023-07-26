@@ -96,6 +96,7 @@ export abstract class DecisionManager implements IDecisionManager {
         body: requestBody,
         nextFetchConfig: this.config.nextFetchConfig
       })
+
       this.panic = !!response?.body?.panic
       let campaigns: CampaignDTO[]|null = null
 

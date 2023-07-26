@@ -1,5 +1,5 @@
 import { BucketingDTO } from '../decision/api/bucketingDTO.ts'
-import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, SDK_INFO, TYPE_ERROR } from '../enum/index.ts'
+import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FETCH_FLAG_BUFFERING_DEFAULT_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, SDK_INFO, TYPE_ERROR } from '../enum/index.ts'
 import { IHitCacheImplementation } from '../cache/IHitCacheImplementation.ts'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager.ts'
 import { logError, sprintf } from '../utils/utils.ts'
@@ -37,6 +37,15 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _onVisitorExposed?:(arg: OnVisitorExposed)=> void
   private _fetchThirdPartyData : boolean|undefined
   private _nextFetchConfig? : Record<string, unknown>
+  private _fetchFlagsBufferingTime? : number
+
+  public get fetchFlagsBufferingTime () : number|undefined {
+    return this._fetchFlagsBufferingTime
+  }
+
+  public set fetchFlagsBufferingTime (v : number|undefined) {
+    this._fetchFlagsBufferingTime = v
+  }
 
   public get nextFetchConfig () : Record<string, unknown>|undefined {
     return this._nextFetchConfig
@@ -81,7 +90,8 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
-      disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig, onLog, onVisitorExposed, nextFetchConfig
+      disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig, onLog,
+      onVisitorExposed, nextFetchConfig, fetchFlagsBufferingTime
     } = param
 
     this.initSDKInfo(language, sdkVersion)
@@ -90,6 +100,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       this.logManager = logManager
     }
 
+    this.fetchFlagsBufferingTime = fetchFlagsBufferingTime || FETCH_FLAG_BUFFERING_DEFAULT_TIME
     this.nextFetchConfig = nextFetchConfig || { revalidate: 20 }
     this._trackingMangerConfig = new TrackingManagerConfig(trackingMangerConfig || {})
     this.onLog = onLog
