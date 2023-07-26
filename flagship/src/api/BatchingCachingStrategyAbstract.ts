@@ -1,10 +1,10 @@
 import { DecisionMode, IFlagshipConfig } from '../config/index'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
-import { ACTIVATE_ADDED_IN_QUEUE, ADD_ACTIVATE, BATCH_MAX_SIZE, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HitType, HIT_ADDED_IN_QUEUE, HIT_CACHE_VERSION, HIT_DATA_FLUSHED, HIT_EVENT_URL, LogLevel, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_APP, SDK_INFO, SEND_BATCH, TROUBLESHOOTING_HIT_URL, TROUBLESHOOTING_HIT_ADDED_IN_QUEUE, ADD_TROUBLESHOOTING_HIT, TROUBLESHOOTING_SENT_SUCCESS, SEND_TROUBLESHOOTING, ALL_HITS_FLUSHED, HIT_CACHE_ERROR, HIT_CACHE_SAVED, PROCESS_CACHE, TRACKING_MANAGER, HIT_SENT_SUCCESS, BATCH_HIT, TRACKING_MANAGER_ERROR } from '../enum/index'
+import { ACTIVATE_ADDED_IN_QUEUE, ADD_ACTIVATE, BATCH_MAX_SIZE, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HitType, HIT_ADDED_IN_QUEUE, HIT_CACHE_VERSION, HIT_DATA_FLUSHED, HIT_EVENT_URL, LogLevel, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_APP, SDK_INFO, SEND_BATCH, TROUBLESHOOTING_HIT_URL, TROUBLESHOOTING_HIT_ADDED_IN_QUEUE, ADD_TROUBLESHOOTING_HIT, TROUBLESHOOTING_SENT_SUCCESS, SEND_TROUBLESHOOTING, ALL_HITS_FLUSHED, HIT_CACHE_ERROR, HIT_CACHE_SAVED, PROCESS_CACHE, TRACKING_MANAGER, HIT_SENT_SUCCESS, BATCH_HIT, TRACKING_MANAGER_ERROR, ANALYTICS_HIT_URL, ANALYTICS_HIT_SENT_SUCCESS, SEND_ANALYTICS, ANALYTICS_HIT_ADDED_IN_QUEUE, ADD_ANALYTICS_HIT } from '../enum/index'
 import { Activate } from '../hit/Activate'
 import { Batch } from '../hit/Batch'
-import { HitAbstract, Event } from '../hit/index'
 import { Troubleshooting } from '../hit/Troubleshooting'
+import { HitAbstract, Event } from '../hit/index'
 import { HitCacheDTO, IExposedFlag, IExposedVisitor, TroubleshootingData } from '../types'
 import { IHttpClient } from '../utils/HttpClient'
 import { errorFormat, logDebug, logDebugSprintf, logError, logErrorSprintf, sprintf, uuidV4 } from '../utils/utils'
@@ -17,8 +17,10 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   protected _activatePoolQueue: Map<string, Activate>
   protected _httpClient: IHttpClient
   protected _troubleshootingQueue: Map<string, Troubleshooting>
+  protected _AnalyticHitQueue: Map<string, Troubleshooting>
   protected _flagshipInstanceId?: string
   protected _isLoopingMonitoringPoolQueue: boolean
+  protected _isAnalyticHitQueueSending: boolean
   private _troubleshootingData? : TroubleshootingData|'started'
 
   public get flagshipInstanceId (): string|undefined {
@@ -51,94 +53,6 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   public abstract addHitInPoolQueue (hit: HitAbstract):Promise<void>
 
   protected abstract sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate): Promise<void>
-
-  protected isTroubleshootingActivated () {
-    if (!this.troubleshootingData) {
-      return false
-    }
-
-    if (this.troubleshootingData === 'started') {
-      return false
-    }
-
-    const now = new Date()
-
-    const isStarted = now >= this.troubleshootingData.startDate
-    if (!isStarted) {
-      return false
-    }
-
-    const isFinished = now > this.troubleshootingData.endDate
-    if (isFinished) {
-      return false
-    }
-    return true
-  }
-
-  protected async addTroubleshootingHit (hit: Troubleshooting): Promise<void> {
-    if (this.troubleshootingData !== 'started' && !this.isTroubleshootingActivated()) {
-      return
-    }
-    if (!hit.key) {
-      const hitKey = `${hit.visitorId}:${uuidV4()}`
-      hit.key = hitKey
-    }
-    this._troubleshootingQueue.set(hit.key, hit)
-    logDebug(this.config, sprintf(TROUBLESHOOTING_HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_TROUBLESHOOTING_HIT)
-  }
-
-  public async sendTroubleshootingHit (hit: Troubleshooting): Promise<void> {
-    if (this.troubleshootingData === 'started') {
-      this.addTroubleshootingHit(hit)
-      return
-    }
-
-    if (!this.isTroubleshootingActivated() || hit.traffic === undefined || (this.troubleshootingData as TroubleshootingData).traffic < hit.traffic) {
-      return
-    }
-    const requestBody = hit.toApiKeys()
-    const now = Date.now()
-    try {
-      await this._httpClient.postAsync(TROUBLESHOOTING_HIT_URL, {
-        body: requestBody
-      })
-      logDebug(this.config, sprintf(TROUBLESHOOTING_SENT_SUCCESS, JSON.stringify({
-        ...requestBody,
-        duration: Date.now() - now
-      })), SEND_TROUBLESHOOTING)
-
-      if (hit.key) {
-        this._troubleshootingQueue.delete(hit.key)
-        await this.flushHits([hit.key])
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
-      if (!hit.key) {
-        const hitKey = `${hit.visitorId}:${uuidV4()}`
-        hit.key = hitKey
-        await this.addTroubleshootingHit(hit)
-      }
-      logError(this.config, errorFormat(error.message || error, {
-        url: TROUBLESHOOTING_HIT_URL,
-        headers: {},
-        body: requestBody,
-        duration: Date.now() - now
-      }), SEND_BATCH)
-    }
-  }
-
-  public async sendTroubleshootingQueue () {
-    if (!this.isTroubleshootingActivated() || this._isLoopingMonitoringPoolQueue || this._troubleshootingQueue.size === 0) {
-      return
-    }
-
-    this._isLoopingMonitoringPoolQueue = true
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for (const [_, item] of Array.from(this._troubleshootingQueue)) {
-      await this.sendTroubleshootingHit(item)
-    }
-    this._isLoopingMonitoringPoolQueue = false
-  }
 
   public async addHit (hit: HitAbstract): Promise<void> {
     const hitKey = `${hit.visitorId}:${uuidV4()}`
@@ -419,4 +333,149 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       logErrorSprintf(this.config, PROCESS_CACHE, HIT_CACHE_ERROR, 'flushAllHits', error.message || error)
     }
   }
+
+  // #region Troubleshooting
+
+  protected isTroubleshootingActivated () {
+    if (!this.troubleshootingData) {
+      return false
+    }
+
+    if (this.troubleshootingData === 'started') {
+      return false
+    }
+
+    const now = new Date()
+
+    const isStarted = now >= this.troubleshootingData.startDate
+    if (!isStarted) {
+      return false
+    }
+
+    const isFinished = now > this.troubleshootingData.endDate
+    if (isFinished) {
+      return false
+    }
+    return true
+  }
+
+  protected async addTroubleshootingHit (hit: Troubleshooting): Promise<void> {
+    if (this.troubleshootingData !== 'started' && !this.isTroubleshootingActivated()) {
+      return
+    }
+    if (!hit.key) {
+      const hitKey = `${hit.visitorId}:${uuidV4()}`
+      hit.key = hitKey
+    }
+    this._troubleshootingQueue.set(hit.key, hit)
+    logDebug(this.config, sprintf(TROUBLESHOOTING_HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_TROUBLESHOOTING_HIT)
+  }
+
+  public async sendTroubleshootingHit (hit: Troubleshooting): Promise<void> {
+    if (this.troubleshootingData === 'started') {
+      this.addTroubleshootingHit(hit)
+      return
+    }
+
+    if (!this.isTroubleshootingActivated() || hit.traffic === undefined || (this.troubleshootingData as TroubleshootingData).traffic < hit.traffic) {
+      return
+    }
+    const requestBody = hit.toApiKeys()
+    const now = Date.now()
+    try {
+      await this._httpClient.postAsync(TROUBLESHOOTING_HIT_URL, {
+        body: requestBody
+      })
+      logDebug(this.config, sprintf(TROUBLESHOOTING_SENT_SUCCESS, JSON.stringify({
+        ...requestBody,
+        duration: Date.now() - now
+      })), SEND_TROUBLESHOOTING)
+
+      if (hit.key) {
+        this._troubleshootingQueue.delete(hit.key)
+        await this.flushHits([hit.key])
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      if (!hit.key) {
+        const hitKey = `${hit.visitorId}:${uuidV4()}`
+        hit.key = hitKey
+        await this.addTroubleshootingHit(hit)
+      }
+      logError(this.config, errorFormat(error.message || error, {
+        url: TROUBLESHOOTING_HIT_URL,
+        headers: {},
+        body: requestBody,
+        duration: Date.now() - now
+      }), SEND_BATCH)
+    }
+  }
+
+  public async sendTroubleshootingQueue () {
+    if (!this.isTroubleshootingActivated() || this._isLoopingMonitoringPoolQueue || this._troubleshootingQueue.size === 0) {
+      return
+    }
+
+    this._isLoopingMonitoringPoolQueue = true
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for (const [_, item] of Array.from(this._troubleshootingQueue)) {
+      await this.sendTroubleshootingHit(item)
+    }
+    this._isLoopingMonitoringPoolQueue = false
+  }
+
+  // #endregion
+
+  // #region Analytic hit
+  protected async addAnalyticsHit (hit: Troubleshooting): Promise<void> {
+    if (!hit.key) {
+      const hitKey = `${hit.visitorId}:${uuidV4()}`
+      hit.key = hitKey
+    }
+    this._AnalyticHitQueue.set(hit.key, hit)
+    logDebug(this.config, sprintf(ANALYTICS_HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_ANALYTICS_HIT)
+  }
+
+  public async sendAnalyticsHit (hit: Troubleshooting): Promise<void> {
+    const requestBody = hit.toApiKeys()
+    const now = Date.now()
+    try {
+      await this._httpClient.postAsync(ANALYTICS_HIT_URL, {
+        body: requestBody
+      })
+      logDebug(this.config, sprintf(ANALYTICS_HIT_SENT_SUCCESS, JSON.stringify({
+        ...requestBody,
+        duration: Date.now() - now
+      })), SEND_ANALYTICS)
+
+      if (hit.key) {
+        this._AnalyticHitQueue.delete(hit.key)
+        await this.flushHits([hit.key])
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      await this.addAnalyticsHit(hit)
+      logError(this.config, errorFormat(error.message || error, {
+        url: TROUBLESHOOTING_HIT_URL,
+        headers: {},
+        body: requestBody,
+        duration: Date.now() - now
+      }), SEND_BATCH)
+    }
+  }
+
+  public async sendAnalyticsHitQueue () {
+    if (this._isAnalyticHitQueueSending || this._AnalyticHitQueue.size === 0) {
+      return
+    }
+
+    this._isAnalyticHitQueueSending = true
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for (const [_, item] of Array.from(this._troubleshootingQueue)) {
+      await this.sendAnalyticsHit(item)
+    }
+    this._isAnalyticHitQueueSending = false
+  }
+
+  // #endregion
 }
