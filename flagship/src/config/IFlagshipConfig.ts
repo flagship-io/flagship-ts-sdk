@@ -141,4 +141,13 @@ export interface IFlagshipConfig {
      * In Next.js 13, you can define the time in seconds for storing SDK route cache before revalidation.
      */
     nextFetchConfig?: Record<string, unknown>
+
+    /**
+     * (Default value 2) You can specify a delay in seconds for fetch flags call buffering. This means that after the SDK has fetched flags, they will be buffered for the specified delay. During this delay, any subsequent fetch flags calls will return the same flags.
+     *
+     * Note:
+     * - If a value of 0 is given, no buffering process will be used.
+     * - If visitor data has changed, the buffering will be bypassed.
+     */
+    fetchFlagsBufferingTime?: number
   }

@@ -14,6 +14,8 @@ export const SDK_INFO = {
  */
 export const REQUEST_TIME_OUT = 2
 
+export const FETCH_FLAG_BUFFERING_DEFAULT_TIME = 2
+
 export const DEFAULT_DEDUPLICATION_TIME = 2.5
 export const DEFAULT_POLLING_INTERVAL = 1
 
@@ -60,6 +62,8 @@ export const SDK_STARTED_INFO = 'Flagship SDK (version: {0}) READY'
 export const FLAGSHIP_SDK = 'Flagship SDK'
 
 export const EMIT_READY = 'ready'
+
+export const EMIT_STATUS = 'status'
 
 export const NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY = 3
 
@@ -110,6 +114,8 @@ export const SEND_ACTIVATE = 'SEND ACTIVATE'
 export const SEND_SEGMENT_HIT = 'SEND SEGMENT HIT'
 export const SEND_HIT = 'SEND HIT'
 export const EVENT_SUFFIX = 'events'
+export const FETCH_FLAGS_BUFFERING_MESSAGE = 'Visitor {0}, fetchFlags has been ignored and will continue to be ignored for the next {1}ms, this delay can be changed with `fetchFlagsBufferingTime` option in the SDK config'
+export const VISITOR_SYNC_FLAGS_MESSAGE = 'without calling `fetchFlags` method afterwards, the value of the flag `{1}` may be outdated'
 
 export const NEW_VISITOR_NOT_READY = `You can't create a new visitor without first calling the "Flagship.start" method.
 Learn more: ${JS_DOC_URL}#initialization
@@ -221,7 +227,9 @@ export const FETCH_FLAGS_STARTED = 'visitor `{0}` fetchFlags process is started'
 export const FETCH_FLAGS_PANIC_MODE = 'Panic mode is enabled : all feature are disabled except fetchFlags.'
 export const PROCESS_FETCHING_FLAGS = 'FETCH_FLAGS'
 export const GET_FLAG_MISSING_ERROR = 'Visitor {0}, No Flags found for key {1} : Default value is returned {2}'
+export const FETCH_FLAGS_MISSING = 'Visitor {0} has {1} without calling fetchFlags method, '
 export const FLAG_VALUE = 'FLAG_VALUE'
+export const GET_FLAG = 'GET_FLAG'
 export const GET_FLAG_CAST_ERROR = 'Visitor {0}, Flag for key {1} has a different type with default value : Default value is returned {2}'
 export const GET_FLAG_VALUE = 'Visitor {0}, Flag for key {1} returns value {2}'
 export const USER_EXPOSED_FLAG_ERROR = 'Visitor {0}, No Flags found for key {1}: User exposition wont be sent'
