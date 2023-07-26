@@ -100,7 +100,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       this.logManager = logManager
     }
 
-    this.fetchFlagsBufferingTime = fetchFlagsBufferingTime || FETCH_FLAG_BUFFERING_DEFAULT_TIME
+    this.fetchFlagsBufferingTime = fetchFlagsBufferingTime ?? FETCH_FLAG_BUFFERING_DEFAULT_TIME
     this.nextFetchConfig = nextFetchConfig || { revalidate: 20 }
     this._trackingManagerConfig = new TrackingManagerConfig(trackingManagerConfig || trackingMangerConfig || {})
     this.onLog = onLog
