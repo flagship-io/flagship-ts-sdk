@@ -59,7 +59,7 @@ export type NewVisitor={
 
 }
 
-export type InternalHitType = HitType|'BATCH'|'ACTIVATE'|'MONITORING'|'SEGMENT'|'TROUBLESHOOTING'
+export type InternalHitType = HitType|'BATCH'|'ACTIVATE'|'MONITORING'|'SEGMENT'|'TROUBLESHOOTING'|'USAGE'
 
 export type HitCacheDTO ={
   version: number,
