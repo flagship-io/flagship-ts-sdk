@@ -2,6 +2,7 @@ import { DecisionMode, IFlagshipConfig } from '../config/index'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 import { ACTIVATE_ADDED_IN_QUEUE, ADD_ACTIVATE, BATCH_MAX_SIZE, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HitType, HIT_ADDED_IN_QUEUE, HIT_CACHE_VERSION, HIT_DATA_FLUSHED, HIT_EVENT_URL, LogLevel, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_APP, SDK_INFO, SEND_BATCH, TROUBLESHOOTING_HIT_URL, TROUBLESHOOTING_HIT_ADDED_IN_QUEUE, ADD_TROUBLESHOOTING_HIT, TROUBLESHOOTING_SENT_SUCCESS, SEND_TROUBLESHOOTING, ALL_HITS_FLUSHED, HIT_CACHE_ERROR, HIT_CACHE_SAVED, PROCESS_CACHE, TRACKING_MANAGER, HIT_SENT_SUCCESS, BATCH_HIT, TRACKING_MANAGER_ERROR, ANALYTICS_HIT_URL, ANALYTICS_HIT_SENT_SUCCESS, SEND_ANALYTICS, ANALYTICS_HIT_ADDED_IN_QUEUE, ADD_ANALYTICS_HIT } from '../enum/index'
 import { Activate } from '../hit/Activate'
+import { Analytic } from '../hit/Analytic'
 import { Batch } from '../hit/Batch'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { HitAbstract, Event } from '../hit/index'
@@ -17,7 +18,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   protected _activatePoolQueue: Map<string, Activate>
   protected _httpClient: IHttpClient
   protected _troubleshootingQueue: Map<string, Troubleshooting>
-  protected _AnalyticHitQueue: Map<string, Troubleshooting>
+  protected _analyticHitQueue: Map<string, Analytic>
   protected _flagshipInstanceId?: string
   protected _isLoopingMonitoringPoolQueue: boolean
   protected _isAnalyticHitQueueSending: boolean
@@ -39,7 +40,8 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     return this._config
   }
 
-  constructor ({ config, hitsPoolQueue, httpClient, activatePoolQueue, troubleshootingQueue, flagshipInstanceId }: BatchingCachingStrategyConstruct) {
+  constructor (param: BatchingCachingStrategyConstruct) {
+    const { config, hitsPoolQueue, httpClient, activatePoolQueue, troubleshootingQueue, flagshipInstanceId, analyticHitQueue } = param
     this.troubleshootingData = 'started'
     this._config = config
     this._hitsPoolQueue = hitsPoolQueue
@@ -47,7 +49,9 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     this._activatePoolQueue = activatePoolQueue
     this._troubleshootingQueue = troubleshootingQueue
     this._flagshipInstanceId = flagshipInstanceId
+    this._analyticHitQueue = analyticHitQueue
     this._isLoopingMonitoringPoolQueue = false
+    this._isAnalyticHitQueueSending = false
   }
 
   public abstract addHitInPoolQueue (hit: HitAbstract):Promise<void>
@@ -427,16 +431,16 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   // #endregion
 
   // #region Analytic hit
-  protected async addAnalyticsHit (hit: Troubleshooting): Promise<void> {
+  protected async addAnalyticsHit (hit: Analytic): Promise<void> {
     if (!hit.key) {
       const hitKey = `${hit.visitorId}:${uuidV4()}`
       hit.key = hitKey
     }
-    this._AnalyticHitQueue.set(hit.key, hit)
+    this._analyticHitQueue.set(hit.key, hit)
     logDebug(this.config, sprintf(ANALYTICS_HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_ANALYTICS_HIT)
   }
 
-  public async sendAnalyticsHit (hit: Troubleshooting): Promise<void> {
+  public async sendAnalyticsHit (hit: Analytic): Promise<void> {
     const requestBody = hit.toApiKeys()
     const now = Date.now()
     try {
@@ -449,7 +453,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       })), SEND_ANALYTICS)
 
       if (hit.key) {
-        this._AnalyticHitQueue.delete(hit.key)
+        this._analyticHitQueue.delete(hit.key)
         await this.flushHits([hit.key])
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -465,7 +469,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   }
 
   public async sendAnalyticsHitQueue () {
-    if (this._isAnalyticHitQueueSending || this._AnalyticHitQueue.size === 0) {
+    if (this._isAnalyticHitQueueSending || this._analyticHitQueue.size === 0) {
       return
     }
 
