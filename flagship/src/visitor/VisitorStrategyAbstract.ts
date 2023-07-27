@@ -11,6 +11,7 @@ import { BatchDTO } from '../hit/Batch'
 import { ITrackingManager } from '../api/ITrackingManager'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { MurmurHash } from '../utils/MurmurHash'
+import { Analytic } from '../hit/Analytic'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 
@@ -282,5 +283,9 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
     public async sendTroubleshootingHit (hit: Troubleshooting) {
       await this.trackingManager.sendTroubleshootingHit(hit)
+    }
+
+    public async sendAnalyticHit (hit: Analytic) {
+      await this.trackingManager.sendAnalyticsHit(hit)
     }
 }

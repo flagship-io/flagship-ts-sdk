@@ -70,8 +70,9 @@ import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
 import { VisitorDelegate } from './index'
 import { FlagMetadata } from '../flag/FlagMetadata'
 import { Activate } from '../hit/Activate'
-import { Troubleshooting } from '../hit/Troubleshooting'
+import { Troubleshooting, TroubleshootingType } from '../hit/Troubleshooting'
 import { FlagSynchStatus } from '../enum/FlagSynchStatus'
+import { Analytic, AnalyticType } from '../hit/Analytic'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'
@@ -384,9 +385,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       })
 
       this.visitor.visitorHits = []
-
-      const fetchFlagTroubleshooting = new Troubleshooting({
-
+      const diagnosticData = {
         label: 'VISITOR-FETCH-CAMPAIGNS',
         logLevel: LogLevel.INFO,
         visitorId: this.visitor.visitorId,
@@ -419,9 +418,15 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sdkConfigInitialBucketing: this.config.initialBucketing,
         sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
         sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
-      })
+      }
+      const fetchFlagTroubleshooting = new Troubleshooting(diagnosticData as TroubleshootingType)
 
       this.sendTroubleshootingHit(fetchFlagTroubleshooting)
+
+      if (this.config.enableAnalytics) {
+        const fetchFlagsAnalytic = new Analytic(diagnosticData as AnalyticType)
+        this.sendAnalyticHit(fetchFlagsAnalytic)
+      }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
