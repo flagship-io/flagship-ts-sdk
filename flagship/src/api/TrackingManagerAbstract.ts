@@ -14,6 +14,7 @@ import { Activate, IActivate } from '../hit/Activate'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 import { ITrackingManager } from './ITrackingManager'
 import { Troubleshooting } from '../hit/Troubleshooting'
+import { Analytic } from '../hit/Analytic'
 
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
@@ -24,6 +25,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   private _hitsPoolQueue: Map<string, HitAbstract>
   private _activatePoolQueue: Map<string, Activate>
   private _troubleshootingQueue: Map<string, Troubleshooting>
+  protected _analyticHitQueue: Map<string, Analytic>
   protected strategy: BatchingCachingStrategyAbstract
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected _intervalID:any
@@ -47,6 +49,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     this._hitsPoolQueue = new Map<string, HitAbstract>()
     this._activatePoolQueue = new Map<string, Activate>()
     this._troubleshootingQueue = new Map<string, Troubleshooting>()
+    this._analyticHitQueue = new Map<string, Analytic>()
     this._httpClient = httpClient
     this._config = config
     this.strategy = this.initStrategy()
@@ -55,36 +58,24 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
   protected initStrategy ():BatchingCachingStrategyAbstract {
     let strategy:BatchingCachingStrategyAbstract
+    const param = {
+      config: this.config,
+      httpClient: this.httpClient,
+      hitsPoolQueue: this._hitsPoolQueue,
+      activatePoolQueue: this._activatePoolQueue,
+      troubleshootingQueue: this._troubleshootingQueue,
+      analyticHitQueue: this._analyticHitQueue,
+      flagshipInstanceId: this.flagshipInstanceId
+    }
     switch (this.config.trackingManagerConfig?.cacheStrategy) {
       case CacheStrategy.PERIODIC_CACHING:
-        strategy = new BatchingPeriodicCachingStrategy({
-          config: this.config,
-          httpClient: this.httpClient,
-          hitsPoolQueue: this._hitsPoolQueue,
-          activatePoolQueue: this._activatePoolQueue,
-          troubleshootingQueue: this._troubleshootingQueue,
-          flagshipInstanceId: this.flagshipInstanceId
-        })
+        strategy = new BatchingPeriodicCachingStrategy(param)
         break
       case CacheStrategy.CONTINUOUS_CACHING:
-        strategy = new BatchingContinuousCachingStrategy({
-          config: this.config,
-          httpClient: this.httpClient,
-          hitsPoolQueue: this._hitsPoolQueue,
-          activatePoolQueue: this._activatePoolQueue,
-          troubleshootingQueue: this._troubleshootingQueue,
-          flagshipInstanceId: this.flagshipInstanceId
-        })
+        strategy = new BatchingContinuousCachingStrategy(param)
         break
       default:
-        strategy = new NoBatchingContinuousCachingStrategy({
-          config: this.config,
-          httpClient: this.httpClient,
-          hitsPoolQueue: this._hitsPoolQueue,
-          activatePoolQueue: this._activatePoolQueue,
-          troubleshootingQueue: this._troubleshootingQueue,
-          flagshipInstanceId: this.flagshipInstanceId
-        })
+        strategy = new NoBatchingContinuousCachingStrategy(param)
         break
     }
     return strategy
@@ -132,6 +123,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     this._isPooling = true
     await this.strategy.sendBatch(BatchTriggeredBy.Timer)
     await this.strategy.sendTroubleshootingQueue()
+    await this.strategy.sendAnalyticsHitQueue()
     this._isPooling = false
   }
 
@@ -211,5 +203,9 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     } catch (error:any) {
       logErrorSprintf(this.config, PROCESS_CACHE, HIT_CACHE_ERROR, 'lookupHits', error.message || error)
     }
+  }
+
+  async sendAnalyticsHit (hit: Analytic): Promise<void> {
+    await this.strategy.sendAnalyticsHit(hit)
   }
 }
