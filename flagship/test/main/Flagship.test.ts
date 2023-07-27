@@ -34,7 +34,7 @@ const stopBatchingLoop = jest.fn<()=>Promise<void>>()
 
 const sendBatch = jest.fn<()=>Promise<void>>()
 
-const addTroubleshootingHit = jest.fn<()=>Promise<void>>()
+const sendTroubleshootingHit = jest.fn<()=>Promise<void>>()
 
 addHit.mockResolvedValue()
 
@@ -46,7 +46,7 @@ jest.mock('../../src/api/TrackingManager', () => {
         stopBatchingLoop,
         sendBatch,
         addHit,
-        addTroubleshootingHit
+        sendTroubleshootingHit
       }
     })
   }

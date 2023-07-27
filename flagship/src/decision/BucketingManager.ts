@@ -51,7 +51,7 @@ export class BucketingManager extends DecisionManager {
         httpResponseCode: response?.status,
         httpResponseTime: Date.now() - now
       })
-      this.trackingManager.addTroubleshootingHit(troubleshootingHit)
+      this.trackingManager.sendTroubleshootingHit(troubleshootingHit)
     } else if (response.status === 304) {
       logDebug(this.config, POLLING_EVENT_300, PROCESS_BUCKETING)
     }
@@ -149,7 +149,7 @@ export class BucketingManager extends DecisionManager {
         httpResponseCode: error?.statusCode,
         httpResponseTime: Date.now() - now
       })
-      this.trackingManager.addTroubleshootingHit(troubleshootingHit)
+      this.trackingManager.sendTroubleshootingHit(troubleshootingHit)
     }
   }
 

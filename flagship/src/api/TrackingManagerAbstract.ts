@@ -55,36 +55,23 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
   protected initStrategy ():BatchingCachingStrategyAbstract {
     let strategy:BatchingCachingStrategyAbstract
+    const argument = {
+      config: this.config,
+      httpClient: this.httpClient,
+      hitsPoolQueue: this._hitsPoolQueue,
+      activatePoolQueue: this._activatePoolQueue,
+      troubleshootingQueue: this._troubleshootingQueue,
+      flagshipInstanceId: this.flagshipInstanceId
+    }
     switch (this.config.trackingManagerConfig?.cacheStrategy) {
       case CacheStrategy.PERIODIC_CACHING:
-        strategy = new BatchingPeriodicCachingStrategy({
-          config: this.config,
-          httpClient: this.httpClient,
-          hitsPoolQueue: this._hitsPoolQueue,
-          activatePoolQueue: this._activatePoolQueue,
-          troubleshootingQueue: this._troubleshootingQueue,
-          flagshipInstanceId: this.flagshipInstanceId
-        })
+        strategy = new BatchingPeriodicCachingStrategy(argument)
         break
       case CacheStrategy.CONTINUOUS_CACHING:
-        strategy = new BatchingContinuousCachingStrategy({
-          config: this.config,
-          httpClient: this.httpClient,
-          hitsPoolQueue: this._hitsPoolQueue,
-          activatePoolQueue: this._activatePoolQueue,
-          troubleshootingQueue: this._troubleshootingQueue,
-          flagshipInstanceId: this.flagshipInstanceId
-        })
+        strategy = new BatchingContinuousCachingStrategy(argument)
         break
       default:
-        strategy = new NoBatchingContinuousCachingStrategy({
-          config: this.config,
-          httpClient: this.httpClient,
-          hitsPoolQueue: this._hitsPoolQueue,
-          activatePoolQueue: this._activatePoolQueue,
-          troubleshootingQueue: this._troubleshootingQueue,
-          flagshipInstanceId: this.flagshipInstanceId
-        })
+        strategy = new NoBatchingContinuousCachingStrategy(argument)
         break
     }
     return strategy
@@ -104,7 +91,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
   public abstract sendBatch(): Promise<void>
 
-  public async addTroubleshootingHit (hit: Troubleshooting) :Promise<void> {
+  public async sendTroubleshootingHit (hit: Troubleshooting) :Promise<void> {
     await this.strategy.sendTroubleshootingHit(hit)
     await this.strategy.sendTroubleshootingQueue()
   }

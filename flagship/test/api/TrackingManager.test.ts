@@ -208,7 +208,7 @@ describe('test TrackingManager Strategy ', () => {
 
     config.trackingManagerConfig.batchIntervals = 1
 
-    await trackingManager.addTroubleshootingHit(activateTroubleshooting)
+    await trackingManager.sendTroubleshootingHit(activateTroubleshooting)
 
     expect(strategy.sendTroubleshootingHit).toBeCalledTimes(1)
     expect(strategy.sendTroubleshootingHit).toBeCalledWith(activateTroubleshooting)

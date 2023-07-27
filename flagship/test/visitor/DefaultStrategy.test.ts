@@ -64,7 +64,7 @@ describe('test DefaultStrategy ', () => {
 
   const trackingManager = new TrackingManager(httpClient, config)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'addTroubleshootingHit')
+  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
 
   const addHit = jest.spyOn(trackingManager, 'addHit')
   addHit.mockResolvedValue()
@@ -1858,7 +1858,7 @@ describe('test DefaultStrategy troubleshootingHit', () => {
   addHit.mockResolvedValue()
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'addTroubleshootingHit')
+  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
 
   const activateFlag = jest.spyOn(trackingManager, 'activateFlag')
   activateFlag.mockResolvedValue()
@@ -1937,7 +1937,7 @@ describe('test DefaultStrategy troubleshootingHit', () => {
   addHit.mockResolvedValue()
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'addTroubleshootingHit')
+  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
 
   const activateFlag = jest.spyOn(trackingManager, 'activateFlag')
   activateFlag.mockResolvedValue()
@@ -1995,7 +1995,7 @@ describe('test DefaultStrategy troubleshootingHit visitor traffic === undefined'
   addHit.mockResolvedValue()
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'addTroubleshootingHit')
+  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
 
   const activateFlag = jest.spyOn(trackingManager, 'activateFlag')
   activateFlag.mockResolvedValue()

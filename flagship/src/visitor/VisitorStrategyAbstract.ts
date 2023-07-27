@@ -281,6 +281,6 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     abstract getFlagMetadata(param:{metadata:IFlagMetadata, key?:string, hasSameType:boolean}):IFlagMetadata
 
     public async sendTroubleshootingHit (hit: Troubleshooting) {
-      await this.trackingManager.addTroubleshootingHit(hit)
+      await this.trackingManager.sendTroubleshootingHit(hit)
     }
 }

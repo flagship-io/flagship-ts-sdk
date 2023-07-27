@@ -9,6 +9,6 @@ export interface ITrackingManager extends ITrackingManagerCommon {
 
     sendBatch():Promise<void>
 
-    addTroubleshootingHit(hit: Troubleshooting): Promise<void>
+    sendTroubleshootingHit(hit: Troubleshooting): Promise<void>
 
   }
