@@ -352,11 +352,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       logDebugSprintf(this.config, functionName, FETCH_FLAGS_FROM_CAMPAIGNS,
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, this.visitor.flagsData)
 
-      const flags: Record<string, unknown> = {}
       const assignmentHistory: Record<string, string> = {}
 
       this.visitor.flagsData.forEach(item => {
-        flags[item.key] = item.value
         assignmentHistory[item.variationGroupId] = item.variationId
       })
 
@@ -401,7 +399,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         visitorCampaignFromCache: logData.isFromCache ? campaigns : undefined,
         visitorConsent: this.visitor.hasConsented,
         visitorIsAuthenticated: !!this.visitor.anonymousId,
-        visitorFlags: flags,
+        visitorFlags: this.visitor.flagsData,
         visitorAssignmentHistory: assignmentHistory,
         visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
         visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
@@ -455,7 +453,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         visitorCampaignFromCache: logData.isFromCache ? campaigns : undefined,
         visitorConsent: this.visitor.hasConsented,
         visitorIsAuthenticated: !!this.visitor.anonymousId,
-        visitorFlags: flags,
+        visitorFlags: this.visitor.flagsData,
         visitorAssignmentHistory: assignmentHistory,
         visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
         visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,

@@ -1,6 +1,7 @@
+import { FlagDTO } from './../../dist/types.d'
 import { jest, expect, it, describe, afterAll } from '@jest/globals'
 import { ERROR_MESSAGE } from '../../src/hit/Event'
-import { BucketingConfig, IFlagshipConfig } from '../../src/config/index'
+import { BucketingConfig } from '../../src/config/index'
 import {
   CUSTOMER_ENV_ID_API_ITEM,
   CacheStrategy,
@@ -14,7 +15,7 @@ import {
 } from '../../src/enum/index'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { version } from '../../src/sdkVersion'
-import { ITroubleshooting, Troubleshooting } from '../../src/hit/Troubleshooting'
+import { Troubleshooting, TroubleshootingType } from '../../src/hit/Troubleshooting'
 import { BatchTriggeredBy } from '../../src/enum/BatchTriggeredBy'
 
 describe('test hit type Monitoring', () => {
@@ -72,8 +73,26 @@ describe('test hit type Monitoring', () => {
   })
 
   it('test constructor', () => {
-    const params:Omit<ITroubleshooting & {config: IFlagshipConfig},
-    'type'|'createdAt'|'category'> = {
+    const flagKey = 'key'
+    const flagDTO = {
+      key: flagKey,
+      campaignId: 'campaignId',
+      variationGroupId: 'variationGroupId',
+      variationId: 'variationId',
+      isReference: false,
+      campaignType: 'ab',
+      slug: 'slug',
+      value: 'value'
+    }
+    const visitorFlags:Record<string, unknown> = {}
+
+    for (const key in flagDTO) {
+      const itemValue = flagDTO[key as keyof typeof flagDTO]
+      const hasMetadataKey = key === 'value' || key === 'key'
+      const value = typeof itemValue === 'object' ? JSON.stringify(itemValue) : `${itemValue}`
+      visitorFlags[`visitor.flags.[${flagKey}]${hasMetadataKey ? '' : '.metadata'}.${key}`] = value
+    }
+    const params:TroubleshootingType = {
       logLevel,
       accountId: 'accountId',
       envId: config.envId,
@@ -114,7 +133,7 @@ describe('test hit type Monitoring', () => {
       visitorContext: { key: 'value' },
       visitorConsent: true,
       visitorAssignmentHistory: { key: 'value' },
-      visitorFlags: { key: 'value' },
+      visitorFlags: new Map<string, FlagDTO>().set(flagDTO.key, flagDTO),
       visitorIsAuthenticated: false,
       visitorInitialCampaigns: [],
       visitorInitialFlagsData: [],
@@ -184,10 +203,10 @@ describe('test hit type Monitoring', () => {
         'http.response.body': JSON.stringify(params.httpResponseBody),
         'visitor.status': params.visitorStatus,
         'visitor.instanceType': params.visitorInstanceType,
-        'visitor.context': JSON.stringify(params.visitorContext),
+        'visitor.context.key': 'value',
         'visitor.consent': `${params.visitorConsent}`,
-        'visitor.assignmentsHistory': JSON.stringify(params.visitorAssignmentHistory),
-        'visitor.flags': JSON.stringify(params.visitorFlags),
+        'visitor.assignments.[key]': 'value',
+        ...visitorFlags,
         'visitor.isAuthenticated': `${params.visitorIsAuthenticated}`,
         'flag.key': params.flagKey,
         'flag.value': params.flagValue,
