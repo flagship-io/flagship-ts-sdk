@@ -20,8 +20,8 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   protected _troubleshootingQueue: Map<string, Troubleshooting>
   protected _analyticHitQueue: Map<string, Analytic>
   protected _flagshipInstanceId?: string
-  protected _isLoopingMonitoringPoolQueue: boolean
   protected _isAnalyticHitQueueSending: boolean
+  protected _isTroubleshootingQueueSending: boolean
   private _troubleshootingData? : TroubleshootingData|'started'
 
   public get flagshipInstanceId (): string|undefined {
@@ -50,8 +50,8 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     this._troubleshootingQueue = troubleshootingQueue
     this._flagshipInstanceId = flagshipInstanceId
     this._analyticHitQueue = analyticHitQueue
-    this._isLoopingMonitoringPoolQueue = false
     this._isAnalyticHitQueueSending = false
+    this._isTroubleshootingQueueSending = false
   }
 
   public abstract addHitInPoolQueue (hit: HitAbstract):Promise<void>
@@ -416,16 +416,16 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   }
 
   public async sendTroubleshootingQueue () {
-    if (!this.isTroubleshootingActivated() || this._isLoopingMonitoringPoolQueue || this._troubleshootingQueue.size === 0) {
+    if (!this.isTroubleshootingActivated() || this._isTroubleshootingQueueSending || this._troubleshootingQueue.size === 0) {
       return
     }
 
-    this._isLoopingMonitoringPoolQueue = true
+    this._isTroubleshootingQueueSending = true
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (const [_, item] of Array.from(this._troubleshootingQueue)) {
       await this.sendTroubleshootingHit(item)
     }
-    this._isLoopingMonitoringPoolQueue = false
+    this._isTroubleshootingQueueSending = false
   }
 
   // #endregion

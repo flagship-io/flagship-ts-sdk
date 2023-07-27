@@ -58,7 +58,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
   protected initStrategy ():BatchingCachingStrategyAbstract {
     let strategy:BatchingCachingStrategyAbstract
-    const param = {
+    const argument = {
       config: this.config,
       httpClient: this.httpClient,
       hitsPoolQueue: this._hitsPoolQueue,
@@ -69,13 +69,13 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     }
     switch (this.config.trackingManagerConfig?.cacheStrategy) {
       case CacheStrategy.PERIODIC_CACHING:
-        strategy = new BatchingPeriodicCachingStrategy(param)
+        strategy = new BatchingPeriodicCachingStrategy(argument)
         break
       case CacheStrategy.CONTINUOUS_CACHING:
-        strategy = new BatchingContinuousCachingStrategy(param)
+        strategy = new BatchingContinuousCachingStrategy(argument)
         break
       default:
-        strategy = new NoBatchingContinuousCachingStrategy(param)
+        strategy = new NoBatchingContinuousCachingStrategy(argument)
         break
     }
     return strategy
@@ -95,7 +95,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
   public abstract sendBatch(): Promise<void>
 
-  public async addTroubleshootingHit (hit: Troubleshooting) :Promise<void> {
+  public async sendTroubleshootingHit (hit: Troubleshooting) :Promise<void> {
     await this.strategy.sendTroubleshootingHit(hit)
     await this.strategy.sendTroubleshootingQueue()
   }
