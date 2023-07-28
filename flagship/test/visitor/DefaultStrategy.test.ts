@@ -14,6 +14,7 @@ import { returnModification } from './modification'
 import { HitShape } from '../../src/hit/Legacy'
 import { Activate } from '../../src/hit/Activate'
 import { MurmurHash } from '../../src/utils/MurmurHash'
+import { BucketingManager } from '../../src/decision/BucketingManager'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getNull = (): any => {
@@ -1892,6 +1893,125 @@ describe('test DefaultStrategy troubleshootingHit', () => {
   })
 })
 
+describe('test DefaultStrategy troubleshootingHit Bucketing mode', () => {
+  const methodNow = Date.now
+  const mockNow = jest.fn<typeof Date.now>()
+  beforeAll(() => {
+    Date.now = mockNow
+    mockNow.mockReturnValue(1)
+  })
+  afterAll(() => {
+    Date.now = methodNow
+  })
+  const visitorId = 'visitorId'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const context: any = {
+    isVip: true
+  }
+
+  const logManager = new FlagshipLogManager()
+
+  const bucketing = {
+    campaigns: [
+      {
+        id: 'c1ndsu87m030114t8uu0',
+        type: 'toggle',
+        slug: 'campaign_1',
+        variationGroups: [
+          {
+            id: 'c1ndsu87m030114t8uv0',
+            targeting: {
+              targetingGroups: [
+                {
+                  targetings: [
+                    {
+                      operator: 'EQUALS',
+                      key: 'fs_users',
+                      value: 'visitor_1'
+                    }
+                  ]
+                }
+              ]
+            },
+            variations: [
+              {
+                id: 'c1ndsu87m030114t8uvg',
+                modifications: {
+                  type: 'FLAG',
+                  value: {
+                    background: 'bleu ciel',
+                    btnColor: '#EE3300',
+                    keyBoolean: false,
+                    keyNumber: 5660
+                  }
+                },
+                allocation: 100
+              }
+            ]
+          }
+        ]
+      }]
+  }
+
+  const config = new BucketingConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0, initialBucketing: bucketing })
+  config.logManager = logManager
+
+  const httpClient = new HttpClient()
+
+  const post = jest.fn<typeof httpClient.postAsync>()
+  httpClient.postAsync = post
+  post.mockResolvedValue({} as IHttpResponse)
+  const murmurHash = new MurmurHash()
+
+  const decisionManager = new BucketingManager(httpClient, config, murmurHash)
+
+  const getModifications = jest.spyOn(
+    decisionManager,
+    'getModifications'
+  )
+
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  const addHit = jest.spyOn(trackingManager, 'addHit')
+  addHit.mockResolvedValue()
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
+
+  const activateFlag = jest.spyOn(trackingManager, 'activateFlag')
+  activateFlag.mockResolvedValue()
+
+  const configManager = new ConfigManager(config, decisionManager, trackingManager)
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
+  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const getStrategy = jest.spyOn((visitorDelegate as any), 'getStrategy')
+  getStrategy.mockReturnValue(defaultStrategy)
+
+  it('test fetchFlags', async () => {
+    const flagDTO: FlagDTO = {
+      key: 'key',
+      campaignId: 'campaignId',
+      variationGroupId: 'variationGroupId',
+      variationId: 'variationId',
+      value: 'value'
+    }
+    const flags = new Map<string, FlagDTO>().set(flagDTO.key, flagDTO)
+    // getCampaignsAsync.mockResolvedValue([])
+    getModifications.mockReturnValueOnce(flags)
+    await defaultStrategy.fetchFlags()
+    expect(sendTroubleshootingHit).toBeCalledTimes(2)
+
+    let label: TroubleshootingLabel = 'VISITOR-SEND-HIT'
+    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+
+    label = 'VISITOR-FETCH-CAMPAIGNS'
+    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ label }))
+  })
+})
+
 describe('test DefaultStrategy troubleshootingHit', () => {
   const methodNow = Date.now
   const mockNow = jest.fn<typeof Date.now>()
@@ -1947,9 +2067,24 @@ describe('test DefaultStrategy troubleshootingHit', () => {
   const murmurHash = new MurmurHash()
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
-
+  const campaignDtoId = 'c2nrh1hjg50l9stringgu8bg'
+  const campaignDTO = [
+    {
+      id: campaignDtoId,
+      slug: 'slug',
+      variationGroupId: 'id',
+      variation: {
+        id: '1dl',
+        reference: false,
+        modifications: {
+          type: 'number',
+          value: 12
+        }
+      }
+    }
+  ]
   it('test fetchFlags throw error here ', async () => {
-    getCampaignsAsync.mockResolvedValue([])
+    getCampaignsAsync.mockResolvedValue(campaignDTO)
     getModifications.mockImplementation(() => {
       throw new Error('error')
     })

@@ -409,9 +409,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sdkConfigMode: this.config.decisionMode,
         sdkConfigTimeout: this.config.timeout,
         sdkConfigPollingInterval: this.config.pollingInterval,
-        sdkConfigTrackingManagerConfigStrategy: this.config.trackingMangerConfig?.cacheStrategy,
-        sdkConfigTrackingManagerConfigBatchIntervals: this.config.trackingMangerConfig?.batchIntervals,
-        sdkConfigTrackingManagerConfigPoolMaxSize: this.config.trackingMangerConfig?.poolMaxSize,
+        sdkConfigTrackingManagerConfigStrategy: this.config.trackingManagerConfig?.cacheStrategy,
+        sdkConfigTrackingManagerConfigBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
+        sdkConfigTrackingManagerConfigPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
         sdkConfigFetchNow: this.config.fetchNow,
         sdkConfigEnableClientCache: this.config.enableClientCache,
         sdkConfigInitialBucketing: this.config.initialBucketing,
@@ -430,14 +430,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         errorFormat(error.message || error, logData),
         functionName
       )
-      const flags: Record<string, unknown> = {}
-      const assignmentHistory: Record<string, string> = {}
 
-      this.visitor.flagsData?.forEach(item => {
-        flags[item.key] = item.value
-        assignmentHistory[item.variationGroupId] = item.variationId
-      })
-      const monitoring = new Troubleshooting({
+      const troubleshootingHit = new Troubleshooting({
 
         label: 'VISITOR-FETCH-CAMPAIGNS-ERROR',
         logLevel: LogLevel.INFO,
@@ -454,7 +448,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         visitorConsent: this.visitor.hasConsented,
         visitorIsAuthenticated: !!this.visitor.anonymousId,
         visitorFlags: this.visitor.flagsData,
-        visitorAssignmentHistory: assignmentHistory,
         visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
         visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
         lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
@@ -463,9 +456,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sdkConfigMode: this.config.decisionMode,
         sdkConfigTimeout: this.config.timeout,
         sdkConfigPollingInterval: this.config.pollingInterval,
-        sdkConfigTrackingManagerConfigStrategy: this.config.trackingMangerConfig?.cacheStrategy,
-        sdkConfigTrackingManagerConfigBatchIntervals: this.config.trackingMangerConfig?.batchIntervals,
-        sdkConfigTrackingManagerConfigPoolMaxSize: this.config.trackingMangerConfig?.poolMaxSize,
+        sdkConfigTrackingManagerConfigStrategy: this.config.trackingManagerConfig?.cacheStrategy,
+        sdkConfigTrackingManagerConfigBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
+        sdkConfigTrackingManagerConfigPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
         sdkConfigFetchNow: this.config.fetchNow,
         sdkConfigEnableClientCache: this.config.enableClientCache,
         sdkConfigInitialBucketing: this.config.initialBucketing,
@@ -473,7 +466,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
       })
 
-      this.sendTroubleshootingHit(monitoring)
+      this.sendTroubleshootingHit(troubleshootingHit)
     }
   }
 
