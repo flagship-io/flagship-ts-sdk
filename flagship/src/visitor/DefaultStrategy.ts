@@ -353,11 +353,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       logDebugSprintf(this.config, functionName, FETCH_FLAGS_FROM_CAMPAIGNS,
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, this.visitor.flagsData)
 
-      const flags: Record<string, unknown> = {}
       const assignmentHistory: Record<string, string> = {}
 
       this.visitor.flagsData.forEach(item => {
-        flags[item.key] = item.value
         assignmentHistory[item.variationGroupId] = item.variationId
       })
 
@@ -367,25 +365,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
       this.visitor.traffic = traffic
 
-      this.visitor.visitorHits.forEach(item => {
-        const hitTroubleshooting = new Troubleshooting({
+      const diagnosticData = new Troubleshooting({
 
-          label: 'VISITOR-SEND-HIT',
-          logLevel: LogLevel.INFO,
-          traffic,
-          visitorId: this.visitor.visitorId,
-          visitorInstanceId: this.visitor.instanceId,
-          flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-          anonymousId: this.visitor.anonymousId,
-          config: this.config,
-          hitContent: item.toApiKeys()
-        })
-
-        this.sendTroubleshootingHit(hitTroubleshooting)
-      })
-
-      this.visitor.visitorHits = []
-      const diagnosticData = {
         label: 'VISITOR-FETCH-CAMPAIGNS',
         logLevel: LogLevel.INFO,
         visitorId: this.visitor.visitorId,
@@ -400,7 +381,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         visitorCampaignFromCache: logData.isFromCache ? campaigns : undefined,
         visitorConsent: this.visitor.hasConsented,
         visitorIsAuthenticated: !!this.visitor.anonymousId,
-        visitorFlags: flags,
+        visitorFlags: this.visitor.flagsData,
         visitorAssignmentHistory: assignmentHistory,
         visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
         visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
@@ -410,15 +391,16 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sdkConfigMode: this.config.decisionMode,
         sdkConfigTimeout: this.config.timeout,
         sdkConfigPollingInterval: this.config.pollingInterval,
-        sdkConfigTrackingManagerConfigStrategy: this.config.trackingMangerConfig?.cacheStrategy,
-        sdkConfigTrackingManagerConfigBatchIntervals: this.config.trackingMangerConfig?.batchIntervals,
-        sdkConfigTrackingManagerConfigPoolMaxSize: this.config.trackingMangerConfig?.poolMaxSize,
+        sdkConfigTrackingManagerConfigStrategy: this.config.trackingManagerConfig?.cacheStrategy,
+        sdkConfigTrackingManagerConfigBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
+        sdkConfigTrackingManagerConfigPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
         sdkConfigFetchNow: this.config.fetchNow,
         sdkConfigEnableClientCache: this.config.enableClientCache,
         sdkConfigInitialBucketing: this.config.initialBucketing,
         sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
         sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
-      }
+      })
+
       const fetchFlagTroubleshooting = new Troubleshooting(diagnosticData as TroubleshootingType)
 
       this.sendTroubleshootingHit(fetchFlagTroubleshooting)
@@ -437,14 +419,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         errorFormat(error.message || error, logData),
         functionName
       )
-      const flags: Record<string, unknown> = {}
-      const assignmentHistory: Record<string, string> = {}
 
-      this.visitor.flagsData?.forEach(item => {
-        flags[item.key] = item.value
-        assignmentHistory[item.variationGroupId] = item.variationId
-      })
-      const monitoring = new Troubleshooting({
+      const troubleshootingHit = new Troubleshooting({
 
         label: 'VISITOR-FETCH-CAMPAIGNS-ERROR',
         logLevel: LogLevel.INFO,
@@ -460,8 +436,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         visitorCampaignFromCache: logData.isFromCache ? campaigns : undefined,
         visitorConsent: this.visitor.hasConsented,
         visitorIsAuthenticated: !!this.visitor.anonymousId,
-        visitorFlags: flags,
-        visitorAssignmentHistory: assignmentHistory,
+        visitorFlags: this.visitor.flagsData,
         visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
         visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
         lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
@@ -470,9 +445,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sdkConfigMode: this.config.decisionMode,
         sdkConfigTimeout: this.config.timeout,
         sdkConfigPollingInterval: this.config.pollingInterval,
-        sdkConfigTrackingManagerConfigStrategy: this.config.trackingMangerConfig?.cacheStrategy,
-        sdkConfigTrackingManagerConfigBatchIntervals: this.config.trackingMangerConfig?.batchIntervals,
-        sdkConfigTrackingManagerConfigPoolMaxSize: this.config.trackingMangerConfig?.poolMaxSize,
+        sdkConfigTrackingManagerConfigStrategy: this.config.trackingManagerConfig?.cacheStrategy,
+        sdkConfigTrackingManagerConfigBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
+        sdkConfigTrackingManagerConfigPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
         sdkConfigFetchNow: this.config.fetchNow,
         sdkConfigEnableClientCache: this.config.enableClientCache,
         sdkConfigInitialBucketing: this.config.initialBucketing,
@@ -480,7 +455,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
       })
 
-      this.sendTroubleshootingHit(monitoring)
+      this.sendTroubleshootingHit(troubleshootingHit)
     }
   }
 
@@ -745,8 +720,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
     try {
       await this.trackingManager.addHit(hitInstance)
-      if (this.visitor.traffic === undefined) {
-        this.visitor.visitorHits.push(hitInstance)
+
+      if (this.visitor.traffic === undefined || hitInstance.type === 'SEGMENT') {
         return
       }
       const sendHitTroubleshooting = new Troubleshooting({

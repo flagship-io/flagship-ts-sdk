@@ -212,7 +212,6 @@ describe('test TrackingManager Strategy ', () => {
 
     expect(strategy.sendTroubleshootingHit).toBeCalledTimes(1)
     expect(strategy.sendTroubleshootingHit).toBeCalledWith(activateTroubleshooting)
-    expect(strategy.sendTroubleshootingQueue).toBeCalledTimes(1)
   })
 })
 

@@ -67,7 +67,7 @@ export interface IDiagnostic extends IHitAbstract{
     visitorContext?: Record<string, primitive>
     visitorConsent?: boolean
     visitorAssignmentHistory?: Record<string, string>
-    visitorFlags?: Record<string, unknown>
+    visitorFlags?: Map<string, FlagDTO>
     visitorCampaigns?: CampaignDTO[] | null
     visitorCampaignFromCache?: CampaignDTO[] | null
     visitorIsAuthenticated?:boolean
@@ -129,7 +129,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
   private _visitorContext? : Record<string, primitive>
   private _visitorConsent? : boolean
   private _visitorAssignmentHistory? : Record<string, string>
-  private _visitorFlags? : Record<string, unknown>
+  private _visitorFlags? : Map<string, FlagDTO>
   private _visitorIsAuthenticated? : boolean
   private _flagKey? : string
   private _flagValue? : string
@@ -384,11 +384,11 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     this._visitorIsAuthenticated = v
   }
 
-  public get visitorFlags () : Record<string, unknown>|undefined {
+  public get visitorFlags () : Map<string, FlagDTO>|undefined {
     return this._visitorFlags
   }
 
-  public set visitorFlags (v : Record<string, unknown>|undefined) {
+  public set visitorFlags (v : Map<string, FlagDTO>|undefined) {
     this._visitorFlags = v
   }
 
@@ -914,17 +914,31 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       customVariable['visitor.instanceType'] = `${this.visitorInstanceType}`
     }
     if (this.visitorContext !== undefined) {
-      customVariable['visitor.context'] = JSON.stringify(this.visitorContext)
+      for (const key in this.visitorContext) {
+        const element = this.visitorContext[key]
+        customVariable[`visitor.context.${key}`] = `${element}`
+      }
     }
     if (this.visitorConsent !== undefined) {
       customVariable['visitor.consent'] = `${this.visitorConsent}`
     }
     if (this.visitorAssignmentHistory !== undefined) {
-      customVariable['visitor.assignmentsHistory'] = JSON.stringify(this.visitorAssignmentHistory)
+      for (const key in this.visitorAssignmentHistory) {
+        const element = this.visitorAssignmentHistory[key]
+        customVariable[`visitor.assignments.[${key}]`] = element
+      }
     }
     if (this.visitorFlags !== undefined) {
-      customVariable['visitor.flags'] = JSON.stringify(this.visitorFlags)
+      this.visitorFlags.forEach((item, flagKey) => {
+        for (const itemKey in item) {
+          const itemValue = item[itemKey as keyof typeof item]
+          const hasMetadataKey = itemKey === 'value' || itemKey === 'key'
+          const value = typeof itemValue === 'object' ? JSON.stringify(itemValue) : `${itemValue}`
+          customVariable[`visitor.flags.[${flagKey}]${hasMetadataKey ? '' : '.metadata'}.${itemKey}`] = value
+        }
+      })
     }
+
     if (this.visitorIsAuthenticated !== undefined) {
       customVariable['visitor.isAuthenticated'] = `${this.visitorIsAuthenticated}`
     }
