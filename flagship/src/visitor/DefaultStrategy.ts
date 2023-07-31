@@ -70,9 +70,9 @@ import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
 import { VisitorDelegate } from './index'
 import { FlagMetadata } from '../flag/FlagMetadata'
 import { Activate } from '../hit/Activate'
-import { Troubleshooting, TroubleshootingType } from '../hit/Troubleshooting'
+import { Troubleshooting } from '../hit/Troubleshooting'
 import { FlagSynchStatus } from '../enum/FlagSynchStatus'
-import { Analytic, AnalyticType } from '../hit/Analytic'
+import { Analytic } from '../hit/Analytic'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'
@@ -365,8 +365,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
       this.visitor.traffic = traffic
 
-      const diagnosticData = new Troubleshooting({
-
+      const fetchFlagTroubleshooting = new Troubleshooting({
         label: 'VISITOR-FETCH-CAMPAIGNS',
         logLevel: LogLevel.INFO,
         visitorId: this.visitor.visitorId,
@@ -401,13 +400,25 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
       })
 
-      const fetchFlagTroubleshooting = new Troubleshooting(diagnosticData as TroubleshootingType)
-
       this.sendTroubleshootingHit(fetchFlagTroubleshooting)
 
       if (this.config.enableAnalytics) {
-        const fetchFlagsAnalytic = new Analytic(diagnosticData as AnalyticType)
-        this.sendAnalyticHit(fetchFlagsAnalytic)
+        const analyticData = new Analytic({
+          label: 'VISITOR-FETCH-CAMPAIGNS',
+          logLevel: LogLevel.INFO,
+          visitorId: this.visitor.visitorId,
+          anonymousId: this.visitor.anonymousId,
+          config: this.config,
+          sdkStatus: this.visitor.getSdkStatus(),
+          visitorContext: this.visitor.context,
+          visitorConsent: this.visitor.hasConsented,
+          visitorIsAuthenticated: !!this.visitor.anonymousId,
+          lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+          lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
+          sdkConfigMode: this.config.decisionMode,
+          sdkConfigTimeout: this.config.timeout
+        })
+        this.sendAnalyticHit(analyticData)
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
