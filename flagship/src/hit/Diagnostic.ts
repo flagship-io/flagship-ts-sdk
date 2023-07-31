@@ -913,7 +913,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     if (this.visitorInstanceType !== undefined) {
       customVariable['visitor.instanceType'] = `${this.visitorInstanceType}`
     }
-    if (this.visitorConsent !== undefined) {
+    if (this.visitorContext !== undefined) {
       for (const key in this.visitorContext) {
         const element = this.visitorContext[key]
         customVariable[`visitor.context.${key}`] = `${element}`
