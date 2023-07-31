@@ -2002,13 +2002,10 @@ describe('test DefaultStrategy troubleshootingHit Bucketing mode', () => {
     // getCampaignsAsync.mockResolvedValue([])
     getModifications.mockReturnValueOnce(flags)
     await defaultStrategy.fetchFlags()
-    expect(sendTroubleshootingHit).toBeCalledTimes(2)
+    expect(sendTroubleshootingHit).toBeCalledTimes(1)
 
-    let label: TroubleshootingLabel = 'VISITOR-SEND-HIT'
+    const label = 'VISITOR-FETCH-CAMPAIGNS'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
-
-    label = 'VISITOR-FETCH-CAMPAIGNS'
-    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ label }))
   })
 })
 

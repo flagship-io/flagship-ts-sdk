@@ -93,7 +93,6 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
   public async sendTroubleshootingHit (hit: Troubleshooting) :Promise<void> {
     await this.strategy.sendTroubleshootingHit(hit)
-    await this.strategy.sendTroubleshootingQueue()
   }
 
   public startBatchingLoop (): void {

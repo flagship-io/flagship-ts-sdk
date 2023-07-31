@@ -34,15 +34,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   private _traffic! : number
   protected _sdkInitialData?: sdkInitialData
 
-  private _visitorHits : HitAbstract[]
-  public get visitorHits () : HitAbstract[] {
-    return this._visitorHits
-  }
-
-  public set visitorHits (v : HitAbstract[]) {
-    this._visitorHits = v
-  }
-
   public get sdkInitialData ():sdkInitialData|undefined {
     return this._sdkInitialData
   }
@@ -80,7 +71,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.deDuplicationCache = {}
     this._context = {}
     this._configManager = configManager
-    this._visitorHits = []
 
     const visitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
     if (visitorCache) {

@@ -364,25 +364,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
       this.visitor.traffic = traffic
 
-      this.visitor.visitorHits.forEach(item => {
-        const hitTroubleshooting = new Troubleshooting({
-
-          label: 'VISITOR-SEND-HIT',
-          logLevel: LogLevel.INFO,
-          traffic,
-          visitorId: this.visitor.visitorId,
-          visitorInstanceId: this.visitor.instanceId,
-          flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-          anonymousId: this.visitor.anonymousId,
-          config: this.config,
-          hitContent: item.toApiKeys()
-        })
-
-        this.sendTroubleshootingHit(hitTroubleshooting)
-      })
-
-      this.visitor.visitorHits = []
-
       const fetchFlagTroubleshooting = new Troubleshooting({
 
         label: 'VISITOR-FETCH-CAMPAIGNS',
@@ -731,8 +712,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
     try {
       await this.trackingManager.addHit(hitInstance)
-      if (this.visitor.traffic === undefined) {
-        this.visitor.visitorHits.push(hitInstance)
+
+      if (this.visitor.traffic === undefined || hitInstance.type === 'SEGMENT') {
         return
       }
       const sendHitTroubleshooting = new Troubleshooting({
