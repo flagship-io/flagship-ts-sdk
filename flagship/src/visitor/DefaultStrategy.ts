@@ -402,24 +402,32 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
       this.sendTroubleshootingHit(fetchFlagTroubleshooting)
 
-      if (this.config.enableAnalytics) {
-        const analyticData = new Analytic({
-          label: 'VISITOR-FETCH-CAMPAIGNS',
-          logLevel: LogLevel.INFO,
-          visitorId: this.visitor.visitorId,
-          anonymousId: this.visitor.anonymousId,
-          config: this.config,
-          sdkStatus: this.visitor.getSdkStatus(),
-          visitorContext: this.visitor.context,
-          visitorConsent: this.visitor.hasConsented,
-          visitorIsAuthenticated: !!this.visitor.anonymousId,
-          lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
-          lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
-          sdkConfigMode: this.config.decisionMode,
-          sdkConfigTimeout: this.config.timeout
-        })
-        this.sendAnalyticHit(analyticData)
-      }
+      const analyticData = new Analytic({
+        label: 'VISITOR-FETCH-CAMPAIGNS',
+        logLevel: LogLevel.INFO,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        config: this.config,
+        sdkStatus: this.visitor.getSdkStatus(),
+        visitorContext: this.visitor.context,
+        visitorConsent: this.visitor.hasConsented,
+        visitorIsAuthenticated: !!this.visitor.anonymousId,
+        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+        lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
+        sdkConfigMode: this.config.decisionMode,
+        sdkConfigTimeout: this.config.timeout,
+        sdkConfigPollingInterval: this.config.pollingInterval,
+        sdkConfigTrackingManagerConfigStrategy: this.config.trackingManagerConfig?.cacheStrategy,
+        sdkConfigTrackingManagerConfigBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
+        sdkConfigTrackingManagerConfigPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
+        sdkConfigFetchNow: this.config.fetchNow,
+        sdkConfigEnableClientCache: this.config.enableClientCache,
+        sdkConfigInitialBucketing: this.config.initialBucketing,
+        sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
+        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
+      })
+
+      this.sendAnalyticHit(analyticData)
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
@@ -1000,7 +1008,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         GET_METADATA_CAST_ERROR, key
       )
       const monitoring = new Troubleshooting({
-
         label: 'GET-FLAG-METADATA-TYPE-WARNING',
         logLevel: LogLevel.WARNING,
         visitorId: this.visitor.visitorId,
