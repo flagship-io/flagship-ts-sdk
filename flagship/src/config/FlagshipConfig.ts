@@ -23,7 +23,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _fetchNow!: boolean
   private _pollingInterval!: number
   private _onBucketingFail?: (error: Error) => void
-  private _onBucketingSuccess?: (param: { status: number; payload: BucketingDTO }) => void
+  private _onBucketingSuccess?: (param: { status: number; payload?: BucketingDTO }) => void
   private _onBucketingUpdated?: (lastUpdate: Date) => void
   private _enableClientCache!: boolean
   private _initialBucketing?: BucketingDTO
@@ -38,6 +38,15 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _fetchThirdPartyData : boolean|undefined
   private _nextFetchConfig? : Record<string, unknown>
   private _fetchFlagsBufferingTime? : number
+  private _enableQAMode? : boolean
+
+  public get enableQAMode () : boolean|undefined {
+    return this._enableQAMode
+  }
+
+  public set enableQAMode (v : boolean|undefined) {
+    this._enableQAMode = v
+  }
 
   public get fetchFlagsBufferingTime () : number|undefined {
     return this._fetchFlagsBufferingTime
@@ -91,9 +100,10 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
       disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig, trackingManagerConfig, onLog,
-      onVisitorExposed, nextFetchConfig, fetchFlagsBufferingTime
+      onVisitorExposed, nextFetchConfig, fetchFlagsBufferingTime, enableQAMode
     } = param
 
+    this.enableQAMode = enableQAMode
     this.initSDKInfo(language, sdkVersion)
 
     if (logManager) {
@@ -161,11 +171,11 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._enableClientCache = v
   }
 
-  public get onBucketingSuccess (): ((param: { status: number; payload: BucketingDTO }) => void) | undefined {
+  public get onBucketingSuccess (): ((param: { status: number; payload?: BucketingDTO }) => void) | undefined {
     return this._onBucketingSuccess
   }
 
-  public set onBucketingSuccess (v: ((param: { status: number; payload: BucketingDTO }) => void) | undefined) {
+  public set onBucketingSuccess (v: ((param: { status: number; payload?: BucketingDTO }) => void) | undefined) {
     this._onBucketingSuccess = v
   }
 

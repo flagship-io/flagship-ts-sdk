@@ -72,7 +72,7 @@ export interface IFlagshipConfig {
     /**
      * Define a callable in order to get callback when the first bucketing polling succeed.
      */
-    onBucketingSuccess?: (param: { status: number; payload: BucketingDTO }) => void
+    onBucketingSuccess?: (param: { status: number; payload?: BucketingDTO }) => void
 
     /**
      * Define a callable to get callback when the first bucketing polling failed.
@@ -156,4 +156,9 @@ export interface IFlagshipConfig {
      * - If visitor data has changed, the buffering will be bypassed.
      */
     fetchFlagsBufferingTime?: number
+
+    /**
+     *
+     */
+    enableQAMode?: boolean
   }
