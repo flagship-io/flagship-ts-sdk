@@ -6,12 +6,18 @@ import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, PROCESS_FETCHING_FLAGS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
 import { FlagDTO } from '../types'
 import { errorFormat, logDebug } from '../utils/utils'
+import { BucketingDTO } from './api/bucketingDTO'
 
 export abstract class DecisionManager implements IDecisionManager {
+  protected _bucketingContent?: BucketingDTO
   protected _config: IFlagshipConfig
   protected _panic = false
   protected _httpClient: IHttpClient
   private _statusChangedCallback! : (status: FlagshipStatus)=>void
+
+  getBucketingContent (): BucketingDTO | undefined {
+    return this._bucketingContent
+  }
 
   public get config ():IFlagshipConfig {
     return this._config

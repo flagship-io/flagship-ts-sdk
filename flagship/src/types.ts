@@ -10,6 +10,12 @@ export type modificationsRequested<T> = {
 
 export type primitive=string | number | boolean
 
+export type ForcedVariation = {
+  campaignId: string,
+  variationGroupId: string
+  variationId: string
+}
+
 export type { HitShape }
 export type IHit = Omit<IPage, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IScreen, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IEvent, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IItem, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<ITransaction, 'createdAt'|'visitorId'|'anonymousId'|'ds'>
 
@@ -56,6 +62,8 @@ export type NewVisitor={
     * Note: will be default true on server-side and false on client-side
     */
    isNewInstance?:boolean
+
+   forcedVariations?:ForcedVariation[]
 
 }
 

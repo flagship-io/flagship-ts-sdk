@@ -1,4 +1,4 @@
-import { HitShape, IHit, FlagDTO, modificationsRequested, primitive } from '../types'
+import { HitShape, IHit, FlagDTO, modificationsRequested, primitive, ForcedVariation } from '../types'
 import { EventEmitter } from '../depsNode.native'
 import { IVisitor } from './IVisitor'
 import { IFlagshipConfig } from '../config/index'
@@ -17,6 +17,26 @@ export class Visitor extends EventEmitter implements IVisitor {
     this.visitorDelegate.on(EMIT_READY, (err:any) => {
       this.emit(EMIT_READY, err)
     })
+  }
+
+  /**
+   *
+   * @param value
+   * @returns
+   */
+  addForcedVariation (value: ForcedVariation): IVisitor {
+    this.visitorDelegate.addForcedVariation(value)
+    return this
+  }
+
+  /**
+   *
+   * @param variationId
+   * @returns
+   */
+  removeForcedVariation (variationId: string): IVisitor {
+    this.visitorDelegate.removeForcedVariation(variationId)
+    return this
   }
 
   getModificationsArray (): FlagDTO[] {

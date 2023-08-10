@@ -1,5 +1,5 @@
 import { Event, HitAbstract, HitShape } from '../hit/index'
-import { primitive, modificationsRequested, IHit, VisitorCacheDTO, IFlagMetadata, FlagDTO } from '../types'
+import { primitive, modificationsRequested, IHit, VisitorCacheDTO, IFlagMetadata, FlagDTO, ForcedVariation } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
@@ -189,6 +189,25 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     } catch (error:any) {
       logErrorSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_ERROR, this.visitor.visitorId, 'flushVisitor', error.message || error)
     }
+  }
+
+  addForcedVariation (value: ForcedVariation): IVisitor {
+    const forceVariation = this.visitor.forcedVariations?.find(x => x.campaignId === value.campaignId)
+    if (forceVariation) {
+      forceVariation.variationId = value.variationId
+      forceVariation.variationGroupId = value.variationGroupId
+      return this.visitor
+    }
+    this.visitor.forcedVariations?.push(value)
+    return this.visitor
+  }
+
+  removeForcedVariation (variationId: string): IVisitor {
+    const index = this.visitor.forcedVariations?.findIndex(x => x.variationId === variationId)
+    if (index && this.visitor.forcedVariations) {
+      delete this.visitor.forcedVariations[index]
+    }
+    return this.visitor
   }
 
     abstract updateContext(key: string, value: primitive):void

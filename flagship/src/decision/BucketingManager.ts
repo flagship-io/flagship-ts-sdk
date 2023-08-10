@@ -7,12 +7,11 @@ import { IHttpClient, IHttpResponse } from '../utils/HttpClient'
 import { MurmurHash } from '../utils/MurmurHash'
 import { errorFormat, logDebug, logDebugSprintf, logError, logInfo, sprintf } from '../utils/utils'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
-import { BucketingDTO, Targetings, VariationGroupDTO } from './api/bucketingDTO'
+import { Targetings, VariationGroupDTO } from './api/bucketingDTO'
 import { CampaignDTO, VariationDTO } from './api/models'
 import { DecisionManager } from './DecisionManager'
 
 export class BucketingManager extends DecisionManager {
-  private _bucketingContent!: BucketingDTO
   private _lastModified!: string
   private _isPooling!: boolean
   private _murmurHash: MurmurHash

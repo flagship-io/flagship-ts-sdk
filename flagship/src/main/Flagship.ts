@@ -1,3 +1,4 @@
+import { BucketingDTO } from './../decision/api/bucketingDTO'
 import { IBucketingConfig } from './../config/IBucketingConfig'
 import { IDecisionApiConfig } from './../config/IDecisionApiConfig'
 import { IEdgeConfig } from './../config/IEdgeConfig'
@@ -249,6 +250,9 @@ export class Flagship {
     return flagship
   }
 
+  /**
+   * When called, it will batch and send all hits that are in the pool before the application is closed
+   */
   public async close () {
     await Flagship.close()
   }
@@ -258,6 +262,14 @@ export class Flagship {
    */
   public static async close () {
     await this._instance?.configManager?.trackingManager?.sendBatch()
+  }
+
+  public getBucketingContent (): BucketingDTO|undefined {
+    return Flagship.getBucketingContent()
+  }
+
+  public static getBucketingContent (): BucketingDTO|undefined {
+    return this._instance?._configManager?.decisionManager?.getBucketingContent()
   }
 
   /**

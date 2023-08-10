@@ -2,7 +2,7 @@ import { IFlagshipConfig } from '../config/index'
 import { CampaignDTO } from '../decision/api/models'
 import { HitAbstract, HitShape } from '../hit/index'
 import { IFlag } from '../flag/Flags'
-import { IHit, FlagDTO, modificationsRequested, primitive, Modification } from '../types'
+import { IHit, FlagDTO, modificationsRequested, primitive, Modification, ForcedVariation } from '../types'
 
 export interface IVisitor {
   visitorId: string;
@@ -240,4 +240,7 @@ export interface IVisitor {
    * This function change authenticated Visitor to anonymous visitor
    */
   unauthenticate(): void;
+
+  addForcedVariation(value: ForcedVariation):IVisitor
+  removeForcedVariation(variationId: string):IVisitor
 }

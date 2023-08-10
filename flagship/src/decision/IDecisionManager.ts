@@ -2,6 +2,7 @@ import { IFlagshipConfig } from '../config/index'
 import { FlagshipStatus } from '../enum/index'
 import { FlagDTO } from '../types'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
+import { BucketingDTO } from './api/bucketingDTO'
 import { CampaignDTO } from './api/models'
 
 export interface IDecisionManager {
@@ -14,4 +15,6 @@ export interface IDecisionManager {
   getCampaignsAsync (visitor: VisitorAbstract):Promise<CampaignDTO[]|null>
 
   config:IFlagshipConfig
+
+  getBucketingContent():BucketingDTO|undefined
 }
