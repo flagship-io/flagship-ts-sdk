@@ -1,0 +1,47 @@
+{
+  "name": "@flagship.io/js-sdk-qa-module",
+  "version": "0.0.1-alpha.0",
+  "license": "Apache-2.0",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "browser": "dist/index.browser.js",
+  "types": "dist/esm/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "CONTRIBUTING.md",
+    "README.md"
+  ],
+  "exports": {
+    "types": "./dist/esm/index.d.ts",
+    "import": "./dist/index.esm.js",
+    "require": "./dist/index.cjs.js",
+    "browser": "./dist/index.browser.js"
+  },
+  "scripts": {
+    "tsc": "tsc",
+    "clean": "rm -rf dist",
+    "build": "yarn clean && yarn run build:js",
+    "build:js": "rollup -c",
+    "build:types": "tsc --emitDeclarationOnly --outDir dist"
+  },
+  "dependencies": {
+    "lit": "^2.8.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.4",
+    "@rollup/plugin-node-resolve": "^15.1.0",
+    "@rollup/plugin-typescript": "^11.1.2",
+    "autoprefixer": "^10.4.7",
+    "postcss": "^8.4.14",
+    "postcss-modules": "^6.0.0",
+    "postcss-preset-env": "^9.1.1",
+    "rollup": "^3.28.0",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "rollup-plugin-postcss": "^4.0.2",
+    "rollup-plugin-terser": "^7.0.2",
+    "sass": "^1.51.0",
+    "string-hash": "^1.1.3",
+    "typescript": "^5.1.6",
+    "typescript-plugin-css-modules": "^5.0.1"
+  }
+}
