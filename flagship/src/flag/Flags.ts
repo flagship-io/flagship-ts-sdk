@@ -91,7 +91,7 @@ export class Flag<T> implements IFlag<T> {
     return this._visitor.visitorExposed({ key: this._key, flag: forcedFlagDTO || flagDTO, defaultValue: this._defaultValue })
   }
 
-  private forceVariation (flagDTO?:FlagDTO): FlagDTO|null {
+  protected forceVariation (flagDTO?:FlagDTO): FlagDTO|null {
     if (!flagDTO) {
       return null
     }
@@ -130,13 +130,36 @@ export class Flag<T> implements IFlag<T> {
     }
   }
 
+  protected addFlagAsExposed (flag?:FlagDTO) {
+    if (!flag || !this._visitor.config.enableQAMode) {
+      return
+    }
+    const exposedVariations = this._visitor.exposedVariations
+    const exposedVariation = exposedVariations?.find(x => x.campaignId === flag.campaignId)
+    if (exposedVariation) {
+      exposedVariation.variationId = flag.variationId
+      exposedVariation.variationGroupId = flag.variationGroupId
+      return
+    }
+    exposedVariations?.push({
+      campaignId: flag.campaignId,
+      variationGroupId: flag.variationGroupId,
+      variationId: flag.variationId,
+      originalVariationId: flag.variationId
+    })
+  }
+
   getValue (userExposed = true) : T {
     const flagDTO = this._visitor.flagsData.get(this._key)
     const forcedFlagDTO = this.forceVariation(flagDTO)
+    const flag = forcedFlagDTO || flagDTO
+
+    this.addFlagAsExposed(flag)
+
     return this._visitor.getFlagValue({
       key: this._key,
       defaultValue: this._defaultValue,
-      flag: forcedFlagDTO || flagDTO,
+      flag,
       userExposed
     })
   }
