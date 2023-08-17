@@ -3,7 +3,8 @@ import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementatio
 import { BucketingDTO } from '../decision/api/bucketingDTO'
 import { FlagshipStatus } from '../enum/index'
 import { LogLevel } from '../enum/LogLevel'
-import { OnVisitorExposed, UserExposureInfo } from '../types'
+import { Flagship } from '../main/Flagship'
+import { OnVisitorExposed, qaModule, UserExposureInfo } from '../types'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { DecisionMode } from './DecisionMode'
 import { ITrackingManagerConfig } from './TrackingManagerConfig'
@@ -161,4 +162,10 @@ export interface IFlagshipConfig {
      *
      */
     enableQAMode?: boolean
+
+    /**
+     *
+     * @returns
+     */
+    qaModule?: (arg:qaModule)=>void
   }

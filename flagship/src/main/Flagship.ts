@@ -247,6 +247,9 @@ export class Flagship {
       sprintf(SDK_STARTED_INFO, SDK_INFO.version),
       PROCESS_INITIALIZATION
     )
+    if (config?.qaModule) {
+      config.qaModule({ flagship })
+    }
     return flagship
   }
 

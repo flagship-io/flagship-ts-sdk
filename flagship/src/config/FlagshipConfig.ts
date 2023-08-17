@@ -5,7 +5,7 @@ import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, sprintf } from '../utils/utils'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation'
 import { ITrackingManagerConfig, TrackingManagerConfig } from './TrackingManagerConfig'
-import { OnVisitorExposed, UserExposureInfo } from '../types'
+import { OnVisitorExposed, UserExposureInfo, qaModule } from '../types'
 import { version as SDK_VERSION } from '../sdkVersion'
 import { IFlagshipConfig } from './IFlagshipConfig'
 import { DecisionMode } from './DecisionMode'
@@ -39,6 +39,11 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _nextFetchConfig? : Record<string, unknown>
   private _fetchFlagsBufferingTime? : number
   private _enableQAMode? : boolean
+  private _qaModule? : (arg:qaModule)=>void
+
+  public get qaModule () : ((arg:qaModule)=>void)|undefined {
+    return this._qaModule
+  }
 
   public get enableQAMode () : boolean|undefined {
     return this._enableQAMode
@@ -100,9 +105,9 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
       disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig, trackingManagerConfig, onLog,
-      onVisitorExposed, nextFetchConfig, fetchFlagsBufferingTime, enableQAMode
+      onVisitorExposed, nextFetchConfig, fetchFlagsBufferingTime, enableQAMode, qaModule
     } = param
-
+    this._qaModule = qaModule
     this.enableQAMode = enableQAMode
     this.initSDKInfo(language, sdkVersion)
 
