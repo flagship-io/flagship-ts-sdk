@@ -1,6 +1,6 @@
 import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
-import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, ForcedVariation } from '../types'
+import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, ForcedVariation, ExposedVariation } from '../types'
 
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
@@ -31,6 +31,15 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   public visitorCache?: VisitorCacheDTO
   private _flagSynchStatus : FlagSynchStatus
   private _forcedVariations?: ForcedVariation[]
+  private _exposedVariations : ExposedVariation[]
+
+  public get exposedVariations () : ExposedVariation[] {
+    return this._exposedVariations
+  }
+
+  public set exposedVariations (v : ExposedVariation[]) {
+    this._exposedVariations = v
+  }
 
   public lastFetchFlagsTimestamp = 0
   public isFlagFetching = false
@@ -54,6 +63,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   }) {
     const { visitorId, configManager, context, isAuthenticated, hasConsented, initialModifications, initialFlagsData, initialCampaigns, forcedVariations } = param
     super()
+    this._exposedVariations = []
     this._forcedVariations = forcedVariations || []
     this._isCleaningDeDuplicationCache = false
     this.deDuplicationCache = {}
@@ -261,6 +271,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
   removeForcedVariation (variationId: string): IVisitor {
     return this.getStrategy().removeForcedVariation(variationId)
+  }
+
+  public getExposedVariations () : ExposedVariation[] {
+    return this._exposedVariations
   }
 
   abstract updateContext(key: string, value: primitive):void

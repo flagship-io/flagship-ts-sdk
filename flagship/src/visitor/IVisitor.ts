@@ -2,7 +2,7 @@ import { IFlagshipConfig } from '../config/index'
 import { CampaignDTO } from '../decision/api/models'
 import { HitAbstract, HitShape } from '../hit/index'
 import { IFlag } from '../flag/Flags'
-import { IHit, FlagDTO, modificationsRequested, primitive, Modification, ForcedVariation } from '../types'
+import { IHit, FlagDTO, modificationsRequested, primitive, Modification, ForcedVariation, ExposedVariation } from '../types'
 
 export interface IVisitor {
   visitorId: string;
@@ -243,4 +243,6 @@ export interface IVisitor {
 
   addForcedVariation(value: ForcedVariation):IVisitor
   removeForcedVariation(variationId: string):IVisitor
+
+  getExposedVariations():ExposedVariation[]
 }
