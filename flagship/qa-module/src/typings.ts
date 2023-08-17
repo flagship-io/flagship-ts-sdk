@@ -1,4 +1,3 @@
-
 export type Targetings = {
   operator: string;
   key: string;
@@ -26,6 +25,7 @@ export type VariationGroup = {
     }>;
   };
   variations: Variation[];
+  campaignId?: string;
 };
 
 export type Campaign = {
@@ -39,14 +39,32 @@ export type BucketingDTO = {
   campaigns?: Campaign[];
 };
 
-export type ExposedVariations = {
-  campaignId: string;
-  variationGroupId: string;
-  variationId: string;
-};
-
 export type ForcedVariation = {
   campaignId: string;
   variationGroupId: string;
   variationId: string;
+};
+export type ExposedVariation = {
+  campaignId: string;
+  variationGroupId: string;
+  variationId: string;
+  originalVariationId: string;
+};
+
+export type Visitor = {
+  addForcedVariation(value: ForcedVariation): Visitor;
+  removeForcedVariation(variationId: string): Visitor;
+
+  getExposedVariations(): ExposedVariation[];
+};
+
+export type Flagship = {
+  getBucketingContent(): BucketingDTO | undefined;
+  getVisitor(): Visitor | undefined;
+};
+
+export type SelectedVariation = {
+  selectedVariation: Variation;
+  campaignId: string;
+  variationGroupId: string;
 };

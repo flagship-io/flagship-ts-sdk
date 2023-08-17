@@ -1,6 +1,7 @@
 import { CampaignDTO } from './decision/api/models'
 import { HitType } from './enum/index'
 import { IEvent, IItem, IPage, IScreen, ITransaction, HitShape, IHitAbstract } from './hit/index'
+import { type Flagship } from './main/Flagship'
 
 export type modificationsRequested<T> = {
     key: string,
@@ -16,6 +17,12 @@ export type ForcedVariation = {
   variationId: string
 }
 
+export type ExposedVariation = {
+  campaignId: string;
+  variationGroupId: string;
+  variationId: string;
+  originalVariationId: string
+};
 export type { HitShape }
 export type IHit = Omit<IPage, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IScreen, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IEvent, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IItem, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<ITransaction, 'createdAt'|'visitorId'|'anonymousId'|'ds'>
 
@@ -147,4 +154,11 @@ export type ThirdPartySegment = {
   value: string,
   expiration: number,
   partner: string
+}
+
+export type qaModule = {
+  init(args: {
+      flagship: Flagship;
+  }): void;
+  getForcedVariations(): ForcedVariation[] | null;
 }

@@ -3,6 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js'
 import { classMap } from 'lit/directives/class-map.js'
 import './FsArrowDown'
 import './FsDataCard'
+import { BucketingDTO, ExposedVariation, Flagship, ForcedVariation, SelectedVariation } from './typings'
 
 @customElement('fs-qa-module')
 export class FsQaModule extends LitElement {
@@ -51,22 +52,72 @@ export class FsQaModule extends LitElement {
   constructor () {
     super()
     this.addEventListener('onFsClickCloseCard', this._toggleShowCard)
+    this.addEventListener('onFsValidation', this._onFsValidation)
+    this.forceVariations = []
   }
 
   @property({ type: Object })
     classes = { main: true, 'main-card': false }
 
+  @property({ type: Object })
+    flagship: Flagship
+
   @state()
   private _showCard = false
 
+  @state()
+  private _bucketing?: BucketingDTO
+
+  @state()
+  private _exposedVariations?: ExposedVariation[]
+
+  protected forceVariations:ForcedVariation[]
+
   private _toggleShowCard () {
+    this._bucketing = this.flagship.getBucketingContent()
+    this._exposedVariations = this.flagship
+      .getVisitor()
+      ?.getExposedVariations()
     this._showCard = !this._showCard
     this.classes = { ...this.classes, 'main-card': this._showCard }
   }
 
+  private _onFsValidation (e:Event) {
+    this.dispatchEvent(new CustomEvent<{forcedVariations:ForcedVariation[]}>('onFsForcedVariations', {
+      detail: {
+        forcedVariations: this.forceVariations
+      },
+      bubbles: true,
+      composed: true
+    }))
+    e.stopImmediatePropagation()
+  }
+
+  protected _onVariationSelected (e:CustomEvent<SelectedVariation>) {
+    const forceVariation = this.forceVariations.find(
+      (x) => x.campaignId === e.detail.campaignId
+    )
+    const item = e.detail
+    if (forceVariation) {
+      forceVariation.variationId = item.selectedVariation.id
+      forceVariation.variationGroupId = item.variationGroupId
+      return
+    }
+    this.forceVariations.push({
+      variationId: item.selectedVariation.id,
+      campaignId: item.campaignId,
+      variationGroupId: item.variationGroupId
+    })
+    e.stopImmediatePropagation()
+  }
+
   protected getComponent () {
     if (this._showCard) {
-      return html`<fs-data-card></fs-data-card>`
+      return html`<fs-data-card
+        .bucketing=${this._bucketing}
+        .exposedVariations=${this._exposedVariations}
+        @onVariationSelected=${this._onVariationSelected}
+      ></fs-data-card>`
     }
     return html`<fs-arrow-down
       @onClick=${this._toggleShowCard}
