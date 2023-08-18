@@ -15,6 +15,7 @@ export type ForcedVariation = {
   campaignId: string,
   variationGroupId: string
   variationId: string
+  originalVariationId?: string;
 }
 
 export type ExposedVariation = {
@@ -34,6 +35,7 @@ export type FlagDTO= {
   isReference?: boolean;
   campaignType?: string;
   slug?:string|null;
+  originalVariationId?:string
  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
 }
@@ -156,9 +158,12 @@ export type ThirdPartySegment = {
   partner: string
 }
 
+export type onFsForcedVariationsType = (arg: {forcedVariations:ForcedVariation[]}) => void
+
 export type qaModule = {
+  onFsForcedVariations?: onFsForcedVariationsType
   init(args: {
-      flagship: Flagship;
-  }): void;
-  getForcedVariations(): ForcedVariation[] | null;
+    flagship: Flagship;
+}): void
+  getForcedVariations(): ForcedVariation[] | undefined
 }
