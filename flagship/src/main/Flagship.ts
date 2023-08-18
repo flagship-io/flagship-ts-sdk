@@ -28,7 +28,7 @@ import { BucketingManager } from '../decision/BucketingManager'
 import { MurmurHash } from '../utils/MurmurHash'
 import { DecisionManager } from '../decision/DecisionManager'
 import { HttpClient } from '../utils/HttpClient'
-import { FlagDTO, NewVisitor, primitive } from '../types'
+import { FlagDTO, ForcedVariation, NewVisitor, primitive } from '../types'
 import { CampaignDTO } from '../decision/api/models'
 import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
@@ -247,8 +247,8 @@ export class Flagship {
       sprintf(SDK_STARTED_INFO, SDK_INFO.version),
       PROCESS_INITIALIZATION
     )
-    if (config?.qaModule) {
-      config.qaModule({ flagship })
+    if (typeof config?.qaModule?.init === 'function') {
+      config.qaModule.init({ flagship })
     }
     return flagship
   }
@@ -302,6 +302,7 @@ export class Flagship {
    */
   public static newVisitor(params?: NewVisitor): Visitor
   public static newVisitor(param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor
+  // eslint-disable-next-line complexity
   public static newVisitor (param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor {
     let visitorId: string | undefined
     let context: Record<string, primitive>
@@ -344,6 +345,12 @@ export class Flagship {
       logError(this.getConfig(), NEW_VISITOR_NOT_READY, PROCESS_NEW_VISITOR)
     }
 
+    const qaModule = this.getConfig().qaModule
+    let forcedVariations: ForcedVariation[]| undefined
+    if (typeof qaModule?.getForcedVariations === 'function') {
+      forcedVariations = qaModule.getForcedVariations()
+    }
+
     const visitorDelegate = new VisitorDelegate({
       visitorId,
       context,
@@ -352,7 +359,8 @@ export class Flagship {
       configManager: this.getInstance().configManager,
       initialModifications,
       initialCampaigns,
-      initialFlagsData: initialModifications
+      initialFlagsData: initialModifications,
+      forcedVariations
     })
 
     const visitor = new Visitor(visitorDelegate)
