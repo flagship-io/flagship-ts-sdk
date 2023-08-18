@@ -41,6 +41,14 @@ export class Visitor extends EventEmitter implements IVisitor {
 
   /**
    *
+   * @returns
+   */
+  getForcedVariations (): ForcedVariation[] | undefined {
+    return this.visitorDelegate.getForcedVariations()
+  }
+
+  /**
+   *
    */
   getExposedVariations (): ExposedVariation[] {
     return this.visitorDelegate.getExposedVariations()

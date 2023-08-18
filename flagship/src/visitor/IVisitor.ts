@@ -243,6 +243,7 @@ export interface IVisitor {
 
   addForcedVariation(value: ForcedVariation):IVisitor
   removeForcedVariation(variationId: string):IVisitor
+  getForcedVariations():ForcedVariation[]|undefined
 
   getExposedVariations():ExposedVariation[]
 }

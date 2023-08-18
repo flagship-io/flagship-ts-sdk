@@ -5,7 +5,7 @@ import { IHit, Modification, NewVisitor, modificationsRequested, primitive, Visi
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
 import { FlagshipStatus, SDK_INFO, VISITOR_ID_ERROR } from '../enum/index'
-import { logDebugSprintf, logError, uuidV4 } from '../utils/utils'
+import { forceVariation, logDebugSprintf, logError, uuidV4 } from '../utils/utils'
 import { HitAbstract, HitShape } from '../hit/index'
 import { DefaultStrategy } from './DefaultStrategy'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
@@ -130,7 +130,9 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
   public getFlagsDataArray (): FlagDTO[] {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    return Array.from(this._flags, ([_, item]) => item)
+    return Array.from(this._flags, ([_, item]) => {
+      return forceVariation({ flagDTO: item, visitor: this }) || item
+    })
   }
 
   protected setInitialFlags (modifications?: Map<string, FlagDTO> | FlagDTO[]): void {
@@ -266,11 +268,26 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   }
 
   addForcedVariation (value: ForcedVariation): IVisitor {
-    return this.getStrategy().addForcedVariation(value)
+    const forceVariation = this.forcedVariations?.find(x => x.campaignId === value.campaignId)
+    if (forceVariation) {
+      forceVariation.variationId = value.variationId
+      forceVariation.variationGroupId = value.variationGroupId
+      return this
+    }
+    this.forcedVariations?.push(value)
+    return this
   }
 
   removeForcedVariation (variationId: string): IVisitor {
-    return this.getStrategy().removeForcedVariation(variationId)
+    const index = this.forcedVariations?.findIndex(x => x.variationId === variationId)
+    if (index && this.forcedVariations) {
+      delete this.forcedVariations[index]
+    }
+    return this
+  }
+
+  getForcedVariations (): ForcedVariation[]|undefined {
+    return this.forcedVariations
   }
 
   public getExposedVariations () : ExposedVariation[] {
