@@ -52,8 +52,11 @@ export abstract class DecisionManager implements IDecisionManager {
           {
             key,
             campaignId: campaign.id,
+            campaignName: campaign.name,
             variationGroupId: campaign.variationGroupId,
+            variationGroupName: campaign.variationGroupName,
             variationId: campaign.variation.id,
+            variationName: campaign.variation.name,
             isReference: !!campaign.variation.reference,
             campaignType: campaign.type,
             slug: campaign.slug,
