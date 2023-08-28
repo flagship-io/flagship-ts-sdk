@@ -194,6 +194,7 @@ export class BucketingManager extends DecisionManager {
       const currentCampaigns = this.getVisitorCampaigns(campaign.variationGroups, campaign.id, campaign.type, visitor)
       if (currentCampaigns) {
         currentCampaigns.slug = campaign.slug ?? null
+        currentCampaigns.name = campaign.name
         visitorCampaigns.push(currentCampaigns)
       }
     })
@@ -215,6 +216,7 @@ export class BucketingManager extends DecisionManager {
           id: campaignId,
           variation,
           variationGroupId: variationGroup.id,
+          variationGroupName: variationGroup.name,
           type: campaignType
         }
       }
@@ -238,6 +240,7 @@ export class BucketingManager extends DecisionManager {
         logDebugSprintf(this.config, ALLOCATION, BUCKETING_VARIATION_CACHE, visitor.visitorId, newVariation.id)
         return {
           id: newVariation.id,
+          name: newVariation.name,
           modifications: newVariation.modifications,
           reference: newVariation.reference
         }
@@ -253,7 +256,8 @@ export class BucketingManager extends DecisionManager {
         return {
           id: variation.id,
           modifications: variation.modifications,
-          reference: variation.reference
+          reference: variation.reference,
+          name: variation.name
         }
       }
     }
