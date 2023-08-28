@@ -71,6 +71,9 @@ describe('Name of the group', () => {
       campaignId: 'c2nrh1hjg50l9thhu8bg',
       variationGroupId: 'c2nrh1hjg50lf9thhu8cgkeyNull',
       variationId: 'c2nrh1hjg50l9thhu8dg',
+      campaignName: 'campaignName',
+      variationGroupName: 'variationGroupName',
+      variationName: 'variationName',
       isReference: false,
       value: null
     }
@@ -79,6 +82,9 @@ describe('Name of the group', () => {
       campaignId: 'c2nrh1hjg50l9thhu8bg',
       variationGroupId: 'c2nrh1hjg50l9thhu8cgKeyNumber2',
       variationId: 'c2nrh1hjg50l9thhu8dg',
+      campaignName: 'campaignName',
+      variationGroupName: 'variationGroupName',
+      variationName: 'variationName',
       isReference: false,
       value: null
     }

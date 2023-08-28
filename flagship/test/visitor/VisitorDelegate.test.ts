@@ -184,7 +184,10 @@ describe('test VisitorDelegate', () => {
       variationGroupId: 'var',
       variationId: 'varId',
       isReference: true,
-      value: 'value'
+      value: 'value',
+      campaignName: 'campaignName',
+      variationGroupName: 'variationGroupName',
+      variationName: 'variationName'
     }
     const newFlag = new Map([['key', flag]])
     visitorDelegate.flagsData = newFlag
@@ -201,7 +204,10 @@ describe('test VisitorDelegate', () => {
       variationGroupId: 'var',
       variationId: 'varId',
       isReference: true,
-      value: 'value'
+      value: 'value',
+      campaignName: 'campaignName',
+      variationGroupName: 'variationGroupName',
+      variationName: 'variationName'
     }
     const newModification = new Map([['key', modification]])
     visitorDelegate.modifications = newModification
@@ -246,7 +252,10 @@ describe('test VisitorDelegate', () => {
       variationGroupId: 'var',
       variationId: 'varId',
       isReference: true,
-      value: 'value'
+      value: 'value',
+      campaignName: 'campaignName',
+      variationGroupName: 'variationGroupName',
+      variationName: 'variationName'
     })
   })
 
@@ -299,7 +308,11 @@ describe('test VisitorDelegate methods', () => {
       variationGroupId: 'var',
       variationId: 'varId',
       isReference: true,
-      value: 'value'
+      value: 'value',
+      campaignName: 'campaignName',
+      variationGroupName: 'variationGroupName',
+      variationName: 'variationName',
+      campaignType: 'ab'
     }
 
     getFlagMetadata.mockReturnValue({
@@ -307,7 +320,10 @@ describe('test VisitorDelegate methods', () => {
       variationGroupId: flagDTO.variationGroupId,
       variationId: flagDTO.variationId,
       isReference: flagDTO.isReference,
-      campaignType: ''
+      campaignType: flagDTO.campaignType,
+      campaignName: flagDTO.campaignName,
+      variationGroupName: flagDTO.variationGroupName,
+      variationName: flagDTO.variationName
     })
 
     visitorDelegate.flagSynchStatus = FlagSynchStatus.FLAGS_FETCHED
@@ -322,7 +338,10 @@ describe('test VisitorDelegate methods', () => {
       variationGroupId: flagDTO.variationGroupId,
       variationId: flagDTO.variationId,
       isReference: flagDTO.isReference,
-      campaignType: ''
+      campaignType: flagDTO.campaignType,
+      campaignName: flagDTO.campaignName,
+      variationGroupName: flagDTO.variationGroupName,
+      variationName: flagDTO.variationName
     }))
 
     visitorDelegate.flagSynchStatus = FlagSynchStatus.AUTHENTICATED
@@ -653,7 +672,10 @@ describe('test initialModifications', () => {
       variationGroupId: 'var',
       variationId: 'varId',
       isReference: true,
-      value: 'value'
+      value: 'value',
+      campaignName: 'campaignName',
+      variationGroupName: 'variationGroupName',
+      variationName: 'variationName'
     }]])
     const visitorDelegate = new VisitorDelegate({
       visitorId,
@@ -673,7 +695,10 @@ describe('test initialModifications', () => {
       variationGroupId: 'var',
       variationId: 'varId',
       isReference: true,
-      value: 'value'
+      value: 'value',
+      campaignName: 'campaignName',
+      variationGroupName: 'variationGroupName',
+      variationName: 'variationName'
     }
     const newModification = new Map([['newKey', modification]])
     const visitorDelegate = new VisitorDelegate({
@@ -694,7 +719,10 @@ describe('test initialModifications', () => {
       variationGroupId: 'var',
       variationId: 'varId',
       isReference: true,
-      value: 'value'
+      value: 'value',
+      campaignName: 'campaignName',
+      variationGroupName: 'variationGroupName',
+      variationName: 'variationName'
     }
     const newModification = new Map([['newKey', modification]])
     const visitorDelegate = new VisitorDelegate({
