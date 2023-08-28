@@ -6,17 +6,17 @@ export type ModificationsDTO = {
 
 export type VariationDTO = {
   id: string
-  name: string
+  name?: string
   reference?:boolean;
   modifications: ModificationsDTO
 }
 
 export type CampaignDTO = {
   id:string
-  name: string
+  name?: string
   slug?:string|null
   variationGroupId: string;
-  variationGroupName: string
+  variationGroupName?: string
   variation: VariationDTO;
   type?: string
 }
