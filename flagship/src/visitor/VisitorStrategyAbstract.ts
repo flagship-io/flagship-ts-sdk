@@ -286,7 +286,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     }
 
     public async sendAnalyticHit (hit: Analytic) {
-      if (!this.config.enableAnalytics) {
+      if (this.config.disableDeveloperUsageTracking) {
         return
       }
       const uniqueId = this.visitor.visitorId + new Date().toDateString()

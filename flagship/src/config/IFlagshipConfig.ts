@@ -157,5 +157,8 @@ export interface IFlagshipConfig {
      */
     fetchFlagsBufferingTime?: number
 
-    enableAnalytics?: boolean
+    /**
+     *
+     */
+    disableDeveloperUsageTracking?: boolean
   }
