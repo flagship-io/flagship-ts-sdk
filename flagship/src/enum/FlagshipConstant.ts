@@ -104,7 +104,7 @@ export const METHOD_DEACTIVATED_CONSENT_ERROR = 'Method {0} is deactivated for v
 export const METHOD_DEACTIVATED_ERROR = 'Visitor {0}, method {1} is deactivated while SDK status is: {2}.'
 
 export const METHOD_DEACTIVATED_SEND_CONSENT_ERROR = 'Send consent hit is deactivated while SDK status is: {1}.'
-export const TROUBLESHOOTING_HIT_ADDED_IN_QUEUE = 'The TROUBLESHOOTING HIT has been added to the pool queue : {0}'
+export const TROUBLESHOOTING_HIT_ADDED_IN_QUEUE = 'The TROUBLESHOOTING HIT has been added in the pool queue : {0}'
 export const ACTIVATE_ADDED_IN_QUEUE = 'The ACTIVATE has been added to the pool queue : {0}'
 export const HIT_ADDED_IN_QUEUE = 'The HIT has been added into the pool queue : {0}'
 export const ADD_HIT = 'ADD HIT'
