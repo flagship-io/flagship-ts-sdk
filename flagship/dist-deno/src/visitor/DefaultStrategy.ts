@@ -420,10 +420,13 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       flagDefaultValue: defaultValue,
       visitorContext: this.visitor.context,
       flagMetadata: {
+        campaignName: flagDto.campaignName,
         campaignId: flagDto.campaignId,
         campaignType: flagDto.campaignType as string,
         variationGroupId: flagDto.variationGroupId,
+        variationGroupName: flagDto.variationGroupName,
         variationId: flagDto.variationId,
+        variationName: flagDto.variationName,
         slug: flagDto.slug,
         isReference: flagDto.isReference as boolean
       }
