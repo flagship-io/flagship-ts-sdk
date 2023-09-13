@@ -9,7 +9,10 @@ describe('test FlagMetadata', () => {
       variationGroupId: 'variationGroupID',
       variationId: 'variationID',
       isReference: true,
-      campaignType: 'type'
+      campaignType: 'type',
+      campaignName: 'campaignName',
+      variationGroupName: 'variationGroupName',
+      variationName: 'variationName'
     }
     const flagMetadata = new FlagMetadata(metadata)
     expect(flagMetadata).toEqual(metadata)
@@ -21,7 +24,10 @@ describe('test FlagMetadata', () => {
       variationGroupId: '',
       variationId: '',
       isReference: false,
-      campaignType: ''
+      campaignType: '',
+      campaignName: '',
+      variationGroupName: '',
+      variationName: ''
     }
     const flagMetadata = new FlagMetadata(metadata)
     expect(flagMetadata).toEqual(metadata)

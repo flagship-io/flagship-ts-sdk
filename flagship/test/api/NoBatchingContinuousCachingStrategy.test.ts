@@ -165,7 +165,10 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
         variationId: 'varId',
         isReference: true,
         campaignType: 'ab',
-        slug: 'slug'
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
       }
     })
 
@@ -294,7 +297,10 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
         variationId: 'varId',
         isReference: true,
         campaignType: 'ab',
-        slug: 'slug'
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
       }
     })
     activateHit.config = config
@@ -345,7 +351,10 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
         variationId: 'varId',
         isReference: true,
         campaignType: 'ab',
-        slug: 'slug'
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
       }
     })
     activateHit.config = config
@@ -570,7 +579,10 @@ describe('test sendBatch method', () => {
         variationId: 'varId',
         isReference: true,
         campaignType: 'ab',
-        slug: 'slug'
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
       }
     })
     activateHit.config = config

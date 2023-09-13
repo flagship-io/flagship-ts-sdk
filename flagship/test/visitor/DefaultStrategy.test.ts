@@ -289,7 +289,10 @@ describe('test DefaultStrategy ', () => {
       variationGroupId: 'c2nrh1hjg50l9thhu8cgKeyBoolean',
       variationId: 'c2nrh1hjg50l9thhu8dg',
       isReference: false,
-      value: false
+      value: false,
+      campaignName: 'campaignName-1',
+      variationGroupName: 'variationGroupName-1',
+      variationName: 'variationName-1'
     }
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: true, flag: returnMod })
     expect(value).toBe(returnMod.value)
@@ -302,7 +305,10 @@ describe('test DefaultStrategy ', () => {
       variationGroupId: 'c2nrh1hjg50l9thhu8cgKeyBoolean',
       variationId: 'c2nrh1hjg50l9thhu8dg',
       isReference: false,
-      value: 0
+      value: 0,
+      campaignName: 'campaignName-1',
+      variationGroupName: 'variationGroupName-1',
+      variationName: 'variationName-1'
     }
     const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: 1, flag: returnMod })
     expect(value).toBe(returnMod.value)
@@ -328,7 +334,10 @@ describe('test DefaultStrategy ', () => {
         variationId: returnMod.variationId,
         isReference: returnMod.isReference as boolean,
         campaignType: returnMod.campaignType as string,
-        slug: returnMod.slug
+        slug: returnMod.slug,
+        campaignName: returnMod.campaignName,
+        variationGroupName: returnMod.variationGroupName,
+        variationName: returnMod.variationName
       }
     })
     activateHit.config = config
@@ -355,7 +364,10 @@ describe('test DefaultStrategy ', () => {
         variationId: returnMod.variationId,
         isReference: returnMod.isReference as boolean,
         campaignType: returnMod.campaignType as string,
-        slug: returnMod.slug
+        slug: returnMod.slug,
+        campaignName: returnMod.campaignName,
+        variationGroupName: returnMod.variationGroupName,
+        variationName: returnMod.variationName
       }
     })
     campaignHit.config = config
@@ -383,7 +395,10 @@ describe('test DefaultStrategy ', () => {
         variationId: returnMod.variationId,
         isReference: returnMod.isReference as boolean,
         campaignType: returnMod.campaignType as string,
-        slug: returnMod.slug
+        slug: returnMod.slug,
+        campaignName: returnMod.campaignName,
+        variationGroupName: returnMod.variationGroupName,
+        variationName: returnMod.variationName
       }
     })
     campaignHit.config = config
@@ -412,7 +427,10 @@ describe('test DefaultStrategy ', () => {
         variationId: returnMod.variationId,
         isReference: returnMod.isReference as boolean,
         campaignType: returnMod.campaignType as string,
-        slug: returnMod.slug
+        slug: returnMod.slug,
+        campaignName: returnMod.campaignName,
+        variationGroupName: returnMod.variationGroupName,
+        variationName: returnMod.variationName
       }
     })
     campaignHit.config = config
@@ -478,7 +496,10 @@ describe('test DefaultStrategy ', () => {
       variationId: 'variationId',
       isReference: false,
       campaignType: 'ab',
-      slug: 'slug'
+      slug: 'slug',
+      campaignName: 'campaignName',
+      variationGroupName: 'variationGroupName',
+      variationName: 'variationName'
     }
     const flagMeta = defaultStrategy.getFlagMetadata({ key, metadata, hasSameType: true })
     expect(flagMeta).toEqual(metadata)
@@ -493,7 +514,10 @@ describe('test DefaultStrategy ', () => {
       variationId: 'variationId',
       isReference: false,
       campaignType: 'ab',
-      slug: 'slug'
+      slug: 'slug',
+      campaignName: 'campaignName',
+      variationGroupName: 'variationGroupName',
+      variationName: 'variationName'
     }
     const flagMeta = defaultStrategy.getFlagMetadata({ key, metadata, hasSameType: false })
     expect(flagMeta).toEqual(FlagMetadata.Empty())
@@ -565,7 +589,10 @@ describe('test DefaultStrategy ', () => {
         variationId: returnMod.variationId,
         isReference: returnMod.isReference as boolean,
         campaignType: returnMod.campaignType as string,
-        slug: returnMod.slug
+        slug: returnMod.slug,
+        campaignName: returnMod.campaignName,
+        variationGroupName: returnMod.variationGroupName,
+        variationName: returnMod.variationName
       }
     })
     activateHit.config = config
@@ -661,7 +688,10 @@ describe('test DefaultStrategy ', () => {
         variationId: returnMod.variationId,
         isReference: returnMod.isReference as boolean,
         campaignType: returnMod.campaignType as string,
-        slug: returnMod.slug
+        slug: returnMod.slug,
+        campaignName: returnMod.campaignName,
+        variationGroupName: returnMod.variationGroupName,
+        variationName: returnMod.variationName
       }
     })
     activateHit.config = config
@@ -690,7 +720,10 @@ describe('test DefaultStrategy ', () => {
         variationId: modification1.variationId,
         isReference: modification1.isReference as boolean,
         campaignType: modification1.campaignType as string,
-        slug: modification1.slug
+        slug: modification1.slug,
+        campaignName: modification1.campaignName,
+        variationGroupName: modification1.variationGroupName,
+        variationName: modification1.variationName
       }
     })
     activateHit.config = config
@@ -713,7 +746,10 @@ describe('test DefaultStrategy ', () => {
         variationId: modification2.variationId,
         isReference: modification2.isReference as boolean,
         campaignType: modification2.campaignType as string,
-        slug: modification2.slug
+        slug: modification2.slug,
+        campaignName: modification2.campaignName,
+        variationGroupName: modification2.variationGroupName,
+        variationName: modification2.variationName
       }
     })
     activateHit2.config = config
@@ -743,7 +779,10 @@ describe('test DefaultStrategy ', () => {
         variationId: modification1.variationId,
         isReference: modification1.isReference as boolean,
         campaignType: modification1.campaignType as string,
-        slug: modification1.slug
+        slug: modification1.slug,
+        campaignName: modification1.campaignName,
+        variationGroupName: modification1.variationGroupName,
+        variationName: modification1.variationName
       }
     })
     campaignHit.config = config
@@ -766,7 +805,10 @@ describe('test DefaultStrategy ', () => {
         variationId: modification2.variationId,
         isReference: modification2.isReference as boolean,
         campaignType: modification2.campaignType as string,
-        slug: modification2.slug
+        slug: modification2.slug,
+        campaignName: modification2.campaignName,
+        variationGroupName: modification2.variationGroupName,
+        variationName: modification2.variationName
       }
     })
     campaignHit2.config = config
@@ -849,7 +891,10 @@ describe('test DefaultStrategy ', () => {
         variationId: returnMod.variationId,
         isReference: returnMod.isReference as boolean,
         campaignType: returnMod.campaignType as string,
-        slug: returnMod.slug
+        slug: returnMod.slug,
+        campaignName: returnMod.campaignName,
+        variationGroupName: returnMod.variationGroupName,
+        variationName: returnMod.variationName
       }
     })
     activateHit.config = config
@@ -1313,7 +1358,18 @@ describe('test DefaultStrategy ', () => {
   })
 
   it('test updateCampaigns', () => {
-    const modifications = new Map<string, FlagDTO>([['key', { key: '', campaignId: '', variationGroupId: '', variationId: '', isReference: false, value: '' }]])
+    const modifications = new Map<string, FlagDTO>([['key',
+      {
+        key: '',
+        campaignId: '',
+        variationGroupId: '',
+        variationId: '',
+        isReference: false,
+        value: '',
+        campaignName: '',
+        variationGroupName: '',
+        variationName: ''
+      }]])
     getModifications.mockReturnValue(modifications)
     const campaigns = [{
       id: 'c2nrh1hjg50l9thhu8bg',
