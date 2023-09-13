@@ -1,7 +1,7 @@
 {
   "name": "@flagship.io/js-sdk",
   "sideEffects": false,
-  "version": "3.2.5",
+  "version": "3.2.6",
   "license": "Apache-2.0",
   "description": "Flagship JS SDK",
   "main": "dist/index.cjs",
