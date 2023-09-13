@@ -156,11 +156,11 @@ export abstract class DecisionManager implements IDecisionManager {
     } catch (error:any) {
       const monitoringHttpResponse = new Troubleshooting({
         label: 'GET-CAMPAIGNS-ROUTE-RESPONSE-ERROR',
-        logLevel: LogLevel.INFO,
+        logLevel: LogLevel.ERROR,
         visitorId: visitor.visitorId,
         anonymousId: visitor.anonymousId,
         visitorInstanceId: visitor.instanceId,
-        traffic: visitor.traffic,
+        traffic: 100,
         config: this.config,
         visitorContext: visitor.context,
         httpRequestBody: requestBody,

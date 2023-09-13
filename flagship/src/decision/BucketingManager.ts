@@ -142,7 +142,7 @@ export class BucketingManager extends DecisionManager {
         logLevel: LogLevel.INFO,
         config: this.config,
         httpRequestHeaders: headers,
-        httpRequestMethod: 'POST',
+        httpRequestMethod: 'GET',
         httpRequestUrl: url,
         httpResponseBody: error?.message,
         httpResponseHeaders: error?.headers,
