@@ -47,7 +47,6 @@ export abstract class DecisionManager implements IDecisionManager {
       const object = campaign.variation.modifications.value
       for (const key in object) {
         const value = object[key]
-        const variationName = campaign.type === 'ab' ? campaign.variation.name : campaign.variationGroupName
         modifications.set(
           key,
           {
@@ -57,7 +56,7 @@ export abstract class DecisionManager implements IDecisionManager {
             variationGroupId: campaign.variationGroupId,
             variationGroupName: campaign.variationGroupName || '',
             variationId: campaign.variation.id,
-            variationName: variationName || '',
+            variationName: campaign.variation.name || '',
             isReference: !!campaign.variation.reference,
             campaignType: campaign.type,
             slug: campaign.slug,
