@@ -1930,8 +1930,11 @@ describe('test DefaultStrategy troubleshootingHit', () => {
     const flagDTO: FlagDTO = {
       key: 'key',
       campaignId: 'campaignId',
+      campaignName: 'campaignName',
       variationGroupId: 'variationGroupId',
+      variationGroupName: 'variationGroupName',
       variationId: 'variationId',
+      variationName: 'variationName',
       value: 'value'
     }
     const flags = new Map<string, FlagDTO>().set(flagDTO.key, flagDTO)
@@ -2050,8 +2053,11 @@ describe('test DefaultStrategy troubleshootingHit Bucketing mode', () => {
     const flagDTO: FlagDTO = {
       key: 'key',
       campaignId: 'campaignId',
+      campaignName: 'campaignName',
       variationGroupId: 'variationGroupId',
+      variationGroupName: 'variationGroupName',
       variationId: 'variationId',
+      variationName: 'variationName',
       value: 'value'
     }
     const flags = new Map<string, FlagDTO>().set(flagDTO.key, flagDTO)

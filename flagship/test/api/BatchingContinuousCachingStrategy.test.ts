@@ -990,8 +990,11 @@ describe('test send troubleshooting hit', () => {
     flagDefaultValue: 'default-value',
     flagMetadata: {
       campaignId: 'campaignId',
+      campaignName: 'campaignName',
       variationGroupId: 'variationGrID',
+      variationGroupName: 'variationGroupName',
       variationId: 'varId',
+      variationName: 'variationName',
       isReference: true,
       campaignType: 'ab',
       slug: 'slug'
