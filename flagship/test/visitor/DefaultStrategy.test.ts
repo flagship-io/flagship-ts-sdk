@@ -8,13 +8,14 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { IHttpResponse, HttpClient } from '../../src/utils/HttpClient'
 import { DefaultStrategy, HIT_NULL_ERROR, TYPE_HIT_REQUIRED_ERROR } from '../../src/visitor/DefaultStrategy'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
-import { ACTIVATE_MODIFICATION_ERROR, ACTIVATE_MODIFICATION_KEY_ERROR, CONTEXT_NULL_ERROR, CONTEXT_VALUE_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, FLAG_VALUE, FS_CONSENT, FlagSynchStatus, GET_FLAG_CAST_ERROR, GET_FLAG_MISSING_ERROR, GET_METADATA_CAST_ERROR, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, USER_EXPOSED_CAST_ERROR, USER_EXPOSED_FLAG_ERROR } from '../../src/enum'
+import { ACTIVATE_MODIFICATION_ERROR, ACTIVATE_MODIFICATION_KEY_ERROR, CONTEXT_NULL_ERROR, CONTEXT_VALUE_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, FLAG_VALUE, FS_CONSENT, FlagSynchStatus, GET_FLAG_CAST_ERROR, GET_FLAG_MISSING_ERROR, GET_METADATA_CAST_ERROR, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, LogLevel, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, USER_EXPOSED_CAST_ERROR, USER_EXPOSED_FLAG_ERROR } from '../../src/enum'
 import { errorFormat, sprintf } from '../../src/utils/utils'
 import { returnModification } from './modification'
 import { HitShape } from '../../src/hit/Legacy'
 import { Activate } from '../../src/hit/Activate'
 import { MurmurHash } from '../../src/utils/MurmurHash'
 import { BucketingManager } from '../../src/decision/BucketingManager'
+import { Analytic } from '../../src/hit/Analytic'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getNull = (): any => {
@@ -168,6 +169,11 @@ describe('test DefaultStrategy ', () => {
       fs_version: SDK_INFO.version,
       fs_users: visitorId
     })
+  })
+
+  it('test getCurrentDateTime', () => {
+    const currentDate = defaultStrategy.getCurrentDateTime()
+    expect(currentDate).toBeInstanceOf(Date)
   })
 
   const campaignDtoId = 'c2nrh1hjg50l9stringgu8bg'
@@ -2206,5 +2212,112 @@ describe('test DefaultStrategy troubleshootingHit visitor traffic === undefined'
       documentLocation: 'localhost'
     })
     expect(sendTroubleshootingHit).toBeCalledTimes(0)
+  })
+})
+
+describe('test DefaultStrategy sendAnalyticHit', () => {
+  const methodNow = Date.now
+  const mockNow = jest.fn<typeof Date.now>()
+  beforeAll(() => {
+    Date.now = mockNow
+    mockNow.mockReturnValue(1)
+  })
+  afterAll(() => {
+    Date.now = methodNow
+  })
+  const visitorId = 'visitorId'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const context: any = {
+    isVip: true
+  }
+
+  const logManager = new FlagshipLogManager()
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0 })
+  config.logManager = logManager
+
+  const httpClient = new HttpClient()
+
+  const post = jest.fn<typeof httpClient.postAsync>()
+  httpClient.postAsync = post
+  post.mockResolvedValue({} as IHttpResponse)
+
+  const apiManager = new ApiManager(httpClient, config)
+
+  const getCampaignsAsync = jest.spyOn(
+    apiManager,
+    'getCampaignsAsync'
+  )
+
+  const getModifications = jest.spyOn(
+    apiManager,
+    'getModifications'
+  )
+
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  const addHit = jest.spyOn(trackingManager, 'addHit')
+  addHit.mockResolvedValue()
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sendAnalyticsHit = jest.spyOn(trackingManager, 'sendAnalyticsHit')
+
+  const configManager = new ConfigManager(config, apiManager, trackingManager)
+
+  const murmurHash = new MurmurHash()
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
+  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
+
+  it('test fetchFlags', async () => {
+    const flagDTO: FlagDTO = {
+      key: 'key',
+      campaignId: 'campaignId',
+      campaignName: 'campaignName',
+      variationGroupId: 'variationGroupId',
+      variationGroupName: 'variationGroupName',
+      variationId: 'variationId',
+      variationName: 'variationName',
+      value: 'value'
+    }
+    const getCurrentDateTime = jest.spyOn(defaultStrategy, 'getCurrentDateTime')
+    const flags = new Map<string, FlagDTO>().set(flagDTO.key, flagDTO)
+    getCampaignsAsync.mockResolvedValue([])
+    getModifications.mockReturnValueOnce(flags)
+    getCurrentDateTime.mockReturnValue(new Date(2022, 9, 14))
+    await defaultStrategy.fetchFlags()
+
+    expect(sendAnalyticsHit).toBeCalledTimes(1)
+
+    const label: TroubleshootingLabel = 'VISITOR-FETCH-CAMPAIGNS'
+    expect(sendAnalyticsHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+  })
+
+  it('test sendAnalyticHit', async () => {
+    const getCurrentDateTime = jest.spyOn(defaultStrategy, 'getCurrentDateTime')
+    const analyticHit = new Analytic({
+      label: 'VISITOR-FETCH-CAMPAIGNS',
+      logLevel: LogLevel.INFO,
+      visitorId: 'visitor',
+      config
+    })
+    getCurrentDateTime.mockReturnValue(new Date(2023, 9, 14))
+    await defaultStrategy.sendAnalyticHit(analyticHit)
+
+    expect(sendAnalyticsHit).toBeCalledTimes(0)
+  })
+
+  it('test sendAnalyticHit', async () => {
+    const getCurrentDateTime = jest.spyOn(defaultStrategy, 'getCurrentDateTime')
+    const analyticHit = new Analytic({
+      label: 'VISITOR-FETCH-CAMPAIGNS',
+      logLevel: LogLevel.INFO,
+      visitorId: 'visitor',
+      config
+    })
+    getCurrentDateTime.mockReturnValue(new Date(2023, 9, 14))
+    config.disableDeveloperUsageTracking = true
+    await defaultStrategy.sendAnalyticHit(analyticHit)
+
+    expect(sendAnalyticsHit).toBeCalledTimes(0)
   })
 })

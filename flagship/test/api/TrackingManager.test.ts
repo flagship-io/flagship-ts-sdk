@@ -155,7 +155,9 @@ describe('test TrackingManager Strategy ', () => {
     sendBatch: jest.fn(),
     addHit: jest.fn(),
     sendTroubleshootingQueue: jest.fn(),
-    sendTroubleshootingHit: jest.fn()
+    sendTroubleshootingHit: jest.fn(),
+    sendAnalyticsHitQueue: jest.fn(),
+    sendAnalyticsHit: jest.fn()
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const trackManagerMock = (trackingManager as any)
@@ -187,6 +189,7 @@ describe('test TrackingManager Strategy ', () => {
     expect(strategy.sendBatch).toBeCalledTimes(1)
     expect(strategy.sendBatch).toBeCalledWith(BatchTriggeredBy.Timer)
     expect(strategy.sendTroubleshootingQueue).toBeCalledTimes(1)
+    expect(strategy.sendAnalyticsHitQueue).toBeCalledTimes(1)
   })
 
   it('Test addTroubleshootingHit methods', async () => {
@@ -215,6 +218,32 @@ describe('test TrackingManager Strategy ', () => {
 
     expect(strategy.sendTroubleshootingHit).toBeCalledTimes(1)
     expect(strategy.sendTroubleshootingHit).toBeCalledWith(activateTroubleshooting)
+  })
+
+  it('Test sendTroubleshootingHit methods', async () => {
+    const pageHit = new Page({
+      documentLocation: 'https://myurl.com',
+      visitorId
+    })
+
+    const analyticHit = new Troubleshooting({
+      label: 'VISITOR-FETCH-CAMPAIGNS',
+      logLevel: LogLevel.INFO,
+      traffic: 2,
+      visitorId: pageHit.visitorId,
+      flagshipInstanceId: pageHit.flagshipInstanceId,
+      visitorInstanceId: pageHit.visitorInstanceId,
+      anonymousId: pageHit.anonymousId,
+      config,
+      hitContent: pageHit.toApiKeys()
+    })
+
+    pageHit.config = config
+
+    await trackingManager.sendAnalyticsHit(analyticHit)
+
+    expect(strategy.sendAnalyticsHit).toBeCalledTimes(1)
+    expect(strategy.sendAnalyticsHit).toBeCalledWith(analyticHit)
   })
 })
 

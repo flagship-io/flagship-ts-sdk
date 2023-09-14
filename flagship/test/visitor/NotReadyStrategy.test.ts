@@ -9,6 +9,8 @@ import { HttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
 import { VisitorDelegate, NotReadyStrategy } from '../../src/visitor'
 import { MurmurHash } from '../../src/utils/MurmurHash'
+import { Troubleshooting } from '../../src/hit/Troubleshooting'
+import { Analytic } from '../../src/hit/Analytic'
 
 describe('test NotReadyStrategy', () => {
   const visitorId = 'visitorId'
@@ -24,6 +26,9 @@ describe('test NotReadyStrategy', () => {
   config.logManager = logManager
 
   const trackingManager = new TrackingManager({} as HttpClient, config)
+
+  const sendAnalyticsHit = jest.spyOn(trackingManager, 'sendAnalyticsHit')
+  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
 
   const configManager = new ConfigManager(config, {} as DecisionManager, trackingManager)
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
@@ -155,5 +160,15 @@ describe('test NotReadyStrategy', () => {
       expect(logError).toBeCalledTimes(1)
       expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
     })
+  })
+
+  it('test sendTroubleshootingHit', () => {
+    notReadyStrategy.sendTroubleshootingHit({} as Troubleshooting)
+    expect(sendTroubleshootingHit).toBeCalledTimes(0)
+  })
+
+  it('test sendAnalyticHit', () => {
+    notReadyStrategy.sendAnalyticHit({} as Analytic)
+    expect(sendAnalyticsHit).toBeCalledTimes(0)
   })
 })
