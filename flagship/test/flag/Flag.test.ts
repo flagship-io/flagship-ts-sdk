@@ -49,7 +49,10 @@ describe('test Flag', () => {
     isReference: true,
     value: 'value',
     slug: 'campaign-slug',
-    campaignType: 'ab'
+    campaignType: 'ab',
+    campaignName: 'campaignName',
+    variationGroupName: 'variationGroupName',
+    variationName: 'variationName'
   }
 
   visitorDelegate.flagsData.set('key', flagDto)
@@ -72,7 +75,10 @@ describe('test Flag', () => {
       variationId: flagDto.variationId,
       isReference: true,
       campaignType: flagDto.campaignType,
-      slug: flagDto.slug
+      slug: flagDto.slug,
+      campaignName: flagDto.campaignName,
+      variationGroupName: flagDto.variationGroupName,
+      variationName: flagDto.variationName
     })
   })
 
@@ -121,7 +127,10 @@ describe('test Flag', () => {
         variationGroupId: '',
         campaignType: '',
         variationId: '',
-        isReference: false
+        isReference: false,
+        campaignName: '',
+        variationName: '',
+        variationGroupName: ''
       })
     expect(logWarning).toBeCalledTimes(1)
   })
@@ -150,7 +159,10 @@ describe('test Flag', () => {
         variationGroupId: '',
         campaignType: '',
         variationId: '',
-        isReference: false
+        isReference: false,
+        campaignName: '',
+        variationName: '',
+        variationGroupName: ''
       })
   })
 })

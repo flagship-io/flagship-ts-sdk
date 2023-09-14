@@ -16,8 +16,11 @@ export type IHit = Omit<IPage, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omi
 export type FlagDTO= {
   key: string;
   campaignId: string;
+  campaignName: string
   variationGroupId: string;
+  variationGroupName: string
   variationId: string;
+  variationName: string
   isReference?: boolean;
   campaignType?: string;
   slug?:string|null;
@@ -95,8 +98,11 @@ export type VisitorCacheDTO = {
 
 export interface IFlagMetadata{
   campaignId:string
+  campaignName:string
   variationGroupId:string
+  variationGroupName:string
   variationId: string
+  variationName: string
   isReference: boolean
   campaignType: string
   slug?:string|null

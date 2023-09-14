@@ -96,7 +96,10 @@ describe('test NotReadyStrategy', () => {
         variationId: '',
         slug: '',
         campaignType: '',
-        isReference: false
+        isReference: false,
+        campaignName: '',
+        variationGroupName: '',
+        variationName: ''
       },
       key,
       hasSameType: true
@@ -107,7 +110,10 @@ describe('test NotReadyStrategy', () => {
       variationGroupId: '',
       campaignType: '',
       variationId: '',
-      isReference: false
+      isReference: false,
+      campaignName: '',
+      variationGroupName: '',
+      variationName: ''
     })
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(sprintf(METADATA_SDK_NOT_READY, visitorId, key, metadata), FLAG_METADATA)

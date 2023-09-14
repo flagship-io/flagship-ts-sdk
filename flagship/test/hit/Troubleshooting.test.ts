@@ -77,8 +77,11 @@ describe('test hit type Monitoring', () => {
     const flagDTO = {
       key: flagKey,
       campaignId: 'campaignId',
+      campaignName: 'campaignName',
       variationGroupId: 'variationGroupId',
+      variationGroupName: 'variationGroupName',
       variationId: 'variationId',
+      variationName: 'variationName',
       isReference: false,
       campaignType: 'ab',
       slug: 'slug',

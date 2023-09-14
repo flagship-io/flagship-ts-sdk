@@ -68,7 +68,10 @@ describe('test TrackingManager', () => {
         variationId: 'varId',
         isReference: true,
         campaignType: 'ab',
-        slug: 'slug'
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
       },
       visitorContext: { key: 'value' }
     })
@@ -253,7 +256,10 @@ describe('test TrackingManager lookupHits', () => {
         variationId: 'varId',
         isReference: true,
         campaignType: 'ab',
-        slug: 'slug'
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
       },
       visitorContext: { key: 'value' }
     })
@@ -314,7 +320,10 @@ describe('test TrackingManager lookupHits', () => {
         variationId: 'varId',
         isReference: true,
         campaignType: 'ab',
-        slug: 'slug'
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
       },
       visitorContext: { key: 'value' }
     })
