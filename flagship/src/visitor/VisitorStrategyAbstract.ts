@@ -285,14 +285,19 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       await this.trackingManager.sendTroubleshootingHit(hit)
     }
 
+    public getCurrentDateTime () {
+      return new Date()
+    }
+
     public async sendAnalyticHit (hit: Analytic) {
       if (this.config.disableDeveloperUsageTracking) {
         return
       }
-      const uniqueId = this.visitor.visitorId + new Date().toDateString()
+      const uniqueId = this.visitor.visitorId + this.getCurrentDateTime().toDateString()
       const hash = this._murmurHash.murmurHash3Int32(uniqueId)
       const traffic = hash % 100
-      if (traffic > ANALYTIC_HIT_ALLOCATION) {
+
+      if (traffic >= ANALYTIC_HIT_ALLOCATION) {
         return
       }
       await this.trackingManager.sendAnalyticsHit(hit)
