@@ -478,7 +478,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
     this._isAnalyticHitQueueSending = true
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for (const [_, item] of Array.from(this._troubleshootingQueue)) {
+    for (const [_, item] of Array.from(this._analyticHitQueue)) {
       await this.sendAnalyticsHit(item)
     }
     this._isAnalyticHitQueueSending = false
