@@ -58,8 +58,11 @@ export class Flag<T> implements IFlag<T> {
     const flagDTO = this._visitor.flagsData.get(this._key)
     const metadata = new FlagMetadata({
       campaignId: flagDTO?.campaignId || '',
+      campaignName: flagDTO?.campaignName || '',
       variationGroupId: flagDTO?.variationGroupId || '',
+      variationGroupName: flagDTO?.variationGroupName || '',
       variationId: flagDTO?.variationId || '',
+      variationName: flagDTO?.variationName || '',
       isReference: !!flagDTO?.isReference,
       campaignType: flagDTO?.campaignType || '',
       slug: flagDTO?.slug

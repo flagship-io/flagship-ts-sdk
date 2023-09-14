@@ -50,8 +50,11 @@ describe('Test BatchingPeriodicCachingStrategy', () => {
       flagDefaultValue: 'default-value',
       flagMetadata: {
         campaignId: 'campaignId',
+        campaignName: 'campaignName',
         variationGroupId: 'variationGrID',
+        variationGroupName: 'variationGroupName',
         variationId: 'varId',
+        variationName: 'variationName',
         isReference: true,
         campaignType: 'ab',
         slug: 'slug'
@@ -363,8 +366,11 @@ describe('test sendBatch method', () => {
       flagDefaultValue: 'default-value',
       flagMetadata: {
         campaignId: 'campaignId',
+        campaignName: 'campaignName',
         variationGroupId: 'variationGrID',
+        variationGroupName: 'variationGroupName',
         variationId: 'varId',
+        variationName: 'variationName',
         isReference: true,
         campaignType: 'ab',
         slug: 'slug'
@@ -469,7 +475,10 @@ describe('test activateFlag method', () => {
         variationId: 'varId',
         isReference: true,
         campaignType: 'ab',
-        slug: 'slug'
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
       },
       visitorContext: { key: 'value' }
     })
@@ -514,7 +523,10 @@ describe('test activateFlag method', () => {
         variationId: 'varId',
         isReference: true,
         campaignType: 'ab',
-        slug: 'slug'
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
       },
       visitorContext: { key: 'value' }
     })
@@ -534,7 +546,10 @@ describe('test activateFlag method', () => {
         variationId: 'varId',
         isReference: true,
         campaignType: 'ab',
-        slug: 'slug'
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
       },
       visitorContext: { key: 'value' }
     })
@@ -555,7 +570,10 @@ describe('test activateFlag method', () => {
         variationId: 'varId',
         isReference: true,
         campaignType: 'ab',
-        slug: 'slug'
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
       },
       visitorContext: { key: 'value' }
     })
@@ -607,7 +625,10 @@ describe('test activateFlag method', () => {
         variationId: 'varId',
         isReference: true,
         campaignType: 'ab',
-        slug: 'slug'
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
       },
       visitorContext: { key: 'value' }
     })
@@ -627,7 +648,10 @@ describe('test activateFlag method', () => {
         variationId: 'varId',
         isReference: true,
         campaignType: 'ab',
-        slug: 'slug'
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
       },
       visitorContext: { key: 'value' }
     })
@@ -648,7 +672,10 @@ describe('test activateFlag method', () => {
         variationId: 'varId',
         isReference: true,
         campaignType: 'ab',
-        slug: 'slug'
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
       },
       visitorContext: { key: 'value' }
     })

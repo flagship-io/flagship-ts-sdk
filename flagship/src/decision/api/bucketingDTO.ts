@@ -7,6 +7,7 @@ export interface Targetings{
 }
 export interface VariationGroupDTO {
     id:string,
+    name?: string
     targeting:{
         targetingGroups:Array<{
             targetings:Array<Targetings>
@@ -14,6 +15,7 @@ export interface VariationGroupDTO {
     },
     variations:Array<{
         id: string
+        name?: string
         modifications: {
             type: string
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -28,6 +30,7 @@ export interface BucketingDTO {
     panic?:boolean
     campaigns?: Array<{
         id: string
+        name?: string
         type: string
         slug?:string|null
         variationGroups:Array<VariationGroupDTO>

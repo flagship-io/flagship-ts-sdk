@@ -193,11 +193,14 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     const flagData = {
       metadata: {
         campaignId: activate.flagMetadata.campaignId,
+        campaignName: activate.flagMetadata.campaignName,
         campaignType: activate.flagMetadata.campaignType,
         slug: activate.flagMetadata.slug,
         isReference: activate.flagMetadata.isReference,
         variationGroupId: activate.flagMetadata.variationGroupId,
-        variationId: activate.flagMetadata.variationId
+        variationGroupName: activate.flagMetadata.variationGroupName,
+        variationId: activate.flagMetadata.variationId,
+        variationName: activate.flagMetadata.variationName
       },
       key: activate.flagKey,
       value: activate.flagValue

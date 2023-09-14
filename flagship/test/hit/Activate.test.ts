@@ -26,7 +26,10 @@ describe('test hit type Activate', () => {
     variationId: 'varId',
     isReference: true,
     campaignType: 'ab',
-    slug: 'slug'
+    slug: 'slug',
+    campaignName: 'campaignName',
+    variationGroupName: 'variationGroupName',
+    variationName: 'variationName'
   }
   const visitorContext = { key: 'value' }
   const activate = new Activate({

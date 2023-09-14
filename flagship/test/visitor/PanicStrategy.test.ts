@@ -113,7 +113,10 @@ describe('test NotReadyStrategy', () => {
           variationId: '',
           slug: '',
           campaignType: '',
-          isReference: false
+          isReference: false,
+          campaignName: '',
+          variationGroupName: '',
+          variationName: ''
         },
         key,
         hasSameType: true
@@ -125,7 +128,10 @@ describe('test NotReadyStrategy', () => {
       variationGroupId: '',
       campaignType: '',
       variationId: '',
-      isReference: false
+      isReference: false,
+      campaignName: '',
+      variationGroupName: '',
+      variationName: ''
     })
     expect(logInfo).toBeCalledTimes(1)
     expect(logInfo).toBeCalledWith(sprintf(METADATA_PANIC_MODE, visitorId, key, metadata), FLAG_METADATA)
