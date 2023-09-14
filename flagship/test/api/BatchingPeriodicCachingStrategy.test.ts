@@ -13,6 +13,7 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { sleep, sprintf } from '../../src/utils/utils'
 import { Troubleshooting } from '../../src/hit/Troubleshooting'
+import { Analytic } from '../../src/hit/Analytic'
 describe('Test BatchingPeriodicCachingStrategy', () => {
   const visitorId = 'visitorId'
   it('test addHit method', async () => {
@@ -23,7 +24,8 @@ describe('Test BatchingPeriodicCachingStrategy', () => {
     const hitsPoolQueue = new Map<string, HitAbstract>()
     const activatePoolQueue = new Map<string, Activate>()
     const troubleshootingQueue = new Map<string, Troubleshooting>()
-    const batchingStrategy = new BatchingPeriodicCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue })
+    const analyticHitQueue = new Map<string, Analytic>()
+    const batchingStrategy = new BatchingPeriodicCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
@@ -156,7 +158,8 @@ describe('test sendBatch method', () => {
   const hitsPoolQueue = new Map<string, HitAbstract>()
   const activatePoolQueue = new Map<string, Activate>()
   const troubleshootingQueue = new Map<string, Troubleshooting>()
-  const batchingStrategy = new BatchingPeriodicCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue })
+  const analyticHitQueue = new Map<string, Analytic>()
+  const batchingStrategy = new BatchingPeriodicCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
@@ -406,7 +409,8 @@ describe('test sendBatch method', () => {
     const hitsPoolQueue = new Map<string, HitAbstract>()
     const activatePoolQueue = new Map<string, Activate>()
     const troubleshootingQueue = new Map<string, Troubleshooting>()
-    const batchingStrategy = new BatchingPeriodicCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue })
+    const analyticHitQueue = new Map<string, Analytic>()
+    const batchingStrategy = new BatchingPeriodicCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
     await batchingStrategy.sendBatch()
     expect(postAsync).toBeCalledTimes(0)
   })
@@ -438,7 +442,8 @@ describe('test activateFlag method', () => {
   const hitsPoolQueue = new Map<string, HitAbstract>()
   const activatePoolQueue = new Map<string, Activate>()
   const troubleshootingQueue = new Map<string, Troubleshooting>()
-  const batchingStrategy = new BatchingPeriodicCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue })
+  const analyticHitQueue = new Map<string, Analytic>()
+  const batchingStrategy = new BatchingPeriodicCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
