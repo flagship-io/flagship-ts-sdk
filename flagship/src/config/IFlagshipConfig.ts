@@ -158,7 +158,7 @@ export interface IFlagshipConfig {
     fetchFlagsBufferingTime?: number
 
     /**
-     *
+     * Disable the collect of analytics data
      */
     disableDeveloperUsageTracking?: boolean
   }
