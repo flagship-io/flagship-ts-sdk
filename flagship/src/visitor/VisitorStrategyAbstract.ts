@@ -293,7 +293,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       if (this.config.disableDeveloperUsageTracking) {
         return
       }
-      const uniqueId = this.visitor.visitorId + this.getCurrentDateTime().toDateString()
+      const uniqueId = hit.visitorId + this.getCurrentDateTime().toDateString()
       const hash = this._murmurHash.murmurHash3Int32(uniqueId)
       const traffic = hash % 100
 
