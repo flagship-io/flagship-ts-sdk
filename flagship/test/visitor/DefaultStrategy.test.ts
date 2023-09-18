@@ -2264,8 +2264,17 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
+  const FsInstanceId = 'FsInstanceId'
   const murmurHash = new MurmurHash()
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
+  const visitorDelegate = new VisitorDelegate({
+    visitorId,
+    context,
+    configManager,
+    monitoringData: {
+      instanceId: FsInstanceId,
+      lastInitializationTimestamp: ''
+    }
+  })
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
   it('test fetchFlags', async () => {
@@ -2283,12 +2292,12 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
     const flags = new Map<string, FlagDTO>().set(flagDTO.key, flagDTO)
     getCampaignsAsync.mockResolvedValue([])
     getModifications.mockReturnValueOnce(flags)
-    getCurrentDateTime.mockReturnValue(new Date(2022, 9, 14))
+    getCurrentDateTime.mockReturnValue(new Date(2022, 9, 15))
     await defaultStrategy.fetchFlags()
 
     expect(sendAnalyticsHit).toBeCalledTimes(1)
 
-    const label: TroubleshootingLabel = 'VISITOR-FETCH-CAMPAIGNS'
+    const label: TroubleshootingLabel = 'SDK-CONFIG'
     expect(sendAnalyticsHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
@@ -2297,7 +2306,7 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
     const analyticHit = new Analytic({
       label: 'VISITOR-FETCH-CAMPAIGNS',
       logLevel: LogLevel.INFO,
-      visitorId: 'visitor',
+      visitorId: FsInstanceId,
       config
     })
     getCurrentDateTime.mockReturnValue(new Date(2023, 9, 14))
