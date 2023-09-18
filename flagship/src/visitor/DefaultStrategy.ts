@@ -403,15 +403,11 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       this.sendTroubleshootingHit(fetchFlagTroubleshooting)
 
       const analyticData = new Analytic({
-        label: 'VISITOR-FETCH-CAMPAIGNS',
+        label: 'SDK-CONFIG',
         logLevel: LogLevel.INFO,
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
+        visitorId: this.visitor.sdkInitialData?.instanceId as string,
         config: this.config,
         sdkStatus: this.visitor.getSdkStatus(),
-        visitorContext: this.visitor.context,
-        visitorConsent: this.visitor.hasConsented,
-        visitorIsAuthenticated: !!this.visitor.anonymousId,
         lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
         lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
         sdkConfigMode: this.config.decisionMode,
