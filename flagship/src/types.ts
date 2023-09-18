@@ -149,8 +149,8 @@ export type TroubleshootingData = {
 export type sdkInitialData = {
   instanceId: string,
   lastInitializationTimestamp: string
-  initialCampaigns: CampaignDTO[] | undefined
-  initialFlagsData: Map<string, FlagDTO> | FlagDTO[] | undefined
+  initialCampaigns?: CampaignDTO[]
+  initialFlagsData?: Map<string, FlagDTO> | FlagDTO[]
 }
 
 export type TroubleshootingLabel = 'VISITOR-SEND-HIT'|'VISITOR-FETCH-CAMPAIGNS-ERROR'|'VISITOR-FETCH-CAMPAIGNS'|
