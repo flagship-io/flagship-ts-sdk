@@ -657,11 +657,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   authenticate (visitorId: string): void {
-    if (this.config.decisionMode === DecisionMode.BUCKETING) {
-      this.logDeactivateOnBucketing(AUTHENTICATE)
-      return
-    }
-
     if (!visitorId) {
       logErrorSprintf(this.config, AUTHENTICATE, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, this.visitor.visitorId)
       return
@@ -674,10 +669,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   unauthenticate (): void {
-    if (this.config.decisionMode === DecisionMode.BUCKETING) {
-      this.logDeactivateOnBucketing(UNAUTHENTICATE)
-      return
-    }
     if (!this.visitor.anonymousId) {
       logErrorSprintf(this.config, UNAUTHENTICATE, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, this.visitor.visitorId)
       return
