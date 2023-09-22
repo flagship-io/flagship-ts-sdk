@@ -92,8 +92,12 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     if (!Array.isArray(campaigns)) {
       return false
     }
-    if (item.data.visitorId !== this.visitor.visitorId) {
+    if (this.visitor.visitorCacheStatus === 'VISITOR_ID' && item.data.visitorId !== this.visitor.visitorId) {
       logInfoSprintf(this.config, PROCESS_CACHE, VISITOR_ID_MISMATCH_ERROR, item.data.visitorId, this.visitor.visitorId)
+      return false
+    }
+    if (this.visitor.visitorCacheStatus === 'ANONYMOUS_ID' && item.data.visitorId !== this.visitor.anonymousId) {
+      logInfoSprintf(this.config, PROCESS_CACHE, VISITOR_ID_MISMATCH_ERROR, item.data.visitorId, this.visitor.anonymousId)
       return false
     }
     return campaigns.every(x => x.campaignId && x.type && x.variationGroupId && x.variationId)
@@ -112,7 +116,17 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
         return
       }
-      const visitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
+      this.visitor.visitorCacheStatus = 'NONE'
+      let visitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
+      if (visitorCache) {
+        this.visitor.visitorCacheStatus = 'VISITOR_ID'
+      }
+      if (!visitorCache && this.visitor.anonymousId) {
+        visitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.anonymousId)
+        if (visitorCache) {
+          this.visitor.visitorCacheStatus = 'ANONYMOUS_ID'
+        }
+      }
 
       logDebugSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_LOADED, this.visitor.visitorId, visitorCache)
 
@@ -140,7 +154,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       }
 
       const assignmentsHistory:Record<string, string> = {}
-      const data: VisitorCacheDTO = {
+      const visitorCacheDTO: VisitorCacheDTO = {
         version: VISITOR_CACHE_VERSION,
         data: {
           visitorId: this.visitor.visitorId,
@@ -163,13 +177,24 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         }
       }
 
-      data.data.assignmentsHistory = { ...this.visitor.visitorCache?.data?.assignmentsHistory, ...assignmentsHistory }
+      visitorCacheDTO.data.assignmentsHistory = { ...this.visitor.visitorCache?.data?.assignmentsHistory, ...assignmentsHistory }
 
-      await visitorCacheInstance.cacheVisitor(this.visitor.visitorId, data)
+      if (!this.visitor.visitorCacheStatus || this.visitor.visitorCacheStatus === 'NONE') {
+        await visitorCacheInstance.cacheVisitor(this.visitor.visitorId, visitorCacheDTO)
+        if (this.visitor.anonymousId) {
+          await visitorCacheInstance.cacheVisitor(this.visitor.anonymousId, visitorCacheDTO)
+        }
+      }
+      if (this.visitor.visitorCacheStatus === 'ANONYMOUS_ID') {
+        await visitorCacheInstance.cacheVisitor(this.visitor.visitorId as string, visitorCacheDTO)
+      }
+      if (this.visitor.visitorCacheStatus === 'VISITOR_ID') {
+        await visitorCacheInstance.cacheVisitor(this.visitor.visitorId, visitorCacheDTO)
+      }
 
-      logDebugSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_SAVED, this.visitor.visitorId, data)
+      logDebugSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_SAVED, this.visitor.visitorId, visitorCacheDTO)
 
-      this.visitor.visitorCache = data
+      this.visitor.visitorCache = visitorCacheDTO
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logErrorSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_ERROR, this.visitor.visitorId, 'cacheVisitor', error.message || error)
