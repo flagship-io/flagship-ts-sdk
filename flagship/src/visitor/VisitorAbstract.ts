@@ -1,6 +1,6 @@
 import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
-import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata } from '../types'
+import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, VisitorCacheStatus } from '../types'
 
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
@@ -30,9 +30,17 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _isCleaningDeDuplicationCache: boolean
   public visitorCache?: VisitorCacheDTO
   private _flagSynchStatus : FlagSynchStatus
-
   public lastFetchFlagsTimestamp = 0
   public isFlagFetching = false
+  private _visitorCacheStatus? : VisitorCacheStatus
+
+  public get visitorCacheStatus () : VisitorCacheStatus|undefined {
+    return this._visitorCacheStatus
+  }
+
+  public set visitorCacheStatus (v : VisitorCacheStatus|undefined) {
+    this._visitorCacheStatus = v
+  }
 
   public get flagSynchStatus () : FlagSynchStatus {
     return this._flagSynchStatus
