@@ -92,11 +92,11 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     if (!Array.isArray(campaigns)) {
       return false
     }
-    if (this.visitor.visitorCacheStatus === 'VISITOR_ID' && item.data.visitorId !== this.visitor.visitorId) {
+    if ((this.visitor.visitorCacheStatus === 'VISITOR_ID_CACHE' || this.visitor.visitorCacheStatus === 'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE') && item.data.visitorId !== this.visitor.visitorId) {
       logInfoSprintf(this.config, PROCESS_CACHE, VISITOR_ID_MISMATCH_ERROR, item.data.visitorId, this.visitor.visitorId)
       return false
     }
-    if (this.visitor.visitorCacheStatus === 'ANONYMOUS_ID' && item.data.visitorId !== this.visitor.anonymousId) {
+    if (this.visitor.visitorCacheStatus === 'ANONYMOUS_ID_CACHE' && item.data.visitorId !== this.visitor.anonymousId) {
       logInfoSprintf(this.config, PROCESS_CACHE, VISITOR_ID_MISMATCH_ERROR, item.data.visitorId, this.visitor.anonymousId)
       return false
     }
@@ -119,12 +119,15 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       this.visitor.visitorCacheStatus = 'NONE'
       let visitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
       if (visitorCache) {
-        this.visitor.visitorCacheStatus = 'VISITOR_ID'
+        this.visitor.visitorCacheStatus = 'VISITOR_ID_CACHE'
       }
-      if (!visitorCache && this.visitor.anonymousId) {
-        visitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.anonymousId)
-        if (visitorCache) {
-          this.visitor.visitorCacheStatus = 'ANONYMOUS_ID'
+      if (this.visitor.anonymousId) {
+        const anonymousVisitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.anonymousId)
+        if (anonymousVisitorCache && !visitorCache) {
+          visitorCache = anonymousVisitorCache
+          this.visitor.visitorCacheStatus = 'ANONYMOUS_ID_CACHE'
+        } else if (!anonymousVisitorCache && visitorCache) {
+          this.visitor.visitorCacheStatus = 'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE'
         }
       }
 
@@ -179,17 +182,22 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
       visitorCacheDTO.data.assignmentsHistory = { ...this.visitor.visitorCache?.data?.assignmentsHistory, ...assignmentsHistory }
 
-      if (!this.visitor.visitorCacheStatus || this.visitor.visitorCacheStatus === 'NONE') {
-        await visitorCacheInstance.cacheVisitor(this.visitor.visitorId, visitorCacheDTO)
+      await visitorCacheInstance.cacheVisitor(this.visitor.visitorId, visitorCacheDTO)
+
+      const visitorCacheStatus = this.visitor.visitorCacheStatus
+
+      if (!visitorCacheStatus || visitorCacheStatus === 'NONE' || visitorCacheStatus === 'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE') {
         if (this.visitor.anonymousId) {
-          await visitorCacheInstance.cacheVisitor(this.visitor.anonymousId, visitorCacheDTO)
+          const anonymousVisitorCacheDTO:VisitorCacheDTO = {
+            ...visitorCacheDTO,
+            data: {
+              ...visitorCacheDTO.data,
+              visitorId: this.visitor.anonymousId,
+              anonymousId: null
+            }
+          }
+          await visitorCacheInstance.cacheVisitor(this.visitor.anonymousId, anonymousVisitorCacheDTO)
         }
-      }
-      if (this.visitor.visitorCacheStatus === 'ANONYMOUS_ID') {
-        await visitorCacheInstance.cacheVisitor(this.visitor.visitorId as string, visitorCacheDTO)
-      }
-      if (this.visitor.visitorCacheStatus === 'VISITOR_ID') {
-        await visitorCacheInstance.cacheVisitor(this.visitor.visitorId, visitorCacheDTO)
       }
 
       logDebugSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_SAVED, this.visitor.visitorId, visitorCacheDTO)
