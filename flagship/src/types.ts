@@ -147,4 +147,4 @@ export type ThirdPartySegment = {
   partner: string
 }
 
-export type VisitorCacheStatus = 'NONE'|'ANONYMOUS_ID'|'VISITOR_ID';
+export type VisitorCacheStatus = 'NONE'|'ANONYMOUS_ID_CACHE'|'VISITOR_ID_CACHE'|'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE';
