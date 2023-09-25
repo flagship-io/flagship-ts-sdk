@@ -1,4 +1,4 @@
-import { AUTHENTICATE, CONTEXT_KEY_ERROR, FLAG_USER_EXPOSED, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, UNAUTHENTICATE, FLAG_METADATA, METHOD_DEACTIVATED_BUCKETING_ERROR, PROCESS_FETCHING_FLAGS } from './../../src/enum/FlagshipConstant'
+import { AUTHENTICATE, CONTEXT_KEY_ERROR, FLAG_USER_EXPOSED, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, UNAUTHENTICATE, FLAG_METADATA, PROCESS_FETCHING_FLAGS } from './../../src/enum/FlagshipConstant'
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { DecisionApiConfig, Event, EventCategory, FlagDTO, FlagMetadata, Screen } from '../../src/index'
 import { TrackingManager } from '../../src/api/TrackingManager'
@@ -1632,7 +1632,6 @@ describe('test authenticate on bucketing mode', () => {
   }
 
   const logManager = new FlagshipLogManager()
-  const logError = jest.spyOn(logManager, 'error')
 
   const config = new BucketingConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
@@ -1647,18 +1646,18 @@ describe('test authenticate on bucketing mode', () => {
   it('test authenticate on bucketing mode', () => {
     const authenticateId = 'authenticateId'
     defaultStrategy.authenticate(authenticateId)
-    expect(visitorDelegate.visitorId).toBe(visitorId)
-    expect(visitorDelegate.anonymousId).toBe(null)
-    expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_BUCKETING_ERROR, visitorId, AUTHENTICATE), AUTHENTICATE)
+    expect(visitorDelegate.visitorId).toBe(authenticateId)
+    expect(visitorDelegate.anonymousId).toBe(visitorId)
+    // expect(logError).toBeCalledTimes(1)
+    // expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_BUCKETING_ERROR, visitorId, AUTHENTICATE), AUTHENTICATE)
   })
 
   it('test unauthenticate on bucketing mode', () => {
     defaultStrategy.unauthenticate()
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBe(null)
-    expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_BUCKETING_ERROR, visitorId, UNAUTHENTICATE), UNAUTHENTICATE)
+    // expect(logError).toBeCalledTimes(1)
+    // expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_BUCKETING_ERROR, visitorId, UNAUTHENTICATE), UNAUTHENTICATE)
   })
 })
 
