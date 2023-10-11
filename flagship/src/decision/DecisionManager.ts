@@ -158,11 +158,11 @@ export abstract class DecisionManager implements IDecisionManager {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       const monitoringHttpResponse = new Troubleshooting({
-        label: 'GET-CAMPAIGNS-ROUTE-RESPONSE-ERROR',
+        label: 'GET_CAMPAIGNS_ROUTE_RESPONSE_ERROR',
         logLevel: LogLevel.ERROR,
         visitorId: visitor.visitorId,
         anonymousId: visitor.anonymousId,
-        visitorInstanceId: visitor.instanceId,
+        visitorSessionId: visitor.instanceId,
         traffic: 100,
         config: this.config,
         visitorContext: visitor.context,

@@ -39,7 +39,7 @@ export class BucketingManager extends DecisionManager {
       const troubleshootingHit = new Troubleshooting({
         visitorId: this.flagshipInstanceId,
         flagshipInstanceId: this.flagshipInstanceId,
-        label: 'SDK-BUCKETING-FILE',
+        label: 'SDK_BUCKETING_FILE',
         traffic: 0,
         logLevel: LogLevel.INFO,
         config: this.config,
@@ -137,7 +137,7 @@ export class BucketingManager extends DecisionManager {
       const troubleshootingHit = new Troubleshooting({
         visitorId: this.flagshipInstanceId,
         flagshipInstanceId: this.flagshipInstanceId,
-        label: 'SDK-BUCKETING-FILE-ERROR',
+        label: 'SDK_BUCKETING_FILE_ERROR',
         traffic: 0,
         logLevel: LogLevel.INFO,
         config: this.config,

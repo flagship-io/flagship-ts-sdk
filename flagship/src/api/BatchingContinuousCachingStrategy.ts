@@ -83,7 +83,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       })
 
       const monitoringHttpResponse = new Troubleshooting({
-        label: 'SEND-ACTIVATE-HIT-ROUTE-ERROR',
+        label: 'SEND_ACTIVATE_HIT_ROUTE_ERROR',
         logLevel: LogLevel.ERROR,
         visitorId: `${this._flagshipInstanceId}`,
         traffic: 0,

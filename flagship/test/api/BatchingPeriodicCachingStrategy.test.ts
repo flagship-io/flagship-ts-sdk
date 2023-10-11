@@ -353,7 +353,7 @@ describe('test sendBatch method', () => {
     }), TRACKING_MANAGER)
 
     expect(addTroubleshootingHit).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'SEND-BATCH-HIT-ROUTE-RESPONSE-ERROR'
+    const label: TroubleshootingLabel = 'SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR'
     expect(addTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 
@@ -712,7 +712,7 @@ describe('test activateFlag method', () => {
     expect(onUserExposure).toBeCalledTimes(0)
 
     expect(addTroubleshootingHit).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'SEND-ACTIVATE-HIT-ROUTE-ERROR'
+    const label: TroubleshootingLabel = 'SEND_ACTIVATE_HIT_ROUTE_ERROR'
     expect(addTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 })

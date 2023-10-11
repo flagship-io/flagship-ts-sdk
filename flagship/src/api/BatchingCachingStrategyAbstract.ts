@@ -231,7 +231,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       })
 
       const monitoringHttpResponse = new Troubleshooting({
-        label: 'SEND-BATCH-HIT-ROUTE-RESPONSE-ERROR',
+        label: 'SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR',
         logLevel: LogLevel.ERROR,
         visitorId: `${this._flagshipInstanceId}`,
         flagshipInstanceId: this._flagshipInstanceId,

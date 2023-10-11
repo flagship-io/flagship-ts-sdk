@@ -279,7 +279,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     }), TRACKING_MANAGER)
 
     expect(sendTroubleshootingHit).toBeCalledTimes(2)
-    const label: TroubleshootingLabel = 'SEND-HIT-ROUTE-ERROR'
+    const label: TroubleshootingLabel = 'SEND_HIT_ROUTE_ERROR'
     expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 
@@ -399,7 +399,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(onUserExposure).toBeCalledTimes(0)
 
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'SEND-ACTIVATE-HIT-ROUTE-ERROR'
+    const label: TroubleshootingLabel = 'SEND_ACTIVATE_HIT_ROUTE_ERROR'
     expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 })
@@ -590,7 +590,7 @@ describe('test sendBatch method', () => {
     }), TRACKING_MANAGER)
 
     expect(addTroubleshootingHit).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'SEND-BATCH-HIT-ROUTE-RESPONSE-ERROR'
+    const label: TroubleshootingLabel = 'SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR'
     expect(addTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 

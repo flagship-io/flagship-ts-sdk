@@ -57,7 +57,7 @@ describe('test BucketingManager', () => {
     expect(bucketingManager.isPanic()).toBeTruthy()
     expect(sendContext).toBeCalledTimes(0)
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
-    const troubleshootingLabel:TroubleshootingLabel = 'SDK-BUCKETING-FILE'
+    const troubleshootingLabel:TroubleshootingLabel = 'SDK_BUCKETING_FILE'
     expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label: troubleshootingLabel }))
   })
 
@@ -221,7 +221,7 @@ describe('test bucketing polling', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((bucketingManager as any)._bucketingContent).toEqual(bucketing)
 
-    const label: TroubleshootingLabel = 'SDK-BUCKETING-FILE-ERROR'
+    const label: TroubleshootingLabel = 'SDK_BUCKETING_FILE_ERROR'
     expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 
@@ -329,7 +329,7 @@ describe('test error', () => {
     await sleep(500)
     expect(updateFlagshipStatus).toBeCalledTimes(2)
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
-    const troubleshootingLabel:TroubleshootingLabel = 'SDK-BUCKETING-FILE-ERROR'
+    const troubleshootingLabel:TroubleshootingLabel = 'SDK_BUCKETING_FILE_ERROR'
     expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label: troubleshootingLabel }))
   })
 })

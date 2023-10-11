@@ -70,7 +70,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       })
 
       const monitoringHttpResponse = new Troubleshooting({
-        label: 'SEND-ACTIVATE-HIT-ROUTE-ERROR',
+        label: 'SEND_ACTIVATE_HIT_ROUTE_ERROR',
         logLevel: LogLevel.ERROR,
         visitorId: `${this._flagshipInstanceId}`,
         traffic: 0,
@@ -169,7 +169,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       })
 
       const monitoringHttpResponse = new Troubleshooting({
-        label: 'SEND-BATCH-HIT-ROUTE-RESPONSE-ERROR',
+        label: 'SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR',
         logLevel: LogLevel.ERROR,
         visitorId: `${this._flagshipInstanceId}`,
         traffic: 0,

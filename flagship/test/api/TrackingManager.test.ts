@@ -199,12 +199,12 @@ describe('test TrackingManager Strategy ', () => {
     })
 
     const activateTroubleshooting = new Troubleshooting({
-      label: 'VISITOR-SEND-ACTIVATE',
+      label: 'VISITOR_SEND_ACTIVATE',
       logLevel: LogLevel.INFO,
       traffic: 2,
       visitorId: pageHit.visitorId,
       flagshipInstanceId: pageHit.flagshipInstanceId,
-      visitorInstanceId: pageHit.visitorInstanceId,
+      visitorSessionId: pageHit.visitorSessionId,
       anonymousId: pageHit.anonymousId,
       config,
       hitContent: pageHit.toApiKeys()
@@ -227,12 +227,12 @@ describe('test TrackingManager Strategy ', () => {
     })
 
     const analyticHit = new Troubleshooting({
-      label: 'VISITOR-FETCH-CAMPAIGNS',
+      label: 'VISITOR_FETCH_CAMPAIGNS',
       logLevel: LogLevel.INFO,
       traffic: 2,
       visitorId: pageHit.visitorId,
       flagshipInstanceId: pageHit.flagshipInstanceId,
-      visitorInstanceId: pageHit.visitorInstanceId,
+      visitorSessionId: pageHit.visitorSessionId,
       anonymousId: pageHit.anonymousId,
       config,
       hitContent: pageHit.toApiKeys()

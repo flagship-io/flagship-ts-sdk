@@ -83,8 +83,11 @@ export interface IDiagnostic extends IHitAbstract{
     visitorExposed?: boolean
 
     flagMetadataCampaignId?:string
+    flagMetadataCampaignName?:string
     flagMetadataVariationGroupId?: string
+    flagMetadataVariationGroupName?: string
     flagMetadataVariationId?: string
+    flagMetadataVariationName?: string
     flagMetadataCampaignSlug?: string|null
     flagMetadataCampaignType?: string
     flagMetadataCampaignIsReference?: boolean
@@ -159,6 +162,33 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
   private _contextKey? : string
   private _contextValue? : unknown
   private _sdkBucketingFile? : BucketingDTO
+  private _flagMetadataCampaignName? : string
+  private _flagMetadataVariationGroupName? : string
+  private _flagMetadataVariationName? : string
+
+  public get flagMetadataVariationName () : string|undefined {
+    return this._flagMetadataVariationName
+  }
+
+  public set flagMetadataVariationName (v : string|undefined) {
+    this._flagMetadataVariationName = v
+  }
+
+  public get flagMetadataVariationGroupName () : string|undefined {
+    return this._flagMetadataVariationGroupName
+  }
+
+  public set flagMetadataVariationGroupName (v : string|undefined) {
+    this._flagMetadataVariationGroupName = v
+  }
+
+  public get flagMetadataCampaignName () : string|undefined {
+    return this._flagMetadataCampaignName
+  }
+
+  public set flagMetadataCampaignName (v : string|undefined) {
+    this._flagMetadataCampaignName = v
+  }
 
   public get sdkBucketingFile () : BucketingDTO|undefined {
     return this._sdkBucketingFile
@@ -683,7 +713,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       sessionNumber: param.sessionNumber,
       visitorId: param.visitorId,
       anonymousId: param.anonymousId,
-      visitorInstanceId: param.visitorInstanceId
+      visitorSessionId: param.visitorSessionId
     })
     const {
       version: logVersion, logLevel, accountId, envId, timestamp, label, stackType,
@@ -696,8 +726,12 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       flagMetadataCampaignId, flagMetadataVariationGroupId, flagMetadataVariationId, flagMetadataCampaignSlug, flagMetadataCampaignType, sdkConfigFetchNow, sdkConfigEnableClientCache,
       sdkConfigInitialBucketing, sdkConfigDecisionApiUrl, sdkConfigHitDeduplicationTime, flagshipInstanceId, hitContent, traffic,
       lastInitializationTimestamp, lastBucketingTimestamp, batchTriggeredBy, visitorCampaigns, visitorCampaignFromCache, visitorInitialCampaigns,
-      visitorInitialFlagsData, flagMetadataCampaignIsReference, contextKey, contextValue, sdkBucketingFile
+      visitorInitialFlagsData, flagMetadataCampaignIsReference, contextKey, contextValue, sdkBucketingFile, flagMetadataCampaignName, flagMetadataVariationGroupName,
+      flagMetadataVariationName
     } = param
+    this.flagMetadataCampaignName = flagMetadataCampaignName
+    this.flagMetadataVariationGroupName = flagMetadataVariationGroupName
+    this.flagMetadataVariationName = flagMetadataVariationName
     this.traffic = traffic
     this.sdkBucketingFile = sdkBucketingFile
     this.contextKey = contextKey
@@ -904,8 +938,8 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       customVariable['visitor.anonymousId'] = `${this.anonymousId}`
     }
 
-    if (this.visitorInstanceId !== undefined) {
-      customVariable['visitor.instanceId'] = `${this.visitorInstanceId}`
+    if (this.visitorSessionId !== undefined) {
+      customVariable['visitor.sessionId'] = `${this.visitorSessionId}`
     }
     if (this.visitorStatus !== undefined) {
       customVariable['visitor.status'] = `${this.visitorStatus}`
@@ -979,11 +1013,20 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     if (this.flagMetadataCampaignId !== undefined) {
       customVariable['flag.metadata.campaignId'] = `${this.flagMetadataCampaignId}`
     }
+    if (this.flagMetadataCampaignName !== undefined) {
+      customVariable['flag.metadata.campaignName'] = `${this.flagMetadataCampaignName}`
+    }
     if (this.flagMetadataVariationGroupId !== undefined) {
       customVariable['flag.metadata.variationGroupId'] = `${this.flagMetadataVariationGroupId}`
     }
+    if (this.flagMetadataVariationGroupName !== undefined) {
+      customVariable['flag.metadata.variationGroupName'] = `${this.flagMetadataVariationGroupName}`
+    }
     if (this.flagMetadataVariationId !== undefined) {
       customVariable['flag.metadata.variationId'] = `${this.flagMetadataVariationId}`
+    }
+    if (this.flagMetadataVariationName !== undefined) {
+      customVariable['flag.metadata.variationName'] = `${this.flagMetadataVariationName}`
     }
     if (this.flagMetadataCampaignSlug !== undefined) {
       customVariable['flag.metadata.campaignSlug'] = `${this.flagMetadataCampaignSlug}`
@@ -996,7 +1039,10 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     }
 
     if (this.hitContent !== undefined) {
-      customVariable['hit.content'] = JSON.stringify(this.hitContent)
+      for (const key in this.hitContent) {
+        const element = this.hitContent[key]
+        customVariable[`hit.${key}`] = element
+      }
     }
     if (this.batchTriggeredBy !== undefined) {
       customVariable.batchTriggeredBy = `${BatchTriggeredBy[this.batchTriggeredBy]}`

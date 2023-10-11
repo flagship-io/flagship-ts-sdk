@@ -86,18 +86,18 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
     consentHit.ds = SDK_APP
     consentHit.config = this.config
-    consentHit.visitorInstanceId = this.visitor.instanceId
+    consentHit.visitorSessionId = this.visitor.instanceId
     consentHit.traffic = this.visitor.traffic
     consentHit.flagshipInstanceId = this.visitor.sdkInitialData?.instanceId
 
     if (this.visitor.traffic !== undefined) {
       const hitTroubleshooting = new Troubleshooting({
 
-        label: 'VISITOR-SEND-HIT',
+        label: 'VISITOR_SEND_HIT',
         logLevel: LogLevel.INFO,
         traffic: this.visitor.traffic,
         visitorId: this.visitor.visitorId,
-        visitorInstanceId: this.visitor.instanceId,
+        visitorSessionId: this.visitor.instanceId,
         flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         anonymousId: this.visitor.anonymousId,
         config: this.config,
