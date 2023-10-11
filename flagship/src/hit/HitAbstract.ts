@@ -26,7 +26,7 @@ export interface IHitAbstract{
   locale?: string
   sessionNumber?: string,
   createdAt:number,
-  visitorInstanceId?:string
+  visitorSessionId?:string
   traffic?: number
   flagshipInstanceId?:string
 }
@@ -43,7 +43,7 @@ export abstract class HitAbstract implements IHitAbstract {
   private _sessionNumber! : string
   private _key! : string
   private _createdAt!: number
-  private _visitorInstanceId? : string
+  private _visitorSessionId? : string
   private _traffic?: number
   private _flagshipInstanceId? : string
   public get traffic () : number|undefined {
@@ -62,12 +62,12 @@ export abstract class HitAbstract implements IHitAbstract {
     this._flagshipInstanceId = v
   }
 
-  public get visitorInstanceId () : string|undefined {
-    return this._visitorInstanceId
+  public get visitorSessionId () : string|undefined {
+    return this._visitorSessionId
   }
 
-  public set visitorInstanceId (v : string|undefined) {
-    this._visitorInstanceId = v
+  public set visitorSessionId (v : string|undefined) {
+    this._visitorSessionId = v
   }
 
   public get key () : string {
@@ -155,7 +155,7 @@ export abstract class HitAbstract implements IHitAbstract {
   }
 
   protected constructor (hit: Omit<IHitAbstract, 'createdAt'|'traffic'>) {
-    const { type, userIp, screenResolution, locale, sessionNumber, visitorId, anonymousId, ds, visitorInstanceId } = hit
+    const { type, userIp, screenResolution, locale, sessionNumber, visitorId, anonymousId, ds, visitorSessionId: visitorInstanceId } = hit
     this._type = type
     if (userIp) {
       this.userIp = userIp
@@ -170,7 +170,7 @@ export abstract class HitAbstract implements IHitAbstract {
       this.sessionNumber = sessionNumber
     }
     if (visitorInstanceId) {
-      this.visitorInstanceId = visitorInstanceId
+      this.visitorSessionId = visitorInstanceId
     }
     this.visitorId = visitorId
     this._anonymousId = anonymousId || null
