@@ -120,7 +120,7 @@ describe('test DefaultStrategy ', () => {
     consentHit.config = config
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect(addHit).toBeCalledWith({ ...consentHit, _visitorInstanceId: expect.anything() })
+    expect(addHit).toBeCalledWith({ ...consentHit, _visitorSessionId: expect.anything() })
   })
 
   it('test updateContext', () => {
@@ -363,7 +363,7 @@ describe('test DefaultStrategy ', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     activateHit.traffic = expect.anything() as any
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    activateHit.visitorInstanceId = expect.anything() as any
+    activateHit.visitorSessionId = expect.anything() as any
     activateHit.config = config
     activateHit.ds = SDK_APP
     expect(activateFlag).toBeCalledWith(activateHit)
@@ -399,7 +399,7 @@ describe('test DefaultStrategy ', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     campaignHit.traffic = expect.anything() as any
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    campaignHit.visitorInstanceId = expect.anything() as any
+    campaignHit.visitorSessionId = expect.anything() as any
     expect(activateFlag).toBeCalledWith(campaignHit)
     expect(logInfo).toBeCalledTimes(0)
   })
@@ -434,7 +434,7 @@ describe('test DefaultStrategy ', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     campaignHit.traffic = expect.anything() as any
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    campaignHit.visitorInstanceId = expect.anything() as any
+    campaignHit.visitorSessionId = expect.anything() as any
     expect(activateFlag).toBeCalledWith(campaignHit)
     expect(logInfo).toBeCalledTimes(0)
   })
@@ -471,7 +471,7 @@ describe('test DefaultStrategy ', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     campaignHit.traffic = expect.anything() as any
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    campaignHit.visitorInstanceId = expect.anything() as any
+    campaignHit.visitorSessionId = expect.anything() as any
     expect(activateFlag).toBeCalledWith(campaignHit)
     expect(logInfo).toBeCalledTimes(0)
   })
@@ -495,7 +495,7 @@ describe('test DefaultStrategy ', () => {
     expect(logWarning).toBeCalledTimes(1)
     expect(logWarning).toBeCalledWith(sprintf(GET_FLAG_MISSING_ERROR, visitorId, 'keyString', defaultValue), FLAG_VALUE)
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'GET-FLAG-VALUE-FLAG-NOT-FOUND'
+    const label: TroubleshootingLabel = 'GET_FLAG_VALUE_FLAG_NOT_FOUND'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
@@ -508,7 +508,7 @@ describe('test DefaultStrategy ', () => {
     expect(logWarning).toBeCalledTimes(1)
     expect(logWarning).toBeCalledWith(sprintf(GET_FLAG_CAST_ERROR, visitorId, 'keyString', defaultValue), FLAG_VALUE)
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'GET-FLAG-VALUE-TYPE-WARNING'
+    const label: TroubleshootingLabel = 'GET_FLAG_VALUE_TYPE_WARNING'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
@@ -566,7 +566,7 @@ describe('test DefaultStrategy ', () => {
     expect(logWarning).toBeCalledTimes(1)
     expect(logWarning).toBeCalledWith(sprintf(GET_METADATA_CAST_ERROR, key), FLAG_METADATA)
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'GET-FLAG-METADATA-TYPE-WARNING'
+    const label: TroubleshootingLabel = 'GET_FLAG_METADATA_TYPE_WARNING'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
@@ -645,7 +645,7 @@ describe('test DefaultStrategy ', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     activateHit.traffic = expect.anything() as any
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    activateHit.visitorInstanceId = expect.anything() as any
+    activateHit.visitorSessionId = expect.anything() as any
     expect(activateFlag).toBeCalledWith(activateHit)
   })
 
@@ -748,7 +748,7 @@ describe('test DefaultStrategy ', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     activateHit.traffic = expect.anything() as any
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    activateHit.visitorInstanceId = expect.anything() as any
+    activateHit.visitorSessionId = expect.anything() as any
     expect(activateFlag).toBeCalledWith(activateHit)
   })
 
@@ -785,7 +785,7 @@ describe('test DefaultStrategy ', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     activateHit.traffic = expect.anything() as any
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    activateHit.visitorInstanceId = expect.anything() as any
+    activateHit.visitorSessionId = expect.anything() as any
     expect(activateFlag).toHaveBeenNthCalledWith(1, activateHit)
 
     const modification2:FlagDTO = returnModification.get(key2) as FlagDTO
@@ -815,7 +815,7 @@ describe('test DefaultStrategy ', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     activateHit2.traffic = expect.anything() as any
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    activateHit2.visitorInstanceId = expect.anything() as any
+    activateHit2.visitorSessionId = expect.anything() as any
     expect(activateFlag).toHaveBeenNthCalledWith(2, activateHit2)
   })
 
@@ -852,7 +852,7 @@ describe('test DefaultStrategy ', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     campaignHit.traffic = expect.anything() as any
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    campaignHit.visitorInstanceId = expect.anything() as any
+    campaignHit.visitorSessionId = expect.anything() as any
 
     expect(activateFlag).toHaveBeenNthCalledWith(1, campaignHit)
 
@@ -883,7 +883,7 @@ describe('test DefaultStrategy ', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     campaignHit2.traffic = expect.anything() as any
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    campaignHit2.visitorInstanceId = expect.anything() as any
+    campaignHit2.visitorSessionId = expect.anything() as any
     expect(activateFlag).toHaveBeenNthCalledWith(2, campaignHit2)
   })
 
@@ -973,10 +973,10 @@ describe('test DefaultStrategy ', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     activateHit.traffic = expect.anything() as any
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    activateHit.visitorInstanceId = expect.anything() as any
+    activateHit.visitorSessionId = expect.anything() as any
     expect(activateFlag).toBeCalledWith(activateHit)
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'VISITOR-SEND-ACTIVATE'
+    const label: TroubleshootingLabel = 'VISITOR_SEND_ACTIVATE'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
@@ -1023,7 +1023,7 @@ describe('test DefaultStrategy ', () => {
       FLAG_USER_EXPOSED
     )
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'VISITOR-EXPOSED-TYPE-WARNING'
+    const label: TroubleshootingLabel = 'VISITOR_EXPOSED_TYPE_WARNING'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
@@ -1036,7 +1036,7 @@ describe('test DefaultStrategy ', () => {
       FLAG_USER_EXPOSED
     )
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'VISITOR-EXPOSED-FLAG-NOT-FOUND'
+    const label: TroubleshootingLabel = 'VISITOR_EXPOSED_FLAG_NOT_FOUND'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
@@ -1110,7 +1110,7 @@ describe('test DefaultStrategy ', () => {
     expect(addHit).toBeCalledTimes(1)
     expect(addHit).toBeCalledWith(hitScreen)
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'VISITOR-SEND-HIT'
+    const label: TroubleshootingLabel = 'VISITOR_SEND_HIT'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
@@ -1434,7 +1434,7 @@ describe('test DefaultStrategy ', () => {
     expect(visitorDelegate.visitorId).toBe(authenticateId)
     expect(visitorDelegate.anonymousId).toBe(visitorId)
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'VISITOR-AUTHENTICATE'
+    const label: TroubleshootingLabel = 'VISITOR_AUTHENTICATE'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
     expect(visitorDelegate.flagSynchStatus).toBe(FlagSynchStatus.AUTHENTICATED)
   })
@@ -1445,7 +1445,7 @@ describe('test DefaultStrategy ', () => {
     expect(visitorDelegate.anonymousId).toBeNull()
     expect(visitorDelegate.flagSynchStatus).toBe(FlagSynchStatus.UNAUTHENTICATED)
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'VISITOR-UNAUTHENTICATE'
+    const label: TroubleshootingLabel = 'VISITOR_UNAUTHENTICATE'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
@@ -1949,11 +1949,11 @@ describe('test DefaultStrategy troubleshootingHit', () => {
     await defaultStrategy.fetchFlags()
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
 
-    const label: TroubleshootingLabel = 'VISITOR-FETCH-CAMPAIGNS'
+    const label: TroubleshootingLabel = 'VISITOR_FETCH_CAMPAIGNS'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
 
     defaultStrategy.setConsent(true)
-    const label1: TroubleshootingLabel = 'VISITOR-SEND-HIT'
+    const label1: TroubleshootingLabel = 'VISITOR_SEND_HIT'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ label: label1 }))
   })
 })
@@ -2072,7 +2072,7 @@ describe('test DefaultStrategy troubleshootingHit Bucketing mode', () => {
     await defaultStrategy.fetchFlags()
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
 
-    const label = 'VISITOR-FETCH-CAMPAIGNS'
+    const label = 'VISITOR_FETCH_CAMPAIGNS'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 })
@@ -2155,7 +2155,7 @@ describe('test DefaultStrategy troubleshootingHit', () => {
     })
     await defaultStrategy.fetchFlags()
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'VISITOR-FETCH-CAMPAIGNS-ERROR'
+    const label: TroubleshootingLabel = 'VISITOR_FETCH_CAMPAIGNS_ERROR'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 })
@@ -2297,14 +2297,14 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
 
     expect(sendAnalyticsHit).toBeCalledTimes(1)
 
-    const label: TroubleshootingLabel = 'SDK-CONFIG'
+    const label: TroubleshootingLabel = 'SDK_CONFIG'
     expect(sendAnalyticsHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
   it('test sendAnalyticHit', async () => {
     const getCurrentDateTime = jest.spyOn(defaultStrategy, 'getCurrentDateTime')
     const analyticHit = new Analytic({
-      label: 'VISITOR-FETCH-CAMPAIGNS',
+      label: 'VISITOR_FETCH_CAMPAIGNS',
       logLevel: LogLevel.INFO,
       visitorId: FsInstanceId,
       config
@@ -2318,7 +2318,7 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
   it('test sendAnalyticHit', async () => {
     const getCurrentDateTime = jest.spyOn(defaultStrategy, 'getCurrentDateTime')
     const analyticHit = new Analytic({
-      label: 'VISITOR-FETCH-CAMPAIGNS',
+      label: 'VISITOR_FETCH_CAMPAIGNS',
       logLevel: LogLevel.INFO,
       visitorId: 'visitor',
       config

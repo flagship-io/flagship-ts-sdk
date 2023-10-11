@@ -1,3 +1,4 @@
+import { Page } from './../../src/hit/Page'
 import { FlagDTO } from './../../dist/types.d'
 import { jest, expect, it, describe, afterAll } from '@jest/globals'
 import { ERROR_MESSAGE } from '../../src/hit/Event'
@@ -34,7 +35,7 @@ describe('test hit type Monitoring', () => {
   config.logManager = logManager
   const logLevel = LogLevel.INFO
   const logVersion = '1'
-  const label = 'VISITOR-FETCH-CAMPAIGNS'
+  const label = 'VISITOR_FETCH_CAMPAIGNS'
   const stackType = 'SDK'
   const troubleshooting = new Troubleshooting({ visitorId, logLevel, config, label })
   const timestamp = new Date(1657899294744)
@@ -95,6 +96,9 @@ describe('test hit type Monitoring', () => {
       const value = typeof itemValue === 'object' ? JSON.stringify(itemValue) : `${itemValue}`
       visitorFlags[`visitor.flags.[${flagKey}]${hasMetadataKey ? '' : '.metadata'}.${key}`] = value
     }
+
+    const hitContent = new Page({ documentLocation: 'localhost', visitorId })
+
     const params:TroubleshootingType = {
       logLevel,
       accountId: 'accountId',
@@ -147,8 +151,11 @@ describe('test hit type Monitoring', () => {
       flagValue: 'this.flagValue',
       flagDefault: 'this.flagDefault',
       flagMetadataCampaignId: 'this.flagMetadataCampaignId',
+      flagMetadataCampaignName: 'flagMetadataCampaignName',
       flagMetadataVariationGroupId: 'this.flagMetadataVariationGroupId',
+      flagMetadataVariationGroupName: 'flagMetadataVariationGroupName',
       flagMetadataVariationId: 'this.flagMetadataVariationId',
+      flagMetadataVariationName: 'flagMetadataVariationName',
       flagMetadataCampaignSlug: 'this.flagMetadataCampaignSlug',
       flagMetadataCampaignType: 'this.flagMetadataCampaignType',
       flagMetadataCampaignIsReference: true,
@@ -157,12 +164,18 @@ describe('test hit type Monitoring', () => {
       lastBucketingTimestamp: '2023/01/01',
       lastInitializationTimestamp: '2023/01/01',
       flagshipInstanceId: 'flagshipInstanceId',
-      visitorInstanceId: 'visitorInstanceId',
+      visitorSessionId: 'visitorInstanceId',
       sdkBucketingFile: {},
       contextKey: 'key',
       contextValue: 'value',
-      hitContent: {},
+      hitContent: hitContent.toApiKeys(),
       batchTriggeredBy: BatchTriggeredBy.ActivateLength
+    }
+
+    const pageHit:Record<string, unknown> = {}
+    for (const key in params.hitContent) {
+      const element = params.hitContent[key]
+      pageHit[`hit.${key}`] = element
     }
 
     // eslint-disable-next-line complexity
@@ -215,8 +228,11 @@ describe('test hit type Monitoring', () => {
         'flag.value': params.flagValue,
         'flag.default': JSON.stringify(params.flagDefault),
         'flag.metadata.campaignId': params.flagMetadataCampaignId,
+        'flag.metadata.campaignName': params.flagMetadataCampaignName,
         'flag.metadata.variationGroupId': params.flagMetadataVariationGroupId,
+        'flag.metadata.variationGroupName': params.flagMetadataVariationGroupName,
         'flag.metadata.variationId': params.flagMetadataVariationId,
+        'flag.metadata.variationName': params.flagMetadataVariationName,
         'flag.metadata.campaignSlug': params.flagMetadataCampaignSlug,
         'flag.metadata.campaignType': params.flagMetadataCampaignType,
         'visitor.campaignFromCache': JSON.stringify(params.visitorCampaignFromCache),
@@ -228,11 +244,11 @@ describe('test hit type Monitoring', () => {
         contextValue: `${params.contextValue}`,
         'flag.metadata.isReference': `${params.flagMetadataCampaignIsReference}`,
         flagshipInstanceId: `${params.flagshipInstanceId}`,
-        'hit.content': JSON.stringify(params.hitContent),
+        ...pageHit,
         'http.response.time': `${params.httpResponseTime}`,
         lastBucketingTimestamp: `${params.lastBucketingTimestamp}`,
         lastInitializationTimestamp: `${params.lastInitializationTimestamp}`,
-        'visitor.instanceId': `${params.visitorInstanceId}`,
+        'visitor.sessionId': `${params.visitorSessionId}`,
         sdkBucketingFile: JSON.stringify(params.sdkBucketingFile),
         'visitor.visitorId': visitorId,
         'visitor.anonymousId': 'null'
