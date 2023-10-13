@@ -38,7 +38,9 @@
   "scripts": {
     "lint:fix": "eslint . --ext .ts --fix",
     "lint": "eslint . --ext .ts",
-    "test": "jest",
+    "test": "yarn run test-functional-api-mode && yarn run test-functional-bucketing-mode && jest --testPathIgnorePatterns='<rootDir>/test/main/FunctionalApiMode.test.ts' --testPathIgnorePatterns='<rootDir>/test/main/FunctionalBucketingMode.test.ts'",
+    "test-functional-api-mode": "jest test/main/FunctionalApiMode.test.ts --forceExit",
+    "test-functional-bucketing-mode": "jest test/main/FunctionalBucketingMode.test.ts --forceExit",
     "clean": "rm -rf dist-deno dist",
     "test:coverage": "jest --coverage",
     "build": "webpack",
