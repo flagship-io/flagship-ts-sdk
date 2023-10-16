@@ -175,7 +175,7 @@ describe('test hit type Monitoring', () => {
     const pageHit:Record<string, unknown> = {}
     for (const key in params.hitContent) {
       const element = params.hitContent[key]
-      pageHit[`hit.${key}`] = element
+      pageHit[`hit.${key}`] = typeof element === 'string' ? element : JSON.stringify(element)
     }
 
     // eslint-disable-next-line complexity

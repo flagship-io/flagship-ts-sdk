@@ -967,7 +967,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
         for (const itemKey in item) {
           const itemValue = item[itemKey as keyof typeof item]
           const hasMetadataKey = itemKey === 'value' || itemKey === 'key'
-          const value = typeof itemValue === 'object' ? JSON.stringify(itemValue) : `${itemValue}`
+          const value = typeof itemValue === 'string' ? itemValue : JSON.stringify(itemValue)
           customVariable[`visitor.flags.[${flagKey}]${hasMetadataKey ? '' : '.metadata'}.${itemKey}`] = value
         }
       })
@@ -1041,7 +1041,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     if (this.hitContent !== undefined) {
       for (const key in this.hitContent) {
         const element = this.hitContent[key]
-        customVariable[`hit.${key}`] = element
+        customVariable[`hit.${key}`] = typeof element === 'string' ? element : JSON.stringify(element)
       }
     }
     if (this.batchTriggeredBy !== undefined) {
