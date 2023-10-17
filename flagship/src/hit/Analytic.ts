@@ -7,4 +7,9 @@ export class Analytic extends Diagnostic {
   public constructor (param:AnalyticType) {
     super({ ...param, type: 'USAGE' })
   }
+
+  public toApiKeys () {
+    this.visitorId = ''
+    return super.toApiKeys()
+  }
 }

@@ -415,7 +415,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       const analyticData = new Analytic({
         label: 'SDK_CONFIG',
         logLevel: LogLevel.INFO,
-        visitorId: this.visitor.sdkInitialData?.instanceId as string,
+        visitorId: this.visitor.visitorId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         config: this.config,
         sdkStatus: this.visitor.getSdkStatus(),
         lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,

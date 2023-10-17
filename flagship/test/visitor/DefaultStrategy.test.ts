@@ -2292,7 +2292,7 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
     const flags = new Map<string, FlagDTO>().set(flagDTO.key, flagDTO)
     getCampaignsAsync.mockResolvedValue([])
     getModifications.mockReturnValueOnce(flags)
-    getCurrentDateTime.mockReturnValue(new Date(2022, 9, 15))
+    getCurrentDateTime.mockReturnValue(new Date(2022, 9, 18))
     await defaultStrategy.fetchFlags()
 
     expect(sendAnalyticsHit).toBeCalledTimes(1)
