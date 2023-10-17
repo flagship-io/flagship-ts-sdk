@@ -150,7 +150,9 @@ export type sdkInitialData = {
   instanceId: string,
   lastInitializationTimestamp: string
   initialCampaigns?: CampaignDTO[]
-  initialFlagsData?: Map<string, FlagDTO> | FlagDTO[]
+  initialFlagsData?: Map<string, FlagDTO> | FlagDTO[],
+  usingCustomHitCache?: boolean,
+  usingCustomVisitorCache?: boolean
 }
 
 export type TroubleshootingLabel = 'VISITOR_SEND_HIT'|'VISITOR_FETCH_CAMPAIGNS_ERROR'|'VISITOR_FETCH_CAMPAIGNS'|

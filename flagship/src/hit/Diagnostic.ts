@@ -49,6 +49,9 @@ export interface IDiagnostic extends IHitAbstract{
     sdkConfigTrackingManagerConfigBatchIntervals?: number
     sdkConfigTrackingManagerConfigPoolMaxSize?: number
     sdkBucketingFile?: BucketingDTO
+    sdkConfigUsingCustomHitCache?: boolean
+    sdkConfigUsingCustomVisitorCache?: boolean
+    sdkConfigUsingOnVisitorExposed?: boolean
 
     httpRequestUrl?:string
     httpRequestMethod?:string
@@ -165,6 +168,33 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
   private _flagMetadataCampaignName? : string
   private _flagMetadataVariationGroupName? : string
   private _flagMetadataVariationName? : string
+  private _sdkConfigUsingCustomHitCache? : boolean
+  private _sdkConfigUsingCustomVisitorCache? : boolean
+  private _sdkConfigUsingOnVisitorExposed? : boolean
+
+  public get sdkConfigUsingOnVisitorExposed () : boolean|undefined {
+    return this._sdkConfigUsingOnVisitorExposed
+  }
+
+  public set sdkConfigUsingOnVisitorExposed (v : boolean|undefined) {
+    this._sdkConfigUsingOnVisitorExposed = v
+  }
+
+  public get sdkConfigUsingCustomVisitorCache () : boolean|undefined {
+    return this._sdkConfigUsingCustomVisitorCache
+  }
+
+  public set sdkConfigUsingCustomVisitorCache (v : boolean|undefined) {
+    this._sdkConfigUsingCustomVisitorCache = v
+  }
+
+  public get sdkConfigUsingCustomHitCache () : boolean|undefined {
+    return this._sdkConfigUsingCustomHitCache
+  }
+
+  public set sdkConfigUsingCustomHitCache (v : boolean|undefined) {
+    this._sdkConfigUsingCustomHitCache = v
+  }
 
   public get flagMetadataVariationName () : string|undefined {
     return this._flagMetadataVariationName
@@ -727,8 +757,11 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       sdkConfigInitialBucketing, sdkConfigDecisionApiUrl, sdkConfigHitDeduplicationTime, flagshipInstanceId, hitContent, traffic,
       lastInitializationTimestamp, lastBucketingTimestamp, batchTriggeredBy, visitorCampaigns, visitorCampaignFromCache, visitorInitialCampaigns,
       visitorInitialFlagsData, flagMetadataCampaignIsReference, contextKey, contextValue, sdkBucketingFile, flagMetadataCampaignName, flagMetadataVariationGroupName,
-      flagMetadataVariationName
+      flagMetadataVariationName, sdkConfigUsingCustomHitCache, sdkConfigUsingCustomVisitorCache, sdkConfigUsingOnVisitorExposed
     } = param
+    this.sdkConfigUsingCustomHitCache = sdkConfigUsingCustomHitCache
+    this.sdkConfigUsingCustomVisitorCache = sdkConfigUsingCustomVisitorCache
+    this.sdkConfigUsingOnVisitorExposed = sdkConfigUsingOnVisitorExposed
     this.flagMetadataCampaignName = flagMetadataCampaignName
     this.flagMetadataVariationGroupName = flagMetadataVariationGroupName
     this.flagMetadataVariationName = flagMetadataVariationName
@@ -897,6 +930,15 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     }
     if (this.sdkConfigHitDeduplicationTime !== undefined) {
       customVariable['sdk.config.trackingManager.config.deduplicationTime'] = `${this.sdkConfigHitDeduplicationTime}`
+    }
+    if (this.sdkConfigUsingCustomHitCache !== undefined) {
+      customVariable['sdk.config.usingCustomHitCache'] = JSON.stringify(this.sdkConfigUsingCustomHitCache)
+    }
+    if (this.sdkConfigUsingCustomVisitorCache !== undefined) {
+      customVariable['sdk.config.config.usingCustomVisitorCache'] = JSON.stringify(this.sdkConfigUsingCustomVisitorCache)
+    }
+    if (this.sdkConfigUsingOnVisitorExposed !== undefined) {
+      customVariable['sdk.config.config.usingOnVisitorExposed'] = JSON.stringify(this.sdkConfigUsingOnVisitorExposed)
     }
 
     if (this.httpRequestUrl !== undefined) {

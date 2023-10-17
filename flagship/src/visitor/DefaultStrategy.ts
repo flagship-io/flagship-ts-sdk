@@ -73,6 +73,8 @@ import { Activate } from '../hit/Activate'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { FlagSynchStatus } from '../enum/FlagSynchStatus'
 import { Analytic } from '../hit/Analytic'
+import { DefaultHitCache } from '../cache/DefaultHitCache'
+import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'
@@ -365,6 +367,11 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
       this.visitor.traffic = traffic
 
+      const hitCacheImplementation = this.config.hitCacheImplementation
+      const visitorCacheImplementation = this.config.visitorCacheImplementation
+      const sdkConfigUsingCustomHitCache = hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
+      const sdkConfigUsingCustomVisitorCache = visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
+
       const fetchFlagTroubleshooting = new Troubleshooting({
         label: 'VISITOR_FETCH_CAMPAIGNS',
         logLevel: LogLevel.INFO,
@@ -397,7 +404,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sdkConfigEnableClientCache: this.config.enableClientCache,
         sdkConfigInitialBucketing: this.config.initialBucketing,
         sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
-        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
+        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
+        sdkConfigUsingOnVisitorExposed: !!this.config.onVisitorExposed,
+        sdkConfigUsingCustomHitCache,
+        sdkConfigUsingCustomVisitorCache
       })
 
       this.sendTroubleshootingHit(fetchFlagTroubleshooting)
@@ -420,7 +430,10 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sdkConfigEnableClientCache: this.config.enableClientCache,
         sdkConfigInitialBucketing: this.config.initialBucketing,
         sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
-        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
+        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
+        sdkConfigUsingOnVisitorExposed: !!this.config.onVisitorExposed,
+        sdkConfigUsingCustomHitCache,
+        sdkConfigUsingCustomVisitorCache
       })
 
       this.sendAnalyticHit(analyticData)
