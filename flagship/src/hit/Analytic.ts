@@ -9,7 +9,10 @@ export class Analytic extends Diagnostic {
   }
 
   public toApiKeys () {
-    this.visitorId = ''
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.visitorId = undefined as any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.anonymousId = undefined as any
     return super.toApiKeys()
   }
 }
