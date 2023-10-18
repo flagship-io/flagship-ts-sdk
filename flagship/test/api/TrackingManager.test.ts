@@ -5,24 +5,35 @@ import { HttpClient } from '../../src/utils/HttpClient'
 import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinuousCachingStrategy'
 import { BatchingPeriodicCachingStrategy } from '../../src/api/BatchingPeriodicCachingStrategy'
 import { CacheStrategy, Event, EventCategory, HitCacheDTO, Item, Page, Screen, Transaction } from '../../src'
-import { FS_CONSENT, HIT_CACHE_VERSION, NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY, PROCESS_CACHE, HIT_CACHE_ERROR, SDK_INFO } from '../../src/enum'
+import { FS_CONSENT, HIT_CACHE_VERSION, NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY, PROCESS_CACHE, HIT_CACHE_ERROR, SDK_INFO, LogLevel } from '../../src/enum'
 import { NoBatchingContinuousCachingStrategy } from '../../src/api/NoBatchingContinuousCachingStrategy'
 import { sleep, sprintf, uuidV4 } from '../../src/utils/utils'
 import { Segment } from '../../src/hit/Segment'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { Activate } from '../../src/hit/Activate'
+import { BatchTriggeredBy } from '../../src/enum/BatchTriggeredBy'
+import { Troubleshooting } from '../../src/hit/Troubleshooting'
 
 describe('test TrackingManager', () => {
   const httpClient = new HttpClient()
 
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
-
-  const trackingManager = new TrackingManager(httpClient, config)
+  const flagshipInstanceId = 'flagshipInstanceId'
   const visitorId = 'visitorId'
+  const troubleshootingData = {
+    startDate: new Date(),
+    endDate: new Date(),
+    traffic: 100,
+    timezone: ''
+  }
+  const trackingManager = new TrackingManager(httpClient, config, flagshipInstanceId)
+  trackingManager.troubleshootingData = troubleshootingData
 
   it('Test properties ', async () => {
     expect(config).toBe(trackingManager.config)
     expect(httpClient).toBe(trackingManager.httpClient)
+    expect(trackingManager.flagshipInstanceId).toBe(flagshipInstanceId)
+    expect(trackingManager.troubleshootingData).toEqual(troubleshootingData)
   })
 
   it('Test addHit method', async () => {
@@ -136,20 +147,26 @@ describe('test TrackingManager Strategy ', () => {
 describe('test TrackingManager Strategy ', () => {
   const httpClient = new HttpClient()
 
-  const postAsync = jest.spyOn(httpClient, 'postAsync')
-
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
 
   const trackingManager = new TrackingManager(httpClient, config)
 
+  const strategy = {
+    sendBatch: jest.fn(),
+    addHit: jest.fn(),
+    sendTroubleshootingQueue: jest.fn(),
+    sendTroubleshootingHit: jest.fn(),
+    sendAnalyticsHitQueue: jest.fn(),
+    sendAnalyticsHit: jest.fn()
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const trackManagerMock = (trackingManager as any)
+
+  trackManagerMock.strategy = strategy
+
   const visitorId = 'visitorId'
 
   it('Test startBatchingLoop and  stopBatchingLoop methods', async () => {
-    postAsync.mockImplementation(async () => {
-      await sleep(250)
-      return { status: 200, body: null }
-    })
-
     const pageHit = new Page({
       documentLocation: 'https://myurl.com',
       visitorId
@@ -167,7 +184,66 @@ describe('test TrackingManager Strategy ', () => {
 
     trackingManager.stopBatchingLoop()
 
-    expect(postAsync).toBeCalledTimes(1)
+    expect(strategy.addHit).toBeCalledTimes(1)
+    expect(strategy.addHit).toBeCalledWith(pageHit)
+    expect(strategy.sendBatch).toBeCalledTimes(1)
+    expect(strategy.sendBatch).toBeCalledWith(BatchTriggeredBy.Timer)
+    expect(strategy.sendTroubleshootingQueue).toBeCalledTimes(1)
+    expect(strategy.sendAnalyticsHitQueue).toBeCalledTimes(1)
+  })
+
+  it('Test addTroubleshootingHit methods', async () => {
+    const pageHit = new Page({
+      documentLocation: 'https://myurl.com',
+      visitorId
+    })
+
+    const activateTroubleshooting = new Troubleshooting({
+      label: 'VISITOR_SEND_ACTIVATE',
+      logLevel: LogLevel.INFO,
+      traffic: 2,
+      visitorId: pageHit.visitorId,
+      flagshipInstanceId: pageHit.flagshipInstanceId,
+      visitorSessionId: pageHit.visitorSessionId,
+      anonymousId: pageHit.anonymousId,
+      config,
+      hitContent: pageHit.toApiKeys()
+    })
+
+    pageHit.config = config
+
+    config.trackingManagerConfig.batchIntervals = 1
+
+    await trackingManager.sendTroubleshootingHit(activateTroubleshooting)
+
+    expect(strategy.sendTroubleshootingHit).toBeCalledTimes(1)
+    expect(strategy.sendTroubleshootingHit).toBeCalledWith(activateTroubleshooting)
+  })
+
+  it('Test sendTroubleshootingHit methods', async () => {
+    const pageHit = new Page({
+      documentLocation: 'https://myurl.com',
+      visitorId
+    })
+
+    const analyticHit = new Troubleshooting({
+      label: 'VISITOR_FETCH_CAMPAIGNS',
+      logLevel: LogLevel.INFO,
+      traffic: 2,
+      visitorId: pageHit.visitorId,
+      flagshipInstanceId: pageHit.flagshipInstanceId,
+      visitorSessionId: pageHit.visitorSessionId,
+      anonymousId: pageHit.anonymousId,
+      config,
+      hitContent: pageHit.toApiKeys()
+    })
+
+    pageHit.config = config
+
+    await trackingManager.sendAnalyticsHit(analyticHit)
+
+    expect(strategy.sendAnalyticsHit).toBeCalledTimes(1)
+    expect(strategy.sendAnalyticsHit).toBeCalledWith(analyticHit)
   })
 })
 

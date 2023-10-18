@@ -59,7 +59,7 @@ describe('test ApiManager', () => {
     context: visitor.context,
     visitor_consent: visitor.hasConsented
   }
-  const url = `${BASE_API_URL}${config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
+  const url = `${BASE_API_URL}${config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true&extras[]=accountSettings`
 
   it('test panic mode ', async () => {
     const apiManager = new ApiManager(httpClient, config)
@@ -104,6 +104,9 @@ describe('test ApiManager', () => {
     expect(modifications.size).toBe(4)
     expect(modifications.get('array')?.value).toEqual([1, 1, 1])
     expect(modifications.get('object')?.value).toEqual({ value: 123456 })
+    expect(apiManager.troubleshooting?.startDate.toISOString()).toBe('2023-04-13T09:33:38.049Z')
+    expect(apiManager.troubleshooting?.endDate.toISOString()).toBe('2023-04-13T10:03:38.049Z')
+    expect(apiManager.troubleshooting?.traffic).toBe(40)
   })
 
   it('Test error ', async () => {
@@ -125,7 +128,7 @@ describe('test ApiManager', () => {
 
   it('test campaign with consent false', async () => {
     config.decisionApiUrl = 'http://new_decision_api_url'
-    const url = `${config.decisionApiUrl}${config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
+    const url = `${config.decisionApiUrl}${config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true&extras[]=accountSettings`
     postAsync.mockResolvedValue(campaignResponse)
 
     visitor.setConsent(false)

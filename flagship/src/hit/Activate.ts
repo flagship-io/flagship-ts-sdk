@@ -23,7 +23,7 @@ export class Activate extends HitAbstract implements IActivate {
   private _flagMetadata! : IFlagMetadata
   private _visitorContext! : Record<string, primitive>
 
-  public constructor (param:Omit<IActivate, 'type'|'createdAt'>) {
+  public constructor (param:Omit<IActivate, 'type'|'createdAt'|'traffic'>) {
     super({
       type: 'ACTIVATE',
       userIp: param.userIp,

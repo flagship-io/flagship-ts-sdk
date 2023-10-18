@@ -5,6 +5,8 @@ import { DefaultStrategy } from './DefaultStrategy'
 import { HitAbstract, HitShape } from '../hit/index'
 import { BatchDTO } from '../hit/Batch'
 import { FlagMetadata } from '../flag/FlagMetadata'
+import { Troubleshooting } from '../hit/Troubleshooting'
+import { Analytic } from '../hit/Analytic'
 
 export class NotReadyStrategy extends DefaultStrategy {
   async synchronizeModifications (): Promise<void> {
@@ -84,6 +86,16 @@ export class NotReadyStrategy extends DefaultStrategy {
     const emptyMetaData = FlagMetadata.Empty()
     logErrorSprintf(this.config, FLAG_METADATA, METADATA_SDK_NOT_READY, this.visitor.visitorId, param.key, emptyMetaData)
     return emptyMetaData
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public sendTroubleshootingHit (_hit: Troubleshooting): Promise<void> {
+    return Promise.resolve()
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async sendAnalyticHit (_hit: Analytic) {
+    return Promise.resolve()
   }
 
   private log (methodName:string) {

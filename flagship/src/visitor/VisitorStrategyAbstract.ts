@@ -1,4 +1,4 @@
-import { Event, HitAbstract, HitShape } from '../hit/index'
+import { Event, EventCategory, HitAbstract, HitShape } from '../hit/index'
 import { primitive, modificationsRequested, IHit, VisitorCacheDTO, IFlagMetadata, FlagDTO } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
@@ -6,14 +6,21 @@ import { IConfigManager, IFlagshipConfig } from '../config/index'
 import { CampaignDTO } from '../decision/api/models'
 import { IDecisionManager } from '../decision/IDecisionManager'
 import { logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, sprintf } from '../utils/utils'
-import { VISITOR_CACHE_ERROR, CONSENT_CHANGED, FS_CONSENT, LOOKUP_VISITOR_JSON_OBJECT_ERROR, PROCESS_CACHE, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION, VISITOR_CACHE_FLUSHED, VISITOR_CACHE_LOADED, VISITOR_CACHE_SAVED } from '../enum/index'
+import { VISITOR_CACHE_ERROR, CONSENT_CHANGED, FS_CONSENT, LOOKUP_VISITOR_JSON_OBJECT_ERROR, PROCESS_CACHE, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION, VISITOR_CACHE_FLUSHED, VISITOR_CACHE_LOADED, VISITOR_CACHE_SAVED, LogLevel, ANALYTIC_HIT_ALLOCATION } from '../enum/index'
 import { BatchDTO } from '../hit/Batch'
-import { EventCategory } from '../hit/Monitoring'
 import { ITrackingManager } from '../api/ITrackingManager'
+import { Troubleshooting } from '../hit/Troubleshooting'
+import { MurmurHash } from '../utils/MurmurHash'
+import { Analytic } from '../hit/Analytic'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 
 export const VISITOR_ID_MISMATCH_ERROR = 'Visitor ID mismatch: {0} vs {1}'
+
+export type StrategyAbstractConstruct = {
+  visitor:VisitorAbstract,
+  murmurHash: MurmurHash
+}
 export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'anonymousId'|'flagsData'|'modifications'|'context'|'hasConsented'|'getModificationsArray'|'getFlagsDataArray'|'getFlag'> {
   protected visitor:VisitorAbstract
 
@@ -33,8 +40,12 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     return this.visitor.config
   }
 
-  public constructor (visitor:VisitorAbstract) {
+  protected _murmurHash: MurmurHash
+
+  public constructor (param: StrategyAbstractConstruct) {
+    const { visitor, murmurHash } = param
     this.visitor = visitor
+    this._murmurHash = murmurHash
   }
 
   public updateCampaigns (campaigns:CampaignDTO[]):void {
@@ -75,7 +86,26 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
     consentHit.ds = SDK_APP
     consentHit.config = this.config
+    consentHit.visitorSessionId = this.visitor.instanceId
+    consentHit.traffic = this.visitor.traffic
+    consentHit.flagshipInstanceId = this.visitor.sdkInitialData?.instanceId
 
+    if (this.visitor.traffic !== undefined) {
+      const hitTroubleshooting = new Troubleshooting({
+
+        label: 'VISITOR_SEND_HIT',
+        logLevel: LogLevel.INFO,
+        traffic: this.visitor.traffic,
+        visitorId: this.visitor.visitorId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        anonymousId: this.visitor.anonymousId,
+        config: this.config,
+        hitContent: consentHit.toApiKeys()
+      })
+
+      this.sendTroubleshootingHit(hitTroubleshooting)
+    }
     this.trackingManager.addHit(consentHit)
 
     logDebugSprintf(this.config, PROCESS_SET_CONSENT, CONSENT_CHANGED, this.visitor.visitorId, hasConsented)
@@ -250,4 +280,26 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     abstract visitorExposed<T>(param:{key:string, flag?:FlagDTO, defaultValue:T}):Promise<void>
     abstract getFlagValue<T>(param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}):T
     abstract getFlagMetadata(param:{metadata:IFlagMetadata, key?:string, hasSameType:boolean}):IFlagMetadata
+
+    public async sendTroubleshootingHit (hit: Troubleshooting) {
+      await this.trackingManager.sendTroubleshootingHit(hit)
+    }
+
+    public getCurrentDateTime () {
+      return new Date()
+    }
+
+    public async sendAnalyticHit (hit: Analytic) {
+      if (this.config.disableDeveloperUsageTracking) {
+        return
+      }
+      const uniqueId = hit.visitorId + this.getCurrentDateTime().toDateString()
+      const hash = this._murmurHash.murmurHash3Int32(uniqueId)
+      const traffic = hash % 100
+
+      if (traffic >= ANALYTIC_HIT_ALLOCATION) {
+        return
+      }
+      await this.trackingManager.sendAnalyticsHit(hit)
+    }
 }

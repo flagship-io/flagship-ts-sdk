@@ -1,5 +1,5 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { DecisionApiConfig, Flagship, FlagshipStatus } from '../../src'
+import { DecisionApiConfig, FlagshipStatus } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
@@ -8,6 +8,7 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { IHttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
 import { VisitorDelegate } from '../../src/visitor'
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 
 describe('test getStrategy', () => {
   const visitorId = 'visitorId'
@@ -36,9 +37,7 @@ describe('test getStrategy', () => {
   })
 
   it('test NotReadyStrategy flagship with status  NOT_INITIALIZED', async () => {
-    Flagship.getStatus = jest.fn(() => {
-      return FlagshipStatus.NOT_INITIALIZED
-    })
+    VisitorAbstract.SdkStatus = FlagshipStatus.NOT_INITIALIZED
     const methodName = 'activateModification'
     await visitorDelegate.activateModification('key')
     expect(logError).toBeCalledTimes(1)
@@ -46,9 +45,7 @@ describe('test getStrategy', () => {
   })
 
   it('test PanicStrategy', async () => {
-    Flagship.getStatus = jest.fn(() => {
-      return FlagshipStatus.READY_PANIC_ON
-    })
+    VisitorAbstract.SdkStatus = FlagshipStatus.READY_PANIC_ON
     const methodName = 'activateModification'
     await visitorDelegate.activateModification('key')
     await visitorDelegate.activateModification('key')
@@ -57,9 +54,7 @@ describe('test getStrategy', () => {
   })
 
   it('test NoConsent', async () => {
-    Flagship.getStatus = jest.fn(() => {
-      return FlagshipStatus.READY
-    })
+    VisitorAbstract.SdkStatus = FlagshipStatus.READY
     const methodName = 'activateModification'
     await visitorDelegate.activateModification('key')
     expect(logInfo).toBeCalledTimes(1)
@@ -67,9 +62,7 @@ describe('test getStrategy', () => {
   })
 
   it('test DefaultStrategy', async () => {
-    Flagship.getStatus = jest.fn(() => {
-      return FlagshipStatus.READY
-    })
+    VisitorAbstract.SdkStatus = FlagshipStatus.READY
     visitorDelegate.setConsent(true)
     await visitorDelegate.activateModification('key')
     expect(logError).toBeCalledTimes(1)

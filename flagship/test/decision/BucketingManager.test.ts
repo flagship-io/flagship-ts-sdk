@@ -11,7 +11,7 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { BucketingDTO } from '../../src/decision/api/bucketingDTO'
 import { DecisionManager } from '../../src/decision/DecisionManager'
 import { TrackingManager } from '../../src/api/TrackingManager'
-import { CampaignDTO } from '../../src'
+import { CampaignDTO, TroubleshootingLabel } from '../../src'
 import { Segment } from '../../src/hit/Segment'
 
 describe('test BucketingManager', () => {
@@ -35,6 +35,10 @@ describe('test BucketingManager', () => {
     age: 20
   }
 
+  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
+
+  bucketingManager.trackingManager = trackingManager
+
   const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager } })
 
   it('test getCampaignsAsync empty', async () => {
@@ -45,12 +49,16 @@ describe('test BucketingManager', () => {
 
   it('test getCampaignsAsync panic mode', async () => {
     getAsync.mockResolvedValue({ body: { panic: true }, status: 200 })
+    sendTroubleshootingHit.mockResolvedValue()
     bucketingManager.startPolling()
     await sleep(500)
     const campaigns = await bucketingManager.getCampaignsAsync(visitor)
     expect(campaigns).toHaveLength(0)
     expect(bucketingManager.isPanic()).toBeTruthy()
     expect(sendContext).toBeCalledTimes(0)
+    expect(sendTroubleshootingHit).toBeCalledTimes(1)
+    const troubleshootingLabel:TroubleshootingLabel = 'SDK_BUCKETING_FILE'
+    expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label: troubleshootingLabel }))
   })
 
   it('test getCampaignsAsync campaign empty', async () => {
@@ -67,6 +75,7 @@ describe('test BucketingManager', () => {
     expect(campaigns).toHaveLength(0)
     bucketingManager.stopPolling()
     expect(sendContext).toBeCalledTimes(1)
+    expect(sendTroubleshootingHit).toBeCalledTimes(1)
   })
 
   const headers = { 'last-modified': 'Fri, 06 Aug 2021 11:16:19 GMT' }
@@ -115,6 +124,9 @@ describe('test BucketingManager', () => {
       },
       timeout: config.timeout
     })
+    expect(bucketingManager.troubleshooting?.startDate.toISOString()).toBe('2023-04-13T09:33:38.049Z')
+    expect(bucketingManager.troubleshooting?.endDate.toISOString()).toBe('2023-04-13T10:03:38.049Z')
+    expect(bucketingManager.troubleshooting?.traffic).toBe(40)
   })
 })
 
@@ -139,9 +151,14 @@ describe('test getCampaignsAsync campaign with thirdPartySegment', () => {
     age: 20
   }
 
+  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
+
+  bucketingManager.trackingManager = trackingManager
+
   const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager } })
   it('test getCampaignsAsync campaign with thirdPartySegment', async () => {
     getAsync.mockResolvedValue({ body: bucketing, status: 200 })
+    sendTroubleshootingHit.mockResolvedValue()
     bucketingManager.startPolling()
     await sleep(500)
 
@@ -185,7 +202,13 @@ describe('test bucketing polling', () => {
 
   const bucketingManager = new BucketingManager(httpClient, config, murmurHash)
 
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
+
+  bucketingManager.trackingManager = trackingManager
   it('should ', async () => {
+    sendTroubleshootingHit.mockResolvedValue()
     const lastModified = Date.now()
     config.pollingInterval = 0.5
     config.onBucketingUpdated = (lastUpdate) => {
@@ -197,6 +220,9 @@ describe('test bucketing polling', () => {
     bucketingManager.stopPolling()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((bucketingManager as any)._bucketingContent).toEqual(bucketing)
+
+    const label: TroubleshootingLabel = 'SDK_BUCKETING_FILE_ERROR'
+    expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 
   it('should ', async () => {
@@ -228,9 +254,15 @@ describe('test update', () => {
   const getAsync = jest.spyOn(httpClient, 'getAsync')
 
   const bucketingManager = new BucketingManager(httpClient, config, murmurHash)
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
+
+  bucketingManager.trackingManager = trackingManager
 
   it('test', async () => {
     getAsync.mockResolvedValue({ body: bucketing, status: 200 })
+    sendTroubleshootingHit.mockResolvedValue()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateFlagshipStatus = jest.spyOn(bucketingManager as any, 'updateFlagshipStatus')
     let count = 0
@@ -251,6 +283,7 @@ describe('test update', () => {
     bucketingManager.startPolling()
     await sleep(500)
     expect(updateFlagshipStatus).toBeCalledTimes(2)
+    expect(sendTroubleshootingHit).toBeCalledTimes(1)
   })
 })
 
@@ -266,9 +299,15 @@ describe('test error', () => {
   const getAsync = jest.spyOn(httpClient, 'getAsync')
 
   const bucketingManager = new BucketingManager(httpClient, config, murmurHash)
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
+
+  bucketingManager.trackingManager = trackingManager
 
   it('test', async () => {
     getAsync.mockRejectedValue(error)
+    sendTroubleshootingHit.mockResolvedValue()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateFlagshipStatus = jest.spyOn(bucketingManager as any, 'updateFlagshipStatus')
     let count = 0
@@ -289,6 +328,9 @@ describe('test error', () => {
     bucketingManager.startPolling()
     await sleep(500)
     expect(updateFlagshipStatus).toBeCalledTimes(2)
+    expect(sendTroubleshootingHit).toBeCalledTimes(1)
+    const troubleshootingLabel:TroubleshootingLabel = 'SDK_BUCKETING_FILE_ERROR'
+    expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label: troubleshootingLabel }))
   })
 })
 
@@ -1022,6 +1064,11 @@ describe('test getThirdPartySegment', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const bucketingManager = new BucketingManager(httpClient, config, murmurHash)
 
+  const trackingManager = new TrackingManager(httpClient, config)
+  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
+
+  bucketingManager.trackingManager = trackingManager
+
   const visitorId = 'visitor_1'
 
   const getAsync = jest.spyOn(httpClient, 'getAsync')
@@ -1045,6 +1092,7 @@ describe('test getThirdPartySegment', () => {
       status: 200,
       body: [thirdPartySegment, thirdPartySegment2]
     })
+    sendTroubleshootingHit.mockResolvedValue()
     const segments = await bucketingManager.getThirdPartySegment(visitorId)
 
     expect(segments[`${thirdPartySegment.partner}::${thirdPartySegment.segment}`]).toEqual(thirdPartySegment.value)
