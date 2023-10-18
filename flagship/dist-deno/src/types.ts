@@ -62,7 +62,7 @@ export type NewVisitor={
 
 }
 
-export type InternalHitType = HitType|'BATCH'|'ACTIVATE'|'MONITORING'|'SEGMENT'
+export type InternalHitType = HitType|'BATCH'|'ACTIVATE'|'MONITORING'|'SEGMENT'|'TROUBLESHOOTING'|'USAGE'
 
 export type HitCacheDTO ={
   version: number,
@@ -138,6 +138,28 @@ export type UserExposureInfo = {
     context: Record<string, primitive>
   }
  }
+
+export type TroubleshootingData = {
+  startDate: Date
+  endDate: Date
+  traffic: number
+  timezone: string,
+ }
+
+export type sdkInitialData = {
+  instanceId: string,
+  lastInitializationTimestamp: string
+  initialCampaigns?: CampaignDTO[]
+  initialFlagsData?: Map<string, FlagDTO> | FlagDTO[],
+  usingCustomHitCache?: boolean,
+  usingCustomVisitorCache?: boolean
+}
+
+export type TroubleshootingLabel = 'VISITOR_SEND_HIT'|'VISITOR_FETCH_CAMPAIGNS_ERROR'|'VISITOR_FETCH_CAMPAIGNS'|
+'VISITOR_AUTHENTICATE'|'VISITOR_UNAUTHENTICATE'|'VISITOR_EXPOSED_FLAG_NOT_FOUND'|'GET_FLAG_VALUE_FLAG_NOT_FOUND'|
+'GET_FLAG_METADATA_TYPE_WARNING'|'GET_FLAG_VALUE_TYPE_WARNING'|'VISITOR_EXPOSED_TYPE_WARNING'|'VISITOR_SEND_ACTIVATE'|
+'GET_CAMPAIGNS_ROUTE_RESPONSE_ERROR'|'GET_CAMPAIGNS_ROUTE_RESPONSE'|'SDK_BUCKETING_FILE'|'SEND_ACTIVATE_HIT_ROUTE_ERROR'|
+'SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR'|'SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR'|'SEND_HIT_ROUTE_ERROR'|'SDK_BUCKETING_FILE_ERROR'|'SDK_CONFIG'
 
 export type ThirdPartySegment = {
   visitor_id: string,

@@ -8,11 +8,13 @@ import { logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf } f
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract.ts'
 import { BatchingContinuousCachingStrategy } from './BatchingContinuousCachingStrategy.ts'
 import { BatchingPeriodicCachingStrategy } from './BatchingPeriodicCachingStrategy.ts'
-import { HitCacheDTO } from '../types.ts'
+import { HitCacheDTO, TroubleshootingData } from '../types.ts'
 import { NoBatchingContinuousCachingStrategy } from './NoBatchingContinuousCachingStrategy.ts'
 import { Activate, IActivate } from '../hit/Activate.ts'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy.ts'
 import { ITrackingManager } from './ITrackingManager.ts'
+import { Troubleshooting } from '../hit/Troubleshooting.ts'
+import { Analytic } from '../hit/Analytic.ts'
 
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
@@ -22,14 +24,32 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   private _config: IFlagshipConfig
   private _hitsPoolQueue: Map<string, HitAbstract>
   private _activatePoolQueue: Map<string, Activate>
+  private _troubleshootingQueue: Map<string, Troubleshooting>
+  protected _analyticHitQueue: Map<string, Analytic>
   protected strategy: BatchingCachingStrategyAbstract
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected _intervalID:any
   protected _isPooling = false
+  private _flagshipInstanceId?: string
 
-  constructor (httpClient: IHttpClient, config: IFlagshipConfig) {
+  public get flagshipInstanceId (): string|undefined {
+    return this._flagshipInstanceId
+  }
+
+  public get troubleshootingData () : TroubleshootingData | 'started' | undefined {
+    return this.strategy.troubleshootingData
+  }
+
+  public set troubleshootingData (v : TroubleshootingData | 'started' | undefined) {
+    this.strategy.troubleshootingData = v
+  }
+
+  constructor (httpClient: IHttpClient, config: IFlagshipConfig, flagshipInstanceId?:string) {
+    this._flagshipInstanceId = flagshipInstanceId
     this._hitsPoolQueue = new Map<string, HitAbstract>()
     this._activatePoolQueue = new Map<string, Activate>()
+    this._troubleshootingQueue = new Map<string, Troubleshooting>()
+    this._analyticHitQueue = new Map<string, Analytic>()
     this._httpClient = httpClient
     this._config = config
     this.strategy = this.initStrategy()
@@ -38,15 +58,24 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
   protected initStrategy ():BatchingCachingStrategyAbstract {
     let strategy:BatchingCachingStrategyAbstract
+    const argument = {
+      config: this.config,
+      httpClient: this.httpClient,
+      hitsPoolQueue: this._hitsPoolQueue,
+      activatePoolQueue: this._activatePoolQueue,
+      troubleshootingQueue: this._troubleshootingQueue,
+      analyticHitQueue: this._analyticHitQueue,
+      flagshipInstanceId: this.flagshipInstanceId
+    }
     switch (this.config.trackingManagerConfig?.cacheStrategy) {
       case CacheStrategy.PERIODIC_CACHING:
-        strategy = new BatchingPeriodicCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue, this._activatePoolQueue)
+        strategy = new BatchingPeriodicCachingStrategy(argument)
         break
       case CacheStrategy.CONTINUOUS_CACHING:
-        strategy = new BatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue, this._activatePoolQueue)
+        strategy = new BatchingContinuousCachingStrategy(argument)
         break
       default:
-        strategy = new NoBatchingContinuousCachingStrategy(this.config, this.httpClient, this._hitsPoolQueue, this._activatePoolQueue)
+        strategy = new NoBatchingContinuousCachingStrategy(argument)
         break
     }
     return strategy
@@ -65,6 +94,10 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   public abstract activateFlag (hit: Activate): Promise<void>
 
   public abstract sendBatch(): Promise<void>
+
+  public async sendTroubleshootingHit (hit: Troubleshooting) :Promise<void> {
+    await this.strategy.sendTroubleshootingHit(hit)
+  }
 
   public startBatchingLoop (): void {
     const timeInterval = (this.config.trackingManagerConfig?.batchIntervals) as number * 1000
@@ -88,6 +121,8 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     }
     this._isPooling = true
     await this.strategy.sendBatch(BatchTriggeredBy.Timer)
+    await this.strategy.sendTroubleshootingQueue()
+    await this.strategy.sendAnalyticsHitQueue()
     this._isPooling = false
   }
 
@@ -167,5 +202,9 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     } catch (error:any) {
       logErrorSprintf(this.config, PROCESS_CACHE, HIT_CACHE_ERROR, 'lookupHits', error.message || error)
     }
+  }
+
+  async sendAnalyticsHit (hit: Analytic): Promise<void> {
+    await this.strategy.sendAnalyticsHit(hit)
   }
 }

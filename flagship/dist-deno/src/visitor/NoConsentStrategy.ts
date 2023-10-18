@@ -5,6 +5,7 @@ import { logInfo, sprintf } from '../utils/utils.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { BatchDTO } from '../hit/Batch.ts'
+import { Troubleshooting } from '../hit/Troubleshooting.ts'
 
 export class NoConsentStrategy extends DefaultStrategy {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -51,6 +52,11 @@ export class NoConsentStrategy extends DefaultStrategy {
 
   async visitorExposed (): Promise<void> {
     this.log(FLAG_USER_EXPOSED)
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public sendTroubleshootingHit (_hit: Troubleshooting): Promise<void> {
+    return Promise.resolve()
   }
 
   private log (methodName:string) {

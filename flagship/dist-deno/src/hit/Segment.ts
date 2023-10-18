@@ -18,7 +18,7 @@ export class Segment extends HitAbstract implements ISegment {
     this._context = v
   }
 
-  public constructor (param:Omit<ISegment, 'type'|'createdAt'>) {
+  public constructor (param:Omit<ISegment, 'type'|'createdAt'|'visitorInstanceId'|'traffic'>) {
     super({
       type: 'SEGMENT',
       userIp: param.userIp,
