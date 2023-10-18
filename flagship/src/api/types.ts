@@ -1,6 +1,6 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
-import { HitAbstract } from '../hit'
+import { HitAbstract } from '../hit/index'
 import { Activate } from '../hit/Activate'
 import { Analytic } from '../hit/Analytic'
 import { Troubleshooting } from '../hit/Troubleshooting'
