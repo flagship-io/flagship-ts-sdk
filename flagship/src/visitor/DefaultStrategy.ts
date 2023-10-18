@@ -28,7 +28,6 @@ import {
   GET_MODIFICATION_MISSING_ERROR,
   HitType,
   LogLevel,
-  METHOD_DEACTIVATED_BUCKETING_ERROR,
   PREDEFINED_CONTEXT_TYPE_ERROR,
   PROCESS_ACTIVE_MODIFICATION,
   PROCESS_CLEAR_CONTEXT,
@@ -65,7 +64,6 @@ import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFla
 import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
-import { DecisionMode } from '../config/index'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
 import { VisitorDelegate } from './index'
 import { FlagMetadata } from '../flag/FlagMetadata'
@@ -836,11 +834,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   authenticate (visitorId: string): void {
-    if (this.config.decisionMode === DecisionMode.BUCKETING) {
-      this.logDeactivateOnBucketing(AUTHENTICATE)
-      return
-    }
-
     if (!visitorId) {
       logErrorSprintf(this.config, AUTHENTICATE, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, this.visitor.visitorId)
       return
@@ -866,10 +859,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   unauthenticate (): void {
-    if (this.config.decisionMode === DecisionMode.BUCKETING) {
-      this.logDeactivateOnBucketing(UNAUTHENTICATE)
-      return
-    }
     if (!this.visitor.anonymousId) {
       logErrorSprintf(this.config, UNAUTHENTICATE, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, this.visitor.visitorId)
       return
@@ -1055,14 +1044,5 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
 
     return metadata
-  }
-
-  protected logDeactivateOnBucketing (functionName: string): void {
-    logErrorSprintf(
-      this.config,
-      functionName,
-      METHOD_DEACTIVATED_BUCKETING_ERROR, this.visitor.visitorId,
-      functionName
-    )
   }
 }

@@ -122,8 +122,12 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     if (!Array.isArray(campaigns)) {
       return false
     }
-    if (item.data.visitorId !== this.visitor.visitorId) {
+    if ((this.visitor.visitorCacheStatus === 'VISITOR_ID_CACHE' || this.visitor.visitorCacheStatus === 'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE') && item.data.visitorId !== this.visitor.visitorId) {
       logInfoSprintf(this.config, PROCESS_CACHE, VISITOR_ID_MISMATCH_ERROR, item.data.visitorId, this.visitor.visitorId)
+      return false
+    }
+    if (this.visitor.visitorCacheStatus === 'ANONYMOUS_ID_CACHE' && item.data.visitorId !== this.visitor.anonymousId) {
+      logInfoSprintf(this.config, PROCESS_CACHE, VISITOR_ID_MISMATCH_ERROR, item.data.visitorId, this.visitor.anonymousId)
       return false
     }
     return campaigns.every(x => x.campaignId && x.type && x.variationGroupId && x.variationId)
@@ -142,7 +146,20 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
         return
       }
-      const visitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
+      this.visitor.visitorCacheStatus = 'NONE'
+      let visitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
+      if (visitorCache) {
+        this.visitor.visitorCacheStatus = 'VISITOR_ID_CACHE'
+      }
+      if (this.visitor.anonymousId) {
+        const anonymousVisitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.anonymousId)
+        if (anonymousVisitorCache && !visitorCache) {
+          visitorCache = anonymousVisitorCache
+          this.visitor.visitorCacheStatus = 'ANONYMOUS_ID_CACHE'
+        } else if (!anonymousVisitorCache && visitorCache) {
+          this.visitor.visitorCacheStatus = 'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE'
+        }
+      }
 
       logDebugSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_LOADED, this.visitor.visitorId, visitorCache)
 
@@ -170,7 +187,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       }
 
       const assignmentsHistory:Record<string, string> = {}
-      const data: VisitorCacheDTO = {
+      const visitorCacheDTO: VisitorCacheDTO = {
         version: VISITOR_CACHE_VERSION,
         data: {
           visitorId: this.visitor.visitorId,
@@ -193,13 +210,29 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         }
       }
 
-      data.data.assignmentsHistory = { ...this.visitor.visitorCache?.data?.assignmentsHistory, ...assignmentsHistory }
+      visitorCacheDTO.data.assignmentsHistory = { ...this.visitor.visitorCache?.data?.assignmentsHistory, ...assignmentsHistory }
 
-      await visitorCacheInstance.cacheVisitor(this.visitor.visitorId, data)
+      await visitorCacheInstance.cacheVisitor(this.visitor.visitorId, visitorCacheDTO)
 
-      logDebugSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_SAVED, this.visitor.visitorId, data)
+      const visitorCacheStatus = this.visitor.visitorCacheStatus
 
-      this.visitor.visitorCache = data
+      if (!visitorCacheStatus || visitorCacheStatus === 'NONE' || visitorCacheStatus === 'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE') {
+        if (this.visitor.anonymousId) {
+          const anonymousVisitorCacheDTO:VisitorCacheDTO = {
+            ...visitorCacheDTO,
+            data: {
+              ...visitorCacheDTO.data,
+              visitorId: this.visitor.anonymousId,
+              anonymousId: null
+            }
+          }
+          await visitorCacheInstance.cacheVisitor(this.visitor.anonymousId, anonymousVisitorCacheDTO)
+        }
+      }
+
+      logDebugSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_SAVED, this.visitor.visitorId, visitorCacheDTO)
+
+      this.visitor.visitorCache = visitorCacheDTO
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logErrorSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_ERROR, this.visitor.visitorId, 'cacheVisitor', error.message || error)
