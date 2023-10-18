@@ -394,6 +394,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
         lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
         httpResponseTime: Date.now() - now,
+
         sdkConfigMode: this.config.decisionMode,
         sdkConfigTimeout: this.config.timeout,
         sdkConfigPollingInterval: this.config.pollingInterval,
@@ -407,7 +408,12 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
         sdkConfigUsingOnVisitorExposed: !!this.config.onVisitorExposed,
         sdkConfigUsingCustomHitCache,
-        sdkConfigUsingCustomVisitorCache
+        sdkConfigUsingCustomVisitorCache,
+        sdkConfigFetchThirdPartyData: this.config.fetchThirdPartyData,
+        sdkConfigFetchFlagsBufferingTime: this.config.fetchFlagsBufferingTime,
+        sdkConfigDisableDeveloperUsageTracking: this.config.disableDeveloperUsageTracking,
+        sdkConfigNextFetchConfig: this.config.nextFetchConfig,
+        sdkConfigDisableCache: this.config.disableCache
       })
 
       this.sendTroubleshootingHit(fetchFlagTroubleshooting)
@@ -434,7 +440,12 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
         sdkConfigUsingOnVisitorExposed: !!this.config.onVisitorExposed,
         sdkConfigUsingCustomHitCache,
-        sdkConfigUsingCustomVisitorCache
+        sdkConfigUsingCustomVisitorCache,
+        sdkConfigFetchThirdPartyData: this.config.fetchThirdPartyData,
+        sdkConfigFetchFlagsBufferingTime: this.config.fetchFlagsBufferingTime,
+        sdkConfigDisableDeveloperUsageTracking: this.config.disableDeveloperUsageTracking,
+        sdkConfigNextFetchConfig: this.config.nextFetchConfig,
+        sdkConfigDisableCache: this.config.disableCache
       })
 
       this.sendAnalyticHit(analyticData)

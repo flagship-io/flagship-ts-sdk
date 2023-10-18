@@ -52,6 +52,11 @@ export interface IDiagnostic extends IHitAbstract{
     sdkConfigUsingCustomHitCache?: boolean
     sdkConfigUsingCustomVisitorCache?: boolean
     sdkConfigUsingOnVisitorExposed?: boolean
+    sdkConfigFetchThirdPartyData?:boolean
+    sdkConfigFetchFlagsBufferingTime?:number
+    sdkConfigNextFetchConfig?:Record<string, unknown>
+    sdkConfigDisableDeveloperUsageTracking?:boolean
+    sdkConfigDisableCache?:boolean
 
     httpRequestUrl?:string
     httpRequestMethod?:string
@@ -171,6 +176,51 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
   private _sdkConfigUsingCustomHitCache? : boolean
   private _sdkConfigUsingCustomVisitorCache? : boolean
   private _sdkConfigUsingOnVisitorExposed? : boolean
+  private _sdkConfigFetchThirdPartyData? : boolean
+  private _sdkConfigFetchFlagsBufferingTime? : number
+  private _sdkConfigNextFetchConfig? : Record<string, unknown>
+  private _sdkConfigDisableDeveloperUsageTracking? : boolean
+  private _sdkConfigDisableCache? : boolean
+
+  public get sdkConfigDisableCache () : boolean|undefined {
+    return this._sdkConfigDisableCache
+  }
+
+  public set sdkConfigDisableCache (v : boolean|undefined) {
+    this._sdkConfigDisableCache = v
+  }
+
+  public get sdkConfigDisableDeveloperUsageTracking () : boolean|undefined {
+    return this._sdkConfigDisableDeveloperUsageTracking
+  }
+
+  public set sdkConfigDisableDeveloperUsageTracking (v : boolean|undefined) {
+    this._sdkConfigDisableDeveloperUsageTracking = v
+  }
+
+  public get sdkConfigNextFetchConfig () : Record<string, unknown>|undefined {
+    return this._sdkConfigNextFetchConfig
+  }
+
+  public set sdkConfigNextFetchConfig (v : Record<string, unknown>|undefined) {
+    this._sdkConfigNextFetchConfig = v
+  }
+
+  public get sdkConfigFetchFlagsBufferingTime () : number|undefined {
+    return this._sdkConfigFetchFlagsBufferingTime
+  }
+
+  public set sdkConfigFetchFlagsBufferingTime (v : number|undefined) {
+    this._sdkConfigFetchFlagsBufferingTime = v
+  }
+
+  public get sdkConfigFetchThirdPartyData () : boolean|undefined {
+    return this._sdkConfigFetchThirdPartyData
+  }
+
+  public set sdkConfigFetchThirdPartyData (v : boolean|undefined) {
+    this._sdkConfigFetchThirdPartyData = v
+  }
 
   public get sdkConfigUsingOnVisitorExposed () : boolean|undefined {
     return this._sdkConfigUsingOnVisitorExposed
@@ -757,8 +807,14 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       sdkConfigInitialBucketing, sdkConfigDecisionApiUrl, sdkConfigHitDeduplicationTime, flagshipInstanceId, hitContent, traffic,
       lastInitializationTimestamp, lastBucketingTimestamp, batchTriggeredBy, visitorCampaigns, visitorCampaignFromCache, visitorInitialCampaigns,
       visitorInitialFlagsData, flagMetadataCampaignIsReference, contextKey, contextValue, sdkBucketingFile, flagMetadataCampaignName, flagMetadataVariationGroupName,
-      flagMetadataVariationName, sdkConfigUsingCustomHitCache, sdkConfigUsingCustomVisitorCache, sdkConfigUsingOnVisitorExposed
+      flagMetadataVariationName, sdkConfigUsingCustomHitCache, sdkConfigUsingCustomVisitorCache, sdkConfigUsingOnVisitorExposed, sdkConfigFetchThirdPartyData,
+      sdkConfigFetchFlagsBufferingTime, sdkConfigDisableDeveloperUsageTracking, sdkConfigNextFetchConfig, sdkConfigDisableCache
     } = param
+    this.sdkConfigDisableCache = sdkConfigDisableCache
+    this.sdkConfigDisableDeveloperUsageTracking = sdkConfigDisableDeveloperUsageTracking
+    this.sdkConfigNextFetchConfig = sdkConfigNextFetchConfig
+    this.sdkConfigFetchFlagsBufferingTime = sdkConfigFetchFlagsBufferingTime
+    this.sdkConfigFetchThirdPartyData = sdkConfigFetchThirdPartyData
     this.sdkConfigUsingCustomHitCache = sdkConfigUsingCustomHitCache
     this.sdkConfigUsingCustomVisitorCache = sdkConfigUsingCustomVisitorCache
     this.sdkConfigUsingOnVisitorExposed = sdkConfigUsingOnVisitorExposed
@@ -908,39 +964,53 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       customVariable['sdk.config.pollingTime'] = `${this.sdkConfigPollingInterval}`
     }
     if (this.sdkConfigTrackingManagerConfigStrategy !== undefined) {
-      customVariable['sdk.config.trackingManager.config.strategy'] = `${CacheStrategy[this.sdkConfigTrackingManagerConfigStrategy]}`
+      customVariable['sdk.config.trackingManager.strategy'] = `${CacheStrategy[this.sdkConfigTrackingManagerConfigStrategy]}`
     }
     if (this.sdkConfigTrackingManagerConfigBatchIntervals !== undefined) {
-      customVariable['sdk.config.trackingManager.config.batchIntervals'] = `${this.sdkConfigTrackingManagerConfigBatchIntervals}`
+      customVariable['sdk.config.trackingManager.batchIntervals'] = `${this.sdkConfigTrackingManagerConfigBatchIntervals}`
     }
     if (this.sdkConfigTrackingManagerConfigPoolMaxSize !== undefined) {
-      customVariable['sdk.config.trackingManager.config.poolMaxSize'] = `${this.sdkConfigTrackingManagerConfigPoolMaxSize}`
+      customVariable['sdk.config.trackingManager.poolMaxSize'] = `${this.sdkConfigTrackingManagerConfigPoolMaxSize}`
     }
     if (this.sdkConfigFetchNow !== undefined) {
-      customVariable['sdk.config.trackingManager.config.fetchNow'] = `${this.sdkConfigFetchNow}`
+      customVariable['sdk.config.fetchNow'] = `${this.sdkConfigFetchNow}`
     }
     if (this.sdkConfigEnableClientCache !== undefined) {
-      customVariable['sdk.config.trackingManager.config.enableClientCache'] = `${this.sdkConfigEnableClientCache}`
+      customVariable['sdk.config.enableClientCache'] = `${this.sdkConfigEnableClientCache}`
     }
     if (this.sdkConfigInitialBucketing !== undefined) {
-      customVariable['sdk.config.trackingManager.config.initialBucketing'] = JSON.stringify(this.sdkConfigInitialBucketing)
+      customVariable['sdk.config.initialBucketing'] = JSON.stringify(this.sdkConfigInitialBucketing)
     }
     if (this.sdkConfigDecisionApiUrl !== undefined) {
-      customVariable['sdk.config.trackingManager.config.decisionApiUrl'] = `${this.sdkConfigDecisionApiUrl}`
+      customVariable['sdk.config.decisionApiUrl'] = `${this.sdkConfigDecisionApiUrl}`
     }
     if (this.sdkConfigHitDeduplicationTime !== undefined) {
-      customVariable['sdk.config.trackingManager.config.deduplicationTime'] = `${this.sdkConfigHitDeduplicationTime}`
+      customVariable['sdk.config.hitDeduplicationTime'] = `${this.sdkConfigHitDeduplicationTime}`
     }
     if (this.sdkConfigUsingCustomHitCache !== undefined) {
       customVariable['sdk.config.usingCustomHitCache'] = JSON.stringify(this.sdkConfigUsingCustomHitCache)
     }
     if (this.sdkConfigUsingCustomVisitorCache !== undefined) {
-      customVariable['sdk.config.config.usingCustomVisitorCache'] = JSON.stringify(this.sdkConfigUsingCustomVisitorCache)
+      customVariable['sdk.config.usingCustomVisitorCache'] = JSON.stringify(this.sdkConfigUsingCustomVisitorCache)
     }
     if (this.sdkConfigUsingOnVisitorExposed !== undefined) {
-      customVariable['sdk.config.config.usingOnVisitorExposed'] = JSON.stringify(this.sdkConfigUsingOnVisitorExposed)
+      customVariable['sdk.config.usingOnVisitorExposed'] = JSON.stringify(this.sdkConfigUsingOnVisitorExposed)
     }
-
+    if (this.sdkConfigFetchThirdPartyData !== undefined) {
+      customVariable['sdk.config.fetchThirdPartyData'] = JSON.stringify(this.sdkConfigFetchThirdPartyData)
+    }
+    if (this.sdkConfigFetchFlagsBufferingTime !== undefined) {
+      customVariable['sdk.config.fetchFlagsBufferingTime'] = JSON.stringify(this.sdkConfigFetchFlagsBufferingTime)
+    }
+    if (this.sdkConfigNextFetchConfig !== undefined) {
+      customVariable['sdk.config.nextFetchConfig'] = JSON.stringify(this.sdkConfigNextFetchConfig)
+    }
+    if (this.sdkConfigDisableDeveloperUsageTracking !== undefined) {
+      customVariable['sdk.config.disableDeveloperUsageTracking'] = JSON.stringify(this.sdkConfigDisableDeveloperUsageTracking)
+    }
+    if (this.sdkConfigDisableCache !== undefined) {
+      customVariable['sdk.config.disableCache'] = JSON.stringify(this.sdkConfigDisableCache)
+    }
     if (this.httpRequestUrl !== undefined) {
       customVariable['http.request.url'] = `${this.httpRequestUrl}`
     }
