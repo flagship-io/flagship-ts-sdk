@@ -1,10 +1,12 @@
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
-import { BASE_API_URL, BATCH_HIT, BATCH_MAX_SIZE, DEFAULT_HIT_CACHE_TIME_MS, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HIT_EVENT_URL, HIT_SENT_SUCCESS, SDK_INFO, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, URL_ACTIVATE_MODIFICATION, ACTIVATE_HIT } from '../enum/index'
+import { BASE_API_URL, BATCH_MAX_SIZE, DEFAULT_HIT_CACHE_TIME_MS, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, HIT_EVENT_URL, HIT_SENT_SUCCESS, LogLevel, SDK_INFO, URL_ACTIVATE_MODIFICATION, BATCH_HIT, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, ACTIVATE_HIT } from '../enum/index'
 import { ActivateBatch } from '../hit/ActivateBatch'
 import { Batch } from '../hit/Batch'
 import { HitAbstract } from '../hit/index'
+import { Troubleshooting } from '../hit/Troubleshooting'
 import { logDebugSprintf, logErrorSprintf } from '../utils/utils'
-import { BatchingCachingStrategyAbstract, SendActivate } from './BatchingCachingStrategyAbstract'
+import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
+import { SendActivate } from './types'
 
 export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbstract {
   async addHitInPoolQueue (hit: HitAbstract) {
@@ -37,10 +39,10 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       })
 
       logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, ACTIVATE_HIT, {
-        url,
-        headers,
-        nextFetchConfig: this.config.nextFetchConfig,
-        body: requestBody,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
@@ -56,14 +58,35 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       })
 
       logErrorSprintf(this.config, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, ACTIVATE_HIT, {
-        message: error.message || error,
-        url,
-        headers,
-        nextFetchConfig: this.config.nextFetchConfig,
-        body: requestBody,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseCode: error?.statusCode,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
+
+      const monitoringHttpResponse = new Troubleshooting({
+        label: 'SEND_ACTIVATE_HIT_ROUTE_ERROR',
+        logLevel: LogLevel.ERROR,
+        visitorId: `${this._flagshipInstanceId}`,
+        traffic: 0,
+        config: this.config,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseCode: error?.statusCode,
+        httpResponseTime: Date.now() - now,
+        batchTriggeredBy
+      })
+
+      await this.sendTroubleshootingHit(monitoringHttpResponse)
     }
   }
 
@@ -120,10 +143,10 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       })
 
       logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, BATCH_HIT, {
-        url: HIT_EVENT_URL,
-        body: requestBody,
-        headers,
-        nextFetchConfig: this.config.nextFetchConfig,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: HIT_EVENT_URL,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
@@ -134,14 +157,34 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         this._hitsPoolQueue.set(hit.key, hit)
       })
       logErrorSprintf(this.config, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, BATCH_HIT, {
-        message: error.message || error,
-        url: HIT_EVENT_URL,
-        headers,
-        nextFetchConfig: this.config.nextFetchConfig,
-        body: requestBody,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: HIT_EVENT_URL,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseCode: error?.statusCode,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
+
+      const monitoringHttpResponse = new Troubleshooting({
+        label: 'SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR',
+        logLevel: LogLevel.ERROR,
+        visitorId: `${this._flagshipInstanceId}`,
+        traffic: 0,
+        config: this.config,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseMethod: 'POST',
+        httpResponseUrl: HIT_EVENT_URL,
+        httpResponseCode: error?.statusCode,
+        httpResponseTime: Date.now() - now
+      })
+
+      this.addTroubleshootingHit(monitoringHttpResponse)
     }
     const mergedQueue = new Map<string, HitAbstract>([...this._hitsPoolQueue, ...this._activatePoolQueue])
     await this.flushAllHits()

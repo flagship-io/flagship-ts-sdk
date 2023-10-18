@@ -7,6 +7,8 @@ import { HitAbstract, HitShape } from '../hit/index'
 import { BatchDTO } from '../hit/Batch'
 import { FlagMetadata } from '../flag/FlagMetadata'
 import { CampaignDTO } from '../decision/api/models'
+import { Troubleshooting } from '../hit/Troubleshooting'
+import { Analytic } from '../hit/Analytic'
 
 export class PanicStrategy extends DefaultStrategy {
   setConsent (hasConsented:boolean):void {
@@ -98,6 +100,16 @@ export class PanicStrategy extends DefaultStrategy {
     const emptyMetaData = FlagMetadata.Empty()
     logInfoSprintf(this.config, FLAG_METADATA, METADATA_PANIC_MODE, this.visitor.visitorId, param.key, emptyMetaData)
     return emptyMetaData
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public sendTroubleshootingHit (_hit: Troubleshooting): Promise<void> {
+    return Promise.resolve()
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async sendAnalyticHit (_hit: Analytic) {
+    return Promise.resolve()
   }
 
   private log (methodName:string) {

@@ -1,18 +1,18 @@
-import { IFlagshipConfig } from '../config/index.ts'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy.ts'
-import { HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, HIT_SENT_SUCCESS, FS_CONSENT, SDK_INFO, BASE_API_URL, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, URL_ACTIVATE_MODIFICATION, ACTIVATE_HIT, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, DIRECT_HIT, DEFAULT_HIT_CACHE_TIME_MS } from '../enum/index.ts'
+import { HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, HIT_SENT_SUCCESS, FS_CONSENT, SDK_INFO, BASE_API_URL, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, URL_ACTIVATE_MODIFICATION, LogLevel, ACTIVATE_HIT, DIRECT_HIT, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, DEFAULT_HIT_CACHE_TIME_MS } from '../enum/index.ts'
 import { Activate } from '../hit/Activate.ts'
 import { ActivateBatch } from '../hit/ActivateBatch.ts'
 import { HitAbstract, Event } from '../hit/index.ts'
-import { IHttpClient } from '../utils/HttpClient.ts'
+import { Troubleshooting } from '../hit/Troubleshooting.ts'
 import { logDebugSprintf, logErrorSprintf, uuidV4 } from '../utils/utils.ts'
-import { BatchingCachingStrategyAbstract, SendActivate } from './BatchingCachingStrategyAbstract.ts'
+import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract.ts'
+import { BatchingCachingStrategyConstruct, SendActivate } from './types.ts'
 
 export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategyAbstract {
   protected cacheHitKeys:Record<string, string>
 
-  constructor (config: IFlagshipConfig, httpClient: IHttpClient, hitsPoolQueue: Map<string, HitAbstract>, activatePoolQueue: Map<string, Activate>) {
-    super(config, httpClient, hitsPoolQueue, activatePoolQueue)
+  constructor (param: BatchingCachingStrategyConstruct) {
+    super(param)
     this.cacheHitKeys = {}
   }
 
@@ -56,10 +56,10 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       })
 
       logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, DIRECT_HIT, {
-        url: HIT_EVENT_URL,
-        body: requestBody,
-        headers,
-        nextFetchConfig: this.config.nextFetchConfig,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: HIT_EVENT_URL,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.DirectHit]
       })
@@ -72,14 +72,35 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       await this.cacheHit(new Map<string, HitAbstract>().set(hit.key, hit))
 
       logErrorSprintf(this.config, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, DIRECT_HIT, {
-        message: error.message || error,
-        url: HIT_EVENT_URL,
-        headers,
-        nextFetchConfig: this.config.nextFetchConfig,
-        body: requestBody,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: HIT_EVENT_URL,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseCode: error?.statusCode,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.DirectHit]
       })
+
+      const monitoringHttpResponse = new Troubleshooting({
+        label: 'SEND_HIT_ROUTE_ERROR',
+        logLevel: LogLevel.ERROR,
+        visitorId: `${this._flagshipInstanceId}`,
+        traffic: 0,
+        config: this.config,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: HIT_EVENT_URL,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseCode: error?.statusCode,
+        httpResponseTime: Date.now() - now,
+        batchTriggeredBy: BatchTriggeredBy.DirectHit
+      })
+
+      await this.sendTroubleshootingHit(monitoringHttpResponse)
     }
   }
 
@@ -148,10 +169,10 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       })
 
       logDebugSprintf(this.config, TRACKING_MANAGER, HIT_SENT_SUCCESS, ACTIVATE_HIT, {
-        url,
-        headers,
-        nextFetchConfig: this.config.nextFetchConfig,
-        body: requestBody,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
@@ -178,14 +199,37 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       }
 
       logErrorSprintf(this.config, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, ACTIVATE_HIT, {
-        message: error.message || error,
-        url,
-        headers,
-        nextFetchConfig: this.config.nextFetchConfig,
-        body: requestBody,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseCode: error?.statusCode,
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
+
+      const monitoringHttpResponse = new Troubleshooting({
+        label: 'SEND_ACTIVATE_HIT_ROUTE_ERROR',
+        logLevel: LogLevel.ERROR,
+        visitorId: `${this._flagshipInstanceId}`,
+        traffic: 0,
+        config: this.config,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseMethod: 'POST',
+        httpResponseUrl: url,
+        httpResponseCode: error?.statusCode,
+        httpResponseTime: Date.now() - now,
+        batchTriggeredBy
+      })
+
+      await this.sendTroubleshootingHit(monitoringHttpResponse)
     }
   }
 }

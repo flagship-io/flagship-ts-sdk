@@ -8,7 +8,7 @@ import { ConfigManager, IConfigManager } from '../config/ConfigManager.ts'
 import { ApiManager } from '../decision/ApiManager.ts'
 import { TrackingManager } from '../api/TrackingManager.ts'
 import { FlagshipLogManager } from '../utils/FlagshipLogManager.ts'
-import { isBrowser, logDebugSprintf, logError, logInfo, logInfoSprintf, sprintf } from '../utils/utils.ts'
+import { isBrowser, logDebugSprintf, logError, logInfo, logInfoSprintf, sprintf, uuidV4 } from '../utils/utils.ts'
 import {
   INITIALIZATION_PARAM_ERROR,
   INITIALIZATION_STARTING,
@@ -33,6 +33,7 @@ import { DefaultHitCache } from '../cache/DefaultHitCache.ts'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache.ts'
 import { EdgeManager } from '../decision/EdgeManager.ts'
 import { EdgeConfig } from '../config/EdgeConfig.ts'
+import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 
 export class Flagship {
   // eslint-disable-next-line no-use-before-define
@@ -41,6 +42,8 @@ export class Flagship {
   private _config!: IFlagshipConfig
   private _status!: FlagshipStatus
   private _visitorInstance?: Visitor
+  private instanceId:string
+  private lastInitializationTimestamp!: string
 
   private set configManager (value: IConfigManager) {
     this._configManager = value
@@ -52,6 +55,7 @@ export class Flagship {
 
   // eslint-disable-next-line no-useless-constructor
   private constructor () {
+    this.instanceId = uuidV4()
     // singleton
   }
 
@@ -68,19 +72,22 @@ export class Flagship {
     }
 
     this._status = status
-    const statusChanged = this.getConfig().statusChangedCallback
+    VisitorAbstract.SdkStatus = status
+
+    const statusChanged = this.getConfig()?.statusChangedCallback
 
     logInfoSprintf(this._config, PROCESS_SDK_STATUS, SDK_STATUS_CHANGED, FlagshipStatus[status])
 
     if (this.getConfig().decisionMode !== DecisionMode.BUCKETING_EDGE) {
       if (status === FlagshipStatus.READY) {
         this.configManager?.trackingManager?.startBatchingLoop()
-      } else {
+      }
+      if (status === FlagshipStatus.NOT_INITIALIZED) {
         this.configManager?.trackingManager?.stopBatchingLoop()
       }
     }
 
-    if (this.getConfig() && statusChanged) {
+    if (statusChanged) {
       statusChanged(status)
     }
   }
@@ -216,19 +223,18 @@ export class Flagship {
       localConfig.visitorCacheImplementation = new DefaultVisitorCache()
     }
 
-    let decisionManager = flagship.configManager?.decisionManager
+    const httpClient = new HttpClient()
+
+    const decisionManager = flagship.configManager?.decisionManager
 
     if (decisionManager instanceof BucketingManager && localConfig.decisionMode !== DecisionMode.BUCKETING_EDGE) {
       decisionManager.stopPolling()
     }
 
-    const httpClient = new HttpClient()
-
-    decisionManager = flagship.buildDecisionManager(flagship, localConfig as FlagshipConfig, httpClient)
-
     let trackingManager = flagship.configManager?.trackingManager
+
     if (!trackingManager) {
-      trackingManager = new TrackingManager(httpClient, localConfig)
+      trackingManager = new TrackingManager(httpClient, localConfig, flagship.instanceId)
     }
 
     flagship.configManager = new ConfigManager(
@@ -237,15 +243,23 @@ export class Flagship {
       trackingManager
     )
 
+    flagship.configManager.decisionManager = flagship.buildDecisionManager(flagship, localConfig as FlagshipConfig, httpClient)
+
+    flagship.configManager.decisionManager.trackingManager = trackingManager
+    flagship.configManager.decisionManager.flagshipInstanceId = flagship.instanceId
+
     if (flagship._status === FlagshipStatus.STARTING) {
       flagship.setStatus(FlagshipStatus.READY)
     }
 
     logInfo(
       localConfig,
-      sprintf(SDK_STARTED_INFO, SDK_INFO.version),
+      sprintf(SDK_STARTED_INFO, SDK_INFO.version, FlagshipStatus[flagship._status]),
       PROCESS_INITIALIZATION
     )
+
+    flagship.lastInitializationTimestamp = new Date().toISOString()
+
     return flagship
   }
 
@@ -292,7 +306,7 @@ export class Flagship {
     let context: Record<string, primitive>
     let isAuthenticated = false
     let hasConsented = true
-    let initialModifications: Map<string, FlagDTO> | FlagDTO[] | undefined
+    let initialFlagsData: Map<string, FlagDTO> | FlagDTO[] | undefined
     let initialCampaigns: CampaignDTO[] | undefined
     const isServerSide = !isBrowser()
     let isNewInstance = isServerSide
@@ -305,7 +319,7 @@ export class Flagship {
       context = param1?.context || {}
       isAuthenticated = !!param1?.isAuthenticated
       hasConsented = param1?.hasConsented ?? true
-      initialModifications = param1?.initialFlagsData || param1?.initialModifications
+      initialFlagsData = param1?.initialFlagsData || param1?.initialModifications
       initialCampaigns = param1?.initialCampaigns
       isNewInstance = param1?.isNewInstance ?? isNewInstance
     }
@@ -335,9 +349,15 @@ export class Flagship {
       isAuthenticated,
       hasConsented,
       configManager: this.getInstance().configManager,
-      initialModifications,
+      initialModifications: initialFlagsData,
       initialCampaigns,
-      initialFlagsData: initialModifications
+      initialFlagsData,
+      monitoringData: {
+        instanceId: this.getInstance().instanceId,
+        lastInitializationTimestamp: this.getInstance().lastInitializationTimestamp,
+        initialCampaigns,
+        initialFlagsData
+      }
     })
 
     const visitor = new Visitor(visitorDelegate)

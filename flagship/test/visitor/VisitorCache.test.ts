@@ -12,6 +12,7 @@ import { campaigns } from '../decision/campaigns'
 import { VisitorCacheDTO } from '../../src/types'
 import { VISITOR_ID_MISMATCH_ERROR } from '../../src/visitor/VisitorStrategyAbstract'
 import { sprintf } from '../../src/utils/utils'
+import { MurmurHash } from '../../src/utils/MurmurHash'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getUndefined = ():any => undefined
@@ -58,11 +59,13 @@ describe('test visitor cache', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getStrategy = jest.spyOn(visitorDelegate, 'getStrategy' as any)
 
-  const defaultStrategy = new DefaultStrategy(visitorDelegate)
+  const murmurHash = new MurmurHash()
 
-  const noConsentStrategy = new NoConsentStrategy(visitorDelegate)
+  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
-  const notReadyStrategy = new NotReadyStrategy(visitorDelegate)
+  const noConsentStrategy = new NoConsentStrategy({ visitor: visitorDelegate, murmurHash })
+
+  const notReadyStrategy = new NotReadyStrategy({ visitor: visitorDelegate, murmurHash })
 
   const assignmentsHistory:Record<string, string> = {}
 
@@ -139,7 +142,7 @@ describe('test visitor cache', () => {
     getCampaignsAsync.mockResolvedValue(null)
 
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
-    const defaultStrategy = new DefaultStrategy(visitorDelegate)
+    const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
     visitorDelegate.visitorCache = data
     await defaultStrategy.fetchFlags()
@@ -150,7 +153,7 @@ describe('test visitor cache', () => {
     getCampaignsAsync.mockResolvedValue(null)
 
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
-    const noConsentStrategy = new NoConsentStrategy(visitorDelegate)
+    const noConsentStrategy = new NoConsentStrategy({ visitor: visitorDelegate, murmurHash })
 
     visitorDelegate.visitorCache = data
     await noConsentStrategy.fetchFlags()
@@ -161,7 +164,7 @@ describe('test visitor cache', () => {
     getCampaignsAsync.mockResolvedValue(null)
 
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
-    const noConsentStrategy = new PanicStrategy(visitorDelegate)
+    const noConsentStrategy = new PanicStrategy({ visitor: visitorDelegate, murmurHash })
 
     visitorDelegate.visitorCache = data
     await noConsentStrategy.fetchFlags()
@@ -172,7 +175,7 @@ describe('test visitor cache', () => {
     getCampaignsAsync.mockResolvedValue(null)
 
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
-    const defaultStrategy = new DefaultStrategy(visitorDelegate)
+    const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
     visitorDelegate.visitorCache = {
       version: VISITOR_CACHE_VERSION,
@@ -258,7 +261,7 @@ describe('test visitor cache', () => {
 
   it('test lookupVisitor', async () => {
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
-    const defaultStrategy = new DefaultStrategy(visitorDelegate)
+    const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
     const data = {
       data: {
         visitorId: visitorDelegate.visitorId,
@@ -276,7 +279,7 @@ describe('test visitor cache', () => {
 
   it('test lookupVisitor', async () => {
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
-    const defaultStrategy = new DefaultStrategy(visitorDelegate)
+    const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
     const data = {
       version: VISITOR_CACHE_VERSION,
       data: {
@@ -297,7 +300,7 @@ describe('test visitor cache', () => {
 
   it('test lookupVisitor', async () => {
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
-    const defaultStrategy = new DefaultStrategy(visitorDelegate)
+    const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
     lookupVisitor.mockReturnValue(getUndefined())
     await defaultStrategy.lookupVisitor()
@@ -307,7 +310,7 @@ describe('test visitor cache', () => {
 
   it('test lookupVisitor', async () => {
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
-    const defaultStrategy = new DefaultStrategy(visitorDelegate)
+    const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
     const data = {
       version: VISITOR_CACHE_VERSION,
       data: {
@@ -571,7 +574,9 @@ describe('test visitorCache with disabledCache', () => {
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
 
-  const defaultStrategy = new DefaultStrategy(visitorDelegate)
+  const murmurHash = new MurmurHash()
+
+  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
   it('test saveCache defaultStrategy', async () => {
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)

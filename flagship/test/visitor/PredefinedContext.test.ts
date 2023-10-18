@@ -9,6 +9,7 @@ import { HttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
 import { DefaultStrategy } from '../../src/visitor/DefaultStrategy'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
+import { MurmurHash } from '../../src/utils/MurmurHash'
 
 describe('test DefaultStrategy ', () => {
   const visitorId = 'visitorId'
@@ -35,7 +36,8 @@ describe('test DefaultStrategy ', () => {
       trackingManager
     }
   })
-  const defaultStrategy = new DefaultStrategy(visitorDelegate)
+  const murmurHash = new MurmurHash()
+  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
   const predefinedContext = {
     fs_client: SDK_INFO.name,

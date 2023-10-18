@@ -1,3 +1,5 @@
+import { Analytic } from '../hit/Analytic'
+import { Troubleshooting } from '../hit/Troubleshooting'
 import { ITrackingManagerCommon } from './ITrackingManagerCommon'
 
 export interface ITrackingManager extends ITrackingManagerCommon {
@@ -7,5 +9,9 @@ export interface ITrackingManager extends ITrackingManagerCommon {
     stopBatchingLoop():void
 
     sendBatch():Promise<void>
+
+    sendTroubleshootingHit(hit: Troubleshooting): Promise<void>
+
+    sendAnalyticsHit(hit: Analytic): Promise<void>
 
   }

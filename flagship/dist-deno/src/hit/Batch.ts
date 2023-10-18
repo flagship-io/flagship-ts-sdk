@@ -23,7 +23,7 @@ export class Batch extends HitAbstract implements Omit<IBatch, 'visitorId'|'anon
     this._hits = v
   }
 
-  constructor (params: Omit<IBatch, 'type'|'createdAt'|'visitorId'|'anonymousId'>) {
+  constructor (params: Omit<IBatch, 'type'|'createdAt'|'visitorInstanceId'|'traffic'|'visitorId'|'anonymousId'>) {
     super({ ...params, visitorId: '', anonymousId: '', type: BATCH })
     this.hits = params.hits
   }

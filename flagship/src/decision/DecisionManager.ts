@@ -3,15 +3,51 @@ import { IFlagshipConfig } from '../config/index'
 import { IHttpClient } from '../utils/HttpClient'
 import { CampaignDTO } from './api/models'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
-import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, PROCESS_FETCHING_FLAGS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
-import { FlagDTO } from '../types'
+import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, PROCESS_FETCHING_FLAGS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
+import { FlagDTO, TroubleshootingData } from '../types'
 import { errorFormat, logDebug } from '../utils/utils'
+import { Troubleshooting } from '../hit/Troubleshooting'
+import { ITrackingManager } from '../api/ITrackingManager'
 
 export abstract class DecisionManager implements IDecisionManager {
   protected _config: IFlagshipConfig
   protected _panic = false
   protected _httpClient: IHttpClient
   private _statusChangedCallback! : (status: FlagshipStatus)=>void
+  private _troubleshooting? : TroubleshootingData
+
+  protected _lastBucketingTimestamp?:string
+
+  private _trackingManager! : ITrackingManager
+  private _flagshipInstanceId! : string
+
+  public get trackingManager () : ITrackingManager {
+    return this._trackingManager
+  }
+
+  public set trackingManager (v : ITrackingManager) {
+    this._trackingManager = v
+  }
+
+  public get flagshipInstanceId () : string {
+    return this._flagshipInstanceId
+  }
+
+  public set flagshipInstanceId (v : string) {
+    this._flagshipInstanceId = v
+  }
+
+  public get lastBucketingTimestamp ():string|undefined {
+    return this._lastBucketingTimestamp
+  }
+
+  public get troubleshooting () : TroubleshootingData|undefined {
+    return this._troubleshooting
+  }
+
+  public set troubleshooting (v : TroubleshootingData|undefined) {
+    this._troubleshooting = v
+  }
 
   public get config ():IFlagshipConfig {
     return this._config
@@ -90,8 +126,9 @@ export abstract class DecisionManager implements IDecisionManager {
       visitor_consent: visitor.hasConsented
     }
 
-    const url = `${this.config.decisionApiUrl || BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true`
+    const url = `${this.config.decisionApiUrl || BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true&extras[]=accountSettings`
     const now = Date.now()
+
     try {
       const response = await this._httpClient.postAsync(url, {
         headers,
@@ -106,9 +143,41 @@ export abstract class DecisionManager implements IDecisionManager {
       if (response?.body?.campaigns) {
         campaigns = response.body.campaigns
       }
+
+      const troubleshooting = response?.body?.extras?.accountSettings?.troubleshooting
+      if (troubleshooting) {
+        this.troubleshooting = {
+          startDate: new Date(troubleshooting.startDate),
+          endDate: new Date(troubleshooting.endDate),
+          timezone: troubleshooting.timezone,
+          traffic: troubleshooting.traffic
+        }
+      }
+
       return campaigns
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
+      const monitoringHttpResponse = new Troubleshooting({
+        label: 'GET_CAMPAIGNS_ROUTE_RESPONSE_ERROR',
+        logLevel: LogLevel.ERROR,
+        visitorId: visitor.visitorId,
+        anonymousId: visitor.anonymousId,
+        visitorSessionId: visitor.instanceId,
+        traffic: 100,
+        config: this.config,
+        visitorContext: visitor.context,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseCode: error?.statusCode,
+        httpResponseTime: Date.now() - now
+      })
+
+      await visitor.sendMonitoringHit(monitoringHttpResponse)
+
       const errorMessage = errorFormat(error.message || error, {
         url,
         headers,
