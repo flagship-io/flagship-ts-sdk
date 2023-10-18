@@ -1,6 +1,6 @@
 import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant.ts'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index.ts'
-import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, sdkInitialData } from '../types.ts'
+import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, sdkInitialData, VisitorCacheStatus } from '../types.ts'
 
 import { IVisitor } from './IVisitor.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
@@ -45,9 +45,17 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   }
 
   private _flagSynchStatus : FlagSynchStatus
-
   public lastFetchFlagsTimestamp = 0
   public isFlagFetching = false
+  private _visitorCacheStatus? : VisitorCacheStatus
+
+  public get visitorCacheStatus () : VisitorCacheStatus|undefined {
+    return this._visitorCacheStatus
+  }
+
+  public set visitorCacheStatus (v : VisitorCacheStatus|undefined) {
+    this._visitorCacheStatus = v
+  }
 
   public get flagSynchStatus () : FlagSynchStatus {
     return this._flagSynchStatus

@@ -168,3 +168,5 @@ export type ThirdPartySegment = {
   expiration: number,
   partner: string
 }
+
+export type VisitorCacheStatus = 'NONE'|'ANONYMOUS_ID_CACHE'|'VISITOR_ID_CACHE'|'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE';
