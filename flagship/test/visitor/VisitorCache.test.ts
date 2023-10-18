@@ -409,7 +409,7 @@ describe('test visitor cache status', () => {
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
 
-  const defaultStrategy = new DefaultStrategy(visitorDelegate)
+  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash: new MurmurHash() })
 
   const assignmentsHistory:Record<string, string> = {}
 
