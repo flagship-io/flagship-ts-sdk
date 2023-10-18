@@ -1,5 +1,4 @@
 import { Page } from './../../src/hit/Page'
-import { FlagDTO } from './../../dist/types.d'
 import { jest, expect, it, describe, afterAll } from '@jest/globals'
 import { ERROR_MESSAGE } from '../../src/hit/Event'
 import { BucketingConfig } from '../../src/config/index'
@@ -18,6 +17,7 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { version } from '../../src/sdkVersion'
 import { Troubleshooting, TroubleshootingType } from '../../src/hit/Troubleshooting'
 import { BatchTriggeredBy } from '../../src/enum/BatchTriggeredBy'
+import { FlagDTO } from '../../src/types'
 
 describe('test hit type Monitoring', () => {
   const methodNow = Date.now
