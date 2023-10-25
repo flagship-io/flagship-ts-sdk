@@ -846,6 +846,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
       label: 'VISITOR_AUTHENTICATE',
       logLevel: LogLevel.INFO,
+      flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
       visitorId: this.visitor.visitorId,
       anonymousId: this.visitor.anonymousId,
       visitorContext: this.visitor.context,
@@ -872,6 +873,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       logLevel: LogLevel.INFO,
       visitorId: this.visitor.visitorId,
       anonymousId: this.visitor.anonymousId,
+      flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
       visitorContext: this.visitor.context,
       traffic: this.visitor.traffic,
       config: this.config
