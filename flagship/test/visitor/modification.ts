@@ -3,12 +3,14 @@ import { FlagDTO } from '../../src/types'
 export const returnModification = new Map<string, FlagDTO>([
   [
     'keyNull',
-
     {
       key: 'keyNull',
       campaignId: 'c2nrh1hjg50l9thhu8bg',
       variationGroupId: 'c2nrh1hjg50l9thhu8cg',
       variationId: 'c2nrh1hjg50l9thhu8dg',
+      campaignName: 'campaignName-1',
+      variationGroupName: 'variationGroupName-1',
+      variationName: 'variationName-1',
       isReference: false,
       value: null
     }
@@ -19,10 +21,13 @@ export const returnModification = new Map<string, FlagDTO>([
     {
       key: 'keyString',
       campaignId: 'c2nrh1hjg50l9stringgu8bg',
-      variationGroupId: 'c2nrh1hjg50l9thhug8cg',
+      variationGroupId: 'c2nrh1hjg50l9thhu8cg',
       variationId: 'c2nrh1hjg50l9thhu8dg',
       isReference: false,
-      value: 'value'
+      value: 'value',
+      campaignName: 'campaignName-1',
+      variationGroupName: 'variationGroupName-1',
+      variationName: 'variationName-1'
     }
   ],
   [
@@ -30,10 +35,13 @@ export const returnModification = new Map<string, FlagDTO>([
     {
       key: 'keyNumber',
       campaignId: 'c2nrh1hjg50l9thhu8bg',
-      variationGroupId: 'c2nrh1hjg50l9thhu8cg',
-      variationId: 'c2nrh1hjg50l9thhu8dg',
+      variationGroupId: 'c2nrh1hjg50l9thhug8cg',
+      variationId: 'c2nrh1hjg50l9thhu8dgk',
       isReference: false,
-      value: 52
+      value: 52,
+      campaignName: 'campaignName-3',
+      variationGroupName: 'variationGroupName-3',
+      variationName: 'variationName-2'
     }
   ],
   [
@@ -45,7 +53,10 @@ export const returnModification = new Map<string, FlagDTO>([
       variationGroupId: 'c2nrh1hjg50l9thhu8cgKeyBoolean',
       variationId: 'c2nrh1hjg50l9thhu8dg',
       isReference: false,
-      value: true
+      value: true,
+      campaignName: 'campaignName-1',
+      variationGroupName: 'variationGroupName-1',
+      variationName: 'variationName-1'
     }
 
   ],
@@ -58,7 +69,10 @@ export const returnModification = new Map<string, FlagDTO>([
       variationGroupId: 'c2nrh1hjg50l9thhu8cg',
       variationId: 'c2nrh1hjg50l9thhu8dg',
       isReference: false,
-      value: 'value'
+      value: 'value',
+      campaignName: 'campaignName-1',
+      variationGroupName: 'variationGroupName-1',
+      variationName: 'variationName-1'
     }
 
   ],
@@ -71,7 +85,10 @@ export const returnModification = new Map<string, FlagDTO>([
       variationGroupId: 'c3ev1afkprbg5u3burbg',
       variationId: 'c3ev1afkprbg5u3burcg',
       isReference: false,
-      value: [1, 1, 1]
+      value: [1, 1, 1],
+      campaignName: 'campaignName-2',
+      variationGroupName: 'variationGroupName-2',
+      variationName: 'variationName-2'
     }
 
   ],
@@ -84,7 +101,10 @@ export const returnModification = new Map<string, FlagDTO>([
       variationGroupId: 'c3ev1afkprbg5u3burbg',
       variationId: 'c3ev1afkprbg5u3burcg',
       isReference: false,
-      value: { carray: [] }
+      value: { carray: [] },
+      campaignName: 'campaignName-2',
+      variationGroupName: 'variationGroupName-2',
+      variationName: 'variationName-2'
     }
 
   ],
@@ -97,7 +117,10 @@ export const returnModification = new Map<string, FlagDTO>([
       variationGroupId: 'c3ev1afkprbg5u3burbg',
       variationId: 'c3ev1afkprbg5u3burcg',
       isReference: false,
-      value: { value: 123456 }
+      value: { value: 123456 },
+      campaignName: 'campaignName-2',
+      variationGroupName: 'variationGroupName-2',
+      variationName: 'variationName-2'
     }
   ]
 ])

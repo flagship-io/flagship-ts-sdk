@@ -1,6 +1,6 @@
 import { ALLOCATION, BUCKETING_NEW_ALLOCATION, BUCKETING_VARIATION_CACHE, GET_THIRD_PARTY_SEGMENT, POLLING_EVENT_300, POLLING_EVENT_FAILED, THIRD_PARTY_SEGMENT_URL } from './../enum/FlagshipConstant'
 import { IFlagshipConfig } from '../config/index'
-import { BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, POLLING_EVENT_200, PROCESS_BUCKETING, SDK_INFO } from '../enum/index'
+import { BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, POLLING_EVENT_200, PROCESS_BUCKETING, SDK_INFO } from '../enum/index'
 import { Segment } from '../hit/Segment'
 import { ThirdPartySegment, primitive } from '../types'
 import { IHttpClient, IHttpResponse } from '../utils/HttpClient'
@@ -10,6 +10,7 @@ import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { Targetings, VariationGroupDTO } from './api/bucketingDTO'
 import { CampaignDTO, VariationDTO } from './api/models'
 import { DecisionManager } from './DecisionManager'
+import { Troubleshooting } from '../hit/Troubleshooting'
 
 export class BucketingManager extends DecisionManager {
   private _lastModified!: string
@@ -28,10 +29,28 @@ export class BucketingManager extends DecisionManager {
     }
   }
 
-  private finishLoop (response: IHttpResponse) {
+  private finishLoop (params: {response: IHttpResponse, headers: Record<string, string>, url: string, now: number}) {
+    const { response, headers, url, now } = params
     if (response.status === 200) {
       logDebugSprintf(this.config, PROCESS_BUCKETING, POLLING_EVENT_200, response.body)
       this._bucketingContent = response.body
+      this._lastBucketingTimestamp = new Date().toISOString()
+      const troubleshootingHit = new Troubleshooting({
+        visitorId: this.flagshipInstanceId,
+        flagshipInstanceId: this.flagshipInstanceId,
+        label: 'SDK_BUCKETING_FILE',
+        traffic: 0,
+        logLevel: LogLevel.INFO,
+        config: this.config,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
+        httpResponseBody: response?.body,
+        httpResponseHeaders: response?.headers,
+        httpResponseCode: response?.status,
+        httpResponseTime: Date.now() - now
+      })
+      this.trackingManager.sendTroubleshootingHit(troubleshootingHit)
     } else if (response.status === 304) {
       logDebug(this.config, POLLING_EVENT_300, PROCESS_BUCKETING)
     }
@@ -96,7 +115,7 @@ export class BucketingManager extends DecisionManager {
         nextFetchConfig: this.config.nextFetchConfig
       })
 
-      this.finishLoop(response)
+      this.finishLoop({ response, headers, url, now })
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
@@ -114,6 +133,22 @@ export class BucketingManager extends DecisionManager {
       if (typeof this.config.onBucketingFail === 'function') {
         this.config.onBucketingFail(new Error(error))
       }
+      const troubleshootingHit = new Troubleshooting({
+        visitorId: this.flagshipInstanceId,
+        flagshipInstanceId: this.flagshipInstanceId,
+        label: 'SDK_BUCKETING_FILE_ERROR',
+        traffic: 0,
+        logLevel: LogLevel.INFO,
+        config: this.config,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'GET',
+        httpRequestUrl: url,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseCode: error?.statusCode,
+        httpResponseTime: Date.now() - now
+      })
+      this.trackingManager.sendTroubleshootingHit(troubleshootingHit)
     }
   }
 
@@ -170,6 +205,18 @@ export class BucketingManager extends DecisionManager {
     if (!this._bucketingContent) {
       return null
     }
+
+    const troubleshooting = this._bucketingContent?.accountSettings?.troubleshooting
+    this.troubleshooting = undefined
+    if (troubleshooting) {
+      this.troubleshooting = {
+        startDate: new Date(troubleshooting.startDate),
+        endDate: new Date(troubleshooting.endDate),
+        timezone: troubleshooting.timezone,
+        traffic: troubleshooting.traffic
+      }
+    }
+
     if (this._bucketingContent.panic) {
       this.panic = true
       return []
@@ -193,6 +240,7 @@ export class BucketingManager extends DecisionManager {
       const currentCampaigns = this.getVisitorCampaigns(campaign.variationGroups, campaign.id, campaign.type, visitor)
       if (currentCampaigns) {
         currentCampaigns.slug = campaign.slug ?? null
+        currentCampaigns.name = campaign.name
         visitorCampaigns.push(currentCampaigns)
       }
     })
@@ -214,6 +262,7 @@ export class BucketingManager extends DecisionManager {
           id: campaignId,
           variation,
           variationGroupId: variationGroup.id,
+          variationGroupName: variationGroup.name,
           type: campaignType
         }
       }
@@ -237,6 +286,7 @@ export class BucketingManager extends DecisionManager {
         logDebugSprintf(this.config, ALLOCATION, BUCKETING_VARIATION_CACHE, visitor.visitorId, newVariation.id)
         return {
           id: newVariation.id,
+          name: newVariation.name,
           modifications: newVariation.modifications,
           reference: newVariation.reference
         }
@@ -252,7 +302,8 @@ export class BucketingManager extends DecisionManager {
         return {
           id: variation.id,
           modifications: variation.modifications,
-          reference: variation.reference
+          reference: variation.reference,
+          name: variation.name
         }
       }
     }

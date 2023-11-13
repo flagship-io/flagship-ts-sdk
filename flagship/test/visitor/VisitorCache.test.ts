@@ -12,6 +12,7 @@ import { campaigns } from '../decision/campaigns'
 import { VisitorCacheDTO } from '../../src/types'
 import { VISITOR_ID_MISMATCH_ERROR } from '../../src/visitor/VisitorStrategyAbstract'
 import { sprintf } from '../../src/utils/utils'
+import { MurmurHash } from '../../src/utils/MurmurHash'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getUndefined = ():any => undefined
@@ -58,11 +59,13 @@ describe('test visitor cache', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getStrategy = jest.spyOn(visitorDelegate, 'getStrategy' as any)
 
-  const defaultStrategy = new DefaultStrategy(visitorDelegate)
+  const murmurHash = new MurmurHash()
 
-  const noConsentStrategy = new NoConsentStrategy(visitorDelegate)
+  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
-  const notReadyStrategy = new NotReadyStrategy(visitorDelegate)
+  const noConsentStrategy = new NoConsentStrategy({ visitor: visitorDelegate, murmurHash })
+
+  const notReadyStrategy = new NotReadyStrategy({ visitor: visitorDelegate, murmurHash })
 
   const assignmentsHistory:Record<string, string> = {}
 
@@ -139,7 +142,7 @@ describe('test visitor cache', () => {
     getCampaignsAsync.mockResolvedValue(null)
 
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
-    const defaultStrategy = new DefaultStrategy(visitorDelegate)
+    const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
     visitorDelegate.visitorCache = data
     await defaultStrategy.fetchFlags()
@@ -150,7 +153,7 @@ describe('test visitor cache', () => {
     getCampaignsAsync.mockResolvedValue(null)
 
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
-    const noConsentStrategy = new NoConsentStrategy(visitorDelegate)
+    const noConsentStrategy = new NoConsentStrategy({ visitor: visitorDelegate, murmurHash })
 
     visitorDelegate.visitorCache = data
     await noConsentStrategy.fetchFlags()
@@ -161,7 +164,7 @@ describe('test visitor cache', () => {
     getCampaignsAsync.mockResolvedValue(null)
 
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
-    const noConsentStrategy = new PanicStrategy(visitorDelegate)
+    const noConsentStrategy = new PanicStrategy({ visitor: visitorDelegate, murmurHash })
 
     visitorDelegate.visitorCache = data
     await noConsentStrategy.fetchFlags()
@@ -172,7 +175,7 @@ describe('test visitor cache', () => {
     getCampaignsAsync.mockResolvedValue(null)
 
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
-    const defaultStrategy = new DefaultStrategy(visitorDelegate)
+    const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
     visitorDelegate.visitorCache = {
       version: VISITOR_CACHE_VERSION,
@@ -258,7 +261,7 @@ describe('test visitor cache', () => {
 
   it('test lookupVisitor', async () => {
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
-    const defaultStrategy = new DefaultStrategy(visitorDelegate)
+    const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
     const data = {
       data: {
         visitorId: visitorDelegate.visitorId,
@@ -276,7 +279,7 @@ describe('test visitor cache', () => {
 
   it('test lookupVisitor', async () => {
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
-    const defaultStrategy = new DefaultStrategy(visitorDelegate)
+    const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
     const data = {
       version: VISITOR_CACHE_VERSION,
       data: {
@@ -297,7 +300,7 @@ describe('test visitor cache', () => {
 
   it('test lookupVisitor', async () => {
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
-    const defaultStrategy = new DefaultStrategy(visitorDelegate)
+    const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
     lookupVisitor.mockReturnValue(getUndefined())
     await defaultStrategy.lookupVisitor()
@@ -307,7 +310,7 @@ describe('test visitor cache', () => {
 
   it('test lookupVisitor', async () => {
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
-    const defaultStrategy = new DefaultStrategy(visitorDelegate)
+    const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
     const data = {
       version: VISITOR_CACHE_VERSION,
       data: {
@@ -371,6 +374,169 @@ describe('test visitor cache', () => {
   })
 })
 
+describe('test visitor cache status', () => {
+  const visitorId = 'visitorId'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const context: any = {
+    isVip: true
+  }
+
+  const logManager = new FlagshipLogManager()
+
+  const cacheVisitor = jest.fn<(visitorId: string, data: VisitorCacheDTO)=>Promise<void>>()
+  const lookupVisitor = jest.fn<(visitorId: string)=>Promise<VisitorCacheDTO>>()
+  const flushVisitor = jest.fn<(visitorId: string)=>Promise<void>>()
+  const visitorCacheImplementation:IVisitorCacheImplementation = {
+    cacheVisitor,
+    lookupVisitor,
+    flushVisitor
+  }
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', visitorCacheImplementation })
+  config.logManager = logManager
+
+  const httpClient = new HttpClient()
+
+  const post = jest.fn<typeof httpClient.postAsync>()
+  httpClient.postAsync = post
+  post.mockResolvedValue({} as IHttpResponse)
+
+  const apiManager = new ApiManager(httpClient, config)
+
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  const configManager = new ConfigManager(config, apiManager, trackingManager)
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+
+  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash: new MurmurHash() })
+
+  const assignmentsHistory:Record<string, string> = {}
+
+  const data: VisitorCacheDTO = {
+    version: VISITOR_CACHE_VERSION,
+    data: {
+      visitorId: visitorDelegate.visitorId,
+      anonymousId: visitorDelegate.anonymousId,
+      consent: visitorDelegate.hasConsented,
+      context: visitorDelegate.context,
+      campaigns: campaigns.campaigns.map(campaign => {
+        assignmentsHistory[campaign.variationGroupId] = campaign.variation.id
+        return {
+          campaignId: campaign.id,
+          slug: campaign.slug,
+          variationGroupId: campaign.variationGroupId,
+          variationId: campaign.variation.id,
+          isReference: campaign.variation.reference,
+          type: campaign.variation.modifications.type,
+          activated: false,
+          flags: campaign.variation.modifications.value
+        }
+      }),
+      assignmentsHistory
+    }
+  }
+
+  it('test visitorCacheStatus NONE ', async () => {
+    lookupVisitor.mockResolvedValue(getUndefined())
+    await defaultStrategy.lookupVisitor()
+    expect(lookupVisitor).toBeCalledTimes(1)
+    expect(visitorDelegate.visitorCacheStatus).toEqual('NONE')
+  })
+
+  it('test visitorCacheStatus VISITOR_ID_CACHE ', async () => {
+    lookupVisitor.mockResolvedValue(data)
+    await defaultStrategy.lookupVisitor()
+    expect(lookupVisitor).toBeCalledTimes(1)
+    expect(visitorDelegate.visitorCacheStatus).toEqual('VISITOR_ID_CACHE')
+  })
+
+  it('test visitorCacheStatus VISITOR_ID_CACHE ', async () => {
+    lookupVisitor.mockResolvedValue(data)
+    const anonymousId = 'anonymousId'
+    visitorDelegate.anonymousId = anonymousId
+    await defaultStrategy.lookupVisitor()
+    expect(lookupVisitor).toBeCalledTimes(2)
+    expect(lookupVisitor).toHaveBeenNthCalledWith(1, visitorId)
+    expect(lookupVisitor).toHaveBeenNthCalledWith(2, anonymousId)
+    expect(visitorDelegate.visitorCacheStatus).toEqual('VISITOR_ID_CACHE')
+  })
+
+  it('test visitorCacheStatus VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE ', async () => {
+    const anonymousId = 'anonymousId'
+    lookupVisitor.mockImplementation(async (key:string) => {
+      if (key === visitorId) {
+        return data
+      }
+      return getUndefined()
+    })
+
+    visitorDelegate.anonymousId = anonymousId
+    await defaultStrategy.lookupVisitor()
+    expect(lookupVisitor).toBeCalledTimes(2)
+    expect(lookupVisitor).toHaveBeenNthCalledWith(1, visitorId)
+    expect(lookupVisitor).toHaveBeenNthCalledWith(2, anonymousId)
+    expect(visitorDelegate.visitorCacheStatus).toEqual('VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE')
+  })
+
+  it('test visitorCacheStatus ANONYMOUS_ID_CACHE ', async () => {
+    const anonymousId = 'anonymousId'
+    lookupVisitor.mockImplementation(async (key:string) => {
+      if (key === visitorId) {
+        return getUndefined()
+      }
+      return data
+    })
+
+    visitorDelegate.anonymousId = anonymousId
+    await defaultStrategy.lookupVisitor()
+    expect(lookupVisitor).toBeCalledTimes(2)
+    expect(lookupVisitor).toHaveBeenNthCalledWith(1, visitorId)
+    expect(lookupVisitor).toHaveBeenNthCalledWith(2, anonymousId)
+    expect(visitorDelegate.visitorCacheStatus).toEqual('ANONYMOUS_ID_CACHE')
+  })
+
+  it('test visitorCacheStatus NONE ', async () => {
+    lookupVisitor.mockResolvedValue(getUndefined())
+    visitorDelegate.visitorCacheStatus = 'NONE'
+    visitorDelegate.anonymousId = null
+    await defaultStrategy.cacheVisitor()
+    expect(cacheVisitor).toBeCalledTimes(1)
+    expect(cacheVisitor).toHaveBeenNthCalledWith(1, visitorId, expect.anything())
+  })
+
+  it('test visitorCacheStatus VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE ', async () => {
+    const anonymousId = 'anonymousId'
+    lookupVisitor.mockResolvedValue(getUndefined())
+    visitorDelegate.visitorCacheStatus = 'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE'
+    visitorDelegate.anonymousId = anonymousId
+    await defaultStrategy.cacheVisitor()
+    expect(cacheVisitor).toBeCalledTimes(2)
+    expect(cacheVisitor).toHaveBeenNthCalledWith(1, visitorId, expect.anything())
+    expect(cacheVisitor).toHaveBeenNthCalledWith(2, anonymousId, expect.anything())
+  })
+
+  it('test visitorCacheStatus ANONYMOUS_ID_CACHE ', async () => {
+    const anonymousId = 'anonymousId'
+    lookupVisitor.mockResolvedValue(getUndefined())
+    visitorDelegate.visitorCacheStatus = 'ANONYMOUS_ID_CACHE'
+    visitorDelegate.anonymousId = anonymousId
+    await defaultStrategy.cacheVisitor()
+    expect(cacheVisitor).toBeCalledTimes(1)
+    expect(cacheVisitor).toHaveBeenNthCalledWith(1, visitorId, expect.anything())
+  })
+
+  it('test visitorCacheStatus VISITOR_ID_CACHE ', async () => {
+    const anonymousId = 'anonymousId'
+    lookupVisitor.mockResolvedValue(getUndefined())
+    visitorDelegate.visitorCacheStatus = 'VISITOR_ID_CACHE'
+    visitorDelegate.anonymousId = anonymousId
+    await defaultStrategy.cacheVisitor()
+    expect(cacheVisitor).toBeCalledTimes(1)
+    expect(cacheVisitor).toHaveBeenNthCalledWith(1, visitorId, expect.anything())
+  })
+})
+
 describe('test visitorCache with disabledCache', () => {
   const visitorId = 'visitorId'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -408,7 +574,9 @@ describe('test visitorCache with disabledCache', () => {
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
 
-  const defaultStrategy = new DefaultStrategy(visitorDelegate)
+  const murmurHash = new MurmurHash()
+
+  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
   it('test saveCache defaultStrategy', async () => {
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)

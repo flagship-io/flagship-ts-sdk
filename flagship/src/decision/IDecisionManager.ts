@@ -1,6 +1,7 @@
+import { ITrackingManager } from '../api/ITrackingManager'
 import { IFlagshipConfig } from '../config/index'
 import { FlagshipStatus } from '../enum/index'
-import { FlagDTO } from '../types'
+import { FlagDTO, TroubleshootingData } from '../types'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { BucketingDTO } from './api/bucketingDTO'
 import { CampaignDTO } from './api/models'
@@ -17,4 +18,11 @@ export interface IDecisionManager {
   config:IFlagshipConfig
 
   getBucketingContent():BucketingDTO|undefined
+  troubleshooting?: TroubleshootingData
+
+  lastBucketingTimestamp?: string
+
+  trackingManager : ITrackingManager
+  flagshipInstanceId : string
+
 }

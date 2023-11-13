@@ -1,5 +1,5 @@
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
-import { Event, EventCategory, OnVisitorExposed, UserExposureInfo } from '../../src'
+import { Event, EventCategory, OnVisitorExposed, TroubleshootingLabel, UserExposureInfo } from '../../src'
 import { BatchingPeriodicCachingStrategy } from '../../src/api/BatchingPeriodicCachingStrategy'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
 import { HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, SDK_INFO, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, BASE_API_URL, URL_ACTIVATE_MODIFICATION, FS_CONSENT, LogLevel, DEFAULT_HIT_CACHE_TIME_MS, BATCH_HIT, TRACKING_MANAGER, TRACKING_MANAGER_ERROR } from '../../src/enum'
@@ -12,6 +12,8 @@ import { Page } from '../../src/hit/Page'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { sleep, sprintf } from '../../src/utils/utils'
+import { Troubleshooting } from '../../src/hit/Troubleshooting'
+import { Analytic } from '../../src/hit/Analytic'
 describe('Test BatchingPeriodicCachingStrategy', () => {
   const visitorId = 'visitorId'
   it('test addHit method', async () => {
@@ -21,7 +23,9 @@ describe('Test BatchingPeriodicCachingStrategy', () => {
     const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
     const hitsPoolQueue = new Map<string, HitAbstract>()
     const activatePoolQueue = new Map<string, Activate>()
-    const batchingStrategy = new BatchingPeriodicCachingStrategy(config, httpClient, hitsPoolQueue, activatePoolQueue)
+    const troubleshootingQueue = new Map<string, Troubleshooting>()
+    const analyticHitQueue = new Map<string, Analytic>()
+    const batchingStrategy = new BatchingPeriodicCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
@@ -48,8 +52,11 @@ describe('Test BatchingPeriodicCachingStrategy', () => {
       flagDefaultValue: 'default-value',
       flagMetadata: {
         campaignId: 'campaignId',
+        campaignName: 'campaignName',
         variationGroupId: 'variationGrID',
+        variationGroupName: 'variationGroupName',
         variationId: 'varId',
+        variationName: 'variationName',
         isReference: true,
         campaignType: 'ab',
         slug: 'slug'
@@ -150,7 +157,9 @@ describe('test sendBatch method', () => {
 
   const hitsPoolQueue = new Map<string, HitAbstract>()
   const activatePoolQueue = new Map<string, Activate>()
-  const batchingStrategy = new BatchingPeriodicCachingStrategy(config, httpClient, hitsPoolQueue, activatePoolQueue)
+  const troubleshootingQueue = new Map<string, Troubleshooting>()
+  const analyticHitQueue = new Map<string, Analytic>()
+  const batchingStrategy = new BatchingPeriodicCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
@@ -313,6 +322,9 @@ describe('test sendBatch method', () => {
     const error = 'message error'
     postAsync.mockRejectedValue(error)
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const addTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'addTroubleshootingHit')
+
     const batch:Batch = new Batch({ hits: [globalPageHit] })
     batch.config = config
     config.logLevel = LogLevel.ALL
@@ -332,14 +344,17 @@ describe('test sendBatch method', () => {
     expect(hitsPoolQueue.size).toBe(1)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(sprintf(TRACKING_MANAGER_ERROR, BATCH_HIT, {
-      message: error,
-      url: HIT_EVENT_URL,
-      headers,
-      nextFetchConfig,
-      body: batch.toApiKeys(),
+      httpRequestBody: batch.toApiKeys(),
+      httpRequestHeaders: headers,
+      httpRequestMethod: 'POST',
+      httpRequestUrl: HIT_EVENT_URL,
       duration: 0,
       batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.BatchLength]
     }), TRACKING_MANAGER)
+
+    expect(addTroubleshootingHit).toBeCalledTimes(1)
+    const label: TroubleshootingLabel = 'SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR'
+    expect(addTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 
   it('test sendActivate on batch', async () => {
@@ -354,8 +369,11 @@ describe('test sendBatch method', () => {
       flagDefaultValue: 'default-value',
       flagMetadata: {
         campaignId: 'campaignId',
+        campaignName: 'campaignName',
         variationGroupId: 'variationGrID',
+        variationGroupName: 'variationGroupName',
         variationId: 'varId',
+        variationName: 'variationName',
         isReference: true,
         campaignType: 'ab',
         slug: 'slug'
@@ -390,7 +408,9 @@ describe('test sendBatch method', () => {
   it('test sendBatch method with empty hitsPoolQueue', async () => {
     const hitsPoolQueue = new Map<string, HitAbstract>()
     const activatePoolQueue = new Map<string, Activate>()
-    const batchingStrategy = new BatchingPeriodicCachingStrategy(config, httpClient, hitsPoolQueue, activatePoolQueue)
+    const troubleshootingQueue = new Map<string, Troubleshooting>()
+    const analyticHitQueue = new Map<string, Analytic>()
+    const batchingStrategy = new BatchingPeriodicCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
     await batchingStrategy.sendBatch()
     expect(postAsync).toBeCalledTimes(0)
   })
@@ -421,7 +441,9 @@ describe('test activateFlag method', () => {
 
   const hitsPoolQueue = new Map<string, HitAbstract>()
   const activatePoolQueue = new Map<string, Activate>()
-  const batchingStrategy = new BatchingPeriodicCachingStrategy(config, httpClient, hitsPoolQueue, activatePoolQueue)
+  const troubleshootingQueue = new Map<string, Troubleshooting>()
+  const analyticHitQueue = new Map<string, Analytic>()
+  const batchingStrategy = new BatchingPeriodicCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
@@ -458,7 +480,10 @@ describe('test activateFlag method', () => {
         variationId: 'varId',
         isReference: true,
         campaignType: 'ab',
-        slug: 'slug'
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
       },
       visitorContext: { key: 'value' }
     })
@@ -503,7 +528,10 @@ describe('test activateFlag method', () => {
         variationId: 'varId',
         isReference: true,
         campaignType: 'ab',
-        slug: 'slug'
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
       },
       visitorContext: { key: 'value' }
     })
@@ -523,7 +551,10 @@ describe('test activateFlag method', () => {
         variationId: 'varId',
         isReference: true,
         campaignType: 'ab',
-        slug: 'slug'
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
       },
       visitorContext: { key: 'value' }
     })
@@ -544,7 +575,10 @@ describe('test activateFlag method', () => {
         variationId: 'varId',
         isReference: true,
         campaignType: 'ab',
-        slug: 'slug'
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
       },
       visitorContext: { key: 'value' }
     })
@@ -580,6 +614,9 @@ describe('test activateFlag method', () => {
     const error = 'message error'
     postAsync.mockRejectedValue(error)
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const addTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'addTroubleshootingHit')
+
     const activateHit = new Activate({
       visitorId,
       variationGroupId: 'variationGrID-activate',
@@ -593,7 +630,10 @@ describe('test activateFlag method', () => {
         variationId: 'varId',
         isReference: true,
         campaignType: 'ab',
-        slug: 'slug'
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
       },
       visitorContext: { key: 'value' }
     })
@@ -613,7 +653,10 @@ describe('test activateFlag method', () => {
         variationId: 'varId',
         isReference: true,
         campaignType: 'ab',
-        slug: 'slug'
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
       },
       visitorContext: { key: 'value' }
     })
@@ -634,7 +677,10 @@ describe('test activateFlag method', () => {
         variationId: 'varId',
         isReference: true,
         campaignType: 'ab',
-        slug: 'slug'
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
       },
       visitorContext: { key: 'value' }
     })
@@ -664,5 +710,9 @@ describe('test activateFlag method', () => {
 
     expect(onVisitorExposed).toBeCalledTimes(0)
     expect(onUserExposure).toBeCalledTimes(0)
+
+    expect(addTroubleshootingHit).toBeCalledTimes(1)
+    const label: TroubleshootingLabel = 'SEND_ACTIVATE_HIT_ROUTE_ERROR'
+    expect(addTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 })

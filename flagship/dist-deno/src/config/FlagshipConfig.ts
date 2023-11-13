@@ -38,6 +38,15 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _fetchThirdPartyData : boolean|undefined
   private _nextFetchConfig? : Record<string, unknown>
   private _fetchFlagsBufferingTime? : number
+  private _enableAnalytics? : boolean
+
+  public get disableDeveloperUsageTracking () : boolean|undefined {
+    return this._enableAnalytics
+  }
+
+  public set disableDeveloperUsageTracking (v : boolean|undefined) {
+    this._enableAnalytics = v
+  }
 
   public get fetchFlagsBufferingTime () : number|undefined {
     return this._fetchFlagsBufferingTime
@@ -91,7 +100,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
       disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig, trackingManagerConfig, onLog,
-      onVisitorExposed, nextFetchConfig, fetchFlagsBufferingTime
+      onVisitorExposed, nextFetchConfig, fetchFlagsBufferingTime, disableDeveloperUsageTracking
     } = param
 
     this.initSDKInfo(language, sdkVersion)
@@ -115,6 +124,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._initialBucketing = initialBucketing
     this.hitDeduplicationTime = hitDeduplicationTime ?? DEFAULT_DEDUPLICATION_TIME
     this.disableCache = !!disableCache
+    this.disableDeveloperUsageTracking = disableDeveloperUsageTracking
 
     if (visitorCacheImplementation) {
       this.visitorCacheImplementation = visitorCacheImplementation

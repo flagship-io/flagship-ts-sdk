@@ -69,8 +69,11 @@ describe('test visitor', () => {
     visitorDelegate.flagsData.set('newKey', {
       key: 'newKey',
       campaignId: 'cma',
+      campaignName: 'campaignName',
       variationGroupId: 'var',
+      variationGroupName: 'variationGroupName',
       variationId: 'varId',
+      variationName: 'variationName',
       isReference: true,
       value: 'value'
     })

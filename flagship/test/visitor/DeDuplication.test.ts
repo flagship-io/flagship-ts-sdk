@@ -9,6 +9,7 @@ import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { VisitorDelegate, DefaultStrategy } from '../../src/visitor'
 import { returnModification } from './modification'
 import { sleep } from '../../src/utils/utils'
+import { MurmurHash } from '../../src/utils/MurmurHash'
 
 describe('Name of the group', () => {
   const visitorId = 'visitorId'
@@ -37,7 +38,8 @@ describe('Name of the group', () => {
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
-  const defaultStrategy = new DefaultStrategy(visitorDelegate)
+  const murmurHash = new MurmurHash()
+  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
   const getModifications = jest.spyOn(
     apiManager,
@@ -71,6 +73,9 @@ describe('Name of the group', () => {
       campaignId: 'c2nrh1hjg50l9thhu8bg',
       variationGroupId: 'c2nrh1hjg50lf9thhu8cgkeyNull',
       variationId: 'c2nrh1hjg50l9thhu8dg',
+      campaignName: 'campaignName',
+      variationGroupName: 'variationGroupName',
+      variationName: 'variationName',
       isReference: false,
       value: null
     }
@@ -79,6 +84,9 @@ describe('Name of the group', () => {
       campaignId: 'c2nrh1hjg50l9thhu8bg',
       variationGroupId: 'c2nrh1hjg50l9thhu8cgKeyNumber2',
       variationId: 'c2nrh1hjg50l9thhu8dg',
+      campaignName: 'campaignName',
+      variationGroupName: 'variationGroupName',
+      variationName: 'variationName',
       isReference: false,
       value: null
     }
@@ -146,7 +154,8 @@ describe('Clean cache', () => {
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
-  const defaultStrategy = new DefaultStrategy(visitorDelegate)
+  const murmurHash = new MurmurHash()
+  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
   const getModifications = jest.spyOn(
     apiManager,

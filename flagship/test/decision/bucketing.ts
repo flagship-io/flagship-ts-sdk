@@ -317,5 +317,13 @@ export const bucketing = {
         }
       ]
     }
-  ]
+  ],
+  accountSettings: {
+    troubleshooting: {
+      startDate: '2023-04-13T09:33:38.049Z',
+      endDate: '2023-04-13T10:03:38.049Z',
+      timezone: 'Europe/Paris',
+      traffic: 40
+    }
+  }
 }

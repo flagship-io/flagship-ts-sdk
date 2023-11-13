@@ -162,4 +162,8 @@ export interface IFlagshipConfig {
      * @returns
      */
     qaModule?: qaModule
+    /*
+     * Disable the collect of analytics data
+     */
+    disableDeveloperUsageTracking?: boolean
   }

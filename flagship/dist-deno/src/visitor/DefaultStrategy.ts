@@ -27,7 +27,7 @@ import {
   GET_MODIFICATION_KEY_ERROR,
   GET_MODIFICATION_MISSING_ERROR,
   HitType,
-  METHOD_DEACTIVATED_BUCKETING_ERROR,
+  LogLevel,
   PREDEFINED_CONTEXT_TYPE_ERROR,
   PROCESS_ACTIVE_MODIFICATION,
   PROCESS_CLEAR_CONTEXT,
@@ -64,12 +64,15 @@ import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFla
 import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils.ts'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
-import { DecisionMode } from '../config/index.ts'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext.ts'
 import { VisitorDelegate } from './index.ts'
 import { FlagMetadata } from '../flag/FlagMetadata.ts'
 import { Activate } from '../hit/Activate.ts'
+import { Troubleshooting } from '../hit/Troubleshooting.ts'
 import { FlagSynchStatus } from '../enum/FlagSynchStatus.ts'
+import { Analytic } from '../hit/Analytic.ts'
+import { DefaultHitCache } from '../cache/DefaultHitCache.ts'
+import { DefaultVisitorCache } from '../cache/DefaultVisitorCache.ts'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'
@@ -319,6 +322,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       this.visitor.flagSynchStatus = FlagSynchStatus.FLAGS_FETCHED
       this.visitor.isFlagFetching = false
 
+      this.configManager.trackingManager.troubleshootingData = this.decisionManager.troubleshooting
+
       logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_SUCCESS,
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
       )
@@ -347,6 +352,102 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
       logDebugSprintf(this.config, functionName, FETCH_FLAGS_FROM_CAMPAIGNS,
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, this.visitor.flagsData)
+
+      const assignmentHistory: Record<string, string> = {}
+
+      this.visitor.flagsData.forEach(item => {
+        assignmentHistory[item.variationGroupId] = item.variationId
+      })
+
+      const uniqueId = this.visitor.visitorId + this.decisionManager.troubleshooting?.endDate.toUTCString()
+      const hash = this._murmurHash.murmurHash3Int32(uniqueId)
+      const traffic = hash % 100
+
+      this.visitor.traffic = traffic
+
+      const hitCacheImplementation = this.config.hitCacheImplementation
+      const visitorCacheImplementation = this.config.visitorCacheImplementation
+      const sdkConfigUsingCustomHitCache = hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
+      const sdkConfigUsingCustomVisitorCache = visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
+
+      const fetchFlagTroubleshooting = new Troubleshooting({
+        label: 'VISITOR_FETCH_CAMPAIGNS',
+        logLevel: LogLevel.INFO,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        traffic,
+        config: this.config,
+        sdkStatus: this.visitor.getSdkStatus(),
+        visitorContext: this.visitor.context,
+        visitorCampaigns: campaigns,
+        visitorCampaignFromCache: logData.isFromCache ? campaigns : undefined,
+        visitorConsent: this.visitor.hasConsented,
+        visitorIsAuthenticated: !!this.visitor.anonymousId,
+        visitorFlags: this.visitor.flagsData,
+        visitorAssignmentHistory: assignmentHistory,
+        visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
+        visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
+        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+        lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
+        httpResponseTime: Date.now() - now,
+
+        sdkConfigMode: this.config.decisionMode,
+        sdkConfigTimeout: this.config.timeout,
+        sdkConfigPollingInterval: this.config.pollingInterval,
+        sdkConfigTrackingManagerConfigStrategy: this.config.trackingManagerConfig?.cacheStrategy,
+        sdkConfigTrackingManagerConfigBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
+        sdkConfigTrackingManagerConfigPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
+        sdkConfigFetchNow: this.config.fetchNow,
+        sdkConfigEnableClientCache: this.config.enableClientCache,
+        sdkConfigInitialBucketing: this.config.initialBucketing,
+        sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
+        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
+        sdkConfigUsingOnVisitorExposed: !!this.config.onVisitorExposed,
+        sdkConfigUsingCustomHitCache,
+        sdkConfigUsingCustomVisitorCache,
+        sdkConfigFetchThirdPartyData: this.config.fetchThirdPartyData,
+        sdkConfigFetchFlagsBufferingTime: this.config.fetchFlagsBufferingTime,
+        sdkConfigDisableDeveloperUsageTracking: this.config.disableDeveloperUsageTracking,
+        sdkConfigNextFetchConfig: this.config.nextFetchConfig,
+        sdkConfigDisableCache: this.config.disableCache
+      })
+
+      this.sendTroubleshootingHit(fetchFlagTroubleshooting)
+
+      const analyticData = new Analytic({
+        label: 'SDK_CONFIG',
+        logLevel: LogLevel.INFO,
+        visitorId: this.visitor.visitorId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        config: this.config,
+        sdkStatus: this.visitor.getSdkStatus(),
+        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+        lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
+        sdkConfigMode: this.config.decisionMode,
+        sdkConfigTimeout: this.config.timeout,
+        sdkConfigPollingInterval: this.config.pollingInterval,
+        sdkConfigTrackingManagerConfigStrategy: this.config.trackingManagerConfig?.cacheStrategy,
+        sdkConfigTrackingManagerConfigBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
+        sdkConfigTrackingManagerConfigPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
+        sdkConfigFetchNow: this.config.fetchNow,
+        sdkConfigEnableClientCache: this.config.enableClientCache,
+        sdkConfigInitialBucketing: this.config.initialBucketing,
+        sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
+        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
+        sdkConfigUsingOnVisitorExposed: !!this.config.onVisitorExposed,
+        sdkConfigUsingCustomHitCache,
+        sdkConfigUsingCustomVisitorCache,
+        sdkConfigFetchThirdPartyData: this.config.fetchThirdPartyData,
+        sdkConfigFetchFlagsBufferingTime: this.config.fetchFlagsBufferingTime,
+        sdkConfigDisableDeveloperUsageTracking: this.config.disableDeveloperUsageTracking,
+        sdkConfigNextFetchConfig: this.config.nextFetchConfig,
+        sdkConfigDisableCache: this.config.disableCache
+      })
+
+      this.sendAnalyticHit(analyticData)
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       this.visitor.emit(EMIT_READY, error)
@@ -356,6 +457,43 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         errorFormat(error.message || error, logData),
         functionName
       )
+
+      const troubleshootingHit = new Troubleshooting({
+
+        label: 'VISITOR_FETCH_CAMPAIGNS_ERROR',
+        logLevel: LogLevel.INFO,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        traffic: this.visitor.traffic,
+        config: this.config,
+        visitorContext: this.visitor.context,
+        sdkStatus: this.visitor.getSdkStatus(),
+        visitorCampaigns: campaigns,
+        visitorCampaignFromCache: logData.isFromCache ? campaigns : undefined,
+        visitorConsent: this.visitor.hasConsented,
+        visitorIsAuthenticated: !!this.visitor.anonymousId,
+        visitorFlags: this.visitor.flagsData,
+        visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
+        visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
+        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+        lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
+        httpResponseTime: Date.now() - now,
+        sdkConfigMode: this.config.decisionMode,
+        sdkConfigTimeout: this.config.timeout,
+        sdkConfigPollingInterval: this.config.pollingInterval,
+        sdkConfigTrackingManagerConfigStrategy: this.config.trackingManagerConfig?.cacheStrategy,
+        sdkConfigTrackingManagerConfigBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
+        sdkConfigTrackingManagerConfigPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
+        sdkConfigFetchNow: this.config.fetchNow,
+        sdkConfigEnableClientCache: this.config.enableClientCache,
+        sdkConfigInitialBucketing: this.config.initialBucketing,
+        sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
+        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
+      })
+
+      this.sendTroubleshootingHit(troubleshootingHit)
     }
   }
 
@@ -420,10 +558,13 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       flagDefaultValue: defaultValue,
       visitorContext: this.visitor.context,
       flagMetadata: {
+        campaignName: flagDto.campaignName,
         campaignId: flagDto.campaignId,
         campaignType: flagDto.campaignType as string,
         variationGroupId: flagDto.variationGroupId,
+        variationGroupName: flagDto.variationGroupName,
         variationId: flagDto.variationId,
+        variationName: flagDto.variationName,
         slug: flagDto.slug,
         isReference: flagDto.isReference as boolean
       }
@@ -443,7 +584,26 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
+    activateHit.visitorSessionId = this.visitor.instanceId
+    activateHit.traffic = this.visitor.traffic
+    activateHit.flagshipInstanceId = this.visitor.sdkInitialData?.instanceId
+
     await this.trackingManager.activateFlag(activateHit)
+
+    const activateTroubleshooting = new Troubleshooting({
+
+      label: 'VISITOR_SEND_ACTIVATE',
+      logLevel: LogLevel.INFO,
+      traffic: this.visitor.traffic,
+      visitorId: activateHit.visitorId,
+      flagshipInstanceId: activateHit.flagshipInstanceId,
+      visitorSessionId: activateHit.visitorSessionId,
+      anonymousId: activateHit.anonymousId,
+      config: this.config,
+      hitContent: activateHit.toApiKeys()
+    })
+
+    this.sendTroubleshootingHit(activateTroubleshooting)
   }
 
   private async activate (key: string) {
@@ -498,11 +658,11 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       Item: HitType.ITEM,
       Event: HitType.EVENT
     }
-    const commonProperties: Omit<IHitAbstract, 'createdAt'| 'visitorId'|'anonymousId'> = {
+    const commonProperties: Omit<IHitAbstract, 'createdAt'| 'visitorId'|'anonymousId'|'traffic'> = {
       type: hitTypeToEnum[hit.type]
     }
 
-    const hitData: Omit<IHitAbstract, 'createdAt'| 'visitorId'|'anonymousId'> = { ...commonProperties, ...hit.data }
+    const hitData: Omit<IHitAbstract, 'createdAt'| 'visitorId'|'anonymousId'|'traffic'> = { ...commonProperties, ...hit.data }
 
     switch (commonProperties.type?.toUpperCase()) {
       case HitType.EVENT:
@@ -586,6 +746,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     hitInstance.ds = SDK_APP
     hitInstance.config = this.config
     hitInstance.anonymousId = this.visitor.anonymousId as string
+    hitInstance.visitorSessionId = this.visitor.instanceId
+    hitInstance.traffic = this.visitor.traffic
+    hitInstance.flagshipInstanceId = this.visitor.sdkInitialData?.instanceId
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { createdAt, ...hitInstanceItem } = hitInstance.toObject()
@@ -598,6 +761,23 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     }
     try {
       await this.trackingManager.addHit(hitInstance)
+
+      if (this.visitor.traffic === undefined || hitInstance.type === 'SEGMENT') {
+        return
+      }
+      const sendHitTroubleshooting = new Troubleshooting({
+
+        label: 'VISITOR_SEND_HIT',
+        logLevel: LogLevel.INFO,
+        traffic: this.visitor.traffic,
+        visitorId: hitInstance.visitorId,
+        flagshipInstanceId: hitInstance.flagshipInstanceId,
+        visitorSessionId: hitInstance.visitorSessionId,
+        anonymousId: hitInstance.anonymousId,
+        config: this.config,
+        hitContent: hitInstance.toApiKeys()
+      })
+      this.sendTroubleshootingHit(sendHitTroubleshooting)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logError(this.config, error.message || error, functionName)
@@ -654,11 +834,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   }
 
   authenticate (visitorId: string): void {
-    if (this.config.decisionMode === DecisionMode.BUCKETING) {
-      this.logDeactivateOnBucketing(AUTHENTICATE)
-      return
-    }
-
     if (!visitorId) {
       logErrorSprintf(this.config, AUTHENTICATE, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, this.visitor.visitorId)
       return
@@ -666,21 +841,45 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     this.visitor.anonymousId = this.visitor.visitorId
     this.visitor.visitorId = visitorId
+
+    const monitoring = new Troubleshooting({
+
+      label: 'VISITOR_AUTHENTICATE',
+      logLevel: LogLevel.INFO,
+      flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+      visitorId: this.visitor.visitorId,
+      anonymousId: this.visitor.anonymousId,
+      visitorContext: this.visitor.context,
+      traffic: this.visitor.traffic,
+      config: this.config
+    })
+
+    this.sendTroubleshootingHit(monitoring)
     this.visitor.flagSynchStatus = FlagSynchStatus.AUTHENTICATED
     logDebugSprintf(this.config, AUTHENTICATE, VISITOR_AUTHENTICATE, this.visitor.visitorId, this.visitor.anonymousId)
   }
 
   unauthenticate (): void {
-    if (this.config.decisionMode === DecisionMode.BUCKETING) {
-      this.logDeactivateOnBucketing(UNAUTHENTICATE)
-      return
-    }
     if (!this.visitor.anonymousId) {
       logErrorSprintf(this.config, UNAUTHENTICATE, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, this.visitor.visitorId)
       return
     }
     this.visitor.visitorId = this.visitor.anonymousId
     this.visitor.anonymousId = null
+
+    const monitoring = new Troubleshooting({
+
+      label: 'VISITOR_UNAUTHENTICATE',
+      logLevel: LogLevel.INFO,
+      visitorId: this.visitor.visitorId,
+      anonymousId: this.visitor.anonymousId,
+      flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+      visitorContext: this.visitor.context,
+      traffic: this.visitor.traffic,
+      config: this.config
+    })
+
+    this.sendTroubleshootingHit(monitoring)
     this.visitor.flagSynchStatus = FlagSynchStatus.UNAUTHENTICATED
     logDebugSprintf(this.config, UNAUTHENTICATE, VISITOR_UNAUTHENTICATE, this.visitor.visitorId)
   }
@@ -699,6 +898,22 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         FLAG_USER_EXPOSED,
         USER_EXPOSED_FLAG_ERROR, this.visitor.visitorId, key
       )
+      const monitoring = new Troubleshooting({
+
+        label: 'VISITOR_EXPOSED_FLAG_NOT_FOUND',
+        logLevel: LogLevel.WARNING,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        traffic: this.visitor.traffic,
+        config: this.config,
+        visitorContext: this.visitor.context,
+        flagKey: key,
+        flagDefault: defaultValue
+      })
+
+      this.sendTroubleshootingHit(monitoring)
       return
     }
 
@@ -708,6 +923,23 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         FLAG_USER_EXPOSED,
         USER_EXPOSED_CAST_ERROR, this.visitor.visitorId, key
       )
+
+      const monitoring = new Troubleshooting({
+
+        label: 'VISITOR_EXPOSED_TYPE_WARNING',
+        logLevel: LogLevel.WARNING,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        traffic: this.visitor.traffic,
+        config: this.config,
+        visitorContext: this.visitor.context,
+        flagKey: key,
+        flagDefault: defaultValue
+      })
+
+      this.sendTroubleshootingHit(monitoring)
       return
     }
 
@@ -723,6 +955,23 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     if (!flag) {
       logWarningSprintf(this.config, FLAG_VALUE, GET_FLAG_MISSING_ERROR, this.visitor.visitorId, key, defaultValue)
+      const monitoring = new Troubleshooting({
+
+        label: 'GET_FLAG_VALUE_FLAG_NOT_FOUND',
+        logLevel: LogLevel.WARNING,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        traffic: this.visitor.traffic,
+        config: this.config,
+        visitorContext: this.visitor.context,
+        flagKey: key,
+        flagDefault: defaultValue,
+        visitorExposed: userExposed
+      })
+
+      this.sendTroubleshootingHit(monitoring)
       return defaultValue
     }
 
@@ -735,6 +984,24 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     if (defaultValue !== null && defaultValue !== undefined && !hasSameType(flag.value, defaultValue)) {
       logWarningSprintf(this.config, FLAG_VALUE, GET_FLAG_CAST_ERROR, this.visitor.visitorId, key, defaultValue)
+      const monitoring = new Troubleshooting({
+
+        label: 'GET_FLAG_VALUE_TYPE_WARNING',
+        logLevel: LogLevel.WARNING,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        traffic: this.visitor.traffic,
+        config: this.config,
+        visitorContext: this.visitor.context,
+        flagKey: key,
+        flagDefault: defaultValue,
+        visitorExposed: userExposed
+      })
+
+      this.sendTroubleshootingHit(monitoring)
+
       return defaultValue
     }
 
@@ -749,25 +1016,35 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   getFlagMetadata (param:{metadata:IFlagMetadata, key?:string, hasSameType:boolean}):IFlagMetadata {
     const { metadata, hasSameType: checkType, key } = param
-    const emptyMetaData = FlagMetadata.Empty()
     if (!checkType) {
       logWarningSprintf(
         this.visitor.config,
         FLAG_METADATA,
         GET_METADATA_CAST_ERROR, key
       )
-      return emptyMetaData
+      const monitoring = new Troubleshooting({
+        label: 'GET_FLAG_METADATA_TYPE_WARNING',
+        logLevel: LogLevel.WARNING,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        traffic: this.visitor.traffic,
+        config: this.config,
+        visitorContext: this.visitor.context,
+        flagKey: key,
+        flagMetadataCampaignId: metadata.campaignId,
+        flagMetadataCampaignSlug: metadata.slug,
+        flagMetadataCampaignType: metadata.campaignType,
+        flagMetadataVariationGroupId: metadata.variationGroupId,
+        flagMetadataVariationId: metadata.variationGroupId,
+        flagMetadataCampaignIsReference: metadata.isReference
+      })
+
+      this.sendTroubleshootingHit(monitoring)
+      return FlagMetadata.Empty()
     }
 
     return metadata
-  }
-
-  protected logDeactivateOnBucketing (functionName: string): void {
-    logErrorSprintf(
-      this.config,
-      functionName,
-      METHOD_DEACTIVATED_BUCKETING_ERROR, this.visitor.visitorId,
-      functionName
-    )
   }
 }

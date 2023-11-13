@@ -25,7 +25,10 @@ export interface IHitAbstract{
   screenResolution?: string
   locale?: string
   sessionNumber?: string,
-  createdAt:number
+  createdAt:number,
+  visitorSessionId?:string
+  traffic?: number
+  flagshipInstanceId?:string
 }
 
 export abstract class HitAbstract implements IHitAbstract {
@@ -40,6 +43,32 @@ export abstract class HitAbstract implements IHitAbstract {
   private _sessionNumber! : string
   private _key! : string
   private _createdAt!: number
+  private _visitorSessionId? : string
+  private _traffic?: number
+  private _flagshipInstanceId? : string
+  public get traffic () : number|undefined {
+    return this._traffic
+  }
+
+  public set traffic (v : number|undefined) {
+    this._traffic = v
+  }
+
+  public get flagshipInstanceId () : string|undefined {
+    return this._flagshipInstanceId
+  }
+
+  public set flagshipInstanceId (v : string|undefined) {
+    this._flagshipInstanceId = v
+  }
+
+  public get visitorSessionId () : string|undefined {
+    return this._visitorSessionId
+  }
+
+  public set visitorSessionId (v : string|undefined) {
+    this._visitorSessionId = v
+  }
 
   public get key () : string {
     return this._key
@@ -125,8 +154,8 @@ export abstract class HitAbstract implements IHitAbstract {
     this._createdAt = v
   }
 
-  protected constructor (hit: Omit<IHitAbstract, 'createdAt'>) {
-    const { type, userIp, screenResolution, locale, sessionNumber, visitorId, anonymousId, ds } = hit
+  protected constructor (hit: Omit<IHitAbstract, 'createdAt'|'traffic'>) {
+    const { type, userIp, screenResolution, locale, sessionNumber, visitorId, anonymousId, ds, visitorSessionId: visitorInstanceId } = hit
     this._type = type
     if (userIp) {
       this.userIp = userIp
@@ -139,6 +168,9 @@ export abstract class HitAbstract implements IHitAbstract {
     }
     if (sessionNumber) {
       this.sessionNumber = sessionNumber
+    }
+    if (visitorInstanceId) {
+      this.visitorSessionId = visitorInstanceId
     }
     this.visitorId = visitorId
     this._anonymousId = anonymousId || null

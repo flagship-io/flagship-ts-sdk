@@ -154,7 +154,7 @@ export class Transaction extends HitAbstract implements ITransaction {
     this._shippingCosts = v
   }
 
-  public constructor (param: Omit<ITransaction, 'type'|'createdAt'>) {
+  public constructor (param: Omit<ITransaction, 'type'|'createdAt'|'visitorInstanceId'|'traffic'>) {
     super({
       type: HitType.TRANSACTION,
       userIp: param.userIp,

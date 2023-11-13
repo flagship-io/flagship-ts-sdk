@@ -43,6 +43,15 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   public get qaModule () : qaModule|undefined {
     return this._qaModule
   }
+  private _enableAnalytics? : boolean
+
+  public get disableDeveloperUsageTracking () : boolean|undefined {
+    return this._enableAnalytics
+  }
+
+  public set disableDeveloperUsageTracking (v : boolean|undefined) {
+    this._enableAnalytics = v
+  }
 
   public get fetchFlagsBufferingTime () : number|undefined {
     return this._fetchFlagsBufferingTime
@@ -95,8 +104,8 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
-      disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig, trackingManagerConfig, onLog,
-      onVisitorExposed, nextFetchConfig, fetchFlagsBufferingTime, qaModule
+      disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig, trackingManagerConfig, onLog, qaModule,
+      onVisitorExposed, nextFetchConfig, fetchFlagsBufferingTime, disableDeveloperUsageTracking
     } = param
     this._qaModule = qaModule
     this.initSDKInfo(language, sdkVersion)
@@ -120,6 +129,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._initialBucketing = initialBucketing
     this.hitDeduplicationTime = hitDeduplicationTime ?? DEFAULT_DEDUPLICATION_TIME
     this.disableCache = !!disableCache
+    this.disableDeveloperUsageTracking = disableDeveloperUsageTracking
 
     if (visitorCacheImplementation) {
       this.visitorCacheImplementation = visitorCacheImplementation

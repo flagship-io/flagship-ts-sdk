@@ -1,6 +1,6 @@
 import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
-import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, ForcedVariation, ExposedVariation } from '../types'
+import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, sdkInitialData, VisitorCacheStatus, ForcedVariation, ExposedVariation } from '../types'
 
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
@@ -10,12 +10,13 @@ import { HitAbstract, HitShape } from '../hit/index'
 import { DefaultStrategy } from './DefaultStrategy'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { EventEmitter } from '../depsNode.native'
-import { Flagship } from '../main/Flagship'
 import { NotReadyStrategy } from './NotReadyStrategy'
 import { PanicStrategy } from './PanicStrategy'
 import { NoConsentStrategy } from './NoConsentStrategy'
 import { cacheVisitor } from './VisitorCache'
 import { IFlag } from '../flag/Flags'
+import { Troubleshooting } from '../hit/Troubleshooting'
+import { MurmurHash } from '../utils/MurmurHash'
 import { FlagSynchStatus } from '../enum/FlagSynchStatus'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
@@ -41,8 +42,31 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._exposedVariations = v
   }
 
+  private _instanceId : string
+  private _traffic! : number
+  protected _sdkInitialData?: sdkInitialData
+
+  public get sdkInitialData ():sdkInitialData|undefined {
+    return this._sdkInitialData
+  }
+
+  public static SdkStatus?: FlagshipStatus
+
+  public getSdkStatus () : FlagshipStatus|undefined {
+    return VisitorAbstract.SdkStatus
+  }
+
   public lastFetchFlagsTimestamp = 0
   public isFlagFetching = false
+  private _visitorCacheStatus? : VisitorCacheStatus
+
+  public get visitorCacheStatus () : VisitorCacheStatus|undefined {
+    return this._visitorCacheStatus
+  }
+
+  public set visitorCacheStatus (v : VisitorCacheStatus|undefined) {
+    this._visitorCacheStatus = v
+  }
 
   public get forcedVariations () {
     return this._forcedVariations
@@ -60,11 +84,14 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     visitorId?: string
     configManager: IConfigManager
     context: Record<string, primitive>
+    monitoringData?:sdkInitialData
   }) {
-    const { visitorId, configManager, context, isAuthenticated, hasConsented, initialModifications, initialFlagsData, initialCampaigns, forcedVariations } = param
+    const { visitorId, configManager, context, isAuthenticated, hasConsented, initialModifications, initialFlagsData, initialCampaigns, monitoringData, forcedVariations } = param
     super()
     this._exposedVariations = []
     this._forcedVariations = forcedVariations || []
+    this._sdkInitialData = monitoringData
+    this._instanceId = uuidV4()
     this._isCleaningDeDuplicationCache = false
     this.deDuplicationCache = {}
     this._context = {}
@@ -78,15 +105,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     this.campaigns = []
 
-    this.updateContext(context)
-
     this._anonymousId = isAuthenticated && visitorCache?.anonymousId ? visitorCache?.anonymousId : null
-    this.loadPredefinedContext()
-    logDebugSprintf(this.config, PROCESS_NEW_VISITOR, PREDEFINED_CONTEXT_LOADED, {
-      fs_client: SDK_INFO.name,
-      fs_version: SDK_INFO.version,
-      fs_users: this.visitorId
-    })
 
     if (!this._anonymousId && isAuthenticated && (this.config.decisionMode === DecisionMode.DECISION_API || this.config.decisionMode === DecisionMode.API)) {
       this._anonymousId = uuidV4()
@@ -94,12 +113,33 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     this.setConsent(hasConsented ?? true)
 
+    this.updateContext(context)
+
+    this.loadPredefinedContext()
+    logDebugSprintf(this.config, PROCESS_NEW_VISITOR, PREDEFINED_CONTEXT_LOADED, {
+      fs_client: SDK_INFO.name,
+      fs_version: SDK_INFO.version,
+      fs_users: this.visitorId
+    })
+
     this.updateCache()
     this.setInitialFlags(initialFlagsData || initialModifications)
     this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
     this._flagSynchStatus = FlagSynchStatus.CREATED
 
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
+  }
+
+  public get traffic () : number {
+    return this._traffic
+  }
+
+  public set traffic (v:number) {
+    this._traffic = v
+  }
+
+  public get instanceId () : string {
+    return this._instanceId
   }
 
   protected generateVisitorId ():string {
@@ -254,14 +294,19 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
   protected getStrategy (): VisitorStrategyAbstract {
     let strategy: VisitorStrategyAbstract
-    if (!Flagship.getStatus() || Flagship.getStatus() === FlagshipStatus.NOT_INITIALIZED) {
-      strategy = new NotReadyStrategy(this)
-    } else if (Flagship.getStatus() === FlagshipStatus.READY_PANIC_ON) {
-      strategy = new PanicStrategy(this)
+    const params = {
+      visitor: this,
+      murmurHash: new MurmurHash()
+    }
+    const status = this.getSdkStatus()
+    if (status === undefined || status === FlagshipStatus.NOT_INITIALIZED) {
+      strategy = new NotReadyStrategy(params)
+    } else if (status === FlagshipStatus.READY_PANIC_ON) {
+      strategy = new PanicStrategy(params)
     } else if (!this.hasConsented) {
-      strategy = new NoConsentStrategy(this)
+      strategy = new NoConsentStrategy(params)
     } else {
-      strategy = new DefaultStrategy(this)
+      strategy = new DefaultStrategy(params)
     }
 
     return strategy
@@ -292,6 +337,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
   public getExposedVariations () : ExposedVariation[] {
     return this._exposedVariations
+  }
+
+  public async sendMonitoringHit (hit: Troubleshooting) {
+    await this.getStrategy().sendTroubleshootingHit(hit)
   }
 
   abstract updateContext(key: string, value: primitive):void
