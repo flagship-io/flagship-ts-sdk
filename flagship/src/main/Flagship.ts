@@ -35,6 +35,7 @@ import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 import { EdgeManager } from '../decision/EdgeManager'
 import { EdgeConfig } from '../config/EdgeConfig'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
+import { launchQaAssistant } from '../qaAssistant'
 
 export class Flagship {
   // eslint-disable-next-line no-use-before-define
@@ -258,9 +259,8 @@ export class Flagship {
       sprintf(SDK_STARTED_INFO, SDK_INFO.version, FlagshipStatus[flagship._status]),
       PROCESS_INITIALIZATION
     )
-    if (typeof config?.qaModule?.init === 'function') {
-      config.qaModule.init({ flagship })
-    }
+
+    launchQaAssistant(localConfig)
 
     flagship.lastInitializationTimestamp = new Date().toISOString()
 
