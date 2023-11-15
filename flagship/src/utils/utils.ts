@@ -118,7 +118,7 @@ export function sleep (ms:number) :Promise<unknown> {
 }
 
 export function isBrowser ():boolean {
-  return typeof window !== 'undefined' && !('Deno' in window)
+  return typeof window !== 'undefined' && typeof window.document !== 'undefined'
 }
 
 export function hasSameType (flagValue:unknown, defaultValue:unknown):boolean {
@@ -200,8 +200,11 @@ export function forceVariation (arg:{flagDTO?:FlagDTO, visitor: VisitorAbstract}
   return {
     key: flagDTO.key,
     campaignId: campaign.id,
+    campaignName: campaign.name || '',
     variationGroupId: variationGroup.id,
+    variationGroupName: variationGroup.name || '',
     variationId: variation.id,
+    variationName: variation.name || '',
     isReference: !!variation.reference,
     campaignType: campaign.type,
     slug: campaign.slug,
