@@ -95,7 +95,7 @@ export class Flag<T> implements IFlag<T> {
   }
 
   protected addFlagAsExposed (flag?:FlagDTO) {
-    if (!flag || !this._visitor.config.qaModule) {
+    if (!flag || !this._visitor.config.isQAModeEnabled) {
       return
     }
     const exposedVariations = this._visitor.exposedVariations

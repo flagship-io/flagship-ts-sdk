@@ -354,9 +354,15 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, this.visitor.flagsData)
 
       const assignmentHistory: Record<string, string> = {}
+      const visitorAllocatedVariations: Record<string, unknown> = {}
 
       this.visitor.flagsData.forEach(item => {
         assignmentHistory[item.variationGroupId] = item.variationId
+        visitorAllocatedVariations[item.campaignId] = {
+          variationId: item.variationId,
+          variationGroupId: item.variationGroupId,
+          campaignId: item.campaignId
+        }
       })
 
       const uniqueId = this.visitor.visitorId + this.decisionManager.troubleshooting?.endDate.toUTCString()

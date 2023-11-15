@@ -359,11 +359,11 @@ export class Flagship {
       logError(this.getConfig(), NEW_VISITOR_NOT_READY, PROCESS_NEW_VISITOR)
     }
 
-    const qaModule = this.getConfig().qaModule
+    // const qaModule = this.getConfig().isQAModeEnabled
     let forcedVariations: ForcedVariation[]| undefined
-    if (typeof qaModule?.getForcedVariations === 'function') {
-      forcedVariations = qaModule.getForcedVariations()
-    }
+    // if (typeof qaModule?.getForcedVariations === 'function') {
+    //   forcedVariations = qaModule.getForcedVariations()
+    // }
 
     const visitorDelegate = new VisitorDelegate({
       visitorId,

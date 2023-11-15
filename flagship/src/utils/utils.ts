@@ -174,7 +174,7 @@ export function forceVariation (arg:{flagDTO?:FlagDTO, visitor: VisitorAbstract}
   if (!flagDTO) {
     return null
   }
-  if (!visitor.config.qaModule || !visitor.forcedVariations) {
+  if (!visitor.config.isQAModeEnabled || !visitor.forcedVariations) {
     return null
   }
   const forcedVariation = visitor.forcedVariations.find(x => x.campaignId === flagDTO?.campaignId)
