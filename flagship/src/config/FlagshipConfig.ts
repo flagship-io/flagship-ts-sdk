@@ -1,11 +1,11 @@
 import { BucketingDTO } from '../decision/api/bucketingDTO'
-import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FETCH_FLAG_BUFFERING_DEFAULT_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, SDK_INFO, TYPE_ERROR } from '../enum/index'
+import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FS_IS_QA_MODE_ENABLED, FETCH_FLAG_BUFFERING_DEFAULT_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, SDK_INFO, TYPE_ERROR } from '../enum/index'
 import { IHitCacheImplementation } from '../cache/IHitCacheImplementation'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
-import { logError, sprintf } from '../utils/utils'
+import { errorFormat, isBrowser, logError, sprintf } from '../utils/utils'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation'
 import { ITrackingManagerConfig, TrackingManagerConfig } from './TrackingManagerConfig'
-import { OnVisitorExposed, UserExposureInfo, qaModule } from '../types'
+import { OnVisitorExposed, UserExposureInfo } from '../types'
 import { version as SDK_VERSION } from '../sdkVersion'
 import { IFlagshipConfig } from './IFlagshipConfig'
 import { DecisionMode } from './DecisionMode'
@@ -38,11 +38,16 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _fetchThirdPartyData : boolean|undefined
   private _nextFetchConfig? : Record<string, unknown>
   private _fetchFlagsBufferingTime? : number
-  private _qaModule? : qaModule
+  private _isQAModeEnabled? : boolean
 
-  public get qaModule () : qaModule|undefined {
-    return this._qaModule
+  public get isQAModeEnabled () : boolean|undefined {
+    return this._isQAModeEnabled
   }
+
+  public set isQAModeEnabled (v : boolean|undefined) {
+    this._isQAModeEnabled = v
+  }
+
   private _enableAnalytics? : boolean
 
   public get disableDeveloperUsageTracking () : boolean|undefined {
@@ -104,10 +109,12 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
       fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
       hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
-      disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig, trackingManagerConfig, onLog, qaModule,
+      disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig, trackingManagerConfig, onLog,
       onVisitorExposed, nextFetchConfig, fetchFlagsBufferingTime, disableDeveloperUsageTracking
     } = param
-    this._qaModule = qaModule
+
+    this.initQaMode()
+
     this.initSDKInfo(language, sdkVersion)
 
     if (logManager) {
@@ -141,6 +148,20 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this.statusChangedCallback = statusChangedCallback
     this._onUserExposure = onUserExposure
     this._onVisitorExposed = onVisitorExposed
+  }
+
+  protected initQaMode () {
+    if (!isBrowser()) {
+      return
+    }
+    try {
+      const isQAModeEnabled = sessionStorage.getItem(FS_IS_QA_MODE_ENABLED)
+      this.isQAModeEnabled = isQAModeEnabled ? JSON.parse(isQAModeEnabled) : undefined
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      logError(this, errorFormat(error.message || error), 'initQaMode')
+      this.isQAModeEnabled = false
+    }
   }
 
   protected initSDKInfo (language?:number, sdkVersion?:string) {

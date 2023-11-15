@@ -49,6 +49,8 @@ export const SEND_CONTEXT_EVENT = 'sendContextEvent'
 
 export const FS_CONSENT = 'fs_consent'
 
+export const FS_IS_QA_MODE_ENABLED = 'FS_IS_QA_MODE_ENABLED'
+
 /**
  * SDK version
  */
