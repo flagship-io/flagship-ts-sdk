@@ -1,4 +1,5 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
+import { FS_IS_QA_MODE_ENABLED } from '../enum/FlagshipConstant'
 import { isBrowser, logInfoSprintf } from '../utils/utils'
 import { handleIframeMessage } from './handleIframeMessage'
 import { EventDataFromIframe } from './type'
@@ -23,6 +24,10 @@ function loadQaAssistant (config: IFlagshipConfig): void {
     return
   }
 
+  window.addEventListener('message', (event: MessageEvent<EventDataFromIframe>) => {
+    handleIframeMessage({ event, config })
+  })
+
   logInfoSprintf(config, 'QA assistant', 'Loading QA Assistant')
   //   const bundleFileUrl = 'https://qa-assistant.abtasty.com/bundle.js'
   const bundleFileUrl = 'https://127.0.0.1:5000/bundle.js'
@@ -30,6 +35,9 @@ function loadQaAssistant (config: IFlagshipConfig): void {
   window.flagship = {
     envId: config.envId as string
   }
+
+  config.isQAModeEnabled = true
+  sessionStorage.setItem(FS_IS_QA_MODE_ENABLED, 'true')
 }
 
 /**
@@ -66,10 +74,9 @@ export function launchQaAssistant (config: IFlagshipConfig): void {
   if (!isBrowser()) {
     return
   }
-
-  window.addEventListener('message', (event: MessageEvent<EventDataFromIframe>) => {
-    handleIframeMessage({ event, config })
-  })
-
+  if (config.isQAModeEnabled) {
+    loadQaAssistant(config)
+    return
+  }
   listenForKeyboardQaAssistant(config)
 }
