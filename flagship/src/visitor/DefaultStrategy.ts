@@ -60,7 +60,7 @@ import {
   IHitAbstract
 } from '../hit/index'
 import { HitShape, ItemHit } from '../hit/Legacy'
-import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata } from '../types'
+import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata, VisitorVariations } from '../types'
 import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
@@ -73,6 +73,7 @@ import { FlagSynchStatus } from '../enum/FlagSynchStatus'
 import { Analytic } from '../hit/Analytic'
 import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
+import { sendVisitorAllocatedVariations } from '../qaAssistant/messages'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'
@@ -354,7 +355,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, this.visitor.flagsData)
 
       const assignmentHistory: Record<string, string> = {}
-      const visitorAllocatedVariations: Record<string, unknown> = {}
+      const visitorAllocatedVariations: Record<string, VisitorVariations> = {}
 
       this.visitor.flagsData.forEach(item => {
         assignmentHistory[item.variationGroupId] = item.variationId
@@ -364,6 +365,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
           campaignId: item.campaignId
         }
       })
+
+      sendVisitorAllocatedVariations(visitorAllocatedVariations)
 
       const uniqueId = this.visitor.visitorId + this.decisionManager.troubleshooting?.endDate.toUTCString()
       const hash = this._murmurHash.murmurHash3Int32(uniqueId)
