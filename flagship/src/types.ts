@@ -196,3 +196,9 @@ export type qaModule = {
   getForcedVariations(): ForcedVariation[] | undefined
 }
 export type VisitorCacheStatus = 'NONE'|'ANONYMOUS_ID_CACHE'|'VISITOR_ID_CACHE'|'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE';
+
+export type VisitorVariations = {
+  variationId: string,
+  variationGroupId: string,
+  campaignId: string
+}
