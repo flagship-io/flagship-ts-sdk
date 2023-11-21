@@ -1,5 +1,5 @@
 import { FLAG_METADATA, NO_FLAG_METADATA } from '../enum/index'
-import { FlagDTO, IFlagMetadata } from '../types'
+import { IFlagMetadata } from '../types'
 import { forceVariation, hasSameType, logDebugSprintf } from '../utils/utils'
 import { VisitorDelegate } from '../visitor/index'
 import { FlagMetadata } from './FlagMetadata'
@@ -94,31 +94,12 @@ export class Flag<T> implements IFlag<T> {
     return this._visitor.visitorExposed({ key: this._key, flag: forcedFlagDTO || flagDTO, defaultValue: this._defaultValue })
   }
 
-  protected addFlagAsExposed (flag?:FlagDTO) {
-    if (!flag || !this._visitor.config.isQAModeEnabled) {
-      return
-    }
-    const exposedVariations = this._visitor.exposedVariations
-    const exposedVariation = exposedVariations?.find(x => x.campaignId === flag.campaignId)
-    if (exposedVariation) {
-      exposedVariation.variationId = flag.variationId
-      exposedVariation.variationGroupId = flag.variationGroupId
-      return
-    }
-    exposedVariations?.push({
-      campaignId: flag.campaignId,
-      variationGroupId: flag.variationGroupId,
-      variationId: flag.variationId,
-      originalVariationId: flag.originalVariationId || flag.variationId
-    })
-  }
-
   getValue (userExposed = true) : T {
     const flagDTO = this._visitor.flagsData.get(this._key)
     const forcedFlagDTO = forceVariation({ flagDTO, visitor: this._visitor })
     const flag = forcedFlagDTO || flagDTO
 
-    this.addFlagAsExposed(flag)
+    this._visitor.sendExposedVariation(flag)
 
     return this._visitor.getFlagValue({
       key: this._key,
