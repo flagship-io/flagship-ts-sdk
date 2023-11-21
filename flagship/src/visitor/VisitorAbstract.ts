@@ -1,11 +1,11 @@
 import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
-import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, sdkInitialData, VisitorCacheStatus, ForcedVariation, ExposedVariation } from '../types'
+import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, sdkInitialData, VisitorCacheStatus, VisitorVariations } from '../types'
 
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
 import { FlagshipStatus, SDK_INFO, VISITOR_ID_ERROR } from '../enum/index'
-import { forceVariation, logDebugSprintf, logError, uuidV4 } from '../utils/utils'
+import { forceVariation, isBrowser, logDebugSprintf, logError, uuidV4 } from '../utils/utils'
 import { HitAbstract, HitShape } from '../hit/index'
 import { DefaultStrategy } from './DefaultStrategy'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
@@ -18,6 +18,7 @@ import { IFlag } from '../flag/Flags'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { MurmurHash } from '../utils/MurmurHash'
 import { FlagSynchStatus } from '../enum/FlagSynchStatus'
+import { sendVisitorExposedVariations } from '../qaAssistant/messages'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -31,16 +32,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _isCleaningDeDuplicationCache: boolean
   public visitorCache?: VisitorCacheDTO
   private _flagSynchStatus : FlagSynchStatus
-  private _forcedVariations?: ForcedVariation[]
-  private _exposedVariations : ExposedVariation[]
-
-  public get exposedVariations () : ExposedVariation[] {
-    return this._exposedVariations
-  }
-
-  public set exposedVariations (v : ExposedVariation[]) {
-    this._exposedVariations = v
-  }
+  protected _exposedVariations: Record<string, VisitorVariations>
+  protected _sendExposedVariationTimeoutId?:NodeJS.Timeout
 
   private _instanceId : string
   private _traffic! : number
@@ -68,10 +61,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._visitorCacheStatus = v
   }
 
-  public get forcedVariations () {
-    return this._forcedVariations
-  }
-
   public get flagSynchStatus () : FlagSynchStatus {
     return this._flagSynchStatus
   }
@@ -86,10 +75,9 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     context: Record<string, primitive>
     monitoringData?:sdkInitialData
   }) {
-    const { visitorId, configManager, context, isAuthenticated, hasConsented, initialModifications, initialFlagsData, initialCampaigns, monitoringData, forcedVariations } = param
+    const { visitorId, configManager, context, isAuthenticated, hasConsented, initialModifications, initialFlagsData, initialCampaigns, monitoringData } = param
     super()
-    this._exposedVariations = []
-    this._forcedVariations = forcedVariations || []
+    this._exposedVariations = {}
     this._sdkInitialData = monitoringData
     this._instanceId = uuidV4()
     this._isCleaningDeDuplicationCache = false
@@ -312,31 +300,33 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     return strategy
   }
 
-  addForcedVariation (value: ForcedVariation): IVisitor {
-    const forceVariation = this.forcedVariations?.find(x => x.campaignId === value.campaignId)
-    if (forceVariation) {
-      forceVariation.variationId = value.variationId
-      forceVariation.variationGroupId = value.variationGroupId
-      return this
+  public sendExposedVariation (flag?:FlagDTO) {
+    if (!flag || !this.config.isQAModeEnabled || !isBrowser()) {
+      return
     }
-    this.forcedVariations?.push(value)
-    return this
-  }
 
-  removeForcedVariation (variationId: string): IVisitor {
-    const index = this.forcedVariations?.findIndex(x => x.variationId === variationId)
-    if (index && this.forcedVariations) {
-      delete this.forcedVariations[index]
+    const BATCH_SIZE = 10
+    const DELAY = 2000
+
+    this._exposedVariations[flag.campaignId] = {
+      campaignId: flag.campaignId,
+      variationGroupId: flag.variationGroupId,
+      variationId: flag.variationId
     }
-    return this
-  }
 
-  getForcedVariations (): ForcedVariation[]|undefined {
-    return this.forcedVariations
-  }
+    if (Object.keys(this._exposedVariations).length >= BATCH_SIZE) {
+      sendVisitorExposedVariations(this._exposedVariations)
+      this._exposedVariations = {}
+    }
 
-  public getExposedVariations () : ExposedVariation[] {
-    return this._exposedVariations
+    if (this._sendExposedVariationTimeoutId) {
+      clearTimeout(this._sendExposedVariationTimeoutId)
+    }
+
+    this._sendExposedVariationTimeoutId = setTimeout(() => {
+      sendVisitorExposedVariations(this._exposedVariations)
+      this._exposedVariations = {}
+    }, DELAY)
   }
 
   public async sendMonitoringHit (hit: Troubleshooting) {
