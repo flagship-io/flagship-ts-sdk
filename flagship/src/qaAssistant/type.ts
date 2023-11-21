@@ -10,12 +10,13 @@ declare global {
 }
 
 export enum MSG_NAME_FROM_IFRAME {
-    QA_ASSISTANT_IS_READY = 'QA_ASSISTANT_IS_READY',
+    QaAssistantClose = 'ABTASTY_QA_ASSISTANT_CLOSE'
 
 }
 
 export enum MSG_NAME_TO_IFRAME {
-    FsUpdateVisitorAllocatedVariation = 'FS_UPDATE_VISITOR_ALLOCATED_VARIATION'
+    FsUpdateVisitorAllocatedVariation = 'FS_UPDATE_VISITOR_ALLOCATED_VARIATION',
+    FsVisitorExposedVariation = 'FS_VISITOR_EXPOSED_VARIATION',
 }
 
 export type VisitorAllocatedVariations = {
