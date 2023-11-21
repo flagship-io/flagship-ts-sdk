@@ -12,3 +12,7 @@ export function sendMessageToIframe (data: EventDataToIframe): void {
 export function sendVisitorAllocatedVariations (visitorVariations: Record<string, VisitorVariations>) {
   sendMessageToIframe({ name: MSG_NAME_TO_IFRAME.FsUpdateVisitorAllocatedVariation, value: visitorVariations })
 }
+
+export function sendVisitorExposedVariations (visitorVariations: Record<string, VisitorVariations>) {
+  sendMessageToIframe({ name: MSG_NAME_TO_IFRAME.FsVisitorExposedVariation, value: visitorVariations })
+}
