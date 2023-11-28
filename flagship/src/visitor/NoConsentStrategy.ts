@@ -1,9 +1,8 @@
-import { IHit } from '../types'
+import { CampaignDTO, IHit } from '../types'
 import { FLAG_USER_EXPOSED, METHOD_DEACTIVATED_CONSENT_ERROR } from '../enum/index'
 import { HitAbstract, HitShape } from '../hit/index'
 import { logInfo, sprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
-import { CampaignDTO } from '../decision/api/models'
 import { BatchDTO } from '../hit/Batch'
 import { Troubleshooting } from '../hit/Troubleshooting'
 

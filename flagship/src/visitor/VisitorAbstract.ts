@@ -1,11 +1,10 @@
 import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
-import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, sdkInitialData, VisitorCacheStatus, VisitorVariations } from '../types'
+import { IHit, Modification, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, sdkInitialData, VisitorCacheStatus, VisitorVariations, CampaignDTO, NewVisitor } from '../types'
 
 import { IVisitor } from './IVisitor'
-import { CampaignDTO } from '../decision/api/models'
 import { FlagshipStatus, SDK_INFO, VISITOR_ID_ERROR } from '../enum/index'
-import { forceVariation, isBrowser, logDebugSprintf, logError, uuidV4 } from '../utils/utils'
+import { isBrowser, logDebugSprintf, logError, uuidV4 } from '../utils/utils'
 import { HitAbstract, HitShape } from '../hit/index'
 import { DefaultStrategy } from './DefaultStrategy'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
@@ -159,7 +158,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   public getFlagsDataArray (): FlagDTO[] {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return Array.from(this._flags, ([_, item]) => {
-      return forceVariation({ flagDTO: item, visitor: this }) || item
+      return item
     })
   }
 
@@ -301,18 +300,20 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   }
 
   public sendExposedVariation (flag?:FlagDTO) {
-    if (!flag || !this.config.isQAModeEnabled || !isBrowser()) {
+    if (!flag || !isBrowser()) {
       return
     }
-
-    const BATCH_SIZE = 10
-    const DELAY = 2000
-
     this._exposedVariations[flag.campaignId] = {
       campaignId: flag.campaignId,
       variationGroupId: flag.variationGroupId,
       variationId: flag.variationId
     }
+    if (!this.config.isQAModeEnabled) {
+      return
+    }
+
+    const BATCH_SIZE = 10
+    const DELAY = 500
 
     if (Object.keys(this._exposedVariations).length >= BATCH_SIZE) {
       sendVisitorExposedVariations(this._exposedVariations)

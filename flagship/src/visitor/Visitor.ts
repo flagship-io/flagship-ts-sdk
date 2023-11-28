@@ -1,9 +1,8 @@
-import { HitShape, IHit, FlagDTO, modificationsRequested, primitive, ForcedVariation, ExposedVariation } from '../types'
+import { HitShape, IHit, FlagDTO, modificationsRequested, primitive, CampaignDTO } from '../types'
 import { EventEmitter } from '../depsNode.native'
 import { IVisitor } from './IVisitor'
 import { IFlagshipConfig } from '../config/index'
 import { EMIT_READY } from '../enum/index'
-import { CampaignDTO } from '../decision/api/models'
 import { HitAbstract } from '../hit/HitAbstract'
 import { VisitorAbstract } from './VisitorAbstract'
 import { IFlag } from '../flag/Flags'
@@ -17,41 +16,6 @@ export class Visitor extends EventEmitter implements IVisitor {
     this.visitorDelegate.on(EMIT_READY, (err:any) => {
       this.emit(EMIT_READY, err)
     })
-  }
-
-  /**
-   *
-   * @param value
-   * @returns
-   */
-  addForcedVariation (value: ForcedVariation): IVisitor {
-    this.visitorDelegate.addForcedVariation(value)
-    return this
-  }
-
-  /**
-   *
-   * @param variationId
-   * @returns
-   */
-  removeForcedVariation (variationId: string): IVisitor {
-    this.visitorDelegate.removeForcedVariation(variationId)
-    return this
-  }
-
-  /**
-   *
-   * @returns
-   */
-  getForcedVariations (): ForcedVariation[] | undefined {
-    return this.visitorDelegate.getForcedVariations()
-  }
-
-  /**
-   *
-   */
-  getExposedVariations (): ExposedVariation[] {
-    return this.visitorDelegate.getExposedVariations()
   }
 
   getModificationsArray (): FlagDTO[] {

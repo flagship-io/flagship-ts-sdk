@@ -1,8 +1,6 @@
 import { type IFlagshipConfig } from '../config/IFlagshipConfig'
 import { FlagSynchStatus } from '../enum/FlagSynchStatus'
 import { LogLevel, VISITOR_SYNC_FLAGS_MESSAGE } from '../enum/index'
-import { FlagDTO } from '../types'
-import { VisitorAbstract } from '../visitor/VisitorAbstract'
 
 /**
  * Return a formatted string
@@ -169,46 +167,46 @@ export function visitorFlagSyncStatusMessage (status: FlagSynchStatus) {
   return message
 }
 
-export function forceVariation (arg:{flagDTO?:FlagDTO, visitor: VisitorAbstract}): FlagDTO|null {
-  const { flagDTO, visitor } = arg
-  if (!flagDTO) {
-    return null
-  }
-  if (!visitor.config.isQAModeEnabled || !visitor.forcedVariations) {
-    return null
-  }
-  const forcedVariation = visitor.forcedVariations.find(x => x.campaignId === flagDTO?.campaignId)
-  if (!forcedVariation) {
-    return null
-  }
-  const bucketingContent = visitor.configManager.decisionManager.getBucketingContent()
-  if (!bucketingContent) {
-    return null
-  }
-  const campaign = bucketingContent.campaigns?.find(x => x.id === forcedVariation.campaignId)
-  if (!campaign) {
-    return null
-  }
-  const variationGroup = campaign.variationGroups.find(x => x.id === forcedVariation.variationGroupId)
-  if (!variationGroup) {
-    return null
-  }
-  const variation = variationGroup.variations.find(x => x.id === forcedVariation.variationId)
-  if (!variation) {
-    return null
-  }
-  return {
-    key: flagDTO.key,
-    campaignId: campaign.id,
-    campaignName: campaign.name || '',
-    variationGroupId: variationGroup.id,
-    variationGroupName: variationGroup.name || '',
-    variationId: variation.id,
-    variationName: variation.name || '',
-    isReference: !!variation.reference,
-    campaignType: campaign.type,
-    slug: campaign.slug,
-    value: variation.modifications.value[flagDTO.key],
-    originalVariationId: forcedVariation.originalVariationId
-  }
-}
+// export function forceVariation (arg:{flagDTO?:FlagDTO, visitor: VisitorAbstract}): FlagDTO|null {
+//   const { flagDTO, visitor } = arg
+//   if (!flagDTO) {
+//     return null
+//   }
+//   if (!visitor.config.isQAModeEnabled || !visitor.forcedVariations) {
+//     return null
+//   }
+//   const forcedVariation = visitor.forcedVariations.find(x => x.campaignId === flagDTO?.campaignId)
+//   if (!forcedVariation) {
+//     return null
+//   }
+//   const bucketingContent = visitor.configManager.decisionManager.getBucketingContent()
+//   if (!bucketingContent) {
+//     return null
+//   }
+//   const campaign = bucketingContent.campaigns?.find(x => x.id === forcedVariation.campaignId)
+//   if (!campaign) {
+//     return null
+//   }
+//   const variationGroup = campaign.variationGroups.find(x => x.id === forcedVariation.variationGroupId)
+//   if (!variationGroup) {
+//     return null
+//   }
+//   const variation = variationGroup.variations.find(x => x.id === forcedVariation.variationId)
+//   if (!variation) {
+//     return null
+//   }
+//   return {
+//     key: flagDTO.key,
+//     campaignId: campaign.id,
+//     campaignName: campaign.name || '',
+//     variationGroupId: variationGroup.id,
+//     variationGroupName: variationGroup.name || '',
+//     variationId: variation.id,
+//     variationName: variation.name || '',
+//     isReference: !!variation.reference,
+//     campaignType: campaign.type,
+//     slug: campaign.slug,
+//     value: variation.modifications.value[flagDTO.key],
+//     originalVariationId: forcedVariation.originalVariationId
+//   }
+// }

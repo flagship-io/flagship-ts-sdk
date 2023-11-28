@@ -1,5 +1,5 @@
+import { CampaignDTO } from '../types'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
-import { CampaignDTO } from './api/models'
 import { BucketingManager } from './BucketingManager'
 
 export class EdgeManager extends BucketingManager {

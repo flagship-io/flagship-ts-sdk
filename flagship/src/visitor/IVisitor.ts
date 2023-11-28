@@ -1,8 +1,7 @@
 import { IFlagshipConfig } from '../config/index'
-import { CampaignDTO } from '../decision/api/models'
 import { HitAbstract, HitShape } from '../hit/index'
 import { IFlag } from '../flag/Flags'
-import { IHit, FlagDTO, modificationsRequested, primitive, Modification } from '../types'
+import { IHit, FlagDTO, modificationsRequested, primitive, Modification, CampaignDTO } from '../types'
 
 export interface IVisitor {
   visitorId: string;

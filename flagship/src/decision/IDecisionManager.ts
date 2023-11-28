@@ -1,10 +1,9 @@
 import { ITrackingManager } from '../api/ITrackingManager'
 import { IFlagshipConfig } from '../config/index'
 import { FlagshipStatus } from '../enum/index'
-import { FlagDTO, TroubleshootingData } from '../types'
+import { CampaignDTO, FlagDTO, TroubleshootingData } from '../types'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { BucketingDTO } from './api/bucketingDTO'
-import { CampaignDTO } from './api/models'
 
 export interface IDecisionManager {
   statusChangedCallback(func:(status: FlagshipStatus)=>void):void
