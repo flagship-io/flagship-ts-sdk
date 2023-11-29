@@ -1,10 +1,11 @@
 import { version } from '../sdkVersion'
+import { SdkInfoType } from '../types'
 
 /**
  * SDK language
  */
 
-export const SDK_INFO = {
+export const SDK_INFO:SdkInfoType = {
   name: 'TypeScript',
   version
 }
@@ -50,6 +51,7 @@ export const SEND_CONTEXT_EVENT = 'sendContextEvent'
 export const FS_CONSENT = 'fs_consent'
 
 export const FS_IS_QA_MODE_ENABLED = 'FS_IS_QA_MODE_ENABLED'
+export const FS_FORCED_VARIATIONS = 'FS_FORCED_VARIATIONS'
 
 /**
  * SDK version
