@@ -175,7 +175,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
         SDK_INFO.version = sdkVersion ?? SDK_VERSION
         break
       default:
-        SDK_INFO.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'Typescript'
+        SDK_INFO.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'TypeScript'
         SDK_INFO.version = SDK_VERSION
         break
     }

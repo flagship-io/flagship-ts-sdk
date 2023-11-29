@@ -1,5 +1,6 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
-import { FS_IS_QA_MODE_ENABLED } from '../enum/FlagshipConstant'
+import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED } from '../enum/FlagshipConstant'
+import { FsVariationToForce } from '../types'
 import { isBrowser, logInfoSprintf } from '../utils/utils'
 import { handleIframeMessage } from './handleIframeMessage'
 import { EventDataFromIframe } from './type'
@@ -24,16 +25,27 @@ function loadQaAssistant (config: IFlagshipConfig): void {
     return
   }
 
-  window.addEventListener('message', (event: MessageEvent<EventDataFromIframe>) => {
-    handleIframeMessage({ event, config })
-  })
+  const eventListenerMessage = (event: MessageEvent<EventDataFromIframe>) => {
+    handleIframeMessage({ event, config, func: eventListenerMessage })
+  }
+  window.addEventListener('message', eventListenerMessage)
 
   logInfoSprintf(config, 'QA assistant', 'Loading QA Assistant')
   //   const bundleFileUrl = 'https://qa-assistant.abtasty.com/bundle.js'
-  const bundleFileUrl = 'https://127.0.0.1:5000/bundle.js'
+  const bundleFileUrl = 'https://127.0.0.1/bundle.js'
   appendScript(bundleFileUrl)
+
+  let forcedVariations: Record<string, FsVariationToForce> = {}
+  const sessionForcedVariations = sessionStorage.getItem(FS_FORCED_VARIATIONS)
+  try {
+    forcedVariations = JSON.parse(sessionForcedVariations || '{}')
+  } catch (error) {
+    console.error('Error parsing sessionForcedVariations', error)
+  }
+
   window.flagship = {
-    envId: config.envId as string
+    envId: config.envId as string,
+    forcedVariations
   }
 
   config.isQAModeEnabled = true
