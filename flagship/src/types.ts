@@ -229,3 +229,8 @@ export type FsVariationToForce = {
   campaignId: string;
   variation: VariationDTO;
 };
+
+export type SdkInfoType= {
+  name: 'ReactJS'|'React-Native'|'Deno'|'TypeScript';
+  version: string;
+}
