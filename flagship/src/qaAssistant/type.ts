@@ -16,6 +16,7 @@ declare global {
 export enum MSG_NAME_FROM_IFRAME {
     QaAssistantClose = 'ABTASTY_QA_ASSISTANT_CLOSE',
     FsApplyForcedVariations = 'FS_APPLY_FORCED_VARIATIONS',
+    FsResetForcedVariations = 'FS_RESET_FORCED_VARIATIONS'
 }
 
 export type FsApplyForcedVariations = {
@@ -24,8 +25,9 @@ export type FsApplyForcedVariations = {
   };
 
 export type EventDataFromIframe = {
-    name: MSG_NAME_FROM_IFRAME.QaAssistantClose
+    name: MSG_NAME_FROM_IFRAME.QaAssistantClose| MSG_NAME_FROM_IFRAME.FsResetForcedVariations
 }|FsApplyForcedVariations
+
 /**
  * All events posted to iframe
  */

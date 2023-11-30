@@ -16,7 +16,9 @@ export function handleIframeMessage ({ event, config, func }: { event: MessageEv
     case MSG_NAME_FROM_IFRAME.FsApplyForcedVariations:
       onApplyForcedVariations({ value: event.data.value })
       break
-
+    case MSG_NAME_FROM_IFRAME.FsResetForcedVariations:
+      onResetForcedVariations()
+      break
     default:
       break
   }
@@ -45,8 +47,18 @@ function onApplyForcedVariations ({ value }:{ value:Record<string, FsVariationTo
     ...window.flagship,
     forcedVariations
   }
+  if (SDK_INFO.name === 'TypeScript') {
+    document.location.reload()
+  }
+}
 
-  console.log('value', value)
+function onResetForcedVariations () {
+  sessionStorage.removeItem(FS_FORCED_VARIATIONS)
+
+  window.flagship = {
+    ...window.flagship,
+    forcedVariations: {}
+  }
 
   if (SDK_INFO.name === 'TypeScript') {
     document.location.reload()
