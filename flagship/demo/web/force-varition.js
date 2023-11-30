@@ -1,12 +1,11 @@
 // import { DecisionMode, EventCategory, Flagship, HitType, CacheStrategy } from '../../'
-const ENV_ID = ''
-const API_KEY = ''
+const ENV_ID = 'c1ndrd07m0300ro0jf20'
+const API_KEY = 'QzdTI1M9iqaIhnJ66a34C5xdzrrvzq6q8XSVOsS6'
 
 Flagship.start(ENV_ID, API_KEY, {
-  decisionMode: DecisionMode.BUCKETING,
+  // decisionMode: DecisionMode.BUCKETING,
   // initialBucketing: bucketing
   // disableCache: true,
-  qaModule: fsQaModule.fsQaJS,
   enableQAMode: true,
   pollingInterval: 30,
   fetchThirdPartyData: true,
@@ -25,7 +24,9 @@ createVisitorBtn.addEventListener('click', () => {
     visitorId: 'my_visitor_id',
     // isAuthenticated: true,
     context: {
-      plan: 'premium'
+      plan: 'premium',
+      qa_report: true,
+      is_php: true
     }
   })
 
@@ -41,5 +42,8 @@ createVisitorBtn.addEventListener('click', () => {
 
     const myAwesomeFeature = visitor.getFlag('myAwesomeFeature', -1)
     document.getElementById('myAwesomeFeature').innerText = myAwesomeFeature.getValue()
+
+    const qaReportVar = visitor.getFlag('qa_report_var', 'F')
+    console.log(qaReportVar.getValue())
   })
 })
