@@ -6,6 +6,8 @@ declare global {
         flagship?: {
             envId?: string
             forcedVariations?:Record<string, FsVariationToForce>
+            visitorVariations?: Record<string, VisitorVariations>
+            exposedVariations?: Record<string, VisitorVariations>
         }
     }
 }
@@ -16,7 +18,8 @@ declare global {
 export enum MSG_NAME_FROM_IFRAME {
     QaAssistantClose = 'ABTASTY_QA_ASSISTANT_CLOSE',
     FsApplyForcedVariations = 'FS_APPLY_FORCED_VARIATIONS',
-    FsResetForcedVariations = 'FS_RESET_FORCED_VARIATIONS'
+    FsResetForcedVariations = 'FS_RESET_FORCED_VARIATIONS',
+    FsQaAssistantReady = 'FS_QA_ASSISTANT_READY'
 }
 
 export type FsApplyForcedVariations = {
@@ -25,7 +28,9 @@ export type FsApplyForcedVariations = {
   };
 
 export type EventDataFromIframe = {
-    name: MSG_NAME_FROM_IFRAME.QaAssistantClose| MSG_NAME_FROM_IFRAME.FsResetForcedVariations
+    name: MSG_NAME_FROM_IFRAME.QaAssistantClose
+    | MSG_NAME_FROM_IFRAME.FsResetForcedVariations
+    | MSG_NAME_FROM_IFRAME.FsQaAssistantReady
 }|FsApplyForcedVariations
 
 /**

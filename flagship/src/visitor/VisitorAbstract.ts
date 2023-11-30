@@ -308,12 +308,18 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       variationGroupId: flag.variationGroupId,
       variationId: flag.variationId
     }
+
+    window.flagship = {
+      ...window.flagship,
+      exposedVariations: this._exposedVariations
+    }
+
     if (!this.config.isQAModeEnabled) {
       return
     }
 
     const BATCH_SIZE = 10
-    const DELAY = 500
+    const DELAY = 100
 
     if (Object.keys(this._exposedVariations).length >= BATCH_SIZE) {
       sendVisitorExposedVariations(this._exposedVariations)

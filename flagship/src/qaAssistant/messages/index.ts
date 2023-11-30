@@ -10,6 +10,14 @@ export function sendMessageToIframe (data: EventDataToIframe): void {
 }
 
 export function sendVisitorAllocatedVariations (visitorVariations: Record<string, VisitorVariations>) {
+  if (!isBrowser()) {
+    return
+  }
+  window.flagship = {
+    ...window.flagship,
+    visitorVariations
+  }
+
   sendMessageToIframe({ name: MSG_NAME_TO_IFRAME.FsUpdateVisitorAllocatedVariation, value: visitorVariations })
 }
 
