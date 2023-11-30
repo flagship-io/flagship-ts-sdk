@@ -127,14 +127,14 @@ function forceVariation ({ flagDTO, config }:{flagDTO?:FlagDTO, config:IFlagship
   return {
     key: flagDTO.key,
     campaignId: forcedVariation.campaignId,
-    campaignName: '',
-    variationGroupId: '',
-    variationGroupName: '',
+    campaignName: forcedVariation.campaignName,
+    variationGroupId: forcedVariation.variationGroupId,
+    variationGroupName: forcedVariation.variationGroupName as string,
     variationId: forcedVariation.variation.id,
     variationName: forcedVariation.variation.name as string,
     isReference: !!forcedVariation.variation.reference,
-    campaignType: '',
-    slug: '',
+    campaignType: forcedVariation.campaignType,
+    slug: forcedVariation.CampaignSlug,
     value
   }
 }
