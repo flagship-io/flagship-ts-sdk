@@ -227,6 +227,11 @@ export type VisitorVariations = {
 
 export type FsVariationToForce = {
   campaignId: string;
+  campaignName: string;
+  campaignType: string;
+  CampaignSlug?: string | null;
+  variationGroupId: string;
+  variationGroupName?: string;
   variation: VariationDTO;
 };
 
