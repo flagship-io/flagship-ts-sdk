@@ -47,3 +47,7 @@ export type VisitorAllocatedVariations = {
 };
 
 export type EventDataToIframe = VisitorAllocatedVariations
+
+export enum INTERNAL_EVENTS {
+    FsTriggerRendering = 'FS_TRIGGER_RENDERING'
+}

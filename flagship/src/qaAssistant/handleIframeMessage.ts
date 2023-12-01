@@ -4,7 +4,7 @@ import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, FS_QA_ASSISTANT_SCRIPT_TAG
 import { FsVariationToForce } from '../types'
 import { isBrowser } from '../utils/utils'
 import { sendVisitorAllocatedVariations, sendVisitorExposedVariations } from './messages'
-import { EventDataFromIframe, MSG_NAME_FROM_IFRAME } from './type'
+import { EventDataFromIframe, MSG_NAME_FROM_IFRAME, INTERNAL_EVENTS } from './type'
 
 export function handleIframeMessage ({ event, config, func }: { event: MessageEvent<EventDataFromIframe>, config: IFlagshipConfig, func?: (event: MessageEvent<EventDataFromIframe>) => void }) {
   if (!config.isQAModeEnabled || !isBrowser()) {
@@ -37,6 +37,14 @@ function onQaAssistantReady () {
   }
 }
 
+function render () {
+  if (SDK_INFO.name === 'TypeScript') {
+    document.location.reload()
+  }
+  const triggerRenderEvent = new CustomEvent(INTERNAL_EVENTS.FsTriggerRendering)
+  window.dispatchEvent(triggerRenderEvent)
+}
+
 function onQaAssistantClose ({ config, func }:{config:IFlagshipConfig, func?: (event: MessageEvent<EventDataFromIframe>) => void}) {
   config.isQAModeEnabled = false
   sessionStorage.removeItem(FS_IS_QA_MODE_ENABLED)
@@ -44,6 +52,12 @@ function onQaAssistantClose ({ config, func }:{config:IFlagshipConfig, func?: (e
     window.removeEventListener('message', func)
   }
   document.getElementById(FS_QA_ASSISTANT_SCRIPT_TAG_ID)?.remove()
+
+  window.flagship = {
+    ...window.flagship,
+    forcedVariations: {}
+  }
+  render()
 }
 
 function onApplyForcedVariations ({ value }:{ value:Record<string, FsVariationToForce>}) {
@@ -61,9 +75,7 @@ function onApplyForcedVariations ({ value }:{ value:Record<string, FsVariationTo
     ...window.flagship,
     forcedVariations
   }
-  if (SDK_INFO.name === 'TypeScript') {
-    document.location.reload()
-  }
+  render()
 }
 
 function onResetForcedVariations () {
@@ -74,7 +86,5 @@ function onResetForcedVariations () {
     forcedVariations: {}
   }
 
-  if (SDK_INFO.name === 'TypeScript') {
-    document.location.reload()
-  }
+  render()
 }

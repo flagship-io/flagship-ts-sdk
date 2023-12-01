@@ -1,5 +1,5 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
-import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED } from '../enum/FlagshipConstant'
+import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, FS_QA_ASSISTANT_SCRIPT_TAG_ID } from '../enum/FlagshipConstant'
 import { FsVariationToForce } from '../types'
 import { isBrowser, logInfoSprintf } from '../utils/utils'
 import { handleIframeMessage } from './handleIframeMessage'
@@ -12,6 +12,7 @@ import { EventDataFromIframe } from './type'
 function appendScript (bundleFileUrl: string): void {
   const script = document.createElement('script')
   script.src = bundleFileUrl
+  script.id = FS_QA_ASSISTANT_SCRIPT_TAG_ID
   document.body.append(script)
 }
 
@@ -25,16 +26,6 @@ function loadQaAssistant (config: IFlagshipConfig): void {
     return
   }
 
-  const eventListenerMessage = (event: MessageEvent<EventDataFromIframe>) => {
-    handleIframeMessage({ event, config, func: eventListenerMessage })
-  }
-  window.addEventListener('message', eventListenerMessage)
-
-  logInfoSprintf(config, 'QA assistant', 'Loading QA Assistant')
-  //   const bundleFileUrl = 'https://qa-assistant.abtasty.com/bundle.js'
-  const bundleFileUrl = 'https://127.0.0.1/bundle.js'
-  appendScript(bundleFileUrl)
-
   let forcedVariations: Record<string, FsVariationToForce> = {}
   const sessionForcedVariations = sessionStorage.getItem(FS_FORCED_VARIATIONS)
   try {
@@ -44,9 +35,20 @@ function loadQaAssistant (config: IFlagshipConfig): void {
   }
 
   window.flagship = {
+    ...window.flagship,
     envId: config.envId as string,
     forcedVariations
   }
+
+  const eventListenerMessage = (event: MessageEvent<EventDataFromIframe>) => {
+    handleIframeMessage({ event, config, func: eventListenerMessage })
+  }
+  window.addEventListener('message', eventListenerMessage)
+
+  logInfoSprintf(config, 'QA assistant', 'Loading QA Assistant')
+  //   const bundleFileUrl = 'https://qa-assistant.abtasty.com/bundle.js'
+  const bundleFileUrl = 'https://127.0.0.1/bundle.js'
+  appendScript(bundleFileUrl)
 
   config.isQAModeEnabled = true
   sessionStorage.setItem(FS_IS_QA_MODE_ENABLED, 'true')
