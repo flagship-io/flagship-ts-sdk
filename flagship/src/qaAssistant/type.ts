@@ -39,14 +39,21 @@ export type EventDataFromIframe = {
 export enum MSG_NAME_TO_IFRAME {
     FsUpdateVisitorAllocatedVariation = 'FS_UPDATE_VISITOR_ALLOCATED_VARIATION',
     FsVisitorExposedVariation = 'FS_VISITOR_EXPOSED_VARIATION',
+    FsHIT = 'FS_HIT',
 }
 
 export type VisitorAllocatedVariations = {
-    name: MSG_NAME_TO_IFRAME.FsUpdateVisitorAllocatedVariation|MSG_NAME_TO_IFRAME.FsVisitorExposedVariation
+    name: MSG_NAME_TO_IFRAME.FsUpdateVisitorAllocatedVariation
+    |MSG_NAME_TO_IFRAME.FsVisitorExposedVariation
     value: Record<string, VisitorVariations>
 };
 
-export type EventDataToIframe = VisitorAllocatedVariations
+export type FsSendHit = {
+    name: MSG_NAME_TO_IFRAME.FsHIT
+    value: Record<string, unknown>[]
+}
+
+export type EventDataToIframe = VisitorAllocatedVariations|FsSendHit
 
 export enum INTERNAL_EVENTS {
     FsTriggerRendering = 'FS_TRIGGER_RENDERING'

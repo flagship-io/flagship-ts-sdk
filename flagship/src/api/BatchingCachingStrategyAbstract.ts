@@ -6,9 +6,10 @@ import { Analytic } from '../hit/Analytic'
 import { Batch } from '../hit/Batch'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { HitAbstract, Event } from '../hit/index'
+import { sendFsHitToQA } from '../qaAssistant/messages'
 import { HitCacheDTO, IExposedFlag, IExposedVisitor, TroubleshootingData } from '../types'
 import { IHttpClient } from '../utils/HttpClient'
-import { errorFormat, logDebug, logDebugSprintf, logError, logErrorSprintf, sprintf, uuidV4 } from '../utils/utils'
+import { errorFormat, isBrowser, logDebug, logDebugSprintf, logError, logErrorSprintf, sprintf, uuidV4 } from '../utils/utils'
 import { ITrackingManagerCommon } from './ITrackingManagerCommon'
 import type { BatchingCachingStrategyConstruct, SendActivate } from './types'
 
@@ -52,6 +53,13 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     this._analyticHitQueue = analyticHitQueue
     this._isAnalyticHitQueueSending = false
     this._isTroubleshootingQueueSending = false
+  }
+
+  public sendHitsToFsQa (hit: HitAbstract[]) {
+    if (!isBrowser() || !this.config.isQAModeEnabled) {
+      return
+    }
+    sendFsHitToQA(hit.map(item => item.toApiKeys()))
   }
 
   public abstract addHitInPoolQueue (hit: HitAbstract):Promise<void>
@@ -211,6 +219,8 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       })
 
       await this.flushHits(hitKeysToRemove)
+
+      this.sendHitsToFsQa(batch.hits)
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {

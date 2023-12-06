@@ -24,3 +24,7 @@ export function sendVisitorAllocatedVariations (visitorVariations: Record<string
 export function sendVisitorExposedVariations (visitorVariations: Record<string, VisitorVariations>) {
   sendMessageToIframe({ name: MSG_NAME_TO_IFRAME.FsVisitorExposedVariation, value: visitorVariations })
 }
+
+export function sendFsHitToQA (hit: Record<string, unknown>[]) {
+  sendMessageToIframe({ name: MSG_NAME_TO_IFRAME.FsHIT, value: hit })
+}
