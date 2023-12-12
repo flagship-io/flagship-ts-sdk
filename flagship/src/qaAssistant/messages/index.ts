@@ -26,5 +26,10 @@ export function sendVisitorExposedVariations (visitorVariations: Record<string, 
 }
 
 export function sendFsHitToQA (hit: Record<string, unknown>[]) {
-  sendMessageToIframe({ name: MSG_NAME_TO_IFRAME.FsHIT, value: hit })
+  sendMessageToIframe({
+    name: MSG_NAME_TO_IFRAME.FsHIT,
+    value: hit.map(item => {
+      return { ...item, timestamp: Date.now() - (item.qt as number) }
+    })
+  })
 }
