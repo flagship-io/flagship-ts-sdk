@@ -14,6 +14,7 @@ export function handleIframeMessage ({ event, config, func }: { event: MessageEv
     case MSG_NAME_FROM_IFRAME.FsQaAssistantReady:
       onQaAssistantReady()
       break
+    case MSG_NAME_FROM_IFRAME.MinimizeQaAssistantClose:
     case MSG_NAME_FROM_IFRAME.QaAssistantClose:
       onQaAssistantClose({ config, func })
       break

@@ -69,6 +69,7 @@ function listenForKeyboardQaAssistant (config: IFlagshipConfig) {
 
   document.addEventListener('keydown', (event: KeyboardEvent) => {
     keysPressed[event.key] = true
+    sessionStorage.removeItem(FS_FORCED_VARIATIONS)
     if (keyCombinationPressed()) {
       loadQaAssistant(config)
     }
