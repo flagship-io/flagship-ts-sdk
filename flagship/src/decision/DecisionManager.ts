@@ -50,10 +50,6 @@ export abstract class DecisionManager implements IDecisionManager {
     this._troubleshooting = v
   }
 
-  getBucketingContent (): BucketingDTO | undefined {
-    return this._bucketingContent
-  }
-
   public get config ():IFlagshipConfig {
     return this._config
   }

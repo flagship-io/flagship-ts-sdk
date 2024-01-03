@@ -1,4 +1,3 @@
-import { BucketingDTO } from './../decision/api/bucketingDTO'
 import { IBucketingConfig } from './../config/IBucketingConfig'
 import { IDecisionApiConfig } from './../config/IDecisionApiConfig'
 import { IEdgeConfig } from './../config/IEdgeConfig'
@@ -278,14 +277,6 @@ export class Flagship {
    */
   public static async close () {
     await this._instance?.configManager?.trackingManager?.sendBatch()
-  }
-
-  public getBucketingContent (): BucketingDTO|undefined {
-    return Flagship.getBucketingContent()
-  }
-
-  public static getBucketingContent (): BucketingDTO|undefined {
-    return this._instance?._configManager?.decisionManager?.getBucketingContent()
   }
 
   /**
