@@ -24,7 +24,8 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   protected _isAnalyticHitQueueSending: boolean
   protected _isTroubleshootingQueueSending: boolean
   private _troubleshootingData? : TroubleshootingData|'started'
-
+  private _HitsToFsQa:HitAbstract[]
+  private _sendFsHitToQATimeoutId?:NodeJS.Timeout
   public get flagshipInstanceId (): string|undefined {
     return this._flagshipInstanceId
   }
@@ -43,6 +44,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
   constructor (param: BatchingCachingStrategyConstruct) {
     const { config, hitsPoolQueue, httpClient, activatePoolQueue, troubleshootingQueue, flagshipInstanceId, analyticHitQueue } = param
+    this._HitsToFsQa = []
     this.troubleshootingData = 'started'
     this._config = config
     this._hitsPoolQueue = hitsPoolQueue
@@ -55,11 +57,27 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     this._isTroubleshootingQueueSending = false
   }
 
-  public sendHitsToFsQa (hit: HitAbstract[]) {
+  public sendHitsToFsQa (hits: HitAbstract[]) {
     if (!isBrowser() || !this.config.isQAModeEnabled) {
       return
     }
-    sendFsHitToQA(hit.map(item => item.toApiKeys()))
+    this._HitsToFsQa.push(...hits)
+    const BATCH_SIZE = 10
+    const DELAY = 3000
+
+    if (this._HitsToFsQa.length >= BATCH_SIZE) {
+      sendFsHitToQA(this._HitsToFsQa.map(item => item.toApiKeys()))
+      this._HitsToFsQa = []
+    }
+
+    if (this._sendFsHitToQATimeoutId) {
+      clearTimeout(this._sendFsHitToQATimeoutId)
+    }
+
+    this._sendFsHitToQATimeoutId = setTimeout(() => {
+      sendFsHitToQA(this._HitsToFsQa.map(item => item.toApiKeys()))
+      this._HitsToFsQa = []
+    }, DELAY)
   }
 
   public abstract addHitInPoolQueue (hit: HitAbstract):Promise<void>
