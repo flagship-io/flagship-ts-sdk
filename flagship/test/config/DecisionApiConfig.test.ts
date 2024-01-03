@@ -213,7 +213,7 @@ describe('Test SDK_LANGUAGE', () => {
   it('should be Typescript', () => {
     const sdkVersion = '2.6.5'
     const config = new DecisionApiConfig({ language: 0, sdkVersion })
-    expect(SDK_INFO.name).toBe('Typescript')
+    expect(SDK_INFO.name).toBe('TypeScript')
     expect(SDK_INFO.version).toBe(version)
     expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
   })

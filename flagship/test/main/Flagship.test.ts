@@ -1,4 +1,4 @@
-import { jest, expect, it, describe } from '@jest/globals'
+import { jest, expect, it, describe, beforeAll } from '@jest/globals'
 // import { mocked } from 'ts-jest/utils'
 import { DecisionApiConfig, DecisionMode } from '../../src/config/index'
 import {
@@ -8,10 +8,12 @@ import {
 import { Flagship } from '../../src/main/Flagship'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { sleep } from '../../src/utils/utils'
+import * as utils from '../../src/utils/utils'
 import { Visitor } from '../../src/visitor/Visitor'
 import { DefaultVisitorCache } from '../../src/cache/DefaultVisitorCache'
 import { DefaultHitCache } from '../../src/cache/DefaultHitCache'
 import { EdgeConfig } from '../../src/config/EdgeConfig'
+import * as qaAssistant from '../../src/qaAssistant'
 
 const getCampaignsAsync = jest.fn().mockReturnValue(Promise.resolve([]))
 
@@ -55,11 +57,14 @@ jest.mock('../../src/api/TrackingManager', () => {
 describe('test Flagship class', () => {
   const envId = 'envId'
   const apiKey = 'apiKey'
+  const isBrowserSpy = jest.spyOn(utils, 'isBrowser')
+  isBrowserSpy.mockReturnValue(true)
+  const launchQaAssistantSpy = jest.spyOn(qaAssistant, 'launchQaAssistant')
+  launchQaAssistantSpy.mockImplementation(() => {
+    //
+  })
 
-  it('should ', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    global.window = global.window = jest.fn() as any
-
+  it('test flagship start works properly', () => {
     Flagship.start(envId, apiKey)
 
     expect(Flagship.getConfig()).toBeDefined()
@@ -75,9 +80,8 @@ describe('test Flagship class', () => {
     expect(Flagship.getConfig().hitCacheImplementation).toBeInstanceOf(DefaultHitCache)
     expect(Flagship.getStatus()).toBe(FlagshipStatus.READY)
     expect(startBatchingLoop).toBeCalledTimes(1)
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    global.window = (() => undefined)() as any
+    expect(launchQaAssistantSpy).toBeCalledTimes(1)
+    expect(launchQaAssistantSpy).toBeCalledWith(Flagship.getConfig())
   })
 
   it('should test Flagship.close method', async () => {
@@ -208,6 +212,14 @@ const getNull = (): any => {
 }
 
 describe('test Flagship newVisitor', () => {
+  const isBrowserSpy = jest.spyOn(utils, 'isBrowser')
+  const launchQaAssistantSpy = jest.spyOn(qaAssistant, 'launchQaAssistant')
+  launchQaAssistantSpy.mockImplementation(() => {
+    //
+  })
+  beforeAll(() => {
+    isBrowserSpy.mockReturnValue(false)
+  })
   it('should ', async () => {
     Flagship.start('envId', 'apiKey')
     const visitorId = 'visitorId'
@@ -250,9 +262,7 @@ describe('test Flagship newVisitor', () => {
     visitor = Flagship.newVisitor({ isNewInstance: true })
     expect(Flagship.getVisitor()).toBeUndefined()
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    global.window = jest.fn() as any
-
+    isBrowserSpy.mockReturnValue(true)
     // test client side true and isNewInstance to false
     visitor = Flagship.newVisitor({ isNewInstance: false, hasConsented: false })
     expect(Flagship.getVisitor()).toBeDefined()

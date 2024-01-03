@@ -28,7 +28,7 @@ import { BucketingManager } from '../decision/BucketingManager'
 import { MurmurHash } from '../utils/MurmurHash'
 import { DecisionManager } from '../decision/DecisionManager'
 import { HttpClient } from '../utils/HttpClient'
-import { CampaignDTO, FlagDTO, ForcedVariation, NewVisitor, primitive } from '../types'
+import { CampaignDTO, FlagDTO, NewVisitor, primitive } from '../types'
 import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 import { EdgeManager } from '../decision/EdgeManager'
@@ -358,12 +358,6 @@ export class Flagship {
       logError(this.getConfig(), NEW_VISITOR_NOT_READY, PROCESS_NEW_VISITOR)
     }
 
-    // const qaModule = this.getConfig().isQAModeEnabled
-    let forcedVariations: ForcedVariation[]| undefined
-    // if (typeof qaModule?.getForcedVariations === 'function') {
-    //   forcedVariations = qaModule.getForcedVariations()
-    // }
-
     const visitorDelegate = new VisitorDelegate({
       visitorId,
       context,
@@ -372,7 +366,6 @@ export class Flagship {
       configManager: this.getInstance().configManager,
       initialModifications: initialFlagsData,
       initialCampaigns,
-      forcedVariations,
       initialFlagsData,
       monitoringData: {
         instanceId: this.getInstance().instanceId,

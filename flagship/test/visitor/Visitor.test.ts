@@ -6,9 +6,8 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { IHttpResponse, HttpClient } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { Visitor } from '../../src/visitor/Visitor'
-import { HitType, FlagDTO } from '../../src'
+import { HitType, FlagDTO, CampaignDTO } from '../../src'
 import { EMIT_READY, SDK_INFO } from '../../src/enum'
-import { CampaignDTO } from '../../src/decision/api/models'
 import { IFlag } from '../../src/flag/Flags'
 
 describe('test visitor', () => {

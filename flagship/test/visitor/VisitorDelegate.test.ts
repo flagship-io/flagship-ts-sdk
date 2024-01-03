@@ -1,4 +1,4 @@
-import { primitive } from './../../src/types'
+import { CampaignDTO, primitive } from './../../src/types'
 import { jest, expect, it, describe } from '@jest/globals'
 import { FlagDTO } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
@@ -9,7 +9,6 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { IFlagMetadata, IHit, modificationsRequested } from '../../src/types'
-import { CampaignDTO } from '../../src/decision/api/models'
 import { DecisionManager } from '../../src/decision/DecisionManager'
 import { cacheVisitor } from '../../src/visitor/VisitorCache'
 

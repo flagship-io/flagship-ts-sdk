@@ -8,7 +8,6 @@ import { BUCKETING_API_URL, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONT
 import { sprintf, sleep } from '../../src/utils/utils'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { BucketingDTO } from '../../src/decision/api/bucketingDTO'
 import { DecisionManager } from '../../src/decision/DecisionManager'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { CampaignDTO, TroubleshootingLabel } from '../../src'
@@ -241,12 +240,8 @@ describe('test bucketing polling', () => {
 })
 
 describe('test update', () => {
-  const onBucketingSuccess = (param: {
-    status: number
-    payload: BucketingDTO
-  }) => {
-    expect(param).toEqual({ status: 200, payload: bucketing })
-  }
+  const onBucketingSuccess = jest.fn()
+
   const config = new BucketingConfig({ pollingInterval: 0, onBucketingSuccess })
   const murmurHash = new MurmurHash()
   const httpClient = new HttpClient()
@@ -284,6 +279,8 @@ describe('test update', () => {
     await sleep(500)
     expect(updateFlagshipStatus).toBeCalledTimes(2)
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
+    expect(onBucketingSuccess).toBeCalledTimes(1)
+    expect(onBucketingSuccess).toBeCalledWith({ status: 200, payload: bucketing })
   })
 })
 
