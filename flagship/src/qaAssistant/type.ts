@@ -19,7 +19,8 @@ export enum MSG_NAME_FROM_IFRAME {
     QaAssistantClose = 'ABTASTY_QA_ASSISTANT_CLOSE',
     FsApplyForcedVariations = 'FS_APPLY_FORCED_VARIATIONS',
     FsResetForcedVariations = 'FS_RESET_FORCED_VARIATIONS',
-    FsQaAssistantReady = 'FS_QA_ASSISTANT_READY'
+    FsQaAssistantReady = 'FS_QA_ASSISTANT_READY',
+    MinimizeQaAssistantClose = 'ABTASTY_QA_MINIMIZE_QA_ASSISTANT_CLOSE',
 }
 
 export type FsApplyForcedVariations = {
@@ -30,7 +31,7 @@ export type FsApplyForcedVariations = {
 export type EventDataFromIframe = {
     name: MSG_NAME_FROM_IFRAME.QaAssistantClose
     | MSG_NAME_FROM_IFRAME.FsResetForcedVariations
-    | MSG_NAME_FROM_IFRAME.FsQaAssistantReady
+    | MSG_NAME_FROM_IFRAME.FsQaAssistantReady| MSG_NAME_FROM_IFRAME.MinimizeQaAssistantClose
 }|FsApplyForcedVariations
 
 /**

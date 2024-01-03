@@ -52,15 +52,15 @@ export class Flag<T> implements IFlag<T> {
 
   exists ():boolean {
     const visitorFlagDTO = this._visitor.flagsData.get(this._key)
-    // const forcedFlagDTO = forceVariation({ flagDTO: visitorFlagDTO, visitor: this._visitor })
-    const flagDTO = visitorFlagDTO
+    const forcedFlagDTO = forceVariation({ flagDTO: visitorFlagDTO, config: this._visitor.config })
+    const flagDTO = forcedFlagDTO || visitorFlagDTO
     return !!(flagDTO?.campaignId && flagDTO.variationId && flagDTO.variationGroupId)
   }
 
   get metadata ():IFlagMetadata {
     const visitorFlagDTO = this._visitor.flagsData.get(this._key)
-    // const forcedFlagDTO = forceVariation({ flagDTO: visitorFlagDTO, visitor: this._visitor })
-    const flagDTO = visitorFlagDTO
+    const forcedFlagDTO = forceVariation({ flagDTO: visitorFlagDTO, config: this._visitor.config })
+    const flagDTO = forcedFlagDTO || visitorFlagDTO
     const metadata = new FlagMetadata({
       campaignId: flagDTO?.campaignId || '',
       campaignName: flagDTO?.campaignName || '',
@@ -91,15 +91,13 @@ export class Flag<T> implements IFlag<T> {
 
   visitorExposed () : Promise<void> {
     const flagDTO = this._visitor.flagsData.get(this._key)
-    // const forcedFlagDTO = forceVariation({ flagDTO, visitor: this._visitor })
-    return this._visitor.visitorExposed({ key: this._key, flag: flagDTO, defaultValue: this._defaultValue })
+    const forcedFlagDTO = forceVariation({ flagDTO, config: this._visitor.config })
+    return this._visitor.visitorExposed({ key: this._key, flag: forcedFlagDTO || flagDTO, defaultValue: this._defaultValue })
   }
 
   getValue (userExposed = true) : T {
     const flagDTO = this._visitor.flagsData.get(this._key)
     const forcedFlagDTO = forceVariation({ flagDTO, config: this._visitor.config })
-
-    console.log('forcedFlagDTO', forcedFlagDTO)
 
     const flag = forcedFlagDTO || flagDTO
 
