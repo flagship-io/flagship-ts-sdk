@@ -1,9 +1,9 @@
-import { IFlagshipConfig } from './../config/IFlagshipConfig'
 import { FLAG_METADATA, NO_FLAG_METADATA } from '../enum/index'
-import { FlagDTO, IFlagMetadata } from '../types'
-import { hasSameType, isBrowser, logDebugSprintf } from '../utils/utils'
+import { IFlagMetadata } from '../types'
+import { hasSameType, logDebugSprintf } from '../utils/utils'
 import { VisitorDelegate } from '../visitor/index'
 import { FlagMetadata } from './FlagMetadata'
+import { forceVariation } from './forceVariation'
 
 export type FlagValue<S> = {
   defaultValue: S,
@@ -109,30 +109,5 @@ export class Flag<T> implements IFlag<T> {
       flag,
       userExposed
     })
-  }
-}
-
-function forceVariation ({ flagDTO, config }:{flagDTO?:FlagDTO, config:IFlagshipConfig}):FlagDTO|undefined {
-  if (!config.isQAModeEnabled || !isBrowser() || !flagDTO || !window?.flagship?.forcedVariations) {
-    return undefined
-  }
-  const forcedVariations = window.flagship.forcedVariations
-  const forcedVariation = forcedVariations[flagDTO.campaignId]
-  if (!forcedVariation) {
-    return undefined
-  }
-  const value = forcedVariation.variation.modifications.value[flagDTO.key]
-  return {
-    key: flagDTO.key,
-    campaignId: forcedVariation.campaignId,
-    campaignName: forcedVariation.campaignName,
-    variationGroupId: forcedVariation.variationGroupId,
-    variationGroupName: forcedVariation.variationGroupName as string,
-    variationId: forcedVariation.variation.id,
-    variationName: forcedVariation.variation.name as string,
-    isReference: !!forcedVariation.variation.reference,
-    campaignType: forcedVariation.campaignType,
-    slug: forcedVariation.CampaignSlug,
-    value
   }
 }
