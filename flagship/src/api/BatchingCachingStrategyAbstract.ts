@@ -74,6 +74,10 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       clearTimeout(this._sendFsHitToQATimeoutId)
     }
 
+    if (!this._HitsToFsQa.length) {
+      return
+    }
+
     this._sendFsHitToQATimeoutId = setTimeout(() => {
       sendFsHitToQA(this._HitsToFsQa.map(item => item.toApiKeys()))
       this._HitsToFsQa = []
