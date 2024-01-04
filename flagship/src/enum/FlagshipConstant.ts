@@ -44,6 +44,7 @@ export const THIRD_PARTY_SEGMENT_URL = 'https://api-data-connector.flagship.io/a
 export const HIT_CONSENT_URL = 'https://ariane.abtasty.com'
 export const URL_CAMPAIGNS = '/campaigns'
 export const URL_ACTIVATE_MODIFICATION = 'activate'
+export const QA_ASSISTANT_URL = 'https://qa-assistant.abtasty.com/bundle.js'
 
 export const EXPOSE_ALL_KEYS = 'exposeAllKeys'
 export const SEND_CONTEXT_EVENT = 'sendContextEvent'
