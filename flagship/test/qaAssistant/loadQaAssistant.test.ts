@@ -8,7 +8,7 @@ import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, QA_ASSISTANT_URL } from '.
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
 import * as appendScript from '../../src/qaAssistant/appendScript'
 import { FsVariationToForce } from '../../src'
-import * as handleIframeMessage from '../../src/qaAssistant/handleIframeMessage'
+import * as handleIframeMessage from '../../src/qaAssistant/messages/handleIframeMessage'
 
 describe('Test loadQaAssistant', () => {
   beforeEach(() => {

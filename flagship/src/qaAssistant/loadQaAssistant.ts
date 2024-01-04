@@ -3,7 +3,7 @@ import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, QA_ASSISTANT_URL } from '.
 import { FsVariationToForce } from '../types'
 import { logInfoSprintf } from '../utils/utils'
 import { appendScript } from './appendScript'
-import { handleIframeMessage } from './handleIframeMessage'
+import { handleIframeMessage } from './messages/handleIframeMessage'
 import { EventDataFromIframe } from './type'
 
 /**
