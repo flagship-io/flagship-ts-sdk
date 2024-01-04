@@ -1,0 +1,8 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test appendScript test Script is appended to document 1`] = `
+<script
+  id="FS_QA_ASSISTANT_SCRIPT_TAG_ID"
+  src="https://qa-assistant.abtasty.com/bundle.js"
+/>
+`;
