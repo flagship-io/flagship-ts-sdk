@@ -60,6 +60,8 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
         await this.flushHits(hitKeysToRemove)
       }
 
+      this.sendHitsToFsQa(activateBatch.hits)
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       activateBatch.hits.forEach(item => {

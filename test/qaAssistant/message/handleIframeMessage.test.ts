@@ -21,4 +21,3 @@ describe('Test appendScript', () => {
     handleIframeMessage({ event, config })
   })
 })
-∏

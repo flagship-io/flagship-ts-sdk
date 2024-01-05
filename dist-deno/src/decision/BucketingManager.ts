@@ -2,18 +2,16 @@ import { ALLOCATION, BUCKETING_NEW_ALLOCATION, BUCKETING_VARIATION_CACHE, GET_TH
 import { IFlagshipConfig } from '../config/index.ts'
 import { BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, POLLING_EVENT_200, PROCESS_BUCKETING, SDK_INFO } from '../enum/index.ts'
 import { Segment } from '../hit/Segment.ts'
-import { ThirdPartySegment, primitive } from '../types.ts'
+import { CampaignDTO, ThirdPartySegment, VariationDTO, primitive } from '../types.ts'
 import { IHttpClient, IHttpResponse } from '../utils/HttpClient.ts'
 import { MurmurHash } from '../utils/MurmurHash.ts'
 import { errorFormat, logDebug, logDebugSprintf, logError, logInfo, sprintf } from '../utils/utils.ts'
 import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
-import { BucketingDTO, Targetings, VariationGroupDTO } from './api/bucketingDTO.ts'
-import { CampaignDTO, VariationDTO } from './api/models.ts'
+import { Targetings, VariationGroupDTO } from './api/bucketingDTO.ts'
 import { DecisionManager } from './DecisionManager.ts'
 import { Troubleshooting } from '../hit/Troubleshooting.ts'
 
 export class BucketingManager extends DecisionManager {
-  private _bucketingContent!: BucketingDTO
   private _lastModified!: string
   private _isPooling!: boolean
   private _murmurHash: MurmurHash

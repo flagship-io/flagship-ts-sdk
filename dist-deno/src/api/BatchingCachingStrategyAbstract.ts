@@ -6,11 +6,12 @@ import { Analytic } from '../hit/Analytic.ts'
 import { Batch } from '../hit/Batch.ts'
 import { Troubleshooting } from '../hit/Troubleshooting.ts'
 import { HitAbstract, Event } from '../hit/index.ts'
+import { sendFsHitToQA } from '../qaAssistant/messages.ts'
 import { HitCacheDTO, IExposedFlag, IExposedVisitor, TroubleshootingData } from '../types.ts'
 import { IHttpClient } from '../utils/HttpClient.ts'
-import { errorFormat, logDebug, logDebugSprintf, logError, logErrorSprintf, sprintf, uuidV4 } from '../utils/utils.ts'
+import { errorFormat, isBrowser, logDebug, logDebugSprintf, logError, logErrorSprintf, sprintf, uuidV4 } from '../utils/utils.ts'
 import { ITrackingManagerCommon } from './ITrackingManagerCommon.ts'
-import type { BatchingCachingStrategyConstruct, SendActivate } from './types.ts'
+import type { BatchingCachingStrategyConstruct, SendActivate } from './types'
 
 export abstract class BatchingCachingStrategyAbstract implements ITrackingManagerCommon {
   protected _config : IFlagshipConfig
@@ -23,7 +24,8 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   protected _isAnalyticHitQueueSending: boolean
   protected _isTroubleshootingQueueSending: boolean
   private _troubleshootingData? : TroubleshootingData|'started'
-
+  private _HitsToFsQa:HitAbstract[]
+  private _sendFsHitToQATimeoutId?:NodeJS.Timeout
   public get flagshipInstanceId (): string|undefined {
     return this._flagshipInstanceId
   }
@@ -42,6 +44,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
   constructor (param: BatchingCachingStrategyConstruct) {
     const { config, hitsPoolQueue, httpClient, activatePoolQueue, troubleshootingQueue, flagshipInstanceId, analyticHitQueue } = param
+    this._HitsToFsQa = []
     this.troubleshootingData = 'started'
     this._config = config
     this._hitsPoolQueue = hitsPoolQueue
@@ -52,6 +55,33 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     this._analyticHitQueue = analyticHitQueue
     this._isAnalyticHitQueueSending = false
     this._isTroubleshootingQueueSending = false
+  }
+
+  public sendHitsToFsQa (hits: HitAbstract[]) {
+    if (!isBrowser() || !this.config.isQAModeEnabled) {
+      return
+    }
+    this._HitsToFsQa.push(...hits)
+    const BATCH_SIZE = 10
+    const DELAY = 3000
+
+    if (this._HitsToFsQa.length >= BATCH_SIZE) {
+      sendFsHitToQA(this._HitsToFsQa.map(item => item.toApiKeys()))
+      this._HitsToFsQa = []
+    }
+
+    if (this._sendFsHitToQATimeoutId) {
+      clearTimeout(this._sendFsHitToQATimeoutId)
+    }
+
+    if (!this._HitsToFsQa.length) {
+      return
+    }
+
+    this._sendFsHitToQATimeoutId = setTimeout(() => {
+      sendFsHitToQA(this._HitsToFsQa.map(item => item.toApiKeys()))
+      this._HitsToFsQa = []
+    }, DELAY)
   }
 
   public abstract addHitInPoolQueue (hit: HitAbstract):Promise<void>
@@ -211,6 +241,8 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       })
 
       await this.flushHits(hitKeysToRemove)
+
+      this.sendHitsToFsQa(batch.hits)
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {

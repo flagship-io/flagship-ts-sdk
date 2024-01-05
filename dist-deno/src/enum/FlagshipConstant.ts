@@ -1,10 +1,11 @@
 import { version } from '../sdkVersion.ts'
+import { SdkInfoType } from '../types.ts'
 
 /**
  * SDK language
  */
 
-export const SDK_INFO = {
+export const SDK_INFO:SdkInfoType = {
   name: 'TypeScript',
   version
 }
@@ -43,11 +44,16 @@ export const THIRD_PARTY_SEGMENT_URL = 'https://api-data-connector.flagship.io/a
 export const HIT_CONSENT_URL = 'https://ariane.abtasty.com'
 export const URL_CAMPAIGNS = '/campaigns'
 export const URL_ACTIVATE_MODIFICATION = 'activate'
+export const QA_ASSISTANT_URL = 'https://qa-assistant.abtasty.com/bundle.js'
 
 export const EXPOSE_ALL_KEYS = 'exposeAllKeys'
 export const SEND_CONTEXT_EVENT = 'sendContextEvent'
 
 export const FS_CONSENT = 'fs_consent'
+
+export const FS_IS_QA_MODE_ENABLED = 'FS_IS_QA_MODE_ENABLED'
+export const FS_FORCED_VARIATIONS = 'FS_FORCED_VARIATIONS'
+export const FS_QA_ASSISTANT_SCRIPT_TAG_ID = 'FS_QA_ASSISTANT_SCRIPT_TAG_ID'
 
 /**
  * SDK version

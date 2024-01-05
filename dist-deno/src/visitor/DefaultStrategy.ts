@@ -60,10 +60,9 @@ import {
   IHitAbstract
 } from '../hit/index.ts'
 import { HitShape, ItemHit } from '../hit/Legacy.ts'
-import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata } from '../types.ts'
+import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata, VisitorVariations, CampaignDTO } from '../types.ts'
 import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils.ts'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract.ts'
-import { CampaignDTO } from '../decision/api/models.ts'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext.ts'
 import { VisitorDelegate } from './index.ts'
 import { FlagMetadata } from '../flag/FlagMetadata.ts'
@@ -73,6 +72,7 @@ import { FlagSynchStatus } from '../enum/FlagSynchStatus.ts'
 import { Analytic } from '../hit/Analytic.ts'
 import { DefaultHitCache } from '../cache/DefaultHitCache.ts'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache.ts'
+import { sendVisitorAllocatedVariations } from '../qaAssistant/messages.ts'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'
@@ -354,10 +354,18 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, this.visitor.flagsData)
 
       const assignmentHistory: Record<string, string> = {}
+      const visitorAllocatedVariations: Record<string, VisitorVariations> = {}
 
       this.visitor.flagsData.forEach(item => {
         assignmentHistory[item.variationGroupId] = item.variationId
+        visitorAllocatedVariations[item.campaignId] = {
+          variationId: item.variationId,
+          variationGroupId: item.variationGroupId,
+          campaignId: item.campaignId
+        }
       })
+
+      sendVisitorAllocatedVariations(visitorAllocatedVariations)
 
       const uniqueId = this.visitor.visitorId + this.decisionManager.troubleshooting?.endDate.toUTCString()
       const hash = this._murmurHash.murmurHash3Int32(uniqueId)
