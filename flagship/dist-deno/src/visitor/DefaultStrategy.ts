@@ -72,7 +72,7 @@ import { FlagSynchStatus } from '../enum/FlagSynchStatus.ts'
 import { Analytic } from '../hit/Analytic.ts'
 import { DefaultHitCache } from '../cache/DefaultHitCache.ts'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache.ts'
-import { sendVisitorAllocatedVariations } from '../qaAssistant/messages.ts'
+import { sendVisitorAllocatedVariations } from '../qaAssistant/messages/index.ts'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'

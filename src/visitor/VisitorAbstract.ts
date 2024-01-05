@@ -17,7 +17,7 @@ import { IFlag } from '../flag/Flags'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { MurmurHash } from '../utils/MurmurHash'
 import { FlagSynchStatus } from '../enum/FlagSynchStatus'
-import { sendVisitorExposedVariations } from '../qaAssistant/messages'
+import { sendVisitorExposedVariations } from '../qaAssistant/messages/index'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string

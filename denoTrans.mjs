@@ -10,10 +10,10 @@ function getDirectoryContent (dirPath) {
     .map((dirent) => dirent.name)
 }
 
-function transformFromDir (dirPath, packageResolves = null) {
+function transformFromDir (dirPath, packageResolves) {
   const srcDirectory = getDirectoryContent(dirPath)
   srcDirectory.forEach((rootDir) => {
-    const rootDirPath = `${dirPath}/${rootDir}`
+    const rootDirPath = path.join(dirPath, rootDir)
     if (lstatSync(rootDirPath).isFile()) {
       transformFile(rootDirPath, dirPath, packageResolves)
     } else {
@@ -22,7 +22,14 @@ function transformFromDir (dirPath, packageResolves = null) {
   })
 }
 
-function transformFile (filePath, dirPath, packageResolves = null) {
+const REGEX = [
+  /^import {.+} from ['"].+['"]/gm,
+  /^import {[\n\r](.*[\n\r])+} from ['"].+['"]/gm,
+  /^export .* from ['"].*['"]/gm,
+  /^export {[\n\r](.*[\n\r])*} from ['"].*['"]/gm
+]
+
+function transformFile (filePath, dirPath, packageResolves) {
   readFile(filePath, (err, contentBuffer) => {
     if (err) {
       console.log('err: ', err)
@@ -35,12 +42,8 @@ function transformFile (filePath, dirPath, packageResolves = null) {
       const lastChar = item.substring(item.length - 1)
       content = content.replace(item, item.replace(/'$/gm, '.ts' + lastChar))
     }
-    const regex1 = /^import {.+} from ['"].+['"]/gm
-    const regex2 = /^import {[\n\r](.*[\n\r])+} from ['"].+['"]/gm
-    const regex3 = /^export .* from ['"].*['"]/gm
-    const regex4 = /^export {[\n\r](.*[\n\r])*} from ['"].*['"]/gm;
 
-    [regex1, regex2, regex3, regex4].forEach(regex => {
+    REGEX.forEach(regex => {
       const match = content.match(regex)
       match?.forEach(replaceRegex)
     })
@@ -63,8 +66,8 @@ function transformFile (filePath, dirPath, packageResolves = null) {
       }
     }
 
-    mkdirSync(`dist-deno/${dirPath}`, { recursive: true })
-    writeFile(path.resolve(`dist-deno/${filePath}`), content, (writeErr) => {
+    mkdirSync(`${flagshipDistDeno}/${dirPath}`, { recursive: true })
+    writeFile(path.resolve(`${flagshipDistDeno}/${filePath}`), content, (writeErr) => {
       if (writeErr) {
         console.log('err', writeErr)
       }
@@ -77,9 +80,10 @@ const packageResolve = {
   '../depsNode.native': '../depsDeno'
 }
 const src = 'src'
+const flagshipDistDeno = 'flagship/dist-deno'
 transformFromDir(src, packageResolve)
 
-const distDenoSrc = 'dist-deno/src'
+const distDenoSrc = flagshipDistDeno + '/src'
 if (!existsSync(distDenoSrc)) {
   mkdirSync(distDenoSrc, { recursive: true })
 }

@@ -33,7 +33,7 @@ import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 import { EdgeManager } from '../decision/EdgeManager'
 import { EdgeConfig } from '../config/EdgeConfig'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
-import { launchQaAssistant } from '../qaAssistant'
+import { launchQaAssistant } from '../qaAssistant/index'
 
 export class Flagship {
   // eslint-disable-next-line no-use-before-define
