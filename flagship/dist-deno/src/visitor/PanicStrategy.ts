@@ -1,12 +1,11 @@
 
 import { FlagshipStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_PANIC_MODE } from '../enum/index.ts'
-import { FlagDTO, IFlagMetadata, IHit, modificationsRequested } from '../types.ts'
+import { CampaignDTO, FlagDTO, IFlagMetadata, IHit, modificationsRequested } from '../types.ts'
 import { logInfoSprintf } from '../utils/utils.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
 import { BatchDTO } from '../hit/Batch.ts'
 import { FlagMetadata } from '../flag/FlagMetadata.ts'
-import { CampaignDTO } from '../decision/api/models.ts'
 import { Troubleshooting } from '../hit/Troubleshooting.ts'
 import { Analytic } from '../hit/Analytic.ts'
 

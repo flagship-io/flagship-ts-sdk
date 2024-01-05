@@ -1,15 +1,16 @@
 import { IDecisionManager } from './IDecisionManager.ts'
 import { IFlagshipConfig } from '../config/index.ts'
 import { IHttpClient } from '../utils/HttpClient.ts'
-import { CampaignDTO } from './api/models.ts'
 import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, PROCESS_FETCHING_FLAGS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index.ts'
-import { FlagDTO, TroubleshootingData } from '../types.ts'
+import { CampaignDTO, FlagDTO, TroubleshootingData } from '../types.ts'
 import { errorFormat, logDebug } from '../utils/utils.ts'
 import { Troubleshooting } from '../hit/Troubleshooting.ts'
 import { ITrackingManager } from '../api/ITrackingManager.ts'
+import { BucketingDTO } from './api/bucketingDTO.ts'
 
 export abstract class DecisionManager implements IDecisionManager {
+  protected _bucketingContent?: BucketingDTO
   protected _config: IFlagshipConfig
   protected _panic = false
   protected _httpClient: IHttpClient

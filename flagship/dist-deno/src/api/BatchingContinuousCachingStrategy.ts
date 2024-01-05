@@ -1,4 +1,4 @@
-import { ACTIVATE_HIT, DEFAULT_HIT_CACHE_TIME_MS, HIT_SENT_SUCCESS, TRACKING_MANAGER, TRACKING_MANAGER_ERROR } from './../enum/FlagshipConstant.ts'
+import { ACTIVATE_HIT, DEFAULT_HIT_CACHE_TIME_MS, HIT_SENT_SUCCESS, TRACKING_MANAGER, TRACKING_MANAGER_ERROR } from '../enum/FlagshipConstant.ts'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy.ts'
 import { BASE_API_URL, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, SDK_INFO, URL_ACTIVATE_MODIFICATION } from '../enum/index.ts'
 import { Activate } from '../hit/Activate.ts'
@@ -59,6 +59,8 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       if (hitKeysToRemove.length) {
         await this.flushHits(hitKeysToRemove)
       }
+
+      this.sendHitsToFsQa(activateBatch.hits)
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
