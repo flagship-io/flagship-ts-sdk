@@ -49,6 +49,7 @@ describe('test Flag', () => {
 
   const visitorExposed = jest.spyOn(visitorDelegate, 'visitorExposed')
   const getFlagValue = jest.spyOn(visitorDelegate, 'getFlagValue')
+  const sendExposedVariationSpy = jest.spyOn(visitorDelegate, 'sendExposedVariation')
   const forceVariationSpy = jest.spyOn(forceVariation, 'forceVariation')
 
   const flagDto:FlagDTO = {
@@ -184,6 +185,8 @@ describe('test Flag', () => {
       flag: expect.objectContaining(flagDto),
       userExposed: false
     })
+    expect(sendExposedVariationSpy).toBeCalledTimes(1)
+    expect(sendExposedVariationSpy).toBeCalledWith(flagDto)
   })
 
   it('test metadata with different type ', () => {

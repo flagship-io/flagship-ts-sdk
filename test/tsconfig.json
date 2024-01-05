@@ -2,6 +2,14 @@
   // "include": ["./**/*"],
   // "exclude": ["node_modules"],
   "compilerOptions": {
+    "noImplicitAny": true,
+    "module": "ESNext",
+    "target": "ESNext",
+    "jsx": "react",
+    "allowJs": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": true,
     "baseUrl": "../",
     "paths": {
       "@src/*": ["src/*"]
