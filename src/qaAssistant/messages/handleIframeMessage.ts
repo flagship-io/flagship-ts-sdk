@@ -22,7 +22,5 @@ export function handleIframeMessage ({ event, config, func }: { event: MessageEv
     case MSG_NAME_FROM_IFRAME.FsResetForcedVariations:
       onResetForcedVariations()
       break
-    default:
-      break
   }
 }
