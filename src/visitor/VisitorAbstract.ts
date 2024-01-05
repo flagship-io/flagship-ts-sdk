@@ -330,6 +330,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       clearTimeout(this._sendExposedVariationTimeoutId)
     }
 
+    if (Object.keys(this._exposedVariations).length === 0) {
+      return
+    }
+
     this._sendExposedVariationTimeoutId = setTimeout(() => {
       sendVisitorExposedVariations(this._exposedVariations)
       this._exposedVariations = {}
