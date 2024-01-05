@@ -11,14 +11,14 @@
     "unauthenticate"
   ],
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": "explicit"
   },
   "[javascript]": {
     "editor.defaultFormatter": null
   },
   "[typescript]": {
     "editor.defaultFormatter": null
-  }
+  },
   // "deno.enable": true,
   // "deno.lint": true,
   // "deno.unstable": true
