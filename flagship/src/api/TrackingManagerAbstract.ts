@@ -36,11 +36,11 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     return this._flagshipInstanceId
   }
 
-  public get troubleshootingData () : TroubleshootingData | 'started' | undefined {
+  public get troubleshootingData () : TroubleshootingData | undefined {
     return this.strategy.troubleshootingData
   }
 
-  public set troubleshootingData (v : TroubleshootingData | 'started' | undefined) {
+  public set troubleshootingData (v : TroubleshootingData | undefined) {
     this.strategy.troubleshootingData = v
   }
 
@@ -206,5 +206,9 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
   async sendAnalyticsHit (hit: Analytic): Promise<void> {
     await this.strategy.sendAnalyticsHit(hit)
+  }
+
+  async addTroubleshootingHit (hit: Troubleshooting): Promise<void> {
+    await this.strategy.addTroubleshootingHit(hit)
   }
 }

@@ -12,6 +12,8 @@ export interface ITrackingManager extends ITrackingManagerCommon {
 
     sendTroubleshootingHit(hit: Troubleshooting): Promise<void>
 
+    addTroubleshootingHit(hit: Troubleshooting): Promise<void>
+
     sendAnalyticsHit(hit: Analytic): Promise<void>
 
   }
