@@ -12,6 +12,8 @@ import { ITrackingManager } from '../api/ITrackingManager'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { MurmurHash } from '../utils/MurmurHash'
 import { Analytic } from '../hit/Analytic'
+import { DefaultHitCache } from '../cache/DefaultHitCache'
+import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 
@@ -86,9 +88,6 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
     consentHit.ds = SDK_APP
     consentHit.config = this.config
-    consentHit.visitorSessionId = this.visitor.instanceId
-    consentHit.traffic = this.visitor.traffic
-    consentHit.flagshipInstanceId = this.visitor.sdkInitialData?.instanceId
 
     const hitTroubleshooting = new Troubleshooting({
 
@@ -102,12 +101,16 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       config: this.config,
       hitContent: consentHit.toApiKeys()
     })
-
-    this.trackingManager.addTroubleshootingHit(hitTroubleshooting)
-
     this.trackingManager.addHit(consentHit)
 
     logDebugSprintf(this.config, PROCESS_SET_CONSENT, CONSENT_CHANGED, this.visitor.visitorId, hasConsented)
+
+    if (this.decisionManager.troubleshooting) {
+      this.trackingManager.sendTroubleshootingHit(hitTroubleshooting)
+      return
+    }
+
+    this.visitor.consentHitTroubleshooting = hitTroubleshooting
   }
 
   protected checKLookupVisitorDataV1 (item:VisitorCacheDTO):boolean {
@@ -321,17 +324,126 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       return new Date()
     }
 
-    public async sendAnalyticHit (hit: Analytic) {
+    public async sendSdkConfigAnalyticHit () {
       if (this.config.disableDeveloperUsageTracking) {
         return
       }
-      const uniqueId = hit.visitorId + this.getCurrentDateTime().toDateString()
+      const uniqueId = this.visitor.visitorId + this.getCurrentDateTime().toDateString()
       const hash = this._murmurHash.murmurHash3Int32(uniqueId)
       const traffic = hash % 100
 
       if (traffic >= ANALYTIC_HIT_ALLOCATION) {
         return
       }
-      await this.trackingManager.sendAnalyticsHit(hit)
+      const hitCacheImplementation = this.config.hitCacheImplementation
+      const visitorCacheImplementation = this.config.visitorCacheImplementation
+      const sdkConfigUsingCustomHitCache = hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
+      const sdkConfigUsingCustomVisitorCache = visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
+
+      const analyticData = new Analytic({
+        label: 'SDK_CONFIG',
+        logLevel: LogLevel.INFO,
+        visitorId: this.visitor.sdkInitialData?.instanceId as string,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        config: this.config,
+        sdkStatus: this.visitor.getSdkStatus(),
+        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+        lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
+        sdkConfigMode: this.config.decisionMode,
+        sdkConfigTimeout: this.config.timeout,
+        sdkConfigPollingInterval: this.config.pollingInterval,
+        sdkConfigTrackingManagerConfigStrategy: this.config.trackingManagerConfig?.cacheStrategy,
+        sdkConfigTrackingManagerConfigBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
+        sdkConfigTrackingManagerConfigPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
+        sdkConfigFetchNow: this.config.fetchNow,
+        sdkConfigEnableClientCache: this.config.enableClientCache,
+        sdkConfigInitialBucketing: this.config.initialBucketing,
+        sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
+        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
+        sdkConfigUsingOnVisitorExposed: !!this.config.onVisitorExposed,
+        sdkConfigUsingCustomHitCache,
+        sdkConfigUsingCustomVisitorCache,
+        sdkConfigFetchThirdPartyData: this.config.fetchThirdPartyData,
+        sdkConfigFetchFlagsBufferingTime: this.config.fetchFlagsBufferingTime,
+        sdkConfigDisableDeveloperUsageTracking: this.config.disableDeveloperUsageTracking,
+        sdkConfigNextFetchConfig: this.config.nextFetchConfig,
+        sdkConfigDisableCache: this.config.disableCache
+      })
+      await this.trackingManager.sendAnalyticsHit(analyticData)
+    }
+
+    sendFetchFlagsTroubleshooting ({ isFromCache, campaigns, now }:{isFromCache: boolean, campaigns:CampaignDTO[], now: number }) {
+      const assignmentHistory: Record<string, string> = {}
+
+      this.visitor.flagsData.forEach(item => {
+        assignmentHistory[item.variationGroupId] = item.variationId
+      })
+
+      const uniqueId = this.visitor.visitorId + this.decisionManager.troubleshooting?.endDate.toUTCString()
+      const hash = this._murmurHash.murmurHash3Int32(uniqueId)
+      const traffic = hash % 100
+
+      this.visitor.traffic = traffic
+
+      const hitCacheImplementation = this.config.hitCacheImplementation
+      const visitorCacheImplementation = this.config.visitorCacheImplementation
+      const sdkConfigUsingCustomHitCache = hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
+      const sdkConfigUsingCustomVisitorCache = visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
+
+      const fetchFlagTroubleshooting = new Troubleshooting({
+        label: 'VISITOR_FETCH_CAMPAIGNS',
+        logLevel: LogLevel.INFO,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        traffic,
+        config: this.config,
+        sdkStatus: this.visitor.getSdkStatus(),
+        visitorContext: this.visitor.context,
+        visitorCampaigns: campaigns,
+        visitorCampaignFromCache: isFromCache ? campaigns : undefined,
+        visitorConsent: this.visitor.hasConsented,
+        visitorIsAuthenticated: !!this.visitor.anonymousId,
+        visitorFlags: this.visitor.flagsData,
+        visitorAssignmentHistory: assignmentHistory,
+        visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
+        visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
+        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+        lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
+        httpResponseTime: Date.now() - now,
+
+        sdkConfigMode: this.config.decisionMode,
+        sdkConfigTimeout: this.config.timeout,
+        sdkConfigPollingInterval: this.config.pollingInterval,
+        sdkConfigTrackingManagerConfigStrategy: this.config.trackingManagerConfig?.cacheStrategy,
+        sdkConfigTrackingManagerConfigBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
+        sdkConfigTrackingManagerConfigPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
+        sdkConfigFetchNow: this.config.fetchNow,
+        sdkConfigEnableClientCache: this.config.enableClientCache,
+        sdkConfigInitialBucketing: this.config.initialBucketing,
+        sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
+        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
+        sdkConfigUsingOnVisitorExposed: !!this.config.onVisitorExposed,
+        sdkConfigUsingCustomHitCache,
+        sdkConfigUsingCustomVisitorCache,
+        sdkConfigFetchThirdPartyData: this.config.fetchThirdPartyData,
+        sdkConfigFetchFlagsBufferingTime: this.config.fetchFlagsBufferingTime,
+        sdkConfigDisableDeveloperUsageTracking: this.config.disableDeveloperUsageTracking,
+        sdkConfigNextFetchConfig: this.config.nextFetchConfig,
+        sdkConfigDisableCache: this.config.disableCache
+      })
+
+      this.sendTroubleshootingHit(fetchFlagTroubleshooting)
+    }
+
+    sendConsentHitTroubleshooting () {
+      const consentHitTroubleshooting = this.visitor.consentHitTroubleshooting
+      if (!consentHitTroubleshooting) {
+        return
+      }
+      consentHitTroubleshooting.traffic = this.visitor.traffic
+      this.trackingManager.sendTroubleshootingHit(consentHitTroubleshooting)
+      this.visitor.consentHitTroubleshooting = undefined
     }
 }

@@ -17,6 +17,7 @@ import { cacheVisitor } from './VisitorCache'
 import { IFlag } from '../flag/Flags'
 import { MurmurHash } from '../utils/MurmurHash'
 import { FlagSynchStatus } from '../enum/FlagSynchStatus'
+import { Troubleshooting } from '../hit/Troubleshooting'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -32,6 +33,15 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   private _instanceId : string
   private _traffic! : number
   protected _sdkInitialData?: sdkInitialData
+  private _consentHitTroubleshooting? : Troubleshooting
+
+  public get consentHitTroubleshooting () : Troubleshooting|undefined {
+    return this._consentHitTroubleshooting
+  }
+
+  public set consentHitTroubleshooting (v : Troubleshooting|undefined) {
+    this._consentHitTroubleshooting = v
+  }
 
   public get sdkInitialData ():sdkInitialData|undefined {
     return this._sdkInitialData
