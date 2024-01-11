@@ -90,22 +90,21 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     consentHit.traffic = this.visitor.traffic
     consentHit.flagshipInstanceId = this.visitor.sdkInitialData?.instanceId
 
-    if (this.visitor.traffic !== undefined) {
-      const hitTroubleshooting = new Troubleshooting({
+    const hitTroubleshooting = new Troubleshooting({
 
-        label: 'VISITOR_SEND_HIT',
-        logLevel: LogLevel.INFO,
-        traffic: this.visitor.traffic,
-        visitorId: this.visitor.visitorId,
-        visitorSessionId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        anonymousId: this.visitor.anonymousId,
-        config: this.config,
-        hitContent: consentHit.toApiKeys()
-      })
+      label: 'VISITOR_SEND_HIT',
+      logLevel: LogLevel.INFO,
+      traffic: this.visitor.traffic || 0,
+      visitorId: this.visitor.visitorId,
+      visitorSessionId: this.visitor.instanceId,
+      flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+      anonymousId: this.visitor.anonymousId,
+      config: this.config,
+      hitContent: consentHit.toApiKeys()
+    })
 
-      this.sendTroubleshootingHit(hitTroubleshooting)
-    }
+    this.trackingManager.addTroubleshootingHit(hitTroubleshooting)
+
     this.trackingManager.addHit(consentHit)
 
     logDebugSprintf(this.config, PROCESS_SET_CONSENT, CONSENT_CHANGED, this.visitor.visitorId, hasConsented)
