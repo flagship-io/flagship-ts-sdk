@@ -615,7 +615,7 @@ describe('test activateFlag method', () => {
     postAsync.mockRejectedValue(error)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const addTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'addTroubleshootingHit')
+    const sendTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'sendTroubleshootingHit')
 
     const activateHit = new Activate({
       visitorId,
@@ -711,8 +711,8 @@ describe('test activateFlag method', () => {
     expect(onVisitorExposed).toBeCalledTimes(0)
     expect(onUserExposure).toBeCalledTimes(0)
 
-    expect(addTroubleshootingHit).toBeCalledTimes(1)
+    expect(sendTroubleshootingHit).toBeCalledTimes(1)
     const label: TroubleshootingLabel = 'SEND_ACTIVATE_HIT_ROUTE_ERROR'
-    expect(addTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
+    expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 })

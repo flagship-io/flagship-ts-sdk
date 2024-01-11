@@ -1922,6 +1922,9 @@ describe('test DefaultStrategy troubleshootingHit', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const addTroubleshootingHit = jest.spyOn(trackingManager, 'addTroubleshootingHit')
+
   const activateFlag = jest.spyOn(trackingManager, 'activateFlag')
   activateFlag.mockResolvedValue()
 
@@ -1947,13 +1950,15 @@ describe('test DefaultStrategy troubleshootingHit', () => {
     getModifications.mockReturnValueOnce(flags)
     await defaultStrategy.fetchFlags()
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
+    expect(addTroubleshootingHit).toBeCalledTimes(0)
 
     const label: TroubleshootingLabel = 'VISITOR_FETCH_CAMPAIGNS'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
 
     defaultStrategy.setConsent(true)
+    expect(addTroubleshootingHit).toBeCalledTimes(1)
     const label1: TroubleshootingLabel = 'VISITOR_SEND_HIT'
-    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ label: label1 }))
+    expect(addTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label: label1 }))
   })
 })
 

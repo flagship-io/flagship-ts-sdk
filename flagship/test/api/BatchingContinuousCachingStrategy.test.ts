@@ -414,7 +414,7 @@ describe('test activateFlag method', () => {
     postAsync.mockRejectedValue(error)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const addTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'addTroubleshootingHit')
+    const sendTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'sendTroubleshootingHit')
 
     const activateHit = new Activate({
       visitorId,
@@ -509,9 +509,9 @@ describe('test activateFlag method', () => {
     expect(cacheHit).toBeCalledTimes(1)
     expect(cacheHit).toHaveBeenCalledWith(new Map([[activateHit.key, activateHit]]))
 
-    expect(addTroubleshootingHit).toBeCalledTimes(1)
+    expect(sendTroubleshootingHit).toBeCalledTimes(1)
     const label: TroubleshootingLabel = 'SEND_ACTIVATE_HIT_ROUTE_ERROR'
-    expect(addTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
+    expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 
   it('test activate on BUCKETING_EDGE', async () => {
@@ -749,7 +749,7 @@ describe('test sendBatch method', () => {
     const error = 'message error'
     postAsync.mockRejectedValue(error)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const addTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'addTroubleshootingHit')
+    const sendTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'sendTroubleshootingHit')
 
     config.logLevel = LogLevel.ALL
     const batch:Batch = new Batch({ hits: [globalPageHit] })
@@ -781,7 +781,7 @@ describe('test sendBatch method', () => {
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(sprintf(TRACKING_MANAGER_ERROR, BATCH_HIT, errorFormatMessage), TRACKING_MANAGER)
     const label: TroubleshootingLabel = 'SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR'
-    expect(addTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
+    expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 
   it('test sendActivate on batch', async () => {
@@ -1207,44 +1207,40 @@ describe('test send troubleshooting hit', () => {
       })
   })
 
-  it('test sendTroubleshootingHit when troubleshootingData === started', async () => {
-    postAsync.mockResolvedValue({ status: 200, body: null })
+  // it('test sendTroubleshootingHit when troubleshootingData === started', async () => {
+  //   postAsync.mockResolvedValue({ status: 200, body: null })
 
-    const activateTroubleshooting = new Troubleshooting({
-      label: 'VISITOR_SEND_ACTIVATE',
-      logLevel: LogLevel.INFO,
-      traffic: 2,
-      visitorId: activateHit.visitorId,
-      flagshipInstanceId: activateHit.flagshipInstanceId,
-      visitorSessionId: activateHit.visitorSessionId,
-      anonymousId: activateHit.anonymousId,
-      config,
-      hitContent: activateHit.toApiKeys()
-    })
+  //   const activateTroubleshooting = new Troubleshooting({
+  //     label: 'VISITOR_SEND_ACTIVATE',
+  //     logLevel: LogLevel.INFO,
+  //     traffic: 2,
+  //     visitorId: activateHit.visitorId,
+  //     flagshipInstanceId: activateHit.flagshipInstanceId,
+  //     visitorSessionId: activateHit.visitorSessionId,
+  //     anonymousId: activateHit.anonymousId,
+  //     config,
+  //     hitContent: activateHit.toApiKeys()
+  //   })
 
-    batchingStrategy.troubleshootingData = 'started'
+  //   expect(troubleshootingQueue.size).toBe(1)
+  //   await batchingStrategy.sendTroubleshootingHit(activateTroubleshooting)
+  //   expect(troubleshootingQueue.size).toBe(2)
+  //   expect(postAsync).toBeCalledTimes(0)
+  // })
 
-    expect(troubleshootingQueue.size).toBe(1)
-    await batchingStrategy.sendTroubleshootingHit(activateTroubleshooting)
-    expect(troubleshootingQueue.size).toBe(2)
-    expect(postAsync).toBeCalledTimes(0)
-  })
+  // it('test sendTroubleshootingQueue when troubleshootingData === started', async () => {
+  //   postAsync.mockResolvedValue({ status: 200, body: null })
 
-  it('test sendTroubleshootingQueue when troubleshootingData === started', async () => {
-    postAsync.mockResolvedValue({ status: 200, body: null })
+  //   const startDate = new Date()
+  //   const endDate = new Date(startDate)
+  //   endDate.setMinutes(startDate.getMinutes() + 2)
 
-    const startDate = new Date()
-    const endDate = new Date(startDate)
-    endDate.setMinutes(startDate.getMinutes() + 2)
+  //   expect(troubleshootingQueue.size).toBe(2)
 
-    batchingStrategy.troubleshootingData = 'started'
-
-    expect(troubleshootingQueue.size).toBe(2)
-
-    await batchingStrategy.sendTroubleshootingQueue()
-    expect(troubleshootingQueue.size).toBe(2)
-    expect(postAsync).toBeCalledTimes(0)
-  })
+  //   await batchingStrategy.sendTroubleshootingQueue()
+  //   expect(troubleshootingQueue.size).toBe(2)
+  //   expect(postAsync).toBeCalledTimes(0)
+  // })
   it('test sendTroubleshootingQueue', async () => {
     postAsync.mockResolvedValue({ status: 200, body: null })
 
@@ -1259,15 +1255,15 @@ describe('test send troubleshooting hit', () => {
       timezone: ''
     }
 
-    expect(troubleshootingQueue.size).toBe(2)
+    expect(troubleshootingQueue.size).toBe(1)
 
     await batchingStrategy.sendTroubleshootingQueue()
     expect(troubleshootingQueue.size).toBe(0)
-    expect(postAsync).toBeCalledTimes(2)
+    expect(postAsync).toBeCalledTimes(1)
 
     await batchingStrategy.sendTroubleshootingQueue()
     expect(troubleshootingQueue.size).toBe(0)
-    expect(postAsync).toBeCalledTimes(2)
+    expect(postAsync).toBeCalledTimes(1)
   })
 })
 

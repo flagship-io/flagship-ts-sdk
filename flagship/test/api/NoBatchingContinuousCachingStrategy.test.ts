@@ -557,7 +557,7 @@ describe('test sendBatch method', () => {
     postAsync.mockRejectedValue(error)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const addTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'addTroubleshootingHit')
+    const sendTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'sendTroubleshootingHit')
 
     config.logLevel = LogLevel.ALL
     const batch:Batch = new Batch({ hits: [globalPageHit] })
@@ -589,9 +589,9 @@ describe('test sendBatch method', () => {
       batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.BatchLength]
     }), TRACKING_MANAGER)
 
-    expect(addTroubleshootingHit).toBeCalledTimes(1)
+    expect(sendTroubleshootingHit).toBeCalledTimes(1)
     const label: TroubleshootingLabel = 'SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR'
-    expect(addTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
+    expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 
   it('test sendActivate on batch', async () => {

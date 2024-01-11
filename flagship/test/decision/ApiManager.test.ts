@@ -35,6 +35,7 @@ describe('test ApiManager', () => {
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   const apiManager = new ApiManager(httpClient, config)
   const trackingManager = new TrackingManager(httpClient, config)
+  apiManager.trackingManager = trackingManager
 
   const visitorId = 'visitorId'
   const context = { age: 20 }
