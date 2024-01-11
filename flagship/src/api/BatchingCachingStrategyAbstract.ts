@@ -22,18 +22,21 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   protected _flagshipInstanceId?: string
   protected _isAnalyticHitQueueSending: boolean
   protected _isTroubleshootingQueueSending: boolean
-  private _troubleshootingData? : TroubleshootingData|'started'
+  private _troubleshootingData? : TroubleshootingData
 
   public get flagshipInstanceId (): string|undefined {
     return this._flagshipInstanceId
   }
 
-  public get troubleshootingData () : TroubleshootingData|undefined|'started' {
+  public get troubleshootingData () : TroubleshootingData|undefined {
     return this._troubleshootingData
   }
 
-  public set troubleshootingData (v : TroubleshootingData|undefined|'started') {
+  public set troubleshootingData (v : TroubleshootingData|undefined) {
     this._troubleshootingData = v
+    if (!v) {
+      this._troubleshootingQueue.clear()
+    }
   }
 
   public get config () : IFlagshipConfig {
@@ -42,7 +45,6 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
   constructor (param: BatchingCachingStrategyConstruct) {
     const { config, hitsPoolQueue, httpClient, activatePoolQueue, troubleshootingQueue, flagshipInstanceId, analyticHitQueue } = param
-    this.troubleshootingData = 'started'
     this._config = config
     this._hitsPoolQueue = hitsPoolQueue
     this._httpClient = httpClient
@@ -348,10 +350,6 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       return false
     }
 
-    if (this.troubleshootingData === 'started') {
-      return false
-    }
-
     const now = new Date()
 
     const isStarted = now >= this.troubleshootingData.startDate
@@ -366,10 +364,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     return true
   }
 
-  protected async addTroubleshootingHit (hit: Troubleshooting): Promise<void> {
-    if (this.troubleshootingData !== 'started' && !this.isTroubleshootingActivated()) {
-      return
-    }
+  public async addTroubleshootingHit (hit: Troubleshooting): Promise<void> {
     if (!hit.key) {
       const hitKey = `${hit.visitorId}:${uuidV4()}`
       hit.key = hitKey
@@ -379,11 +374,6 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   }
 
   public async sendTroubleshootingHit (hit: Troubleshooting): Promise<void> {
-    if (this.troubleshootingData === 'started') {
-      this.addTroubleshootingHit(hit)
-      return
-    }
-
     if (!this.isTroubleshootingActivated() || hit.traffic === undefined || (this.troubleshootingData as TroubleshootingData).traffic < hit.traffic) {
       return
     }
@@ -404,9 +394,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      if (!hit.key) {
-        const hitKey = `${hit.visitorId}:${uuidV4()}`
-        hit.key = hitKey
+      if (this.isTroubleshootingActivated()) {
         await this.addTroubleshootingHit(hit)
       }
       logError(this.config, errorFormat(error.message || error, {
