@@ -15,7 +15,6 @@ import { PanicStrategy } from './PanicStrategy'
 import { NoConsentStrategy } from './NoConsentStrategy'
 import { cacheVisitor } from './VisitorCache'
 import { IFlag } from '../flag/Flags'
-import { Troubleshooting } from '../hit/Troubleshooting'
 import { MurmurHash } from '../utils/MurmurHash'
 import { FlagSynchStatus } from '../enum/FlagSynchStatus'
 
@@ -291,10 +290,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     }
 
     return strategy
-  }
-
-  public async sendMonitoringHit (hit: Troubleshooting) {
-    await this.getStrategy().sendTroubleshootingHit(hit)
   }
 
   abstract updateContext(key: string, value: primitive):void
