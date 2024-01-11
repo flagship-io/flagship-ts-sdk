@@ -10,7 +10,6 @@ import { sprintf } from '../../src/utils/utils'
 import { VisitorDelegate, NotReadyStrategy } from '../../src/visitor'
 import { MurmurHash } from '../../src/utils/MurmurHash'
 import { Troubleshooting } from '../../src/hit/Troubleshooting'
-import { Analytic } from '../../src/hit/Analytic'
 
 describe('test NotReadyStrategy', () => {
   const visitorId = 'visitorId'
@@ -168,7 +167,7 @@ describe('test NotReadyStrategy', () => {
   })
 
   it('test sendAnalyticHit', () => {
-    notReadyStrategy.sendAnalyticHit({} as Analytic)
+    notReadyStrategy.sendSdkConfigAnalyticHit()
     expect(sendAnalyticsHit).toBeCalledTimes(0)
   })
 })

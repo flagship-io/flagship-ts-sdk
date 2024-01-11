@@ -11,7 +11,6 @@ import { VisitorDelegate, PanicStrategy } from '../../src/visitor'
 import { campaigns } from '../decision/campaigns'
 import { MurmurHash } from '../../src/utils/MurmurHash'
 import { Troubleshooting } from '../../src/hit/Troubleshooting'
-import { Analytic } from '../../src/hit/Analytic'
 
 describe('test NotReadyStrategy', () => {
   const visitorId = 'visitorId'
@@ -212,7 +211,7 @@ describe('test NotReadyStrategy', () => {
   })
 
   it('test sendAnalyticHit', () => {
-    panicStrategy.sendAnalyticHit({} as Analytic)
+    panicStrategy.sendSdkConfigAnalyticHit()
     expect(sendAnalyticsHit).toBeCalledTimes(0)
   })
 })

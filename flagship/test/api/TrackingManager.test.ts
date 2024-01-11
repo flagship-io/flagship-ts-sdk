@@ -165,6 +165,8 @@ describe('test TrackingManager Strategy ', () => {
   trackManagerMock.strategy = strategy
 
   const visitorId = 'visitorId'
+  const flagshipInstanceId = 'flagshipInstanceId'
+  const visitorSessionId = 'visitorSessionId'
 
   it('Test startBatchingLoop and  stopBatchingLoop methods', async () => {
     const pageHit = new Page({
@@ -203,8 +205,8 @@ describe('test TrackingManager Strategy ', () => {
       logLevel: LogLevel.INFO,
       traffic: 2,
       visitorId: pageHit.visitorId,
-      flagshipInstanceId: pageHit.flagshipInstanceId,
-      visitorSessionId: pageHit.visitorSessionId,
+      flagshipInstanceId,
+      visitorSessionId,
       anonymousId: pageHit.anonymousId,
       config,
       hitContent: pageHit.toApiKeys()
@@ -231,8 +233,8 @@ describe('test TrackingManager Strategy ', () => {
       logLevel: LogLevel.INFO,
       traffic: 2,
       visitorId: pageHit.visitorId,
-      flagshipInstanceId: pageHit.flagshipInstanceId,
-      visitorSessionId: pageHit.visitorSessionId,
+      flagshipInstanceId,
+      visitorSessionId,
       anonymousId: pageHit.anonymousId,
       config,
       hitContent: pageHit.toApiKeys()

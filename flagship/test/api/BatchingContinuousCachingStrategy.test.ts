@@ -987,6 +987,7 @@ describe('test send troubleshooting hit', () => {
   const batchingStrategy = new BatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, flagshipInstanceId, analyticHitQueue })
 
   const visitorId = 'visitorId'
+  const visitorSessionId = 'visitorSessionId'
 
   const activateHit = new Activate({
     visitorId,
@@ -1016,8 +1017,8 @@ describe('test send troubleshooting hit', () => {
     logLevel: LogLevel.INFO,
     traffic: 2,
     visitorId: activateHit.visitorId,
-    flagshipInstanceId: activateHit.flagshipInstanceId,
-    visitorSessionId: activateHit.visitorSessionId,
+    flagshipInstanceId,
+    visitorSessionId,
     anonymousId: activateHit.anonymousId,
     config,
     hitContent: activateHit.toApiKeys()
@@ -1031,8 +1032,8 @@ describe('test send troubleshooting hit', () => {
       logLevel: LogLevel.INFO,
       traffic: 50,
       visitorId: activateHit.visitorId,
-      flagshipInstanceId: activateHit.flagshipInstanceId,
-      visitorSessionId: activateHit.visitorSessionId,
+      flagshipInstanceId,
+      visitorSessionId,
       anonymousId: activateHit.anonymousId,
       config,
       hitContent: activateHit.toApiKeys()
@@ -1055,8 +1056,8 @@ describe('test send troubleshooting hit', () => {
       logLevel: LogLevel.INFO,
       traffic: 50,
       visitorId: activateHit.visitorId,
-      flagshipInstanceId: activateHit.flagshipInstanceId,
-      visitorSessionId: activateHit.visitorSessionId,
+      flagshipInstanceId,
+      visitorSessionId,
       anonymousId: activateHit.anonymousId,
       config,
       hitContent: activateHit.toApiKeys()
@@ -1088,8 +1089,8 @@ describe('test send troubleshooting hit', () => {
       logLevel: LogLevel.INFO,
       traffic: 50,
       visitorId: activateHit.visitorId,
-      flagshipInstanceId: activateHit.flagshipInstanceId,
-      visitorSessionId: activateHit.visitorSessionId,
+      flagshipInstanceId,
+      visitorSessionId,
       anonymousId: activateHit.anonymousId,
       config,
       hitContent: activateHit.toApiKeys()
@@ -1121,8 +1122,8 @@ describe('test send troubleshooting hit', () => {
       logLevel: LogLevel.INFO,
       traffic: 50,
       visitorId: activateHit.visitorId,
-      flagshipInstanceId: activateHit.flagshipInstanceId,
-      visitorSessionId: activateHit.visitorSessionId,
+      flagshipInstanceId,
+      visitorSessionId,
       anonymousId: activateHit.anonymousId,
       config,
       hitContent: activateHit.toApiKeys()
@@ -1179,8 +1180,8 @@ describe('test send troubleshooting hit', () => {
       logLevel: LogLevel.INFO,
       traffic: 2,
       visitorId: activateHit.visitorId,
-      flagshipInstanceId: activateHit.flagshipInstanceId,
-      visitorSessionId: activateHit.visitorSessionId,
+      flagshipInstanceId,
+      visitorSessionId,
       anonymousId: activateHit.anonymousId,
       config,
       hitContent: activateHit.toApiKeys()
@@ -1215,8 +1216,8 @@ describe('test send troubleshooting hit', () => {
   //     logLevel: LogLevel.INFO,
   //     traffic: 2,
   //     visitorId: activateHit.visitorId,
-  //     flagshipInstanceId: activateHit.flagshipInstanceId,
-  //     visitorSessionId: activateHit.visitorSessionId,
+  // flagshipInstanceId,
+  // visitorSessionId,
   //     anonymousId: activateHit.anonymousId,
   //     config,
   //     hitContent: activateHit.toApiKeys()
@@ -1298,6 +1299,7 @@ describe('test send analyticsHit hit', () => {
   const batchingStrategy = new BatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, flagshipInstanceId, analyticHitQueue })
 
   const visitorId = 'visitorId'
+  const visitorSessionId = 'visitorSessionId'
 
   const activateHit = new Activate({
     visitorId,
@@ -1327,8 +1329,8 @@ describe('test send analyticsHit hit', () => {
     logLevel: LogLevel.INFO,
     traffic: 2,
     visitorId: activateHit.visitorId,
-    flagshipInstanceId: activateHit.flagshipInstanceId,
-    visitorSessionId: activateHit.visitorSessionId,
+    flagshipInstanceId,
+    visitorSessionId,
     anonymousId: activateHit.anonymousId,
     config,
     hitContent: activateHit.toApiKeys()
