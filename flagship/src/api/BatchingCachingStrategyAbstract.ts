@@ -34,9 +34,6 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
   public set troubleshootingData (v : TroubleshootingData|undefined) {
     this._troubleshootingData = v
-    if (!v) {
-      this._troubleshootingQueue.clear()
-    }
   }
 
   public get config () : IFlagshipConfig {
