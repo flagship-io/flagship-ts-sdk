@@ -38,6 +38,8 @@ const sendTroubleshootingHit = jest.fn<()=>Promise<void>>()
 
 const addTroubleshootingHit = jest.fn<()=>Promise<void>>()
 
+const sendAnalyticsHit = jest.fn<()=>Promise<void>>()
+
 addHit.mockResolvedValue()
 
 jest.mock('../../src/api/TrackingManager', () => {
@@ -49,7 +51,8 @@ jest.mock('../../src/api/TrackingManager', () => {
         sendBatch,
         addHit,
         sendTroubleshootingHit,
-        addTroubleshootingHit
+        addTroubleshootingHit,
+        sendAnalyticsHit
       }
     })
   }

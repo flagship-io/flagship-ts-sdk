@@ -446,4 +446,14 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       this.trackingManager.sendTroubleshootingHit(consentHitTroubleshooting)
       this.visitor.consentHitTroubleshooting = undefined
     }
+
+    sendSegmentHitTroubleshooting () {
+      const segmentHitTroubleshooting = this.visitor.segmentHitTroubleshooting
+      if (!segmentHitTroubleshooting) {
+        return
+      }
+      segmentHitTroubleshooting.traffic = this.visitor.traffic
+      this.trackingManager.sendTroubleshootingHit(segmentHitTroubleshooting)
+      this.visitor.segmentHitTroubleshooting = undefined
+    }
 }

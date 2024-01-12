@@ -352,6 +352,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       if (this.decisionManager.troubleshooting) {
         this.sendFetchFlagsTroubleshooting({ campaigns, now, isFromCache: logData.isFromCache })
         this.sendConsentHitTroubleshooting()
+        this.sendSegmentHitTroubleshooting()
       }
 
       this.sendSdkConfigAnalyticHit()
@@ -663,7 +664,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     try {
       await this.trackingManager.addHit(hitInstance)
 
-      if (this.visitor.traffic === undefined || hitInstance.type === 'SEGMENT') {
+      if (hitInstance.type === 'SEGMENT') {
         return
       }
       const sendHitTroubleshooting = new Troubleshooting({

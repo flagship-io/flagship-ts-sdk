@@ -171,6 +171,21 @@ export class BucketingManager extends DecisionManager {
       })
 
       await visitor.sendHit(SegmentHit)
+
+      const hitTroubleshooting = new Troubleshooting({
+        label: 'VISITOR_SEND_HIT',
+        logLevel: LogLevel.INFO,
+        traffic: visitor.traffic || 0,
+        visitorId: visitor.visitorId,
+        visitorSessionId: visitor.instanceId,
+        flagshipInstanceId: visitor.sdkInitialData?.instanceId,
+        anonymousId: visitor.anonymousId,
+        config: this.config,
+        hitContent: SegmentHit.toApiKeys()
+      })
+
+      visitor.segmentHitTroubleshooting = hitTroubleshooting
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logError(this.config, error.message || error, 'sendContext')
@@ -233,7 +248,7 @@ export class BucketingManager extends DecisionManager {
       visitor.updateContext(thirdPartySegments)
     }
 
-    this.sendContext(visitor)
+    await this.sendContext(visitor)
 
     const visitorCampaigns: CampaignDTO[] = []
 

@@ -11,6 +11,7 @@ import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { MurmurHash } from '../../src/utils/MurmurHash'
 import { FlagDTO, TroubleshootingLabel } from '../../src'
 import { ApiManager } from '../../src/decision/ApiManager'
+import { Troubleshooting } from '../../src/hit/Troubleshooting'
 
 describe('test NoConsentStrategy', () => {
   const visitorId = 'visitorId'
@@ -134,7 +135,7 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
     }
   })
   const noConsentStrategy = new NoConsentStrategy({ visitor: visitorDelegate, murmurHash })
-
+  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
   it('test fetchFlags', async () => {
     const flagDTO: FlagDTO = {
       key: 'key',
@@ -157,5 +158,10 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
 
     const label: TroubleshootingLabel = 'SDK_CONFIG'
     expect(sendAnalyticsHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+  })
+
+  it('test sendTroubleshootingHit', () => {
+    noConsentStrategy.sendTroubleshootingHit({} as Troubleshooting)
+    expect(sendTroubleshootingHit).toBeCalledTimes(0)
   })
 })

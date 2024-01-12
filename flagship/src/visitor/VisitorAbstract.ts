@@ -34,6 +34,15 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   private _traffic! : number
   protected _sdkInitialData?: sdkInitialData
   private _consentHitTroubleshooting? : Troubleshooting
+  private _segmentHitTroubleshooting? : Troubleshooting
+
+  public get segmentHitTroubleshooting () : Troubleshooting|undefined {
+    return this._segmentHitTroubleshooting
+  }
+
+  public set segmentHitTroubleshooting (v : Troubleshooting|undefined) {
+    this._segmentHitTroubleshooting = v
+  }
 
   public get consentHitTroubleshooting () : Troubleshooting|undefined {
     return this._consentHitTroubleshooting
