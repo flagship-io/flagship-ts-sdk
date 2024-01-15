@@ -1208,40 +1208,6 @@ describe('test send troubleshooting hit', () => {
       })
   })
 
-  // it('test sendTroubleshootingHit when troubleshootingData === started', async () => {
-  //   postAsync.mockResolvedValue({ status: 200, body: null })
-
-  //   const activateTroubleshooting = new Troubleshooting({
-  //     label: 'VISITOR_SEND_ACTIVATE',
-  //     logLevel: LogLevel.INFO,
-  //     traffic: 2,
-  //     visitorId: activateHit.visitorId,
-  // flagshipInstanceId,
-  // visitorSessionId,
-  //     anonymousId: activateHit.anonymousId,
-  //     config,
-  //     hitContent: activateHit.toApiKeys()
-  //   })
-
-  //   expect(troubleshootingQueue.size).toBe(1)
-  //   await batchingStrategy.sendTroubleshootingHit(activateTroubleshooting)
-  //   expect(troubleshootingQueue.size).toBe(2)
-  //   expect(postAsync).toBeCalledTimes(0)
-  // })
-
-  // it('test sendTroubleshootingQueue when troubleshootingData === started', async () => {
-  //   postAsync.mockResolvedValue({ status: 200, body: null })
-
-  //   const startDate = new Date()
-  //   const endDate = new Date(startDate)
-  //   endDate.setMinutes(startDate.getMinutes() + 2)
-
-  //   expect(troubleshootingQueue.size).toBe(2)
-
-  //   await batchingStrategy.sendTroubleshootingQueue()
-  //   expect(troubleshootingQueue.size).toBe(2)
-  //   expect(postAsync).toBeCalledTimes(0)
-  // })
   it('test sendTroubleshootingQueue', async () => {
     postAsync.mockResolvedValue({ status: 200, body: null })
 
