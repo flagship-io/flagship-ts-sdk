@@ -10,7 +10,7 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
 import { Troubleshooting } from '../../src/hit/Troubleshooting'
-import { Analytic } from '../../src/hit/Analytic'
+import { UsageHit } from '../../src/hit/UsageHit'
 
 describe('Test NoBatchingContinuousCachingStrategy', () => {
   const methodNow = Date.now
@@ -59,7 +59,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     const hitsPoolQueue = new Map<string, HitAbstract>()
     const activatePoolQueue = new Map<string, Activate>()
     const troubleshootingQueue = new Map<string, Troubleshooting>()
-    const analyticHitQueue = new Map<string, Analytic>()
+    const analyticHitQueue = new Map<string, UsageHit>()
     const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -131,7 +131,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     const hitsPoolQueue = new Map<string, HitAbstract>()
     const activatePoolQueue = new Map<string, Activate>()
     const troubleshootingQueue = new Map<string, Troubleshooting>()
-    const analyticHitQueue = new Map<string, Analytic>()
+    const analyticHitQueue = new Map<string, UsageHit>()
     const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -210,7 +210,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     const hitsPoolQueue = new Map<string, HitAbstract>()
     const activatePoolQueue = new Map<string, Activate>()
     const troubleshootingQueue = new Map<string, Troubleshooting>()
-    const analyticHitQueue = new Map<string, Analytic>()
+    const analyticHitQueue = new Map<string, UsageHit>()
     const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -288,7 +288,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     const hitsPoolQueue = new Map<string, HitAbstract>()
     const activatePoolQueue = new Map<string, Activate>()
     const troubleshootingQueue = new Map<string, Troubleshooting>()
-    const analyticHitQueue = new Map<string, Analytic>()
+    const analyticHitQueue = new Map<string, UsageHit>()
     const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -344,7 +344,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     const hitsPoolQueue = new Map<string, HitAbstract>()
     const activatePoolQueue = new Map<string, Activate>()
     const troubleshootingQueue = new Map<string, Troubleshooting>()
-    const analyticHitQueue = new Map<string, Analytic>()
+    const analyticHitQueue = new Map<string, UsageHit>()
     const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -428,7 +428,7 @@ describe('test sendBatch method', () => {
   const hitsPoolQueue = new Map<string, HitAbstract>()
   const activatePoolQueue = new Map<string, Activate>()
   const troubleshootingQueue = new Map<string, Troubleshooting>()
-  const analyticHitQueue = new Map<string, Analytic>()
+  const analyticHitQueue = new Map<string, UsageHit>()
   const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -557,7 +557,7 @@ describe('test sendBatch method', () => {
     postAsync.mockRejectedValue(error)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const addTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'addTroubleshootingHit')
+    const sendTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'sendTroubleshootingHit')
 
     config.logLevel = LogLevel.ALL
     const batch:Batch = new Batch({ hits: [globalPageHit] })
@@ -589,9 +589,9 @@ describe('test sendBatch method', () => {
       batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.BatchLength]
     }), TRACKING_MANAGER)
 
-    expect(addTroubleshootingHit).toBeCalledTimes(1)
+    expect(sendTroubleshootingHit).toBeCalledTimes(1)
     const label: TroubleshootingLabel = 'SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR'
-    expect(addTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
+    expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 
   it('test sendActivate on batch', async () => {
@@ -644,7 +644,7 @@ describe('test sendBatch method', () => {
     const hitsPoolQueue = new Map<string, HitAbstract>()
     const activatePoolQueue = new Map<string, Activate>()
     const troubleshootingQueue = new Map<string, Troubleshooting>()
-    const analyticHitQueue = new Map<string, Analytic>()
+    const analyticHitQueue = new Map<string, UsageHit>()
     const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
     await batchingStrategy.sendBatch()
     expect(postAsync).toBeCalledTimes(0)

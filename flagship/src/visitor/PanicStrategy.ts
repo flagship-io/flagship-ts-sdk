@@ -8,7 +8,6 @@ import { BatchDTO } from '../hit/Batch'
 import { FlagMetadata } from '../flag/FlagMetadata'
 import { CampaignDTO } from '../decision/api/models'
 import { Troubleshooting } from '../hit/Troubleshooting'
-import { Analytic } from '../hit/Analytic'
 
 export class PanicStrategy extends DefaultStrategy {
   setConsent (hasConsented:boolean):void {
@@ -108,7 +107,7 @@ export class PanicStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async sendAnalyticHit (_hit: Analytic) {
+  public async sendSdkConfigAnalyticHit () {
     return Promise.resolve()
   }
 

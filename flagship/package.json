@@ -1,7 +1,7 @@
 {
   "name": "@flagship.io/js-sdk",
   "sideEffects": false,
-  "version": "3.3.0",
+  "version": "3.3.1",
   "license": "Apache-2.0",
   "description": "Flagship JS SDK",
   "main": "dist/index.cjs",
@@ -38,7 +38,8 @@
   "scripts": {
     "lint:fix": "eslint . --ext .ts --fix",
     "lint": "eslint . --ext .ts",
-    "test": "yarn run test-functional-api-mode && yarn run test-functional-bucketing-mode && jest --testPathIgnorePatterns='<rootDir>/test/main/FunctionalApiMode.test.ts' --testPathIgnorePatterns='<rootDir>/test/main/FunctionalBucketingMode.test.ts'",
+    "test": "yarn run test-functional-api-mode && yarn run test-functional-bucketing-mode && yarn run test-u",
+    "test-u":"jest --testPathIgnorePatterns='<rootDir>/test/main/FunctionalApiMode.test.ts' --testPathIgnorePatterns='<rootDir>/test/main/FunctionalBucketingMode.test.ts'",
     "test-functional-api-mode": "jest test/main/FunctionalApiMode.test.ts --forceExit",
     "test-functional-bucketing-mode": "jest test/main/FunctionalBucketingMode.test.ts --forceExit",
     "clean": "rm -rf dist-deno dist",

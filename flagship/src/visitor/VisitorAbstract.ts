@@ -15,9 +15,9 @@ import { PanicStrategy } from './PanicStrategy'
 import { NoConsentStrategy } from './NoConsentStrategy'
 import { cacheVisitor } from './VisitorCache'
 import { IFlag } from '../flag/Flags'
-import { Troubleshooting } from '../hit/Troubleshooting'
 import { MurmurHash } from '../utils/MurmurHash'
 import { FlagSynchStatus } from '../enum/FlagSynchStatus'
+import { Troubleshooting } from '../hit/Troubleshooting'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -33,6 +33,24 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   private _instanceId : string
   private _traffic! : number
   protected _sdkInitialData?: sdkInitialData
+  private _consentHitTroubleshooting? : Troubleshooting
+  private _segmentHitTroubleshooting? : Troubleshooting
+
+  public get segmentHitTroubleshooting () : Troubleshooting|undefined {
+    return this._segmentHitTroubleshooting
+  }
+
+  public set segmentHitTroubleshooting (v : Troubleshooting|undefined) {
+    this._segmentHitTroubleshooting = v
+  }
+
+  public get consentHitTroubleshooting () : Troubleshooting|undefined {
+    return this._consentHitTroubleshooting
+  }
+
+  public set consentHitTroubleshooting (v : Troubleshooting|undefined) {
+    this._consentHitTroubleshooting = v
+  }
 
   public get sdkInitialData ():sdkInitialData|undefined {
     return this._sdkInitialData
@@ -291,10 +309,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     }
 
     return strategy
-  }
-
-  public async sendMonitoringHit (hit: Troubleshooting) {
-    await this.getStrategy().sendTroubleshootingHit(hit)
   }
 
   abstract updateContext(key: string, value: primitive):void
