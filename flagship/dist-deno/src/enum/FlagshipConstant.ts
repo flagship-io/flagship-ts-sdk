@@ -27,7 +27,7 @@ export const DEFAULT_BROWSER_POOL_MAX_SIZE = 10
 
 export const BATCH_MAX_SIZE = 2500000
 
-export const ANALYTIC_HIT_ALLOCATION = 10
+export const ANALYTIC_HIT_ALLOCATION = 20
 
 /**
  * Decision api base url
@@ -36,7 +36,7 @@ export const BASE_API_URL = 'https://decision.flagship.io/v2/'
 export const HIT_API_URL = 'https://ariane.abtasty.com'
 export const HIT_EVENT_URL = 'https://events.flagship.io'
 export const TROUBLESHOOTING_HIT_URL = 'https://events.flagship.io/troubleshooting'
-export const ANALYTICS_HIT_URL = 'https://events.flagship.io/analytics'
+export const USAGE_HIT_URL = 'https://events.flagship.io/analytics'
 export const BUCKETING_API_URL = 'https://cdn.flagship.io/{0}/bucketing.json'
 export const BUCKETING_API_CONTEXT_URL = 'https://decision.flagship.io/v2/{0}/events'
 export const THIRD_PARTY_SEGMENT_URL = 'https://api-data-connector.flagship.io/accounts/{0}/segments/{1}'
@@ -108,20 +108,20 @@ export const METHOD_DEACTIVATED_ERROR = 'Visitor {0}, method {1} is deactivated 
 
 export const METHOD_DEACTIVATED_SEND_CONSENT_ERROR = 'Send consent hit is deactivated while SDK status is: {1}.'
 export const TROUBLESHOOTING_HIT_ADDED_IN_QUEUE = 'The TROUBLESHOOTING HIT has been added to the pool queue : {0}'
-export const ANALYTICS_HIT_ADDED_IN_QUEUE = 'The ANALYTICS HIT has been added to the pool queue : {0}'
+export const ANALYTICS_HIT_ADDED_IN_QUEUE = 'The USAGE HIT has been added to the pool queue : {0}'
 export const ACTIVATE_ADDED_IN_QUEUE = 'The ACTIVATE has been added to the pool queue : {0}'
 export const HIT_ADDED_IN_QUEUE = 'The HIT has been added into the pool queue : {0}'
 export const ADD_HIT = 'ADD HIT'
 export const ADD_TROUBLESHOOTING_HIT = 'ADD TROUBLESHOOTING HIT'
-export const ADD_ANALYTICS_HIT = 'ADD ANALYTICS HIT'
+export const ADD_USAGE_HIT = 'ADD USAGE HIT'
 export const ADD_ACTIVATE = 'ADD ACTIVATE'
 export const BATCH_SENT_SUCCESS = 'Batch hit has been sent : {0}'
 export const TROUBLESHOOTING_SENT_SUCCESS = 'Troubleshooting hit has been sent : {0}'
-export const ANALYTICS_HIT_SENT_SUCCESS = 'Analytics hit has been sent : {0}'
+export const ANALYTICS_HIT_SENT_SUCCESS = 'Usage hit has been sent : {0}'
 export const ACTIVATE_SENT_SUCCESS = 'Activate hit has been sent : {0}'
 export const SEND_BATCH = 'SEND BATCH'
 export const SEND_TROUBLESHOOTING = 'SEND TROUBLESHOOTING'
-export const SEND_ANALYTICS = 'SEND ANALYTICS'
+export const SEND_USAGE_HIT = 'SEND USAGE HIT'
 export const SEND_ACTIVATE = 'SEND ACTIVATE'
 export const SEND_SEGMENT_HIT = 'SEND SEGMENT HIT'
 export const SEND_HIT = 'SEND HIT'
