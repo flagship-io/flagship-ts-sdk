@@ -26,7 +26,7 @@ describe('test NotReadyStrategy', () => {
 
   const trackingManager = new TrackingManager({} as HttpClient, config)
 
-  const sendAnalyticsHit = jest.spyOn(trackingManager, 'sendAnalyticsHit')
+  const sendUsageHitSpy = jest.spyOn(trackingManager, 'sendUsageHit')
   const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
 
   const configManager = new ConfigManager(config, {} as DecisionManager, trackingManager)
@@ -168,6 +168,6 @@ describe('test NotReadyStrategy', () => {
 
   it('test sendAnalyticHit', () => {
     notReadyStrategy.sendSdkConfigAnalyticHit()
-    expect(sendAnalyticsHit).toBeCalledTimes(0)
+    expect(sendUsageHitSpy).toBeCalledTimes(0)
   })
 })

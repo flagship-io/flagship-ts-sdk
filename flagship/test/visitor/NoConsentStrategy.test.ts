@@ -118,7 +118,7 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
   addHit.mockResolvedValue()
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sendAnalyticsHit = jest.spyOn(trackingManager, 'sendAnalyticsHit')
+  const sendUsageHitSpy = jest.spyOn(trackingManager, 'sendUsageHit')
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
@@ -154,10 +154,10 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
     getCurrentDateTime.mockReturnValue(new Date(2022, 9, 18))
     await noConsentStrategy.fetchFlags()
 
-    expect(sendAnalyticsHit).toBeCalledTimes(1)
+    expect(sendUsageHitSpy).toBeCalledTimes(1)
 
     const label: TroubleshootingLabel = 'SDK_CONFIG'
-    expect(sendAnalyticsHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+    expect(sendUsageHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
   it('test sendTroubleshootingHit', () => {

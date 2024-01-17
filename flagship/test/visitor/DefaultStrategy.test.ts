@@ -2256,7 +2256,7 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
   const addHit = jest.spyOn(trackingManager, 'addHit')
   addHit.mockResolvedValue()
 
-  const sendAnalyticsHitSpy = jest.spyOn(trackingManager, 'sendAnalyticsHit')
+  const sendUsageHitSpy = jest.spyOn(trackingManager, 'sendUsageHit')
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
@@ -2292,10 +2292,10 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
 
     await defaultStrategy.fetchFlags()
 
-    expect(sendAnalyticsHitSpy).toBeCalledTimes(1)
+    expect(sendUsageHitSpy).toBeCalledTimes(1)
 
     const label: TroubleshootingLabel = 'SDK_CONFIG'
-    expect(sendAnalyticsHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+    expect(sendUsageHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
   it('test sendAnalyticHit when visitor traffic >', async () => {
@@ -2304,7 +2304,7 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
     getCurrentDateTime.mockReturnValue(new Date(2023, 9, 14))
     await defaultStrategy.sendSdkConfigAnalyticHit()
 
-    expect(sendAnalyticsHitSpy).toBeCalledTimes(0)
+    expect(sendUsageHitSpy).toBeCalledTimes(0)
   })
 
   it('test sendAnalyticHit when disableDeveloperUsageTracking is true', async () => {
@@ -2314,6 +2314,6 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
     config.disableDeveloperUsageTracking = true
     await defaultStrategy.sendSdkConfigAnalyticHit()
 
-    expect(sendAnalyticsHitSpy).toBeCalledTimes(0)
+    expect(sendUsageHitSpy).toBeCalledTimes(0)
   })
 })

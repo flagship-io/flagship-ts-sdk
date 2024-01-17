@@ -11,7 +11,7 @@ import { BatchDTO } from '../hit/Batch'
 import { ITrackingManager } from '../api/ITrackingManager'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { MurmurHash } from '../utils/MurmurHash'
-import { Analytic } from '../hit/Analytic'
+import { UsageHit } from '../hit/UsageHit'
 import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
@@ -340,7 +340,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       const sdkConfigUsingCustomHitCache = hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
       const sdkConfigUsingCustomVisitorCache = visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
 
-      const analyticData = new Analytic({
+      const analyticData = new UsageHit({
         label: 'SDK_CONFIG',
         logLevel: LogLevel.INFO,
         visitorId: this.visitor.sdkInitialData?.instanceId as string,
@@ -369,7 +369,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         sdkConfigNextFetchConfig: this.config.nextFetchConfig,
         sdkConfigDisableCache: this.config.disableCache
       })
-      await this.trackingManager.sendAnalyticsHit(analyticData)
+      await this.trackingManager.sendUsageHit(analyticData)
     }
 
     sendFetchFlagsTroubleshooting ({ isFromCache, campaigns, now }:{isFromCache: boolean, campaigns:CampaignDTO[], now: number }) {

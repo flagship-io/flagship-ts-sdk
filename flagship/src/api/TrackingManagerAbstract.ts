@@ -14,7 +14,7 @@ import { Activate, IActivate } from '../hit/Activate'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 import { ITrackingManager } from './ITrackingManager'
 import { Troubleshooting } from '../hit/Troubleshooting'
-import { Analytic } from '../hit/Analytic'
+import { UsageHit } from '../hit/UsageHit'
 
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
@@ -25,7 +25,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   private _hitsPoolQueue: Map<string, HitAbstract>
   private _activatePoolQueue: Map<string, Activate>
   private _troubleshootingQueue: Map<string, Troubleshooting>
-  protected _analyticHitQueue: Map<string, Analytic>
+  protected _analyticHitQueue: Map<string, UsageHit>
   protected strategy: BatchingCachingStrategyAbstract
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected _intervalID:any
@@ -49,7 +49,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     this._hitsPoolQueue = new Map<string, HitAbstract>()
     this._activatePoolQueue = new Map<string, Activate>()
     this._troubleshootingQueue = new Map<string, Troubleshooting>()
-    this._analyticHitQueue = new Map<string, Analytic>()
+    this._analyticHitQueue = new Map<string, UsageHit>()
     this._httpClient = httpClient
     this._config = config
     this.strategy = this.initStrategy()
@@ -122,7 +122,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     this._isPooling = true
     await this.strategy.sendBatch(BatchTriggeredBy.Timer)
     await this.strategy.sendTroubleshootingQueue()
-    await this.strategy.sendAnalyticsHitQueue()
+    await this.strategy.sendUsageHitQueue()
     this._isPooling = false
   }
 
@@ -204,8 +204,8 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     }
   }
 
-  async sendAnalyticsHit (hit: Analytic): Promise<void> {
-    await this.strategy.sendAnalyticsHit(hit)
+  async sendUsageHit (hit: UsageHit): Promise<void> {
+    await this.strategy.sendUsageHit(hit)
   }
 
   async addTroubleshootingHit (hit: Troubleshooting): Promise<void> {
