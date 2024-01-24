@@ -10,7 +10,6 @@ import { sprintf } from '../../src/utils/utils'
 import { VisitorDelegate, NotReadyStrategy } from '../../src/visitor'
 import { MurmurHash } from '../../src/utils/MurmurHash'
 import { Troubleshooting } from '../../src/hit/Troubleshooting'
-import { Analytic } from '../../src/hit/Analytic'
 
 describe('test NotReadyStrategy', () => {
   const visitorId = 'visitorId'
@@ -27,7 +26,7 @@ describe('test NotReadyStrategy', () => {
 
   const trackingManager = new TrackingManager({} as HttpClient, config)
 
-  const sendAnalyticsHit = jest.spyOn(trackingManager, 'sendAnalyticsHit')
+  const sendUsageHitSpy = jest.spyOn(trackingManager, 'sendUsageHit')
   const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
 
   const configManager = new ConfigManager(config, {} as DecisionManager, trackingManager)
@@ -168,7 +167,7 @@ describe('test NotReadyStrategy', () => {
   })
 
   it('test sendAnalyticHit', () => {
-    notReadyStrategy.sendAnalyticHit({} as Analytic)
-    expect(sendAnalyticsHit).toBeCalledTimes(0)
+    notReadyStrategy.sendSdkConfigAnalyticHit()
+    expect(sendUsageHitSpy).toBeCalledTimes(0)
   })
 })

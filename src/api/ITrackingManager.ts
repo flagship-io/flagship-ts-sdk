@@ -1,4 +1,4 @@
-import { Analytic } from '../hit/Analytic'
+import { UsageHit } from '../hit/UsageHit'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { ITrackingManagerCommon } from './ITrackingManagerCommon'
 
@@ -12,6 +12,8 @@ export interface ITrackingManager extends ITrackingManagerCommon {
 
     sendTroubleshootingHit(hit: Troubleshooting): Promise<void>
 
-    sendAnalyticsHit(hit: Analytic): Promise<void>
+    addTroubleshootingHit(hit: Troubleshooting): Promise<void>
+
+    sendUsageHit(hit: UsageHit): Promise<void>
 
   }

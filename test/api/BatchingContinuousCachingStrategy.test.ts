@@ -4,7 +4,7 @@ import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinu
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
 import { EdgeConfig } from '../../src/config/EdgeConfig'
 import { BatchTriggeredBy } from '../../src/enum/BatchTriggeredBy'
-import { BASE_API_URL, BATCH_HIT, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, PROCESS_CACHE, HEADER_X_SDK_VERSION, HIT_CACHE_ERROR, HIT_CACHE_VERSION, HIT_EVENT_URL, SDK_INFO, SDK_VERSION, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, URL_ACTIVATE_MODIFICATION, TROUBLESHOOTING_HIT_URL, ANALYTICS_HIT_URL } from '../../src/enum/FlagshipConstant'
+import { BASE_API_URL, BATCH_HIT, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, PROCESS_CACHE, HEADER_X_SDK_VERSION, HIT_CACHE_ERROR, HIT_CACHE_VERSION, HIT_EVENT_URL, SDK_INFO, SDK_VERSION, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, URL_ACTIVATE_MODIFICATION, TROUBLESHOOTING_HIT_URL, USAGE_HIT_URL } from '../../src/enum/FlagshipConstant'
 import { Activate } from '../../src/hit/Activate'
 import { ActivateBatch } from '../../src/hit/ActivateBatch'
 import { Batch } from '../../src/hit/Batch'
@@ -12,9 +12,10 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { sleep, sprintf } from '../../src/utils/utils'
 import { Troubleshooting } from '../../src/hit/Troubleshooting'
-import { Analytic } from '../../src/hit/Analytic'
 import * as utils from '../../src/utils/utils'
 import * as qaAssistant from '../../src/qaAssistant/messages'
+import { UsageHit } from '../../src/hit/UsageHit'
+
 describe('Test BatchingContinuousCachingStrategy', () => {
   const visitorId = 'visitorId'
 
@@ -28,7 +29,7 @@ describe('Test BatchingContinuousCachingStrategy', () => {
     const hitsPoolQueue = new Map<string, HitAbstract>()
     const activatePoolQueue = new Map<string, Activate>()
     const troubleshootingQueue = new Map<string, Troubleshooting>()
-    const analyticHitQueue = new Map<string, Analytic>()
+    const analyticHitQueue = new Map<string, UsageHit>()
     const batchingStrategy = new BatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -200,7 +201,7 @@ describe('test activateFlag method', () => {
   const hitsPoolQueue = new Map<string, HitAbstract>()
   const activatePoolQueue = new Map<string, Activate>()
   const troubleshootingQueue = new Map<string, Troubleshooting>()
-  const analyticHitQueue = new Map<string, Analytic>()
+  const analyticHitQueue = new Map<string, UsageHit>()
   const batchingStrategy = new BatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -427,7 +428,7 @@ describe('test activateFlag method', () => {
     postAsync.mockRejectedValue(error)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const addTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'addTroubleshootingHit')
+    const sendTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'sendTroubleshootingHit')
 
     const activateHit = new Activate({
       visitorId,
@@ -522,9 +523,9 @@ describe('test activateFlag method', () => {
     expect(cacheHitSpy).toBeCalledTimes(1)
     expect(cacheHitSpy).toHaveBeenCalledWith(new Map([[activateHit.key, activateHit]]))
 
-    expect(addTroubleshootingHit).toBeCalledTimes(1)
+    expect(sendTroubleshootingHit).toBeCalledTimes(1)
     const label: TroubleshootingLabel = 'SEND_ACTIVATE_HIT_ROUTE_ERROR'
-    expect(addTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
+    expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 
   it('test activate on BUCKETING_EDGE', async () => {
@@ -605,7 +606,7 @@ describe('test sendBatch method', () => {
   const hitsPoolQueue = new Map<string, HitAbstract>()
   const activatePoolQueue = new Map<string, Activate>()
   const troubleshootingQueue = new Map<string, Troubleshooting>()
-  const analyticHitQueue = new Map<string, Analytic>()
+  const analyticHitQueue = new Map<string, UsageHit>()
   const batchingStrategy = new BatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -771,7 +772,7 @@ describe('test sendBatch method', () => {
     const error = 'message error'
     postAsync.mockRejectedValue(error)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const addTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'addTroubleshootingHit')
+    const sendTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'sendTroubleshootingHit')
 
     config.logLevel = LogLevel.ALL
     const batch:Batch = new Batch({ hits: [globalPageHit] })
@@ -803,7 +804,7 @@ describe('test sendBatch method', () => {
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(sprintf(TRACKING_MANAGER_ERROR, BATCH_HIT, errorFormatMessage), TRACKING_MANAGER)
     const label: TroubleshootingLabel = 'SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR'
-    expect(addTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
+    expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 
   it('test sendActivate on batch', async () => {
@@ -854,7 +855,7 @@ describe('test sendBatch method', () => {
     const hitsPoolQueue = new Map<string, HitAbstract>()
     const activatePoolQueue = new Map<string, Activate>()
     const troubleshootingQueue = new Map<string, Troubleshooting>()
-    const analyticHitQueue = new Map<string, Analytic>()
+    const analyticHitQueue = new Map<string, UsageHit>()
     const batchingStrategy = new BatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
     await batchingStrategy.sendBatch()
     expect(postAsync).toBeCalledTimes(0)
@@ -894,7 +895,7 @@ describe('test cacheHit and flushHits methods', () => {
   const hitsPoolQueue = new Map<string, HitAbstract>()
   const activatePoolQueue = new Map<string, Activate>()
   const troubleshootingQueue = new Map<string, Troubleshooting>()
-  const analyticHitQueue = new Map<string, Analytic>()
+  const analyticHitQueue = new Map<string, UsageHit>()
   const batchingStrategy = new BatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
   const visitorId = 'visitorId'
   it('test cacheHit success ', async () => {
@@ -1004,11 +1005,12 @@ describe('test send troubleshooting hit', () => {
   const hitsPoolQueue = new Map<string, HitAbstract>()
   const activatePoolQueue = new Map<string, Activate>()
   const troubleshootingQueue = new Map<string, Troubleshooting>()
-  const analyticHitQueue = new Map<string, Analytic>()
+  const analyticHitQueue = new Map<string, UsageHit>()
   const flagshipInstanceId = 'flagshipInstanceId'
   const batchingStrategy = new BatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, flagshipInstanceId, analyticHitQueue })
 
   const visitorId = 'visitorId'
+  const visitorSessionId = 'visitorSessionId'
 
   const activateHit = new Activate({
     visitorId,
@@ -1038,8 +1040,8 @@ describe('test send troubleshooting hit', () => {
     logLevel: LogLevel.INFO,
     traffic: 2,
     visitorId: activateHit.visitorId,
-    flagshipInstanceId: activateHit.flagshipInstanceId,
-    visitorSessionId: activateHit.visitorSessionId,
+    flagshipInstanceId,
+    visitorSessionId,
     anonymousId: activateHit.anonymousId,
     config,
     hitContent: activateHit.toApiKeys()
@@ -1053,8 +1055,8 @@ describe('test send troubleshooting hit', () => {
       logLevel: LogLevel.INFO,
       traffic: 50,
       visitorId: activateHit.visitorId,
-      flagshipInstanceId: activateHit.flagshipInstanceId,
-      visitorSessionId: activateHit.visitorSessionId,
+      flagshipInstanceId,
+      visitorSessionId,
       anonymousId: activateHit.anonymousId,
       config,
       hitContent: activateHit.toApiKeys()
@@ -1077,8 +1079,8 @@ describe('test send troubleshooting hit', () => {
       logLevel: LogLevel.INFO,
       traffic: 50,
       visitorId: activateHit.visitorId,
-      flagshipInstanceId: activateHit.flagshipInstanceId,
-      visitorSessionId: activateHit.visitorSessionId,
+      flagshipInstanceId,
+      visitorSessionId,
       anonymousId: activateHit.anonymousId,
       config,
       hitContent: activateHit.toApiKeys()
@@ -1110,8 +1112,8 @@ describe('test send troubleshooting hit', () => {
       logLevel: LogLevel.INFO,
       traffic: 50,
       visitorId: activateHit.visitorId,
-      flagshipInstanceId: activateHit.flagshipInstanceId,
-      visitorSessionId: activateHit.visitorSessionId,
+      flagshipInstanceId,
+      visitorSessionId,
       anonymousId: activateHit.anonymousId,
       config,
       hitContent: activateHit.toApiKeys()
@@ -1143,8 +1145,8 @@ describe('test send troubleshooting hit', () => {
       logLevel: LogLevel.INFO,
       traffic: 50,
       visitorId: activateHit.visitorId,
-      flagshipInstanceId: activateHit.flagshipInstanceId,
-      visitorSessionId: activateHit.visitorSessionId,
+      flagshipInstanceId,
+      visitorSessionId,
       anonymousId: activateHit.anonymousId,
       config,
       hitContent: activateHit.toApiKeys()
@@ -1201,8 +1203,8 @@ describe('test send troubleshooting hit', () => {
       logLevel: LogLevel.INFO,
       traffic: 2,
       visitorId: activateHit.visitorId,
-      flagshipInstanceId: activateHit.flagshipInstanceId,
-      visitorSessionId: activateHit.visitorSessionId,
+      flagshipInstanceId,
+      visitorSessionId,
       anonymousId: activateHit.anonymousId,
       config,
       hitContent: activateHit.toApiKeys()
@@ -1229,44 +1231,6 @@ describe('test send troubleshooting hit', () => {
       })
   })
 
-  it('test sendTroubleshootingHit when troubleshootingData === started', async () => {
-    postAsync.mockResolvedValue({ status: 200, body: null })
-
-    const activateTroubleshooting = new Troubleshooting({
-      label: 'VISITOR_SEND_ACTIVATE',
-      logLevel: LogLevel.INFO,
-      traffic: 2,
-      visitorId: activateHit.visitorId,
-      flagshipInstanceId: activateHit.flagshipInstanceId,
-      visitorSessionId: activateHit.visitorSessionId,
-      anonymousId: activateHit.anonymousId,
-      config,
-      hitContent: activateHit.toApiKeys()
-    })
-
-    batchingStrategy.troubleshootingData = 'started'
-
-    expect(troubleshootingQueue.size).toBe(1)
-    await batchingStrategy.sendTroubleshootingHit(activateTroubleshooting)
-    expect(troubleshootingQueue.size).toBe(2)
-    expect(postAsync).toBeCalledTimes(0)
-  })
-
-  it('test sendTroubleshootingQueue when troubleshootingData === started', async () => {
-    postAsync.mockResolvedValue({ status: 200, body: null })
-
-    const startDate = new Date()
-    const endDate = new Date(startDate)
-    endDate.setMinutes(startDate.getMinutes() + 2)
-
-    batchingStrategy.troubleshootingData = 'started'
-
-    expect(troubleshootingQueue.size).toBe(2)
-
-    await batchingStrategy.sendTroubleshootingQueue()
-    expect(troubleshootingQueue.size).toBe(2)
-    expect(postAsync).toBeCalledTimes(0)
-  })
   it('test sendTroubleshootingQueue', async () => {
     postAsync.mockResolvedValue({ status: 200, body: null })
 
@@ -1281,15 +1245,15 @@ describe('test send troubleshooting hit', () => {
       timezone: ''
     }
 
-    expect(troubleshootingQueue.size).toBe(2)
+    expect(troubleshootingQueue.size).toBe(1)
 
     await batchingStrategy.sendTroubleshootingQueue()
     expect(troubleshootingQueue.size).toBe(0)
-    expect(postAsync).toBeCalledTimes(2)
+    expect(postAsync).toBeCalledTimes(1)
 
     await batchingStrategy.sendTroubleshootingQueue()
     expect(troubleshootingQueue.size).toBe(0)
-    expect(postAsync).toBeCalledTimes(2)
+    expect(postAsync).toBeCalledTimes(1)
   })
 })
 
@@ -1319,11 +1283,12 @@ describe('test send analyticsHit hit', () => {
   const hitsPoolQueue = new Map<string, HitAbstract>()
   const activatePoolQueue = new Map<string, Activate>()
   const troubleshootingQueue = new Map<string, Troubleshooting>()
-  const analyticHitQueue = new Map<string, Analytic>()
+  const analyticHitQueue = new Map<string, UsageHit>()
   const flagshipInstanceId = 'flagshipInstanceId'
   const batchingStrategy = new BatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, flagshipInstanceId, analyticHitQueue })
 
   const visitorId = 'visitorId'
+  const visitorSessionId = 'visitorSessionId'
 
   const activateHit = new Activate({
     visitorId,
@@ -1348,13 +1313,13 @@ describe('test send analyticsHit hit', () => {
 
   activateHit.config = config
 
-  const analyticHit = new Analytic({
+  const analyticHit = new UsageHit({
     label: 'VISITOR_SEND_ACTIVATE',
     logLevel: LogLevel.INFO,
     traffic: 2,
     visitorId: activateHit.visitorId,
-    flagshipInstanceId: activateHit.flagshipInstanceId,
-    visitorSessionId: activateHit.visitorSessionId,
+    flagshipInstanceId,
+    visitorSessionId,
     anonymousId: activateHit.anonymousId,
     config,
     hitContent: activateHit.toApiKeys()
@@ -1365,11 +1330,11 @@ describe('test send analyticsHit hit', () => {
 
     expect(analyticHitQueue.size).toBe(0)
 
-    await batchingStrategy.sendAnalyticsHit(analyticHit)
+    await batchingStrategy.sendUsageHit(analyticHit)
     expect(analyticHitQueue.size).toBe(0)
     expect(postAsync).toBeCalledTimes(1)
     expect(postAsync).toHaveBeenNthCalledWith(1,
-      ANALYTICS_HIT_URL, {
+      USAGE_HIT_URL, {
         body: analyticHit.toApiKeys()
       })
   })
@@ -1380,11 +1345,11 @@ describe('test send analyticsHit hit', () => {
 
     expect(analyticHitQueue.size).toBe(0)
 
-    await batchingStrategy.sendAnalyticsHit(analyticHit)
+    await batchingStrategy.sendUsageHit(analyticHit)
     expect(analyticHitQueue.size).toBe(1)
     expect(postAsync).toBeCalledTimes(1)
     expect(postAsync).toHaveBeenNthCalledWith(1,
-      ANALYTICS_HIT_URL, {
+      USAGE_HIT_URL, {
         body: analyticHit.toApiKeys()
       })
   })
@@ -1394,11 +1359,11 @@ describe('test send analyticsHit hit', () => {
 
     expect(analyticHitQueue.size).toBe(1)
 
-    await batchingStrategy.sendAnalyticsHitQueue()
+    await batchingStrategy.sendUsageHitQueue()
     expect(analyticHitQueue.size).toBe(0)
     expect(postAsync).toBeCalledTimes(1)
     expect(postAsync).toHaveBeenNthCalledWith(1,
-      ANALYTICS_HIT_URL, {
+      USAGE_HIT_URL, {
         body: analyticHit.toApiKeys()
       })
   })
@@ -1408,7 +1373,7 @@ describe('test send analyticsHit hit', () => {
 
     expect(analyticHitQueue.size).toBe(0)
 
-    await batchingStrategy.sendAnalyticsHitQueue()
+    await batchingStrategy.sendUsageHitQueue()
     expect(analyticHitQueue.size).toBe(0)
     expect(postAsync).toBeCalledTimes(0)
   })
@@ -1454,7 +1419,7 @@ describe('test sendHitsToFsQa', () => {
   const hitsPoolQueue = new Map<string, HitAbstract>()
   const activatePoolQueue = new Map<string, Activate>()
   const troubleshootingQueue = new Map<string, Troubleshooting>()
-  const analyticHitQueue = new Map<string, Analytic>()
+  const analyticHitQueue = new Map<string, UsageHit>()
   const flagshipInstanceId = 'flagshipInstanceId'
   const batchingStrategy = new BatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, flagshipInstanceId, analyticHitQueue })
 

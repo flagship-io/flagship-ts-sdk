@@ -7,7 +7,6 @@ import { HitAbstract, HitShape } from '../hit/index.ts'
 import { BatchDTO } from '../hit/Batch.ts'
 import { FlagMetadata } from '../flag/FlagMetadata.ts'
 import { Troubleshooting } from '../hit/Troubleshooting.ts'
-import { Analytic } from '../hit/Analytic.ts'
 
 export class PanicStrategy extends DefaultStrategy {
   setConsent (hasConsented:boolean):void {
@@ -107,7 +106,7 @@ export class PanicStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async sendAnalyticHit (_hit: Analytic) {
+  public async sendSdkConfigAnalyticHit () {
     return Promise.resolve()
   }
 

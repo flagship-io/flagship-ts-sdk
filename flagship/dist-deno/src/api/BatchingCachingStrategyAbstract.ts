@@ -1,8 +1,8 @@
 import { DecisionMode, IFlagshipConfig } from '../config/index.ts'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy.ts'
-import { ACTIVATE_ADDED_IN_QUEUE, ADD_ACTIVATE, BATCH_MAX_SIZE, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HitType, HIT_ADDED_IN_QUEUE, HIT_CACHE_VERSION, HIT_DATA_FLUSHED, HIT_EVENT_URL, LogLevel, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_APP, SDK_INFO, SEND_BATCH, TROUBLESHOOTING_HIT_URL, TROUBLESHOOTING_HIT_ADDED_IN_QUEUE, ADD_TROUBLESHOOTING_HIT, TROUBLESHOOTING_SENT_SUCCESS, SEND_TROUBLESHOOTING, ALL_HITS_FLUSHED, HIT_CACHE_ERROR, HIT_CACHE_SAVED, PROCESS_CACHE, TRACKING_MANAGER, HIT_SENT_SUCCESS, BATCH_HIT, TRACKING_MANAGER_ERROR, ANALYTICS_HIT_URL, ANALYTICS_HIT_SENT_SUCCESS, SEND_ANALYTICS, ANALYTICS_HIT_ADDED_IN_QUEUE, ADD_ANALYTICS_HIT } from '../enum/index.ts'
+import { ACTIVATE_ADDED_IN_QUEUE, ADD_ACTIVATE, BATCH_MAX_SIZE, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HitType, HIT_ADDED_IN_QUEUE, HIT_CACHE_VERSION, HIT_DATA_FLUSHED, HIT_EVENT_URL, LogLevel, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_APP, SDK_INFO, SEND_BATCH, TROUBLESHOOTING_HIT_URL, TROUBLESHOOTING_HIT_ADDED_IN_QUEUE, ADD_TROUBLESHOOTING_HIT, TROUBLESHOOTING_SENT_SUCCESS, SEND_TROUBLESHOOTING, ALL_HITS_FLUSHED, HIT_CACHE_ERROR, HIT_CACHE_SAVED, PROCESS_CACHE, TRACKING_MANAGER, HIT_SENT_SUCCESS, BATCH_HIT, TRACKING_MANAGER_ERROR, USAGE_HIT_URL, ANALYTICS_HIT_SENT_SUCCESS as USAGE_HIT_SENT_SUCCESS, SEND_USAGE_HIT, ANALYTICS_HIT_ADDED_IN_QUEUE as USAGE_HIT_ADDED_IN_QUEUE, ADD_USAGE_HIT } from '../enum/index.ts'
 import { Activate } from '../hit/Activate.ts'
-import { Analytic } from '../hit/Analytic.ts'
+import { UsageHit } from '../hit/UsageHit.ts'
 import { Batch } from '../hit/Batch.ts'
 import { Troubleshooting } from '../hit/Troubleshooting.ts'
 import { HitAbstract, Event } from '../hit/index.ts'
@@ -19,22 +19,27 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   protected _activatePoolQueue: Map<string, Activate>
   protected _httpClient: IHttpClient
   protected _troubleshootingQueue: Map<string, Troubleshooting>
-  protected _analyticHitQueue: Map<string, Analytic>
+  protected _usageHitQueue: Map<string, UsageHit>
   protected _flagshipInstanceId?: string
-  protected _isAnalyticHitQueueSending: boolean
+  protected _isUsageHitQueueSending: boolean
   protected _isTroubleshootingQueueSending: boolean
+<<<<<<< HEAD
   private _troubleshootingData? : TroubleshootingData|'started'
   private _HitsToFsQa:HitAbstract[]
   private _sendFsHitToQATimeoutId?:NodeJS.Timeout
+=======
+  private _troubleshootingData? : TroubleshootingData
+
+>>>>>>> main
   public get flagshipInstanceId (): string|undefined {
     return this._flagshipInstanceId
   }
 
-  public get troubleshootingData () : TroubleshootingData|undefined|'started' {
+  public get troubleshootingData () : TroubleshootingData|undefined {
     return this._troubleshootingData
   }
 
-  public set troubleshootingData (v : TroubleshootingData|undefined|'started') {
+  public set troubleshootingData (v : TroubleshootingData|undefined) {
     this._troubleshootingData = v
   }
 
@@ -44,16 +49,19 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
   constructor (param: BatchingCachingStrategyConstruct) {
     const { config, hitsPoolQueue, httpClient, activatePoolQueue, troubleshootingQueue, flagshipInstanceId, analyticHitQueue } = param
+<<<<<<< HEAD
     this._HitsToFsQa = []
     this.troubleshootingData = 'started'
+=======
+>>>>>>> main
     this._config = config
     this._hitsPoolQueue = hitsPoolQueue
     this._httpClient = httpClient
     this._activatePoolQueue = activatePoolQueue
     this._troubleshootingQueue = troubleshootingQueue
     this._flagshipInstanceId = flagshipInstanceId
-    this._analyticHitQueue = analyticHitQueue
-    this._isAnalyticHitQueueSending = false
+    this._usageHitQueue = analyticHitQueue
+    this._isUsageHitQueueSending = false
     this._isTroubleshootingQueueSending = false
   }
 
@@ -380,10 +388,6 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       return false
     }
 
-    if (this.troubleshootingData === 'started') {
-      return false
-    }
-
     const now = new Date()
 
     const isStarted = now >= this.troubleshootingData.startDate
@@ -398,10 +402,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     return true
   }
 
-  protected async addTroubleshootingHit (hit: Troubleshooting): Promise<void> {
-    if (this.troubleshootingData !== 'started' && !this.isTroubleshootingActivated()) {
-      return
-    }
+  public async addTroubleshootingHit (hit: Troubleshooting): Promise<void> {
     if (!hit.key) {
       const hitKey = `${hit.visitorId}:${uuidV4()}`
       hit.key = hitKey
@@ -411,11 +412,6 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   }
 
   public async sendTroubleshootingHit (hit: Troubleshooting): Promise<void> {
-    if (this.troubleshootingData === 'started') {
-      this.addTroubleshootingHit(hit)
-      return
-    }
-
     if (!this.isTroubleshootingActivated() || hit.traffic === undefined || (this.troubleshootingData as TroubleshootingData).traffic < hit.traffic) {
       return
     }
@@ -436,9 +432,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      if (!hit.key) {
-        const hitKey = `${hit.visitorId}:${uuidV4()}`
-        hit.key = hitKey
+      if (this.isTroubleshootingActivated()) {
         await this.addTroubleshootingHit(hit)
       }
       logError(this.config, errorFormat(error.message || error, {
@@ -466,36 +460,36 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   // #endregion
 
   // #region Analytic hit
-  protected async addAnalyticsHit (hit: Analytic): Promise<void> {
+  protected async addUsageHit (hit: UsageHit): Promise<void> {
     if (!hit.key) {
       const hitKey = `${hit.visitorId}:${uuidV4()}`
       hit.key = hitKey
     }
-    this._analyticHitQueue.set(hit.key, hit)
-    logDebug(this.config, sprintf(ANALYTICS_HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_ANALYTICS_HIT)
+    this._usageHitQueue.set(hit.key, hit)
+    logDebug(this.config, sprintf(USAGE_HIT_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_USAGE_HIT)
   }
 
-  public async sendAnalyticsHit (hit: Analytic): Promise<void> {
+  public async sendUsageHit (hit: UsageHit): Promise<void> {
     const requestBody = hit.toApiKeys()
     const now = Date.now()
     try {
-      await this._httpClient.postAsync(ANALYTICS_HIT_URL, {
+      await this._httpClient.postAsync(USAGE_HIT_URL, {
         body: requestBody
       })
-      logDebug(this.config, sprintf(ANALYTICS_HIT_SENT_SUCCESS, JSON.stringify({
+      logDebug(this.config, sprintf(USAGE_HIT_SENT_SUCCESS, JSON.stringify({
         ...requestBody,
         duration: Date.now() - now
-      })), SEND_ANALYTICS)
+      })), SEND_USAGE_HIT)
 
       if (hit.key) {
-        this._analyticHitQueue.delete(hit.key)
+        this._usageHitQueue.delete(hit.key)
         await this.flushHits([hit.key])
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      await this.addAnalyticsHit(hit)
+      await this.addUsageHit(hit)
       logError(this.config, errorFormat(error.message || error, {
-        url: TROUBLESHOOTING_HIT_URL,
+        url: USAGE_HIT_URL,
         headers: {},
         body: requestBody,
         duration: Date.now() - now
@@ -503,17 +497,17 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     }
   }
 
-  public async sendAnalyticsHitQueue () {
-    if (this._isAnalyticHitQueueSending || this._analyticHitQueue.size === 0) {
+  public async sendUsageHitQueue () {
+    if (this._isUsageHitQueueSending || this._usageHitQueue.size === 0) {
       return
     }
 
-    this._isAnalyticHitQueueSending = true
+    this._isUsageHitQueueSending = true
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for (const [_, item] of Array.from(this._analyticHitQueue)) {
-      await this.sendAnalyticsHit(item)
+    for (const [_, item] of Array.from(this._usageHitQueue)) {
+      await this.sendUsageHit(item)
     }
-    this._isAnalyticHitQueueSending = false
+    this._isUsageHitQueueSending = false
   }
 
   // #endregion

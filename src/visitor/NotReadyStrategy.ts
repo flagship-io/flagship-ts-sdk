@@ -6,7 +6,6 @@ import { HitAbstract, HitShape } from '../hit/index'
 import { BatchDTO } from '../hit/Batch'
 import { FlagMetadata } from '../flag/FlagMetadata'
 import { Troubleshooting } from '../hit/Troubleshooting'
-import { Analytic } from '../hit/Analytic'
 
 export class NotReadyStrategy extends DefaultStrategy {
   async synchronizeModifications (): Promise<void> {
@@ -94,7 +93,7 @@ export class NotReadyStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async sendAnalyticHit (_hit: Analytic) {
+  public async sendSdkConfigAnalyticHit () {
     return Promise.resolve()
   }
 

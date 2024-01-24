@@ -103,6 +103,10 @@ export interface IDiagnostic extends IHitAbstract{
     hitContent?: Record<string, unknown>
     batchTriggeredBy?: BatchTriggeredBy
 
+    visitorSessionId?:string
+    traffic?: number
+    flagshipInstanceId?:string
+
   }
 
 export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
@@ -181,6 +185,33 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
   private _sdkConfigNextFetchConfig? : Record<string, unknown>
   private _sdkConfigDisableDeveloperUsageTracking? : boolean
   private _sdkConfigDisableCache? : boolean
+
+  private _visitorSessionId? : string
+  private _traffic?: number
+  private _flagshipInstanceId? : string
+  public get traffic () : number|undefined {
+    return this._traffic
+  }
+
+  public set traffic (v : number|undefined) {
+    this._traffic = v
+  }
+
+  public get flagshipInstanceId () : string|undefined {
+    return this._flagshipInstanceId
+  }
+
+  public set flagshipInstanceId (v : string|undefined) {
+    this._flagshipInstanceId = v
+  }
+
+  public get visitorSessionId () : string|undefined {
+    return this._visitorSessionId
+  }
+
+  public set visitorSessionId (v : string|undefined) {
+    this._visitorSessionId = v
+  }
 
   public get sdkConfigDisableCache () : boolean|undefined {
     return this._sdkConfigDisableCache
@@ -792,8 +823,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       locale: param.locale,
       sessionNumber: param.sessionNumber,
       visitorId: param.visitorId,
-      anonymousId: param.anonymousId,
-      visitorSessionId: param.visitorSessionId
+      anonymousId: param.anonymousId
     })
     const {
       version: logVersion, logLevel, accountId, envId, timestamp, label, stackType,
@@ -808,8 +838,9 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       lastInitializationTimestamp, lastBucketingTimestamp, batchTriggeredBy, visitorCampaigns, visitorCampaignFromCache, visitorInitialCampaigns,
       visitorInitialFlagsData, flagMetadataCampaignIsReference, contextKey, contextValue, sdkBucketingFile, flagMetadataCampaignName, flagMetadataVariationGroupName,
       flagMetadataVariationName, sdkConfigUsingCustomHitCache, sdkConfigUsingCustomVisitorCache, sdkConfigUsingOnVisitorExposed, sdkConfigFetchThirdPartyData,
-      sdkConfigFetchFlagsBufferingTime, sdkConfigDisableDeveloperUsageTracking, sdkConfigNextFetchConfig, sdkConfigDisableCache
+      sdkConfigFetchFlagsBufferingTime, sdkConfigDisableDeveloperUsageTracking, sdkConfigNextFetchConfig, sdkConfigDisableCache, visitorSessionId
     } = param
+    this.visitorSessionId = visitorSessionId
     this.sdkConfigDisableCache = sdkConfigDisableCache
     this.sdkConfigDisableDeveloperUsageTracking = sdkConfigDisableDeveloperUsageTracking
     this.sdkConfigNextFetchConfig = sdkConfigNextFetchConfig
