@@ -75,13 +75,9 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
   sendHitsToFsQaSpy.mockImplementation(() => {
     //
   })
+
   it('test addHit method 1', async () => {
     postAsync.mockResolvedValue({ status: 200, body: null })
-    const hitsPoolQueue = new Map<string, HitAbstract>()
-    const activatePoolQueue = new Map<string, Activate>()
-    const troubleshootingQueue = new Map<string, Troubleshooting>()
-    const analyticHitQueue = new Map<string, UsageHit>()
-    const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
     const consentHit = new Event({
       visitorId,
@@ -148,16 +144,6 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
 
   it('test addHit method consent false', async () => {
     postAsync.mockResolvedValue({ status: 200, body: null })
-    const hitsPoolQueue = new Map<string, HitAbstract>()
-    const activatePoolQueue = new Map<string, Activate>()
-    const troubleshootingQueue = new Map<string, Troubleshooting>()
-    const analyticHitQueue = new Map<string, UsageHit>()
-    const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
 
     const eventHit = new Event({
       visitorId,
@@ -227,19 +213,6 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     const error = 'message error'
     postAsync.mockRejectedValue(error)
 
-    const hitsPoolQueue = new Map<string, HitAbstract>()
-    const activatePoolQueue = new Map<string, Activate>()
-    const troubleshootingQueue = new Map<string, Troubleshooting>()
-    const analyticHitQueue = new Map<string, UsageHit>()
-    const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sendTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'sendTroubleshootingHit')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
-
     const pageHit = new Page({
       documentLocation: 'http://localhost',
       visitorId
@@ -307,16 +280,6 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
 
   it('test activateFlag method', async () => {
     postAsync.mockResolvedValue({ status: 200, body: null })
-    const hitsPoolQueue = new Map<string, HitAbstract>()
-    const activatePoolQueue = new Map<string, Activate>()
-    const troubleshootingQueue = new Map<string, Troubleshooting>()
-    const analyticHitQueue = new Map<string, UsageHit>()
-    const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
 
     // Test activate
     const activateHit = new Activate({
@@ -365,19 +328,6 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
   it('test activateFlag method throw error', async () => {
     const error = 'message error'
     postAsync.mockRejectedValue(error)
-
-    const hitsPoolQueue = new Map<string, HitAbstract>()
-    const activatePoolQueue = new Map<string, Activate>()
-    const troubleshootingQueue = new Map<string, Troubleshooting>()
-    const analyticHitQueue = new Map<string, UsageHit>()
-    const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sendTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'sendTroubleshootingHit')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
 
     // Test activate
     const activateHit = new Activate({

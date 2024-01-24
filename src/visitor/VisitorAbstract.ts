@@ -358,10 +358,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     }, DELAY)
   }
 
-  public async sendMonitoringHit (hit: Troubleshooting) {
-    await this.getStrategy().sendTroubleshootingHit(hit)
-  }
-
   abstract updateContext(key: string, value: primitive):void
   abstract updateContext(context: Record<string, primitive>): void
   abstract updateContext (context: Record<string, primitive> | string, value?:primitive): void

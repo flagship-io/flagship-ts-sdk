@@ -31,7 +31,8 @@ module.exports = {
     'test/decision/bucketing.ts',
     'test/decision/campaigns.ts',
     'test/visitor/modification.ts',
-    'src/index.ts'
+    'src/index.ts',
+    'src/mod.ts'
   ],
 
   // Indicates which provider should be used to instrument code for coverage
