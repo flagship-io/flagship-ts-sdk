@@ -75,18 +75,13 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
   sendHitsToFsQaSpy.mockImplementation(() => {
     //
   })
-  it('test addHit method', async () => {
+  it('test addHit method 1', async () => {
     postAsync.mockResolvedValue({ status: 200, body: null })
     const hitsPoolQueue = new Map<string, HitAbstract>()
     const activatePoolQueue = new Map<string, Activate>()
     const troubleshootingQueue = new Map<string, Troubleshooting>()
     const analyticHitQueue = new Map<string, UsageHit>()
     const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
 
     const consentHit = new Event({
       visitorId,
