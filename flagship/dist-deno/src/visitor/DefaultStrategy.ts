@@ -69,10 +69,13 @@ import { FlagMetadata } from '../flag/FlagMetadata.ts'
 import { Activate } from '../hit/Activate.ts'
 import { Troubleshooting } from '../hit/Troubleshooting.ts'
 import { FlagSynchStatus } from '../enum/FlagSynchStatus.ts'
+<<<<<<< HEAD
 import { Analytic } from '../hit/Analytic.ts'
 import { DefaultHitCache } from '../cache/DefaultHitCache.ts'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache.ts'
 import { sendVisitorAllocatedVariations } from '../qaAssistant/messages/index.ts'
+=======
+>>>>>>> main
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'
@@ -352,7 +355,13 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
       logDebugSprintf(this.config, functionName, FETCH_FLAGS_FROM_CAMPAIGNS,
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, this.visitor.flagsData)
+      if (this.decisionManager.troubleshooting) {
+        this.sendFetchFlagsTroubleshooting({ campaigns, now, isFromCache: logData.isFromCache })
+        this.sendConsentHitTroubleshooting()
+        this.sendSegmentHitTroubleshooting()
+      }
 
+<<<<<<< HEAD
       const assignmentHistory: Record<string, string> = {}
       const visitorAllocatedVariations: Record<string, VisitorVariations> = {}
 
@@ -455,6 +464,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       })
 
       this.sendAnalyticHit(analyticData)
+=======
+      this.sendSdkConfigAnalyticHit()
+>>>>>>> main
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
@@ -501,7 +513,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
       })
 
-      this.sendTroubleshootingHit(troubleshootingHit)
+      this.trackingManager.addTroubleshootingHit(troubleshootingHit)
     }
   }
 
@@ -592,10 +604,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
-    activateHit.visitorSessionId = this.visitor.instanceId
-    activateHit.traffic = this.visitor.traffic
-    activateHit.flagshipInstanceId = this.visitor.sdkInitialData?.instanceId
-
     await this.trackingManager.activateFlag(activateHit)
 
     const activateTroubleshooting = new Troubleshooting({
@@ -604,8 +612,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       logLevel: LogLevel.INFO,
       traffic: this.visitor.traffic,
       visitorId: activateHit.visitorId,
-      flagshipInstanceId: activateHit.flagshipInstanceId,
-      visitorSessionId: activateHit.visitorSessionId,
+      flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+      visitorSessionId: this.visitor.instanceId,
       anonymousId: activateHit.anonymousId,
       config: this.config,
       hitContent: activateHit.toApiKeys()
@@ -754,9 +762,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     hitInstance.ds = SDK_APP
     hitInstance.config = this.config
     hitInstance.anonymousId = this.visitor.anonymousId as string
-    hitInstance.visitorSessionId = this.visitor.instanceId
-    hitInstance.traffic = this.visitor.traffic
-    hitInstance.flagshipInstanceId = this.visitor.sdkInitialData?.instanceId
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { createdAt, ...hitInstanceItem } = hitInstance.toObject()
@@ -770,7 +775,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     try {
       await this.trackingManager.addHit(hitInstance)
 
-      if (this.visitor.traffic === undefined || hitInstance.type === 'SEGMENT') {
+      if (hitInstance.type === 'SEGMENT') {
         return
       }
       const sendHitTroubleshooting = new Troubleshooting({
@@ -779,8 +784,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         logLevel: LogLevel.INFO,
         traffic: this.visitor.traffic,
         visitorId: hitInstance.visitorId,
-        flagshipInstanceId: hitInstance.flagshipInstanceId,
-        visitorSessionId: hitInstance.visitorSessionId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        visitorSessionId: this.visitor.instanceId,
         anonymousId: hitInstance.anonymousId,
         config: this.config,
         hitContent: hitInstance.toApiKeys()

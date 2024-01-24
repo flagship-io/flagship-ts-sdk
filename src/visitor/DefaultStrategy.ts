@@ -60,7 +60,7 @@ import {
   IHitAbstract
 } from '../hit/index'
 import { HitShape, ItemHit } from '../hit/Legacy'
-import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata, VisitorVariations, CampaignDTO } from '../types'
+import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata, CampaignDTO } from '../types'
 import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
@@ -69,10 +69,6 @@ import { FlagMetadata } from '../flag/FlagMetadata'
 import { Activate } from '../hit/Activate'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { FlagSynchStatus } from '../enum/FlagSynchStatus'
-import { Analytic } from '../hit/Analytic'
-import { DefaultHitCache } from '../cache/DefaultHitCache'
-import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
-import { sendVisitorAllocatedVariations } from '../qaAssistant/messages/index'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'
@@ -352,109 +348,13 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
       logDebugSprintf(this.config, functionName, FETCH_FLAGS_FROM_CAMPAIGNS,
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, this.visitor.flagsData)
+      if (this.decisionManager.troubleshooting) {
+        this.sendFetchFlagsTroubleshooting({ campaigns, now, isFromCache: logData.isFromCache })
+        this.sendConsentHitTroubleshooting()
+        this.sendSegmentHitTroubleshooting()
+      }
 
-      const assignmentHistory: Record<string, string> = {}
-      const visitorAllocatedVariations: Record<string, VisitorVariations> = {}
-
-      this.visitor.flagsData.forEach(item => {
-        assignmentHistory[item.variationGroupId] = item.variationId
-        visitorAllocatedVariations[item.campaignId] = {
-          variationId: item.variationId,
-          variationGroupId: item.variationGroupId,
-          campaignId: item.campaignId
-        }
-      })
-
-      sendVisitorAllocatedVariations(visitorAllocatedVariations)
-
-      const uniqueId = this.visitor.visitorId + this.decisionManager.troubleshooting?.endDate.toUTCString()
-      const hash = this._murmurHash.murmurHash3Int32(uniqueId)
-      const traffic = hash % 100
-
-      this.visitor.traffic = traffic
-
-      const hitCacheImplementation = this.config.hitCacheImplementation
-      const visitorCacheImplementation = this.config.visitorCacheImplementation
-      const sdkConfigUsingCustomHitCache = hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
-      const sdkConfigUsingCustomVisitorCache = visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
-
-      const fetchFlagTroubleshooting = new Troubleshooting({
-        label: 'VISITOR_FETCH_CAMPAIGNS',
-        logLevel: LogLevel.INFO,
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
-        visitorSessionId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        traffic,
-        config: this.config,
-        sdkStatus: this.visitor.getSdkStatus(),
-        visitorContext: this.visitor.context,
-        visitorCampaigns: campaigns,
-        visitorCampaignFromCache: logData.isFromCache ? campaigns : undefined,
-        visitorConsent: this.visitor.hasConsented,
-        visitorIsAuthenticated: !!this.visitor.anonymousId,
-        visitorFlags: this.visitor.flagsData,
-        visitorAssignmentHistory: assignmentHistory,
-        visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
-        visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
-        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
-        lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
-        httpResponseTime: Date.now() - now,
-
-        sdkConfigMode: this.config.decisionMode,
-        sdkConfigTimeout: this.config.timeout,
-        sdkConfigPollingInterval: this.config.pollingInterval,
-        sdkConfigTrackingManagerConfigStrategy: this.config.trackingManagerConfig?.cacheStrategy,
-        sdkConfigTrackingManagerConfigBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
-        sdkConfigTrackingManagerConfigPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
-        sdkConfigFetchNow: this.config.fetchNow,
-        sdkConfigEnableClientCache: this.config.enableClientCache,
-        sdkConfigInitialBucketing: this.config.initialBucketing,
-        sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
-        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
-        sdkConfigUsingOnVisitorExposed: !!this.config.onVisitorExposed,
-        sdkConfigUsingCustomHitCache,
-        sdkConfigUsingCustomVisitorCache,
-        sdkConfigFetchThirdPartyData: this.config.fetchThirdPartyData,
-        sdkConfigFetchFlagsBufferingTime: this.config.fetchFlagsBufferingTime,
-        sdkConfigDisableDeveloperUsageTracking: this.config.disableDeveloperUsageTracking,
-        sdkConfigNextFetchConfig: this.config.nextFetchConfig,
-        sdkConfigDisableCache: this.config.disableCache
-      })
-
-      this.sendTroubleshootingHit(fetchFlagTroubleshooting)
-
-      const analyticData = new Analytic({
-        label: 'SDK_CONFIG',
-        logLevel: LogLevel.INFO,
-        visitorId: this.visitor.visitorId,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        config: this.config,
-        sdkStatus: this.visitor.getSdkStatus(),
-        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
-        lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
-        sdkConfigMode: this.config.decisionMode,
-        sdkConfigTimeout: this.config.timeout,
-        sdkConfigPollingInterval: this.config.pollingInterval,
-        sdkConfigTrackingManagerConfigStrategy: this.config.trackingManagerConfig?.cacheStrategy,
-        sdkConfigTrackingManagerConfigBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
-        sdkConfigTrackingManagerConfigPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
-        sdkConfigFetchNow: this.config.fetchNow,
-        sdkConfigEnableClientCache: this.config.enableClientCache,
-        sdkConfigInitialBucketing: this.config.initialBucketing,
-        sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
-        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
-        sdkConfigUsingOnVisitorExposed: !!this.config.onVisitorExposed,
-        sdkConfigUsingCustomHitCache,
-        sdkConfigUsingCustomVisitorCache,
-        sdkConfigFetchThirdPartyData: this.config.fetchThirdPartyData,
-        sdkConfigFetchFlagsBufferingTime: this.config.fetchFlagsBufferingTime,
-        sdkConfigDisableDeveloperUsageTracking: this.config.disableDeveloperUsageTracking,
-        sdkConfigNextFetchConfig: this.config.nextFetchConfig,
-        sdkConfigDisableCache: this.config.disableCache
-      })
-
-      this.sendAnalyticHit(analyticData)
+      this.sendSdkConfigAnalyticHit()
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
@@ -501,7 +401,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
       })
 
-      this.sendTroubleshootingHit(troubleshootingHit)
+      this.trackingManager.addTroubleshootingHit(troubleshootingHit)
     }
   }
 
@@ -592,10 +492,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       return
     }
 
-    activateHit.visitorSessionId = this.visitor.instanceId
-    activateHit.traffic = this.visitor.traffic
-    activateHit.flagshipInstanceId = this.visitor.sdkInitialData?.instanceId
-
     await this.trackingManager.activateFlag(activateHit)
 
     const activateTroubleshooting = new Troubleshooting({
@@ -604,8 +500,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       logLevel: LogLevel.INFO,
       traffic: this.visitor.traffic,
       visitorId: activateHit.visitorId,
-      flagshipInstanceId: activateHit.flagshipInstanceId,
-      visitorSessionId: activateHit.visitorSessionId,
+      flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+      visitorSessionId: this.visitor.instanceId,
       anonymousId: activateHit.anonymousId,
       config: this.config,
       hitContent: activateHit.toApiKeys()
@@ -754,9 +650,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     hitInstance.ds = SDK_APP
     hitInstance.config = this.config
     hitInstance.anonymousId = this.visitor.anonymousId as string
-    hitInstance.visitorSessionId = this.visitor.instanceId
-    hitInstance.traffic = this.visitor.traffic
-    hitInstance.flagshipInstanceId = this.visitor.sdkInitialData?.instanceId
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { createdAt, ...hitInstanceItem } = hitInstance.toObject()
@@ -770,7 +663,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     try {
       await this.trackingManager.addHit(hitInstance)
 
-      if (this.visitor.traffic === undefined || hitInstance.type === 'SEGMENT') {
+      if (hitInstance.type === 'SEGMENT') {
         return
       }
       const sendHitTroubleshooting = new Troubleshooting({
@@ -779,8 +672,8 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         logLevel: LogLevel.INFO,
         traffic: this.visitor.traffic,
         visitorId: hitInstance.visitorId,
-        flagshipInstanceId: hitInstance.flagshipInstanceId,
-        visitorSessionId: hitInstance.visitorSessionId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        visitorSessionId: this.visitor.instanceId,
         anonymousId: hitInstance.anonymousId,
         config: this.config,
         hitContent: hitInstance.toApiKeys()

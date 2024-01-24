@@ -14,10 +14,13 @@ import { PanicStrategy } from './PanicStrategy.ts'
 import { NoConsentStrategy } from './NoConsentStrategy.ts'
 import { cacheVisitor } from './VisitorCache.ts'
 import { IFlag } from '../flag/Flags.ts'
-import { Troubleshooting } from '../hit/Troubleshooting.ts'
 import { MurmurHash } from '../utils/MurmurHash.ts'
 import { FlagSynchStatus } from '../enum/FlagSynchStatus.ts'
+<<<<<<< HEAD
 import { sendVisitorExposedVariations } from '../qaAssistant/messages/index.ts'
+=======
+import { Troubleshooting } from '../hit/Troubleshooting.ts'
+>>>>>>> main
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -37,6 +40,24 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   private _instanceId : string
   private _traffic! : number
   protected _sdkInitialData?: sdkInitialData
+  private _consentHitTroubleshooting? : Troubleshooting
+  private _segmentHitTroubleshooting? : Troubleshooting
+
+  public get segmentHitTroubleshooting () : Troubleshooting|undefined {
+    return this._segmentHitTroubleshooting
+  }
+
+  public set segmentHitTroubleshooting (v : Troubleshooting|undefined) {
+    this._segmentHitTroubleshooting = v
+  }
+
+  public get consentHitTroubleshooting () : Troubleshooting|undefined {
+    return this._consentHitTroubleshooting
+  }
+
+  public set consentHitTroubleshooting (v : Troubleshooting|undefined) {
+    this._consentHitTroubleshooting = v
+  }
 
   public get sdkInitialData ():sdkInitialData|undefined {
     return this._sdkInitialData
@@ -299,6 +320,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     return strategy
   }
 
+<<<<<<< HEAD
   public sendExposedVariation (flag?:FlagDTO) {
     if (!flag || !isBrowser()) {
       return
@@ -340,6 +362,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     await this.getStrategy().sendTroubleshootingHit(hit)
   }
 
+=======
+>>>>>>> main
   abstract updateContext(key: string, value: primitive):void
   abstract updateContext(context: Record<string, primitive>): void
   abstract updateContext (context: Record<string, primitive> | string, value?:primitive): void

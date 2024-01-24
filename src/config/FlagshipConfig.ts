@@ -136,7 +136,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._initialBucketing = initialBucketing
     this.hitDeduplicationTime = hitDeduplicationTime ?? DEFAULT_DEDUPLICATION_TIME
     this.disableCache = !!disableCache
-    this.disableDeveloperUsageTracking = disableDeveloperUsageTracking
+    this.disableDeveloperUsageTracking = disableDeveloperUsageTracking || false
 
     if (visitorCacheImplementation) {
       this.visitorCacheImplementation = visitorCacheImplementation

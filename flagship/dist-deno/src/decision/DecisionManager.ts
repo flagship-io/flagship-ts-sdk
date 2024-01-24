@@ -158,7 +158,7 @@ export abstract class DecisionManager implements IDecisionManager {
       return campaigns
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      const monitoringHttpResponse = new Troubleshooting({
+      const troubleshooting = new Troubleshooting({
         label: 'GET_CAMPAIGNS_ROUTE_RESPONSE_ERROR',
         logLevel: LogLevel.ERROR,
         visitorId: visitor.visitorId,
@@ -177,7 +177,7 @@ export abstract class DecisionManager implements IDecisionManager {
         httpResponseTime: Date.now() - now
       })
 
-      await visitor.sendMonitoringHit(monitoringHttpResponse)
+      await this.trackingManager.addTroubleshootingHit(troubleshooting)
 
       const errorMessage = errorFormat(error.message || error, {
         url,

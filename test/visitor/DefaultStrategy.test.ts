@@ -8,14 +8,14 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { IHttpResponse, HttpClient } from '../../src/utils/HttpClient'
 import { DefaultStrategy, HIT_NULL_ERROR, TYPE_HIT_REQUIRED_ERROR } from '../../src/visitor/DefaultStrategy'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
-import { ACTIVATE_MODIFICATION_ERROR, ACTIVATE_MODIFICATION_KEY_ERROR, CONTEXT_NULL_ERROR, CONTEXT_VALUE_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, FLAG_VALUE, FS_CONSENT, FlagSynchStatus, GET_FLAG_CAST_ERROR, GET_FLAG_MISSING_ERROR, GET_METADATA_CAST_ERROR, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, LogLevel, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, USER_EXPOSED_CAST_ERROR, USER_EXPOSED_FLAG_ERROR } from '../../src/enum'
+import { ACTIVATE_MODIFICATION_ERROR, ACTIVATE_MODIFICATION_KEY_ERROR, CONTEXT_NULL_ERROR, CONTEXT_VALUE_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, FLAG_VALUE, FS_CONSENT, FlagSynchStatus, GET_FLAG_CAST_ERROR, GET_FLAG_MISSING_ERROR, GET_METADATA_CAST_ERROR, GET_MODIFICATION_CAST_ERROR, GET_MODIFICATION_ERROR, GET_MODIFICATION_KEY_ERROR, GET_MODIFICATION_MISSING_ERROR, HitType, PROCESS_ACTIVE_MODIFICATION, PROCESS_GET_MODIFICATION, PROCESS_GET_MODIFICATION_INFO, PROCESS_SEND_HIT, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, USER_EXPOSED_CAST_ERROR, USER_EXPOSED_FLAG_ERROR } from '../../src/enum'
 import { errorFormat, sprintf } from '../../src/utils/utils'
 import { returnModification } from './modification'
 import { HitShape } from '../../src/hit/Legacy'
 import { Activate } from '../../src/hit/Activate'
 import { MurmurHash } from '../../src/utils/MurmurHash'
 import { BucketingManager } from '../../src/decision/BucketingManager'
-import { Analytic } from '../../src/hit/Analytic'
+import { Segment } from '../../src/hit/Segment'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getNull = (): any => {
@@ -65,8 +65,8 @@ describe('test DefaultStrategy ', () => {
   )
 
   const trackingManager = new TrackingManager(httpClient, config)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
+
+  const sendTroubleshootingHitSpy = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
 
   const addHit = jest.spyOn(trackingManager, 'addHit')
   addHit.mockResolvedValue()
@@ -120,7 +120,7 @@ describe('test DefaultStrategy ', () => {
     consentHit.config = config
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect(addHit).toBeCalledWith({ ...consentHit, _visitorSessionId: expect.anything() })
+    expect(addHit).toBeCalledWith({ ...consentHit })
   })
 
   it('test updateContext', () => {
@@ -360,10 +360,6 @@ describe('test DefaultStrategy ', () => {
       }
     })
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    activateHit.traffic = expect.anything() as any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    activateHit.visitorSessionId = expect.anything() as any
     activateHit.config = config
     activateHit.ds = SDK_APP
     expect(activateFlag).toBeCalledWith(activateHit)
@@ -396,10 +392,6 @@ describe('test DefaultStrategy ', () => {
     })
     campaignHit.config = config
     campaignHit.ds = SDK_APP
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    campaignHit.traffic = expect.anything() as any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    campaignHit.visitorSessionId = expect.anything() as any
     expect(activateFlag).toBeCalledWith(campaignHit)
     expect(logInfo).toBeCalledTimes(0)
   })
@@ -431,10 +423,7 @@ describe('test DefaultStrategy ', () => {
     })
     campaignHit.config = config
     campaignHit.ds = SDK_APP
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    campaignHit.traffic = expect.anything() as any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    campaignHit.visitorSessionId = expect.anything() as any
+
     expect(activateFlag).toBeCalledWith(campaignHit)
     expect(logInfo).toBeCalledTimes(0)
   })
@@ -468,10 +457,6 @@ describe('test DefaultStrategy ', () => {
     campaignHit.config = config
     campaignHit.visitorId = visitorId
     campaignHit.ds = SDK_APP
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    campaignHit.traffic = expect.anything() as any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    campaignHit.visitorSessionId = expect.anything() as any
     expect(activateFlag).toBeCalledWith(campaignHit)
     expect(logInfo).toBeCalledTimes(0)
   })
@@ -494,9 +479,9 @@ describe('test DefaultStrategy ', () => {
     expect(activateFlag).toBeCalledTimes(0)
     expect(logWarning).toBeCalledTimes(1)
     expect(logWarning).toBeCalledWith(sprintf(GET_FLAG_MISSING_ERROR, visitorId, 'keyString', defaultValue), FLAG_VALUE)
-    expect(sendTroubleshootingHit).toBeCalledTimes(1)
+    expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
     const label: TroubleshootingLabel = 'GET_FLAG_VALUE_FLAG_NOT_FOUND'
-    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+    expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
   it('test getFlagValue castError type', () => {
@@ -507,9 +492,9 @@ describe('test DefaultStrategy ', () => {
     expect(activateFlag).toBeCalledTimes(0)
     expect(logWarning).toBeCalledTimes(1)
     expect(logWarning).toBeCalledWith(sprintf(GET_FLAG_CAST_ERROR, visitorId, 'keyString', defaultValue), FLAG_VALUE)
-    expect(sendTroubleshootingHit).toBeCalledTimes(1)
+    expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
     const label: TroubleshootingLabel = 'GET_FLAG_VALUE_TYPE_WARNING'
-    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+    expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
   it('test getFlagValue castError type', () => {
@@ -565,9 +550,9 @@ describe('test DefaultStrategy ', () => {
     expect(flagMeta).toEqual(FlagMetadata.Empty())
     expect(logWarning).toBeCalledTimes(1)
     expect(logWarning).toBeCalledWith(sprintf(GET_METADATA_CAST_ERROR, key), FLAG_METADATA)
-    expect(sendTroubleshootingHit).toBeCalledTimes(1)
+    expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
     const label: TroubleshootingLabel = 'GET_FLAG_METADATA_TYPE_WARNING'
-    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+    expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
   it('test getModification with array 1', async () => {
@@ -642,10 +627,7 @@ describe('test DefaultStrategy ', () => {
     })
     activateHit.config = config
     activateHit.ds = SDK_APP
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    activateHit.traffic = expect.anything() as any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    activateHit.visitorSessionId = expect.anything() as any
+
     expect(activateFlag).toBeCalledWith(activateHit)
   })
 
@@ -745,10 +727,7 @@ describe('test DefaultStrategy ', () => {
     })
     activateHit.config = config
     activateHit.ds = SDK_APP
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    activateHit.traffic = expect.anything() as any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    activateHit.visitorSessionId = expect.anything() as any
+
     expect(activateFlag).toBeCalledWith(activateHit)
   })
 
@@ -782,10 +761,7 @@ describe('test DefaultStrategy ', () => {
     activateHit.config = config
     activateHit.visitorId = visitorId
     activateHit.ds = SDK_APP
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    activateHit.traffic = expect.anything() as any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    activateHit.visitorSessionId = expect.anything() as any
+
     expect(activateFlag).toHaveBeenNthCalledWith(1, activateHit)
 
     const modification2:FlagDTO = returnModification.get(key2) as FlagDTO
@@ -812,10 +788,7 @@ describe('test DefaultStrategy ', () => {
     activateHit2.config = config
     activateHit2.visitorId = visitorId
     activateHit2.ds = SDK_APP
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    activateHit2.traffic = expect.anything() as any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    activateHit2.visitorSessionId = expect.anything() as any
+
     expect(activateFlag).toHaveBeenNthCalledWith(2, activateHit2)
   })
 
@@ -849,10 +822,6 @@ describe('test DefaultStrategy ', () => {
     campaignHit.config = config
     campaignHit.visitorId = visitorId
     campaignHit.ds = SDK_APP
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    campaignHit.traffic = expect.anything() as any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    campaignHit.visitorSessionId = expect.anything() as any
 
     expect(activateFlag).toHaveBeenNthCalledWith(1, campaignHit)
 
@@ -880,10 +849,7 @@ describe('test DefaultStrategy ', () => {
     campaignHit2.config = config
     campaignHit2.visitorId = visitorId
     campaignHit2.ds = SDK_APP
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    campaignHit2.traffic = expect.anything() as any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    campaignHit2.visitorSessionId = expect.anything() as any
+
     expect(activateFlag).toHaveBeenNthCalledWith(2, campaignHit2)
   })
 
@@ -970,14 +936,11 @@ describe('test DefaultStrategy ', () => {
     activateHit.config = config
     activateHit.visitorId = visitorId
     activateHit.ds = SDK_APP
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    activateHit.traffic = expect.anything() as any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    activateHit.visitorSessionId = expect.anything() as any
+
     expect(activateFlag).toBeCalledWith(activateHit)
-    expect(sendTroubleshootingHit).toBeCalledTimes(1)
+    expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
     const label: TroubleshootingLabel = 'VISITOR_SEND_ACTIVATE'
-    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+    expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
   it('test userExposed with onUserExposed callback', async () => {
@@ -1022,9 +985,9 @@ describe('test DefaultStrategy ', () => {
       sprintf(USER_EXPOSED_CAST_ERROR, visitorId, returnMod.key),
       FLAG_USER_EXPOSED
     )
-    expect(sendTroubleshootingHit).toBeCalledTimes(1)
+    expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
     const label: TroubleshootingLabel = 'VISITOR_EXPOSED_TYPE_WARNING'
-    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+    expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
   it('test userExposed flag undefined', async () => {
@@ -1035,9 +998,9 @@ describe('test DefaultStrategy ', () => {
       sprintf(USER_EXPOSED_FLAG_ERROR, visitorId, notExitKey),
       FLAG_USER_EXPOSED
     )
-    expect(sendTroubleshootingHit).toBeCalledTimes(1)
+    expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
     const label: TroubleshootingLabel = 'VISITOR_EXPOSED_FLAG_NOT_FOUND'
-    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+    expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
   it('test hasTrackingManager userExposed', async () => {
@@ -1109,9 +1072,9 @@ describe('test DefaultStrategy ', () => {
     await defaultStrategy.sendHit(hitScreen)
     expect(addHit).toBeCalledTimes(1)
     expect(addHit).toBeCalledWith(hitScreen)
-    expect(sendTroubleshootingHit).toBeCalledTimes(1)
+    expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
     const label: TroubleshootingLabel = 'VISITOR_SEND_HIT'
-    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+    expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
   it('test hasTrackingManager sendHit', async () => {
@@ -1433,9 +1396,9 @@ describe('test DefaultStrategy ', () => {
     defaultStrategy.authenticate(authenticateId)
     expect(visitorDelegate.visitorId).toBe(authenticateId)
     expect(visitorDelegate.anonymousId).toBe(visitorId)
-    expect(sendTroubleshootingHit).toBeCalledTimes(1)
+    expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
     const label: TroubleshootingLabel = 'VISITOR_AUTHENTICATE'
-    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+    expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
     expect(visitorDelegate.flagSynchStatus).toBe(FlagSynchStatus.AUTHENTICATED)
   })
 
@@ -1444,9 +1407,9 @@ describe('test DefaultStrategy ', () => {
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBeNull()
     expect(visitorDelegate.flagSynchStatus).toBe(FlagSynchStatus.UNAUTHENTICATED)
-    expect(sendTroubleshootingHit).toBeCalledTimes(1)
+    expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
     const label: TroubleshootingLabel = 'VISITOR_UNAUTHENTICATE'
-    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+    expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
   it('test updateCampaigns', () => {
@@ -1875,7 +1838,7 @@ describe('test fetchFlags errors 2', () => {
   })
 })
 
-describe('test DefaultStrategy troubleshootingHit', () => {
+describe('test DefaultStrategy troubleshootingHit 1', () => {
   const methodNow = Date.now
   const mockNow = jest.fn<typeof Date.now>()
   beforeAll(() => {
@@ -1893,7 +1856,7 @@ describe('test DefaultStrategy troubleshootingHit', () => {
 
   const logManager = new FlagshipLogManager()
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0 })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0, fetchFlagsBufferingTime: 0 })
   config.logManager = logManager
 
   const httpClient = new HttpClient()
@@ -1931,6 +1894,13 @@ describe('test DefaultStrategy troubleshootingHit', () => {
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
+  apiManager.troubleshooting = {
+    startDate: new Date(),
+    endDate: new Date(),
+    traffic: 100,
+    timezone: 'time'
+  }
+
   it('test fetchFlags', async () => {
     const flagDTO: FlagDTO = {
       key: 'key',
@@ -1945,15 +1915,27 @@ describe('test DefaultStrategy troubleshootingHit', () => {
     const flags = new Map<string, FlagDTO>().set(flagDTO.key, flagDTO)
     getCampaignsAsync.mockResolvedValue([])
     getModifications.mockReturnValueOnce(flags)
+
     await defaultStrategy.fetchFlags()
-    expect(sendTroubleshootingHit).toBeCalledTimes(1)
+
+    expect(sendTroubleshootingHit).toBeCalledTimes(2)
 
     const label: TroubleshootingLabel = 'VISITOR_FETCH_CAMPAIGNS'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
 
-    defaultStrategy.setConsent(true)
     const label1: TroubleshootingLabel = 'VISITOR_SEND_HIT'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ label: label1 }))
+
+    defaultStrategy.setConsent(true)
+
+    expect(sendTroubleshootingHit).toBeCalledTimes(3)
+
+    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(3, expect.objectContaining({ label: label1 }))
+
+    await defaultStrategy.fetchFlags()
+
+    expect(sendTroubleshootingHit).toBeCalledTimes(4)
+    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(4, expect.objectContaining({ label }))
   })
 })
 
@@ -2014,7 +1996,15 @@ describe('test DefaultStrategy troubleshootingHit Bucketing mode', () => {
             ]
           }
         ]
-      }]
+      }],
+    accountSettings: {
+      troubleshooting: {
+        startDate: '2023-04-13T09:33:38.049Z',
+        endDate: '2023-04-13T10:03:38.049Z',
+        timezone: 'Europe/Paris',
+        traffic: 40
+      }
+    }
   }
 
   const config = new BucketingConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0, initialBucketing: bucketing })
@@ -2039,7 +2029,6 @@ describe('test DefaultStrategy troubleshootingHit Bucketing mode', () => {
   const addHit = jest.spyOn(trackingManager, 'addHit')
   addHit.mockResolvedValue()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
 
   const activateFlag = jest.spyOn(trackingManager, 'activateFlag')
@@ -2049,10 +2038,6 @@ describe('test DefaultStrategy troubleshootingHit Bucketing mode', () => {
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const getStrategy = jest.spyOn((visitorDelegate as any), 'getStrategy')
-  getStrategy.mockReturnValue(defaultStrategy)
 
   it('test fetchFlags', async () => {
     const flagDTO: FlagDTO = {
@@ -2068,11 +2053,80 @@ describe('test DefaultStrategy troubleshootingHit Bucketing mode', () => {
     const flags = new Map<string, FlagDTO>().set(flagDTO.key, flagDTO)
     // getCampaignsAsync.mockResolvedValue([])
     getModifications.mockReturnValueOnce(flags)
-    await defaultStrategy.fetchFlags()
-    expect(sendTroubleshootingHit).toBeCalledTimes(1)
 
-    const label = 'VISITOR_FETCH_CAMPAIGNS'
+    await defaultStrategy.fetchFlags()
+
+    expect(sendTroubleshootingHit).toBeCalledTimes(3)
+
+    let label = 'VISITOR_FETCH_CAMPAIGNS'
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+    label = 'VISITOR_SEND_HIT'
+    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ label, hitContent: expect.objectContaining({ t: 'EVENT' }) }))
+
+    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(3, expect.objectContaining({ label, hitContent: expect.objectContaining({ t: 'SEGMENT' }) }))
+  })
+})
+
+describe('test DefaultStrategy troubleshootingHit send SEGMENT HIT', () => {
+  const methodNow = Date.now
+  const mockNow = jest.fn<typeof Date.now>()
+  beforeAll(() => {
+    Date.now = mockNow
+    mockNow.mockReturnValue(1)
+  })
+  afterAll(() => {
+    Date.now = methodNow
+  })
+  const visitorId = 'visitorId'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const context: any = {
+    isVip: true
+  }
+
+  const logManager = new FlagshipLogManager()
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0 })
+  config.logManager = logManager
+
+  const httpClient = new HttpClient()
+
+  const post = jest.fn<typeof httpClient.postAsync>()
+  httpClient.postAsync = post
+  post.mockResolvedValue({} as IHttpResponse)
+
+  const apiManager = new ApiManager(httpClient, config)
+
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  const addHit = jest.spyOn(trackingManager, 'addHit')
+  addHit.mockResolvedValue()
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
+
+  const activateFlag = jest.spyOn(trackingManager, 'activateFlag')
+  activateFlag.mockResolvedValue()
+
+  const configManager = new ConfigManager(config, apiManager, trackingManager)
+
+  const murmurHash = new MurmurHash()
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
+  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
+
+  it('test send hit', async () => {
+    await defaultStrategy.sendHit({
+      type: HitType.PAGE,
+      documentLocation: 'localhost'
+    })
+    expect(sendTroubleshootingHit).toBeCalledTimes(1)
+    const SegmentHit = new Segment({
+      context: { key: 'value' },
+      visitorId: 'visitor-ID',
+      anonymousId: null
+    })
+    await defaultStrategy.sendHit(SegmentHit)
+
+    expect(sendTroubleshootingHit).toBeCalledTimes(1)
   })
 })
 
@@ -2120,8 +2174,7 @@ describe('test DefaultStrategy troubleshootingHit', () => {
   const addHit = jest.spyOn(trackingManager, 'addHit')
   addHit.mockResolvedValue()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
+  const addTroubleshootingHitSpy = jest.spyOn(trackingManager, 'addTroubleshootingHit')
 
   const activateFlag = jest.spyOn(trackingManager, 'activateFlag')
   activateFlag.mockResolvedValue()
@@ -2153,64 +2206,9 @@ describe('test DefaultStrategy troubleshootingHit', () => {
       throw new Error('error')
     })
     await defaultStrategy.fetchFlags()
-    expect(sendTroubleshootingHit).toBeCalledTimes(1)
+    expect(addTroubleshootingHitSpy).toBeCalledTimes(1)
     const label: TroubleshootingLabel = 'VISITOR_FETCH_CAMPAIGNS_ERROR'
-    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
-  })
-})
-
-describe('test DefaultStrategy troubleshootingHit visitor traffic === undefined', () => {
-  const methodNow = Date.now
-  const mockNow = jest.fn<typeof Date.now>()
-  beforeAll(() => {
-    Date.now = mockNow
-    mockNow.mockReturnValue(1)
-  })
-  afterAll(() => {
-    Date.now = methodNow
-  })
-  const visitorId = 'visitorId'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const context: any = {
-    isVip: true
-  }
-
-  const logManager = new FlagshipLogManager()
-
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0 })
-  config.logManager = logManager
-
-  const httpClient = new HttpClient()
-
-  const post = jest.fn<typeof httpClient.postAsync>()
-  httpClient.postAsync = post
-  post.mockResolvedValue({} as IHttpResponse)
-
-  const apiManager = new ApiManager(httpClient, config)
-
-  const trackingManager = new TrackingManager(httpClient, config)
-
-  const addHit = jest.spyOn(trackingManager, 'addHit')
-  addHit.mockResolvedValue()
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
-
-  const activateFlag = jest.spyOn(trackingManager, 'activateFlag')
-  activateFlag.mockResolvedValue()
-
-  const configManager = new ConfigManager(config, apiManager, trackingManager)
-
-  const murmurHash = new MurmurHash()
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
-  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
-
-  it('test fetchFlags', async () => {
-    await defaultStrategy.sendHit({
-      type: HitType.PAGE,
-      documentLocation: 'localhost'
-    })
-    expect(sendTroubleshootingHit).toBeCalledTimes(0)
+    expect(addTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 })
 
@@ -2258,8 +2256,7 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
   const addHit = jest.spyOn(trackingManager, 'addHit')
   addHit.mockResolvedValue()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sendAnalyticsHit = jest.spyOn(trackingManager, 'sendAnalyticsHit')
+  const sendUsageHitSpy = jest.spyOn(trackingManager, 'sendUsageHit')
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
@@ -2292,40 +2289,31 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
     getCampaignsAsync.mockResolvedValue([])
     getModifications.mockReturnValueOnce(flags)
     getCurrentDateTime.mockReturnValue(new Date(2022, 9, 18))
+
     await defaultStrategy.fetchFlags()
 
-    expect(sendAnalyticsHit).toBeCalledTimes(1)
+    expect(sendUsageHitSpy).toBeCalledTimes(1)
 
     const label: TroubleshootingLabel = 'SDK_CONFIG'
-    expect(sendAnalyticsHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+    expect(sendUsageHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
-  it('test sendAnalyticHit', async () => {
+  it('test sendAnalyticHit when visitor traffic >', async () => {
     const getCurrentDateTime = jest.spyOn(defaultStrategy, 'getCurrentDateTime')
-    const analyticHit = new Analytic({
-      label: 'VISITOR_FETCH_CAMPAIGNS',
-      logLevel: LogLevel.INFO,
-      visitorId: FsInstanceId,
-      config
-    })
+
     getCurrentDateTime.mockReturnValue(new Date(2023, 9, 14))
-    await defaultStrategy.sendAnalyticHit(analyticHit)
+    await defaultStrategy.sendSdkConfigAnalyticHit()
 
-    expect(sendAnalyticsHit).toBeCalledTimes(0)
+    expect(sendUsageHitSpy).toBeCalledTimes(0)
   })
 
-  it('test sendAnalyticHit', async () => {
+  it('test sendAnalyticHit when disableDeveloperUsageTracking is true', async () => {
     const getCurrentDateTime = jest.spyOn(defaultStrategy, 'getCurrentDateTime')
-    const analyticHit = new Analytic({
-      label: 'VISITOR_FETCH_CAMPAIGNS',
-      logLevel: LogLevel.INFO,
-      visitorId: 'visitor',
-      config
-    })
+
     getCurrentDateTime.mockReturnValue(new Date(2023, 9, 14))
     config.disableDeveloperUsageTracking = true
-    await defaultStrategy.sendAnalyticHit(analyticHit)
+    await defaultStrategy.sendSdkConfigAnalyticHit()
 
-    expect(sendAnalyticsHit).toBeCalledTimes(0)
+    expect(sendUsageHitSpy).toBeCalledTimes(0)
   })
 })

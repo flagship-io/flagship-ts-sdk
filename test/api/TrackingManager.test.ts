@@ -156,8 +156,8 @@ describe('test TrackingManager Strategy ', () => {
     addHit: jest.fn(),
     sendTroubleshootingQueue: jest.fn(),
     sendTroubleshootingHit: jest.fn(),
-    sendAnalyticsHitQueue: jest.fn(),
-    sendAnalyticsHit: jest.fn()
+    sendUsageHitQueue: jest.fn(),
+    sendUsageHit: jest.fn()
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const trackManagerMock = (trackingManager as any)
@@ -165,6 +165,8 @@ describe('test TrackingManager Strategy ', () => {
   trackManagerMock.strategy = strategy
 
   const visitorId = 'visitorId'
+  const flagshipInstanceId = 'flagshipInstanceId'
+  const visitorSessionId = 'visitorSessionId'
 
   it('Test startBatchingLoop and  stopBatchingLoop methods', async () => {
     const pageHit = new Page({
@@ -189,7 +191,7 @@ describe('test TrackingManager Strategy ', () => {
     expect(strategy.sendBatch).toBeCalledTimes(1)
     expect(strategy.sendBatch).toBeCalledWith(BatchTriggeredBy.Timer)
     expect(strategy.sendTroubleshootingQueue).toBeCalledTimes(1)
-    expect(strategy.sendAnalyticsHitQueue).toBeCalledTimes(1)
+    expect(strategy.sendUsageHitQueue).toBeCalledTimes(1)
   })
 
   it('Test addTroubleshootingHit methods', async () => {
@@ -203,8 +205,8 @@ describe('test TrackingManager Strategy ', () => {
       logLevel: LogLevel.INFO,
       traffic: 2,
       visitorId: pageHit.visitorId,
-      flagshipInstanceId: pageHit.flagshipInstanceId,
-      visitorSessionId: pageHit.visitorSessionId,
+      flagshipInstanceId,
+      visitorSessionId,
       anonymousId: pageHit.anonymousId,
       config,
       hitContent: pageHit.toApiKeys()
@@ -231,8 +233,8 @@ describe('test TrackingManager Strategy ', () => {
       logLevel: LogLevel.INFO,
       traffic: 2,
       visitorId: pageHit.visitorId,
-      flagshipInstanceId: pageHit.flagshipInstanceId,
-      visitorSessionId: pageHit.visitorSessionId,
+      flagshipInstanceId,
+      visitorSessionId,
       anonymousId: pageHit.anonymousId,
       config,
       hitContent: pageHit.toApiKeys()
@@ -240,10 +242,10 @@ describe('test TrackingManager Strategy ', () => {
 
     pageHit.config = config
 
-    await trackingManager.sendAnalyticsHit(analyticHit)
+    await trackingManager.sendUsageHit(analyticHit)
 
-    expect(strategy.sendAnalyticsHit).toBeCalledTimes(1)
-    expect(strategy.sendAnalyticsHit).toBeCalledWith(analyticHit)
+    expect(strategy.sendUsageHit).toBeCalledTimes(1)
+    expect(strategy.sendUsageHit).toBeCalledWith(analyticHit)
   })
 })
 
