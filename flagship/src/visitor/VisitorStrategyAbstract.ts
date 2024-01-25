@@ -2,7 +2,7 @@ import { Event, EventCategory, HitAbstract, HitShape } from '../hit/index'
 import { primitive, modificationsRequested, IHit, VisitorCacheDTO, IFlagMetadata, FlagDTO } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
-import { IConfigManager, IFlagshipConfig } from '../config/index'
+import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
 import { CampaignDTO } from '../decision/api/models'
 import { IDecisionManager } from '../decision/IDecisionManager'
 import { logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, sprintf } from '../utils/utils'
@@ -324,6 +324,10 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       return new Date()
     }
 
+    protected getSdkConfigDecisionMode () {
+      return this.config.decisionMode === DecisionMode.DECISION_API ? 'DECISION_API' : this.config.decisionMode
+    }
+
     public async sendSdkConfigAnalyticHit () {
       if (this.config.disableDeveloperUsageTracking) {
         return
@@ -349,7 +353,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         sdkStatus: this.visitor.getSdkStatus(),
         lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
         lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
-        sdkConfigMode: this.config.decisionMode,
+        sdkConfigMode: this.getSdkConfigDecisionMode(),
         sdkConfigTimeout: this.config.timeout,
         sdkConfigPollingInterval: this.config.pollingInterval,
         sdkConfigTrackingManagerConfigStrategy: this.config.trackingManagerConfig?.cacheStrategy,
@@ -413,7 +417,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
         httpResponseTime: Date.now() - now,
 
-        sdkConfigMode: this.config.decisionMode,
+        sdkConfigMode: this.getSdkConfigDecisionMode(),
         sdkConfigTimeout: this.config.timeout,
         sdkConfigPollingInterval: this.config.pollingInterval,
         sdkConfigTrackingManagerConfigStrategy: this.config.trackingManagerConfig?.cacheStrategy,

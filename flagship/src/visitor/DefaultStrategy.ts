@@ -389,7 +389,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
         lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
         httpResponseTime: Date.now() - now,
-        sdkConfigMode: this.config.decisionMode,
+        sdkConfigMode: this.getSdkConfigDecisionMode(),
         sdkConfigTimeout: this.config.timeout,
         sdkConfigPollingInterval: this.config.pollingInterval,
         sdkConfigTrackingManagerConfigStrategy: this.config.trackingManagerConfig?.cacheStrategy,
