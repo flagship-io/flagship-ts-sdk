@@ -334,9 +334,9 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       }
       const uniqueId = this.visitor.visitorId + this.getCurrentDateTime().toDateString()
       const hash = this._murmurHash.murmurHash3Int32(uniqueId)
-      const traffic = hash % 100
+      const traffic = hash % 1000
 
-      if (traffic >= ANALYTIC_HIT_ALLOCATION) {
+      if (traffic > ANALYTIC_HIT_ALLOCATION) {
         return
       }
       const hitCacheImplementation = this.config.hitCacheImplementation

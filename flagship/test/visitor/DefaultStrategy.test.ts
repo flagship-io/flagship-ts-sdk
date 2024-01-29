@@ -2222,7 +2222,7 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
   afterAll(() => {
     Date.now = methodNow
   })
-  const visitorId = 'visitorId'
+  const visitorId = 'ca0594f5-4a37-4a7d-91be-27c63f829380'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const context: any = {
     isVip: true
@@ -2288,7 +2288,7 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
     const flags = new Map<string, FlagDTO>().set(flagDTO.key, flagDTO)
     getCampaignsAsync.mockResolvedValue([])
     getModifications.mockReturnValueOnce(flags)
-    getCurrentDateTime.mockReturnValue(new Date(2022, 9, 18))
+    getCurrentDateTime.mockReturnValue(new Date(2024, 0, 29))
 
     await defaultStrategy.fetchFlags()
 
@@ -2310,7 +2310,7 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
   it('test sendAnalyticHit when disableDeveloperUsageTracking is true', async () => {
     const getCurrentDateTime = jest.spyOn(defaultStrategy, 'getCurrentDateTime')
 
-    getCurrentDateTime.mockReturnValue(new Date(2023, 9, 14))
+    getCurrentDateTime.mockReturnValue(new Date(2024, 0, 29))
     config.disableDeveloperUsageTracking = true
     await defaultStrategy.sendSdkConfigAnalyticHit()
 
