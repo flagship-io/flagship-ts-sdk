@@ -17,7 +17,7 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { version } from '../../src/sdkVersion'
 import { Troubleshooting, TroubleshootingType } from '../../src/hit/Troubleshooting'
 import { BatchTriggeredBy } from '../../src/enum/BatchTriggeredBy'
-import { FlagDTO } from '../../src/types'
+import { FlagDTO, TroubleshootingLabel } from '../../src/types'
 
 describe('test hit type Monitoring', () => {
   const methodNow = Date.now
@@ -35,7 +35,7 @@ describe('test hit type Monitoring', () => {
   config.logManager = logManager
   const logLevel = LogLevel.INFO
   const logVersion = '1'
-  const label = 'VISITOR_FETCH_CAMPAIGNS'
+  const label = TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS
   const stackType = 'SDK'
   const troubleshooting = new Troubleshooting({ visitorId, logLevel, config, label })
   const timestamp = new Date(1657899294744)

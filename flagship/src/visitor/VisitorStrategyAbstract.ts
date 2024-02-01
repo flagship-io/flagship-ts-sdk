@@ -1,5 +1,5 @@
 import { Event, EventCategory, HitAbstract, HitShape } from '../hit/index'
-import { primitive, modificationsRequested, IHit, VisitorCacheDTO, IFlagMetadata, FlagDTO } from '../types'
+import { primitive, modificationsRequested, IHit, VisitorCacheDTO, IFlagMetadata, FlagDTO, TroubleshootingLabel } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
@@ -91,7 +91,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
     const hitTroubleshooting = new Troubleshooting({
 
-      label: 'VISITOR_SEND_HIT',
+      label: TroubleshootingLabel.VISITOR_SEND_HIT,
       logLevel: LogLevel.INFO,
       traffic: this.visitor.traffic || 0,
       visitorId: this.visitor.visitorId,
@@ -345,7 +345,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       const sdkConfigUsingCustomVisitorCache = visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
 
       const analyticData = new UsageHit({
-        label: 'SDK_CONFIG',
+        label: TroubleshootingLabel.SDK_CONFIG,
         logLevel: LogLevel.INFO,
         visitorId: this.visitor.sdkInitialData?.instanceId as string,
         flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
@@ -395,7 +395,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       const sdkConfigUsingCustomVisitorCache = visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
 
       const fetchFlagTroubleshooting = new Troubleshooting({
-        label: 'VISITOR_FETCH_CAMPAIGNS',
+        label: TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS,
         logLevel: LogLevel.INFO,
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,

@@ -480,7 +480,7 @@ describe('test DefaultStrategy ', () => {
     expect(logWarning).toBeCalledTimes(1)
     expect(logWarning).toBeCalledWith(sprintf(GET_FLAG_MISSING_ERROR, visitorId, 'keyString', defaultValue), FLAG_VALUE)
     expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'GET_FLAG_VALUE_FLAG_NOT_FOUND'
+    const label: TroubleshootingLabel = TroubleshootingLabel.GET_FLAG_VALUE_FLAG_NOT_FOUND
     expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
@@ -493,7 +493,7 @@ describe('test DefaultStrategy ', () => {
     expect(logWarning).toBeCalledTimes(1)
     expect(logWarning).toBeCalledWith(sprintf(GET_FLAG_CAST_ERROR, visitorId, 'keyString', defaultValue), FLAG_VALUE)
     expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'GET_FLAG_VALUE_TYPE_WARNING'
+    const label: TroubleshootingLabel = TroubleshootingLabel.GET_FLAG_VALUE_TYPE_WARNING
     expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
@@ -551,7 +551,7 @@ describe('test DefaultStrategy ', () => {
     expect(logWarning).toBeCalledTimes(1)
     expect(logWarning).toBeCalledWith(sprintf(GET_METADATA_CAST_ERROR, key), FLAG_METADATA)
     expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'GET_FLAG_METADATA_TYPE_WARNING'
+    const label: TroubleshootingLabel = TroubleshootingLabel.GET_FLAG_METADATA_TYPE_WARNING
     expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
@@ -939,7 +939,7 @@ describe('test DefaultStrategy ', () => {
 
     expect(activateFlag).toBeCalledWith(activateHit)
     expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'VISITOR_SEND_ACTIVATE'
+    const label: TroubleshootingLabel = TroubleshootingLabel.VISITOR_SEND_ACTIVATE
     expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
@@ -986,7 +986,7 @@ describe('test DefaultStrategy ', () => {
       FLAG_USER_EXPOSED
     )
     expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'VISITOR_EXPOSED_TYPE_WARNING'
+    const label: TroubleshootingLabel = TroubleshootingLabel.VISITOR_EXPOSED_TYPE_WARNING
     expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
@@ -999,7 +999,7 @@ describe('test DefaultStrategy ', () => {
       FLAG_USER_EXPOSED
     )
     expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'VISITOR_EXPOSED_FLAG_NOT_FOUND'
+    const label: TroubleshootingLabel = TroubleshootingLabel.VISITOR_EXPOSED_FLAG_NOT_FOUND
     expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
@@ -1073,7 +1073,7 @@ describe('test DefaultStrategy ', () => {
     expect(addHit).toBeCalledTimes(1)
     expect(addHit).toBeCalledWith(hitScreen)
     expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'VISITOR_SEND_HIT'
+    const label: TroubleshootingLabel = TroubleshootingLabel.VISITOR_SEND_HIT
     expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
@@ -1397,7 +1397,7 @@ describe('test DefaultStrategy ', () => {
     expect(visitorDelegate.visitorId).toBe(authenticateId)
     expect(visitorDelegate.anonymousId).toBe(visitorId)
     expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'VISITOR_AUTHENTICATE'
+    const label: TroubleshootingLabel = TroubleshootingLabel.VISITOR_AUTHENTICATE
     expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
     expect(visitorDelegate.flagSynchStatus).toBe(FlagSynchStatus.AUTHENTICATED)
   })
@@ -1408,7 +1408,7 @@ describe('test DefaultStrategy ', () => {
     expect(visitorDelegate.anonymousId).toBeNull()
     expect(visitorDelegate.flagSynchStatus).toBe(FlagSynchStatus.UNAUTHENTICATED)
     expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'VISITOR_UNAUTHENTICATE'
+    const label: TroubleshootingLabel = TroubleshootingLabel.VISITOR_UNAUTHENTICATE
     expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
@@ -1920,10 +1920,10 @@ describe('test DefaultStrategy troubleshootingHit 1', () => {
 
     expect(sendTroubleshootingHit).toBeCalledTimes(2)
 
-    const label: TroubleshootingLabel = 'VISITOR_FETCH_CAMPAIGNS'
+    const label: TroubleshootingLabel = TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
 
-    const label1: TroubleshootingLabel = 'VISITOR_SEND_HIT'
+    const label1: TroubleshootingLabel = TroubleshootingLabel.VISITOR_SEND_HIT
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(2, expect.objectContaining({ label: label1 }))
 
     defaultStrategy.setConsent(true)
@@ -2207,7 +2207,7 @@ describe('test DefaultStrategy troubleshootingHit', () => {
     })
     await defaultStrategy.fetchFlags()
     expect(addTroubleshootingHitSpy).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'VISITOR_FETCH_CAMPAIGNS_ERROR'
+    const label: TroubleshootingLabel = TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS_ERROR
     expect(addTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 })
@@ -2294,7 +2294,7 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
 
     expect(sendUsageHitSpy).toBeCalledTimes(1)
 
-    const label: TroubleshootingLabel = 'SDK_CONFIG'
+    const label: TroubleshootingLabel = TroubleshootingLabel.SDK_CONFIG
     expect(sendUsageHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 

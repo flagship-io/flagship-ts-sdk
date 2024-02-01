@@ -156,7 +156,7 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
 
     expect(sendUsageHitSpy).toBeCalledTimes(1)
 
-    const label: TroubleshootingLabel = 'SDK_CONFIG'
+    const label: TroubleshootingLabel = TroubleshootingLabel.SDK_CONFIG
     expect(sendUsageHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
