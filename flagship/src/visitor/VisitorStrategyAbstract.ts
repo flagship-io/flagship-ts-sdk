@@ -354,6 +354,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
         lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
         sdkConfigMode: this.getSdkConfigDecisionMode(),
+        sdkConfigLogLevel: this.config.logLevel,
         sdkConfigTimeout: this.config.timeout,
         sdkConfigPollingInterval: this.config.pollingInterval,
         sdkConfigTrackingManagerStrategy: this.config.trackingManagerConfig?.cacheStrategy,
@@ -416,7 +417,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
         lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
         httpResponseTime: Date.now() - now,
-
+        sdkConfigLogLevel: this.config.logLevel,
         sdkConfigMode: this.getSdkConfigDecisionMode(),
         sdkConfigTimeout: this.config.timeout,
         sdkConfigPollingInterval: this.config.pollingInterval,

@@ -35,6 +35,7 @@ export interface IDiagnostic extends IHitAbstract{
 
     sdkStatus?: FlagshipStatus
     sdkConfigMode?: string
+    sdkConfigLogLevel?:LogLevel
     sdkConfigCustomLogManager?: boolean
     sdkConfigCustomCacheManager?: boolean
     sdkConfigStatusListener?: boolean
@@ -185,6 +186,15 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
   private _sdkConfigNextFetchConfig? : Record<string, unknown>
   private _sdkConfigDisableDeveloperUsageTracking? : boolean
   private _sdkConfigDisableCache? : boolean
+  private _sdkConfigLogLevel? : LogLevel|undefined
+
+  public get sdkConfigLogLevel () : LogLevel|undefined {
+    return this._sdkConfigLogLevel
+  }
+
+  public set sdkConfigLogLevel (v : LogLevel|undefined) {
+    this._sdkConfigLogLevel = v
+  }
 
   private _visitorSessionId? : string
   private _traffic?: number
@@ -838,7 +848,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       lastInitializationTimestamp, lastBucketingTimestamp, batchTriggeredBy, visitorCampaigns, visitorCampaignFromCache, visitorInitialCampaigns,
       visitorInitialFlagsData, flagMetadataCampaignIsReference, contextKey, contextValue, sdkBucketingFile, flagMetadataCampaignName, flagMetadataVariationGroupName,
       flagMetadataVariationName, sdkConfigUsingCustomHitCache, sdkConfigUsingCustomVisitorCache, sdkConfigUsingOnVisitorExposed, sdkConfigFetchThirdPartyData,
-      sdkConfigFetchFlagsBufferingTime, sdkConfigDisableDeveloperUsageTracking, sdkConfigNextFetchConfig, sdkConfigDisableCache, visitorSessionId
+      sdkConfigFetchFlagsBufferingTime, sdkConfigDisableDeveloperUsageTracking, sdkConfigNextFetchConfig, sdkConfigDisableCache, visitorSessionId, sdkConfigLogLevel
     } = param
     this.visitorSessionId = visitorSessionId
     this.sdkConfigDisableCache = sdkConfigDisableCache
@@ -921,6 +931,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     this.flagMetadataCampaignType = flagMetadataCampaignType
     this.hitContent = hitContent
     this.ds = SDK_APP
+    this.sdkConfigLogLevel = sdkConfigLogLevel
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, complexity
@@ -975,6 +986,9 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     }
     if (this.sdkStatus !== undefined) {
       customVariable['sdk.status'] = `${FlagshipStatus[this.sdkStatus]}`
+    }
+    if (this.sdkConfigLogLevel !== undefined) {
+      customVariable['sdk.config.logLevel'] = `${LogLevel[this.sdkConfigLogLevel]}`
     }
     if (this.sdkConfigMode !== undefined) {
       customVariable['sdk.config.mode'] = `${this.sdkConfigMode}`
