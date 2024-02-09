@@ -110,6 +110,9 @@ export interface IDiagnostic extends IHitAbstract{
 
   }
 
+/**
+ * Represents a diagnostic hit.
+ */
 export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
   private _logVersion? : string
   private _logLevel! : LogLevel
@@ -882,7 +885,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     this.accountId = accountId
     this.envId = envId || config.envId
     this.timestamp = timestamp || new Date(Date.now()).toISOString()
-    this.timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    this.timeZone = this.getTimezone()
     this.label = label
     this.stackType = stackType || 'SDK'
     this.stackName = stackName || SDK_INFO.name
@@ -932,6 +935,15 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     this.hitContent = hitContent
     this.ds = SDK_APP
     this.sdkConfigLogLevel = sdkConfigLogLevel
+  }
+
+  /**
+   * Gets the timezone of the user.
+   * @returns The timezone as a string. If the timezone cannot be determined, it returns the offset from UTC in hours.
+   */
+  public getTimezone (): string {
+    const timezone = Intl?.DateTimeFormat()?.resolvedOptions()?.timeZone
+    return timezone || `${new Date().getTimezoneOffset() / 60}`
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, complexity
