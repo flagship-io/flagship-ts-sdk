@@ -237,7 +237,7 @@ describe('test hit type Monitoring', () => {
         'http.response.body': JSON.stringify(params.httpResponseBody),
         'visitor.status': params.visitorStatus,
         'visitor.instanceType': params.visitorInstanceType,
-        'visitor.context.key': 'value',
+        'visitor.context.[key]': 'value',
         'visitor.consent': `${params.visitorConsent}`,
         'visitor.assignments.[key]': 'value',
         ...visitorFlags,
