@@ -942,7 +942,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
    * @returns The timezone as a string. If the timezone cannot be determined, it returns the offset from UTC in hours.
    */
   public getTimezone (): string {
-    const timezone = Intl?.DateTimeFormat()?.resolvedOptions()?.timeZone
+    const timezone = typeof Intl === 'object' ? Intl.DateTimeFormat()?.resolvedOptions()?.timeZone : undefined
     return timezone || `${new Date().getTimezoneOffset() / 60}`
   }
 
