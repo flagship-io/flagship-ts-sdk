@@ -1,8 +1,8 @@
 import { Event, EventCategory, HitAbstract, HitShape } from '../hit/index.ts'
-import { primitive, modificationsRequested, IHit, VisitorCacheDTO, IFlagMetadata, FlagDTO } from '../types.ts'
+import { primitive, modificationsRequested, IHit, VisitorCacheDTO, IFlagMetadata, FlagDTO, TroubleshootingLabel } from '../types.ts'
 import { IVisitor } from './IVisitor.ts'
 import { VisitorAbstract } from './VisitorAbstract.ts'
-import { IConfigManager, IFlagshipConfig } from '../config/index.ts'
+import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
 import { IDecisionManager } from '../decision/IDecisionManager.ts'
 import { logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, sprintf } from '../utils/utils.ts'
@@ -91,7 +91,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
     const hitTroubleshooting = new Troubleshooting({
 
-      label: 'VISITOR_SEND_HIT',
+      label: TroubleshootingLabel.VISITOR_SEND_HIT,
       logLevel: LogLevel.INFO,
       traffic: this.visitor.traffic || 0,
       visitorId: this.visitor.visitorId,
@@ -324,15 +324,19 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       return new Date()
     }
 
+    protected getSdkConfigDecisionMode () {
+      return this.config.decisionMode === DecisionMode.DECISION_API ? 'DECISION_API' : this.config.decisionMode
+    }
+
     public async sendSdkConfigAnalyticHit () {
       if (this.config.disableDeveloperUsageTracking) {
         return
       }
       const uniqueId = this.visitor.visitorId + this.getCurrentDateTime().toDateString()
       const hash = this._murmurHash.murmurHash3Int32(uniqueId)
-      const traffic = hash % 100
+      const traffic = hash % 1000
 
-      if (traffic >= ANALYTIC_HIT_ALLOCATION) {
+      if (traffic > ANALYTIC_HIT_ALLOCATION) {
         return
       }
       const hitCacheImplementation = this.config.hitCacheImplementation
@@ -341,7 +345,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       const sdkConfigUsingCustomVisitorCache = visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
 
       const analyticData = new UsageHit({
-        label: 'SDK_CONFIG',
+        label: TroubleshootingLabel.SDK_CONFIG,
         logLevel: LogLevel.INFO,
         visitorId: this.visitor.sdkInitialData?.instanceId as string,
         flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
@@ -349,20 +353,21 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         sdkStatus: this.visitor.getSdkStatus(),
         lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
         lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
-        sdkConfigMode: this.config.decisionMode,
+        sdkConfigMode: this.getSdkConfigDecisionMode(),
+        sdkConfigLogLevel: this.config.logLevel,
         sdkConfigTimeout: this.config.timeout,
         sdkConfigPollingInterval: this.config.pollingInterval,
-        sdkConfigTrackingManagerConfigStrategy: this.config.trackingManagerConfig?.cacheStrategy,
-        sdkConfigTrackingManagerConfigBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
-        sdkConfigTrackingManagerConfigPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
+        sdkConfigTrackingManagerStrategy: this.config.trackingManagerConfig?.cacheStrategy,
+        sdkConfigTrackingManagerBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
+        sdkConfigTrackingManagerPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
         sdkConfigFetchNow: this.config.fetchNow,
         sdkConfigEnableClientCache: this.config.enableClientCache,
         sdkConfigInitialBucketing: this.config.initialBucketing,
         sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
         sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
         sdkConfigUsingOnVisitorExposed: !!this.config.onVisitorExposed,
-        sdkConfigUsingCustomHitCache,
-        sdkConfigUsingCustomVisitorCache,
+        sdkConfigUsingCustomHitCache: !!sdkConfigUsingCustomHitCache,
+        sdkConfigUsingCustomVisitorCache: !!sdkConfigUsingCustomVisitorCache,
         sdkConfigFetchThirdPartyData: this.config.fetchThirdPartyData,
         sdkConfigFetchFlagsBufferingTime: this.config.fetchFlagsBufferingTime,
         sdkConfigDisableDeveloperUsageTracking: this.config.disableDeveloperUsageTracking,
@@ -391,7 +396,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       const sdkConfigUsingCustomVisitorCache = visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
 
       const fetchFlagTroubleshooting = new Troubleshooting({
-        label: 'VISITOR_FETCH_CAMPAIGNS',
+        label: TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS,
         logLevel: LogLevel.INFO,
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
@@ -412,21 +417,21 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
         lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
         httpResponseTime: Date.now() - now,
-
-        sdkConfigMode: this.config.decisionMode,
+        sdkConfigLogLevel: this.config.logLevel,
+        sdkConfigMode: this.getSdkConfigDecisionMode(),
         sdkConfigTimeout: this.config.timeout,
         sdkConfigPollingInterval: this.config.pollingInterval,
-        sdkConfigTrackingManagerConfigStrategy: this.config.trackingManagerConfig?.cacheStrategy,
-        sdkConfigTrackingManagerConfigBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
-        sdkConfigTrackingManagerConfigPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
+        sdkConfigTrackingManagerStrategy: this.config.trackingManagerConfig?.cacheStrategy,
+        sdkConfigTrackingManagerBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
+        sdkConfigTrackingManagerPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
         sdkConfigFetchNow: this.config.fetchNow,
         sdkConfigEnableClientCache: this.config.enableClientCache,
         sdkConfigInitialBucketing: this.config.initialBucketing,
         sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
         sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
         sdkConfigUsingOnVisitorExposed: !!this.config.onVisitorExposed,
-        sdkConfigUsingCustomHitCache,
-        sdkConfigUsingCustomVisitorCache,
+        sdkConfigUsingCustomHitCache: !!sdkConfigUsingCustomHitCache,
+        sdkConfigUsingCustomVisitorCache: !!sdkConfigUsingCustomVisitorCache,
         sdkConfigFetchThirdPartyData: this.config.fetchThirdPartyData,
         sdkConfigFetchFlagsBufferingTime: this.config.fetchFlagsBufferingTime,
         sdkConfigDisableDeveloperUsageTracking: this.config.disableDeveloperUsageTracking,

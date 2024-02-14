@@ -60,7 +60,7 @@ import {
   IHitAbstract
 } from '../hit/index.ts'
 import { HitShape, ItemHit } from '../hit/Legacy.ts'
-import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata } from '../types.ts'
+import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata, TroubleshootingLabel } from '../types.ts'
 import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils.ts'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract.ts'
 import { CampaignDTO } from '../decision/api/models.ts'
@@ -369,7 +369,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
       const troubleshootingHit = new Troubleshooting({
 
-        label: 'VISITOR_FETCH_CAMPAIGNS_ERROR',
+        label: TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS_ERROR,
         logLevel: LogLevel.INFO,
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
@@ -389,12 +389,12 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
         lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
         httpResponseTime: Date.now() - now,
-        sdkConfigMode: this.config.decisionMode,
+        sdkConfigMode: this.getSdkConfigDecisionMode(),
         sdkConfigTimeout: this.config.timeout,
         sdkConfigPollingInterval: this.config.pollingInterval,
-        sdkConfigTrackingManagerConfigStrategy: this.config.trackingManagerConfig?.cacheStrategy,
-        sdkConfigTrackingManagerConfigBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
-        sdkConfigTrackingManagerConfigPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
+        sdkConfigTrackingManagerStrategy: this.config.trackingManagerConfig?.cacheStrategy,
+        sdkConfigTrackingManagerBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
+        sdkConfigTrackingManagerPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
         sdkConfigFetchNow: this.config.fetchNow,
         sdkConfigEnableClientCache: this.config.enableClientCache,
         sdkConfigInitialBucketing: this.config.initialBucketing,
@@ -497,7 +497,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     const activateTroubleshooting = new Troubleshooting({
 
-      label: 'VISITOR_SEND_ACTIVATE',
+      label: TroubleshootingLabel.VISITOR_SEND_ACTIVATE,
       logLevel: LogLevel.INFO,
       traffic: this.visitor.traffic,
       visitorId: activateHit.visitorId,
@@ -669,7 +669,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       }
       const sendHitTroubleshooting = new Troubleshooting({
 
-        label: 'VISITOR_SEND_HIT',
+        label: TroubleshootingLabel.VISITOR_SEND_HIT,
         logLevel: LogLevel.INFO,
         traffic: this.visitor.traffic,
         visitorId: hitInstance.visitorId,
@@ -746,7 +746,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     const monitoring = new Troubleshooting({
 
-      label: 'VISITOR_AUTHENTICATE',
+      label: TroubleshootingLabel.VISITOR_AUTHENTICATE,
       logLevel: LogLevel.INFO,
       flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
       visitorId: this.visitor.visitorId,
@@ -771,7 +771,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     const monitoring = new Troubleshooting({
 
-      label: 'VISITOR_UNAUTHENTICATE',
+      label: TroubleshootingLabel.VISITOR_UNAUTHENTICATE,
       logLevel: LogLevel.INFO,
       visitorId: this.visitor.visitorId,
       anonymousId: this.visitor.anonymousId,
@@ -802,7 +802,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       )
       const monitoring = new Troubleshooting({
 
-        label: 'VISITOR_EXPOSED_FLAG_NOT_FOUND',
+        label: TroubleshootingLabel.VISITOR_EXPOSED_FLAG_NOT_FOUND,
         logLevel: LogLevel.WARNING,
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
@@ -828,7 +828,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
       const monitoring = new Troubleshooting({
 
-        label: 'VISITOR_EXPOSED_TYPE_WARNING',
+        label: TroubleshootingLabel.VISITOR_EXPOSED_TYPE_WARNING,
         logLevel: LogLevel.WARNING,
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
@@ -859,7 +859,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       logWarningSprintf(this.config, FLAG_VALUE, GET_FLAG_MISSING_ERROR, this.visitor.visitorId, key, defaultValue)
       const monitoring = new Troubleshooting({
 
-        label: 'GET_FLAG_VALUE_FLAG_NOT_FOUND',
+        label: TroubleshootingLabel.GET_FLAG_VALUE_FLAG_NOT_FOUND,
         logLevel: LogLevel.WARNING,
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
@@ -888,7 +888,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       logWarningSprintf(this.config, FLAG_VALUE, GET_FLAG_CAST_ERROR, this.visitor.visitorId, key, defaultValue)
       const monitoring = new Troubleshooting({
 
-        label: 'GET_FLAG_VALUE_TYPE_WARNING',
+        label: TroubleshootingLabel.GET_FLAG_VALUE_TYPE_WARNING,
         logLevel: LogLevel.WARNING,
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
@@ -925,7 +925,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         GET_METADATA_CAST_ERROR, key
       )
       const monitoring = new Troubleshooting({
-        label: 'GET_FLAG_METADATA_TYPE_WARNING',
+        label: TroubleshootingLabel.GET_FLAG_METADATA_TYPE_WARNING,
         logLevel: LogLevel.WARNING,
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,

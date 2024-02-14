@@ -8,6 +8,7 @@ import { Troubleshooting } from '../hit/Troubleshooting.ts'
 import { logDebugSprintf, logErrorSprintf } from '../utils/utils.ts'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract.ts'
 import { SendActivate } from './types.ts'
+import { TroubleshootingLabel } from '../types.ts'
 
 export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAbstract {
   async addHitInPoolQueue (hit: HitAbstract) {
@@ -83,7 +84,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       })
 
       const monitoringHttpResponse = new Troubleshooting({
-        label: 'SEND_ACTIVATE_HIT_ROUTE_ERROR',
+        label: TroubleshootingLabel.SEND_ACTIVATE_HIT_ROUTE_ERROR,
         logLevel: LogLevel.ERROR,
         visitorId: `${this._flagshipInstanceId}`,
         traffic: 0,

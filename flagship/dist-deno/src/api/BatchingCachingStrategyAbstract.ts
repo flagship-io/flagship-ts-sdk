@@ -6,7 +6,7 @@ import { UsageHit } from '../hit/UsageHit.ts'
 import { Batch } from '../hit/Batch.ts'
 import { Troubleshooting } from '../hit/Troubleshooting.ts'
 import { HitAbstract, Event } from '../hit/index.ts'
-import { HitCacheDTO, IExposedFlag, IExposedVisitor, TroubleshootingData } from '../types.ts'
+import { HitCacheDTO, IExposedFlag, IExposedVisitor, TroubleshootingData, TroubleshootingLabel } from '../types.ts'
 import { IHttpClient } from '../utils/HttpClient.ts'
 import { errorFormat, logDebug, logDebugSprintf, logError, logErrorSprintf, sprintf, uuidV4 } from '../utils/utils.ts'
 import { ITrackingManagerCommon } from './ITrackingManagerCommon.ts'
@@ -230,7 +230,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       })
 
       const monitoringHttpResponse = new Troubleshooting({
-        label: 'SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR',
+        label: TroubleshootingLabel.SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR,
         logLevel: LogLevel.ERROR,
         visitorId: `${this._flagshipInstanceId}`,
         flagshipInstanceId: this._flagshipInstanceId,

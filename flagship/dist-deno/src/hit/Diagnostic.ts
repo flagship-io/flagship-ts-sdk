@@ -35,6 +35,7 @@ export interface IDiagnostic extends IHitAbstract{
 
     sdkStatus?: FlagshipStatus
     sdkConfigMode?: string
+    sdkConfigLogLevel?:LogLevel
     sdkConfigCustomLogManager?: boolean
     sdkConfigCustomCacheManager?: boolean
     sdkConfigStatusListener?: boolean
@@ -45,9 +46,9 @@ export interface IDiagnostic extends IHitAbstract{
     sdkConfigInitialBucketing?:BucketingDTO
     sdkConfigDecisionApiUrl?: string
     sdkConfigHitDeduplicationTime?: number
-    sdkConfigTrackingManagerConfigStrategy?: CacheStrategy
-    sdkConfigTrackingManagerConfigBatchIntervals?: number
-    sdkConfigTrackingManagerConfigPoolMaxSize?: number
+    sdkConfigTrackingManagerStrategy?: CacheStrategy
+    sdkConfigTrackingManagerBatchIntervals?: number
+    sdkConfigTrackingManagerPoolMaxSize?: number
     sdkBucketingFile?: BucketingDTO
     sdkConfigUsingCustomHitCache?: boolean
     sdkConfigUsingCustomVisitorCache?: boolean
@@ -109,6 +110,9 @@ export interface IDiagnostic extends IHitAbstract{
 
   }
 
+/**
+ * Represents a diagnostic hit.
+ */
 export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
   private _logVersion? : string
   private _logLevel! : LogLevel
@@ -185,6 +189,15 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
   private _sdkConfigNextFetchConfig? : Record<string, unknown>
   private _sdkConfigDisableDeveloperUsageTracking? : boolean
   private _sdkConfigDisableCache? : boolean
+  private _sdkConfigLogLevel? : LogLevel|undefined
+
+  public get sdkConfigLogLevel () : LogLevel|undefined {
+    return this._sdkConfigLogLevel
+  }
+
+  public set sdkConfigLogLevel (v : LogLevel|undefined) {
+    this._sdkConfigLogLevel = v
+  }
 
   private _visitorSessionId? : string
   private _traffic?: number
@@ -646,27 +659,27 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     this._httpRequestUrl = v
   }
 
-  public get sdkConfigTrackingManagerConfigPoolMaxSize () : number|undefined {
+  public get sdkConfigTrackingManagerPoolMaxSize () : number|undefined {
     return this._sdkConfigTrackingManagerConfigBatchLength
   }
 
-  public set sdkConfigTrackingManagerConfigPoolMaxSize (v : number|undefined) {
+  public set sdkConfigTrackingManagerPoolMaxSize (v : number|undefined) {
     this._sdkConfigTrackingManagerConfigBatchLength = v
   }
 
-  public get sdkConfigTrackingManagerConfigBatchIntervals () : number|undefined {
+  public get sdkConfigTrackingManagerBatchIntervals () : number|undefined {
     return this._sdkConfigTrackingManagerConfigBatchIntervals
   }
 
-  public set sdkConfigTrackingManagerConfigBatchIntervals (v : number|undefined) {
+  public set sdkConfigTrackingManagerBatchIntervals (v : number|undefined) {
     this._sdkConfigTrackingManagerConfigBatchIntervals = v
   }
 
-  public get sdkConfigTrackingManagerConfigStrategy () : CacheStrategy|undefined {
+  public get sdkConfigTrackingManagerStrategy () : CacheStrategy|undefined {
     return this._sdkConfigTrackingManagerConfigStrategy
   }
 
-  public set sdkConfigTrackingManagerConfigStrategy (v : CacheStrategy|undefined) {
+  public set sdkConfigTrackingManagerStrategy (v : CacheStrategy|undefined) {
     this._sdkConfigTrackingManagerConfigStrategy = v
   }
 
@@ -828,8 +841,8 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     const {
       version: logVersion, logLevel, accountId, envId, timestamp, label, stackType,
       stackName, stackVersion, stackOriginName, stackOriginVersion, sdkStatus, sdkConfigMode, sdkConfigCustomLogManager,
-      sdkConfigCustomCacheManager, sdkConfigStatusListener, sdkConfigTimeout, sdkConfigPollingInterval, sdkConfigTrackingManagerConfigStrategy, sdkConfigTrackingManagerConfigBatchIntervals,
-      sdkConfigTrackingManagerConfigPoolMaxSize, httpRequestUrl, httpRequestMethod,
+      sdkConfigCustomCacheManager, sdkConfigStatusListener, sdkConfigTimeout, sdkConfigPollingInterval, sdkConfigTrackingManagerStrategy: sdkConfigTrackingManagerConfigStrategy, sdkConfigTrackingManagerBatchIntervals: sdkConfigTrackingManagerConfigBatchIntervals,
+      sdkConfigTrackingManagerPoolMaxSize: sdkConfigTrackingManagerConfigPoolMaxSize, httpRequestUrl, httpRequestMethod,
       httpRequestHeaders, httpRequestBody, httpResponseTime,
       httpResponseUrl, httpResponseMethod, httpResponseHeaders, httpResponseCode, httpResponseBody, visitorStatus, visitorInstanceType, visitorContext,
       visitorConsent, visitorAssignmentHistory, visitorFlags, visitorIsAuthenticated, config, flagKey, flagValue, flagDefault,
@@ -838,7 +851,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       lastInitializationTimestamp, lastBucketingTimestamp, batchTriggeredBy, visitorCampaigns, visitorCampaignFromCache, visitorInitialCampaigns,
       visitorInitialFlagsData, flagMetadataCampaignIsReference, contextKey, contextValue, sdkBucketingFile, flagMetadataCampaignName, flagMetadataVariationGroupName,
       flagMetadataVariationName, sdkConfigUsingCustomHitCache, sdkConfigUsingCustomVisitorCache, sdkConfigUsingOnVisitorExposed, sdkConfigFetchThirdPartyData,
-      sdkConfigFetchFlagsBufferingTime, sdkConfigDisableDeveloperUsageTracking, sdkConfigNextFetchConfig, sdkConfigDisableCache, visitorSessionId
+      sdkConfigFetchFlagsBufferingTime, sdkConfigDisableDeveloperUsageTracking, sdkConfigNextFetchConfig, sdkConfigDisableCache, visitorSessionId, sdkConfigLogLevel
     } = param
     this.visitorSessionId = visitorSessionId
     this.sdkConfigDisableCache = sdkConfigDisableCache
@@ -872,7 +885,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     this.accountId = accountId
     this.envId = envId || config.envId
     this.timestamp = timestamp || new Date(Date.now()).toISOString()
-    this.timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    this.timeZone = this.getTimezone()
     this.label = label
     this.stackType = stackType || 'SDK'
     this.stackName = stackName || SDK_INFO.name
@@ -886,9 +899,9 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     this.sdkConfigStatusListener = sdkConfigStatusListener
     this.sdkConfigTimeout = sdkConfigTimeout
     this.sdkConfigPollingInterval = sdkConfigPollingInterval
-    this.sdkConfigTrackingManagerConfigStrategy = sdkConfigTrackingManagerConfigStrategy
-    this.sdkConfigTrackingManagerConfigBatchIntervals = sdkConfigTrackingManagerConfigBatchIntervals
-    this.sdkConfigTrackingManagerConfigPoolMaxSize = sdkConfigTrackingManagerConfigPoolMaxSize
+    this.sdkConfigTrackingManagerStrategy = sdkConfigTrackingManagerConfigStrategy
+    this.sdkConfigTrackingManagerBatchIntervals = sdkConfigTrackingManagerConfigBatchIntervals
+    this.sdkConfigTrackingManagerPoolMaxSize = sdkConfigTrackingManagerConfigPoolMaxSize
     this.sdkConfigFetchNow = sdkConfigFetchNow
     this.sdkConfigEnableClientCache = sdkConfigEnableClientCache
     this.sdkConfigInitialBucketing = sdkConfigInitialBucketing
@@ -921,6 +934,16 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     this.flagMetadataCampaignType = flagMetadataCampaignType
     this.hitContent = hitContent
     this.ds = SDK_APP
+    this.sdkConfigLogLevel = sdkConfigLogLevel
+  }
+
+  /**
+   * Gets the timezone of the user.
+   * @returns The timezone as a string. If the timezone cannot be determined, it returns the offset from UTC in hours.
+   */
+  public getTimezone (): string {
+    const timezone = typeof Intl === 'object' ? Intl.DateTimeFormat()?.resolvedOptions()?.timeZone : undefined
+    return timezone || `${new Date().getTimezoneOffset() / 60}`
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, complexity
@@ -976,6 +999,9 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     if (this.sdkStatus !== undefined) {
       customVariable['sdk.status'] = `${FlagshipStatus[this.sdkStatus]}`
     }
+    if (this.sdkConfigLogLevel !== undefined) {
+      customVariable['sdk.config.logLevel'] = `${LogLevel[this.sdkConfigLogLevel]}`
+    }
     if (this.sdkConfigMode !== undefined) {
       customVariable['sdk.config.mode'] = `${this.sdkConfigMode}`
     }
@@ -989,19 +1015,19 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       customVariable['sdk.config.custom.StatusListener'] = `${this.sdkConfigStatusListener}`
     }
     if (this.sdkConfigTimeout !== undefined) {
-      customVariable['sdk.config.timeout'] = `${this.sdkConfigTimeout}`
+      customVariable['sdk.config.timeout'] = `${this.sdkConfigTimeout * 1000}`
     }
     if (this.sdkConfigPollingInterval !== undefined) {
-      customVariable['sdk.config.pollingTime'] = `${this.sdkConfigPollingInterval}`
+      customVariable['sdk.config.pollingTime'] = `${this.sdkConfigPollingInterval * 1000}`
     }
-    if (this.sdkConfigTrackingManagerConfigStrategy !== undefined) {
-      customVariable['sdk.config.trackingManager.strategy'] = `${CacheStrategy[this.sdkConfigTrackingManagerConfigStrategy]}`
+    if (this.sdkConfigTrackingManagerStrategy !== undefined) {
+      customVariable['sdk.config.trackingManager.strategy'] = `${CacheStrategy[this.sdkConfigTrackingManagerStrategy]}`
     }
-    if (this.sdkConfigTrackingManagerConfigBatchIntervals !== undefined) {
-      customVariable['sdk.config.trackingManager.batchIntervals'] = `${this.sdkConfigTrackingManagerConfigBatchIntervals}`
+    if (this.sdkConfigTrackingManagerBatchIntervals !== undefined) {
+      customVariable['sdk.config.trackingManager.batchIntervals'] = `${this.sdkConfigTrackingManagerBatchIntervals * 1000}`
     }
-    if (this.sdkConfigTrackingManagerConfigPoolMaxSize !== undefined) {
-      customVariable['sdk.config.trackingManager.poolMaxSize'] = `${this.sdkConfigTrackingManagerConfigPoolMaxSize}`
+    if (this.sdkConfigTrackingManagerPoolMaxSize !== undefined) {
+      customVariable['sdk.config.trackingManager.poolMaxSize'] = `${this.sdkConfigTrackingManagerPoolMaxSize}`
     }
     if (this.sdkConfigFetchNow !== undefined) {
       customVariable['sdk.config.fetchNow'] = `${this.sdkConfigFetchNow}`
@@ -1016,7 +1042,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       customVariable['sdk.config.decisionApiUrl'] = `${this.sdkConfigDecisionApiUrl}`
     }
     if (this.sdkConfigHitDeduplicationTime !== undefined) {
-      customVariable['sdk.config.hitDeduplicationTime'] = `${this.sdkConfigHitDeduplicationTime}`
+      customVariable['sdk.config.hitDeduplicationTime'] = `${this.sdkConfigHitDeduplicationTime * 1000}`
     }
     if (this.sdkConfigUsingCustomHitCache !== undefined) {
       customVariable['sdk.config.usingCustomHitCache'] = JSON.stringify(this.sdkConfigUsingCustomHitCache)
@@ -1031,7 +1057,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       customVariable['sdk.config.fetchThirdPartyData'] = JSON.stringify(this.sdkConfigFetchThirdPartyData)
     }
     if (this.sdkConfigFetchFlagsBufferingTime !== undefined) {
-      customVariable['sdk.config.fetchFlagsBufferingTime'] = JSON.stringify(this.sdkConfigFetchFlagsBufferingTime)
+      customVariable['sdk.config.fetchFlagsBufferingTime'] = JSON.stringify(this.sdkConfigFetchFlagsBufferingTime * 1000)
     }
     if (this.sdkConfigNextFetchConfig !== undefined) {
       customVariable['sdk.config.nextFetchConfig'] = JSON.stringify(this.sdkConfigNextFetchConfig)
@@ -1093,7 +1119,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     if (this.visitorContext !== undefined) {
       for (const key in this.visitorContext) {
         const element = this.visitorContext[key]
-        customVariable[`visitor.context.${key}`] = `${element}`
+        customVariable[`visitor.context.[${key}]`] = `${element}`
       }
     }
     if (this.visitorConsent !== undefined) {
