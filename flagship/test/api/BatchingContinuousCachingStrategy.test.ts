@@ -510,7 +510,7 @@ describe('test activateFlag method', () => {
     expect(cacheHit).toHaveBeenCalledWith(new Map([[activateHit.key, activateHit]]))
 
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = 'SEND_ACTIVATE_HIT_ROUTE_ERROR'
+    const label = TroubleshootingLabel.SEND_ACTIVATE_HIT_ROUTE_ERROR
     expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 
@@ -780,7 +780,7 @@ describe('test sendBatch method', () => {
     expect(hitsPoolQueue.size).toBe(1)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(sprintf(TRACKING_MANAGER_ERROR, BATCH_HIT, errorFormatMessage), TRACKING_MANAGER)
-    const label: TroubleshootingLabel = 'SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR'
+    const label = TroubleshootingLabel.SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR
     expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 
@@ -1013,7 +1013,7 @@ describe('test send troubleshooting hit', () => {
   activateHit.config = config
 
   const activateTroubleshooting = new Troubleshooting({
-    label: 'VISITOR_SEND_ACTIVATE',
+    label: TroubleshootingLabel.VISITOR_SEND_ACTIVATE,
     logLevel: LogLevel.INFO,
     traffic: 2,
     visitorId: activateHit.visitorId,
@@ -1028,7 +1028,7 @@ describe('test send troubleshooting hit', () => {
     postAsync.mockResolvedValue({ status: 200, body: null })
 
     const activateTroubleshooting = new Troubleshooting({
-      label: 'VISITOR_SEND_ACTIVATE',
+      label: TroubleshootingLabel.VISITOR_SEND_ACTIVATE,
       logLevel: LogLevel.INFO,
       traffic: 50,
       visitorId: activateHit.visitorId,
@@ -1052,7 +1052,7 @@ describe('test send troubleshooting hit', () => {
     postAsync.mockResolvedValue({ status: 200, body: null })
 
     const activateTroubleshooting = new Troubleshooting({
-      label: 'VISITOR_SEND_ACTIVATE',
+      label: TroubleshootingLabel.VISITOR_SEND_ACTIVATE,
       logLevel: LogLevel.INFO,
       traffic: 50,
       visitorId: activateHit.visitorId,
@@ -1085,7 +1085,7 @@ describe('test send troubleshooting hit', () => {
     postAsync.mockResolvedValue({ status: 200, body: null })
 
     const activateTroubleshooting = new Troubleshooting({
-      label: 'VISITOR_SEND_ACTIVATE',
+      label: TroubleshootingLabel.VISITOR_SEND_ACTIVATE,
       logLevel: LogLevel.INFO,
       traffic: 50,
       visitorId: activateHit.visitorId,
@@ -1118,7 +1118,7 @@ describe('test send troubleshooting hit', () => {
     postAsync.mockResolvedValue({ status: 200, body: null })
 
     const activateTroubleshooting = new Troubleshooting({
-      label: 'VISITOR_SEND_ACTIVATE',
+      label: TroubleshootingLabel.VISITOR_SEND_ACTIVATE,
       logLevel: LogLevel.INFO,
       traffic: 50,
       visitorId: activateHit.visitorId,
@@ -1176,7 +1176,7 @@ describe('test send troubleshooting hit', () => {
     postAsync.mockRejectedValue(error)
 
     const activateTroubleshooting = new Troubleshooting({
-      label: 'VISITOR_SEND_ACTIVATE',
+      label: TroubleshootingLabel.VISITOR_SEND_ACTIVATE,
       logLevel: LogLevel.INFO,
       traffic: 2,
       visitorId: activateHit.visitorId,
@@ -1291,7 +1291,7 @@ describe('test send analyticsHit hit', () => {
   activateHit.config = config
 
   const analyticHit = new UsageHit({
-    label: 'VISITOR_SEND_ACTIVATE',
+    label: TroubleshootingLabel.VISITOR_SEND_ACTIVATE,
     logLevel: LogLevel.INFO,
     traffic: 2,
     visitorId: activateHit.visitorId,

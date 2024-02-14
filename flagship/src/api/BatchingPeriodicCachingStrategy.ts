@@ -4,6 +4,7 @@ import { ActivateBatch } from '../hit/ActivateBatch'
 import { Batch } from '../hit/Batch'
 import { HitAbstract } from '../hit/index'
 import { Troubleshooting } from '../hit/Troubleshooting'
+import { TroubleshootingLabel } from '../types'
 import { logDebugSprintf, logErrorSprintf } from '../utils/utils'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
 import { SendActivate } from './types'
@@ -70,7 +71,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       })
 
       const monitoringHttpResponse = new Troubleshooting({
-        label: 'SEND_ACTIVATE_HIT_ROUTE_ERROR',
+        label: TroubleshootingLabel.SEND_ACTIVATE_HIT_ROUTE_ERROR,
         logLevel: LogLevel.ERROR,
         visitorId: `${this._flagshipInstanceId}`,
         traffic: 0,
@@ -169,7 +170,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
       })
 
       const monitoringHttpResponse = new Troubleshooting({
-        label: 'SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR',
+        label: TroubleshootingLabel.SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR,
         logLevel: LogLevel.ERROR,
         visitorId: `${this._flagshipInstanceId}`,
         traffic: 0,
