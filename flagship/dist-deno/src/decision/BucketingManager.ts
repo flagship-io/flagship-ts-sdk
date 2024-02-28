@@ -161,7 +161,7 @@ export class BucketingManager extends DecisionManager {
 
   private async sendContext (visitor: VisitorAbstract): Promise<void> {
     try {
-      if (Object.keys(visitor.context).length <= 3) {
+      if (Object.keys(visitor.context).length <= 3 || !visitor.hasConsented) {
         return
       }
       const SegmentHit = new Segment({
