@@ -366,7 +366,7 @@ describe('test sendContext', () => {
   const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: {} as DecisionManager, trackingManager } })
 
   const sendHit = jest.spyOn(visitor, 'sendHit')
-  it('should ', () => {
+  it('should send segment hit', () => {
     sendHit.mockResolvedValue()
     const SegmentHit = new Segment({ context: visitor.context, visitorId, anonymousId: visitor.anonymousId as string })
     bucketingManager.sendContext(visitor).then(() => {
@@ -375,7 +375,7 @@ describe('test sendContext', () => {
     })
   })
 
-  it('should ', async () => {
+  it('should handle error when sendContext throws an error during bucketing', async () => {
     const messageError = 'error'
     sendHit.mockRejectedValue(messageError)
     await bucketingManager.sendContext(visitor)
@@ -383,10 +383,19 @@ describe('test sendContext', () => {
     expect(logError).toBeCalledTimes(1)
   })
 
-  it('test empty context ', async () => {
+  it('should not send segment hit it when visitor context is empty', async () => {
     const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context: {}, configManager: { config, decisionManager: {} as DecisionManager, trackingManager } })
     await bucketingManager.sendContext(visitor)
     expect(sendHit).toBeCalledTimes(0)
+  })
+
+  it('should not send segment hit when visitor has not consented', () => {
+    visitor.hasConsented = false
+    sendHit.mockResolvedValue()
+    bucketingManager.sendContext(visitor).then(() => {
+      expect(sendHit).toBeCalledTimes(0)
+    })
+    visitor.hasConsented = true
   })
 })
 
