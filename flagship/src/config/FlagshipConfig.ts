@@ -5,7 +5,7 @@ import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, sprintf } from '../utils/utils'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation'
 import { ITrackingManagerConfig, TrackingManagerConfig } from './TrackingManagerConfig'
-import { OnVisitorExposed, UserExposureInfo } from '../types'
+import { OnVisitorExposed } from '../types'
 import { version as SDK_VERSION } from '../sdkVersion'
 import { IFlagshipConfig } from './IFlagshipConfig'
 import { DecisionMode } from './DecisionMode'
@@ -18,14 +18,14 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   protected _decisionMode: DecisionMode
   private _timeout!: number
   private _logLevel!: LogLevel
-  private _statusChangedCallback?: (status: FlagshipStatus) => void
+  private _onSdkStatusChanged?: (status: FlagshipStatus) => void
   private _logManager!: IFlagshipLogManager
   private _fetchNow!: boolean
   private _pollingInterval!: number
   private _onBucketingFail?: (error: Error) => void
   private _onBucketingSuccess?: (param: { status: number; payload: BucketingDTO }) => void
   private _onBucketingUpdated?: (lastUpdate: Date) => void
-  private _enableClientCache!: boolean
+  private _reuseVisitorIds!: boolean
   private _initialBucketing?: BucketingDTO
   private _decisionApiUrl!: string
   private _hitDeduplicationTime!: number
@@ -33,19 +33,19 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _hitCacheImplementation!: IHitCacheImplementation
   private _disableCache!: boolean
   private _trackingManagerConfig : ITrackingManagerConfig
-  private _onUserExposure? : (param: UserExposureInfo)=>void
   private _onVisitorExposed?:(arg: OnVisitorExposed)=> void
   private _fetchThirdPartyData : boolean|undefined
   private _nextFetchConfig? : Record<string, unknown>
   private _fetchFlagsBufferingTime? : number
-  private _enableAnalytics? : boolean
+  private _disableDeveloperUsageTracking? : boolean
+  private _onLog? : (level: LogLevel, tag: string, message: string)=>void
 
   public get disableDeveloperUsageTracking () : boolean|undefined {
-    return this._enableAnalytics
+    return this._disableDeveloperUsageTracking
   }
 
   public set disableDeveloperUsageTracking (v : boolean|undefined) {
-    this._enableAnalytics = v
+    this._disableDeveloperUsageTracking = v
   }
 
   public get fetchFlagsBufferingTime () : number|undefined {
@@ -76,8 +76,6 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     return this._trackingManagerConfig
   }
 
-  private _onLog? : (level: LogLevel, tag: string, message: string)=>void
-
   public get onLog () : ((level: LogLevel, tag: string, message: string)=>void)|undefined {
     return this._onLog
   }
@@ -86,20 +84,16 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._onLog = v
   }
 
-  public get onUserExposure () : ((param: UserExposureInfo)=>void)|undefined {
-    return this._onUserExposure
-  }
-
   public get onVisitorExposed (): ((arg: OnVisitorExposed) => void) | undefined {
     return this._onVisitorExposed
   }
 
   protected constructor (param: IFlagshipConfig) {
     const {
-      envId, apiKey, timeout, logLevel, logManager, statusChangedCallback,
-      fetchNow, decisionMode, enableClientCache, initialBucketing, decisionApiUrl,
+      envId, apiKey, timeout, logLevel, logManager, onSdkStatusChanged,
+      fetchNow, decisionMode, reuseVisitorIds, initialBucketing, decisionApiUrl,
       hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
-      disableCache, language, onUserExposure, sdkVersion, trackingMangerConfig, trackingManagerConfig, onLog,
+      disableCache, language, sdkVersion, trackingManagerConfig, onLog,
       onVisitorExposed, nextFetchConfig, fetchFlagsBufferingTime, disableDeveloperUsageTracking
     } = param
 
@@ -111,7 +105,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
 
     this.fetchFlagsBufferingTime = fetchFlagsBufferingTime ?? FETCH_FLAG_BUFFERING_DEFAULT_TIME
     this.nextFetchConfig = nextFetchConfig || { revalidate: 20 }
-    this._trackingManagerConfig = new TrackingManagerConfig(trackingManagerConfig || trackingMangerConfig || {})
+    this._trackingManagerConfig = new TrackingManagerConfig(trackingManagerConfig || {})
     this.onLog = onLog
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
     this._envId = envId
@@ -119,7 +113,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this.logLevel = logLevel ?? LogLevel.ALL
     this.timeout = timeout || REQUEST_TIME_OUT
     this.fetchNow = typeof fetchNow === 'undefined' || fetchNow
-    this.enableClientCache = typeof enableClientCache === 'undefined' || enableClientCache
+    this.reuseVisitorIds = typeof reuseVisitorIds === 'undefined' || reuseVisitorIds
     this._decisionMode = decisionMode || DecisionMode.DECISION_API
     this._initialBucketing = initialBucketing
     this.hitDeduplicationTime = hitDeduplicationTime ?? DEFAULT_DEDUPLICATION_TIME
@@ -133,8 +127,8 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       this.hitCacheImplementation = hitCacheImplementation
     }
 
-    this.statusChangedCallback = statusChangedCallback
-    this._onUserExposure = onUserExposure
+    this.onSdkStatusChanged = onSdkStatusChanged
+
     this._onVisitorExposed = onVisitorExposed
   }
 
@@ -163,12 +157,12 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._initialBucketing = v
   }
 
-  public get enableClientCache (): boolean {
-    return this._enableClientCache
+  public get reuseVisitorIds (): boolean {
+    return this._reuseVisitorIds
   }
 
-  public set enableClientCache (v: boolean) {
-    this._enableClientCache = v
+  public set reuseVisitorIds (v: boolean) {
+    this._reuseVisitorIds = v
   }
 
   public get onBucketingSuccess (): ((param: { status: number; payload: BucketingDTO }) => void) | undefined {
@@ -283,16 +277,16 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._disableCache = v
   }
 
-  public get statusChangedCallback (): ((status: FlagshipStatus) => void) | undefined {
-    return this._statusChangedCallback
+  public get onSdkStatusChanged (): ((status: FlagshipStatus) => void) | undefined {
+    return this._onSdkStatusChanged
   }
 
-  public set statusChangedCallback (fn: ((status: FlagshipStatus) => void) | undefined) {
+  public set onSdkStatusChanged (fn: ((status: FlagshipStatus) => void) | undefined) {
     if (fn && typeof fn !== 'function') {
-      logError(this, statusChangeError, 'statusChangedCallback')
+      logError(this, statusChangeError, 'onSdkStatusChanged')
       return
     }
-    this._statusChangedCallback = fn
+    this._onSdkStatusChanged = fn
   }
 
   public get logManager (): IFlagshipLogManager {
