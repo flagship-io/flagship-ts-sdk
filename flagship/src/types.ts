@@ -35,31 +35,45 @@ export type Modification= FlagDTO
 
 export type NewVisitor={
   /**
-   * Unique visitor identifier.
+   * Optional - Unique visitor identifier.
+   *
+   * Note: It will be generated if not set.
+   *
+   * NOTE 2: In client-side, if you do not specify a value, the id will be either automatically generated or will be the visitor id from the previous session (if `enableClientCache` equals true).
    */
   visitorId?:string
+
+  /**
+   * Specify if the visitor is authenticated or anonymous for Experience continuity.
+   */
   isAuthenticated?: boolean
   /**
    * visitor context
    */
   context?: Record<string, primitive>
-  hasConsented?:boolean,
 
-   initialCampaigns?: CampaignDTO[]
-   /**
-    * @deprecated use initialFlags instead
-    */
-   initialModifications?: Map<string, Modification>|Modification[]
-   initialFlagsData?: Map<string, FlagDTO>|FlagDTO[]
+  /**
+   * Required - Indicates whether the visitor has consented.
+   */
+  hasConsented:boolean,
 
-   /**
-    * If true The newly created visitor instance won't be saved and will simply be returned otherwise
-    * the  newly created visitor instance will be returned and saved into the Flagship
-    *
-    * Note: will be default true on server-side and false on client-side
-    */
-   isNewInstance?:boolean
+  /**
+   * This is an object of the data received when fetching the Flagship decision API (decisionMode="API").
+   *
+   * Providing this property avoids the SDK from having an empty cache during first initialization.
+   */
+  initialCampaigns?: CampaignDTO[]
 
+  /**
+   * This is a set of flag data provided to avoid the SDK to have an empty cache during the first initialization.
+   */
+  initialFlagsData?: Map<string, FlagDTO>|FlagDTO[]
+  /**
+   * If true, the newly created visitor instance won't be saved and will simply be returned. Otherwise, the newly created visitor instance will be returned and saved into the Flagship.
+   *
+   * Note: By default, it is false on server-side and true on client-side.
+   */
+   shouldSaveInstance?: boolean
 }
 
 export type InternalHitType = HitType|'BATCH'|'ACTIVATE'|'MONITORING'|'SEGMENT'|'TROUBLESHOOTING'|'USAGE'
@@ -185,4 +199,9 @@ export type ThirdPartySegment = {
   partner: string
 }
 
-export type VisitorCacheStatus = 'NONE'|'ANONYMOUS_ID_CACHE'|'VISITOR_ID_CACHE'|'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE';
+export enum VisitorCacheStatus {
+  NONE = 'NONE',
+  ANONYMOUS_ID_CACHE = 'ANONYMOUS_ID_CACHE',
+  VISITOR_ID_CACHE = 'VISITOR_ID_CACHE',
+  VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE = 'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE'
+}
