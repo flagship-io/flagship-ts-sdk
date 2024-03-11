@@ -286,3 +286,5 @@ export const ACTIVATE_HIT = 'ACTIVATE HIT'
 export const BATCH_HIT = 'BATCH HIT'
 export const DIRECT_HIT = 'HIT'
 export const GET_THIRD_PARTY_SEGMENT = 'GET_THIRD_PARTY_SEGMENT'
+
+export const CONSENT_NOT_SPECIFY_WARNING = 'Consent has not been specified. By default, consent is set to false, which may result in some features being deactivated.'
