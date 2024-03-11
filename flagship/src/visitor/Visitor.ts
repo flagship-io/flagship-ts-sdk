@@ -1,13 +1,17 @@
-import { HitShape, IHit, FlagDTO, modificationsRequested, primitive } from '../types'
+import { IHit, FlagDTO, primitive } from '../types'
 import { EventEmitter } from '../depsNode.native'
 import { IVisitor } from './IVisitor'
 import { IFlagshipConfig } from '../config/index'
 import { EMIT_READY } from '../enum/index'
-import { CampaignDTO } from '../decision/api/models'
 import { HitAbstract } from '../hit/HitAbstract'
 import { VisitorAbstract } from './VisitorAbstract'
 import { IFlag } from '../flag/Flags'
 
+/**
+ * Represents a visitor in the Flagship SDK.
+ *
+ * The `Visitor` class extends `EventEmitter` and implements the `IVisitor` interface.
+ */
 export class Visitor extends EventEmitter implements IVisitor {
   private visitorDelegate:VisitorAbstract
   public constructor (visitorDelegate: VisitorAbstract) {
@@ -19,143 +23,127 @@ export class Visitor extends EventEmitter implements IVisitor {
     })
   }
 
-  getModificationsArray (): FlagDTO[] {
-    return this.visitorDelegate.getModificationsArray()
-  }
-
+  /**
+   * @inheritdoc
+   */
   getFlagsDataArray (): FlagDTO[] {
     return this.visitorDelegate.getFlagsDataArray()
   }
 
+  /**
+   * @inheritdoc
+   */
   public get visitorId () : string {
     return this.visitorDelegate.visitorId
   }
 
+  /**
+   * @inheritdoc
+   */
   public set visitorId (v : string) {
     this.visitorDelegate.visitorId = v
   }
 
+  /**
+   * @inheritdoc
+   */
   public get anonymousId ():string|null {
     return this.visitorDelegate.anonymousId
   }
 
+  /**
+   * @inheritdoc
+   */
   public get hasConsented (): boolean {
     return this.visitorDelegate.hasConsented
   }
 
+  /**
+   * @inheritdoc
+   */
   public setConsent (hasConsented: boolean): void {
     this.visitorDelegate.setConsent(hasConsented)
   }
 
+  /**
+   * @inheritdoc
+   */
   public get config (): IFlagshipConfig {
     return this.visitorDelegate.config
   }
 
+  /**
+   * @inheritdoc
+   */
   public get context () : Record<string, primitive> {
     return this.visitorDelegate.context
   }
 
+  /**
+   * @inheritdoc
+   */
   public get flagsData (): Map<string, FlagDTO> {
     return this.visitorDelegate.flagsData
   }
 
-  public get modifications (): Map<string, FlagDTO> {
-    return this.visitorDelegate.flagsData
-  }
-
+  /**
+   * @inheritdoc
+   */
   public updateContext(key: string, value: primitive):void
   public updateContext (context: Record<string, primitive>): void
   public updateContext (context: Record<string, primitive> | string, value?:primitive): void {
     this.visitorDelegate.updateContext(context, value)
   }
 
+  /**
+   * @inheritdoc
+   */
   public clearContext (): void {
     this.visitorDelegate.clearContext()
   }
 
+  /**
+   * @inheritdoc
+   */
   getFlag<T> (key:string, defaultValue:T):IFlag<T> {
     return this.visitorDelegate.getFlag(key, defaultValue)
   }
 
-  getModification<T> (params: modificationsRequested<T>): Promise<T> {
-    return this.visitorDelegate.getModification(params)
-  }
-
-  getModificationSync<T> (params: modificationsRequested<T>): T {
-    return this.visitorDelegate.getModificationSync(params)
-  }
-
-  getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<Record<string, T>> {
-    return this.visitorDelegate.getModifications(params, activateAll)
-  }
-
-  getModificationsSync<T> (params: modificationsRequested<T>[], activateAll?: boolean): Record<string, T> {
-    return this.visitorDelegate.getModificationsSync(params, activateAll)
-  }
-
-  getModificationInfo (key: string): Promise<FlagDTO | null> {
-    return this.visitorDelegate.getModificationInfo(key)
-  }
-
-  getModificationInfoSync (key: string): FlagDTO | null {
-    return this.visitorDelegate.getModificationInfoSync(key)
-  }
-
-  synchronizeModifications (): Promise<void> {
-    return this.visitorDelegate.synchronizeModifications()
-  }
-
+  /**
+   * @inheritdoc
+   */
   fetchFlags ():Promise<void> {
     return this.visitorDelegate.fetchFlags()
   }
 
-  activateModification (key: string): Promise<void> {
-    return this.visitorDelegate.activateModification(key)
-  }
-
-  activateModifications(keys: { key: string }[]): Promise<void>
-  activateModifications(keys: string[]): Promise<void>
-  activateModifications (params: Array<{ key: string }> | Array<string>): Promise<void>
-  activateModifications (params: Array<{ key: string }> | Array<string>): Promise<void> {
-    return this.visitorDelegate.activateModifications(params)
-  }
-
+  /**
+   * @inheritdoc
+   */
   sendHit(hit: HitAbstract): Promise<void>;
   sendHit(hit: IHit): Promise<void>;
-  sendHit(hit: HitShape): Promise<void>;
-  sendHit (hit: IHit|HitAbstract|HitShape): Promise<void>
-  sendHit (hit: IHit|HitAbstract|HitShape): Promise<void> {
+  sendHit (hit: IHit|HitAbstract): Promise<void> {
     return this.visitorDelegate.sendHit(hit)
   }
 
+  /**
+   * @inheritdoc
+   */
   sendHits(hits: HitAbstract[]): Promise<void>;
   sendHits(hits: IHit[]): Promise<void>;
-  sendHits(hit: HitShape[]): Promise<void>;
-  sendHits(hits: HitAbstract[] | IHit[]|HitShape[]): Promise<void>
-  sendHits (hits: HitAbstract[]|IHit[]|HitShape[]): Promise<void> {
+  sendHits (hits: HitAbstract[] | IHit[]): Promise<void> {
     return this.visitorDelegate.sendHits(hits)
   }
 
-  getAllModifications (activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
-    return this.visitorDelegate.getAllModifications(activate)
-  }
-
-  getModificationsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
-    return this.visitorDelegate.getModificationsForCampaign(campaignId, activate)
-  }
-
-  getAllFlagsData (activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
-    return this.visitorDelegate.getAllFlagsData(activate)
-  }
-
-  getFlatsDataForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
-    return this.visitorDelegate.getFlatsDataForCampaign(campaignId, activate)
-  }
-
+  /**
+   * @inheritdoc
+   */
   authenticate (visitorId: string): void {
     this.visitorDelegate.authenticate(visitorId)
   }
 
+  /**
+   * @inheritdoc
+   */
   unauthenticate (): void {
     this.visitorDelegate.unauthenticate()
   }
