@@ -1,5 +1,5 @@
-import { Event, EventCategory, HitAbstract, HitShape } from '../hit/index'
-import { primitive, modificationsRequested, IHit, VisitorCacheDTO, IFlagMetadata, FlagDTO, TroubleshootingLabel } from '../types'
+import { Event, EventCategory, HitAbstract } from '../hit/index'
+import { primitive, IHit, VisitorCacheDTO, IFlagMetadata, FlagDTO, TroubleshootingLabel, VisitorCacheStatus } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
@@ -23,7 +23,7 @@ export type StrategyAbstractConstruct = {
   visitor:VisitorAbstract,
   murmurHash: MurmurHash
 }
-export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'anonymousId'|'flagsData'|'modifications'|'context'|'hasConsented'|'getModificationsArray'|'getFlagsDataArray'|'getFlag'> {
+export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'anonymousId'|'flagsData'|'context'|'hasConsented'|'getFlagsDataArray'|'getFlag'> {
   protected visitor:VisitorAbstract
 
   protected get configManager ():IConfigManager {
@@ -124,11 +124,11 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     if (!Array.isArray(campaigns)) {
       return false
     }
-    if ((this.visitor.visitorCacheStatus === 'VISITOR_ID_CACHE' || this.visitor.visitorCacheStatus === 'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE') && item.data.visitorId !== this.visitor.visitorId) {
+    if ((this.visitor.visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE || this.visitor.visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE) && item.data.visitorId !== this.visitor.visitorId) {
       logInfoSprintf(this.config, PROCESS_CACHE, VISITOR_ID_MISMATCH_ERROR, item.data.visitorId, this.visitor.visitorId)
       return false
     }
-    if (this.visitor.visitorCacheStatus === 'ANONYMOUS_ID_CACHE' && item.data.visitorId !== this.visitor.anonymousId) {
+    if (this.visitor.visitorCacheStatus === VisitorCacheStatus.ANONYMOUS_ID_CACHE && item.data.visitorId !== this.visitor.anonymousId) {
       logInfoSprintf(this.config, PROCESS_CACHE, VISITOR_ID_MISMATCH_ERROR, item.data.visitorId, this.visitor.anonymousId)
       return false
     }
@@ -148,18 +148,18 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
       if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
         return
       }
-      this.visitor.visitorCacheStatus = 'NONE'
+      this.visitor.visitorCacheStatus = VisitorCacheStatus.NONE
       let visitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
       if (visitorCache) {
-        this.visitor.visitorCacheStatus = 'VISITOR_ID_CACHE'
+        this.visitor.visitorCacheStatus = VisitorCacheStatus.VISITOR_ID_CACHE
       }
       if (this.visitor.anonymousId) {
         const anonymousVisitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.anonymousId)
         if (anonymousVisitorCache && !visitorCache) {
           visitorCache = anonymousVisitorCache
-          this.visitor.visitorCacheStatus = 'ANONYMOUS_ID_CACHE'
+          this.visitor.visitorCacheStatus = VisitorCacheStatus.ANONYMOUS_ID_CACHE
         } else if (!anonymousVisitorCache && visitorCache) {
-          this.visitor.visitorCacheStatus = 'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE'
+          this.visitor.visitorCacheStatus = VisitorCacheStatus.VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE
         }
       }
 
@@ -218,7 +218,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
 
       const visitorCacheStatus = this.visitor.visitorCacheStatus
 
-      if (!visitorCacheStatus || visitorCacheStatus === 'NONE' || visitorCacheStatus === 'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE') {
+      if (!visitorCacheStatus || visitorCacheStatus === VisitorCacheStatus.NONE || visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE) {
         if (this.visitor.anonymousId) {
           const anonymousVisitorCacheDTO:VisitorCacheDTO = {
             ...visitorCacheDTO,
@@ -261,52 +261,13 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
     abstract updateContext (context: Record<string, primitive> | string, value?:primitive): void
     abstract clearContext (): void
 
-    abstract getModification<T>(params: modificationsRequested<T>): Promise<T>;
-    abstract getModificationSync<T>(params: modificationsRequested<T>): T
-
-    abstract getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<Record<string, T>>
-    abstract getModificationsSync<T> (params: modificationsRequested<T>[], activateAll?: boolean): Record<string, T>
-
-    abstract getModificationInfo (key: string): Promise<FlagDTO | null>
-    abstract getModificationInfoSync(key: string): FlagDTO | null
-
-    abstract synchronizeModifications (): Promise<void>
-
-    /**
-     *
-     * @param key
-     * @deprecated
-     */
-    abstract activateModification(key: string): Promise<void>;
-
-    /**
-     *
-     * @param keys
-     * @deprecated
-     */
-    abstract activateModifications(keys: { key: string; }[]): Promise<void>;
-    abstract activateModifications(keys: string[]): Promise<void>;
-    abstract activateModifications (params: Array<{ key: string }> | Array<string>): Promise<void>
-
-    protected abstract sendActivate (modification: FlagDTO): Promise<void>
-
     abstract sendHit(hit: HitAbstract): Promise<void>;
     abstract sendHit(hit: IHit): Promise<void>;
-    abstract sendHit(hit: HitShape): Promise<void>;
-    abstract sendHit(hit: IHit | HitAbstract | HitShape|BatchDTO): Promise<void>;
+    abstract sendHit(hit: IHit | HitAbstract |BatchDTO): Promise<void>;
 
     abstract sendHits(hit: HitAbstract[]): Promise<void>;
     abstract sendHits(hit: IHit[]): Promise<void>;
-    abstract sendHits(hit: HitShape[]): Promise<void>;
-    abstract sendHits (hits: HitAbstract[] | IHit[]|HitShape[]|BatchDTO[]): Promise<void>
-
-    abstract getAllModifications (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
-
-    abstract getAllFlagsData (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
-
-    abstract getModificationsForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
-
-    abstract getFlatsDataForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
+    abstract sendHits (hits: HitAbstract[] | IHit[]|BatchDTO[]): Promise<void>
 
     abstract authenticate(visitorId: string): void
     abstract unauthenticate(): void
@@ -361,7 +322,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         sdkConfigTrackingManagerBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
         sdkConfigTrackingManagerPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
         sdkConfigFetchNow: this.config.fetchNow,
-        sdkConfigEnableClientCache: this.config.enableClientCache,
+        sdkConfigEnableClientCache: this.config.reuseVisitorIds,
         sdkConfigInitialBucketing: this.config.initialBucketing,
         sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
         sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
@@ -425,7 +386,7 @@ export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitor
         sdkConfigTrackingManagerBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
         sdkConfigTrackingManagerPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
         sdkConfigFetchNow: this.config.fetchNow,
-        sdkConfigEnableClientCache: this.config.enableClientCache,
+        sdkConfigEnableClientCache: this.config.reuseVisitorIds,
         sdkConfigInitialBucketing: this.config.initialBucketing,
         sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
         sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
