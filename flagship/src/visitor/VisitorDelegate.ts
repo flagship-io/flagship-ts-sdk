@@ -1,7 +1,6 @@
-import { HitAbstract, HitShape } from '../hit/index'
-import { primitive, modificationsRequested, IHit, IFlagMetadata, FlagDTO } from '../types'
+import { HitAbstract } from '../hit/index'
+import { primitive, IHit, IFlagMetadata, FlagDTO } from '../types'
 import { VisitorAbstract } from './VisitorAbstract'
-import { CampaignDTO } from '../decision/api/models'
 import { Flag, IFlag } from '../flag/Flags'
 import { logWarningSprintf, visitorFlagSyncStatusMessage } from '../utils/utils'
 import { GET_FLAG } from '../enum/FlagshipConstant'
@@ -26,76 +25,16 @@ export class VisitorDelegate extends VisitorAbstract {
     return new Flag({ key, visitor: this, defaultValue })
   }
 
-  getModification<T> (params: modificationsRequested<T>): Promise<T> {
-    return this.getStrategy().getModification(params)
-  }
-
-  getModificationSync<T> (params: modificationsRequested<T>): T {
-    return this.getStrategy().getModificationSync(params)
-  }
-
-  getModifications<T> (params: modificationsRequested<T>[], activateAll?: boolean): Promise<Record<string, T>> {
-    return this.getStrategy().getModifications(params, activateAll)
-  }
-
-  getModificationsSync<T> (params: modificationsRequested<T>[], activateAll?: boolean): Record<string, T> {
-    return this.getStrategy().getModificationsSync(params, activateAll)
-  }
-
-  getModificationInfo (key: string): Promise<FlagDTO | null> {
-    return this.getStrategy().getModificationInfo(key)
-  }
-
-  getModificationInfoSync (key: string): FlagDTO | null {
-    return this.getStrategy().getModificationInfoSync(key)
-  }
-
-  async synchronizeModifications (): Promise<void> {
-    await this.getStrategy().lookupVisitor()
-    await this.getStrategy().synchronizeModifications()
-    await this.getStrategy().cacheVisitor()
-  }
-
-  activateModification (key: string): Promise<void> {
-    return this.getStrategy().activateModification(key)
-  }
-
-  activateModifications(keys: { key: string; }[]): Promise<void>;
-  activateModifications(keys: string[]): Promise<void>;
-  activateModifications (params: Array<{ key: string }> | Array<string>): Promise<void> {
-    return this.getStrategy().activateModifications(params)
-  }
-
   sendHit(hit: HitAbstract): Promise<void>
   sendHit(hit: IHit): Promise<void>
-  sendHit(hit: HitShape): Promise<void>
-  sendHit(hit: HitAbstract | IHit|HitShape): Promise<void>
-  sendHit (hit: HitAbstract | IHit|HitShape): Promise<void> {
+  sendHit (hit: HitAbstract | IHit): Promise<void> {
     return this.getStrategy().sendHit(hit)
   }
 
   sendHits(hits: HitAbstract[]): Promise<void>
   sendHits(hits: IHit[]): Promise<void>
-  sendHits(hit: HitShape[]): Promise<void>;
-  sendHits(hits: HitAbstract[] | IHit[]|HitShape[]): Promise<void>
-  sendHits (hits: HitAbstract[] | IHit[]|HitShape[]): Promise<void> {
+  sendHits (hits: HitAbstract[] | IHit[]): Promise<void> {
     return this.getStrategy().sendHits(hits)
-  }
-
-  getAllModifications (activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
-    return this.getStrategy().getAllModifications(activate)
-  }
-
-  getAllFlagsData (activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
-    return this.getStrategy().getAllFlagsData(activate)
-  }
-
-  getModificationsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
-    return this.getStrategy().getModificationsForCampaign(campaignId, activate)
-  }
-
-  getFlatsDataForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
-    return this.getStrategy().getFlatsDataForCampaign(campaignId, activate)
   }
 
   authenticate (visitorId: string): void {
