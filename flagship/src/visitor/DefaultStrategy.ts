@@ -1,6 +1,4 @@
 import {
-  ACTIVATE_MODIFICATION_ERROR,
-  ACTIVATE_MODIFICATION_KEY_ERROR,
   AUTHENTICATE,
   CLEAR_CONTEXT,
   CONTEXT_KEY_ERROR,
@@ -22,20 +20,12 @@ import {
   GET_FLAG_MISSING_ERROR,
   GET_FLAG_VALUE,
   GET_METADATA_CAST_ERROR,
-  GET_MODIFICATION_CAST_ERROR,
-  GET_MODIFICATION_ERROR,
-  GET_MODIFICATION_KEY_ERROR,
-  GET_MODIFICATION_MISSING_ERROR,
   HitType,
   LogLevel,
   PREDEFINED_CONTEXT_TYPE_ERROR,
-  PROCESS_ACTIVE_MODIFICATION,
   PROCESS_CLEAR_CONTEXT,
   PROCESS_FETCHING_FLAGS,
-  PROCESS_GET_MODIFICATION,
-  PROCESS_GET_MODIFICATION_INFO,
   PROCESS_SEND_HIT,
-  PROCESS_SYNCHRONIZED_MODIFICATION,
   PROCESS_UPDATE_CONTEXT,
   SDK_APP,
   UNAUTHENTICATE,
@@ -56,13 +46,11 @@ import {
   ITransaction,
   Item,
   Page,
-  Transaction,
-  IHitAbstract
+  Transaction
 } from '../hit/index'
-import { HitShape, ItemHit } from '../hit/Legacy'
-import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata, TroubleshootingLabel } from '../types'
-import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils'
-import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
+import { primitive, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata, TroubleshootingLabel } from '../types'
+import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils'
+import { StrategyAbstract } from './StrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
 import { VisitorDelegate } from './index'
@@ -74,7 +62,7 @@ import { FlagSynchStatus } from '../enum/FlagSynchStatus'
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'
 
-export class DefaultStrategy extends VisitorStrategyAbstract {
+export class DefaultStrategy extends StrategyAbstract {
   private checkPredefinedContext (
     key: string,
     value: primitive
@@ -150,116 +138,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     this.visitor.context = {}
     this.visitor.loadPredefinedContext()
     logDebugSprintf(this.config, PROCESS_CLEAR_CONTEXT, CLEAR_CONTEXT, this.visitor.visitorId, this.visitor.context)
-  }
-
-  private checkAndGetModification<T> (
-    params: modificationsRequested<T>,
-    activateAll?: boolean
-  ): T {
-    const { key, defaultValue, activate } = params
-    if (!key || typeof key !== 'string') {
-      logError(
-        this.config,
-        sprintf(GET_MODIFICATION_KEY_ERROR, key),
-        PROCESS_GET_MODIFICATION
-      )
-      return defaultValue
-    }
-
-    const modification = this.visitor.flagsData.get(key)
-    if (!modification) {
-      logInfo(
-        this.config,
-        sprintf(GET_MODIFICATION_MISSING_ERROR, key),
-        PROCESS_GET_MODIFICATION
-      )
-      return defaultValue
-    }
-
-    const castError = () => {
-      logError(
-        this.config,
-        sprintf(GET_MODIFICATION_CAST_ERROR, key),
-        PROCESS_GET_MODIFICATION
-      )
-
-      if (!modification.value && (activate || activateAll)) {
-        this.activateModification(key)
-      }
-    }
-
-    if (
-      typeof modification.value === 'object' &&
-      typeof defaultValue === 'object' &&
-      Array.isArray(modification.value) !== Array.isArray(defaultValue)
-    ) {
-      castError()
-      return defaultValue
-    }
-
-    if (typeof modification.value !== typeof defaultValue) {
-      castError()
-      return defaultValue
-    }
-
-    if (activate || activateAll) {
-      this.activateModification(key)
-    }
-
-    return modification.value
-  }
-
-  async getModifications<T> (
-    params: modificationsRequested<T>[],
-    activateAll?: boolean
-  ): Promise<Record<string, T>> {
-    return this.getModificationsSync(params, activateAll)
-  }
-
-  getModificationsSync<T> (
-    params: modificationsRequested<T>[],
-    activateAll?: boolean
-  ): Record<string, T> {
-    const flags: Record<string, T> = {}
-    params.forEach((item) => {
-      flags[item.key] = this.checkAndGetModification(item, activateAll)
-    })
-    return flags
-  }
-
-  async getModification<T> (params: modificationsRequested<T>): Promise<T> {
-    return this.getModificationSync(params)
-  }
-
-  getModificationSync<T> (params: modificationsRequested<T>): T {
-    return this.checkAndGetModification(params)
-  }
-
-  async getModificationInfo (key: string): Promise<FlagDTO | null> {
-    return this.getModificationInfoSync(key)
-  }
-
-  public getModificationInfoSync (key: string): FlagDTO | null {
-    if (!key || typeof key !== 'string') {
-      logError(
-        this.visitor.config,
-        sprintf(GET_MODIFICATION_KEY_ERROR, key),
-        PROCESS_GET_MODIFICATION_INFO
-      )
-      return null
-    }
-
-    const modification = this.visitor.flagsData.get(key)
-
-    if (!modification) {
-      logError(
-        this.visitor.config,
-        sprintf(GET_MODIFICATION_ERROR, key),
-        PROCESS_GET_MODIFICATION_INFO
-      )
-      return null
-    }
-    return modification
   }
 
   protected fetchVisitorCampaigns (visitor: VisitorDelegate) :CampaignDTO[]|null {
@@ -396,7 +274,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
         sdkConfigTrackingManagerBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
         sdkConfigTrackingManagerPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
         sdkConfigFetchNow: this.config.fetchNow,
-        sdkConfigEnableClientCache: this.config.enableClientCache,
+        sdkConfigEnableClientCache: this.config.reuseVisitorIds,
         sdkConfigInitialBucketing: this.config.initialBucketing,
         sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
         sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
@@ -404,40 +282,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
       this.trackingManager.addTroubleshootingHit(troubleshootingHit)
     }
-  }
-
-  async synchronizeModifications (): Promise<void> {
-    return this.globalFetchFlags(PROCESS_SYNCHRONIZED_MODIFICATION)
-  }
-
-  async activateModification (params: string): Promise<void> {
-    if (!params || typeof params !== 'string') {
-      logError(
-        this.config,
-        sprintf(ACTIVATE_MODIFICATION_KEY_ERROR, params),
-        PROCESS_ACTIVE_MODIFICATION
-      )
-      return
-    }
-    return this.activate(params)
-  }
-
-  activateModifications(keys: { key: string }[]): Promise<void>
-  activateModifications(keys: string[]): Promise<void>
-  async activateModifications (params: string[] | { key: string }[]): Promise<void> {
-    if (!params || !Array.isArray(params)) {
-      logError(
-        this.config,
-        sprintf(GET_MODIFICATION_KEY_ERROR, params),
-        PROCESS_ACTIVE_MODIFICATION
-      )
-      return
-    }
-    params.forEach((item:string | {key: string}) => {
-      if (typeof item === 'string') {
-        this.activate(item)
-      } else this.activate(item.key)
-    })
   }
 
   private isDeDuplicated (key:string, deDuplicationTime:number):boolean {
@@ -511,29 +355,9 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     this.sendTroubleshootingHit(activateTroubleshooting)
   }
 
-  private async activate (key: string) {
-    const flag = this.visitor.flagsData.get(key)
-
-    if (!flag) {
-      logError(
-        this.visitor.config,
-        sprintf(ACTIVATE_MODIFICATION_ERROR, key),
-        PROCESS_ACTIVE_MODIFICATION
-      )
-      return
-    }
-
-    if (!this.hasTrackingManager(PROCESS_ACTIVE_MODIFICATION)) {
-      return
-    }
-
-    await this.sendActivate(flag)
-  }
-
   sendHit(hit: HitAbstract): Promise<void>
   sendHit(hit: IHit): Promise<void>
-  sendHit(hit: HitShape): Promise<void>
-  async sendHit (hit: IHit | HitAbstract | HitShape): Promise<void> {
+  async sendHit (hit: IHit | HitAbstract): Promise<void> {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
       return
     }
@@ -542,61 +366,13 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
   sendHits(hits: HitAbstract[]): Promise<void>
   sendHits(hits: IHit[]): Promise<void>
-  sendHits(hits: HitShape[]): Promise<void>
-  async sendHits (hits: HitAbstract[] | IHit[]|HitShape[]): Promise<void> {
+  async sendHits (hits: HitAbstract[] | IHit[]): Promise<void> {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
       return
     }
     for (const hit of hits) {
       await this.prepareAndSendHit(hit)
     }
-  }
-
-  private getHitLegacy (hit: HitShape) {
-    let newHit = null
-    const hitTypeToEnum: Record<string, HitType> = {
-      Screen: HitType.SCREEN_VIEW,
-      ScreenView: HitType.SCREEN_VIEW,
-      Transaction: HitType.TRANSACTION,
-      Page: HitType.PAGE_VIEW,
-      PageView: HitType.PAGE_VIEW,
-      Item: HitType.ITEM,
-      Event: HitType.EVENT
-    }
-    const commonProperties: Omit<IHitAbstract, 'createdAt'| 'visitorId'|'anonymousId'|'traffic'> = {
-      type: hitTypeToEnum[hit.type]
-    }
-
-    const hitData: Omit<IHitAbstract, 'createdAt'| 'visitorId'|'anonymousId'|'traffic'> = { ...commonProperties, ...hit.data }
-
-    switch (commonProperties.type?.toUpperCase()) {
-      case HitType.EVENT:
-        newHit = new Event(hitData as IEvent)
-        break
-      case HitType.ITEM:
-        // eslint-disable-next-line no-case-declarations
-        const data = hit.data as ItemHit
-        newHit = new Item({
-          ...hitData,
-          productName: data.name,
-          productSku: data.code,
-          transactionId: data.transactionId,
-          itemCategory: data.category,
-          itemPrice: data.price,
-          itemQuantity: data.quantity
-        } as IItem)
-        break
-      case HitType.PAGE_VIEW:
-        newHit = new Page(hitData as IPage)
-        break
-      case HitType.SCREEN_VIEW:
-        newHit = new Screen(hitData as IScreen)
-        break
-      case HitType.TRANSACTION:
-        newHit = new Transaction(hit.data as ITransaction)
-        break
-    }
-    return newHit
   }
 
   private getHit (hit: IHit):HitAbstract|null {
@@ -621,7 +397,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
     return newHit
   }
 
-  private async prepareAndSendHit (hit: IHit | HitShape | HitAbstract, functionName = PROCESS_SEND_HIT) {
+  private async prepareAndSendHit (hit: IHit | HitAbstract, functionName = PROCESS_SEND_HIT) {
     let hitInstance: HitAbstract
 
     if (!hit?.type) {
@@ -631,14 +407,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
 
     if (hit instanceof HitAbstract) {
       hitInstance = hit
-    } else if ('data' in hit) {
-      const hitShape = hit as HitShape
-      const hitFromInt = this.getHitLegacy(hitShape)
-      if (!hitFromInt) {
-        logError(this.config, TYPE_HIT_REQUIRED_ERROR, functionName)
-        return
-      }
-      hitInstance = hitFromInt
     } else {
       const hitFromInt = this.getHit(hit)
       if (!hitFromInt) {
@@ -683,55 +451,6 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logError(this.config, error.message || error, functionName)
-    }
-  }
-
-  /**
-   * returns a Promise<object> containing all the data for all the campaigns associated with the current visitor.
-   *@deprecated
-   */
-  public async getAllModifications (activate = false): Promise<{
-    visitorId: string
-    campaigns: CampaignDTO[]
-  }> {
-    return this.getAllFlagsData(activate)
-  }
-
-  async getAllFlagsData (activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
-    if (activate) {
-      this.visitor.flagsData.forEach((_, key) => {
-        this.activateModification(key)
-      })
-    }
-    return {
-      visitorId: this.visitor.visitorId,
-      campaigns: this.visitor.campaigns
-    }
-  }
-
-  /**
-   * Get data for a specific campaign.
-   * @param campaignId Identifies the campaign whose modifications you want to retrieve.
-   * @param activate
-   * @deprecated
-   * @returns
-   */
-  public async getModificationsForCampaign (campaignId: string, activate = false): Promise<{ visitorId: string; campaigns: CampaignDTO[]}> {
-    return this.getFlatsDataForCampaign(campaignId, activate)
-  }
-
-  async getFlatsDataForCampaign (campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }> {
-    if (activate) {
-      this.visitor.flagsData.forEach((value) => {
-        if (value.campaignId === campaignId) {
-          this.visitorExposed({ key: value.key, flag: value, defaultValue: value.value })
-        }
-      })
-    }
-
-    return {
-      visitorId: this.visitor.visitorId,
-      campaigns: this.visitor.campaigns.filter((x) => x.id === campaignId)
     }
   }
 
@@ -793,7 +512,7 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
   async visitorExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T}): Promise<void> {
     const { key, flag, defaultValue } = param
 
-    const functionName = 'userExposed'
+    const functionName = 'visitorExposed'
     if (!flag) {
       logWarningSprintf(
         this.visitor.config,

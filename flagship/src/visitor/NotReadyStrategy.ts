@@ -1,33 +1,13 @@
 import { FlagshipStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_SDK_NOT_READY } from '../enum/index'
-import { FlagDTO, IFlagMetadata, IHit, modificationsRequested } from '../types'
+import { FlagDTO, IFlagMetadata, IHit } from '../types'
 import { logErrorSprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
-import { HitAbstract, HitShape } from '../hit/index'
+import { HitAbstract } from '../hit/index'
 import { BatchDTO } from '../hit/Batch'
 import { FlagMetadata } from '../flag/FlagMetadata'
 import { Troubleshooting } from '../hit/Troubleshooting'
 
 export class NotReadyStrategy extends DefaultStrategy {
-  async synchronizeModifications (): Promise<void> {
-    this.log('synchronizeModifications')
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getModificationSync<T> (params: modificationsRequested<T>): T {
-    this.log('getModification')
-    return params.defaultValue
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getModificationsSync<T> (params: modificationsRequested<T>[], _activateAll?: boolean): Record<string, T> {
-    this.log('getModifications')
-    const flags:Record<string, T> = {}
-    params.forEach(item => {
-      flags[item.key] = item.defaultValue
-    })
-    return flags
-  }
-
   async lookupHits (): Promise<void> {
     //
   }
@@ -41,31 +21,13 @@ export class NotReadyStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getModificationInfoSync (_key: string): FlagDTO | null {
-    this.log('getModificationInfo')
-    return null
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async activateModification (_params: string): Promise<void> {
-    this.log('activateModification')
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async activateModifications (_params: string[] | { key: string }[]): Promise<void> {
-    this.log('activateModifications')
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  sendHit (_hit: HitAbstract | IHit| HitShape| BatchDTO): Promise<void> {
+  async sendHit (_hit: HitAbstract | IHit | BatchDTO): Promise<void> {
     this.log('sendHit')
-    return Promise.resolve()
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  sendHits (_hits: HitAbstract[] | IHit[] | HitShape[]|BatchDTO[]): Promise<void> {
+  async sendHits (_hits: HitAbstract[] | IHit[] |BatchDTO[]): Promise<void> {
     this.log('sendHits')
-    return Promise.resolve()
   }
 
   async fetchFlags ():Promise<void> {
@@ -88,13 +50,12 @@ export class NotReadyStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public sendTroubleshootingHit (_hit: Troubleshooting): Promise<void> {
-    return Promise.resolve()
+  public async sendTroubleshootingHit (_hit: Troubleshooting): Promise<void> {
+    //
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async sendSdkConfigAnalyticHit () {
-    return Promise.resolve()
+    //
   }
 
   private log (methodName:string) {
