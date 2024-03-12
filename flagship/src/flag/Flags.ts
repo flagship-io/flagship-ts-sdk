@@ -21,12 +21,6 @@ export interface IFlag<T>{
     exists:()=>boolean
 
     /**
-     * Tells Flagship the user have been exposed and have seen this flag
-     * @deprecated use **visitorExposed** instead
-     */
-    userExposed:()=>Promise<void>
-
-    /**
      * Tells Flagship the visitor have been exposed and have seen this flag
      * @returns
      */
@@ -78,10 +72,6 @@ export class Flag<T> implements IFlag<T> {
       hasSameType: flagDTO.value === null || this._defaultValue === null || this._defaultValue === undefined || hasSameType(flagDTO.value, this._defaultValue),
       key: flagDTO.key
     })
-  }
-
-  userExposed ():Promise<void> {
-    return this.visitorExposed()
   }
 
   visitorExposed () : Promise<void> {
