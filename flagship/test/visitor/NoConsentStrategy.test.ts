@@ -33,22 +33,6 @@ describe('test NoConsentStrategy', () => {
   const murmurHash = new MurmurHash()
   const noConsentStrategy = new NoConsentStrategy({ visitor: visitorDelegate, murmurHash })
 
-  it('test activateModification', () => {
-    noConsentStrategy.activateModification('key').then(() => {
-      const methodName = 'activateModification'
-      expect(logInfo).toBeCalledTimes(1)
-      expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
-    })
-  })
-
-  it('test activateModifications', () => {
-    noConsentStrategy.activateModifications(['key']).then(() => {
-      const methodName = 'activateModifications'
-      expect(logInfo).toBeCalledTimes(1)
-      expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
-    })
-  })
-
   it('test sendHit', () => {
     noConsentStrategy.sendHit({ type: HitType.PAGE, documentLocation: 'home' }).then(() => {
       const methodName = 'sendHit'
@@ -132,7 +116,8 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
     monitoringData: {
       instanceId: FsInstanceId,
       lastInitializationTimestamp: ''
-    }
+    },
+    hasConsented: true
   })
   const noConsentStrategy = new NoConsentStrategy({ visitor: visitorDelegate, murmurHash })
   const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
