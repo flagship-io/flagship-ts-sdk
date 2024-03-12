@@ -10,11 +10,11 @@ import { DefaultStrategy, HIT_NULL_ERROR } from '../../src/visitor/DefaultStrate
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { CONTEXT_NULL_ERROR, CONTEXT_VALUE_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, FLAG_VALUE, FS_CONSENT, FlagSynchStatus, GET_FLAG_CAST_ERROR, GET_FLAG_MISSING_ERROR, GET_METADATA_CAST_ERROR, HitType, PROCESS_SEND_HIT, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, USER_EXPOSED_CAST_ERROR, USER_EXPOSED_FLAG_ERROR } from '../../src/enum'
 import { errorFormat, sprintf } from '../../src/utils/utils'
-import { returnFlag } from './modification'
 import { Activate } from '../../src/hit/Activate'
 import { MurmurHash } from '../../src/utils/MurmurHash'
 import { BucketingManager } from '../../src/decision/BucketingManager'
 import { Segment } from '../../src/hit/Segment'
+import { returnFlag } from './flags'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getNull = (): any => {

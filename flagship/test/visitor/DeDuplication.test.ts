@@ -1,4 +1,4 @@
-import { returnFlag } from './modification'
+import { returnFlag } from './flags'
 import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig, EventCategory } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
