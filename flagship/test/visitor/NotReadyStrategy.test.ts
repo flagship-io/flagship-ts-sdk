@@ -34,28 +34,9 @@ describe('test NotReadyStrategy', () => {
   const murmurHash = new MurmurHash()
   const notReadyStrategy = new NotReadyStrategy({ visitor: visitorDelegate, murmurHash })
 
-  it('test synchronizedModifications', () => {
-    notReadyStrategy.synchronizeModifications().then(() => {
-      const methodName = 'synchronizeModifications'
-      expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
-    })
-  })
-
   it('test fetchFlags', () => {
     notReadyStrategy.fetchFlags().then(() => {
       const methodName = 'fetchFlags'
-      expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
-    })
-  })
-
-  it('test getModification', () => {
-    const defaultValue = 'value'
-    notReadyStrategy.getModification({ key: 'key', defaultValue }).then((value) => {
-      const methodName = 'getModification'
-
-      expect(value).toBe(defaultValue)
       expect(logError).toBeCalledTimes(1)
       expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
     })
@@ -68,27 +49,6 @@ describe('test NotReadyStrategy', () => {
     expect(flagValue).toBe(defaultValue)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
-  })
-
-  it('test getModification array', () => {
-    const defaultValue = 'value'
-    notReadyStrategy.getModifications([{ key: 'key', defaultValue }]).then((value) => {
-      const methodName = 'getModifications'
-
-      expect(value).toEqual({ key: defaultValue })
-      expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
-    })
-  })
-
-  it('test getModificationInfo', () => {
-    notReadyStrategy.getModificationInfo('key').then((modification) => {
-      const methodName = 'getModificationInfo'
-
-      expect(modification).toBeNull()
-      expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
-    })
   })
 
   it('test getFlagMetadata', () => {
@@ -123,26 +83,10 @@ describe('test NotReadyStrategy', () => {
     expect(logError).toBeCalledWith(sprintf(METADATA_SDK_NOT_READY, visitorId, key, metadata), FLAG_METADATA)
   })
 
-  it('test activateModification', () => {
-    notReadyStrategy.activateModification('key').then(() => {
-      const methodName = 'activateModification'
-      expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
-    })
-  })
-
-  it('test userExposed', async () => {
+  it('test visitorExposed', async () => {
     await notReadyStrategy.visitorExposed()
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, FLAG_USER_EXPOSED, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), FLAG_USER_EXPOSED)
-  })
-
-  it('test activateModifications', () => {
-    notReadyStrategy.activateModifications(['key']).then(() => {
-      const methodName = 'activateModifications'
-      expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
-    })
   })
 
   it('test sendHit', () => {
