@@ -68,41 +68,11 @@ describe('test NotReadyStrategy', () => {
     expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
   })
 
-  it('test getModification', async () => {
-    const defaultValue = 'value'
-    const value = await panicStrategy.getModification({ key: 'key', defaultValue })
-    const methodName = 'getModification'
-    expect(value).toBe(defaultValue)
-    expect(logInfo).toBeCalledTimes(1)
-    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
-  })
-
   it('test getFlagValue', () => {
     const defaultValue = 'value'
     const flagValue = panicStrategy.getFlagValue({ key: 'key', defaultValue })
     const methodName = 'Flag.value'
     expect(flagValue).toBe(defaultValue)
-    expect(logInfo).toBeCalledTimes(1)
-    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
-  })
-
-  it('test getModification array', async () => {
-    const defaultValue = 'value'
-    const value = await panicStrategy.getModifications([{ key: 'key', defaultValue }])
-
-    const methodName = 'getModifications'
-
-    expect(value).toEqual({ key: defaultValue })
-    expect(logInfo).toBeCalledTimes(1)
-    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
-  })
-
-  it('test getModificationInfo', async () => {
-    const modification = await panicStrategy.getModificationInfo('key')
-
-    const methodName = 'getModificationInfo'
-
-    expect(modification).toBeNull()
     expect(logInfo).toBeCalledTimes(1)
     expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
   })
@@ -163,32 +133,17 @@ describe('test NotReadyStrategy', () => {
         })
       }
     }
-    await panicStrategy.synchronizeModifications()
+    await panicStrategy.fetchFlags()
     expect(visitorDelegate.campaigns).toEqual([])
     expect(cacheVisitor).toBeCalledTimes(0)
     await panicStrategy.lookupHits()
     await panicStrategy.lookupVisitor()
   })
 
-  it('test activateModification', async () => {
-    await panicStrategy.activateModification('key')
-
-    const methodName = 'activateModification'
-    expect(logInfo).toBeCalledTimes(1)
-    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
-  })
-
-  it('test userExposed', async () => {
+  it('test visitorExposed', async () => {
     await panicStrategy.visitorExposed()
     expect(logInfo).toBeCalledTimes(1)
     expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, FLAG_USER_EXPOSED, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), FLAG_USER_EXPOSED)
-  })
-
-  it('test activateModifications', async () => {
-    await panicStrategy.activateModifications(['key'])
-    const methodName = 'activateModifications'
-    expect(logInfo).toBeCalledTimes(1)
-    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
   })
 
   it('test sendHit', async () => {
