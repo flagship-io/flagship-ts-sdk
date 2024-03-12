@@ -24,17 +24,16 @@ describe('test DecisionApiConfig', () => {
     expect(config.envId).toBeUndefined()
     expect(config.logLevel).toBe(LogLevel.ALL)
     expect(config.logManager).toBeUndefined()
-    expect(config.statusChangedCallback).toBeUndefined()
+    expect(config.onSdkStatusChanged).toBeUndefined()
     expect(config.timeout).toBe(REQUEST_TIME_OUT)
     expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
     expect(config.fetchNow).toBeTruthy()
-    expect(config.enableClientCache).toBeTruthy()
+    expect(config.reuseVisitorIds).toBeTruthy()
     expect(config.initialBucketing).toBeUndefined()
     expect(config.decisionApiUrl).toBe(BASE_API_URL)
     expect(config.hitDeduplicationTime).toBe(DEFAULT_DEDUPLICATION_TIME)
     expect(config.hitCacheImplementation).toBeUndefined()
     expect(config.visitorCacheImplementation).toBeUndefined()
-    expect(config.onUserExposure).toBeUndefined()
     expect(config.disableCache).toBeFalsy()
     expect(config.trackingManagerConfig).toBeInstanceOf(TrackingManagerConfig)
     expect(config.onLog).toBeUndefined()
@@ -84,7 +83,6 @@ describe('test DecisionApiConfig', () => {
       }
     }
 
-    const onUserExposure = jest.fn()
     const onVisitorExposed = jest.fn()
 
     const onLog = jest.fn()
@@ -95,15 +93,14 @@ describe('test DecisionApiConfig', () => {
       logLevel: LogLevel.DEBUG,
       timeout: 5,
       logManager,
-      statusChangedCallback: statusChang,
+      onSdkStatusChanged: statusChang,
       fetchNow: false,
-      enableClientCache: false,
+      reuseVisitorIds: false,
       initialBucketing,
       visitorCacheImplementation,
       hitCacheImplementation,
       disableCache: true,
       hitDeduplicationTime: 20,
-      onUserExposure,
       onLog,
       onVisitorExposed
     })
@@ -112,16 +109,15 @@ describe('test DecisionApiConfig', () => {
     expect(config.envId).toBe(envId)
     expect(config.logLevel).toBe(LogLevel.DEBUG)
     expect(config.logManager).toBe(logManager)
-    expect(config.statusChangedCallback).toBe(statusChang)
+    expect(config.onSdkStatusChanged).toBe(statusChang)
     expect(config.timeout).toBe(5)
     expect(config.fetchNow).toBeFalsy()
-    expect(config.enableClientCache).toBeFalsy()
+    expect(config.reuseVisitorIds).toBeFalsy()
     expect(config.initialBucketing).toEqual(initialBucketing)
     expect(config.visitorCacheImplementation).toBe(visitorCacheImplementation)
     expect(config.hitCacheImplementation).toBe(hitCacheImplementation)
     expect(config.disableCache).toBeTruthy()
     expect(config.hitDeduplicationTime).toBe(20)
-    expect(config.onUserExposure).toBe(onUserExposure)
     expect(config.onVisitorExposed).toBe(onVisitorExposed)
     expect(config.onLog).toBe(onLog)
   })
@@ -179,15 +175,15 @@ describe('test DecisionApiConfig', () => {
 
   it('test statusChangedCallback', () => {
     const func = {} as (status: FlagshipStatus) => void
-    config.statusChangedCallback = func
-    expect(config.statusChangedCallback).toBeUndefined()
+    config.onSdkStatusChanged = func
+    expect(config.onSdkStatusChanged).toBeUndefined()
 
     const func2 = () => {
       //
     }
-    config.statusChangedCallback = func2
+    config.onSdkStatusChanged = func2
 
-    expect(config.statusChangedCallback).toBe(func2)
+    expect(config.onSdkStatusChanged).toBe(func2)
 
     config.timeout = 3000
     expect(config.timeout).toBe(3000)
