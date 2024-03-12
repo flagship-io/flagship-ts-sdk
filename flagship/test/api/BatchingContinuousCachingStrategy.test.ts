@@ -1,5 +1,5 @@
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
-import { Event, EventCategory, HitAbstract, IExposedFlag, IExposedVisitor, LogLevel, OnVisitorExposed, Page, TroubleshootingLabel, UserExposureInfo } from '../../src'
+import { Event, EventCategory, HitAbstract, IExposedFlag, IExposedVisitor, LogLevel, OnVisitorExposed, Page, TroubleshootingLabel } from '../../src'
 import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinuousCachingStrategy'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
 import { EdgeConfig } from '../../src/config/EdgeConfig'
@@ -180,13 +180,11 @@ describe('test activateFlag method', () => {
   const postAsync = jest.spyOn(httpClient, 'postAsync')
 
   const onVisitorExposed = jest.fn<(arg: OnVisitorExposed)=>void>()
-  const onUserExposure = jest.fn<(param: UserExposureInfo)=>void>()
 
   const config = new DecisionApiConfig({
     envId: 'envId',
     apiKey: 'apiKey',
-    onVisitorExposed,
-    onUserExposure
+    onVisitorExposed
   })
 
   const logManager = new FlagshipLogManager()
@@ -284,30 +282,6 @@ describe('test activateFlag method', () => {
     }
     expect(onVisitorExposed).toBeCalledTimes(1)
     expect(onVisitorExposed).toBeCalledWith({ exposedVisitor, fromFlag })
-
-    const flagData = {
-      metadata: {
-        campaignId: activateHit.flagMetadata.campaignId,
-        campaignType: activateHit.flagMetadata.campaignType,
-        slug: activateHit.flagMetadata.slug,
-        isReference: activateHit.flagMetadata.isReference,
-        variationGroupId: activateHit.flagMetadata.variationGroupId,
-        variationId: activateHit.flagMetadata.variationId,
-        campaignName: activateHit.flagMetadata.campaignName,
-        variationGroupName: activateHit.flagMetadata.variationGroupName,
-        variationName: activateHit.flagMetadata.variationName
-      },
-      key: activateHit.flagKey,
-      value: activateHit.flagValue
-    }
-
-    const visitorData = {
-      visitorId: activateHit.visitorId,
-      anonymousId: activateHit.anonymousId as string,
-      context: activateHit.visitorContext
-    }
-    expect(onUserExposure).toBeCalledTimes(1)
-    expect(onUserExposure).toBeCalledWith({ flagData, visitorData })
 
     expect(flushHits).toBeCalledTimes(0)
   })
