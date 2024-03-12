@@ -1,3 +1,4 @@
+import { returnFlag } from './modification'
 import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig, EventCategory } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
@@ -7,11 +8,10 @@ import { HitType } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { VisitorDelegate, DefaultStrategy } from '../../src/visitor'
-import { returnModification } from './modification'
-import { sleep } from '../../src/utils/utils'
 import { MurmurHash } from '../../src/utils/MurmurHash'
+import { sleep } from '../../src/utils/utils'
 
-describe('Name of the group', () => {
+describe('Visitor DeDuplication', () => {
   const visitorId = 'visitorId'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const context: any = {
@@ -37,37 +37,11 @@ describe('Name of the group', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
   const murmurHash = new MurmurHash()
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
-  const getModifications = jest.spyOn(
-    apiManager,
-    'getModifications'
-  )
-
-  const getCampaignsAsync = jest.spyOn(
-    apiManager,
-    'getCampaignsAsync'
-  )
-
-  it('should ', async () => {
-    getCampaignsAsync.mockResolvedValue([])
-    getModifications.mockReturnValue(returnModification)
-    await defaultStrategy.synchronizeModifications()
-  })
-
-  it('test activation ', async () => {
-    const key = 'keyString'
-    await defaultStrategy.activateModification(key)
-    await defaultStrategy.activateModification(key)
-    await defaultStrategy.activateModification(key)
-    await defaultStrategy.activateModification('keyNumber')
-    await defaultStrategy.activateModification('keyNumber')
-    expect(activateFlag).toBeCalledTimes(2)
-  })
-
-  it('test userExposed ', async () => {
+  it('test visitorExposed', async () => {
     const flag = {
       key: 'keyNull',
       campaignId: 'c2nrh1hjg50l9thhu8bg',
@@ -111,17 +85,6 @@ describe('Name of the group', () => {
     await defaultStrategy.sendHit({ ...hit, action: 'action_2' })
     expect(addHit).toBeCalledTimes(2)
   })
-
-  it('test activation ', async () => {
-    config.hitDeduplicationTime = 1
-    const key = 'keyBoolean'
-    await defaultStrategy.activateModification(key)
-    await defaultStrategy.activateModification(key)
-    await defaultStrategy.activateModification(key)
-    await sleep(1200)
-    await defaultStrategy.activateModification(key)
-    expect(activateFlag).toBeCalledTimes(2)
-  })
 })
 
 describe('Clean cache', () => {
@@ -153,7 +116,7 @@ describe('Clean cache', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager })
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
   const murmurHash = new MurmurHash()
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
@@ -169,16 +132,18 @@ describe('Clean cache', () => {
 
   it('should ', async () => {
     getCampaignsAsync.mockResolvedValue([])
-    getModifications.mockReturnValue(returnModification)
-    await defaultStrategy.synchronizeModifications()
+    getModifications.mockReturnValue(returnFlag)
+    await defaultStrategy.fetchFlags()
   })
   it('test clean cache ', async () => {
-    const keyBoolean = 'keyBoolean'
-    defaultStrategy.activateModification(keyBoolean)
-    defaultStrategy.activateModification('key')
-    defaultStrategy.activateModification('array')
+    const flagBoolean = returnFlag.get('keyBoolean')
+    const flagKey = returnFlag.get('key')
+    const flagArray = returnFlag.get('array')
+    defaultStrategy.visitorExposed({ key: flagBoolean?.key as string, flag: flagBoolean, defaultValue: false })
+    defaultStrategy.visitorExposed({ key: flagKey?.key as string, flag: flagKey, defaultValue: 'default value' })
+    defaultStrategy.visitorExposed({ key: flagArray?.key as string, flag: flagArray, defaultValue: [] })
     await sleep(1200)
-    await defaultStrategy.activateModification(keyBoolean)
+    await defaultStrategy.visitorExposed({ key: flagBoolean?.key as string, flag: flagBoolean, defaultValue: false })
     expect(activateFlag).toBeCalledTimes(4)
   })
 })
