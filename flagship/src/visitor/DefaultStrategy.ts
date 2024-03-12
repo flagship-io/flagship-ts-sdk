@@ -274,7 +274,7 @@ export class DefaultStrategy extends StrategyAbstract {
         sdkConfigTrackingManagerBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
         sdkConfigTrackingManagerPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
         sdkConfigFetchNow: this.config.fetchNow,
-        sdkConfigEnableClientCache: this.config.reuseVisitorIds,
+        sdkConfigReuseVisitorIds: this.config.reuseVisitorIds,
         sdkConfigInitialBucketing: this.config.initialBucketing,
         sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
         sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
