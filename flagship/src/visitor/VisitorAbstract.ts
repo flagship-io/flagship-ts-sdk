@@ -1,5 +1,5 @@
 import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
-import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
+import { IConfigManager, IFlagshipConfig } from '../config/index'
 import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, sdkInitialData, VisitorCacheStatus } from '../types'
 
 import { IVisitor } from './IVisitor'
@@ -106,10 +106,9 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     this.campaigns = []
 
-    this._anonymousId = isAuthenticated && visitorCache?.anonymousId ? visitorCache?.anonymousId : null
-
-    if (!this._anonymousId && isAuthenticated && (this.config.decisionMode === DecisionMode.DECISION_API || this.config.decisionMode === DecisionMode.API)) {
-      this._anonymousId = uuidV4()
+    this._anonymousId = null
+    if (isAuthenticated) {
+      this._anonymousId = visitorCache?.anonymousId || uuidV4()
     }
 
     this.setConsent(hasConsented || false)
