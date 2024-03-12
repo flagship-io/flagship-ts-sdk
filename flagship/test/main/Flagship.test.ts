@@ -2,7 +2,9 @@ import { jest, expect, it, describe } from '@jest/globals'
 // import { mocked } from 'ts-jest/utils'
 import { DecisionApiConfig, DecisionMode } from '../../src/config/index'
 import {
+  CONSENT_NOT_SPECIFY_WARNING,
   FlagshipStatus,
+  PROCESS_NEW_VISITOR,
   SDK_INFO
 } from '../../src/enum/index'
 import { Flagship } from '../../src/main/Flagship'
@@ -12,6 +14,7 @@ import { Visitor } from '../../src/visitor/Visitor'
 import { DefaultVisitorCache } from '../../src/cache/DefaultVisitorCache'
 import { DefaultHitCache } from '../../src/cache/DefaultHitCache'
 import { EdgeConfig } from '../../src/config/EdgeConfig'
+import { NewVisitor } from '../../src'
 
 const getCampaignsAsync = jest.fn().mockReturnValue(Promise.resolve([]))
 
@@ -120,7 +123,7 @@ describe('test Flagship with custom config', () => {
   const apiKey = 'apiKey'
 
   let countStatus = 0
-  const statusChangedCallback = (status:FlagshipStatus) => {
+  const onSdkStatusChanged = (status:FlagshipStatus) => {
     switch (countStatus) {
       case 0:
         expect(status).toBe(FlagshipStatus.STARTING)
@@ -141,7 +144,7 @@ describe('test Flagship with custom config', () => {
   it('should api mode ', () => {
     const instance = Flagship.start(envId, apiKey, {
       decisionMode: DecisionMode.DECISION_API,
-      statusChangedCallback
+      onSdkStatusChanged
     })
     expect(Flagship.getConfig()).toBeDefined()
     expect(Flagship.getConfig()).toBeInstanceOf(DecisionApiConfig)
@@ -166,7 +169,7 @@ describe('test Flagship with custom config', () => {
   const apiKey = 'apiKey'
 
   let countStatus = 0
-  const statusChangedCallback = (status:FlagshipStatus) => {
+  const onSdkStatusChanged = (status:FlagshipStatus) => {
     switch (countStatus) {
       case 0:
         expect(status).toBe(FlagshipStatus.STARTING)
@@ -187,7 +190,7 @@ describe('test Flagship with custom config', () => {
   it('should api mode ', () => {
     const instance = Flagship.start(envId, apiKey, {
       decisionMode: DecisionMode.BUCKETING_EDGE,
-      statusChangedCallback,
+      onSdkStatusChanged,
       initialBucketing: {}
     })
     expect(Flagship.getConfig()).toBeDefined()
@@ -215,7 +218,12 @@ const getNull = (): any => {
 
 describe('test Flagship newVisitor', () => {
   it('should ', async () => {
-    Flagship.start('envId', 'apiKey')
+    const logManager = new FlagshipLogManager()
+    const logWarning = jest.spyOn(logManager, 'warning')
+
+    Flagship.start('envId', 'apiKey', {
+      logManager
+    })
     const visitorId = 'visitorId'
     const context = { isVip: true }
     const predefinedContext = {
@@ -224,7 +232,7 @@ describe('test Flagship newVisitor', () => {
       fs_users: visitorId
     }
     // expect(addHit).toBeCalledTimes(1)
-    let visitor = Flagship.newVisitor({ visitorId, context })
+    let visitor = Flagship.newVisitor({ visitorId, context, hasConsented: true })
 
     expect(visitor?.visitorId).toBe(visitorId)
     expect(visitor?.context).toEqual({ ...context, ...predefinedContext })
@@ -232,64 +240,68 @@ describe('test Flagship newVisitor', () => {
 
     expect(addHit).toBeCalledTimes(1)
 
-    const visitorNull = Flagship.newVisitor({ visitorId: getNull(), context })
+    const visitorNull = Flagship.newVisitor({ visitorId: getNull(), context, hasConsented: true })
     expect(visitorNull).toBeInstanceOf(Visitor)
 
-    const newVisitor = Flagship.newVisitor({ visitorId })
+    const newVisitor = Flagship.newVisitor({ visitorId, hasConsented: true })
     expect(newVisitor?.context).toEqual({ ...predefinedContext })
+    expect(newVisitor?.hasConsented).toBe(true)
 
     await sleep(500)
     expect(getCampaignsAsync).toBeCalledTimes(3)
     expect(getCampaignsAsync).toBeCalledWith(expect.objectContaining({ visitorId: visitor?.visitorId, context: visitor?.context }))
 
-    visitor = Flagship.newVisitor({ visitorId, context })
+    visitor = Flagship.newVisitor({ visitorId, context, hasConsented: true })
 
     expect(visitor?.visitorId).toBe(visitorId)
     expect(visitor?.context).toEqual({ ...context, ...predefinedContext })
 
-    visitor = Flagship.newVisitor({})
+    visitor = Flagship.newVisitor({} as NewVisitor)
 
     expect(visitor?.visitorId).toBeDefined()
     expect(visitor?.context).toEqual(expect.objectContaining({ ...predefinedContext, fs_users: expect.anything() }))
     expect(visitor?.anonymousId).toBeNull()
+    expect(visitor?.hasConsented).toBe(false)
+    expect(logWarning).toBeCalledTimes(1)
+    expect(logWarning).toBeCalledWith(CONSENT_NOT_SPECIFY_WARNING, PROCESS_NEW_VISITOR)
 
-    visitor = Flagship.newVisitor({ isNewInstance: true })
+    visitor = Flagship.newVisitor({ shouldSaveInstance: false, hasConsented: true })
     expect(Flagship.getVisitor()).toBeUndefined()
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     global.window = jest.fn() as any
 
-    // test client side true and isNewInstance to false
-    visitor = Flagship.newVisitor({ isNewInstance: false, hasConsented: false })
+    // test client side true and shouldSaveInstance to false
+    visitor = Flagship.newVisitor({ shouldSaveInstance: true, hasConsented: false })
     expect(Flagship.getVisitor()).toBeDefined()
     expect(visitor).toBe(Flagship.getVisitor())
 
-    visitor = Flagship.newVisitor()
+    visitor = Flagship.newVisitor({} as NewVisitor)
     expect(Flagship.getVisitor()).toBeDefined()
     expect(visitor).toBe(Flagship.getVisitor())
 
-    // test client side true and isNewInstance to true
+    // test client side true and shouldSaveInstance to false
     // Create a visitor: "visitor_1" as NEW_INSTANCE
-    visitor = Flagship.newVisitor({ visitorId: 'visitor_1', isNewInstance: true })
+    visitor = Flagship.newVisitor({ visitorId: 'visitor_1', shouldSaveInstance: false, hasConsented: true })
     expect(Flagship.getVisitor()).toBeUndefined()
 
     // scenario 2
-    visitor = Flagship.newVisitor({ visitorId: 'visitor_2', isNewInstance: false })
+    visitor = Flagship.newVisitor({ visitorId: 'visitor_2', shouldSaveInstance: true, hasConsented: true })
     expect(Flagship.getVisitor()).toBeDefined()
     expect(Flagship.getVisitor()?.visitorId).toBe('visitor_2')
 
     // scenario 3
-    visitor = Flagship.newVisitor({ visitorId: 'visitor_3', isNewInstance: false })
+    visitor = Flagship.newVisitor({ visitorId: 'visitor_3', shouldSaveInstance: true, hasConsented: true })
     expect(Flagship.getVisitor()).toBeDefined()
     expect(Flagship.getVisitor()?.visitorId).toBe('visitor_3')
 
     // scenario 4
 
-    const visitor1 = Flagship.newVisitor({ visitorId: 'visitor_1', isNewInstance: false })
+    const visitor1 = Flagship.newVisitor({ visitorId: 'visitor_1', shouldSaveInstance: true, hasConsented: true })
     visitor1?.updateContext({ color: 'blue' })
     expect(Flagship.getVisitor()?.context.color).toBe('blue')
 
-    const visitor2 = Flagship.newVisitor({ visitorId: 'visitor_2', isNewInstance: false })
+    const visitor2 = Flagship.newVisitor({ visitorId: 'visitor_2', shouldSaveInstance: true, hasConsented: true })
     expect(Flagship.getVisitor()?.context.color).toBeUndefined()
     Flagship.getVisitor()?.updateContext({ color: 'red' })
 
