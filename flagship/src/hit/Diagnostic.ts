@@ -42,7 +42,7 @@ export interface IDiagnostic extends IHitAbstract{
     sdkConfigTimeout?: number
     sdkConfigPollingInterval?: number
     sdkConfigFetchNow?: boolean
-    sdkConfigEnableClientCache?: boolean
+    sdkConfigReuseVisitorIds?: boolean
     sdkConfigInitialBucketing?:BucketingDTO
     sdkConfigDecisionApiUrl?: string
     sdkConfigHitDeduplicationTime?: number
@@ -159,7 +159,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
   private _flagMetadataCampaignSlug? : string | null | undefined
   private _flagMetadataCampaignType? : string
   private _sdkConfigFetchNow? : boolean
-  private _sdkConfigEnableClientCache? : boolean
+  private _sdkConfigReuseVisitorIds? : boolean
   private _sdkConfigInitialBucketing? : BucketingDTO
   private _sdkConfigDecisionApiUrl? : string
   private _sdkConfigHitDeduplicationTime? : number
@@ -450,12 +450,12 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     this._sdkConfigInitialBucketing = v
   }
 
-  public get sdkConfigEnableClientCache () : boolean|undefined {
-    return this._sdkConfigEnableClientCache
+  public get sdkConfigReuseVisitorIds () : boolean|undefined {
+    return this._sdkConfigReuseVisitorIds
   }
 
-  public set sdkConfigEnableClientCache (v : boolean|undefined) {
-    this._sdkConfigEnableClientCache = v
+  public set sdkConfigReuseVisitorIds (v : boolean|undefined) {
+    this._sdkConfigReuseVisitorIds = v
   }
 
   public get sdkConfigFetchNow () : boolean|undefined {
@@ -846,7 +846,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       httpRequestHeaders, httpRequestBody, httpResponseTime,
       httpResponseUrl, httpResponseMethod, httpResponseHeaders, httpResponseCode, httpResponseBody, visitorStatus, visitorInstanceType, visitorContext,
       visitorConsent, visitorAssignmentHistory, visitorFlags, visitorIsAuthenticated, config, flagKey, flagValue, flagDefault,
-      flagMetadataCampaignId, flagMetadataVariationGroupId, flagMetadataVariationId, flagMetadataCampaignSlug, flagMetadataCampaignType, sdkConfigFetchNow, sdkConfigEnableClientCache,
+      flagMetadataCampaignId, flagMetadataVariationGroupId, flagMetadataVariationId, flagMetadataCampaignSlug, flagMetadataCampaignType, sdkConfigFetchNow, sdkConfigReuseVisitorIds,
       sdkConfigInitialBucketing, sdkConfigDecisionApiUrl, sdkConfigHitDeduplicationTime, flagshipInstanceId, hitContent, traffic,
       lastInitializationTimestamp, lastBucketingTimestamp, batchTriggeredBy, visitorCampaigns, visitorCampaignFromCache, visitorInitialCampaigns,
       visitorInitialFlagsData, flagMetadataCampaignIsReference, contextKey, contextValue, sdkBucketingFile, flagMetadataCampaignName, flagMetadataVariationGroupName,
@@ -903,7 +903,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     this.sdkConfigTrackingManagerBatchIntervals = sdkConfigTrackingManagerConfigBatchIntervals
     this.sdkConfigTrackingManagerPoolMaxSize = sdkConfigTrackingManagerConfigPoolMaxSize
     this.sdkConfigFetchNow = sdkConfigFetchNow
-    this.sdkConfigEnableClientCache = sdkConfigEnableClientCache
+    this.sdkConfigReuseVisitorIds = sdkConfigReuseVisitorIds
     this.sdkConfigInitialBucketing = sdkConfigInitialBucketing
     this.sdkConfigDecisionApiUrl = sdkConfigDecisionApiUrl
     this.sdkConfigHitDeduplicationTime = sdkConfigHitDeduplicationTime
@@ -1032,8 +1032,8 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     if (this.sdkConfigFetchNow !== undefined) {
       customVariable['sdk.config.fetchNow'] = `${this.sdkConfigFetchNow}`
     }
-    if (this.sdkConfigEnableClientCache !== undefined) {
-      customVariable['sdk.config.enableClientCache'] = `${this.sdkConfigEnableClientCache}`
+    if (this.sdkConfigReuseVisitorIds !== undefined) {
+      customVariable['sdk.config.reuseVisitorIds'] = `${this.sdkConfigReuseVisitorIds}`
     }
     if (this.sdkConfigInitialBucketing !== undefined) {
       customVariable['sdk.config.initialBucketing'] = JSON.stringify(this.sdkConfigInitialBucketing)
