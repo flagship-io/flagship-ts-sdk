@@ -1,16 +1,9 @@
 import { CampaignDTO } from './decision/api/models'
 import { HitType } from './enum/index'
-import { IEvent, IItem, IPage, IScreen, ITransaction, HitShape, IHitAbstract } from './hit/index'
-
-export type modificationsRequested<T> = {
-    key: string,
-    defaultValue: T,
-    activate? :boolean
-  }
+import { IEvent, IItem, IPage, IScreen, ITransaction, IHitAbstract } from './hit/index'
 
 export type primitive=string | number | boolean
 
-export type { HitShape }
 export type IHit = Omit<IPage, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IScreen, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IEvent, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IItem, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<ITransaction, 'createdAt'|'visitorId'|'anonymousId'|'ds'>
 
 export type FlagDTO= {
@@ -27,11 +20,6 @@ export type FlagDTO= {
  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
 }
-
-/**
- * @deprecated use FlagDTO instead
- */
-export type Modification= FlagDTO
 
 export type NewVisitor={
   /**
@@ -139,19 +127,6 @@ export type OnVisitorExposed ={
   exposedVisitor: IExposedVisitor
   fromFlag: IExposedFlag
 }
-
-export type UserExposureInfo = {
-  flagData: {
-    key: string
-    value: unknown
-    metadata: IFlagMetadata
-  },
-  visitorData: {
-    visitorId: string
-    anonymousId: string|null
-    context: Record<string, primitive>
-  }
- }
 
 export type TroubleshootingData = {
   startDate: Date
