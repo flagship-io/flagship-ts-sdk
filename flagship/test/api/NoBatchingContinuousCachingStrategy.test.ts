@@ -1,5 +1,5 @@
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
-import { DecisionApiConfig, Event, EventCategory, HitAbstract, OnVisitorExposed, Page, TroubleshootingLabel, UserExposureInfo } from '../../src'
+import { DecisionApiConfig, Event, EventCategory, HitAbstract, OnVisitorExposed, Page, TroubleshootingLabel } from '../../src'
 import { NoBatchingContinuousCachingStrategy } from '../../src/api/NoBatchingContinuousCachingStrategy'
 import { HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, SDK_INFO, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, BASE_API_URL, URL_ACTIVATE_MODIFICATION, FS_CONSENT, LogLevel, DEFAULT_HIT_CACHE_TIME_MS, TRACKING_MANAGER_ERROR, DIRECT_HIT, TRACKING_MANAGER, BATCH_HIT } from '../../src/enum'
 import { BatchTriggeredBy } from '../../src/enum/BatchTriggeredBy'
@@ -26,8 +26,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
   const httpClient = new HttpClient()
 
   const onVisitorExposed = jest.fn<(arg: OnVisitorExposed)=>void>()
-  const onUserExposure = jest.fn<(param: UserExposureInfo)=>void>()
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', onVisitorExposed, onUserExposure })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', onVisitorExposed })
 
   const postAsync = jest.spyOn(httpClient, 'postAsync')
 
@@ -334,7 +333,6 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(flushHits).toBeCalledTimes(0)
 
     expect(onVisitorExposed).toBeCalledTimes(1)
-    expect(onUserExposure).toBeCalledTimes(1)
   })
 
   it('test activateFlag method throw error', async () => {
@@ -396,7 +394,6 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(cacheHitKeys.length).toBe(1)
 
     expect(onVisitorExposed).toBeCalledTimes(0)
-    expect(onUserExposure).toBeCalledTimes(0)
 
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
     const label: TroubleshootingLabel = TroubleshootingLabel.SEND_ACTIVATE_HIT_ROUTE_ERROR
