@@ -1,6 +1,6 @@
 import { FlagDTO } from '../../src/types'
 
-export const returnModification = new Map<string, FlagDTO>([
+export const returnFlag = new Map<string, FlagDTO>([
   [
     'keyNull',
     {
