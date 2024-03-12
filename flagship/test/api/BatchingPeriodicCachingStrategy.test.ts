@@ -1,5 +1,5 @@
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
-import { Event, EventCategory, OnVisitorExposed, TroubleshootingLabel, UserExposureInfo } from '../../src'
+import { Event, EventCategory, OnVisitorExposed, TroubleshootingLabel } from '../../src'
 import { BatchingPeriodicCachingStrategy } from '../../src/api/BatchingPeriodicCachingStrategy'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
 import { HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, SDK_INFO, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, BASE_API_URL, URL_ACTIVATE_MODIFICATION, FS_CONSENT, LogLevel, DEFAULT_HIT_CACHE_TIME_MS, BATCH_HIT, TRACKING_MANAGER, TRACKING_MANAGER_ERROR } from '../../src/enum'
@@ -433,9 +433,8 @@ describe('test activateFlag method', () => {
   const postAsync = jest.spyOn(httpClient, 'postAsync')
 
   const onVisitorExposed = jest.fn<(arg: OnVisitorExposed)=>void>()
-  const onUserExposure = jest.fn<(param: UserExposureInfo)=>void>()
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', onVisitorExposed, onUserExposure })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', onVisitorExposed })
   const logManager = new FlagshipLogManager()
 
   config.logManager = logManager
@@ -510,7 +509,6 @@ describe('test activateFlag method', () => {
     expect(cacheHit).toBeCalledTimes(0)
 
     expect(onVisitorExposed).toBeCalledTimes(1)
-    expect(onUserExposure).toBeCalledTimes(1)
   })
 
   it('test multiple activate success', async () => {
@@ -608,7 +606,6 @@ describe('test activateFlag method', () => {
     expect(flushHits).toBeCalledTimes(0)
 
     expect(onVisitorExposed).toBeCalledTimes(3)
-    expect(onUserExposure).toBeCalledTimes(3)
   })
 
   it('test multiple activate failed', async () => {
@@ -710,7 +707,6 @@ describe('test activateFlag method', () => {
     expect(cacheHit).toBeCalledTimes(0)
 
     expect(onVisitorExposed).toBeCalledTimes(0)
-    expect(onUserExposure).toBeCalledTimes(0)
 
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
     const label: TroubleshootingLabel = TroubleshootingLabel.SEND_ACTIVATE_HIT_ROUTE_ERROR
