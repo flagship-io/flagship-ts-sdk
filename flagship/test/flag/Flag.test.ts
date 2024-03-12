@@ -82,8 +82,8 @@ describe('test Flag', () => {
     })
   })
 
-  it('test userExposed', () => {
-    flag.userExposed()
+  it('test visitorExposed', () => {
+    flag.visitorExposed()
     expect(visitorExposed).toBeCalledTimes(1)
     expect(visitorExposed).toBeCalledWith({
       key: flagDto.key,
