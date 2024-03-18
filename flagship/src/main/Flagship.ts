@@ -34,7 +34,6 @@ import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 import { EdgeManager } from '../decision/EdgeManager'
 import { EdgeConfig } from '../config/EdgeConfig'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
-import { IVisitor } from '../visitor/IVisitor'
 
 export class Flagship {
   // eslint-disable-next-line no-use-before-define
@@ -279,7 +278,7 @@ export class Flagship {
    * @param params - The parameters for creating the new Visitor.
    * @returns A new Visitor instance.
    */
-  public newVisitor (params: NewVisitor): IVisitor {
+  public newVisitor (params: NewVisitor) {
     return Flagship.newVisitor(params)
   }
 
@@ -289,7 +288,7 @@ export class Flagship {
    * @param params - The parameters for creating the new Visitor.
    * @returns A new Visitor instance.
    */
-  public static newVisitor ({ visitorId, context, isAuthenticated, hasConsented, initialCampaigns, initialFlagsData, shouldSaveInstance }: NewVisitor): IVisitor {
+  public static newVisitor ({ visitorId, context, isAuthenticated, hasConsented, initialCampaigns, initialFlagsData, shouldSaveInstance }: NewVisitor) {
     const saveInstance = shouldSaveInstance ?? isBrowser()
 
     if (!this._instance?.configManager) {
