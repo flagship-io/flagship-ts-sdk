@@ -121,6 +121,7 @@ export class Visitor extends EventEmitter implements IVisitor {
    */
   sendHit(hit: HitAbstract): Promise<void>;
   sendHit(hit: IHit): Promise<void>;
+  sendHit (hit: IHit|HitAbstract): Promise<void>
   sendHit (hit: IHit|HitAbstract): Promise<void> {
     return this.visitorDelegate.sendHit(hit)
   }
@@ -130,6 +131,7 @@ export class Visitor extends EventEmitter implements IVisitor {
    */
   sendHits(hits: HitAbstract[]): Promise<void>;
   sendHits(hits: IHit[]): Promise<void>;
+  sendHits (hits: HitAbstract[] | IHit[]): Promise<void>
   sendHits (hits: HitAbstract[] | IHit[]): Promise<void> {
     return this.visitorDelegate.sendHits(hits)
   }
