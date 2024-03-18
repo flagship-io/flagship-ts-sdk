@@ -3,7 +3,7 @@ import { IFlagshipConfig } from '../config/index'
 import { IHttpClient } from '../utils/HttpClient'
 import { CampaignDTO } from './api/models'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
-import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, PROCESS_FETCHING_FLAGS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
+import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FSSdkStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, PROCESS_FETCHING_FLAGS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
 import { FlagDTO, TroubleshootingData, TroubleshootingLabel } from '../types'
 import { errorFormat, logDebug } from '../utils/utils'
 import { Troubleshooting } from '../hit/Troubleshooting'
@@ -13,7 +13,7 @@ export abstract class DecisionManager implements IDecisionManager {
   protected _config: IFlagshipConfig
   protected _panic = false
   protected _httpClient: IHttpClient
-  private _statusChangedCallback! : (status: FlagshipStatus)=>void
+  private _statusChangedCallback! : (status: FSSdkStatus)=>void
   private _troubleshooting? : TroubleshootingData
 
   protected _lastBucketingTimestamp?:string
@@ -55,14 +55,14 @@ export abstract class DecisionManager implements IDecisionManager {
 
   // eslint-disable-next-line accessor-pairs
   protected set panic (v: boolean) {
-    this.updateFlagshipStatus(v ? FlagshipStatus.READY_PANIC_ON : FlagshipStatus.READY)
+    this.updateFlagshipStatus(v ? FSSdkStatus.SDK_PANIC : FSSdkStatus.SDK_INITIALIZED)
     this._panic = v
     if (v) {
       logDebug(this.config, FETCH_FLAGS_PANIC_MODE, PROCESS_FETCHING_FLAGS)
     }
   }
 
-  public statusChangedCallback (v : (status: FlagshipStatus)=>void):void {
+  public statusChangedCallback (v : (status: FSSdkStatus)=>void):void {
     this._statusChangedCallback = v
   }
 
@@ -71,7 +71,7 @@ export abstract class DecisionManager implements IDecisionManager {
     this._httpClient = httpClient
   }
 
-  protected updateFlagshipStatus (v:FlagshipStatus):void {
+  protected updateFlagshipStatus (v:FSSdkStatus):void {
     if (typeof this._statusChangedCallback === 'function' && this._statusChangedCallback) {
       this._statusChangedCallback(v)
     }

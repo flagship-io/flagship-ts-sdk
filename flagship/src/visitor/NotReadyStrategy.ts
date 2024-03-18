@@ -1,4 +1,4 @@
-import { FlagshipStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_SDK_NOT_READY } from '../enum/index'
+import { FSSdkStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_SDK_NOT_READY } from '../enum/index'
 import { FlagDTO, IFlagMetadata, IHit } from '../types'
 import { logErrorSprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
@@ -59,6 +59,6 @@ export class NotReadyStrategy extends DefaultStrategy {
   }
 
   private log (methodName:string) {
-    logErrorSprintf(this.config, methodName, METHOD_DEACTIVATED_ERROR, this.visitor.visitorId, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED])
+    logErrorSprintf(this.config, methodName, METHOD_DEACTIVATED_ERROR, this.visitor.visitorId, methodName, FSSdkStatus[FSSdkStatus.SDK_NOT_INITIALIZED])
   }
 }

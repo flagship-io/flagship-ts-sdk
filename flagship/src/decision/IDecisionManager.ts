@@ -1,12 +1,12 @@
 import { ITrackingManager } from '../api/ITrackingManager'
 import { IFlagshipConfig } from '../config/index'
-import { FlagshipStatus } from '../enum/index'
+import { FSSdkStatus } from '../enum/index'
 import { FlagDTO, TroubleshootingData } from '../types'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { CampaignDTO } from './api/models'
 
 export interface IDecisionManager {
-  statusChangedCallback(func:(status: FlagshipStatus)=>void):void
+  statusChangedCallback(func:(status: FSSdkStatus)=>void):void
 
   isPanic(): boolean
 

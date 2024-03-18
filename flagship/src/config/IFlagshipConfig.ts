@@ -1,7 +1,7 @@
 import { IHitCacheImplementation } from '../cache/IHitCacheImplementation'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation'
 import { BucketingDTO } from '../decision/api/bucketingDTO'
-import { FlagshipStatus } from '../enum/index'
+import { FSSdkStatus } from '../enum/index'
 import { LogLevel } from '../enum/LogLevel'
 import { OnVisitorExposed } from '../types'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
@@ -43,7 +43,7 @@ export interface IFlagshipConfig {
    * A callback function to be called when the SDK status has changed.
    * @param status - The new status of the SDK.
    */
-  onSdkStatusChanged?: (status: FlagshipStatus) => void;
+  onSdkStatusChanged?: (status: FSSdkStatus) => void;
 
   /**
    * A custom implementation of the LogManager interface to receive logs from the SDK.

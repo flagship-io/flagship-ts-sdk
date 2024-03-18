@@ -1,5 +1,5 @@
 
-import { FlagshipStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_PANIC_MODE } from '../enum/index'
+import { FSSdkStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_PANIC_MODE } from '../enum/index'
 import { FlagDTO, IFlagMetadata, IHit } from '../types'
 import { logInfoSprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
@@ -77,6 +77,6 @@ export class PanicStrategy extends DefaultStrategy {
   }
 
   private log (methodName:string) {
-    logInfoSprintf(this.config, methodName, METHOD_DEACTIVATED_ERROR, this.visitor.visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON])
+    logInfoSprintf(this.config, methodName, METHOD_DEACTIVATED_ERROR, this.visitor.visitorId, methodName, FSSdkStatus[FSSdkStatus.SDK_PANIC])
   }
 }

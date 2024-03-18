@@ -1,6 +1,6 @@
 import { ALLOCATION, BUCKETING_NEW_ALLOCATION, BUCKETING_VARIATION_CACHE, GET_THIRD_PARTY_SEGMENT, POLLING_EVENT_300, POLLING_EVENT_FAILED, THIRD_PARTY_SEGMENT_URL } from './../enum/FlagshipConstant'
 import { IFlagshipConfig } from '../config/index'
-import { BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, POLLING_EVENT_200, PROCESS_BUCKETING, SDK_INFO } from '../enum/index'
+import { BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, FSSdkStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, POLLING_EVENT_200, PROCESS_BUCKETING, SDK_INFO } from '../enum/index'
 import { Segment } from '../hit/Segment'
 import { ThirdPartySegment, TroubleshootingLabel, primitive } from '../types'
 import { IHttpClient, IHttpResponse } from '../utils/HttpClient'
@@ -67,7 +67,7 @@ export class BucketingManager extends DecisionManager {
 
     if (this._isFirstPooling) {
       this._isFirstPooling = false
-      this.updateFlagshipStatus(FlagshipStatus.READY)
+      this.updateFlagshipStatus(FSSdkStatus.SDK_INITIALIZED)
     }
 
     if (typeof this.config.onBucketingSuccess === 'function') {
@@ -95,7 +95,7 @@ export class BucketingManager extends DecisionManager {
     }
     this._isPooling = true
     if (this._isFirstPooling) {
-      this.updateFlagshipStatus(FlagshipStatus.POLLING)
+      this.updateFlagshipStatus(FSSdkStatus.POLLING)
     }
     const url = sprintf(BUCKETING_API_URL, this.config.envId)
     const headers: Record<string, string> = {
@@ -129,7 +129,7 @@ export class BucketingManager extends DecisionManager {
         duration: Date.now() - now
       }), PROCESS_BUCKETING)
       if (this._isFirstPooling) {
-        this.updateFlagshipStatus(FlagshipStatus.NOT_INITIALIZED)
+        this.updateFlagshipStatus(FSSdkStatus.SDK_NOT_INITIALIZED)
       }
       if (typeof this.config.onBucketingFail === 'function') {
         this.config.onBucketingFail(new Error(error))

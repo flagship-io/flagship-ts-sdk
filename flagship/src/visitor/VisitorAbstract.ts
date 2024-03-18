@@ -4,7 +4,7 @@ import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, s
 
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
-import { FlagshipStatus, SDK_INFO, VISITOR_ID_ERROR } from '../enum/index'
+import { FSSdkStatus, SDK_INFO, VISITOR_ID_ERROR } from '../enum/index'
 import { logDebugSprintf, logError, uuidV4 } from '../utils/utils'
 import { HitAbstract } from '../hit/index'
 import { DefaultStrategy } from './DefaultStrategy'
@@ -56,9 +56,9 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     return this._sdkInitialData
   }
 
-  public static SdkStatus?: FlagshipStatus
+  public static SdkStatus?: FSSdkStatus
 
-  public getSdkStatus () : FlagshipStatus|undefined {
+  public getSdkStatus () : FSSdkStatus|undefined {
     return VisitorAbstract.SdkStatus
   }
 
@@ -273,9 +273,9 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       murmurHash: new MurmurHash()
     }
     const status = this.getSdkStatus()
-    if (status === undefined || status === FlagshipStatus.NOT_INITIALIZED) {
+    if (status === undefined || status === FSSdkStatus.SDK_NOT_INITIALIZED) {
       strategy = new NotReadyStrategy(params)
-    } else if (status === FlagshipStatus.READY_PANIC_ON) {
+    } else if (status === FSSdkStatus.SDK_PANIC) {
       strategy = new PanicStrategy(params)
     } else if (!this.hasConsented) {
       strategy = new NoConsentStrategy(params)

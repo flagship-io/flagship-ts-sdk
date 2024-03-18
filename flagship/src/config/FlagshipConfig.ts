@@ -1,5 +1,5 @@
 import { BucketingDTO } from '../decision/api/bucketingDTO'
-import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FETCH_FLAG_BUFFERING_DEFAULT_TIME, FlagshipStatus, LogLevel, REQUEST_TIME_OUT, SDK_INFO, TYPE_ERROR } from '../enum/index'
+import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FETCH_FLAG_BUFFERING_DEFAULT_TIME, FSSdkStatus, LogLevel, REQUEST_TIME_OUT, SDK_INFO, TYPE_ERROR } from '../enum/index'
 import { IHitCacheImplementation } from '../cache/IHitCacheImplementation'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { logError, sprintf } from '../utils/utils'
@@ -18,7 +18,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   protected _decisionMode: DecisionMode
   private _timeout!: number
   private _logLevel!: LogLevel
-  private _onSdkStatusChanged?: (status: FlagshipStatus) => void
+  private _onSdkStatusChanged?: (status: FSSdkStatus) => void
   private _logManager!: IFlagshipLogManager
   private _fetchNow!: boolean
   private _pollingInterval!: number
@@ -277,11 +277,11 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._disableCache = v
   }
 
-  public get onSdkStatusChanged (): ((status: FlagshipStatus) => void) | undefined {
+  public get onSdkStatusChanged (): ((status: FSSdkStatus) => void) | undefined {
     return this._onSdkStatusChanged
   }
 
-  public set onSdkStatusChanged (fn: ((status: FlagshipStatus) => void) | undefined) {
+  public set onSdkStatusChanged (fn: ((status: FSSdkStatus) => void) | undefined) {
     if (fn && typeof fn !== 'function') {
       logError(this, statusChangeError, 'onSdkStatusChanged')
       return

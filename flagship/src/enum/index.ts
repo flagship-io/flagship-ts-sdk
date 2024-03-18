@@ -1,6 +1,6 @@
 export * from './LogLevel'
 export * from './FlagshipConstant'
-export * from './FlagshipStatus'
+export * from './FSSdkStatus'
 export * from './HitType'
 export * from './CacheStrategy'
 export * from './FlagSynchStatus'

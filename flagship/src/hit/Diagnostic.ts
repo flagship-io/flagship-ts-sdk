@@ -1,5 +1,5 @@
 import { IFlagshipConfig } from '../config/index'
-import { CacheStrategy, FlagshipStatus, LogLevel } from '../enum/index'
+import { CacheStrategy, FSSdkStatus, LogLevel } from '../enum/index'
 import {
   CUSTOMER_ENV_ID_API_ITEM,
   DS_API_ITEM,
@@ -33,7 +33,7 @@ export interface IDiagnostic extends IHitAbstract{
     stackOriginName?: string
     stackOriginVersion?: string
 
-    sdkStatus?: FlagshipStatus
+    sdkStatus?: FSSdkStatus
     sdkConfigMode?: string
     sdkConfigLogLevel?:LogLevel
     sdkConfigCustomLogManager?: boolean
@@ -125,7 +125,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
   private _stackVersion? : string
   private _stackOriginName? : string
   private _stackOriginVersion? : string
-  private _sdkStatus? : FlagshipStatus
+  private _sdkStatus? : FSSdkStatus
   private _sdkConfigMode? : string
   private _sdkConfigCustomLogManager? : boolean
   private _sdkConfigCustomCacheManager? : boolean
@@ -731,11 +731,11 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     this._sdkConfigMode = v
   }
 
-  public get sdkStatus () : FlagshipStatus|undefined {
+  public get sdkStatus () : FSSdkStatus|undefined {
     return this._sdkStatus
   }
 
-  public set sdkStatus (v : FlagshipStatus|undefined) {
+  public set sdkStatus (v : FSSdkStatus|undefined) {
     this._sdkStatus = v
   }
 
@@ -997,7 +997,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       customVariable['stack.origin.version'] = `${this.stackOriginVersion}`
     }
     if (this.sdkStatus !== undefined) {
-      customVariable['sdk.status'] = `${FlagshipStatus[this.sdkStatus]}`
+      customVariable['sdk.status'] = `${FSSdkStatus[this.sdkStatus]}`
     }
     if (this.sdkConfigLogLevel !== undefined) {
       customVariable['sdk.config.logLevel'] = `${LogLevel[this.sdkConfigLogLevel]}`
