@@ -285,7 +285,7 @@ export class Flagship {
    * @param params - The parameters for creating the new Visitor.
    * @returns A new Visitor instance.
    */
-  public static newVisitor ({ visitorId, context, isAuthenticated, hasConsented, initialCampaigns, initialFlagsData, shouldSaveInstance }: NewVisitor) {
+  public static newVisitor ({ visitorId, context, isAuthenticated, hasConsented, initialCampaigns, initialFlagsData, shouldSaveInstance, onFetchFlagsStatusChanged }: NewVisitor) {
     const saveInstance = shouldSaveInstance ?? isBrowser()
 
     if (!this._instance?.configManager) {
@@ -319,6 +319,7 @@ export class Flagship {
       configManager: this.getInstance().configManager,
       initialCampaigns,
       initialFlagsData,
+      onFetchFlagsStatusChanged,
       monitoringData: {
         instanceId: this.getInstance().instanceId,
         lastInitializationTimestamp: this.getInstance().lastInitializationTimestamp,
