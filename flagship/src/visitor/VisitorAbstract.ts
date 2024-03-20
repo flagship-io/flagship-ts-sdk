@@ -1,6 +1,6 @@
 import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
-import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, sdkInitialData, VisitorCacheStatus } from '../types'
+import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, sdkInitialData, VisitorCacheStatus, VisitorFlagsStatus } from '../types'
 
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
@@ -18,6 +18,8 @@ import { IFlag } from '../flag/Flags'
 import { MurmurHash } from '../utils/MurmurHash'
 import { FlagSynchStatus } from '../enum/FlagSynchStatus'
 import { Troubleshooting } from '../hit/Troubleshooting'
+import { FSFlagsStatus } from '../enum/FSFlagsStatus'
+import { FSFetchReasons } from '../enum/FSFetchReasons'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -35,6 +37,26 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _sdkInitialData?: sdkInitialData
   private _consentHitTroubleshooting? : Troubleshooting
   private _segmentHitTroubleshooting? : Troubleshooting
+  private _visitorFlagsStatus! : VisitorFlagsStatus;
+  private _onFetchFlagsStatusChanged? : ({ newStatus, reason }: VisitorFlagsStatus) => void;
+
+  public get onFetchFlagsStatusChanged() : (({ newStatus, reason }: VisitorFlagsStatus) => void)|undefined {
+    return this._onFetchFlagsStatusChanged;
+  }
+  public set onFetchFlagsStatusChanged(v : (({ newStatus, reason }: VisitorFlagsStatus) => void)|undefined ) {
+    this._onFetchFlagsStatusChanged = v;
+  }
+
+  public get visitorFlagsStatus() : VisitorFlagsStatus {
+    return this._visitorFlagsStatus;
+  }
+  public set visitorFlagsStatus(v : VisitorFlagsStatus) {
+    this._visitorFlagsStatus = v;
+    if (this.onFetchFlagsStatusChanged) {
+      this.onFetchFlagsStatusChanged(v)
+    }
+  }
+  
 
   public get segmentHitTroubleshooting () : Troubleshooting|undefined {
     return this._segmentHitTroubleshooting
@@ -89,7 +111,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     context: Record<string, primitive>
     monitoringData?:sdkInitialData
   }) {
-    const { visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData } = param
+    const { visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData, onFetchFlagsStatusChanged } = param
     super()
     this._sdkInitialData = monitoringData
     this._instanceId = uuidV4()
@@ -127,8 +149,16 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.setInitializeCampaigns(initialCampaigns, !!initialFlagsData)
     this._flagSynchStatus = FlagSynchStatus.CREATED
 
+    this.onFetchFlagsStatusChanged = onFetchFlagsStatusChanged
+
+    this.visitorFlagsStatus = {
+      newStatus: FSFlagsStatus.FETCH_REQUIRED,
+      reason: FSFetchReasons.VISITOR_CREATED
+    }
+
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
   }
+
 
   public get traffic () : number {
     return this._traffic
