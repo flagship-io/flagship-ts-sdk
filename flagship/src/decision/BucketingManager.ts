@@ -95,7 +95,7 @@ export class BucketingManager extends DecisionManager {
     }
     this._isPooling = true
     if (this._isFirstPooling) {
-      this.updateFlagshipStatus(FSSdkStatus.POLLING)
+      this.updateFlagshipStatus(FSSdkStatus.SDK_INITIALIZING)
     }
     const url = sprintf(BUCKETING_API_URL, this.config.envId)
     const headers: Record<string, string> = {

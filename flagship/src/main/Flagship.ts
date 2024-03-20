@@ -53,10 +53,9 @@ export class Flagship {
     return this._configManager
   }
 
-  // eslint-disable-next-line no-useless-constructor
   private constructor () {
     this.instanceId = uuidV4()
-    // singleton
+    this._status = FSSdkStatus.SDK_NOT_INITIALIZED
   }
 
   protected static getInstance (): Flagship {
@@ -197,8 +196,6 @@ export class Flagship {
     localConfig.apiKey = apiKey
 
     flagship._config = localConfig
-
-    flagship.setStatus(FSSdkStatus.SDK_INITIALIZING)
 
     // check custom logger
     if (!localConfig.onLog && !localConfig.logManager) {
