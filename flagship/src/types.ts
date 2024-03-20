@@ -1,4 +1,6 @@
 import { CampaignDTO } from './decision/api/models'
+import { FSFetchReasons } from './enum/FSFetchReasons'
+import { FSFlagsStatus } from './enum/FSFlagsStatus'
 import { HitType } from './enum/index'
 import { IEvent, IItem, IPage, IScreen, ITransaction, IHitAbstract } from './hit/index'
 
@@ -21,7 +23,24 @@ export type FlagDTO= {
   value: any;
 }
 
-export type NewVisitor={
+/**
+ * Represents the status of visitor flags.
+ */
+export type VisitorFlagsStatus = {
+  /**
+   * The new status of the flags.
+   */
+  newStatus: FSFlagsStatus
+  /**
+   * The reason for the status change.
+   */
+  reason: FSFetchReasons
+}
+
+/**
+ * Represents a new visitor.
+ */
+export type NewVisitor = {
   /**
    * Optional - Unique visitor identifier.
    *
@@ -29,40 +48,50 @@ export type NewVisitor={
    *
    * NOTE 2: In client-side, if you do not specify a value, the id will be either automatically generated or will be the visitor id from the previous session (if `enableClientCache` equals true).
    */
-  visitorId?:string
+  visitorId?: string;
 
   /**
    * Specify if the visitor is authenticated or anonymous for Experience continuity.
    */
-  isAuthenticated?: boolean
+  isAuthenticated?: boolean;
+
   /**
-   * visitor context
+   * Visitor context.
    */
-  context?: Record<string, primitive>
+  context?: Record<string, primitive>;
 
   /**
    * Required - Indicates whether the visitor has consented.
    */
-  hasConsented:boolean,
+  hasConsented: boolean;
 
   /**
    * This is an object of the data received when fetching the Flagship decision API (decisionMode="API").
    *
    * Providing this property avoids the SDK from having an empty cache during first initialization.
    */
-  initialCampaigns?: CampaignDTO[]
+  initialCampaigns?: CampaignDTO[];
 
   /**
    * This is a set of flag data provided to avoid the SDK to have an empty cache during the first initialization.
    */
-  initialFlagsData?: Map<string, FlagDTO>|FlagDTO[]
+  initialFlagsData?: Map<string, FlagDTO> | FlagDTO[];
+
   /**
    * If true, the newly created visitor instance won't be saved and will simply be returned. Otherwise, the newly created visitor instance will be returned and saved into the Flagship.
    *
    * Note: By default, it is false on server-side and true on client-side.
    */
-   shouldSaveInstance?: boolean
-}
+  shouldSaveInstance?: boolean;
+
+  /**
+   * Callback function that will be called when the fetch flags status changes.
+   *
+   * @param newStatus - The new status of the flags fetch.
+   * @param reason - The reason for the status change.
+   */
+  onFetchFlagsStatusChanged?: ({ newStatus, reason }: VisitorFlagsStatus) => void;
+};
 
 export type InternalHitType = HitType|'BATCH'|'ACTIVATE'|'MONITORING'|'SEGMENT'|'TROUBLESHOOTING'|'USAGE'
 
@@ -180,3 +209,5 @@ export enum VisitorCacheStatus {
   VISITOR_ID_CACHE = 'VISITOR_ID_CACHE',
   VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE = 'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE'
 }
+
+
