@@ -58,6 +58,8 @@ import { FlagMetadata } from '../flag/FlagMetadata'
 import { Activate } from '../hit/Activate'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { FlagSynchStatus } from '../enum/FlagSynchStatus'
+import { FSFlagsStatus } from '../enum/FSFlagsStatus'
+import { FSFetchReasons } from '../enum/FSFetchReasons'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'
@@ -131,6 +133,10 @@ export class DefaultStrategy extends StrategyAbstract {
       this.updateContextKeyValue(key, value)
     }
     this.visitor.flagSynchStatus = FlagSynchStatus.CONTEXT_UPDATED
+    this.visitor.visitorFlagsStatus = {
+      newStatus: FSFlagsStatus.FETCH_REQUIRED,
+      reason: FSFetchReasons.UPDATE_CONTEXT
+    }
     logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_OBJET_PARAM_UPDATE, this.visitor.visitorId, context, this.visitor.context)
   }
 
@@ -191,11 +197,29 @@ export class DefaultStrategy extends StrategyAbstract {
 
       logDebugSprintf(this.config, functionName, FETCH_FLAGS_STARTED, this.visitor.visitorId)
 
+      this.visitor.visitorFlagsStatus = {
+        newStatus: FSFlagsStatus.FETCHING,
+        reason: FSFetchReasons.NONE
+      }
+
       this.visitor.isFlagFetching = true
       campaigns = await this.decisionManager.getCampaignsAsync(this.visitor)
       this.visitor.lastFetchFlagsTimestamp = Date.now()
       this.visitor.flagSynchStatus = FlagSynchStatus.FLAGS_FETCHED
       this.visitor.isFlagFetching = false
+
+      if (this.decisionManager.isPanic()) {
+        this.visitor.visitorFlagsStatus = {
+          newStatus: FSFlagsStatus.PANIC,
+          reason: FSFetchReasons.NONE
+        }
+      }
+      else {
+        this.visitor.visitorFlagsStatus = {
+          newStatus: FSFlagsStatus.FETCHED,
+          reason: FSFetchReasons.NONE
+        }
+      }
 
       this.configManager.trackingManager.troubleshootingData = this.decisionManager.troubleshooting
 
@@ -207,12 +231,24 @@ export class DefaultStrategy extends StrategyAbstract {
       this.visitor.isFlagFetching = false
       logError(this.config, error.message, functionName)
       fetchCampaignError = error
+
+      this.visitor.visitorFlagsStatus = {
+        newStatus: FSFlagsStatus.FETCH_REQUIRED,
+        reason: FSFetchReasons.FETCH_ERROR
+      }
+
     }
     try {
       if (!campaigns) {
         campaigns = this.fetchVisitorCampaigns(this.visitor)
         logData.isFromCache = true
         if (campaigns) {
+
+          this.visitor.visitorFlagsStatus = {
+            newStatus: FSFlagsStatus.FETCH_REQUIRED,
+            reason: FSFetchReasons.READ_FROM_CACHE
+          }
+
           logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_FROM_CACHE,
             this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
           )
@@ -244,6 +280,11 @@ export class DefaultStrategy extends StrategyAbstract {
         errorFormat(error.message || error, logData),
         functionName
       )
+
+      this.visitor.visitorFlagsStatus = {
+        newStatus: FSFlagsStatus.FETCH_REQUIRED,
+        reason: FSFetchReasons.FETCH_ERROR
+      }
 
       const troubleshootingHit = new Troubleshooting({
 
@@ -477,6 +518,12 @@ export class DefaultStrategy extends StrategyAbstract {
 
     this.sendTroubleshootingHit(monitoring)
     this.visitor.flagSynchStatus = FlagSynchStatus.AUTHENTICATED
+
+    this.visitor.visitorFlagsStatus = {
+      newStatus: FSFlagsStatus.FETCH_REQUIRED,
+      reason: FSFetchReasons.AUTHENTICATE
+    }
+
     logDebugSprintf(this.config, AUTHENTICATE, VISITOR_AUTHENTICATE, this.visitor.visitorId, this.visitor.anonymousId)
   }
 
@@ -502,6 +549,12 @@ export class DefaultStrategy extends StrategyAbstract {
 
     this.sendTroubleshootingHit(monitoring)
     this.visitor.flagSynchStatus = FlagSynchStatus.UNAUTHENTICATED
+
+    this.visitor.visitorFlagsStatus = {
+      newStatus: FSFlagsStatus.FETCH_REQUIRED,
+      reason: FSFetchReasons.UNAUTHENTICATE
+    }
+
     logDebugSprintf(this.config, UNAUTHENTICATE, VISITOR_UNAUTHENTICATE, this.visitor.visitorId)
   }
 
