@@ -1,6 +1,6 @@
 import { AUTHENTICATE, CONTEXT_KEY_ERROR, FLAG_USER_EXPOSED, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, UNAUTHENTICATE, FLAG_METADATA, PROCESS_FETCHING_FLAGS } from './../../src/enum/FlagshipConstant'
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
-import { DecisionApiConfig, Event, EventCategory, FlagDTO, FlagMetadata, Screen, TroubleshootingLabel } from '../../src/index'
+import { DecisionApiConfig, Event, EventCategory, FetchFlagsStatus, FlagDTO, FlagMetadata, Screen, TroubleshootingLabel } from '../../src/index'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { BucketingConfig, ConfigManager } from '../../src/config/index'
 import { ApiManager } from '../../src/decision/ApiManager'
@@ -15,6 +15,8 @@ import { MurmurHash } from '../../src/utils/MurmurHash'
 import { BucketingManager } from '../../src/decision/BucketingManager'
 import { Segment } from '../../src/hit/Segment'
 import { returnFlag } from './flags'
+import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
+import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getNull = (): any => {
@@ -53,6 +55,9 @@ describe('test DefaultStrategy ', () => {
 
   const apiManager = new ApiManager(httpClient, config)
 
+  const isPanicFn = jest.fn<()=>boolean>()
+  apiManager.isPanic = isPanicFn
+
   const getCampaignsAsync = jest.spyOn(
     apiManager,
     'getCampaignsAsync'
@@ -76,7 +81,10 @@ describe('test DefaultStrategy ', () => {
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
   const murmurHash = new MurmurHash()
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+
+  const onFetchFlagsStatusChanged = jest.fn<({ newStatus, reason }: FetchFlagsStatus) => void>()
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged })
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
   const predefinedContext = {
@@ -126,6 +134,10 @@ describe('test DefaultStrategy ', () => {
     defaultStrategy.updateContext(newContext)
     expect(visitorDelegate.context).toStrictEqual({ ...context, ...newContext, ...predefinedContext })
     expect(visitorDelegate.flagSynchStatus).toBe(FlagSynchStatus.CONTEXT_UPDATED)
+
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(onFetchFlagsStatusChanged)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(1)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledWith({ newStatus: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.UPDATE_CONTEXT })
   })
 
   it('test updateContext null', () => {
@@ -168,6 +180,8 @@ describe('test DefaultStrategy ', () => {
       fs_version: SDK_INFO.version,
       fs_users: visitorId
     })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(2)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { newStatus: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.UPDATE_CONTEXT })
   })
 
   it('test getCurrentDateTime', () => {
@@ -204,6 +218,29 @@ describe('test DefaultStrategy ', () => {
     expect(getModifications).toBeCalledTimes(1)
     expect(getModifications).toBeCalledWith(campaignDTO)
     expect(visitorDelegate.flagSynchStatus).toBe(FlagSynchStatus.FLAGS_FETCHED)
+
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(2)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { newStatus: FSFetchStatus.FETCHING, reason: FSFetchReasons.NONE })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { newStatus: FSFetchStatus.FETCHED, reason: FSFetchReasons.NONE })
+  })
+
+  it('test fetchFlags panic mode ', async () => {
+    visitorDelegate.on('ready', (err) => {
+      expect(err).toBeUndefined()
+    })
+    getCampaignsAsync.mockResolvedValue([])
+    getModifications.mockReturnValue(returnFlag)
+
+    isPanicFn.mockReturnValue(true)
+
+    await defaultStrategy.fetchFlags()
+    expect(visitorDelegate.flagSynchStatus).toBe(FlagSynchStatus.FLAGS_FETCHED)
+
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(2)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { newStatus: FSFetchStatus.FETCHING, reason: FSFetchReasons.NONE })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { newStatus: FSFetchStatus.PANIC, reason: FSFetchReasons.NONE })
+
+    isPanicFn.mockReturnValue(false)
   })
 
   it('test getFlagValue', () => {
@@ -603,7 +640,6 @@ describe('test DefaultStrategy ', () => {
       expect(addHit).toBeCalledTimes(1)
       expect(addHit).toBeCalledWith(expect.objectContaining({ ...hit, visitorId, ds: SDK_APP, config }))
     } catch (error) {
-      console.log(error)
       expect(logError).toBeCalled()
     }
   })
@@ -620,7 +656,6 @@ describe('test DefaultStrategy ', () => {
       expect(addHit).toBeCalledTimes(1)
       expect(addHit).toBeCalledWith(expect.objectContaining({ ...hit, visitorId, ds: SDK_APP, config }))
     } catch (error) {
-      console.log(error)
       expect(logError).toBeCalled()
     }
   })
@@ -799,6 +834,9 @@ describe('test DefaultStrategy ', () => {
     const label: TroubleshootingLabel = TroubleshootingLabel.VISITOR_AUTHENTICATE
     expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
     expect(visitorDelegate.flagSynchStatus).toBe(FlagSynchStatus.AUTHENTICATED)
+
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(1)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { newStatus: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.AUTHENTICATE })
   })
 
   it('test unauthenticate', () => {
@@ -809,6 +847,9 @@ describe('test DefaultStrategy ', () => {
     expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
     const label: TroubleshootingLabel = TroubleshootingLabel.VISITOR_UNAUTHENTICATE
     expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(1)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { newStatus: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.UNAUTHENTICATE })
   })
 
   it('test updateCampaigns', () => {
@@ -1056,7 +1097,9 @@ describe('test fetchFlags errors', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+  const onFetchFlagsStatusChanged = jest.fn<({ newStatus, reason }: FetchFlagsStatus) => void>()
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged })
 
   const murmurHash = new MurmurHash()
 
@@ -1074,6 +1117,11 @@ describe('test fetchFlags errors', () => {
     await defaultStrategy.fetchFlags()
     expect(logError).toBeCalled()
     expect(logError).toBeCalledWith(error.message, PROCESS_FETCHING_FLAGS)
+
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(onFetchFlagsStatusChanged)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(2)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { newStatus: FSFetchStatus.FETCHING, reason: FSFetchReasons.NONE })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { newStatus: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.FETCH_ERROR })
   })
 })
 
