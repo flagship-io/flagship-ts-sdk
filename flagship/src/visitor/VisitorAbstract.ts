@@ -1,6 +1,6 @@
 import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
-import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, sdkInitialData, VisitorCacheStatus, VisitorFlagsStatus } from '../types'
+import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, sdkInitialData, VisitorCacheStatus, FetchFlagsStatus } from '../types'
 
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
@@ -37,26 +37,27 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _sdkInitialData?: sdkInitialData
   private _consentHitTroubleshooting? : Troubleshooting
   private _segmentHitTroubleshooting? : Troubleshooting
-  private _visitorFlagsStatus! : VisitorFlagsStatus;
-  private _onFetchFlagsStatusChanged? : ({ newStatus, reason }: VisitorFlagsStatus) => void;
+  private _fetchStatus! : FetchFlagsStatus
+  private _onFetchFlagsStatusChanged? : ({ newStatus, reason }: FetchFlagsStatus) => void
 
-  public get onFetchFlagsStatusChanged() : (({ newStatus, reason }: VisitorFlagsStatus) => void)|undefined {
-    return this._onFetchFlagsStatusChanged;
-  }
-  public set onFetchFlagsStatusChanged(v : (({ newStatus, reason }: VisitorFlagsStatus) => void)|undefined ) {
-    this._onFetchFlagsStatusChanged = v;
+  public get onFetchFlagsStatusChanged () : (({ newStatus, reason }: FetchFlagsStatus) => void)|undefined {
+    return this._onFetchFlagsStatusChanged
   }
 
-  public get visitorFlagsStatus() : VisitorFlagsStatus {
-    return this._visitorFlagsStatus;
+  public set onFetchFlagsStatusChanged (v : (({ newStatus, reason }: FetchFlagsStatus) => void)|undefined) {
+    this._onFetchFlagsStatusChanged = v
   }
-  public set visitorFlagsStatus(v : VisitorFlagsStatus) {
-    this._visitorFlagsStatus = v;
+
+  public get fetchStatus () : FetchFlagsStatus {
+    return this._fetchStatus
+  }
+
+  public set fetchStatus (v : FetchFlagsStatus) {
+    this._fetchStatus = v
     if (this.onFetchFlagsStatusChanged) {
       this.onFetchFlagsStatusChanged(v)
     }
   }
-  
 
   public get segmentHitTroubleshooting () : Troubleshooting|undefined {
     return this._segmentHitTroubleshooting
@@ -151,14 +152,13 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     this.onFetchFlagsStatusChanged = onFetchFlagsStatusChanged
 
-    this.visitorFlagsStatus = {
+    this.fetchStatus = {
       newStatus: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.VISITOR_CREATED
     }
 
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
   }
-
 
   public get traffic () : number {
     return this._traffic
