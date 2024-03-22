@@ -1,4 +1,4 @@
-import { primitive } from './../../src/types'
+import { FetchFlagsStatus, primitive } from './../../src/types'
 import { jest, expect, it, describe } from '@jest/globals'
 import { FlagDTO } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
@@ -12,6 +12,8 @@ import { IFlagMetadata, IHit } from '../../src/types'
 import { CampaignDTO } from '../../src/decision/api/models'
 import { DecisionManager } from '../../src/decision/DecisionManager'
 import { cacheVisitor } from '../../src/visitor/VisitorCache'
+import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
+import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
 
 const updateContext = jest.fn()
 const clearContext = jest.fn()
@@ -95,6 +97,8 @@ describe('test VisitorDelegate', () => {
     }
   }]
 
+  const onFetchFlagsStatusChanged = jest.fn<({ newStatus, reason }: FetchFlagsStatus) => void>()
+
   const visitorDelegate = new VisitorDelegate({
     visitorId,
     context,
@@ -176,6 +180,20 @@ describe('test VisitorDelegate', () => {
 
     visitorDelegate.campaigns = campaigns
     expect(visitorDelegate.campaigns).toBe(campaigns)
+  })
+
+  it('test onFetchFlagsStatusChanged callback', () => {
+    const visitorDelegate = new VisitorDelegate({
+      visitorId,
+      context,
+      configManager: configManager as ConfigManager,
+      initialCampaigns: campaigns,
+      hasConsented: true,
+      onFetchFlagsStatusChanged
+    })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(onFetchFlagsStatusChanged)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(1)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledWith({ newStatus: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.VISITOR_CREATED })
   })
 
   it('test property', () => {
