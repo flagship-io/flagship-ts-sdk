@@ -17,8 +17,10 @@ import {
 import { IHttpResponse, HttpClient } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { campaigns } from './campaigns'
-import { CampaignDTO } from '../../src'
+import { CampaignDTO, FetchFlagsStatus } from '../../src'
 import { errorFormat } from '../../src/utils/utils'
+import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
+import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
 
 describe('test ApiManager', () => {
   const methodNow = Date.now
@@ -40,7 +42,9 @@ describe('test ApiManager', () => {
   const visitorId = 'visitorId'
   const context = { age: 20 }
 
-  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: apiManager, trackingManager } })
+  const onFetchFlagsStatusChanged = jest.fn<({ newStatus, reason }: FetchFlagsStatus) => void>()
+
+  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: apiManager, trackingManager }, onFetchFlagsStatusChanged })
 
   const campaignResponse = { status: 200, body: campaigns }
 
@@ -115,6 +119,9 @@ describe('test ApiManager', () => {
 
     try {
       await apiManager.getCampaignsAsync(visitor)
+
+      expect(visitor.onFetchFlagsStatusChanged).toBeCalledTimes(1)
+      expect(visitor.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { newStatus: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.FETCH_ERROR })
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err:any) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
