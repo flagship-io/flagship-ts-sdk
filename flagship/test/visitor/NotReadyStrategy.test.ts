@@ -3,7 +3,7 @@ import { DecisionApiConfig } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { DecisionManager } from '../../src/decision/DecisionManager'
-import { FlagshipStatus, FLAG_METADATA, FLAG_USER_EXPOSED, HitType, LogLevel, METADATA_SDK_NOT_READY, METHOD_DEACTIVATED_ERROR } from '../../src/enum'
+import { FLAG_METADATA, FLAG_USER_EXPOSED, FSSdkStatus, HitType, LogLevel, METADATA_SDK_NOT_READY, METHOD_DEACTIVATED_ERROR } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
@@ -38,7 +38,7 @@ describe('test NotReadyStrategy', () => {
     notReadyStrategy.fetchFlags().then(() => {
       const methodName = 'fetchFlags'
       expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
+      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FSSdkStatus[FSSdkStatus.SDK_NOT_INITIALIZED]), methodName)
     })
   })
 
@@ -48,7 +48,7 @@ describe('test NotReadyStrategy', () => {
     const methodName = 'Flag.value'
     expect(flagValue).toBe(defaultValue)
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FSSdkStatus[FSSdkStatus.SDK_NOT_INITIALIZED]), methodName)
   })
 
   it('test getFlagMetadata', () => {
@@ -86,14 +86,14 @@ describe('test NotReadyStrategy', () => {
   it('test visitorExposed', async () => {
     await notReadyStrategy.visitorExposed()
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, FLAG_USER_EXPOSED, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), FLAG_USER_EXPOSED)
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, FLAG_USER_EXPOSED, FSSdkStatus[FSSdkStatus.SDK_NOT_INITIALIZED]), FLAG_USER_EXPOSED)
   })
 
   it('test sendHit', () => {
     notReadyStrategy.sendHit({ type: HitType.PAGE, documentLocation: 'home' }).then(() => {
       const methodName = 'sendHit'
       expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
+      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FSSdkStatus[FSSdkStatus.SDK_NOT_INITIALIZED]), methodName)
     })
   })
 
@@ -101,7 +101,7 @@ describe('test NotReadyStrategy', () => {
     notReadyStrategy.sendHits([{ type: HitType.PAGE, documentLocation: 'home' }]).then(() => {
       const methodName = 'sendHits'
       expect(logError).toBeCalledTimes(1)
-      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.NOT_INITIALIZED]), methodName)
+      expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FSSdkStatus[FSSdkStatus.SDK_NOT_INITIALIZED]), methodName)
     })
   })
 

@@ -3,7 +3,7 @@ import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig, DecisionMode } from '../../src/config/index'
 import {
   CONSENT_NOT_SPECIFY_WARNING,
-  FlagshipStatus,
+  FSSdkStatus,
   PROCESS_NEW_VISITOR,
   SDK_INFO
 } from '../../src/enum/index'
@@ -77,12 +77,12 @@ describe('test Flagship class', () => {
     expect(Flagship.getConfig().envId).toBe(envId)
     expect(Flagship.getConfig().apiKey).toBe(apiKey)
     expect(Flagship.getConfig().logManager).toBeDefined()
-    expect(Flagship.getStatus()).toBe(FlagshipStatus.READY)
+    expect(Flagship.getStatus()).toBe(FSSdkStatus.SDK_INITIALIZED)
     expect(Flagship.getConfig().logManager).toBeInstanceOf(FlagshipLogManager)
     expect(Flagship.getConfig().decisionMode).toBe(DecisionMode.DECISION_API)
     expect(Flagship.getConfig().visitorCacheImplementation).toBeInstanceOf(DefaultVisitorCache)
     expect(Flagship.getConfig().hitCacheImplementation).toBeInstanceOf(DefaultHitCache)
-    expect(Flagship.getStatus()).toBe(FlagshipStatus.READY)
+    expect(Flagship.getStatus()).toBe(FSSdkStatus.SDK_INITIALIZED)
     expect(startBatchingLoop).toBeCalledTimes(1)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -118,30 +118,15 @@ describe('test Flagship with custom config literal object', () => {
   })
 })
 
-describe('test Flagship with custom config', () => {
+describe('test Flagship with custom config (Decision API)', () => {
   const envId = 'envId'
   const apiKey = 'apiKey'
 
-  let countStatus = 0
-  const onSdkStatusChanged = (status:FlagshipStatus) => {
-    switch (countStatus) {
-      case 0:
-        expect(status).toBe(FlagshipStatus.STARTING)
-        break
-      case 1:
-        expect(status).toBe(FlagshipStatus.READY)
-        break
-      case 2:
-        expect(status).toBe(FlagshipStatus.STARTING)
-        break
-
-      default:
-        break
-    }
-    countStatus++
+  const onSdkStatusChanged = (status:FSSdkStatus) => {
+    expect(status).toBe(FSSdkStatus.SDK_INITIALIZED)
   }
 
-  it('should api mode ', () => {
+  it('should start in Decision API mode', () => {
     const instance = Flagship.start(envId, apiKey, {
       decisionMode: DecisionMode.DECISION_API,
       onSdkStatusChanged
@@ -152,42 +137,27 @@ describe('test Flagship with custom config', () => {
     expect(Flagship.getConfig().apiKey).toBe(apiKey)
     expect(Flagship.getConfig().logManager).toBeInstanceOf(FlagshipLogManager)
 
-    expect(instance?.getStatus()).toBe(FlagshipStatus.READY)
+    expect(instance?.getStatus()).toBe(FSSdkStatus.SDK_INITIALIZED)
 
     expect(instance).toBeInstanceOf(Flagship)
   })
 
-  it('should ', () => {
+  it('should start in default mode', () => {
     const instance = Flagship.start('', '')
-    expect(Flagship.getStatus()).toBe(FlagshipStatus.NOT_INITIALIZED)
+    expect(Flagship.getStatus()).toBe(FSSdkStatus.SDK_NOT_INITIALIZED)
     expect(instance).toBeInstanceOf(Flagship)
   })
 })
 
-describe('test Flagship with custom config', () => {
+describe('test Flagship with custom config (Bucketing Edge)', () => {
   const envId = 'envId'
   const apiKey = 'apiKey'
 
-  let countStatus = 0
-  const onSdkStatusChanged = (status:FlagshipStatus) => {
-    switch (countStatus) {
-      case 0:
-        expect(status).toBe(FlagshipStatus.STARTING)
-        break
-      case 1:
-        expect(status).toBe(FlagshipStatus.READY)
-        break
-      case 2:
-        expect(status).toBe(FlagshipStatus.STARTING)
-        break
-
-      default:
-        break
-    }
-    countStatus++
+  const onSdkStatusChanged = (status:FSSdkStatus) => {
+    expect(status).toBe(FSSdkStatus.SDK_INITIALIZED)
   }
 
-  it('should api mode ', () => {
+  it('should start in Bucketing Edge mode', () => {
     const instance = Flagship.start(envId, apiKey, {
       decisionMode: DecisionMode.BUCKETING_EDGE,
       onSdkStatusChanged,
@@ -199,14 +169,20 @@ describe('test Flagship with custom config', () => {
     expect(Flagship.getConfig().apiKey).toBe(apiKey)
     expect(Flagship.getConfig().logManager).toBeInstanceOf(FlagshipLogManager)
 
-    expect(instance?.getStatus()).toBe(FlagshipStatus.READY)
+    expect(instance?.getStatus()).toBe(FSSdkStatus.SDK_INITIALIZED)
 
     expect(instance).toBeInstanceOf(Flagship)
   })
 
-  it('should ', () => {
-    const instance = Flagship.start('', '')
-    expect(Flagship.getStatus()).toBe(FlagshipStatus.NOT_INITIALIZED)
+  it('should start in default mode', () => {
+    const onSdkStatusChanged = (status:FSSdkStatus) => {
+      expect(status).toBe(FSSdkStatus.SDK_NOT_INITIALIZED)
+    }
+
+    const instance = Flagship.start('', '', {
+      onSdkStatusChanged
+    })
+    expect(Flagship.getStatus()).toBe(FSSdkStatus.SDK_NOT_INITIALIZED)
     expect(instance).toBeInstanceOf(Flagship)
   })
 })
