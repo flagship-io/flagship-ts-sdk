@@ -1,5 +1,3 @@
-
-
 /**
  * Represents the status of the flags in the Flagship SDK.
  */
