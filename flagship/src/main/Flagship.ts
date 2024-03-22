@@ -243,7 +243,7 @@ export class Flagship {
     flagship.configManager.decisionManager.trackingManager = trackingManager
     flagship.configManager.decisionManager.flagshipInstanceId = flagship.instanceId
 
-    if (flagship._status === FSSdkStatus.SDK_INITIALIZING) {
+    if (flagship._status !== FSSdkStatus.SDK_INITIALIZING) {
       flagship.setStatus(FSSdkStatus.SDK_INITIALIZED)
     }
 
