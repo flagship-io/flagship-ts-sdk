@@ -3,7 +3,7 @@
 /**
  * Represents the status of the flags in the Flagship SDK.
  */
-export enum FSFlagsStatus {
+export enum FSFetchStatus {
     /**
      * The flags have been successfully fetched from the API or re-evaluated in bucketing mode.
      */

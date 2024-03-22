@@ -18,7 +18,7 @@ import { IFlag } from '../flag/Flags'
 import { MurmurHash } from '../utils/MurmurHash'
 import { FlagSynchStatus } from '../enum/FlagSynchStatus'
 import { Troubleshooting } from '../hit/Troubleshooting'
-import { FSFlagsStatus } from '../enum/FSFlagsStatus'
+import { FSFetchStatus } from '../enum/FSFetchStatus'
 import { FSFetchReasons } from '../enum/FSFetchReasons'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
@@ -152,7 +152,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.onFetchFlagsStatusChanged = onFetchFlagsStatusChanged
 
     this.visitorFlagsStatus = {
-      newStatus: FSFlagsStatus.FETCH_REQUIRED,
+      newStatus: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.VISITOR_CREATED
     }
 
