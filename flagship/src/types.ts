@@ -24,18 +24,18 @@ export type FlagDTO= {
 }
 
 /**
- * Represents the status of visitor flags.
+ * Represents the status of visitor fetch for flag data.
  */
-export type VisitorFlagsStatus = {
+export type FetchFlagsStatus = {
   /**
-   * The new status of the flags.
+   * The new status of the flags fetch.
    */
-  newStatus: FSFetchStatus
+  newStatus: FSFetchStatus;
   /**
    * The reason for the status change.
    */
-  reason: FSFetchReasons
-}
+  reason: FSFetchReasons;
+};
 
 /**
  * Represents a new visitor.
@@ -90,7 +90,7 @@ export type NewVisitor = {
    * @param newStatus - The new status of the flags fetch.
    * @param reason - The reason for the status change.
    */
-  onFetchFlagsStatusChanged?: ({ newStatus, reason }: VisitorFlagsStatus) => void;
+  onFetchFlagsStatusChanged?: ({ newStatus, reason }: FetchFlagsStatus) => void;
 };
 
 export type InternalHitType = HitType|'BATCH'|'ACTIVATE'|'MONITORING'|'SEGMENT'|'TROUBLESHOOTING'|'USAGE'
@@ -209,5 +209,3 @@ export enum VisitorCacheStatus {
   VISITOR_ID_CACHE = 'VISITOR_ID_CACHE',
   VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE = 'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE'
 }
-
-
