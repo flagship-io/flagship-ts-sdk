@@ -9,8 +9,6 @@ import { IFlag } from '../flag/Flags'
 
 /**
  * Represents a visitor in the Flagship SDK.
- *
- * The `Visitor` class extends `EventEmitter` and implements the `IVisitor` interface.
  */
 export class Visitor extends EventEmitter implements IVisitor {
   private visitorDelegate:VisitorAbstract
@@ -21,13 +19,6 @@ export class Visitor extends EventEmitter implements IVisitor {
     this.visitorDelegate.on(EMIT_READY, (err:any) => {
       this.emit(EMIT_READY, err)
     })
-  }
-
-  /**
-   * @inheritdoc
-   */
-  getFlagsDataArray (): FlagDTO[] {
-    return this.visitorDelegate.getFlagsDataArray()
   }
 
   /**
@@ -54,20 +45,6 @@ export class Visitor extends EventEmitter implements IVisitor {
   /**
    * @inheritdoc
    */
-  public get hasConsented (): boolean {
-    return this.visitorDelegate.hasConsented
-  }
-
-  /**
-   * @inheritdoc
-   */
-  public setConsent (hasConsented: boolean): void {
-    this.visitorDelegate.setConsent(hasConsented)
-  }
-
-  /**
-   * @inheritdoc
-   */
   public get config (): IFlagshipConfig {
     return this.visitorDelegate.config
   }
@@ -84,6 +61,34 @@ export class Visitor extends EventEmitter implements IVisitor {
    */
   public get flagsData (): Map<string, FlagDTO> {
     return this.visitorDelegate.flagsData
+  }
+
+  /**
+   * @inheritdoc
+   */
+  public get fetchStatus () {
+    return this.visitorDelegate.fetchStatus
+  }
+
+  /**
+   * @inheritdoc
+   */
+  public get hasConsented (): boolean {
+    return this.visitorDelegate.hasConsented
+  }
+
+  /**
+   * @inheritdoc
+   */
+  public setConsent (hasConsented: boolean): void {
+    this.visitorDelegate.setConsent(hasConsented)
+  }
+
+  /**
+   * @inheritdoc
+   */
+  getFlagsDataArray (): FlagDTO[] {
+    return this.visitorDelegate.getFlagsDataArray()
   }
 
   /**
