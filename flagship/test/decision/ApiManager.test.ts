@@ -5,7 +5,7 @@ import { ApiManager } from '../../src/decision/ApiManager'
 import {
   BASE_API_URL,
   EXPOSE_ALL_KEYS,
-  FlagshipStatus,
+  FSSdkStatus,
   HEADER_APPLICATION_JSON,
   HEADER_CONTENT_TYPE,
   HEADER_X_API_KEY,
@@ -68,7 +68,7 @@ describe('test ApiManager', () => {
 
     postAsync.mockResolvedValue(panicModeResponse)
     apiManager.statusChangedCallback((status) => {
-      expect(status).toBe(FlagshipStatus.READY_PANIC_ON)
+      expect(status).toBe(FSSdkStatus.SDK_PANIC)
     })
     const campaigns = await apiManager.getCampaignsAsync(visitor)
 
