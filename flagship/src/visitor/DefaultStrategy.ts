@@ -133,7 +133,7 @@ export class DefaultStrategy extends StrategyAbstract {
       this.updateContextKeyValue(key, value)
     }
     this.visitor.flagSynchStatus = FlagSynchStatus.CONTEXT_UPDATED
-    this.visitor.visitorFlagsStatus = {
+    this.visitor.fetchStatus = {
       newStatus: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.UPDATE_CONTEXT
     }
@@ -197,7 +197,7 @@ export class DefaultStrategy extends StrategyAbstract {
 
       logDebugSprintf(this.config, functionName, FETCH_FLAGS_STARTED, this.visitor.visitorId)
 
-      this.visitor.visitorFlagsStatus = {
+      this.visitor.fetchStatus = {
         newStatus: FSFetchStatus.FETCHING,
         reason: FSFetchReasons.NONE
       }
@@ -209,13 +209,12 @@ export class DefaultStrategy extends StrategyAbstract {
       this.visitor.isFlagFetching = false
 
       if (this.decisionManager.isPanic()) {
-        this.visitor.visitorFlagsStatus = {
+        this.visitor.fetchStatus = {
           newStatus: FSFetchStatus.PANIC,
           reason: FSFetchReasons.NONE
         }
-      }
-      else {
-        this.visitor.visitorFlagsStatus = {
+      } else {
+        this.visitor.fetchStatus = {
           newStatus: FSFetchStatus.FETCHED,
           reason: FSFetchReasons.NONE
         }
@@ -232,19 +231,17 @@ export class DefaultStrategy extends StrategyAbstract {
       logError(this.config, error.message, functionName)
       fetchCampaignError = error
 
-      this.visitor.visitorFlagsStatus = {
+      this.visitor.fetchStatus = {
         newStatus: FSFetchStatus.FETCH_REQUIRED,
         reason: FSFetchReasons.FETCH_ERROR
       }
-
     }
     try {
       if (!campaigns) {
         campaigns = this.fetchVisitorCampaigns(this.visitor)
         logData.isFromCache = true
         if (campaigns) {
-
-          this.visitor.visitorFlagsStatus = {
+          this.visitor.fetchStatus = {
             newStatus: FSFetchStatus.FETCH_REQUIRED,
             reason: FSFetchReasons.READ_FROM_CACHE
           }
@@ -281,7 +278,7 @@ export class DefaultStrategy extends StrategyAbstract {
         functionName
       )
 
-      this.visitor.visitorFlagsStatus = {
+      this.visitor.fetchStatus = {
         newStatus: FSFetchStatus.FETCH_REQUIRED,
         reason: FSFetchReasons.FETCH_ERROR
       }
@@ -519,7 +516,7 @@ export class DefaultStrategy extends StrategyAbstract {
     this.sendTroubleshootingHit(monitoring)
     this.visitor.flagSynchStatus = FlagSynchStatus.AUTHENTICATED
 
-    this.visitor.visitorFlagsStatus = {
+    this.visitor.fetchStatus = {
       newStatus: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.AUTHENTICATE
     }
@@ -550,7 +547,7 @@ export class DefaultStrategy extends StrategyAbstract {
     this.sendTroubleshootingHit(monitoring)
     this.visitor.flagSynchStatus = FlagSynchStatus.UNAUTHENTICATED
 
-    this.visitor.visitorFlagsStatus = {
+    this.visitor.fetchStatus = {
       newStatus: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.UNAUTHENTICATE
     }
