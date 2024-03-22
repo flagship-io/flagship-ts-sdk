@@ -1,5 +1,5 @@
 import { expect, it, describe, jest } from '@jest/globals'
-import { DecisionApiConfig, FlagDTO, FlagshipStatus } from '../../src'
+import { DecisionApiConfig, FSSdkStatus, FlagDTO } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
@@ -8,8 +8,10 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
+import { FSFlagStatus } from '../../src/enum/FSFlagStatus'
+import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
 
-describe('test Flag', () => {
+describe('Flag', () => {
   const visitorId = 'visitorId'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const context: any = {
@@ -34,14 +36,14 @@ describe('test Flag', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  VisitorAbstract.SdkStatus = FlagshipStatus.READY
+  VisitorAbstract.SdkStatus = FSSdkStatus.SDK_INITIALIZED
 
   const visitorDelegate = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager })
 
   const visitorExposed = jest.spyOn(visitorDelegate, 'visitorExposed')
   const getFlagValue = jest.spyOn(visitorDelegate, 'getFlagValue')
 
-  const flagDto:FlagDTO = {
+  const flagDto: FlagDTO = {
     key: 'key',
     campaignId: 'campaignID',
     variationGroupId: 'variationGroupID',
@@ -63,65 +65,74 @@ describe('test Flag', () => {
     visitor: visitorDelegate,
     defaultValue
   })
-  it('test exists', () => {
-    expect(flag.exists()).toBeTruthy()
-  })
 
-  it('test metadata', () => {
-    VisitorDelegate.SdkStatus = FlagshipStatus.READY
-    expect(flag.metadata).toEqual({
-      campaignId: flagDto.campaignId,
-      variationGroupId: flagDto.variationGroupId,
-      variationId: flagDto.variationId,
-      isReference: true,
-      campaignType: flagDto.campaignType,
-      slug: flagDto.slug,
-      campaignName: flagDto.campaignName,
-      variationGroupName: flagDto.variationGroupName,
-      variationName: flagDto.variationName
+  describe('exists', () => {
+    it('should return true if the flag exists', () => {
+      expect(flag.exists()).toBeTruthy()
     })
   })
 
-  it('test visitorExposed', () => {
-    flag.visitorExposed()
-    expect(visitorExposed).toBeCalledTimes(1)
-    expect(visitorExposed).toBeCalledWith({
-      key: flagDto.key,
-      flag: expect.objectContaining(flagDto),
-      defaultValue
+  describe('metadata', () => {
+    it('should return the metadata of the flag', () => {
+      VisitorDelegate.SdkStatus = FSSdkStatus.SDK_INITIALIZED
+      expect(flag.metadata).toEqual({
+        campaignId: flagDto.campaignId,
+        variationGroupId: flagDto.variationGroupId,
+        variationId: flagDto.variationId,
+        isReference: true,
+        campaignType: flagDto.campaignType,
+        slug: flagDto.slug,
+        campaignName: flagDto.campaignName,
+        variationGroupName: flagDto.variationGroupName,
+        variationName: flagDto.variationName
+      })
     })
   })
 
-  it('test value', () => {
-    const value = flag.getValue()
-    expect(value).toBe(flagDto.value)
-    expect(getFlagValue).toBeCalledTimes(1)
-    expect(getFlagValue).toBeCalledWith({
-      key: flagDto.key,
-      defaultValue,
-      flag: expect.objectContaining(flagDto),
-      userExposed: true
+  describe('visitorExposed', () => {
+    it('should call visitorExposed with the correct parameters', () => {
+      flag.visitorExposed()
+      expect(visitorExposed).toBeCalledTimes(1)
+      expect(visitorExposed).toBeCalledWith({
+        key: flagDto.key,
+        flag: expect.objectContaining(flagDto),
+        defaultValue
+      })
     })
   })
 
-  it('test value', () => {
-    const defaultValue = 'defaultValue'
-    const value = flag.getValue(false)
-    expect(value).toBe(flagDto.value)
-    expect(getFlagValue).toBeCalledTimes(1)
-    expect(getFlagValue).toBeCalledWith({
-      key: flagDto.key,
-      defaultValue,
-      flag: expect.objectContaining(flagDto),
-      userExposed: false
+  describe('getValue', () => {
+    it('should return the value of the flag and call getFlagValue with the correct parameters', () => {
+      const value = flag.getValue()
+      expect(value).toBe(flagDto.value)
+      expect(getFlagValue).toBeCalledTimes(1)
+      expect(getFlagValue).toBeCalledWith({
+        key: flagDto.key,
+        defaultValue,
+        flag: expect.objectContaining(flagDto),
+        userExposed: true
+      })
+    })
+
+    it('should return the value of the flag with userExposed set to false', () => {
+      const defaultValue = 'defaultValue'
+      const value = flag.getValue(false)
+      expect(value).toBe(flagDto.value)
+      expect(getFlagValue).toBeCalledTimes(1)
+      expect(getFlagValue).toBeCalledWith({
+        key: flagDto.key,
+        defaultValue,
+        flag: expect.objectContaining(flagDto),
+        userExposed: false
+      })
     })
   })
 
-  it('test metadata with different type ', () => {
-    const flag = new Flag({ key: flagDto.key, visitor: visitorDelegate, defaultValue: false })
-    expect(flag.exists()).toBeTruthy()
-    expect(flag.metadata).toEqual(
-      {
+  describe('metadata with different type', () => {
+    it('should return the metadata with default values and call logWarning', () => {
+      const flag = new Flag({ key: flagDto.key, visitor: visitorDelegate, defaultValue: false })
+      expect(flag.exists()).toBeTruthy()
+      expect(flag.metadata).toEqual({
         campaignId: '',
         slug: null,
         variationGroupId: '',
@@ -132,29 +143,31 @@ describe('test Flag', () => {
         variationName: '',
         variationGroupName: ''
       })
-    expect(logWarning).toBeCalledTimes(1)
-  })
-
-  it('should ', () => {
-    const flag = new Flag({ key: flagDto.key, visitor: visitorDelegate, defaultValue: true })
-    const value = flag.getValue(false)
-    expect(value).toBe(true)
-    expect(getFlagValue).toBeCalledTimes(1)
-    expect(getFlagValue).toBeCalledWith({
-      key: flagDto.key,
-      defaultValue: true,
-      flag: expect.objectContaining(flagDto),
-      userExposed: false
+      expect(logWarning).toBeCalledTimes(1)
     })
   })
 
-  it('test metadata with undefined flag ', () => {
-    const defaultValue = 'defaultValue'
-    visitorDelegate.flagsData.clear()
-    const flag = new Flag({ key: flagDto.key, visitor: visitorDelegate, defaultValue })
-    expect(flag.exists()).toBeFalsy()
-    expect(flag.metadata).toEqual(
-      {
+  describe('getValue with defaultValue set to true', () => {
+    it('should return true and call getFlagValue with the correct parameters', () => {
+      const flag = new Flag({ key: flagDto.key, visitor: visitorDelegate, defaultValue: true })
+      const value = flag.getValue(false)
+      expect(value).toBe(true)
+      expect(getFlagValue).toBeCalledTimes(1)
+      expect(getFlagValue).toBeCalledWith({
+        key: flagDto.key,
+        defaultValue: true,
+        flag: expect.objectContaining(flagDto),
+        userExposed: false
+      })
+    })
+  })
+
+  describe('metadata with undefined flag', () => {
+    it('should return the metadata with default values', () => {
+      const defaultValue = 'defaultValue'
+      const flag = new Flag({ key: 'undefined-key', visitor: visitorDelegate, defaultValue })
+      expect(flag.exists()).toBeFalsy()
+      expect(flag.metadata).toEqual({
         campaignId: '',
         variationGroupId: '',
         campaignType: '',
@@ -164,5 +177,41 @@ describe('test Flag', () => {
         variationName: '',
         variationGroupName: ''
       })
+    })
+  })
+
+  describe('status', () => {
+    it('should return FSFlagStatus.NOT_FOUND if the flag is not found', () => {
+      const flag = new Flag({ key: 'not-found-key', visitor: visitorDelegate, defaultValue: true })
+      expect(flag.status).toBe(FSFlagStatus.NOT_FOUND)
+    })
+
+    it('should return FSFlagStatus.FETCH_REQUIRED if the fetch status is FETCH_REQUIRED', () => {
+      const flag = new Flag({ key: flagDto.key, visitor: visitorDelegate, defaultValue: true })
+      expect(flag.exists()).toBeTruthy()
+      visitorDelegate.fetchStatus.newStatus = FSFetchStatus.FETCH_REQUIRED
+      expect(flag.status).toBe(FSFlagStatus.FETCH_REQUIRED)
+    })
+
+    it('should return FSFlagStatus.FETCH_REQUIRED if the fetch status is FETCHING', () => {
+      const flag = new Flag({ key: flagDto.key, visitor: visitorDelegate, defaultValue: true })
+      expect(flag.exists()).toBeTruthy()
+      visitorDelegate.fetchStatus.newStatus = FSFetchStatus.FETCHING
+      expect(flag.status).toBe(FSFlagStatus.FETCH_REQUIRED)
+    })
+
+    it('should return FSFlagStatus.PANIC if the fetch status is PANIC', () => {
+      const flag = new Flag({ key: flagDto.key, visitor: visitorDelegate, defaultValue: true })
+      expect(flag.exists()).toBeTruthy()
+      visitorDelegate.fetchStatus.newStatus = FSFetchStatus.PANIC
+      expect(flag.status).toBe(FSFlagStatus.PANIC)
+    })
+
+    it('should return FSFlagStatus.FETCHED if the fetch status is FETCHED', () => {
+      const flag = new Flag({ key: flagDto.key, visitor: visitorDelegate, defaultValue: true })
+      expect(flag.exists()).toBeTruthy()
+      visitorDelegate.fetchStatus.newStatus = FSFetchStatus.FETCHED
+      expect(flag.status).toBe(FSFlagStatus.FETCHED)
+    })
   })
 })
