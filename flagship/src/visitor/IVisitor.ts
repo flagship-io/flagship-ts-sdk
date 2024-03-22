@@ -1,16 +1,42 @@
 import { IFlagshipConfig } from '../config/index'
 import { HitAbstract } from '../hit/index'
 import { IFlag } from '../flag/Flags'
-import { IHit, FlagDTO, primitive } from '../types'
+import { IHit, FlagDTO, primitive, FetchFlagsStatus } from '../types'
 
 /**
  * Represents a visitor in the Flagship SDK.
  */
 export interface IVisitor {
+  /**
+   * The unique visitor identifier.
+   */
   visitorId: string;
+
+  /**
+   * The anonymous visitor identifier.
+   */
   readonly anonymousId: string | null;
+
+  /**
+   * The flags fetched for the visitor.
+   */
   readonly flagsData: Map<string, FlagDTO>;
+
+  /**
+   * The visitor context.
+   */
   readonly context: Record<string, primitive>;
+
+  /**
+   * The fetch status of the flags.
+   */
+  readonly fetchStatus: FetchFlagsStatus
+
+  /**
+   * The Flagship configuration.
+   */
+  readonly config: IFlagshipConfig;
+
   /**
    * Returns an array of all flags fetched for the current visitor.
    * @returns An array of FlagDTO objects.
@@ -28,8 +54,6 @@ export interface IVisitor {
    * @param hasConsented - A boolean value indicating whether the visitor has consented.
    */
   setConsent(hasConsented: boolean): void;
-
-  readonly config: IFlagshipConfig;
 
   /**
    * Updates the visitor context values, matching the given keys, used for targeting.
