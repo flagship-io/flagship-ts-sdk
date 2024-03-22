@@ -5,7 +5,7 @@ import { TrackingManagerConfig } from '../../src/config/TrackingManagerConfig'
 import {
   BASE_API_URL,
   DEFAULT_DEDUPLICATION_TIME,
-  FlagshipStatus,
+  FSSdkStatus,
   LogLevel,
   REQUEST_TIME_OUT,
   SDK_INFO
@@ -174,7 +174,7 @@ describe('test DecisionApiConfig', () => {
   })
 
   it('test statusChangedCallback', () => {
-    const func = {} as (status: FlagshipStatus) => void
+    const func = {} as (status: FSSdkStatus) => void
     config.onSdkStatusChanged = func
     expect(config.onSdkStatusChanged).toBeUndefined()
 
