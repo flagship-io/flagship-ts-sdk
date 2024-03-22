@@ -9,10 +9,12 @@ import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { VisitorDelegate, DefaultStrategy, NoConsentStrategy, NotReadyStrategy, PanicStrategy } from '../../src/visitor'
 import { VISITOR_CACHE_VERSION } from '../../src/enum'
 import { campaigns } from '../decision/campaigns'
-import { VisitorCacheDTO, VisitorCacheStatus } from '../../src/types'
+import { FetchFlagsStatus, VisitorCacheDTO, VisitorCacheStatus } from '../../src/types'
 import { sprintf } from '../../src/utils/utils'
 import { MurmurHash } from '../../src/utils/MurmurHash'
 import { VISITOR_ID_MISMATCH_ERROR } from '../../src/visitor/StrategyAbstract'
+import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
+import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getUndefined = ():any => undefined
@@ -54,7 +56,9 @@ describe('test visitor cache', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+  const onFetchFlagsStatusChanged = jest.fn<({ newStatus, reason }: FetchFlagsStatus) => void>()
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getStrategy = jest.spyOn(visitorDelegate, 'getStrategy' as any)
@@ -97,6 +101,7 @@ describe('test visitor cache', () => {
     getStrategy.mockReturnValue(defaultStrategy)
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
     await visitorDelegate.fetchFlags()
+
     expect(cacheVisitor).toBeCalledTimes(1)
 
     expect(cacheVisitor).toBeCalledWith(visitorId, data)
@@ -140,12 +145,17 @@ describe('test visitor cache', () => {
 
   it('test fetchVisitorCacheCampaigns defaultStrategy', async () => {
     getCampaignsAsync.mockResolvedValue(null)
-
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+    const onFetchFlagsStatusChanged = jest.fn<({ newStatus, reason }: FetchFlagsStatus) => void>()
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged })
     const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
     visitorDelegate.visitorCache = data
     await defaultStrategy.fetchFlags()
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(onFetchFlagsStatusChanged)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(3)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { newStatus: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.VISITOR_CREATED })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { newStatus: FSFetchStatus.FETCHING, reason: FSFetchReasons.NONE })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(3, { newStatus: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.READ_FROM_CACHE })
     expect(visitorDelegate.campaigns).toEqual(campaigns.campaigns)
   })
 
