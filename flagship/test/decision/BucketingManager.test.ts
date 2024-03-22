@@ -4,7 +4,7 @@ import { MurmurHash } from '../../src/utils/MurmurHash'
 import { BucketingManager } from '../../src/decision/BucketingManager'
 import { bucketing } from './bucketing'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
-import { BUCKETING_API_URL, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, SDK_INFO } from '../../src/enum'
+import { BUCKETING_API_URL, FSSdkStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, SDK_INFO } from '../../src/enum'
 import { sprintf, sleep } from '../../src/utils/utils'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
@@ -269,10 +269,10 @@ describe('test update', () => {
     bucketingManager.statusChangedCallback((status) => {
       switch (count) {
         case 0:
-          expect(status).toBe(FlagshipStatus.POLLING)
+          expect(status).toBe(FSSdkStatus.SDK_INITIALIZING)
           break
         case 1:
-          expect(status).toBe(FlagshipStatus.READY)
+          expect(status).toBe(FSSdkStatus.SDK_INITIALIZED)
           break
         default:
           break
@@ -314,10 +314,10 @@ describe('test error', () => {
     bucketingManager.statusChangedCallback((status) => {
       switch (count) {
         case 0:
-          expect(status).toBe(FlagshipStatus.POLLING)
+          expect(status).toBe(FSSdkStatus.SDK_INITIALIZING)
           break
         case 1:
-          expect(status).toBe(FlagshipStatus.NOT_INITIALIZED)
+          expect(status).toBe(FSSdkStatus.SDK_NOT_INITIALIZED)
           break
         default:
           break
