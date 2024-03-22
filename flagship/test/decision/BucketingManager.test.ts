@@ -221,7 +221,8 @@ describe('test bucketing polling', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((bucketingManager as any)._bucketingContent).toEqual(bucketing)
 
-    const label: TroubleshootingLabel = TroubleshootingLabel.SDK_BUCKETING_FILE_ERROR
+    expect(sendTroubleshootingHit).toBeCalled()
+    const label: TroubleshootingLabel = TroubleshootingLabel.SDK_BUCKETING_FILE
     expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 
@@ -260,30 +261,23 @@ describe('test update', () => {
 
   bucketingManager.trackingManager = trackingManager
 
+  const statusChangedCallback = jest.fn<(status: FSSdkStatus) => void>()
+
   it('test', async () => {
     getAsync.mockResolvedValue({ body: bucketing, status: 200 })
     sendTroubleshootingHit.mockResolvedValue()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateFlagshipStatus = jest.spyOn(bucketingManager as any, 'updateFlagshipStatus')
-    let count = 0
-    bucketingManager.statusChangedCallback((status) => {
-      switch (count) {
-        case 0:
-          expect(status).toBe(FSSdkStatus.SDK_INITIALIZING)
-          break
-        case 1:
-          expect(status).toBe(FSSdkStatus.SDK_INITIALIZED)
-          break
-        default:
-          break
-      }
-      count++
-    })
+
+    bucketingManager.statusChangedCallback(statusChangedCallback)
     bucketingManager.startPolling()
     bucketingManager.startPolling()
     await sleep(500)
     expect(updateFlagshipStatus).toBeCalledTimes(2)
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
+    expect(statusChangedCallback).toBeCalledTimes(2)
+    expect(statusChangedCallback).toHaveBeenNthCalledWith(1, FSSdkStatus.SDK_INITIALIZING)
+    expect(statusChangedCallback).toHaveBeenNthCalledWith(2, FSSdkStatus.SDK_INITIALIZED)
   })
 })
 
