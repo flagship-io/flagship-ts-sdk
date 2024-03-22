@@ -1,6 +1,6 @@
 import { CampaignDTO } from './decision/api/models'
 import { FSFetchReasons } from './enum/FSFetchReasons'
-import { FSFlagsStatus } from './enum/FSFlagsStatus'
+import { FSFetchStatus } from './enum/FSFetchStatus'
 import { HitType } from './enum/index'
 import { IEvent, IItem, IPage, IScreen, ITransaction, IHitAbstract } from './hit/index'
 
@@ -30,7 +30,7 @@ export type VisitorFlagsStatus = {
   /**
    * The new status of the flags.
    */
-  newStatus: FSFlagsStatus
+  newStatus: FSFetchStatus
   /**
    * The reason for the status change.
    */
