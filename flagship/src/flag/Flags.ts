@@ -53,10 +53,9 @@ export class Flag<T> implements IFlag<T> {
     this._defaultValue = defaultValue
   }
 
-
   exists ():boolean {
     const flagDTO = this._visitor.flagsData.get(this._key)
-    return !!(flagDTO?.campaignId && flagDTO.variationId && flagDTO.variationGroupId)
+    return !!(flagDTO?.campaignId && flagDTO?.variationId && flagDTO?.variationGroupId)
   }
 
   get metadata ():IFlagMetadata {
@@ -101,14 +100,14 @@ export class Flag<T> implements IFlag<T> {
   }
 
   get status (): FSFlagStatus {
-    if (!this.exists()){
+    if (!this.exists()) {
       return FSFlagStatus.NOT_FOUND
     }
-    if (this._visitor?.visitorFlagsStatus?.newStatus === FSFetchStatus.FETCH_REQUIRED || this._visitor?.visitorFlagsStatus?.newStatus === FSFetchStatus.FETCHING){
+    if (this._visitor?.fetchStatus?.newStatus === FSFetchStatus.FETCH_REQUIRED || this._visitor?.fetchStatus?.newStatus === FSFetchStatus.FETCHING) {
       return FSFlagStatus.FETCH_REQUIRED
     }
 
-    if (this._visitor?.visitorFlagsStatus?.newStatus === FSFetchStatus.PANIC){
+    if (this._visitor?.fetchStatus?.newStatus === FSFetchStatus.PANIC) {
       return FSFlagStatus.PANIC
     }
 
