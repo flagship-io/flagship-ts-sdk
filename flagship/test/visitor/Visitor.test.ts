@@ -9,6 +9,8 @@ import { Visitor } from '../../src/visitor/Visitor'
 import { HitType } from '../../src'
 import { EMIT_READY, SDK_INFO } from '../../src/enum'
 import { IFlag } from '../../src/flag/Flags'
+import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
+import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
 
 describe('test visitor', () => {
   const visitorId = 'visitorId'
@@ -94,6 +96,14 @@ describe('test visitor', () => {
     visitor.clearContext()
     expect(visitor.context).toEqual({ ...predefinedContext, fs_users: newVisitorId })
     expect(visitor.context).toEqual(visitorDelegate.context)
+  })
+
+  it('test fetchStatus', () => {
+    visitorDelegate.fetchStatus = {
+      newStatus: FSFetchStatus.FETCHED,
+      reason: FSFetchReasons.NONE
+    }
+    expect(visitor.fetchStatus).toEqual(visitorDelegate.fetchStatus)
   })
 
   it('test getFlag', () => {
