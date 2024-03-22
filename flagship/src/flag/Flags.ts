@@ -1,34 +1,44 @@
+import { FSFetchStatus } from '../enum/FSFetchStatus'
+import { FSFlagStatus } from '../enum/FSFlagStatus'
 import { FLAG_METADATA, NO_FLAG_METADATA } from '../enum/index'
 import { IFlagMetadata } from '../types'
 import { hasSameType, logDebugSprintf } from '../utils/utils'
 import { VisitorDelegate } from '../visitor/index'
 import { FlagMetadata } from './FlagMetadata'
 
-export type FlagValue<S> = {
-  defaultValue: S,
-  userExposed?: boolean
-}
-
-export interface IFlag<T>{
+/**
+ * Represents a flag in the Flagship SDK.
+ * @template T The type of the flag value.
+ */
+export interface IFlag<T> {
   /**
-   * Return the current flag value if the flag key exists in Flagship and expose it if needed.
-   * @param visitorExposed Default True, if true it will report the flag exposure
+   * Returns the current value of the flag if the flag key exists in Flagship and exposes it if needed.
+   * @param visitorExposed Default is true. If true, it will report the flag exposure.
+   * @returns The current value of the flag.
    */
-    getValue(visitorExposed?:boolean):T
-    /**
-     * Return true if the flag exists, false otherwise.
-     */
-    exists:()=>boolean
+  getValue(visitorExposed?: boolean): T;
 
-    /**
-     * Tells Flagship the visitor have been exposed and have seen this flag
-     * @returns
-     */
-    visitorExposed:()=>Promise<void>
-    /**
-     * Return The campaign metadata object.
-     */
-    metadata:IFlagMetadata
+  /**
+   * Checks if the flag exists.
+   * @returns True if the flag exists, false otherwise.
+   */
+  exists: () => boolean;
+
+  /**
+   * Notifies Flagship that the visitor has been exposed to and seen this flag.
+   * @returns A promise that resolves when the notification is complete.
+   */
+  visitorExposed: () => Promise<void>;
+
+  /**
+   * Returns the metadata of the flag.
+   */
+  readonly metadata: IFlagMetadata;
+
+  /**
+   * Returns the status of the flag.
+   */
+  readonly status: FSFlagStatus;
 }
 
 export class Flag<T> implements IFlag<T> {
@@ -42,6 +52,7 @@ export class Flag<T> implements IFlag<T> {
     this._visitor = visitor
     this._defaultValue = defaultValue
   }
+
 
   exists ():boolean {
     const flagDTO = this._visitor.flagsData.get(this._key)
@@ -87,5 +98,20 @@ export class Flag<T> implements IFlag<T> {
       flag: flagDTO,
       userExposed
     })
+  }
+
+  get status (): FSFlagStatus {
+    if (!this.exists()){
+      return FSFlagStatus.NOT_FOUND
+    }
+    if (this._visitor?.visitorFlagsStatus?.newStatus === FSFetchStatus.FETCH_REQUIRED || this._visitor?.visitorFlagsStatus?.newStatus === FSFetchStatus.FETCHING){
+      return FSFlagStatus.FETCH_REQUIRED
+    }
+
+    if (this._visitor?.visitorFlagsStatus?.newStatus === FSFetchStatus.PANIC){
+      return FSFlagStatus.PANIC
+    }
+
+    return FSFlagStatus.FETCHED
   }
 }
