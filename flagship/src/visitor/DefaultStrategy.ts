@@ -48,7 +48,7 @@ import {
   Page,
   Transaction
 } from '../hit/index'
-import { primitive, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata, TroubleshootingLabel } from '../types'
+import { primitive, IHit, FlagDTO, IFlagMetadata, TroubleshootingLabel } from '../types'
 import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils'
 import { StrategyAbstract } from './StrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
@@ -143,6 +143,10 @@ export class DefaultStrategy extends StrategyAbstract {
   clearContext (): void {
     this.visitor.context = {}
     this.visitor.loadPredefinedContext()
+    this.visitor.fetchStatus = {
+      newStatus: FSFetchStatus.FETCH_REQUIRED,
+      reason: FSFetchReasons.UPDATE_CONTEXT
+    }
     logDebugSprintf(this.config, PROCESS_CLEAR_CONTEXT, CLEAR_CONTEXT, this.visitor.visitorId, this.visitor.context)
   }
 
@@ -150,7 +154,6 @@ export class DefaultStrategy extends StrategyAbstract {
     if (!Array.isArray(visitor?.visitorCache?.data.campaigns)) {
       return null
     }
-    visitor.updateContext((visitor.visitorCache as VisitorCacheDTO).data.context || {})
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (visitor.visitorCache as any).data.campaigns.map((campaign:any) => {
       return {
@@ -213,11 +216,6 @@ export class DefaultStrategy extends StrategyAbstract {
           newStatus: FSFetchStatus.PANIC,
           reason: FSFetchReasons.NONE
         }
-      } else {
-        this.visitor.fetchStatus = {
-          newStatus: FSFetchStatus.FETCHED,
-          reason: FSFetchReasons.NONE
-        }
       }
 
       this.configManager.trackingManager.troubleshootingData = this.decisionManager.troubleshooting
@@ -257,6 +255,13 @@ export class DefaultStrategy extends StrategyAbstract {
       this.visitor.campaigns = campaigns
       this.visitor.flagsData = this.decisionManager.getModifications(this.visitor.campaigns)
       this.visitor.emit(EMIT_READY, fetchCampaignError)
+
+      if (this.visitor.fetchStatus.newStatus === FSFetchStatus.FETCHING) {
+        this.visitor.fetchStatus = {
+          newStatus: FSFetchStatus.FETCHED,
+          reason: FSFetchReasons.NONE
+        }
+      }
 
       logDebugSprintf(this.config, functionName, FETCH_FLAGS_FROM_CAMPAIGNS,
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, this.visitor.flagsData)
