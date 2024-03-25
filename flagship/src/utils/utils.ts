@@ -1,5 +1,5 @@
 import { type IFlagshipConfig } from '../config/IFlagshipConfig'
-import { FlagSynchStatus } from '../enum/FlagSynchStatus'
+import { FSFetchReasons } from '../enum/FSFetchReasons'
 import { LogLevel, VISITOR_SYNC_FLAGS_MESSAGE } from '../enum/index'
 
 /**
@@ -146,20 +146,26 @@ export function errorFormat (message:string, errorData?:Record<string, unknown>)
   })
 }
 
-export function visitorFlagSyncStatusMessage (status: FlagSynchStatus) {
+export function visitorFlagSyncStatusMessage (reason: FSFetchReasons) {
   let message = ''
-  switch (status) {
-    case FlagSynchStatus.CREATED:
+  switch (reason) {
+    case FSFetchReasons.VISITOR_CREATED:
       message = `Visitor \`{0}\` has been created ${VISITOR_SYNC_FLAGS_MESSAGE}`
       break
-    case FlagSynchStatus.CONTEXT_UPDATED:
+    case FSFetchReasons.UPDATE_CONTEXT:
       message = `Visitor context for visitor \`{0}\` has been updated ${VISITOR_SYNC_FLAGS_MESSAGE}`
       break
-    case FlagSynchStatus.AUTHENTICATED:
+    case FSFetchReasons.AUTHENTICATE:
       message = `Visitor \`{0}\` has been authenticated ${VISITOR_SYNC_FLAGS_MESSAGE}`
       break
-    case FlagSynchStatus.UNAUTHENTICATED :
+    case FSFetchReasons.UNAUTHENTICATE :
       message = `Visitor \`{0}\` has been unauthenticated ${VISITOR_SYNC_FLAGS_MESSAGE}`
+      break
+    case FSFetchReasons.FETCH_ERROR:
+      message = 'There was an error fetching flags for visitor `{0}` the value of the flag `{1}` may be outdated"'
+      break
+    case FSFetchReasons.READ_FROM_CACHE:
+      message = 'Flags for visitor `{0}` have been fetched from cache'
       break
     default:
       break
