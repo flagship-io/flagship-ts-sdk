@@ -30,7 +30,7 @@ export type FetchFlagsStatus = {
   /**
    * The new status of the flags fetch.
    */
-  newStatus: FSFetchStatus;
+  status: FSFetchStatus;
   /**
    * The reason for the status change.
    */
@@ -90,7 +90,7 @@ export type NewVisitor = {
    * @param newStatus - The new status of the flags fetch.
    * @param reason - The reason for the status change.
    */
-  onFetchFlagsStatusChanged?: ({ newStatus, reason }: FetchFlagsStatus) => void;
+  onFetchFlagsStatusChanged?: ({ status, reason }: FetchFlagsStatus) => void;
 };
 
 export type InternalHitType = HitType|'BATCH'|'ACTIVATE'|'MONITORING'|'SEGMENT'|'TROUBLESHOOTING'|'USAGE'
