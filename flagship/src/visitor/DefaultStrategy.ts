@@ -57,7 +57,6 @@ import { VisitorDelegate } from './index'
 import { FlagMetadata } from '../flag/FlagMetadata'
 import { Activate } from '../hit/Activate'
 import { Troubleshooting } from '../hit/Troubleshooting'
-import { FlagSynchStatus } from '../enum/FlagSynchStatus'
 import { FSFetchStatus } from '../enum/FSFetchStatus'
 import { FSFetchReasons } from '../enum/FSFetchReasons'
 
@@ -118,8 +117,11 @@ export class DefaultStrategy extends StrategyAbstract {
   updateContext (context: Record<string, primitive> | string, value?:primitive): void {
     if (typeof context === 'string') {
       this.updateContextKeyValue(context, value as primitive)
-      this.visitor.flagSynchStatus = FlagSynchStatus.CONTEXT_UPDATED
       logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_KEY_VALUE_UPDATE, this.visitor.visitorId, context, value, this.visitor.context)
+      this.visitor.fetchStatus = {
+        status: FSFetchStatus.FETCH_REQUIRED,
+        reason: FSFetchReasons.UPDATE_CONTEXT
+      }
       return
     }
 
@@ -132,9 +134,8 @@ export class DefaultStrategy extends StrategyAbstract {
       const value = context[key]
       this.updateContextKeyValue(key, value)
     }
-    this.visitor.flagSynchStatus = FlagSynchStatus.CONTEXT_UPDATED
     this.visitor.fetchStatus = {
-      newStatus: FSFetchStatus.FETCH_REQUIRED,
+      status: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.UPDATE_CONTEXT
     }
     logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_OBJET_PARAM_UPDATE, this.visitor.visitorId, context, this.visitor.context)
@@ -144,7 +145,7 @@ export class DefaultStrategy extends StrategyAbstract {
     this.visitor.context = {}
     this.visitor.loadPredefinedContext()
     this.visitor.fetchStatus = {
-      newStatus: FSFetchStatus.FETCH_REQUIRED,
+      status: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.UPDATE_CONTEXT
     }
     logDebugSprintf(this.config, PROCESS_CLEAR_CONTEXT, CLEAR_CONTEXT, this.visitor.visitorId, this.visitor.context)
@@ -185,15 +186,15 @@ export class DefaultStrategy extends StrategyAbstract {
     let fetchCampaignError:string|undefined
     try {
       const time = Date.now() - this.visitor.lastFetchFlagsTimestamp
-      const flagSyncStatus = this.visitor.flagSynchStatus === FlagSynchStatus.FLAGS_FETCHED
+      const fetchStatus = this.visitor.fetchStatus.status
 
-      if (flagSyncStatus && this.visitor.isFlagFetching) {
+      if (fetchStatus === FSFetchStatus.FETCHING) {
         return
       }
 
       const fetchFlagBufferingTime = (this.config.fetchFlagsBufferingTime as number * 1000)
 
-      if (flagSyncStatus && time < fetchFlagBufferingTime) {
+      if (fetchStatus === FSFetchStatus.FETCHED && time < fetchFlagBufferingTime) {
         logInfoSprintf(this.config, functionName, FETCH_FLAGS_BUFFERING_MESSAGE, this.visitor.visitorId, fetchFlagBufferingTime - time)
         return
       }
@@ -201,19 +202,16 @@ export class DefaultStrategy extends StrategyAbstract {
       logDebugSprintf(this.config, functionName, FETCH_FLAGS_STARTED, this.visitor.visitorId)
 
       this.visitor.fetchStatus = {
-        newStatus: FSFetchStatus.FETCHING,
+        status: FSFetchStatus.FETCHING,
         reason: FSFetchReasons.NONE
       }
 
-      this.visitor.isFlagFetching = true
       campaigns = await this.decisionManager.getCampaignsAsync(this.visitor)
       this.visitor.lastFetchFlagsTimestamp = Date.now()
-      this.visitor.flagSynchStatus = FlagSynchStatus.FLAGS_FETCHED
-      this.visitor.isFlagFetching = false
 
       if (this.decisionManager.isPanic()) {
         this.visitor.fetchStatus = {
-          newStatus: FSFetchStatus.PANIC,
+          status: FSFetchStatus.PANIC,
           reason: FSFetchReasons.NONE
         }
       }
@@ -225,12 +223,11 @@ export class DefaultStrategy extends StrategyAbstract {
       )
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      this.visitor.isFlagFetching = false
       logError(this.config, error.message, functionName)
       fetchCampaignError = error
 
       this.visitor.fetchStatus = {
-        newStatus: FSFetchStatus.FETCH_REQUIRED,
+        status: FSFetchStatus.FETCH_REQUIRED,
         reason: FSFetchReasons.FETCH_ERROR
       }
     }
@@ -240,7 +237,7 @@ export class DefaultStrategy extends StrategyAbstract {
         logData.isFromCache = true
         if (campaigns) {
           this.visitor.fetchStatus = {
-            newStatus: FSFetchStatus.FETCH_REQUIRED,
+            status: FSFetchStatus.FETCH_REQUIRED,
             reason: FSFetchReasons.READ_FROM_CACHE
           }
 
@@ -256,9 +253,9 @@ export class DefaultStrategy extends StrategyAbstract {
       this.visitor.flagsData = this.decisionManager.getModifications(this.visitor.campaigns)
       this.visitor.emit(EMIT_READY, fetchCampaignError)
 
-      if (this.visitor.fetchStatus.newStatus === FSFetchStatus.FETCHING) {
+      if (this.visitor.fetchStatus.status === FSFetchStatus.FETCHING) {
         this.visitor.fetchStatus = {
-          newStatus: FSFetchStatus.FETCHED,
+          status: FSFetchStatus.FETCHED,
           reason: FSFetchReasons.NONE
         }
       }
@@ -284,7 +281,7 @@ export class DefaultStrategy extends StrategyAbstract {
       )
 
       this.visitor.fetchStatus = {
-        newStatus: FSFetchStatus.FETCH_REQUIRED,
+        status: FSFetchStatus.FETCH_REQUIRED,
         reason: FSFetchReasons.FETCH_ERROR
       }
 
@@ -519,10 +516,9 @@ export class DefaultStrategy extends StrategyAbstract {
     })
 
     this.sendTroubleshootingHit(monitoring)
-    this.visitor.flagSynchStatus = FlagSynchStatus.AUTHENTICATED
 
     this.visitor.fetchStatus = {
-      newStatus: FSFetchStatus.FETCH_REQUIRED,
+      status: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.AUTHENTICATE
     }
 
@@ -550,10 +546,9 @@ export class DefaultStrategy extends StrategyAbstract {
     })
 
     this.sendTroubleshootingHit(monitoring)
-    this.visitor.flagSynchStatus = FlagSynchStatus.UNAUTHENTICATED
 
     this.visitor.fetchStatus = {
-      newStatus: FSFetchStatus.FETCH_REQUIRED,
+      status: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.UNAUTHENTICATE
     }
 
