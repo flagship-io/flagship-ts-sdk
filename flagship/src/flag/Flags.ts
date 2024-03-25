@@ -100,15 +100,14 @@ export class Flag<T> implements IFlag<T> {
   }
 
   get status (): FSFlagStatus {
+    if (this._visitor?.fetchStatus?.status === FSFetchStatus.PANIC) {
+      return FSFlagStatus.PANIC
+    }
     if (!this.exists()) {
       return FSFlagStatus.NOT_FOUND
     }
     if (this._visitor?.fetchStatus?.status === FSFetchStatus.FETCH_REQUIRED || this._visitor?.fetchStatus?.status === FSFetchStatus.FETCHING) {
       return FSFlagStatus.FETCH_REQUIRED
-    }
-
-    if (this._visitor?.fetchStatus?.status === FSFetchStatus.PANIC) {
-      return FSFlagStatus.PANIC
     }
 
     return FSFlagStatus.FETCHED
