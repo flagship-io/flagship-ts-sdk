@@ -1,5 +1,3 @@
-import { VISITOR_CREATED } from './FlagshipConstant';
-
 
 /**
  * Enum representing the reasons for fetching Flags.
@@ -34,12 +32,11 @@ export enum FSFetchReasons {
     /**
      * Indicates that the visitor has been created.
      */
-    VISITOR_CREATED = "VISITOR_CREATED",
+    VISITOR_CREATED = 'VISITOR_CREATED',
 
     /**
      * Indicates that there is no specific reason for fetching flags.
      */
     NONE = 'NONE'
-
 
 }
