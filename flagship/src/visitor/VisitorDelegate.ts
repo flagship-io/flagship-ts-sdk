@@ -4,7 +4,7 @@ import { VisitorAbstract } from './VisitorAbstract'
 import { Flag, IFlag } from '../flag/Flags'
 import { logWarningSprintf, visitorFlagSyncStatusMessage } from '../utils/utils'
 import { GET_FLAG } from '../enum/FlagshipConstant'
-import { FlagSynchStatus } from '../enum/FlagSynchStatus'
+import { FSFetchStatus } from '../enum/FSFetchStatus'
 
 export class VisitorDelegate extends VisitorAbstract {
   updateContext (key: string, value: primitive):void
@@ -19,8 +19,8 @@ export class VisitorDelegate extends VisitorAbstract {
   }
 
   getFlag<T> (key:string, defaultValue: T):IFlag<T> {
-    if (this.flagSynchStatus !== FlagSynchStatus.FLAGS_FETCHED) {
-      logWarningSprintf(this.config, GET_FLAG, visitorFlagSyncStatusMessage(this.flagSynchStatus), this.visitorId, key)
+    if (this.fetchStatus.status !== FSFetchStatus.FETCHED) {
+      logWarningSprintf(this.config, GET_FLAG, visitorFlagSyncStatusMessage(this.fetchStatus.reason), this.visitorId, key)
     }
     return new Flag({ key, visitor: this, defaultValue })
   }

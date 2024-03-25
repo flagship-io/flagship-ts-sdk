@@ -16,7 +16,6 @@ import { NoConsentStrategy } from './NoConsentStrategy'
 import { cacheVisitor } from './VisitorCache'
 import { IFlag } from '../flag/Flags'
 import { MurmurHash } from '../utils/MurmurHash'
-import { FlagSynchStatus } from '../enum/FlagSynchStatus'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { FSFetchStatus } from '../enum/FSFetchStatus'
 import { FSFetchReasons } from '../enum/FSFetchReasons'
@@ -38,13 +37,13 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   private _consentHitTroubleshooting? : Troubleshooting
   private _segmentHitTroubleshooting? : Troubleshooting
   private _fetchStatus! : FetchFlagsStatus
-  private _onFetchFlagsStatusChanged? : ({ newStatus, reason }: FetchFlagsStatus) => void
+  private _onFetchFlagsStatusChanged? : ({ status, reason }: FetchFlagsStatus) => void
 
-  public get onFetchFlagsStatusChanged () : (({ newStatus, reason }: FetchFlagsStatus) => void)|undefined {
+  public get onFetchFlagsStatusChanged () : (({ status, reason }: FetchFlagsStatus) => void)|undefined {
     return this._onFetchFlagsStatusChanged
   }
 
-  public set onFetchFlagsStatusChanged (v : (({ newStatus, reason }: FetchFlagsStatus) => void)|undefined) {
+  public set onFetchFlagsStatusChanged (v : (({ status, reason }: FetchFlagsStatus) => void)|undefined) {
     this._onFetchFlagsStatusChanged = v
   }
 
@@ -85,9 +84,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     return VisitorAbstract.SdkStatus
   }
 
-  private _flagSynchStatus : FlagSynchStatus
   public lastFetchFlagsTimestamp = 0
-  public isFlagFetching = false
   private _visitorCacheStatus? : VisitorCacheStatus
 
   public get visitorCacheStatus () : VisitorCacheStatus|undefined {
@@ -96,14 +93,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
   public set visitorCacheStatus (v : VisitorCacheStatus|undefined) {
     this._visitorCacheStatus = v
-  }
-
-  public get flagSynchStatus () : FlagSynchStatus {
-    return this._flagSynchStatus
-  }
-
-  public set flagSynchStatus (v : FlagSynchStatus) {
-    this._flagSynchStatus = v
   }
 
   constructor (param: NewVisitor & {
@@ -148,12 +137,11 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.updateCache()
     this.setInitialFlags(initialFlagsData)
     this.setInitializeCampaigns(initialCampaigns, !!initialFlagsData)
-    this._flagSynchStatus = FlagSynchStatus.CREATED
 
     this.onFetchFlagsStatusChanged = onFetchFlagsStatusChanged
 
     this.fetchStatus = {
-      newStatus: FSFetchStatus.FETCH_REQUIRED,
+      status: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.VISITOR_CREATED
     }
 
