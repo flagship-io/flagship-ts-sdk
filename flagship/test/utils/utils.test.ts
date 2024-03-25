@@ -2,7 +2,8 @@ import { logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoS
 import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig } from '../../src/config/index'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { FlagSynchStatus, LogLevel } from '../../src/enum/index'
+import { LogLevel } from '../../src/enum/index'
+import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
 
 describe('test sprintf function', () => {
   it('should ', () => {
@@ -111,17 +112,39 @@ describe('test logError function', () => {
   })
 })
 
-describe('Test visitorFlagSyncStatusMessage', () => {
-  it('should', () => {
-    let message = visitorFlagSyncStatusMessage(FlagSynchStatus.CREATED)
+describe('Test visitorFlagSyncStatusMessage function', () => {
+  it('should return a message containing "created" when FSFetchReasons.VISITOR_CREATED is passed', () => {
+    const message = visitorFlagSyncStatusMessage(FSFetchReasons.VISITOR_CREATED)
     expect(message).toEqual(expect.stringContaining('created'))
-    message = visitorFlagSyncStatusMessage(FlagSynchStatus.CONTEXT_UPDATED)
+  })
+
+  it('should return a message containing "updated" when FSFetchReasons.UPDATE_CONTEXT is passed', () => {
+    const message = visitorFlagSyncStatusMessage(FSFetchReasons.UPDATE_CONTEXT)
     expect(message).toEqual(expect.stringContaining('updated'))
-    message = visitorFlagSyncStatusMessage(FlagSynchStatus.AUTHENTICATED)
+  })
+
+  it('should return a message containing "authenticated" when FSFetchReasons.AUTHENTICATE is passed', () => {
+    const message = visitorFlagSyncStatusMessage(FSFetchReasons.AUTHENTICATE)
     expect(message).toEqual(expect.stringContaining('authenticated'))
-    message = visitorFlagSyncStatusMessage(FlagSynchStatus.UNAUTHENTICATED)
+  })
+
+  it('should return a message containing "unauthenticated" when FSFetchReasons.UNAUTHENTICATE is passed', () => {
+    const message = visitorFlagSyncStatusMessage(FSFetchReasons.UNAUTHENTICATE)
     expect(message).toEqual(expect.stringContaining('unauthenticated'))
-    message = visitorFlagSyncStatusMessage(FlagSynchStatus.FLAGS_FETCHED)
+  })
+
+  it('should return an empty string when FSFetchReasons.NONE is passed', () => {
+    const message = visitorFlagSyncStatusMessage(FSFetchReasons.NONE)
     expect(message).toBe('')
+  })
+
+  it('should return a message containing "error" when FSFetchReasons.FETCH_ERROR is passed', () => {
+    const message = visitorFlagSyncStatusMessage(FSFetchReasons.FETCH_ERROR)
+    expect(message).toEqual(expect.stringContaining('error'))
+  })
+
+  it('should return a message containing "fetched from cache" when FSFetchReasons.READ_FROM_CACHE is passed', () => {
+    const message = visitorFlagSyncStatusMessage(FSFetchReasons.READ_FROM_CACHE)
+    expect(message).toEqual(expect.stringContaining('fetched from cache'))
   })
 })
