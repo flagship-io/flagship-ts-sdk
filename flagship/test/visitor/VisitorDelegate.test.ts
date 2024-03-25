@@ -4,7 +4,7 @@ import { FlagDTO } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager, DecisionApiConfig } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
-import { FlagSynchStatus, HitType, VISITOR_ID_ERROR } from '../../src/enum'
+import { HitType, VISITOR_ID_ERROR } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
@@ -97,7 +97,7 @@ describe('test VisitorDelegate', () => {
     }
   }]
 
-  const onFetchFlagsStatusChanged = jest.fn<({ newStatus, reason }: FetchFlagsStatus) => void>()
+  const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
 
   const visitorDelegate = new VisitorDelegate({
     visitorId,
@@ -193,7 +193,7 @@ describe('test VisitorDelegate', () => {
     })
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(onFetchFlagsStatusChanged)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(1)
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledWith({ newStatus: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.VISITOR_CREATED })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledWith({ status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.VISITOR_CREATED })
   })
 
   it('test property', () => {
@@ -296,7 +296,7 @@ describe('test VisitorDelegate methods', () => {
       variationName: flagDTO.variationName
     })
 
-    visitorDelegate.flagSynchStatus = FlagSynchStatus.FLAGS_FETCHED
+    visitorDelegate.fetchStatus = { status: FSFetchStatus.FETCHED, reason: FSFetchReasons.NONE }
 
     visitorDelegate.flagsData.set('newKey', flagDTO)
     let flag = visitorDelegate.getFlag('newKey', 'defaultValue')
@@ -314,7 +314,7 @@ describe('test VisitorDelegate methods', () => {
       variationName: flagDTO.variationName
     }))
 
-    visitorDelegate.flagSynchStatus = FlagSynchStatus.AUTHENTICATED
+    visitorDelegate.fetchStatus = { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.AUTHENTICATE }
     flag = visitorDelegate.getFlag('newKey', 'defaultValue')
     expect(logWarning).toBeCalledTimes(1)
   })
@@ -325,7 +325,7 @@ describe('test VisitorDelegate methods', () => {
     visitorDelegate.fetchFlags()
       .then(() => {
         expect(fetchFlags).toBeCalledTimes(1)
-      }).catch(err => console.log(err))
+      }).catch(err => expect(err).toBeNull())
   })
 
   it('test userExposed', () => {
@@ -335,7 +335,7 @@ describe('test VisitorDelegate methods', () => {
       .then(() => {
         expect(visitorExposed).toBeCalledTimes(1)
         expect(visitorExposed).toBeCalledWith(params)
-      }).catch(err => console.log(err))
+      }).catch(err => expect(err).toBeNull())
   })
 
   it('test getFlagValue', () => {

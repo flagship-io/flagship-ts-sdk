@@ -100,7 +100,7 @@ describe('test visitor', () => {
 
   it('test fetchStatus', () => {
     visitorDelegate.fetchStatus = {
-      newStatus: FSFetchStatus.FETCHED,
+      status: FSFetchStatus.FETCHED,
       reason: FSFetchReasons.NONE
     }
     expect(visitor.fetchStatus).toEqual(visitorDelegate.fetchStatus)

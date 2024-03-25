@@ -189,28 +189,28 @@ describe('Flag', () => {
     it('should return FSFlagStatus.FETCH_REQUIRED if the fetch status is FETCH_REQUIRED', () => {
       const flag = new Flag({ key: flagDto.key, visitor: visitorDelegate, defaultValue: true })
       expect(flag.exists()).toBeTruthy()
-      visitorDelegate.fetchStatus.newStatus = FSFetchStatus.FETCH_REQUIRED
+      visitorDelegate.fetchStatus.status = FSFetchStatus.FETCH_REQUIRED
       expect(flag.status).toBe(FSFlagStatus.FETCH_REQUIRED)
     })
 
     it('should return FSFlagStatus.FETCH_REQUIRED if the fetch status is FETCHING', () => {
       const flag = new Flag({ key: flagDto.key, visitor: visitorDelegate, defaultValue: true })
       expect(flag.exists()).toBeTruthy()
-      visitorDelegate.fetchStatus.newStatus = FSFetchStatus.FETCHING
+      visitorDelegate.fetchStatus.status = FSFetchStatus.FETCHING
       expect(flag.status).toBe(FSFlagStatus.FETCH_REQUIRED)
     })
 
     it('should return FSFlagStatus.PANIC if the fetch status is PANIC', () => {
       const flag = new Flag({ key: flagDto.key, visitor: visitorDelegate, defaultValue: true })
       expect(flag.exists()).toBeTruthy()
-      visitorDelegate.fetchStatus.newStatus = FSFetchStatus.PANIC
+      visitorDelegate.fetchStatus.status = FSFetchStatus.PANIC
       expect(flag.status).toBe(FSFlagStatus.PANIC)
     })
 
     it('should return FSFlagStatus.FETCHED if the fetch status is FETCHED', () => {
       const flag = new Flag({ key: flagDto.key, visitor: visitorDelegate, defaultValue: true })
       expect(flag.exists()).toBeTruthy()
-      visitorDelegate.fetchStatus.newStatus = FSFetchStatus.FETCHED
+      visitorDelegate.fetchStatus.status = FSFetchStatus.FETCHED
       expect(flag.status).toBe(FSFlagStatus.FETCHED)
     })
   })

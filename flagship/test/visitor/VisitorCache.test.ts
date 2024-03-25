@@ -56,7 +56,7 @@ describe('test visitor cache', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const onFetchFlagsStatusChanged = jest.fn<({ newStatus, reason }: FetchFlagsStatus) => void>()
+  const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged })
 
@@ -145,7 +145,7 @@ describe('test visitor cache', () => {
 
   it('test fetchVisitorCacheCampaigns defaultStrategy', async () => {
     getCampaignsAsync.mockResolvedValue(null)
-    const onFetchFlagsStatusChanged = jest.fn<({ newStatus, reason }: FetchFlagsStatus) => void>()
+    const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged })
     const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
@@ -153,9 +153,9 @@ describe('test visitor cache', () => {
     await defaultStrategy.fetchFlags()
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(onFetchFlagsStatusChanged)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(3)
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { newStatus: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.VISITOR_CREATED })
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { newStatus: FSFetchStatus.FETCHING, reason: FSFetchReasons.NONE })
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(3, { newStatus: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.READ_FROM_CACHE })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.VISITOR_CREATED })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { status: FSFetchStatus.FETCHING, reason: FSFetchReasons.NONE })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(3, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.READ_FROM_CACHE })
     expect(visitorDelegate.campaigns).toEqual(campaigns.campaigns)
   })
 

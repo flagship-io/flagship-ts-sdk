@@ -8,7 +8,7 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { IHttpResponse, HttpClient } from '../../src/utils/HttpClient'
 import { DefaultStrategy, HIT_NULL_ERROR } from '../../src/visitor/DefaultStrategy'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
-import { CONTEXT_NULL_ERROR, CONTEXT_VALUE_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, FLAG_VALUE, FS_CONSENT, FlagSynchStatus, GET_FLAG_CAST_ERROR, GET_FLAG_MISSING_ERROR, GET_METADATA_CAST_ERROR, HitType, PROCESS_SEND_HIT, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, USER_EXPOSED_CAST_ERROR, USER_EXPOSED_FLAG_ERROR } from '../../src/enum'
+import { CONTEXT_NULL_ERROR, CONTEXT_VALUE_ERROR, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, FLAG_VALUE, FS_CONSENT, GET_FLAG_CAST_ERROR, GET_FLAG_MISSING_ERROR, GET_METADATA_CAST_ERROR, HitType, PROCESS_SEND_HIT, PROCESS_UPDATE_CONTEXT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, USER_EXPOSED_CAST_ERROR, USER_EXPOSED_FLAG_ERROR } from '../../src/enum'
 import { errorFormat, sprintf } from '../../src/utils/utils'
 import { Activate } from '../../src/hit/Activate'
 import { MurmurHash } from '../../src/utils/MurmurHash'
@@ -82,7 +82,7 @@ describe('test DefaultStrategy ', () => {
 
   const murmurHash = new MurmurHash()
 
-  const onFetchFlagsStatusChanged = jest.fn<({ newStatus, reason }: FetchFlagsStatus) => void>()
+  const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged })
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
@@ -133,11 +133,11 @@ describe('test DefaultStrategy ', () => {
   it('test updateContext', () => {
     defaultStrategy.updateContext(newContext)
     expect(visitorDelegate.context).toStrictEqual({ ...context, ...newContext, ...predefinedContext })
-    expect(visitorDelegate.flagSynchStatus).toBe(FlagSynchStatus.CONTEXT_UPDATED)
+    expect(visitorDelegate.fetchStatus).toEqual({ status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.UPDATE_CONTEXT })
 
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(onFetchFlagsStatusChanged)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(1)
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledWith({ newStatus: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.UPDATE_CONTEXT })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledWith({ status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.UPDATE_CONTEXT })
   })
 
   it('test updateContext null', () => {
@@ -181,7 +181,7 @@ describe('test DefaultStrategy ', () => {
       fs_users: visitorId
     })
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(2)
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { newStatus: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.UPDATE_CONTEXT })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.UPDATE_CONTEXT })
   })
 
   it('test getCurrentDateTime', () => {
@@ -217,11 +217,11 @@ describe('test DefaultStrategy ', () => {
     expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
     expect(getModifications).toBeCalledTimes(1)
     expect(getModifications).toBeCalledWith(campaignDTO)
-    expect(visitorDelegate.flagSynchStatus).toBe(FlagSynchStatus.FLAGS_FETCHED)
+    expect(visitorDelegate.fetchStatus).toEqual({ status: FSFetchStatus.FETCHED, reason: FSFetchReasons.NONE })
 
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(2)
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { newStatus: FSFetchStatus.FETCHING, reason: FSFetchReasons.NONE })
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { newStatus: FSFetchStatus.FETCHED, reason: FSFetchReasons.NONE })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { status: FSFetchStatus.FETCHING, reason: FSFetchReasons.NONE })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { status: FSFetchStatus.FETCHED, reason: FSFetchReasons.NONE })
   })
 
   it('test fetchFlags panic mode ', async () => {
@@ -234,11 +234,11 @@ describe('test DefaultStrategy ', () => {
     isPanicFn.mockReturnValue(true)
 
     await defaultStrategy.fetchFlags()
-    expect(visitorDelegate.flagSynchStatus).toBe(FlagSynchStatus.FLAGS_FETCHED)
+    expect(visitorDelegate.fetchStatus).toEqual({ status: FSFetchStatus.PANIC, reason: FSFetchReasons.NONE })
 
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(2)
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { newStatus: FSFetchStatus.FETCHING, reason: FSFetchReasons.NONE })
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { newStatus: FSFetchStatus.PANIC, reason: FSFetchReasons.NONE })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { status: FSFetchStatus.FETCHING, reason: FSFetchReasons.NONE })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { status: FSFetchStatus.PANIC, reason: FSFetchReasons.NONE })
 
     isPanicFn.mockReturnValue(false)
   })
@@ -833,23 +833,23 @@ describe('test DefaultStrategy ', () => {
     expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
     const label: TroubleshootingLabel = TroubleshootingLabel.VISITOR_AUTHENTICATE
     expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
-    expect(visitorDelegate.flagSynchStatus).toBe(FlagSynchStatus.AUTHENTICATED)
+    expect(visitorDelegate.fetchStatus).toEqual({ status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.AUTHENTICATE })
 
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(1)
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { newStatus: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.AUTHENTICATE })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.AUTHENTICATE })
   })
 
   it('test unauthenticate', () => {
     defaultStrategy.unauthenticate()
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBeNull()
-    expect(visitorDelegate.flagSynchStatus).toBe(FlagSynchStatus.UNAUTHENTICATED)
+    expect(visitorDelegate.fetchStatus).toEqual({ status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.UNAUTHENTICATE })
     expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
     const label: TroubleshootingLabel = TroubleshootingLabel.VISITOR_UNAUTHENTICATE
     expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
 
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(1)
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { newStatus: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.UNAUTHENTICATE })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.UNAUTHENTICATE })
   })
 
   it('test updateCampaigns', () => {
@@ -979,7 +979,7 @@ describe('test DefaultStrategy fetch flags buffering', () => {
     }
   ]
 
-  it('test fetchFlags', async () => {
+  it('should fetch flags with buffering', async () => {
     visitorDelegate.on('ready', (err) => {
       expect(err).toBeUndefined()
     })
@@ -998,7 +998,7 @@ describe('test DefaultStrategy fetch flags buffering', () => {
     expect(getCampaignsAsync).toBeCalledTimes(2)
   })
 
-  it('test fetchFlags', async () => {
+  it('should fetch flags without buffering', async () => {
     visitorDelegate.on('ready', (err) => {
       expect(err).toBeUndefined()
     })
@@ -1014,7 +1014,7 @@ describe('test DefaultStrategy fetch flags buffering', () => {
     expect(logInfo).toBeCalledTimes(0)
   })
 
-  it('test fetchFlags', async () => {
+  it('should fetch flags with zero buffering time', async () => {
     visitorDelegate.on('ready', (err) => {
       expect(err).toBeUndefined()
     })
@@ -1026,6 +1026,21 @@ describe('test DefaultStrategy fetch flags buffering', () => {
     expect(getCampaignsAsync).toBeCalledTimes(2)
     expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
     expect(getModifications).toBeCalledTimes(2)
+    expect(getModifications).toBeCalledWith(campaignDTO)
+    expect(logInfo).toBeCalledTimes(0)
+  })
+
+  it('should fetch flags only once when another fetch call is in progress', async () => {
+    visitorDelegate.on('ready', (err) => {
+      expect(err).toBeUndefined()
+    })
+    getCampaignsAsync.mockResolvedValue(campaignDTO)
+    getModifications.mockReturnValue(returnFlag)
+    config.fetchFlagsBufferingTime = 0
+    await Promise.all([defaultStrategy.fetchFlags(), defaultStrategy.fetchFlags()])
+    expect(getCampaignsAsync).toBeCalledTimes(1)
+    expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
+    expect(getModifications).toBeCalledTimes(1)
     expect(getModifications).toBeCalledWith(campaignDTO)
     expect(logInfo).toBeCalledTimes(0)
   })
@@ -1097,7 +1112,7 @@ describe('test fetchFlags errors', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const onFetchFlagsStatusChanged = jest.fn<({ newStatus, reason }: FetchFlagsStatus) => void>()
+  const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged })
 
@@ -1120,8 +1135,8 @@ describe('test fetchFlags errors', () => {
 
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(onFetchFlagsStatusChanged)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(2)
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { newStatus: FSFetchStatus.FETCHING, reason: FSFetchReasons.NONE })
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { newStatus: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.FETCH_ERROR })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { status: FSFetchStatus.FETCHING, reason: FSFetchReasons.NONE })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.FETCH_ERROR })
   })
 })
 

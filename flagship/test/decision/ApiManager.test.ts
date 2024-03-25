@@ -42,7 +42,7 @@ describe('test ApiManager', () => {
   const visitorId = 'visitorId'
   const context = { age: 20 }
 
-  const onFetchFlagsStatusChanged = jest.fn<({ newStatus, reason }: FetchFlagsStatus) => void>()
+  const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
 
   const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: apiManager, trackingManager }, onFetchFlagsStatusChanged })
 
