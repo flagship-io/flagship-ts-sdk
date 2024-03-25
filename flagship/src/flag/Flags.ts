@@ -103,11 +103,11 @@ export class Flag<T> implements IFlag<T> {
     if (!this.exists()) {
       return FSFlagStatus.NOT_FOUND
     }
-    if (this._visitor?.fetchStatus?.newStatus === FSFetchStatus.FETCH_REQUIRED || this._visitor?.fetchStatus?.newStatus === FSFetchStatus.FETCHING) {
+    if (this._visitor?.fetchStatus?.status === FSFetchStatus.FETCH_REQUIRED || this._visitor?.fetchStatus?.status === FSFetchStatus.FETCHING) {
       return FSFlagStatus.FETCH_REQUIRED
     }
 
-    if (this._visitor?.fetchStatus?.newStatus === FSFetchStatus.PANIC) {
+    if (this._visitor?.fetchStatus?.status === FSFetchStatus.PANIC) {
       return FSFlagStatus.PANIC
     }
 
