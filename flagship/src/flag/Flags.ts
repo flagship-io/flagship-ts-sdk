@@ -10,11 +10,17 @@ import { FlagMetadata } from './FlagMetadata'
  * Represents a flag in the Flagship SDK.
  * @template T The type of the flag value.
  */
+/**
+ * Represents a flag in the Flagship SDK.
+ * @template T The type of the flag value.
+ */
 export interface IFlag<T> {
   /**
-   * Returns the current value of the flag if the flag key exists in Flagship and exposes it if needed.
-   * @param visitorExposed Default is true. If true, it will report the flag exposure.
-   * @returns The current value of the flag.
+   * Returns the value of the flag.
+   * If the flag exists and the type of the default value matches the flag type value.
+   * It can expose the flag if needed.
+   * @param visitorExposed Specifies whether to report the flag exposure. Default is true.
+   * @returns The value of the flag.
    */
   getValue(visitorExposed?: boolean): T;
 
