@@ -40,47 +40,51 @@ export type FetchFlagsStatus = {
 /**
  * Represents a new visitor.
  */
+/**
+ * Represents a new visitor.
+ */
 export type NewVisitor = {
   /**
    * Optional - Unique visitor identifier.
    *
-   * Note: It will be generated if not set.
-   *
-   * NOTE 2: In client-side, if you do not specify a value, the id will be either automatically generated or will be the visitor id from the previous session (if `enableClientCache` equals true).
+   * Note: If not set, it will be generated automatically.
+   * In client-side, if not specified, the id will either be automatically generated or will be the visitor id from the previous session (if `reuseVisitorIds` is set to true).
    */
   visitorId?: string;
 
   /**
-   * Specify if the visitor is authenticated or anonymous for Experience continuity.
+   * Specifies if the visitor is authenticated or anonymous for experience continuity.
    */
   isAuthenticated?: boolean;
 
   /**
-   * Visitor context.
+   * The visitor context is a dataset key/value that defines the current visitor.
+   * It is sent to Flagship for targeting purposes (use-case assignment) and to enrich reporting with Context Filters.
+   * Context keys must be strings, and the value types must be one of the following: number, boolean, or string.
    */
   context?: Record<string, primitive>;
 
   /**
-   * Required - Indicates whether the visitor has consented.
+   * Required - Specifies if the visitor has consented for personal data usage.
+   * When set to false, some features will be deactivated and the cache will be deactivated and cleared.
    */
   hasConsented: boolean;
 
   /**
-   * This is an object of the data received when fetching the Flagship decision API (decisionMode="API").
-   *
+   * An object containing the data received when fetching the Flagship decision API (decisionMode="API").
    * Providing this property avoids the SDK from having an empty cache during first initialization.
    */
   initialCampaigns?: CampaignDTO[];
 
   /**
-   * This is a set of flag data provided to avoid the SDK to have an empty cache during the first initialization.
+   * A set of flag data provided to avoid the SDK from having an empty cache during the first initialization.
    */
   initialFlagsData?: Map<string, FlagDTO> | FlagDTO[];
 
   /**
-   * If true, the newly created visitor instance won't be saved and will simply be returned. Otherwise, the newly created visitor instance will be returned and saved into the Flagship.
-   *
-   * Note: By default, it is false on server-side and true on client-side.
+   * If true, the newly created visitor instance will be returned and saved into Flagship.
+   * Otherwise,  the newly created visitor instance won't be saved and will simply be returned.
+   * By default, it is false on server-side and true on client-side.
    */
   shouldSaveInstance?: boolean;
 
