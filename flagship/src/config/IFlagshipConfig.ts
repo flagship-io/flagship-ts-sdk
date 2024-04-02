@@ -62,7 +62,7 @@ export interface IFlagshipConfig {
    *
    * If 0 is given, it will only poll once at start time.
    *
-   * Default value is 2 seconds.
+   * Default value is 5 seconds.
    */
   pollingInterval?: number;
 
