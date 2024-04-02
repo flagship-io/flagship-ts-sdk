@@ -84,7 +84,7 @@ export interface IVisitor {
   getFlag<T>(key: string, defaultValue: T): IFlag<T>;
 
   /**
-   * Calls the decision API and updates all the campaign modifications from the server according to the visitor context.
+   * Invokes the `decision API` or refers to the `bucketing file` to refresh all campaign flags based on the visitor's context.
    * @returns A promise that resolves when the flags are fetched.
    */
   fetchFlags(): Promise<void>;
