@@ -35,6 +35,9 @@ import { EdgeManager } from '../decision/EdgeManager'
 import { EdgeConfig } from '../config/EdgeConfig'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 
+/**
+ * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
+ */
 export class Flagship {
   // eslint-disable-next-line no-use-before-define
   private static _instance: Flagship
