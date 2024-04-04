@@ -8,7 +8,9 @@ import { VisitorAbstract } from './VisitorAbstract'
 import { IFlag } from '../flag/Flags'
 
 /**
- * Represents a visitor in the Flagship SDK.
+ * The `Visitor` class represents a unique user within your application. It aids in
+ * managing the visitor's data and fetching the corresponding flags for the visitor
+ * from the [Flagship platform](https://app.flagship.io/login) .
  */
 export class Visitor extends EventEmitter implements IVisitor {
   private visitorDelegate:VisitorAbstract

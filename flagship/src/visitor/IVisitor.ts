@@ -4,7 +4,9 @@ import { IFlag } from '../flag/Flags'
 import { IHit, FlagDTO, primitive, FetchFlagsStatus } from '../types'
 
 /**
- * Represents a visitor in the Flagship SDK.
+ * The `Visitor` class represents a unique user within your application. It aids in
+ * managing the visitor's data and fetching the corresponding flags for the visitor
+ * from the [Flagship platform](https://app.flagship.io/login) .
  */
 export interface IVisitor {
   /**
