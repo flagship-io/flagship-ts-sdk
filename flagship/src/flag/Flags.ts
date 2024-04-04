@@ -7,11 +7,8 @@ import { VisitorDelegate } from '../visitor/index'
 import { FlagMetadata } from './FlagMetadata'
 
 /**
- * Represents a flag in the Flagship SDK.
- * @template T The type of the flag value.
- */
-/**
- * Represents a flag in the Flagship SDK.
+ * This class represents a flag in the `Flagship SDK`. It helps you retrieve the flag value, access flag metadata,
+ * expose the flag, verify the flag's existence, and get the flag status
  * @template T The type of the flag value.
  */
 export interface IFlag<T> {
