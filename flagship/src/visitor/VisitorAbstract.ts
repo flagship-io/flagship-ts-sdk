@@ -38,6 +38,15 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   private _segmentHitTroubleshooting? : Troubleshooting
   private _fetchStatus! : FetchFlagsStatus
   private _onFetchFlagsStatusChanged? : ({ status, reason }: FetchFlagsStatus) => void
+  private _getCampaignsPromise? : Promise<CampaignDTO[]|null>
+
+  public get getCampaignsPromise () : Promise<CampaignDTO[]|null>|undefined {
+    return this._getCampaignsPromise
+  }
+
+  public set getCampaignsPromise (v : Promise<CampaignDTO[]|null>|undefined) {
+    this._getCampaignsPromise = v
+  }
 
   public get onFetchFlagsStatusChanged () : (({ status, reason }: FetchFlagsStatus) => void)|undefined {
     return this._onFetchFlagsStatusChanged
