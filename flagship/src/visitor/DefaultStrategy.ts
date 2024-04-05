@@ -173,157 +173,6 @@ export class DefaultStrategy extends StrategyAbstract {
     })
   }
 
-  protected async globalFetchFlags (functionName:string): Promise<void> {
-    const now = Date.now()
-    const logData = {
-      visitorId: this.visitor.visitorId,
-      anonymousId: this.visitor.anonymousId,
-      context: this.visitor.context,
-      isFromCache: false,
-      duration: 0
-    }
-    let campaigns: CampaignDTO[] | null = null
-    let fetchCampaignError:string|undefined
-    try {
-      const time = Date.now() - this.visitor.lastFetchFlagsTimestamp
-      const fetchStatus = this.visitor.fetchStatus.status
-
-      if (fetchStatus === FSFetchStatus.FETCHING) {
-        return
-      }
-
-      const fetchFlagBufferingTime = (this.config.fetchFlagsBufferingTime as number * 1000)
-
-      if (fetchStatus === FSFetchStatus.FETCHED && time < fetchFlagBufferingTime) {
-        logInfoSprintf(this.config, functionName, FETCH_FLAGS_BUFFERING_MESSAGE, this.visitor.visitorId, fetchFlagBufferingTime - time)
-        return
-      }
-
-      logDebugSprintf(this.config, functionName, FETCH_FLAGS_STARTED, this.visitor.visitorId)
-
-      this.visitor.fetchStatus = {
-        status: FSFetchStatus.FETCHING,
-        reason: FSFetchReasons.NONE
-      }
-
-      campaigns = await this.decisionManager.getCampaignsAsync(this.visitor)
-      this.visitor.lastFetchFlagsTimestamp = Date.now()
-
-      if (this.decisionManager.isPanic()) {
-        this.visitor.fetchStatus = {
-          status: FSFetchStatus.PANIC,
-          reason: FSFetchReasons.NONE
-        }
-      }
-
-      this.configManager.trackingManager.troubleshootingData = this.decisionManager.troubleshooting
-
-      logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_SUCCESS,
-        this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
-      )
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
-      logError(this.config, error.message, functionName)
-      fetchCampaignError = error
-
-      this.visitor.fetchStatus = {
-        status: FSFetchStatus.FETCH_REQUIRED,
-        reason: FSFetchReasons.FETCH_ERROR
-      }
-    }
-    try {
-      if (!campaigns) {
-        campaigns = this.fetchVisitorCampaigns(this.visitor)
-        logData.isFromCache = true
-        if (campaigns) {
-          this.visitor.fetchStatus = {
-            status: FSFetchStatus.FETCH_REQUIRED,
-            reason: FSFetchReasons.READ_FROM_CACHE
-          }
-
-          logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_FROM_CACHE,
-            this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
-          )
-        }
-      }
-
-      campaigns = campaigns || []
-
-      this.visitor.campaigns = campaigns
-      this.visitor.flagsData = this.decisionManager.getModifications(this.visitor.campaigns)
-      this.visitor.emit(EMIT_READY, fetchCampaignError)
-
-      if (this.visitor.fetchStatus.status === FSFetchStatus.FETCHING) {
-        this.visitor.fetchStatus = {
-          status: FSFetchStatus.FETCHED,
-          reason: FSFetchReasons.NONE
-        }
-      }
-
-      logDebugSprintf(this.config, functionName, FETCH_FLAGS_FROM_CAMPAIGNS,
-        this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, this.visitor.flagsData)
-      if (this.decisionManager.troubleshooting) {
-        this.sendFetchFlagsTroubleshooting({ campaigns, now, isFromCache: logData.isFromCache })
-        this.sendConsentHitTroubleshooting()
-        this.sendSegmentHitTroubleshooting()
-      }
-
-      this.sendSdkConfigAnalyticHit()
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.visitor.emit(EMIT_READY, error)
-      logData.duration = Date.now() - now
-      logError(
-        this.config,
-        errorFormat(error.message || error, logData),
-        functionName
-      )
-
-      this.visitor.fetchStatus = {
-        status: FSFetchStatus.FETCH_REQUIRED,
-        reason: FSFetchReasons.FETCH_ERROR
-      }
-
-      const troubleshootingHit = new Troubleshooting({
-
-        label: TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS_ERROR,
-        logLevel: LogLevel.INFO,
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
-        visitorSessionId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        traffic: this.visitor.traffic,
-        config: this.config,
-        visitorContext: this.visitor.context,
-        sdkStatus: this.visitor.getSdkStatus(),
-        visitorCampaigns: campaigns,
-        visitorCampaignFromCache: logData.isFromCache ? campaigns : undefined,
-        visitorConsent: this.visitor.hasConsented,
-        visitorIsAuthenticated: !!this.visitor.anonymousId,
-        visitorFlags: this.visitor.flagsData,
-        visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
-        visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
-        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
-        lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
-        httpResponseTime: Date.now() - now,
-        sdkConfigMode: this.getSdkConfigDecisionMode(),
-        sdkConfigTimeout: this.config.timeout,
-        sdkConfigPollingInterval: this.config.pollingInterval,
-        sdkConfigTrackingManagerStrategy: this.config.trackingManagerConfig?.cacheStrategy,
-        sdkConfigTrackingManagerBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
-        sdkConfigTrackingManagerPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
-        sdkConfigFetchNow: this.config.fetchNow,
-        sdkConfigReuseVisitorIds: this.config.reuseVisitorIds,
-        sdkConfigInitialBucketing: this.config.initialBucketing,
-        sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
-        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
-      })
-
-      this.trackingManager.addTroubleshootingHit(troubleshootingHit)
-    }
-  }
-
   private isDeDuplicated (key:string, deDuplicationTime:number):boolean {
     if (deDuplicationTime === 0) {
       return false
@@ -556,7 +405,159 @@ export class DefaultStrategy extends StrategyAbstract {
   }
 
   async fetchFlags (): Promise<void> {
-    return this.globalFetchFlags(PROCESS_FETCHING_FLAGS)
+    const functionName = PROCESS_FETCHING_FLAGS
+    const now = Date.now()
+    const logData = {
+      visitorId: this.visitor.visitorId,
+      anonymousId: this.visitor.anonymousId,
+      context: this.visitor.context,
+      isFromCache: false,
+      duration: 0
+    }
+    let campaigns: CampaignDTO[] | null = null
+    let fetchCampaignError:string|undefined
+    try {
+      const time = Date.now() - this.visitor.lastFetchFlagsTimestamp
+      const fetchStatus = this.visitor.fetchStatus.status
+
+      if (fetchStatus === FSFetchStatus.FETCHING) {
+        await this.visitor.getCampaignsPromise
+        return
+      }
+
+      const fetchFlagBufferingTime = (this.config.fetchFlagsBufferingTime as number * 1000)
+
+      if (fetchStatus === FSFetchStatus.FETCHED && time < fetchFlagBufferingTime) {
+        logInfoSprintf(this.config, functionName, FETCH_FLAGS_BUFFERING_MESSAGE, this.visitor.visitorId, fetchFlagBufferingTime - time)
+        return
+      }
+
+      logDebugSprintf(this.config, functionName, FETCH_FLAGS_STARTED, this.visitor.visitorId)
+
+      this.visitor.fetchStatus = {
+        status: FSFetchStatus.FETCHING,
+        reason: FSFetchReasons.NONE
+      }
+
+      this.visitor.getCampaignsPromise = this.decisionManager.getCampaignsAsync(this.visitor)
+
+      campaigns = await this.visitor.getCampaignsPromise
+
+      this.visitor.lastFetchFlagsTimestamp = Date.now()
+
+      if (this.decisionManager.isPanic()) {
+        this.visitor.fetchStatus = {
+          status: FSFetchStatus.PANIC,
+          reason: FSFetchReasons.NONE
+        }
+      }
+
+      this.configManager.trackingManager.troubleshootingData = this.decisionManager.troubleshooting
+
+      logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_SUCCESS,
+        this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
+      )
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      logError(this.config, error.message, functionName)
+      fetchCampaignError = error
+
+      this.visitor.fetchStatus = {
+        status: FSFetchStatus.FETCH_REQUIRED,
+        reason: FSFetchReasons.FETCH_ERROR
+      }
+    }
+    try {
+      if (!campaigns) {
+        campaigns = this.fetchVisitorCampaigns(this.visitor)
+        logData.isFromCache = true
+        if (campaigns) {
+          this.visitor.fetchStatus = {
+            status: FSFetchStatus.FETCH_REQUIRED,
+            reason: FSFetchReasons.READ_FROM_CACHE
+          }
+
+          logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_FROM_CACHE,
+            this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
+          )
+        }
+      }
+
+      campaigns = campaigns || []
+
+      this.visitor.campaigns = campaigns
+      this.visitor.flagsData = this.decisionManager.getModifications(this.visitor.campaigns)
+      this.visitor.emit(EMIT_READY, fetchCampaignError)
+
+      if (this.visitor.fetchStatus.status === FSFetchStatus.FETCHING) {
+        this.visitor.fetchStatus = {
+          status: FSFetchStatus.FETCHED,
+          reason: FSFetchReasons.NONE
+        }
+      }
+
+      logDebugSprintf(this.config, functionName, FETCH_FLAGS_FROM_CAMPAIGNS,
+        this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, this.visitor.flagsData)
+      if (this.decisionManager.troubleshooting) {
+        this.sendFetchFlagsTroubleshooting({ campaigns, now, isFromCache: logData.isFromCache })
+        this.sendConsentHitTroubleshooting()
+        this.sendSegmentHitTroubleshooting()
+      }
+
+      this.sendSdkConfigAnalyticHit()
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      this.visitor.emit(EMIT_READY, error)
+      logData.duration = Date.now() - now
+      logError(
+        this.config,
+        errorFormat(error.message || error, logData),
+        functionName
+      )
+
+      this.visitor.fetchStatus = {
+        status: FSFetchStatus.FETCH_REQUIRED,
+        reason: FSFetchReasons.FETCH_ERROR
+      }
+
+      const troubleshootingHit = new Troubleshooting({
+
+        label: TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS_ERROR,
+        logLevel: LogLevel.INFO,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        traffic: this.visitor.traffic,
+        config: this.config,
+        visitorContext: this.visitor.context,
+        sdkStatus: this.visitor.getSdkStatus(),
+        visitorCampaigns: campaigns,
+        visitorCampaignFromCache: logData.isFromCache ? campaigns : undefined,
+        visitorConsent: this.visitor.hasConsented,
+        visitorIsAuthenticated: !!this.visitor.anonymousId,
+        visitorFlags: this.visitor.flagsData,
+        visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
+        visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
+        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+        lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
+        httpResponseTime: Date.now() - now,
+        sdkConfigMode: this.getSdkConfigDecisionMode(),
+        sdkConfigTimeout: this.config.timeout,
+        sdkConfigPollingInterval: this.config.pollingInterval,
+        sdkConfigTrackingManagerStrategy: this.config.trackingManagerConfig?.cacheStrategy,
+        sdkConfigTrackingManagerBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
+        sdkConfigTrackingManagerPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
+        sdkConfigFetchNow: this.config.fetchNow,
+        sdkConfigReuseVisitorIds: this.config.reuseVisitorIds,
+        sdkConfigInitialBucketing: this.config.initialBucketing,
+        sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
+        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
+      })
+
+      this.trackingManager.addTroubleshootingHit(troubleshootingHit)
+    }
   }
 
   async visitorExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T}): Promise<void> {
