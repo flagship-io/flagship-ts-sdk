@@ -2,7 +2,7 @@ import { ALLOCATION, BUCKETING_NEW_ALLOCATION, BUCKETING_VARIATION_CACHE, GET_TH
 import { IFlagshipConfig } from '../config/index'
 import { BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, POLLING_EVENT_200, PROCESS_BUCKETING, SDK_INFO } from '../enum/index'
 import { Segment } from '../hit/Segment'
-import { CampaignDTO, ThirdPartySegment, VariationDTO, primitive } from '../types'
+import { CampaignDTO, ThirdPartySegment, TroubleshootingLabel, VariationDTO, primitive } from '../types'
 import { IHttpClient, IHttpResponse } from '../utils/HttpClient'
 import { MurmurHash } from '../utils/MurmurHash'
 import { errorFormat, logDebug, logDebugSprintf, logError, logInfo, sprintf } from '../utils/utils'
@@ -37,7 +37,7 @@ export class BucketingManager extends DecisionManager {
       const troubleshootingHit = new Troubleshooting({
         visitorId: this.flagshipInstanceId,
         flagshipInstanceId: this.flagshipInstanceId,
-        label: 'SDK_BUCKETING_FILE',
+        label: TroubleshootingLabel.SDK_BUCKETING_FILE,
         traffic: 0,
         logLevel: LogLevel.INFO,
         config: this.config,
@@ -135,7 +135,7 @@ export class BucketingManager extends DecisionManager {
       const troubleshootingHit = new Troubleshooting({
         visitorId: this.flagshipInstanceId,
         flagshipInstanceId: this.flagshipInstanceId,
-        label: 'SDK_BUCKETING_FILE_ERROR',
+        label: TroubleshootingLabel.SDK_BUCKETING_FILE_ERROR,
         traffic: 0,
         logLevel: LogLevel.INFO,
         config: this.config,
@@ -159,7 +159,7 @@ export class BucketingManager extends DecisionManager {
 
   private async sendContext (visitor: VisitorAbstract): Promise<void> {
     try {
-      if (Object.keys(visitor.context).length <= 3) {
+      if (Object.keys(visitor.context).length <= 3 || !visitor.hasConsented) {
         return
       }
       const SegmentHit = new Segment({
@@ -171,7 +171,7 @@ export class BucketingManager extends DecisionManager {
       await visitor.sendHit(SegmentHit)
 
       const hitTroubleshooting = new Troubleshooting({
-        label: 'VISITOR_SEND_HIT',
+        label: TroubleshootingLabel.VISITOR_SEND_HIT,
         logLevel: LogLevel.INFO,
         traffic: visitor.traffic || 0,
         visitorId: visitor.visitorId,

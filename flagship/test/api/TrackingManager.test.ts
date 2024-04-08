@@ -4,7 +4,7 @@ import { DecisionApiConfig } from '../../src/config/index'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinuousCachingStrategy'
 import { BatchingPeriodicCachingStrategy } from '../../src/api/BatchingPeriodicCachingStrategy'
-import { CacheStrategy, Event, EventCategory, HitCacheDTO, Item, Page, Screen, Transaction } from '../../src'
+import { CacheStrategy, Event, EventCategory, HitCacheDTO, Item, Page, Screen, Transaction, TroubleshootingLabel } from '../../src'
 import { FS_CONSENT, HIT_CACHE_VERSION, NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY, PROCESS_CACHE, HIT_CACHE_ERROR, SDK_INFO, LogLevel } from '../../src/enum'
 import { NoBatchingContinuousCachingStrategy } from '../../src/api/NoBatchingContinuousCachingStrategy'
 import { sleep, sprintf, uuidV4 } from '../../src/utils/utils'
@@ -201,7 +201,7 @@ describe('test TrackingManager Strategy ', () => {
     })
 
     const activateTroubleshooting = new Troubleshooting({
-      label: 'VISITOR_SEND_ACTIVATE',
+      label: TroubleshootingLabel.VISITOR_SEND_ACTIVATE,
       logLevel: LogLevel.INFO,
       traffic: 2,
       visitorId: pageHit.visitorId,
@@ -229,7 +229,7 @@ describe('test TrackingManager Strategy ', () => {
     })
 
     const analyticHit = new Troubleshooting({
-      label: 'VISITOR_FETCH_CAMPAIGNS',
+      label: TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS,
       logLevel: LogLevel.INFO,
       traffic: 2,
       visitorId: pageHit.visitorId,

@@ -3,7 +3,7 @@ import { IFlagshipConfig } from '../config/index'
 import { IHttpClient } from '../utils/HttpClient'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, PROCESS_FETCHING_FLAGS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
-import { CampaignDTO, FlagDTO, TroubleshootingData } from '../types'
+import { CampaignDTO, FlagDTO, TroubleshootingData, TroubleshootingLabel } from '../types'
 import { errorFormat, logDebug } from '../utils/utils'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { ITrackingManager } from '../api/ITrackingManager'
@@ -159,7 +159,7 @@ export abstract class DecisionManager implements IDecisionManager {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       const troubleshooting = new Troubleshooting({
-        label: 'GET_CAMPAIGNS_ROUTE_RESPONSE_ERROR',
+        label: TroubleshootingLabel.GET_CAMPAIGNS_ROUTE_RESPONSE_ERROR,
         logLevel: LogLevel.ERROR,
         visitorId: visitor.visitorId,
         anonymousId: visitor.anonymousId,

@@ -28,7 +28,7 @@ export const DEFAULT_BROWSER_POOL_MAX_SIZE = 10
 
 export const BATCH_MAX_SIZE = 2500000
 
-export const ANALYTIC_HIT_ALLOCATION = 20
+export const ANALYTIC_HIT_ALLOCATION = 1
 
 /**
  * Decision api base url

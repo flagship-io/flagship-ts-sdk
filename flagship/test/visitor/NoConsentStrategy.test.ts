@@ -83,7 +83,7 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
   afterAll(() => {
     Date.now = methodNow
   })
-  const visitorId = 'visitorId'
+  const visitorId = 'ca0594f5-4a37-4a7d-91be-27c63f829380'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const context: any = {
     isVip: true
@@ -151,12 +151,12 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
     const flags = new Map<string, FlagDTO>().set(flagDTO.key, flagDTO)
     getCampaignsAsync.mockResolvedValue([])
     getModifications.mockReturnValueOnce(flags)
-    getCurrentDateTime.mockReturnValue(new Date(2022, 9, 18))
+    getCurrentDateTime.mockReturnValue(new Date(2024, 0, 29))
     await noConsentStrategy.fetchFlags()
 
     expect(sendUsageHitSpy).toBeCalledTimes(1)
 
-    const label: TroubleshootingLabel = 'SDK_CONFIG'
+    const label: TroubleshootingLabel = TroubleshootingLabel.SDK_CONFIG
     expect(sendUsageHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
