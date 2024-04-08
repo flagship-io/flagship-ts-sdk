@@ -1,6 +1,6 @@
 {
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "src/depsDeno.ts"],
+  "include": ["flagship/src/**/*"],
+  "exclude": ["node_modules", "flagship/src/depsDeno.ts"],
   "compilerOptions": {
     "outDir": "./dist/",
     "noImplicitAny": true,
@@ -14,7 +14,7 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@src/*": ["src/*"]
+      "@src/*": ["flagship/src/*"]
     }
   }
 }
