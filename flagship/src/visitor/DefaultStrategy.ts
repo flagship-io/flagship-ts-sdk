@@ -60,7 +60,7 @@ import {
   IHitAbstract
 } from '../hit/index'
 import { HitShape, ItemHit } from '../hit/Legacy'
-import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata, TroubleshootingLabel, CampaignDTO } from '../types'
+import { primitive, modificationsRequested, IHit, FlagDTO, VisitorCacheDTO, IFlagMetadata, TroubleshootingLabel, CampaignDTO, VisitorVariations } from '../types'
 import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract'
 import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
@@ -69,6 +69,7 @@ import { FlagMetadata } from '../flag/FlagMetadata'
 import { Activate } from '../hit/Activate'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { FlagSynchStatus } from '../enum/FlagSynchStatus'
+import { sendVisitorAllocatedVariations } from '../qaAssistant/messages'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'
@@ -345,6 +346,18 @@ export class DefaultStrategy extends VisitorStrategyAbstract {
       this.visitor.campaigns = campaigns
       this.visitor.flagsData = this.decisionManager.getModifications(this.visitor.campaigns)
       this.visitor.emit(EMIT_READY, fetchCampaignError)
+
+      const visitorAllocatedVariations: Record<string, VisitorVariations> = {}
+
+      this.visitor.flagsData.forEach(item => {
+        visitorAllocatedVariations[item.campaignId] = {
+          variationId: item.variationId,
+          variationGroupId: item.variationGroupId,
+          campaignId: item.campaignId
+        }
+      })
+
+      sendVisitorAllocatedVariations(visitorAllocatedVariations)
 
       logDebugSprintf(this.config, functionName, FETCH_FLAGS_FROM_CAMPAIGNS,
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, this.visitor.flagsData)
