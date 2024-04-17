@@ -44,7 +44,12 @@ export const THIRD_PARTY_SEGMENT_URL = 'https://api-data-connector.flagship.io/a
 export const HIT_CONSENT_URL = 'https://ariane.abtasty.com'
 export const URL_CAMPAIGNS = '/campaigns'
 export const URL_ACTIVATE_MODIFICATION = 'activate'
-export const QA_ASSISTANT_URL = 'https://qa-assistant.abtasty.com/bundle.js'
+export const QA_ASSISTANT_PROD_URL = 'https://qa-assistant.flagship.io/bundle.js'
+export const QA_ASSISTANT_STAGING_URL = 'https://staging-qa-assistant.flagship.io/bundle.js'
+export const QA_ASSISTANT_LOCAL_URL = 'https://local-qa-assistant.flagship.io/bundle.js'
+export const FS_QA_ASSISTANT = 'fs_qa_assistant'
+export const FS_QA_ASSISTANT_STAGING = 'fs_qa_assistant_staging'
+export const FS_QA_ASSISTANT_LOCAL = 'fs_qa_assistant_local'
 
 export const EXPOSE_ALL_KEYS = 'exposeAllKeys'
 export const SEND_CONTEXT_EVENT = 'sendContextEvent'
