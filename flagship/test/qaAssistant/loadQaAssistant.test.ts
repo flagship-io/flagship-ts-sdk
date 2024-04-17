@@ -4,7 +4,7 @@
 
 import { jest, describe, beforeEach, it, expect } from '@jest/globals'
 import { loadQaAssistant } from '../../src/qaAssistant/loadQaAssistant'
-import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, QA_ASSISTANT_URL } from '../../src/enum/FlagshipConstant'
+import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, QA_ASSISTANT_PROD_URL } from '../../src/enum/FlagshipConstant'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
 import * as appendScript from '../../src/qaAssistant/appendScript'
 import { FsVariationToForce } from '../../src'
@@ -30,7 +30,7 @@ describe('Test loadQaAssistant', () => {
     expect(sessionStorageSetItemSpy).toBeCalledTimes(1)
     expect(sessionStorageSetItemSpy).toBeCalledWith(FS_IS_QA_MODE_ENABLED, 'true')
     expect(appendScriptSpy).toBeCalledTimes(1)
-    expect(appendScriptSpy).toBeCalledWith(QA_ASSISTANT_URL)
+    expect(appendScriptSpy).toBeCalledWith(QA_ASSISTANT_PROD_URL)
     expect(config.isQAModeEnabled).toBeTruthy()
     expect(window.flagship).toBeDefined()
     expect(window.flagship?.envId).toBe(config.envId)
