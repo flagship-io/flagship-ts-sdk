@@ -33,6 +33,11 @@ describe('Test handleIframeMessage', () => {
   onResetForcedVariationsSpy.mockImplementation(() => {
     //
   })
+  const render = jest.spyOn(iframeMessageActions, 'render')
+  render.mockImplementation(() => {
+    //
+  })
+
   const isBrowserSpy = jest.spyOn(utils, 'isBrowser')
 
   it('test on QA assistant ready', () => {
@@ -108,6 +113,16 @@ describe('Test handleIframeMessage', () => {
     handleIframeMessage({ event, config })
     expect(onResetForcedVariationsSpy).toBeCalledTimes(1)
     expect(onResetForcedVariationsSpy).toBeCalledWith()
+  })
+
+  it('test on trigger render', () => {
+    const event = new MessageEvent<EventDataFromIframe>('message', {
+      data: {
+        name: MSG_NAME_FROM_IFRAME.FsTriggerRender
+      }
+    })
+    handleIframeMessage({ event, config })
+    expect(render).toBeCalledTimes(1)
   })
 
   it('test environment is not browser', () => {
