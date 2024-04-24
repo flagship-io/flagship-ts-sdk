@@ -52,7 +52,7 @@ import { primitive, IHit, FlagDTO, IFlagMetadata, TroubleshootingLabel } from '.
 import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils'
 import { StrategyAbstract } from './StrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
-import { FLAGSHIP_CONTEXT } from '../enum/FlagshipContext'
+import { FLAGSHIP_CLIENT, FLAGSHIP_CONTEXT, FLAGSHIP_VERSION, FLAGSHIP_VISITOR } from '../enum/FlagshipContext'
 import { VisitorDelegate } from './index'
 import { FlagMetadata } from '../flag/FlagMetadata'
 import { Activate } from '../hit/Activate'
@@ -100,7 +100,7 @@ export class DefaultStrategy extends StrategyAbstract {
       return
     }
 
-    if (key.match(/^fs_/i)) {
+    if (key === FLAGSHIP_CLIENT || key === FLAGSHIP_VERSION || key === FLAGSHIP_VISITOR) {
       return
     }
 
