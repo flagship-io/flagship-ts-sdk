@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  node:
+    build:
+      dockerfile: ./node-qa/Dockerfile
+      context: ./..
+    image: flagshipio/node-qa
+    container_name: node-qa
+    ports:
+      - 8000:3000
+    tty: true
