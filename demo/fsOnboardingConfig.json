@@ -28,10 +28,42 @@
             "order": 2,
             "description": "2 - Start the SDK",
             "codeRegexPatterns": [
-                "\\/\\* start step-1 starting \\*\\/([\\s\\S]*?)\\/\\* end step 2 step-1 starting \\*\/",
-                "\\/\\* start step-2 create visitor \\*\\/([\\s\\S]*?)\\/\\* end step-2 create visitor \\*\/",
-                "\\/\\* start step-3 fetch flags \\*\\/([\\s\\S]*?)\\/\\* end step-3 fetch flags \\*\/",
-                "\\/\\* start step-4 get flags \\*\\/([\\s\\S]*?)\\/\\* end step-4 get flags \\*\/",
+                "\\/\\* start step-1 starting \\*\\/([\\s\\S]*?)\\/\\* end step-1 starting \\*\/"
+            ],
+            "language": "jsx"
+        },
+        {
+            "fileName": "index.js",
+            "order": 3,
+            "description": "3 - Create a visitor",
+            "codeRegexPatterns": [
+                "\\/\\* start step-2 create visitor \\*\\/([\\s\\S]*?)\\/\\* end step-2 create visitor \\*\/"
+            ],
+            "language": "jsx"
+        },
+        {
+            "fileName": "index.js",
+            "order": 4,
+            "description": "4 - Fetch flags",
+            "codeRegexPatterns": [
+                "\\/\\* start step-3 fetch flags \\*\\/([\\s\\S]*?)\\/\\* end step-3 fetch flags \\*\/"
+            ],
+            "language": "jsx"
+        },
+        {
+            "fileName": "index.js",
+            "order": 5,
+            "description": "5 - Get flags",
+            "codeRegexPatterns": [
+                "\\/\\* start step-4 get flags \\*\\/([\\s\\S]*?)\\/\\* end step-4 get flags \\*\/"
+            ],
+            "language": "jsx"
+        },
+        {
+            "fileName": "index.js",
+            "order": 6,
+            "description": "6 - Send hit",
+            "codeRegexPatterns": [
                 "\\/\\* start step-5 send hit \\*\\/([\\s\\S]*?)\\/\\* end step-5 send hit \\*\/"
             ],
             "language": "jsx"
