@@ -1,0 +1,39 @@
+{
+    "sdkInstallSteps": [
+        {
+            "order": 1,
+            "description": "Install SDK with Yarn",
+            "rawCode": "yarn add @flagship.io/js-sdk",
+            "language": "shell"
+        },
+        {
+            "order": 2,
+            "description": "Install SDK with NPM",
+            "rawCode": "npm install @flagship.io/js-sdk",
+            "language": "shell"
+        }
+    ],
+    "sdkUseSteps": [
+        {
+            "fileName": "index.js",
+            "order": 1,
+            "description": "1 - Importing the SDK",
+            "codeRegexPatterns": [
+                "\\/\\* start import \\*\\/([\\s\\S]*?)\\/\\* end import \\*\\/",
+                "\\{\/\\* start step 1 block \\*\\/\\}([\\s\\S]*?)\\{\/\\* end step 1 block \\*\/\\}"
+            ],
+            "language": "jsx"
+        },
+        {
+            "fileName": "src/Pages/Payment/Payment.js",
+            "order": 2,
+            "description": "3 - Fetching the flags information from the DecisionAPI",
+            "codeRegexPatterns": [
+                "\\/\\* start step 2 import \\*\\/([\\s\\S]*?)\\/\\* end step 2 import \\*\/",
+                "\\/\\* start step 2 useFsFlag \\*\\/([\\s\\S]*?)\\/\\* end step 2 useFsFlag \\*\/",
+                "\\{\\/\\* start step 2 getValue \\*\\/\\}([\\s\\S]*?)\\{\\/\\* end step 2 getValue \\*\\/\\}"
+            ],
+            "language": "jsx"
+        }
+    ]
+}
