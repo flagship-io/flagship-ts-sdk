@@ -4,7 +4,7 @@ const { Flagship, HitType, EventCategory } = require("@flagship.io/js-sdk")
 /* end import */
 
 /* start step-1 starting */
-Flagship.start("cc71v52777606bpnr3n0", "AYXPTTqtNbtIwsopebtRmmImdLIaLJonCGXdbeaa", {
+Flagship.start("<ENV_ID>", "<API_KEY>", {
     fetchNow: false,
 })
 /* end step-1 starting */
