@@ -13,7 +13,7 @@
             "order": 1,
             "description": "This is a basic example of how to use the Flagship SDK using express.js",
             "codeRegexPatterns": [
-                "\\/\\* start demo \\*\\/([\\s\\S]*?)\\/\\* end demo \\*\\/"
+                "//start demo ([\\s\\S]*?) //end demo"
             ],
             "language": "jsx"
         }
