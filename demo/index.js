@@ -1,5 +1,6 @@
+/* start demo */
 const express = require('express');
-/* start import */
+
 const { Flagship, HitType, EventCategory } = require("@flagship.io/js-sdk")
 /* end import */
 
@@ -69,3 +70,5 @@ app.post('/add-to-cart', async (req, res) => {
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
+
+/* end demo */

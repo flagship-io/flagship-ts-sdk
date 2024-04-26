@@ -19,52 +19,7 @@
             "order": 1,
             "description": "1 - Import the SDK",
             "codeRegexPatterns": [
-                "\\/\\* start import \\*\\/([\\s\\S]*?)\\/\\* end import \\*\\/"
-            ],
-            "language": "jsx"
-        },
-        {
-            "fileName": "index.js",
-            "order": 2,
-            "description": "2 - Start the SDK by importing the Flagship class. Then, call the static function start.",
-            "codeRegexPatterns": [
-                "\\/\\* start step-1 starting \\*\\/([\\s\\S]*?)\\/\\* end step-1 starting \\*\/"
-            ],
-            "language": "jsx"
-        },
-        {
-            "fileName": "index.js",
-            "order": 3,
-            "description": "3 - Create a visitor using the newVisitor method from the Flagship instance. ",
-            "codeRegexPatterns": [
-                "\\/\\* start step-2 create visitor \\*\\/([\\s\\S]*?)\\/\\* end step-2 create visitor \\*\/"
-            ],
-            "language": "jsx"
-        },
-        {
-            "fileName": "index.js",
-            "order": 4,
-            "description": "4 - Fetch flags from Flagship",
-            "codeRegexPatterns": [
-                "\\/\\* start step-3 fetch flags \\*\\/([\\s\\S]*?)\\/\\* end step-3 fetch flags \\*\/"
-            ],
-            "language": "jsx"
-        },
-        {
-            "fileName": "index.js",
-            "order": 5,
-            "description": "5 - Get your flag, and reading your flag's value.",
-            "codeRegexPatterns": [
-                "\\/\\* start step-4 get flags \\*\\/([\\s\\S]*?)\\/\\* end step-4 get flags \\*\/"
-            ],
-            "language": "jsx"
-        },
-        {
-            "fileName": "index.js",
-            "order": 6,
-            "description": "6 - Send hits to Flagship",
-            "codeRegexPatterns": [
-                "\\/\\* start step-5 send hit \\*\\/([\\s\\S]*?)\\/\\* end step-5 send hit \\*\/"
+                "\\/\\* start demo \\*\\/([\\s\\S]*?)\\/\\* end demo \\*\\/"
             ],
             "language": "jsx"
         }
