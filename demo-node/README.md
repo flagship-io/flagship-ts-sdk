@@ -42,3 +42,4 @@ If you prefer to use Docker, you can build and run the application using the pro
 
 ```bash
 ./run-docker.sh
+```
