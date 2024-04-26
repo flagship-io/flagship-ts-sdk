@@ -3,21 +3,22 @@
 const express = require("express");
 const { Flagship, HitType, EventCategory } = require("@flagship.io/js-sdk");
 
-// Step 1: Start the Flagship SDK by providing the environment ID and API key
-Flagship.start("<ENV_ID>", "<API_KEY>", {
-  fetchNow: false,
-});
-
 const app = express();
 app.use(express.json());
 
-const port = 3000;
+const visitorId = "visitor-id";
 
-// Function to create a new visitor and fetch their flags
-async function getVisitor() {
+// Step 1: Start the Flagship SDK by providing the environment ID and API key
+Flagship.start("cc71v52777606bpnr3n0", "AYXPTTqtNbtIwsopebtRmmImdLIaLJonCGXdbeaa", {
+  fetchNow: false,
+});
+
+// Endpoint to get an item
+app.get("/item", async (req, res) => {
+
   // Step 2: Create a new visitor with a visitor ID and consent status
   const visitor = Flagship.newVisitor({
-    visitorId: "visitor-id",
+    visitorId,
     hasConsented: true,
     context: {
       fs_is_vip: true,
@@ -26,13 +27,6 @@ async function getVisitor() {
 
   // Step 3: Fetch the flags for the visitor
   await visitor.fetchFlags();
-
-  return visitor;
-}
-
-// Endpoint to get an item
-app.get("/item", async (req, res) => {
-  const visitor = await getVisitor();
 
   // Step 4: Get the values of the flags for the visitor
   const fsEnableDiscount = visitor.getFlag("fs_enable_discount", false);
@@ -53,7 +47,11 @@ app.get("/item", async (req, res) => {
 
 // Endpoint to add an item to the cart
 app.post("/add-to-cart", async (req, res) => {
-  const visitor = await getVisitor();
+
+  const visitor = Flagship.newVisitor({
+    visitorId,
+    hasConsented: true
+  });
 
   // Step 5: Send a hit to track an action
   visitor.sendHit({
@@ -64,6 +62,8 @@ app.post("/add-to-cart", async (req, res) => {
 
   res.json(null);
 });
+
+const port = 3000;
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
