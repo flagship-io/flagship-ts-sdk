@@ -13,6 +13,7 @@ app.use(express.json());
 
 const port = 3000;
 
+// Function to create a new visitor and fetch their flags
 async function getVisitor() {
   // Step 2: Create a new visitor with a visitor ID and consent status
   const visitor = Flagship.newVisitor({
@@ -29,6 +30,7 @@ async function getVisitor() {
   return visitor;
 }
 
+// Endpoint to get an item
 app.get("/item", async (req, res) => {
   const visitor = await getVisitor();
 
@@ -49,6 +51,7 @@ app.get("/item", async (req, res) => {
   });
 });
 
+// Endpoint to add an item to the cart
 app.post("/add-to-cart", async (req, res) => {
   const visitor = await getVisitor();
 
