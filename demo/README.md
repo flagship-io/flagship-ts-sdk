@@ -43,3 +43,31 @@ If you prefer to use Docker, you can build and run the application using the pro
 ```bash
 chmod +x run-docker.sh && ./run-docker.sh
 ```
+
+## API Endpoints
+
+This application provides the following API endpoints:
+
+### GET /item
+
+This endpoint fetches an item and applies any feature flags for the visitor.
+
+Example:
+
+```bash
+curl http://localhost:3000/item
+```
+
+This will return a JSON object with the item details and any modifications applied by feature flags.
+
+### POST /add-to-cart
+
+This endpoint simulates adding an item to the cart and sends a hit to track the action.
+
+Example:
+
+ ```bash
+ curl -X POST http://localhost:3000/add-to-cart
+ ```
+
+ This will send a hit to track the "add-to-cart-clicked" action for the visitor.
