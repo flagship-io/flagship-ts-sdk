@@ -41,5 +41,5 @@ The application will be accessible at `http://localhost:3000`.
 If you prefer to use Docker, you can build and run the application using the provided shell script:
 
 ```bash
-./run-docker.sh
+chmod +x run-docker.sh && ./run-docker.sh
 ```
