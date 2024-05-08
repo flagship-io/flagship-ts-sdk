@@ -1,4 +1,4 @@
-import { FS_QA_ASSISTANT, FS_QA_ASSISTANT_LOCAL, FS_QA_ASSISTANT_STAGING, QA_ASSISTANT_LOCAL_URL, QA_ASSISTANT_PROD_URL, QA_ASSISTANT_STAGING_URL } from '@src/enum/FlagshipConstant'
+import { FS_QA_ASSISTANT, FS_QA_ASSISTANT_LOCAL, FS_QA_ASSISTANT_STAGING, QA_ASSISTANT_LOCAL_URL, QA_ASSISTANT_PROD_URL, QA_ASSISTANT_STAGING_URL } from '../enum/FlagshipConstant'
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { isBrowser } from '../utils/utils'
 import { listenForKeyboardQaAssistant } from './listenForKeyboardQaAssistant'
