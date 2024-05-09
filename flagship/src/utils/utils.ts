@@ -162,7 +162,7 @@ export function visitorFlagSyncStatusMessage (reason: FSFetchReasons) {
       message = `Visitor \`{0}\` has been unauthenticated ${VISITOR_SYNC_FLAGS_MESSAGE}`
       break
     case FSFetchReasons.FETCH_ERROR:
-      message = 'There was an error while fetching flags for visitor `{0}`. As a result, the value of the flag `{1}` may be outdated"'
+      message = 'There was an error while fetching flags for visitor `{0}`. So the value of the flag `{1}` may be outdated"'
       break
     case FSFetchReasons.READ_FROM_CACHE:
       message = 'Flags for visitor `{0}` have been fetched from cache'
