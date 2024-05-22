@@ -245,11 +245,12 @@ export const GET_FLAG = 'GET_FLAG'
 export const GET_FLAG_CAST_ERROR = 'Visitor {0}, Flag for key {1} has a different type with default value : Default value is returned {2}'
 export const GET_FLAG_VALUE = 'Visitor {0}, Flag for key {1} returns value {2}'
 export const USER_EXPOSED_FLAG_ERROR = 'Visitor {0}, No Flags found for key {1}: User exposition wont be sent'
-export const FLAG_USER_EXPOSED = 'FLAG_USER_EXPOSED'
+export const VISITOR_EXPOSED_VALUE_NOT_CALLED = 'Visitor {0}, getValue method has not been called for flag {1}'
+export const FLAG_VISITOR_EXPOSED = 'FLAG_VISITOR_EXPOSED'
 export const USER_EXPOSED_CAST_ERROR = 'Visitor {0}, Flag for key {1} has a different type with default value: User exposition wont be sent'
 export const GET_METADATA_CAST_ERROR = 'Visitor {0}, Flag for key {1} has a different type with default value: Empty metadata object is returned {2}'
 export const FLAG_METADATA = 'FLAG_METADATA'
-export const NO_FLAG_METADATA = 'Visitor {0}, No Flags found for key {1}:  Empty metadata object is returned {2}'
+export const NO_FLAG_METADATA = 'Visitor {0}, No Flags found for key {1}:  Empty metadata object is returned'
 export const METADATA_SDK_NOT_READY = `Visitor {0}, Flag for key {1} Method Flag.metadata is deactivated while SDK status is NOT_READY: Empty metadata object is returned {2}
 Learn more: ${JS_DOC_URL}#getting-flags-campaigns-metadata`
 export const METADATA_PANIC_MODE = `Visitor {0}, Flag for key {1} Method Flag.metadata is deactivated while SDK status is PANIC: Empty metadata object is returned {2}
