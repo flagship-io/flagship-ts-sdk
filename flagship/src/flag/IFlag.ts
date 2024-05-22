@@ -14,7 +14,7 @@ export interface IFlag {
      * @param visitorExposed Specifies whether to report the flag exposure. Default is true.
      * @returns The value of the flag.
      */
-    getValue<T>(defaultValue:T, visitorExposed?: boolean): T;
+    getValue<T>(defaultValue:T, visitorExposed?: boolean): T extends null ? unknown : T;
 
     /**
      * Checks if the flag exists.
