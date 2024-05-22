@@ -14,11 +14,12 @@ import { NotReadyStrategy } from './NotReadyStrategy'
 import { PanicStrategy } from './PanicStrategy'
 import { NoConsentStrategy } from './NoConsentStrategy'
 import { cacheVisitor } from './VisitorCache'
-import { IFlag } from '../flag/Flags'
 import { MurmurHash } from '../utils/MurmurHash'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { FSFetchStatus } from '../enum/FSFetchStatus'
 import { FSFetchReasons } from '../enum/FSFetchReasons'
+import { IFlag } from '../flag/IFlag'
+import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -318,7 +319,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   abstract updateContext (context: Record<string, primitive> | string, value?:primitive): void
   abstract clearContext(): void
 
-  abstract getFlag<T>(key: string, defaultValue: T): IFlag<T>
+  abstract getFlag(key: string): IFlag
 
   abstract sendHit(hit: HitAbstract): Promise<void>;
   abstract sendHit(hit: IHit): Promise<void>;
@@ -331,8 +332,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   abstract authenticate(visitorId: string): void
   abstract unauthenticate(): void
 
-  abstract visitorExposed<T>(param: { key: string, flag?: FlagDTO, defaultValue: T }): Promise<void>
-  abstract getFlagValue<T>(param: { key: string, defaultValue: T, flag?: FlagDTO, userExposed?: boolean }): T
+  abstract visitorExposed (param:VisitorExposedParam): Promise<void>
+  abstract getFlagValue<T>(param:GetFlagValueParam<T>):T extends null ? unknown : T
   abstract fetchFlags(): Promise<void>
-  abstract getFlagMetadata(param: { metadata: IFlagMetadata, key?: string, hasSameType: boolean }): IFlagMetadata
+  abstract getFlagMetadata(param:GetFlagMetadataParam):IFlagMetadata
 }

@@ -60,6 +60,7 @@ import { Activate } from '../hit/Activate'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { FSFetchStatus } from '../enum/FSFetchStatus'
 import { FSFetchReasons } from '../enum/FSFetchReasons'
+import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'
@@ -561,8 +562,8 @@ export class DefaultStrategy extends StrategyAbstract {
     }
   }
 
-  async visitorExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T, isValueCalled:boolean}): Promise<void> {
-    const { key, flag, defaultValue, isValueCalled } = param
+  async visitorExposed (param:VisitorExposedParam): Promise<void> {
+    const { key, flag, defaultValue, hasGetValueBeenCalled } = param
 
     const functionName = 'visitorExposed'
     if (!flag) {
@@ -575,7 +576,7 @@ export class DefaultStrategy extends StrategyAbstract {
       return
     }
 
-    if (!isValueCalled) {
+    if (!hasGetValueBeenCalled) {
       logWarningSprintf(
         this.visitor.config,
         FLAG_VISITOR_EXPOSED,
@@ -620,7 +621,7 @@ export class DefaultStrategy extends StrategyAbstract {
     this.sendTroubleshootingHit(troubleshooting)
   }
 
-  getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, visitorExposed?: boolean}): T extends null ? unknown : T {
+  getFlagValue<T> (param:GetFlagValueParam<T>): T extends null ? unknown : T {
     const { key, defaultValue, flag, visitorExposed } = param
 
     if (!flag) {
@@ -631,7 +632,7 @@ export class DefaultStrategy extends StrategyAbstract {
     }
 
     if (visitorExposed) {
-      this.visitorExposed({ key, flag, defaultValue, isValueCalled: true })
+      this.visitorExposed({ key, flag, defaultValue, hasGetValueBeenCalled: true })
     }
 
     if (flag.value === null) {
@@ -667,7 +668,7 @@ export class DefaultStrategy extends StrategyAbstract {
     this.sendTroubleshootingHit(monitoring)
   }
 
-  getFlagMetadata (param:{ key:string, flag?:FlagDTO}):IFlagMetadata {
+  getFlagMetadata (param:GetFlagMetadataParam):IFlagMetadata {
     const { key, flag } = param
 
     if (!flag) {

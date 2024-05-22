@@ -1,5 +1,5 @@
 import { Event, EventCategory, HitAbstract } from '../hit/index'
-import { primitive, IHit, VisitorCacheDTO, IFlagMetadata, FlagDTO, TroubleshootingLabel, VisitorCacheStatus } from '../types'
+import { primitive, IHit, VisitorCacheDTO, IFlagMetadata, TroubleshootingLabel, VisitorCacheStatus } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
@@ -14,6 +14,7 @@ import { MurmurHash } from '../utils/MurmurHash'
 import { UsageHit } from '../hit/UsageHit'
 import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
+import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 
@@ -273,9 +274,9 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     abstract unauthenticate(): void
 
     abstract fetchFlags(): Promise<void>
-    abstract visitorExposed<T>(param:{key:string, flag?:FlagDTO, defaultValue:T}):Promise<void>
-    abstract getFlagValue<T>(param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}):T extends null ? unknown : T
-    abstract getFlagMetadata(param:{ key:string, flag?:FlagDTO}):IFlagMetadata
+    abstract visitorExposed (param:VisitorExposedParam): Promise<void>
+    abstract getFlagValue<T>(param:GetFlagValueParam<T>):T extends null ? unknown : T
+    abstract getFlagMetadata(param:GetFlagMetadataParam):IFlagMetadata
 
     public async sendTroubleshootingHit (hit: Troubleshooting) {
       await this.trackingManager.sendTroubleshootingHit(hit)

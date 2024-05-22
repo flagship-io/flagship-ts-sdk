@@ -1,10 +1,12 @@
 import { HitAbstract } from '../hit/index'
-import { primitive, IHit, IFlagMetadata, FlagDTO } from '../types'
+import { primitive, IHit, IFlagMetadata } from '../types'
 import { VisitorAbstract } from './VisitorAbstract'
-import { Flag, IFlag } from '../flag/Flags'
+import { Flag } from '../flag/Flags'
 import { logWarningSprintf, visitorFlagSyncStatusMessage } from '../utils/utils'
 import { GET_FLAG } from '../enum/FlagshipConstant'
 import { FSFetchStatus } from '../enum/FSFetchStatus'
+import { IFlag } from '../flag/IFlag'
+import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
 
 export class VisitorDelegate extends VisitorAbstract {
   updateContext (key: string, value: primitive):void
@@ -18,11 +20,11 @@ export class VisitorDelegate extends VisitorAbstract {
     this.getStrategy().clearContext()
   }
 
-  getFlag<T> (key:string, defaultValue: T):IFlag<T> {
+  getFlag (key:string):IFlag {
     if (this.fetchStatus.status !== FSFetchStatus.FETCHED) {
       logWarningSprintf(this.config, GET_FLAG, visitorFlagSyncStatusMessage(this.fetchStatus.reason), this.visitorId, key)
     }
-    return new Flag({ key, visitor: this, defaultValue })
+    return new Flag({ key, visitor: this })
   }
 
   sendHit(hit: HitAbstract): Promise<void>
@@ -53,15 +55,15 @@ export class VisitorDelegate extends VisitorAbstract {
     await this.getStrategy().cacheVisitor()
   }
 
-  visitorExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T}): Promise<void> {
+  visitorExposed (param:VisitorExposedParam): Promise<void> {
     return this.getStrategy().visitorExposed(param)
   }
 
-  getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}):T {
+  getFlagValue<T> (param:GetFlagValueParam<T>): T extends null ? unknown : T {
     return this.getStrategy().getFlagValue(param)
   }
 
-  getFlagMetadata (param:{metadata:IFlagMetadata, key?:string, hasSameType:boolean}):IFlagMetadata {
+  getFlagMetadata (param:GetFlagMetadataParam):IFlagMetadata {
     return this.getStrategy().getFlagMetadata(param)
   }
 }
