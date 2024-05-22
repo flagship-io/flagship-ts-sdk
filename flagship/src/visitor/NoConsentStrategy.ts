@@ -1,5 +1,5 @@
 import { IHit } from '../types'
-import { FLAG_USER_EXPOSED, METHOD_DEACTIVATED_CONSENT_ERROR } from '../enum/index'
+import { FLAG_VISITOR_EXPOSED, METHOD_DEACTIVATED_CONSENT_ERROR } from '../enum/index'
 import { HitAbstract } from '../hit/index'
 import { logInfo, sprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
@@ -39,7 +39,7 @@ export class NoConsentStrategy extends DefaultStrategy {
   }
 
   async visitorExposed (): Promise<void> {
-    this.log(FLAG_USER_EXPOSED)
+    this.log(FLAG_VISITOR_EXPOSED)
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

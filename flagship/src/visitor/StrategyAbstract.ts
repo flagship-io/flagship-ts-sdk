@@ -274,8 +274,8 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
 
     abstract fetchFlags(): Promise<void>
     abstract visitorExposed<T>(param:{key:string, flag?:FlagDTO, defaultValue:T}):Promise<void>
-    abstract getFlagValue<T>(param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}):T
-    abstract getFlagMetadata(param:{metadata:IFlagMetadata, key?:string, hasSameType:boolean}):IFlagMetadata
+    abstract getFlagValue<T>(param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}):T extends null ? unknown : T
+    abstract getFlagMetadata(param:{ key:string, flag?:FlagDTO}):IFlagMetadata
 
     public async sendTroubleshootingHit (hit: Troubleshooting) {
       await this.trackingManager.sendTroubleshootingHit(hit)

@@ -14,14 +14,14 @@ import {
   FETCH_FLAGS_STARTED,
   FLAGSHIP_VISITOR_NOT_AUTHENTICATE,
   FLAG_METADATA,
-  FLAG_USER_EXPOSED,
+  FLAG_VISITOR_EXPOSED,
   FLAG_VALUE,
   GET_FLAG_CAST_ERROR,
   GET_FLAG_MISSING_ERROR,
   GET_FLAG_VALUE,
-  GET_METADATA_CAST_ERROR,
   HitType,
   LogLevel,
+  NO_FLAG_METADATA,
   PREDEFINED_CONTEXT_TYPE_ERROR,
   PROCESS_CLEAR_CONTEXT,
   PROCESS_FETCHING_FLAGS,
@@ -33,6 +33,7 @@ import {
   USER_EXPOSED_FLAG_ERROR,
   VISITOR_AUTHENTICATE,
   VISITOR_AUTHENTICATE_VISITOR_ID_ERROR,
+  VISITOR_EXPOSED_VALUE_NOT_CALLED,
   VISITOR_UNAUTHENTICATE
 } from '../enum/index'
 import {
@@ -560,59 +561,37 @@ export class DefaultStrategy extends StrategyAbstract {
     }
   }
 
-  async visitorExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T}): Promise<void> {
-    const { key, flag, defaultValue } = param
+  async visitorExposed <T> (param:{key:string, flag?:FlagDTO, defaultValue:T, isValueCalled:boolean}): Promise<void> {
+    const { key, flag, defaultValue, isValueCalled } = param
 
     const functionName = 'visitorExposed'
     if (!flag) {
       logWarningSprintf(
         this.visitor.config,
-        FLAG_USER_EXPOSED,
+        FLAG_VISITOR_EXPOSED,
         USER_EXPOSED_FLAG_ERROR, this.visitor.visitorId, key
       )
-      const monitoring = new Troubleshooting({
-
-        label: TroubleshootingLabel.VISITOR_EXPOSED_FLAG_NOT_FOUND,
-        logLevel: LogLevel.WARNING,
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
-        visitorSessionId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        traffic: this.visitor.traffic,
-        config: this.config,
-        visitorContext: this.visitor.context,
-        flagKey: key,
-        flagDefault: defaultValue
-      })
-
-      this.sendTroubleshootingHit(monitoring)
+      this.sendFlagTroubleshooting(TroubleshootingLabel.VISITOR_EXPOSED_FLAG_NOT_FOUND, key, defaultValue)
       return
+    }
+
+    if (!isValueCalled) {
+      logWarningSprintf(
+        this.visitor.config,
+        FLAG_VISITOR_EXPOSED,
+        VISITOR_EXPOSED_VALUE_NOT_CALLED, this.visitor.visitorId, key
+      )
+      this.sendFlagTroubleshooting(TroubleshootingLabel.FLAG_VALUE_NOT_CALLED, key, defaultValue, true)
     }
 
     if (defaultValue !== null && defaultValue !== undefined && flag.value !== null && !hasSameType(flag.value, defaultValue)) {
       logWarningSprintf(
         this.visitor.config,
-        FLAG_USER_EXPOSED,
+        FLAG_VISITOR_EXPOSED,
         USER_EXPOSED_CAST_ERROR, this.visitor.visitorId, key
       )
 
-      const monitoring = new Troubleshooting({
-
-        label: TroubleshootingLabel.VISITOR_EXPOSED_TYPE_WARNING,
-        logLevel: LogLevel.WARNING,
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
-        visitorSessionId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        traffic: this.visitor.traffic,
-        config: this.config,
-        visitorContext: this.visitor.context,
-        flagKey: key,
-        flagDefault: defaultValue
-      })
-
-      this.sendTroubleshootingHit(monitoring)
-      return
+      this.sendFlagTroubleshooting(TroubleshootingLabel.VISITOR_EXPOSED_TYPE_WARNING, key, defaultValue)
     }
 
     if (!this.hasTrackingManager(functionName)) {
@@ -622,100 +601,92 @@ export class DefaultStrategy extends StrategyAbstract {
     await this.sendActivate(flag, defaultValue)
   }
 
-  getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}): T {
-    const { key, defaultValue, flag, userExposed } = param
+  private sendFlagTroubleshooting (label: TroubleshootingLabel, key: string, defaultValue: unknown, visitorExposed?: boolean) {
+    const troubleshooting = new Troubleshooting({
+      label,
+      logLevel: LogLevel.WARNING,
+      visitorId: this.visitor.visitorId,
+      anonymousId: this.visitor.anonymousId,
+      visitorSessionId: this.visitor.instanceId,
+      flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+      traffic: this.visitor.traffic,
+      config: this.config,
+      visitorContext: this.visitor.context,
+      flagKey: key,
+      flagDefault: defaultValue,
+      visitorExposed
+    })
+
+    this.sendTroubleshootingHit(troubleshooting)
+  }
+
+  getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, visitorExposed?: boolean}): T extends null ? unknown : T {
+    const { key, defaultValue, flag, visitorExposed } = param
 
     if (!flag) {
       logWarningSprintf(this.config, FLAG_VALUE, GET_FLAG_MISSING_ERROR, this.visitor.visitorId, key, defaultValue)
-      const monitoring = new Troubleshooting({
+      this.sendFlagTroubleshooting(TroubleshootingLabel.GET_FLAG_VALUE_FLAG_NOT_FOUND, key, defaultValue, visitorExposed)
 
-        label: TroubleshootingLabel.GET_FLAG_VALUE_FLAG_NOT_FOUND,
-        logLevel: LogLevel.WARNING,
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
-        visitorSessionId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        traffic: this.visitor.traffic,
-        config: this.config,
-        visitorContext: this.visitor.context,
-        flagKey: key,
-        flagDefault: defaultValue,
-        visitorExposed: userExposed
-      })
+      return defaultValue as T extends null ? unknown : T
+    }
 
-      this.sendTroubleshootingHit(monitoring)
-      return defaultValue
+    if (visitorExposed) {
+      this.visitorExposed({ key, flag, defaultValue, isValueCalled: true })
     }
 
     if (flag.value === null) {
-      if (userExposed) {
-        this.visitorExposed({ key, flag, defaultValue })
-      }
-      return defaultValue
+      return defaultValue as T extends null ? unknown : T
     }
 
     if (defaultValue !== null && defaultValue !== undefined && !hasSameType(flag.value, defaultValue)) {
       logWarningSprintf(this.config, FLAG_VALUE, GET_FLAG_CAST_ERROR, this.visitor.visitorId, key, defaultValue)
-      const monitoring = new Troubleshooting({
-
-        label: TroubleshootingLabel.GET_FLAG_VALUE_TYPE_WARNING,
-        logLevel: LogLevel.WARNING,
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
-        visitorSessionId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        traffic: this.visitor.traffic,
-        config: this.config,
-        visitorContext: this.visitor.context,
-        flagKey: key,
-        flagDefault: defaultValue,
-        visitorExposed: userExposed
-      })
-
-      this.sendTroubleshootingHit(monitoring)
-
-      return defaultValue
-    }
-
-    if (userExposed) {
-      this.visitorExposed({ key, flag, defaultValue })
+      this.sendFlagTroubleshooting(TroubleshootingLabel.GET_FLAG_VALUE_TYPE_WARNING, key, defaultValue, visitorExposed)
+      return defaultValue as T extends null ? unknown : T
     }
 
     logDebugSprintf(this.config, FLAG_VALUE, GET_FLAG_VALUE, this.visitor.visitorId, key, flag.value)
 
-    return flag.value
+    return flag.value as T extends null ? unknown : T
   }
 
-  getFlagMetadata (param:{metadata:IFlagMetadata, key?:string, hasSameType:boolean}):IFlagMetadata {
-    const { metadata, hasSameType: checkType, key } = param
-    if (!checkType) {
-      logWarningSprintf(
-        this.visitor.config,
-        FLAG_METADATA,
-        GET_METADATA_CAST_ERROR, key
-      )
-      const monitoring = new Troubleshooting({
-        label: TroubleshootingLabel.GET_FLAG_METADATA_TYPE_WARNING,
-        logLevel: LogLevel.WARNING,
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
-        visitorSessionId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        traffic: this.visitor.traffic,
-        config: this.config,
-        visitorContext: this.visitor.context,
-        flagKey: key,
-        flagMetadataCampaignId: metadata.campaignId,
-        flagMetadataCampaignSlug: metadata.slug,
-        flagMetadataCampaignType: metadata.campaignType,
-        flagMetadataVariationGroupId: metadata.variationGroupId,
-        flagMetadataVariationId: metadata.variationGroupId,
-        flagMetadataCampaignIsReference: metadata.isReference
-      })
+  private SendFlagMetadataTroubleshooting (key: string) {
+    logWarningSprintf(this.config, FLAG_METADATA, NO_FLAG_METADATA, this.visitor.visitorId, key)
+    const monitoring = new Troubleshooting({
+      label: TroubleshootingLabel.GET_FLAG_METADATA_TYPE_WARNING,
+      logLevel: LogLevel.WARNING,
+      visitorId: this.visitor.visitorId,
+      anonymousId: this.visitor.anonymousId,
+      visitorSessionId: this.visitor.instanceId,
+      flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+      traffic: this.visitor.traffic,
+      config: this.config,
+      visitorContext: this.visitor.context,
+      flagKey: key
+    })
 
-      this.sendTroubleshootingHit(monitoring)
+    this.sendTroubleshootingHit(monitoring)
+  }
+
+  getFlagMetadata (param:{ key:string, flag?:FlagDTO}):IFlagMetadata {
+    const { key, flag } = param
+
+    if (!flag) {
+      logWarningSprintf(this.config, FLAG_METADATA, NO_FLAG_METADATA, this.visitor.visitorId, key)
+      this.SendFlagMetadataTroubleshooting(key)
       return FlagMetadata.Empty()
     }
+
+    const metadata = new FlagMetadata({
+      campaignId: flag.campaignId,
+      campaignName: flag.campaignName,
+      variationGroupId: flag.variationGroupId,
+      variationGroupName: flag.variationGroupName,
+      variationId: flag.variationId,
+      variationName: flag.variationName,
+      isReference: !!flag.isReference,
+      campaignType: flag.campaignType as string,
+      slug: flag.slug
+    })
 
     return metadata
   }

@@ -1,4 +1,4 @@
-import { FSSdkStatus, FLAG_USER_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_SDK_NOT_READY } from '../enum/index'
+import { FSSdkStatus, FLAG_VISITOR_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_SDK_NOT_READY } from '../enum/index'
 import { FlagDTO, IFlagMetadata, IHit } from '../types'
 import { logErrorSprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
@@ -34,16 +34,16 @@ export class NotReadyStrategy extends DefaultStrategy {
     this.log('fetchFlags')
   }
 
-  getFlagValue <T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, userExposed?: boolean}): T {
+  getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, visitorExposed?: boolean}): T extends null ? unknown : T {
     this.log('Flag.value')
-    return param.defaultValue
+    return param.defaultValue as T extends null ? unknown : T
   }
 
   async visitorExposed (): Promise<void> {
-    this.log(FLAG_USER_EXPOSED)
+    this.log(FLAG_VISITOR_EXPOSED)
   }
 
-  getFlagMetadata (param:{metadata:IFlagMetadata, key?:string, hasSameType:boolean}):IFlagMetadata {
+  getFlagMetadata (param:{ key:string, flag?:FlagDTO}):IFlagMetadata {
     const emptyMetaData = FlagMetadata.Empty()
     logErrorSprintf(this.config, FLAG_METADATA, METADATA_SDK_NOT_READY, this.visitor.visitorId, param.key, emptyMetaData)
     return emptyMetaData
