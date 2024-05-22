@@ -1,17 +1,14 @@
 import { FSFetchStatus } from '../enum/FSFetchStatus'
 import { FSFlagStatus } from '../enum/FSFlagStatus'
-import { FLAG_METADATA, NO_FLAG_METADATA } from '../enum/index'
 import { IFlagMetadata } from '../types'
-import { hasSameType, logDebugSprintf } from '../utils/utils'
 import { VisitorDelegate } from '../visitor/index'
-import { FlagMetadata } from './FlagMetadata'
 import { IFlag } from './IFlag'
 
 export class Flag implements IFlag {
   private _visitor:VisitorDelegate
   private _key:string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _defaultValue?:unknown
+  private hasGetValueBeenCalled = false
 
   constructor (param: {key:string, visitor:VisitorDelegate}) {
     const { key, visitor } = param
@@ -26,44 +23,33 @@ export class Flag implements IFlag {
 
   get metadata ():IFlagMetadata {
     const flagDTO = this._visitor.flagsData.get(this._key)
-    const metadata = new FlagMetadata({
-      campaignId: flagDTO?.campaignId || '',
-      campaignName: flagDTO?.campaignName || '',
-      variationGroupId: flagDTO?.variationGroupId || '',
-      variationGroupName: flagDTO?.variationGroupName || '',
-      variationId: flagDTO?.variationId || '',
-      variationName: flagDTO?.variationName || '',
-      isReference: !!flagDTO?.isReference,
-      campaignType: flagDTO?.campaignType || '',
-      slug: flagDTO?.slug
-    })
-
-    if (!flagDTO) {
-      logDebugSprintf(this._visitor.config, FLAG_METADATA, NO_FLAG_METADATA, this._visitor.visitorId, this._key, metadata)
-      return metadata
-    }
 
     return this._visitor.getFlagMetadata({
-      metadata,
-      hasSameType: flagDTO.value === null || this._defaultValue === null || this._defaultValue === undefined || hasSameType(flagDTO.value, this._defaultValue),
-      key: flagDTO.key
+      key: this._key,
+      flag: flagDTO
     })
   }
 
   visitorExposed () : Promise<void> {
     const flagDTO = this._visitor.flagsData.get(this._key)
-    return this._visitor.visitorExposed({ key: this._key, flag: flagDTO, defaultValue: this._defaultValue })
+    return this._visitor.visitorExposed({
+      key: this._key,
+      flag: flagDTO,
+      defaultValue: this._defaultValue,
+      hasGetValueBeenCalled: this.hasGetValueBeenCalled
+    })
   }
 
-  getValue <T> (defaultValue:T, visitorExposed = true) : T {
+  getValue <T> (defaultValue:T, visitorExposed = true) : T extends null ? unknown : T {
     this._defaultValue = defaultValue
+    this.hasGetValueBeenCalled = true
 
     const flagDTO = this._visitor.flagsData.get(this._key)
     return this._visitor.getFlagValue({
       key: this._key,
       defaultValue,
       flag: flagDTO,
-      userExposed: visitorExposed
+      visitorExposed
     })
   }
 
