@@ -5,7 +5,7 @@ import { IFlagshipConfig } from '../config/index'
 import { EMIT_READY } from '../enum/index'
 import { HitAbstract } from '../hit/HitAbstract'
 import { VisitorAbstract } from './VisitorAbstract'
-import { IFlag } from '../flag/Flags'
+import { IFlag } from '../flag/IFlag'
 
 /**
  * The `Visitor` class represents a unique user within your application. It aids in
@@ -112,8 +112,8 @@ export class Visitor extends EventEmitter implements IVisitor {
   /**
    * @inheritdoc
    */
-  getFlag<T> (key:string, defaultValue:T):IFlag<T> {
-    return this.visitorDelegate.getFlag(key, defaultValue)
+  getFlag (key:string):IFlag {
+    return this.visitorDelegate.getFlag(key)
   }
 
   /**
