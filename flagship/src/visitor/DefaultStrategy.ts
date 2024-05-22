@@ -565,7 +565,6 @@ export class DefaultStrategy extends StrategyAbstract {
   async visitorExposed (param:VisitorExposedParam): Promise<void> {
     const { key, flag, defaultValue, hasGetValueBeenCalled } = param
 
-    const functionName = 'visitorExposed'
     if (!flag) {
       logWarningSprintf(
         this.visitor.config,
@@ -593,10 +592,6 @@ export class DefaultStrategy extends StrategyAbstract {
       )
 
       this.sendFlagTroubleshooting(TroubleshootingLabel.VISITOR_EXPOSED_TYPE_WARNING, key, defaultValue)
-    }
-
-    if (!this.hasTrackingManager(functionName)) {
-      return
     }
 
     await this.sendActivate(flag, defaultValue)
@@ -632,7 +627,7 @@ export class DefaultStrategy extends StrategyAbstract {
     }
 
     if (visitorExposed) {
-      this.visitorExposed({ key, flag, defaultValue, hasGetValueBeenCalled: true })
+      this.sendActivate(flag, defaultValue)
     }
 
     if (flag.value === null) {
