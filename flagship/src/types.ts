@@ -226,5 +226,5 @@ export type SerializedFlagMetadata = {
   isReference?: boolean
   campaignType?: string
   slug?:string|null
-  token: string
+  hex: string
 }
