@@ -1,3 +1,3 @@
 
-export * from './Flags'
-export * from './FlagMetadata'
+export * from './FsFlags'
+export * from './FSFlagMetadata'

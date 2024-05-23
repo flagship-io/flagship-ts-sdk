@@ -1,10 +1,10 @@
 import { FSSdkStatus, FLAG_VISITOR_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_SDK_NOT_READY } from '../enum/index'
-import { FlagDTO, IFlagMetadata, IHit } from '../types'
+import { FlagDTO, IFSFlagMetadata, IHit } from '../types'
 import { logErrorSprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
 import { HitAbstract } from '../hit/index'
 import { BatchDTO } from '../hit/Batch'
-import { FlagMetadata } from '../flag/FlagMetadata'
+import { FSFlagMetadata } from '../flag/FSFlagMetadata'
 import { Troubleshooting } from '../hit/Troubleshooting'
 
 export class NotReadyStrategy extends DefaultStrategy {
@@ -43,8 +43,8 @@ export class NotReadyStrategy extends DefaultStrategy {
     this.log(FLAG_VISITOR_EXPOSED)
   }
 
-  getFlagMetadata (param:{ key:string, flag?:FlagDTO}):IFlagMetadata {
-    const emptyMetaData = FlagMetadata.Empty()
+  getFlagMetadata (param:{ key:string, flag?:FlagDTO}):IFSFlagMetadata {
+    const emptyMetaData = FSFlagMetadata.Empty()
     logErrorSprintf(this.config, FLAG_METADATA, METADATA_SDK_NOT_READY, this.visitor.visitorId, param.key, emptyMetaData)
     return emptyMetaData
   }

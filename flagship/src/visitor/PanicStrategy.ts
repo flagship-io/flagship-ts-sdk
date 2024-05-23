@@ -1,11 +1,11 @@
 
 import { FSSdkStatus, FLAG_VISITOR_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_PANIC_MODE } from '../enum/index'
-import { FlagDTO, IFlagMetadata, IHit } from '../types'
+import { FlagDTO, IFSFlagMetadata, IHit } from '../types'
 import { logInfoSprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
 import { HitAbstract } from '../hit/index'
 import { BatchDTO } from '../hit/Batch'
-import { FlagMetadata } from '../flag/FlagMetadata'
+import { FSFlagMetadata } from '../flag/FSFlagMetadata'
 import { CampaignDTO } from '../decision/api/models'
 import { Troubleshooting } from '../hit/Troubleshooting'
 
@@ -61,8 +61,8 @@ export class PanicStrategy extends DefaultStrategy {
     this.log(FLAG_VISITOR_EXPOSED)
   }
 
-  getFlagMetadata (param:{ key:string, flag?:FlagDTO}):IFlagMetadata {
-    const emptyMetaData = FlagMetadata.Empty()
+  getFlagMetadata (param:{ key:string, flag?:FlagDTO}):IFSFlagMetadata {
+    const emptyMetaData = FSFlagMetadata.Empty()
     logInfoSprintf(this.config, FLAG_METADATA, METADATA_PANIC_MODE, this.visitor.visitorId, param.key, emptyMetaData)
     return emptyMetaData
   }

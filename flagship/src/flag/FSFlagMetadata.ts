@@ -1,6 +1,6 @@
-import { IFlagMetadata } from '../types'
+import { IFSFlagMetadata } from '../types'
 
-export class FlagMetadata implements IFlagMetadata {
+export class FSFlagMetadata implements IFSFlagMetadata {
   campaignId:string
   campaignName: string
   variationGroupId:string
@@ -10,7 +10,7 @@ export class FlagMetadata implements IFlagMetadata {
   isReference: boolean
   campaignType: string
   slug?: string | null | undefined
-  constructor (flagMetadata: Omit<IFlagMetadata, 'toJSON'>) {
+  constructor (flagMetadata: Omit<IFSFlagMetadata, 'toJSON'>) {
     const { campaignId, variationGroupId, variationId, isReference, campaignType, slug, variationGroupName, variationName, campaignName } = flagMetadata
     this.campaignId = campaignId
     this.variationGroupId = variationGroupId
@@ -23,8 +23,8 @@ export class FlagMetadata implements IFlagMetadata {
     this.slug = slug
   }
 
-  public static Empty ():IFlagMetadata {
-    return new FlagMetadata({
+  public static Empty ():IFSFlagMetadata {
+    return new FSFlagMetadata({
       campaignId: '',
       campaignName: '',
       campaignType: '',

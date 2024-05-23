@@ -1,5 +1,5 @@
 import { Event, EventCategory, HitAbstract } from '../hit/index'
-import { primitive, IHit, VisitorCacheDTO, IFlagMetadata, TroubleshootingLabel, VisitorCacheStatus } from '../types'
+import { primitive, IHit, VisitorCacheDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorCacheStatus } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
@@ -276,7 +276,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     abstract fetchFlags(): Promise<void>
     abstract visitorExposed (param:VisitorExposedParam): Promise<void>
     abstract getFlagValue<T>(param:GetFlagValueParam<T>):T extends null ? unknown : T
-    abstract getFlagMetadata(param:GetFlagMetadataParam):IFlagMetadata
+    abstract getFlagMetadata(param:GetFlagMetadataParam):IFSFlagMetadata
 
     public async sendTroubleshootingHit (hit: Troubleshooting) {
       await this.trackingManager.sendTroubleshootingHit(hit)

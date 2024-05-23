@@ -1,5 +1,5 @@
 import { IFlagshipConfig } from '../config/index'
-import { IFlag } from '../flag/IFlag'
+import { IFSFlag } from '../flag/IFSFlag'
 import { HitAbstract } from '../hit/index'
 import { IHit, FlagDTO, primitive, FetchFlagsStatus } from '../types'
 
@@ -83,7 +83,7 @@ export interface IVisitor {
    * @param defaultValue - The default value of the flag.
    * @returns An IFlag object.
    */
-  getFlag(key: string): IFlag
+  getFlag(key: string): IFSFlag
 
   /**
    * Invokes the `decision API` or refers to the `bucketing file` to refresh all campaign flags based on the visitor's context.

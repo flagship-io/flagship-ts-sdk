@@ -1,6 +1,6 @@
 import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
-import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, sdkInitialData, VisitorCacheStatus, FetchFlagsStatus } from '../types'
+import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFSFlagMetadata, sdkInitialData, VisitorCacheStatus, FetchFlagsStatus } from '../types'
 
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
@@ -18,7 +18,7 @@ import { MurmurHash } from '../utils/MurmurHash'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { FSFetchStatus } from '../enum/FSFetchStatus'
 import { FSFetchReasons } from '../enum/FSFetchReasons'
-import { IFlag } from '../flag/IFlag'
+import { IFSFlag } from '../flag/IFSFlag'
 import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
@@ -319,7 +319,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   abstract updateContext (context: Record<string, primitive> | string, value?:primitive): void
   abstract clearContext(): void
 
-  abstract getFlag(key: string): IFlag
+  abstract getFlag(key: string): IFSFlag
 
   abstract sendHit(hit: HitAbstract): Promise<void>;
   abstract sendHit(hit: IHit): Promise<void>;
@@ -335,5 +335,5 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   abstract visitorExposed (param:VisitorExposedParam): Promise<void>
   abstract getFlagValue<T>(param:GetFlagValueParam<T>):T extends null ? unknown : T
   abstract fetchFlags(): Promise<void>
-  abstract getFlagMetadata(param:GetFlagMetadataParam):IFlagMetadata
+  abstract getFlagMetadata(param:GetFlagMetadataParam):IFSFlagMetadata
 }

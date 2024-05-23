@@ -131,7 +131,7 @@ export type VisitorCacheDTO = {
 }
 }
 
-export interface IFlagMetadata{
+export interface IFSFlagMetadata{
   campaignId:string
   campaignName:string
   variationGroupId:string
@@ -147,7 +147,7 @@ export interface IExposedFlag {
   key: string
   value: unknown
   defaultValue: unknown
-  metadata: IFlagMetadata
+  metadata: IFSFlagMetadata
 }
 
 export interface IExposedVisitor{
@@ -213,4 +213,18 @@ export enum VisitorCacheStatus {
   ANONYMOUS_ID_CACHE = 'ANONYMOUS_ID_CACHE',
   VISITOR_ID_CACHE = 'VISITOR_ID_CACHE',
   VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE = 'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE'
+}
+
+export type SerializedFlagMetadata = {
+  key: string
+  campaignId: string
+  campaignName: string
+  variationGroupId: string
+  variationGroupName: string
+  variationId: string
+  variationName: string
+  isReference?: boolean
+  campaignType?: string
+  slug?:string|null
+  token: string
 }

@@ -1,11 +1,11 @@
 import { HitAbstract } from '../hit/index'
-import { primitive, IHit, IFlagMetadata } from '../types'
+import { primitive, IHit, IFSFlagMetadata } from '../types'
 import { VisitorAbstract } from './VisitorAbstract'
-import { Flag } from '../flag/Flags'
+import { FSFlag } from '../flag/FsFlags'
 import { logWarningSprintf, visitorFlagSyncStatusMessage } from '../utils/utils'
 import { GET_FLAG } from '../enum/FlagshipConstant'
 import { FSFetchStatus } from '../enum/FSFetchStatus'
-import { IFlag } from '../flag/IFlag'
+import { IFSFlag } from '../flag/IFSFlag'
 import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
 
 export class VisitorDelegate extends VisitorAbstract {
@@ -20,11 +20,11 @@ export class VisitorDelegate extends VisitorAbstract {
     this.getStrategy().clearContext()
   }
 
-  getFlag (key:string):IFlag {
+  getFlag (key:string):IFSFlag {
     if (this.fetchStatus.status !== FSFetchStatus.FETCHED) {
       logWarningSprintf(this.config, GET_FLAG, visitorFlagSyncStatusMessage(this.fetchStatus.reason), this.visitorId, key)
     }
-    return new Flag({ key, visitor: this })
+    return new FSFlag({ key, visitor: this })
   }
 
   sendHit(hit: HitAbstract): Promise<void>
@@ -63,7 +63,7 @@ export class VisitorDelegate extends VisitorAbstract {
     return this.getStrategy().getFlagValue(param)
   }
 
-  getFlagMetadata (param:GetFlagMetadataParam):IFlagMetadata {
+  getFlagMetadata (param:GetFlagMetadataParam):IFSFlagMetadata {
     return this.getStrategy().getFlagMetadata(param)
   }
 }

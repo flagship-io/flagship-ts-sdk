@@ -49,13 +49,13 @@ import {
   Page,
   Transaction
 } from '../hit/index'
-import { primitive, IHit, FlagDTO, IFlagMetadata, TroubleshootingLabel } from '../types'
+import { primitive, IHit, FlagDTO, IFSFlagMetadata, TroubleshootingLabel } from '../types'
 import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils'
 import { StrategyAbstract } from './StrategyAbstract'
 import { CampaignDTO } from '../decision/api/models'
 import { FLAGSHIP_CLIENT, FLAGSHIP_CONTEXT, FLAGSHIP_VERSION, FLAGSHIP_VISITOR } from '../enum/FlagshipContext'
 import { VisitorDelegate } from './index'
-import { FlagMetadata } from '../flag/FlagMetadata'
+import { FSFlagMetadata } from '../flag/FSFlagMetadata'
 import { Activate } from '../hit/Activate'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { FSFetchStatus } from '../enum/FSFetchStatus'
@@ -663,16 +663,16 @@ export class DefaultStrategy extends StrategyAbstract {
     this.sendTroubleshootingHit(monitoring)
   }
 
-  getFlagMetadata (param:GetFlagMetadataParam):IFlagMetadata {
+  getFlagMetadata (param:GetFlagMetadataParam):IFSFlagMetadata {
     const { key, flag } = param
 
     if (!flag) {
       logWarningSprintf(this.config, FLAG_METADATA, NO_FLAG_METADATA, this.visitor.visitorId, key)
       this.SendFlagMetadataTroubleshooting(key)
-      return FlagMetadata.Empty()
+      return FSFlagMetadata.Empty()
     }
 
-    const metadata = new FlagMetadata({
+    const metadata = new FSFlagMetadata({
       campaignId: flag.campaignId,
       campaignName: flag.campaignName,
       variationGroupId: flag.variationGroupId,
