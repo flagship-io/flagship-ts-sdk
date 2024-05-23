@@ -1,12 +1,12 @@
 import { FSFlagStatus } from '../enum/FSFlagStatus'
-import { IFlagMetadata } from '../types'
+import { IFSFlagMetadata } from '../types'
 
 /**
  * This class represents a flag in the `Flagship SDK`. It helps you retrieve the flag value, access flag metadata,
  * expose the flag, verify the flag's existence, and get the flag status
  * @template T The type of the flag value.
  */
-export interface IFlag {
+export interface IFSFlag {
     /**
      * Returns the value of the flag.
      * If the flag exists and the type of the default value matches the flag type value.
@@ -31,7 +31,7 @@ export interface IFlag {
     /**
      * Returns the metadata of the flag.
      */
-    readonly metadata: IFlagMetadata;
+    readonly metadata: IFSFlagMetadata;
 
     /**
      * Returns the status of the flag.

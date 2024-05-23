@@ -1,10 +1,10 @@
 import { FSFetchStatus } from '../enum/FSFetchStatus'
 import { FSFlagStatus } from '../enum/FSFlagStatus'
-import { IFlagMetadata } from '../types'
+import { IFSFlagMetadata } from '../types'
 import { VisitorDelegate } from '../visitor/index'
-import { IFlag } from './IFlag'
+import { IFSFlag } from './IFSFlag'
 
-export class Flag implements IFlag {
+export class FSFlag implements IFSFlag {
   private _visitor:VisitorDelegate
   private _key:string
   private _defaultValue?:unknown
@@ -21,7 +21,7 @@ export class Flag implements IFlag {
     return !!(flagDTO?.campaignId && flagDTO?.variationId && flagDTO?.variationGroupId)
   }
 
-  get metadata ():IFlagMetadata {
+  get metadata ():IFSFlagMetadata {
     const flagDTO = this._visitor.flagsData.get(this._key)
 
     return this._visitor.getFlagMetadata({
