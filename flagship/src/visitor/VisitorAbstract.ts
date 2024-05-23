@@ -20,6 +20,7 @@ import { FSFetchStatus } from '../enum/FSFetchStatus'
 import { FSFetchReasons } from '../enum/FSFetchReasons'
 import { IFSFlag } from '../flag/IFSFlag'
 import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
+import { IFSFlagCollection } from '../flag/IFSFlagCollection'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -320,6 +321,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   abstract clearContext(): void
 
   abstract getFlag(key: string): IFSFlag
+  abstract getFlags(): IFSFlagCollection
 
   abstract sendHit(hit: HitAbstract): Promise<void>;
   abstract sendHit(hit: IHit): Promise<void>;

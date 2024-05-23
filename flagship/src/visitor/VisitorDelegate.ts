@@ -7,6 +7,8 @@ import { GET_FLAG } from '../enum/FlagshipConstant'
 import { FSFetchStatus } from '../enum/FSFetchStatus'
 import { IFSFlag } from '../flag/IFSFlag'
 import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
+import { IFSFlagCollection } from '../flag/IFSFlagCollection'
+import { FSFlagCollection } from '../flag/FSFlagCollection'
 
 export class VisitorDelegate extends VisitorAbstract {
   updateContext (key: string, value: primitive):void
@@ -25,6 +27,10 @@ export class VisitorDelegate extends VisitorAbstract {
       logWarningSprintf(this.config, GET_FLAG, visitorFlagSyncStatusMessage(this.fetchStatus.reason), this.visitorId, key)
     }
     return new FSFlag({ key, visitor: this })
+  }
+
+  getFlags (): IFSFlagCollection {
+    return new FSFlagCollection({ visitor: this })
   }
 
   sendHit(hit: HitAbstract): Promise<void>

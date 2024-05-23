@@ -1,5 +1,6 @@
 import { IFlagshipConfig } from '../config/index'
 import { IFSFlag } from '../flag/IFSFlag'
+import { IFSFlagCollection } from '../flag/IFSFlagCollection'
 import { HitAbstract } from '../hit/index'
 import { IHit, FlagDTO, primitive, FetchFlagsStatus } from '../types'
 
@@ -40,12 +41,6 @@ export interface IVisitor {
   readonly config: IFlagshipConfig;
 
   /**
-   * Returns an array of all flags fetched for the current visitor.
-   * @returns An array of FlagDTO objects.
-   */
-  getFlagsDataArray(): FlagDTO[];
-
-  /**
    * Returns true or false if the visitor has consented for protected data usage.
    * @returns A boolean value indicating whether the visitor has consented.
    */
@@ -84,6 +79,12 @@ export interface IVisitor {
    * @returns An IFlag object.
    */
   getFlag(key: string): IFSFlag
+
+  /**
+   * Returns a collection of all flags fetched for the visitor.
+   * @returns An IFSFlagCollection object.
+   */
+  getFlags(): IFSFlagCollection
 
   /**
    * Invokes the `decision API` or refers to the `bucketing file` to refresh all campaign flags based on the visitor's context.

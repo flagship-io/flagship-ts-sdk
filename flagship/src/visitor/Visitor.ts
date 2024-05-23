@@ -6,6 +6,7 @@ import { EMIT_READY } from '../enum/index'
 import { HitAbstract } from '../hit/HitAbstract'
 import { VisitorAbstract } from './VisitorAbstract'
 import { IFSFlag } from '../flag/IFSFlag'
+import { IFSFlagCollection } from '../flag/IFSFlagCollection'
 
 /**
  * The `Visitor` class represents a unique user within your application. It aids in
@@ -114,6 +115,13 @@ export class Visitor extends EventEmitter implements IVisitor {
    */
   getFlag (key:string):IFSFlag {
     return this.visitorDelegate.getFlag(key)
+  }
+
+  /**
+   * @inheritdoc
+   */
+  getFlags (): IFSFlagCollection {
+    return this.visitorDelegate.getFlags()
   }
 
   /**
