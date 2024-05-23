@@ -129,9 +129,15 @@ export class FSFlagCollection implements IFSFlagCollection {
         isReference: metadata.isReference,
         campaignType: metadata.campaignType,
         slug: metadata.slug,
-        token: valueToHex({ v: flag.getValue(null, false) })
+        hex: valueToHex({ v: flag.getValue(null, false) })
       })
     })
     return serializedData
+  }
+
+  public forEach (callbackfn: (value: IFSFlag, key: string, collection: IFSFlagCollection) => void): void {
+    this._flags.forEach((flag, key) => {
+      callbackfn(flag, key, this)
+    })
   }
 }

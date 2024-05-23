@@ -60,4 +60,6 @@ export interface IFSFlagCollection extends Iterable<[string, IFSFlag]> {
      * @returns An array of serialized flag metadata.
      */
     toJSON(): SerializedFlagMetadata[];
+
+    forEach (callbackfn: (value: IFSFlag, key: string, collection: IFSFlagCollection) => void): void
 }
