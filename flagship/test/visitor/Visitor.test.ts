@@ -11,6 +11,7 @@ import { EMIT_READY, SDK_INFO } from '../../src/enum'
 import { IFSFlag } from '../../src/flag/IFSFlag'
 import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
 import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
+import { IFSFlagCollection } from '../../dist/flag/IFSFlagCollection'
 
 describe('test visitor', () => {
   const visitorId = 'visitorId'
@@ -66,20 +67,6 @@ describe('test visitor', () => {
     expect(visitor.config).toBe(config)
 
     expect(visitor.context).toEqual({ ...context, ...predefinedContext, fs_users: newVisitorId })
-
-    visitorDelegate.flagsData.set('newKey', {
-      key: 'newKey',
-      campaignId: 'cma',
-      campaignName: 'campaignName',
-      variationGroupId: 'var',
-      variationGroupName: 'variationGroupName',
-      variationId: 'varId',
-      variationName: 'variationName',
-      isReference: true,
-      value: 'value'
-    })
-
-    expect(visitor.flagsData).toBe(visitorDelegate.flagsData)
   })
 
   it('test updateContext', () => {
@@ -114,11 +101,11 @@ describe('test visitor', () => {
     expect(getFlag).toBeCalledWith('key')
   })
 
-  it('test getFlagsArray', () => {
-    const getFlagsArray = jest.spyOn(visitorDelegate, 'getFlagsDataArray')
-    getFlagsArray.mockReturnValue([])
-    visitor.getFlagsDataArray()
-    expect(getFlagsArray).toBeCalledTimes(1)
+  it('test getFlags', () => {
+    const getFlags = jest.spyOn(visitorDelegate, 'getFlags')
+    getFlags.mockReturnValue({} as IFSFlagCollection)
+    visitor.getFlags()
+    expect(getFlags).toBeCalledTimes(1)
   })
 
   it('test fetchFlags', () => {
