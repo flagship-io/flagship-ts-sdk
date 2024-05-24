@@ -1,4 +1,4 @@
-import { logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarning, logWarningSprintf, sprintf, visitorFlagSyncStatusMessage } from '../../src/utils/utils'
+import { logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarning, logWarningSprintf, sprintf, valueToHex, visitorFlagSyncStatusMessage } from '../../src/utils/utils'
 import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig } from '../../src/config/index'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
@@ -146,5 +146,12 @@ describe('Test visitorFlagSyncStatusMessage function', () => {
   it('should return a message containing "fetched from cache" when FSFetchReasons.READ_FROM_CACHE is passed', () => {
     const message = visitorFlagSyncStatusMessage(FSFetchReasons.READ_FROM_CACHE)
     expect(message).toEqual(expect.stringContaining('fetched from cache'))
+  })
+})
+
+describe('valueToHex function', () => {
+  it('should convert value to hex', () => {
+    const result = valueToHex({ v: 'test' })
+    expect(result).toBe('7b2276223a2274657374227d')
   })
 })
