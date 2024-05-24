@@ -1,9 +1,10 @@
 import { IFSFlagMetadata, SerializedFlagMetadata } from '../types'
-import { valueToHex } from '../utils/utils'
+import { logWarningSprintf, valueToHex } from '../utils/utils'
 import { VisitorDelegate } from '../visitor/VisitorDelegate'
 import { FSFlag } from './FsFlags'
 import { IFSFlagCollection } from './IFSFlagCollection'
 import { IFSFlag } from './IFSFlag'
+import { GET_FLAG, GET_FLAG_NOT_FOUND } from '../enum/FlagshipConstant'
 
 /**
  * Represents a collection of flags.
@@ -44,8 +45,13 @@ export class FSFlagCollection implements IFSFlagCollection {
   /**
    * @inheritdoc
    */
-  public get (key: string): IFSFlag | undefined {
-    return this._flags.get(key)
+  public get (key: string): IFSFlag {
+    const flag = this._flags.get(key)
+    if (!flag) {
+      logWarningSprintf(this._visitor.config, GET_FLAG, GET_FLAG_NOT_FOUND, this._visitor.visitorId, key)
+      return new FSFlag({ key })
+    }
+    return flag
   }
 
   /**
