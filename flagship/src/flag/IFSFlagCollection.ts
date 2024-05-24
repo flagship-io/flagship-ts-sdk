@@ -13,9 +13,9 @@ export interface IFSFlagCollection extends Iterable<[string, IFSFlag]> {
     /**
      * Retrieves the flag associated with the specified key.
      * @param key - The key of the flag to retrieve.
-     * @returns The flag associated with the specified key, or undefined if the key is not found.
+     * @returns The flag associated with the specified key, or an empty if the key is not found.
      */
-    get(key: string): IFSFlag | undefined;
+    get(key: string): IFSFlag;
 
     /**
      * Checks if the collection contains a flag with the specified key.
