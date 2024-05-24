@@ -2,26 +2,31 @@ import { FSFetchStatus } from '../enum/FSFetchStatus'
 import { FSFlagStatus } from '../enum/FSFlagStatus'
 import { IFSFlagMetadata } from '../types'
 import { VisitorDelegate } from '../visitor/index'
+import { FSFlagMetadata } from './FSFlagMetadata'
 import { IFSFlag } from './IFSFlag'
 
 export class FSFlag implements IFSFlag {
-  private _visitor:VisitorDelegate
+  private _visitor?:VisitorDelegate
   private _key:string
   private _defaultValue?:unknown
   private hasGetValueBeenCalled = false
 
-  constructor (param: {key:string, visitor:VisitorDelegate}) {
+  constructor (param: {key:string, visitor?:VisitorDelegate}) {
     const { key, visitor } = param
     this._key = key
     this._visitor = visitor
   }
 
   exists ():boolean {
-    const flagDTO = this._visitor.flagsData.get(this._key)
+    const flagDTO = this._visitor?.flagsData.get(this._key)
     return !!(flagDTO?.campaignId && flagDTO?.variationId && flagDTO?.variationGroupId)
   }
 
   get metadata ():IFSFlagMetadata {
+    if (!this._visitor) {
+      return FSFlagMetadata.Empty()
+    }
+
     const flagDTO = this._visitor.flagsData.get(this._key)
 
     return this._visitor.getFlagMetadata({
@@ -30,7 +35,11 @@ export class FSFlag implements IFSFlag {
     })
   }
 
-  visitorExposed () : Promise<void> {
+  async visitorExposed () : Promise<void> {
+    if (!this._visitor) {
+      return
+    }
+
     const flagDTO = this._visitor.flagsData.get(this._key)
     return this._visitor.visitorExposed({
       key: this._key,
@@ -43,6 +52,10 @@ export class FSFlag implements IFSFlag {
   getValue <T> (defaultValue:T, visitorExposed = true) : T extends null ? unknown : T {
     this._defaultValue = defaultValue
     this.hasGetValueBeenCalled = true
+
+    if (!this._visitor) {
+      return defaultValue as T extends null ? unknown : T
+    }
 
     const flagDTO = this._visitor.flagsData.get(this._key)
     return this._visitor.getFlagValue({
