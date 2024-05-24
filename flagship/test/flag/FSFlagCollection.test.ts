@@ -202,7 +202,7 @@ describe('FSFlagCollection', () => {
         isReference: flag1.metadata.isReference,
         campaignType: flag1.metadata.campaignType,
         slug: flag1.metadata.slug,
-        hex: expect.any(String)
+        hex: '7b2276223a2276616c756531227d'
       })
       expect(serializedData[1]).toEqual({
         key: 'flag2',
@@ -215,7 +215,7 @@ describe('FSFlagCollection', () => {
         isReference: flag2.metadata.isReference,
         campaignType: flag2.metadata.campaignType,
         slug: flag2.metadata.slug,
-        hex: expect.any(String)
+        hex: '7b2276223a2276616c756532227d'
       })
       expect(serializedData[2]).toEqual({
         key: 'flag3',
@@ -228,7 +228,7 @@ describe('FSFlagCollection', () => {
         isReference: flag3.metadata.isReference,
         campaignType: flag3.metadata.campaignType,
         slug: flag3.metadata.slug,
-        hex: expect.any(String)
+        hex: '7b2276223a2276616c756533227d'
       })
     })
   })
