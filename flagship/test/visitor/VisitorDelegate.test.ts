@@ -14,6 +14,7 @@ import { DecisionManager } from '../../src/decision/DecisionManager'
 import { cacheVisitor } from '../../src/visitor/VisitorCache'
 import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
 import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
+import { FSFlagCollection } from '../../src/flag/FSFlagCollection'
 
 const updateContext = jest.fn()
 const clearContext = jest.fn()
@@ -317,6 +318,12 @@ describe('test VisitorDelegate methods', () => {
     visitorDelegate.fetchStatus = { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.AUTHENTICATE }
     flag = visitorDelegate.getFlag('newKey')
     expect(logWarning).toBeCalledTimes(1)
+  })
+
+  it('test getFlags', () => {
+    const flags = visitorDelegate.getFlags()
+    expect(flags).toBeInstanceOf(FSFlagCollection)
+    expect(flags.size).toBe(1)
   })
 
   it('test fetchFlags', () => {
