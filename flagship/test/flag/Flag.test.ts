@@ -3,7 +3,7 @@ import { DecisionApiConfig, FSSdkStatus, FlagDTO } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
-import { FSFlag } from '../../src/flag'
+import { FSFlag, FSFlagMetadata } from '../../src/flag'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor'
@@ -19,7 +19,6 @@ describe('Flag', () => {
   }
 
   const logManager = new FlagshipLogManager()
-  const logWarning = jest.spyOn(logManager, 'warning')
 
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
@@ -192,6 +191,42 @@ describe('Flag', () => {
       expect(flag.exists()).toBeTruthy()
       visitorDelegate.fetchStatus.status = FSFetchStatus.FETCHED
       expect(flag.status).toBe(FSFlagStatus.FETCHED)
+    })
+  })
+})
+
+describe('Flag with undefined visitor', () => {
+  const flag = new FSFlag({ key: 'key' })
+
+  describe('exists', () => {
+    it('should return false if the visitor is undefined', () => {
+      expect(flag.exists()).toBeFalsy()
+    })
+  })
+
+  describe('metadata', () => {
+    it('should return the metadata with default values', () => {
+      expect(flag.metadata).toEqual(FSFlagMetadata.Empty())
+    })
+  })
+
+  describe('status', () => {
+    it('should return FSFlagStatus.NOT_FOUND if the visitor is undefined', () => {
+      expect(flag.status).toBe(FSFlagStatus.NOT_FOUND)
+    })
+  })
+
+  describe('getValue', () => {
+    it('should return the default value if the visitor is undefined', () => {
+      const defaultValue = 'defaultValue'
+      const value = flag.getValue(defaultValue)
+      expect(value).toBe(defaultValue)
+    })
+  })
+
+  describe('visitorExposed', () => {
+    it('should not call visitorExposed if the visitor is undefined', () => {
+      flag.visitorExposed()
     })
   })
 })
