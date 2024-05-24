@@ -1,4 +1,4 @@
-import { IHit, FlagDTO, primitive } from '../types'
+import { IHit, primitive } from '../types'
 import { EventEmitter } from '../depsNode.native'
 import { IVisitor } from './IVisitor'
 import { IFlagshipConfig } from '../config/index'
@@ -62,13 +62,6 @@ export class Visitor extends EventEmitter implements IVisitor {
   /**
    * @inheritdoc
    */
-  public get flagsData (): Map<string, FlagDTO> {
-    return this.visitorDelegate.flagsData
-  }
-
-  /**
-   * @inheritdoc
-   */
   public get fetchStatus () {
     return this.visitorDelegate.fetchStatus
   }
@@ -85,13 +78,6 @@ export class Visitor extends EventEmitter implements IVisitor {
    */
   public setConsent (hasConsented: boolean): void {
     this.visitorDelegate.setConsent(hasConsented)
-  }
-
-  /**
-   * @inheritdoc
-   */
-  getFlagsDataArray (): FlagDTO[] {
-    return this.visitorDelegate.getFlagsDataArray()
   }
 
   /**

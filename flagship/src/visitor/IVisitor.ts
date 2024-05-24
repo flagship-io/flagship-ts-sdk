@@ -2,7 +2,7 @@ import { IFlagshipConfig } from '../config/index'
 import { IFSFlag } from '../flag/IFSFlag'
 import { IFSFlagCollection } from '../flag/IFSFlagCollection'
 import { HitAbstract } from '../hit/index'
-import { IHit, FlagDTO, primitive, FetchFlagsStatus } from '../types'
+import { IHit, primitive, FetchFlagsStatus } from '../types'
 
 /**
  * The `Visitor` class represents a unique user within your application. It aids in
@@ -19,11 +19,6 @@ export interface IVisitor {
    * The anonymous visitor identifier.
    */
   readonly anonymousId: string | null;
-
-  /**
-   * The flags fetched for the visitor.
-   */
-  readonly flagsData: Map<string, FlagDTO>;
 
   /**
    * The visitor context.
