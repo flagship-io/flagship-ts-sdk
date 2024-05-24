@@ -173,7 +173,7 @@ export function visitorFlagSyncStatusMessage (reason: FSFetchReasons) {
   return message
 }
 
-export function valueToHex (value: { v: unknown }) {
+export function valueToHex (value: { v: unknown }): string {
   const jsonString = JSON.stringify(value)
   const hex = Array.from(jsonString, char => char.charCodeAt(0).toString(16)).join('')
   return hex
