@@ -5,7 +5,7 @@ import { DecisionManager } from '../../src/decision/DecisionManager'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { NoConsentStrategy } from '../../src/visitor/index'
-import { FLAG_USER_EXPOSED, HitType, LogLevel, METHOD_DEACTIVATED_CONSENT_ERROR } from '../../src/enum/index'
+import { FLAG_VISITOR_EXPOSED, HitType, LogLevel, METHOD_DEACTIVATED_CONSENT_ERROR } from '../../src/enum/index'
 import { sprintf } from '../../src/utils/utils'
 import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { MurmurHash } from '../../src/utils/MurmurHash'
@@ -52,7 +52,7 @@ describe('test NoConsentStrategy', () => {
   it('test userExposed', () => {
     noConsentStrategy.visitorExposed().then(() => {
       expect(logInfo).toBeCalledTimes(1)
-      expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, FLAG_USER_EXPOSED, visitorDelegate.visitorId), FLAG_USER_EXPOSED)
+      expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, FLAG_VISITOR_EXPOSED, visitorDelegate.visitorId), FLAG_VISITOR_EXPOSED)
     })
   })
 })

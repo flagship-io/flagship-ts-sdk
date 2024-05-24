@@ -1,10 +1,10 @@
 import { expect, it, describe } from '@jest/globals'
-import { FlagMetadata } from '../../src/flag/FlagMetadata'
-import { IFlagMetadata } from '../../src/types'
+import { FSFlagMetadata } from '../../src/flag/FSFlagMetadata'
+import { IFSFlagMetadata } from '../../src/types'
 
 describe('test FlagMetadata', () => {
   it('test property', () => {
-    const metadata: Omit<IFlagMetadata, 'toJSON'> = {
+    const metadata: Omit<IFSFlagMetadata, 'toJSON'> = {
       campaignId: 'campaignID',
       variationGroupId: 'variationGroupID',
       variationId: 'variationID',
@@ -14,12 +14,12 @@ describe('test FlagMetadata', () => {
       variationGroupName: 'variationGroupName',
       variationName: 'variationName'
     }
-    const flagMetadata = new FlagMetadata(metadata)
+    const flagMetadata = new FSFlagMetadata(metadata)
     expect(flagMetadata).toEqual(metadata)
   })
 
   it('test empty property', () => {
-    const metadata:Omit<IFlagMetadata, 'toJSON'> = {
+    const metadata:Omit<IFSFlagMetadata, 'toJSON'> = {
       campaignId: '',
       variationGroupId: '',
       variationId: '',
@@ -29,7 +29,7 @@ describe('test FlagMetadata', () => {
       variationGroupName: '',
       variationName: ''
     }
-    const flagMetadata = new FlagMetadata(metadata)
+    const flagMetadata = new FSFlagMetadata(metadata)
     expect(flagMetadata).toEqual(metadata)
   })
 })

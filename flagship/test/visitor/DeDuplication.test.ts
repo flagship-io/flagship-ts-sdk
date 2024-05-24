@@ -64,11 +64,11 @@ describe('Visitor DeDuplication', () => {
       isReference: false,
       value: null
     }
-    await defaultStrategy.visitorExposed({ key: flag.key, flag, defaultValue: flag.value })
-    await defaultStrategy.visitorExposed({ key: flag.key, flag, defaultValue: flag.value })
-    await defaultStrategy.visitorExposed({ key: flag.key, flag, defaultValue: flag.value })
-    await defaultStrategy.visitorExposed({ key: flag2.key, flag: flag2, defaultValue: flag2.value })
-    await defaultStrategy.visitorExposed({ key: flag2.key, flag: flag2, defaultValue: flag2.value })
+    await defaultStrategy.visitorExposed({ key: flag.key, flag, defaultValue: flag.value, hasGetValueBeenCalled: true })
+    await defaultStrategy.visitorExposed({ key: flag.key, flag, defaultValue: flag.value, hasGetValueBeenCalled: true })
+    await defaultStrategy.visitorExposed({ key: flag.key, flag, defaultValue: flag.value, hasGetValueBeenCalled: true })
+    await defaultStrategy.visitorExposed({ key: flag2.key, flag: flag2, defaultValue: flag2.value, hasGetValueBeenCalled: true })
+    await defaultStrategy.visitorExposed({ key: flag2.key, flag: flag2, defaultValue: flag2.value, hasGetValueBeenCalled: true })
     expect(activateFlag).toBeCalledTimes(2)
   })
 
@@ -139,11 +139,11 @@ describe('Clean cache', () => {
     const flagBoolean = returnFlag.get('keyBoolean')
     const flagKey = returnFlag.get('key')
     const flagArray = returnFlag.get('array')
-    defaultStrategy.visitorExposed({ key: flagBoolean?.key as string, flag: flagBoolean, defaultValue: false })
-    defaultStrategy.visitorExposed({ key: flagKey?.key as string, flag: flagKey, defaultValue: 'default value' })
-    defaultStrategy.visitorExposed({ key: flagArray?.key as string, flag: flagArray, defaultValue: [] })
+    defaultStrategy.visitorExposed({ key: flagBoolean?.key as string, flag: flagBoolean, defaultValue: false, hasGetValueBeenCalled: true })
+    defaultStrategy.visitorExposed({ key: flagKey?.key as string, flag: flagKey, defaultValue: 'default value', hasGetValueBeenCalled: true })
+    defaultStrategy.visitorExposed({ key: flagArray?.key as string, flag: flagArray, defaultValue: [], hasGetValueBeenCalled: true })
     await sleep(1200)
-    await defaultStrategy.visitorExposed({ key: flagBoolean?.key as string, flag: flagBoolean, defaultValue: false })
+    await defaultStrategy.visitorExposed({ key: flagBoolean?.key as string, flag: flagBoolean, defaultValue: false, hasGetValueBeenCalled: true })
     expect(activateFlag).toBeCalledTimes(4)
   })
 })

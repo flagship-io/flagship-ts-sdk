@@ -3,7 +3,7 @@ import { DecisionApiConfig } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { DecisionManager } from '../../src/decision/DecisionManager'
-import { FLAG_METADATA, FLAG_USER_EXPOSED, FSSdkStatus, HitType, LogLevel, METADATA_SDK_NOT_READY, METHOD_DEACTIVATED_ERROR } from '../../src/enum'
+import { FLAG_METADATA, FLAG_VISITOR_EXPOSED, FSSdkStatus, HitType, LogLevel, METADATA_SDK_NOT_READY, METHOD_DEACTIVATED_ERROR } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
@@ -53,21 +53,7 @@ describe('test NotReadyStrategy', () => {
 
   it('test getFlagMetadata', () => {
     const key = 'flagKey'
-    const metadata = notReadyStrategy.getFlagMetadata({
-      metadata: {
-        campaignId: '',
-        variationGroupId: '',
-        variationId: '',
-        slug: '',
-        campaignType: '',
-        isReference: false,
-        campaignName: '',
-        variationGroupName: '',
-        variationName: ''
-      },
-      key,
-      hasSameType: true
-    })
+    const metadata = notReadyStrategy.getFlagMetadata({ key })
     expect(metadata).toEqual({
       campaignId: '',
       slug: null,
@@ -86,7 +72,7 @@ describe('test NotReadyStrategy', () => {
   it('test visitorExposed', async () => {
     await notReadyStrategy.visitorExposed()
     expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, FLAG_USER_EXPOSED, FSSdkStatus[FSSdkStatus.SDK_NOT_INITIALIZED]), FLAG_USER_EXPOSED)
+    expect(logError).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, FLAG_VISITOR_EXPOSED, FSSdkStatus[FSSdkStatus.SDK_NOT_INITIALIZED]), FLAG_VISITOR_EXPOSED)
   })
 
   it('test sendHit', () => {

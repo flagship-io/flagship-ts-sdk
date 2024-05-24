@@ -8,7 +8,7 @@ import { HitType, VISITOR_ID_ERROR } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
-import { IFlagMetadata, IHit } from '../../src/types'
+import { IFSFlagMetadata, IHit } from '../../src/types'
 import { CampaignDTO } from '../../src/decision/api/models'
 import { DecisionManager } from '../../src/decision/DecisionManager'
 import { cacheVisitor } from '../../src/visitor/VisitorCache'
@@ -19,7 +19,7 @@ const updateContext = jest.fn()
 const clearContext = jest.fn()
 const fetchFlags = jest.fn<()=>Promise<void>>()
 
-const getFlagMetadata = jest.fn<(metadata:IFlagMetadata)=>IFlagMetadata>()
+const getFlagMetadata = jest.fn<(metadata:IFSFlagMetadata)=>IFSFlagMetadata>()
 const sendHit = jest.fn<(hit: IHit)=> Promise<void>>()
 
 const sendHits = jest.fn<(hit: IHit[])=>Promise<void>>()
@@ -299,7 +299,7 @@ describe('test VisitorDelegate methods', () => {
     visitorDelegate.fetchStatus = { status: FSFetchStatus.FETCHED, reason: FSFetchReasons.NONE }
 
     visitorDelegate.flagsData.set('newKey', flagDTO)
-    let flag = visitorDelegate.getFlag('newKey', 'defaultValue')
+    let flag = visitorDelegate.getFlag('newKey')
 
     expect(flag).toBeDefined()
     expect(flag.exists()).toBeTruthy()
@@ -315,7 +315,7 @@ describe('test VisitorDelegate methods', () => {
     }))
 
     visitorDelegate.fetchStatus = { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.AUTHENTICATE }
-    flag = visitorDelegate.getFlag('newKey', 'defaultValue')
+    flag = visitorDelegate.getFlag('newKey')
     expect(logWarning).toBeCalledTimes(1)
   })
 
@@ -330,7 +330,7 @@ describe('test VisitorDelegate methods', () => {
 
   it('test userExposed', () => {
     visitorExposed.mockResolvedValue()
-    const params = { key: 'key', flag: undefined, defaultValue: 'defaultValue' }
+    const params = { key: 'key', flag: undefined, defaultValue: 'defaultValue', hasGetValueBeenCalled: true }
     visitorDelegate.visitorExposed(params)
       .then(() => {
         expect(visitorExposed).toBeCalledTimes(1)

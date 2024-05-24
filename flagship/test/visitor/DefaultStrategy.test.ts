@@ -1,6 +1,6 @@
-import { AUTHENTICATE, CONTEXT_KEY_ERROR, FLAG_USER_EXPOSED, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, UNAUTHENTICATE, FLAG_METADATA, PROCESS_FETCHING_FLAGS } from './../../src/enum/FlagshipConstant'
+import { AUTHENTICATE, CONTEXT_KEY_ERROR, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, UNAUTHENTICATE, FLAG_METADATA, PROCESS_FETCHING_FLAGS, FLAG_VISITOR_EXPOSED } from './../../src/enum/FlagshipConstant'
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
-import { DecisionApiConfig, Event, EventCategory, FetchFlagsStatus, FlagDTO, FlagMetadata, Screen, TroubleshootingLabel } from '../../src/index'
+import { DecisionApiConfig, Event, EventCategory, FetchFlagsStatus, FlagDTO, FSFlagMetadata, Screen, TroubleshootingLabel } from '../../src/index'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { BucketingConfig, ConfigManager } from '../../src/config/index'
 import { ApiManager } from '../../src/decision/ApiManager'
@@ -284,7 +284,7 @@ describe('test DefaultStrategy ', () => {
   it('test getFlagValue', () => {
     const returnMod = returnFlag.get('keyString') as FlagDTO
     const defaultValue = 'defaultValues'
-    const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: 'defaultValues', flag: returnMod, userExposed: true })
+    const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: 'defaultValues', flag: returnMod, visitorExposed: true })
     expect<string>(value).toBe(returnMod.value)
     expect(activateFlag).toBeCalledTimes(1)
     const activateHit = new Activate({
@@ -315,7 +315,7 @@ describe('test DefaultStrategy ', () => {
 
   it('test getFlagValue with defaultValue null', () => {
     const returnMod = returnFlag.get('keyString') as FlagDTO
-    const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: null, flag: returnMod, userExposed: true })
+    const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: null, flag: returnMod, visitorExposed: true })
     expect(value).toBe(returnMod.value)
     expect(activateFlag).toBeCalledTimes(1)
     const campaignHit = new Activate({
@@ -346,7 +346,7 @@ describe('test DefaultStrategy ', () => {
 
   it('test getFlagValue with defaultValue undefined', () => {
     const returnMod = returnFlag.get('keyString') as FlagDTO
-    const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: undefined, flag: returnMod, userExposed: true })
+    const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue: undefined, flag: returnMod, visitorExposed: true })
     expect(value).toBe(returnMod.value)
     expect(activateFlag).toBeCalledTimes(1)
     const campaignHit = new Activate({
@@ -379,7 +379,7 @@ describe('test DefaultStrategy ', () => {
   it('test getFlagValue with defaultValue undefined', () => {
     const returnMod = returnFlag.get('keyNull') as FlagDTO
     const defaultValue = undefined
-    const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue, flag: returnMod, userExposed: true })
+    const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue, flag: returnMod, visitorExposed: true })
     expect(value).toBe(defaultValue)
     expect(activateFlag).toBeCalledTimes(1)
     const campaignHit = new Activate({
@@ -448,7 +448,7 @@ describe('test DefaultStrategy ', () => {
   it('test getFlagValue castError type', () => {
     const returnMod = returnFlag.get('keyNull') as FlagDTO
     const defaultValue = 1
-    const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue, flag: returnMod, userExposed: true })
+    const value = defaultStrategy.getFlagValue({ key: returnMod.key, defaultValue, flag: returnMod, visitorExposed: true })
     expect(value).toBe(defaultValue)
     expect(activateFlag).toBeCalledTimes(1)
   })
@@ -465,7 +465,7 @@ describe('test DefaultStrategy ', () => {
 
   it('test getFlagMetadata', () => {
     const key = 'key'
-    const metadata:FlagMetadata = {
+    const metadata:FSFlagMetadata = {
       campaignId: 'campaignID',
       variationGroupId: 'variationGroupId',
       variationId: 'variationId',
@@ -476,31 +476,22 @@ describe('test DefaultStrategy ', () => {
       variationGroupName: 'variationGroupName',
       variationName: 'variationName'
     }
-    const flagMeta = defaultStrategy.getFlagMetadata({ key, metadata, hasSameType: true })
+    const flag:FlagDTO = {
+      key,
+      campaignId: 'campaignID',
+      variationGroupId: 'variationGroupId',
+      variationId: 'variationId',
+      isReference: false,
+      campaignType: 'ab',
+      slug: 'slug',
+      campaignName: 'campaignName',
+      variationGroupName: 'variationGroupName',
+      variationName: 'variationName',
+      value: 'value'
+    }
+    const flagMeta = defaultStrategy.getFlagMetadata({ key, flag })
     expect(flagMeta).toEqual(metadata)
     expect(logInfo).toBeCalledTimes(0)
-  })
-
-  it('test getFlagMetadata with different type', () => {
-    const key = 'key'
-    const metadata:FlagMetadata = {
-      campaignId: 'campaignID',
-      variationGroupId: 'variationGroupId',
-      variationId: 'variationId',
-      isReference: false,
-      campaignType: 'ab',
-      slug: 'slug',
-      campaignName: 'campaignName',
-      variationGroupName: 'variationGroupName',
-      variationName: 'variationName'
-    }
-    const flagMeta = defaultStrategy.getFlagMetadata({ key, metadata, hasSameType: false })
-    expect(flagMeta).toEqual(FlagMetadata.Empty())
-    expect(logWarning).toBeCalledTimes(1)
-    expect(logWarning).toBeCalledWith(sprintf(GET_METADATA_CAST_ERROR, key), FLAG_METADATA)
-    expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
-    const label: TroubleshootingLabel = TroubleshootingLabel.GET_FLAG_METADATA_TYPE_WARNING
-    expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
   const notExitKey = 'notExitKey'
@@ -508,7 +499,7 @@ describe('test DefaultStrategy ', () => {
   const returnMod = returnFlag.get('keyString') as FlagDTO
 
   it('test visitorExposed', async () => {
-    await defaultStrategy.visitorExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
+    await defaultStrategy.visitorExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value, hasGetValueBeenCalled: true })
     expect(activateFlag).toBeCalledTimes(1)
     const activateHit = new Activate({
       variationGroupId: returnMod.variationGroupId,
@@ -541,44 +532,31 @@ describe('test DefaultStrategy ', () => {
   })
 
   it('test visitorExposed with different type', async () => {
-    await defaultStrategy.visitorExposed({ key: returnMod.key, flag: returnMod, defaultValue: true })
+    await defaultStrategy.visitorExposed({ key: returnMod.key, flag: returnMod, defaultValue: true, hasGetValueBeenCalled: true })
     expect(addHit).toBeCalledTimes(0)
+    expect(activateFlag).toBeCalledTimes(1)
     expect(logWarning).toBeCalledTimes(1)
     expect(logWarning).toBeCalledWith(
       sprintf(USER_EXPOSED_CAST_ERROR, visitorId, returnMod.key),
-      FLAG_USER_EXPOSED
+      FLAG_VISITOR_EXPOSED
     )
-    expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
+    expect(sendTroubleshootingHitSpy).toBeCalledTimes(2)
     const label: TroubleshootingLabel = TroubleshootingLabel.VISITOR_EXPOSED_TYPE_WARNING
     expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+    expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(2, expect.objectContaining({ label: TroubleshootingLabel.VISITOR_SEND_ACTIVATE }))
   })
 
   it('test visitorExposed flag undefined', async () => {
-    await defaultStrategy.visitorExposed({ key: notExitKey, flag: undefined, defaultValue: false })
+    await defaultStrategy.visitorExposed({ key: notExitKey, flag: undefined, defaultValue: false, hasGetValueBeenCalled: true })
     expect(activateFlag).toBeCalledTimes(0)
     expect(logWarning).toBeCalledTimes(1)
     expect(logWarning).toBeCalledWith(
       sprintf(USER_EXPOSED_FLAG_ERROR, visitorId, notExitKey),
-      FLAG_USER_EXPOSED
+      FLAG_VISITOR_EXPOSED
     )
     expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
     const label: TroubleshootingLabel = TroubleshootingLabel.VISITOR_EXPOSED_FLAG_NOT_FOUND
     expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
-  })
-
-  it('test hasTrackingManager visitorExposed', async () => {
-    configManager.trackingManager = getNull()
-
-    await defaultStrategy.visitorExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value })
-
-    expect(activateFlag).toBeCalledTimes(0)
-    expect(logError).toBeCalledTimes(1)
-    expect(logError).toBeCalledWith(
-      TRACKER_MANAGER_MISSING_ERROR,
-      'visitorExposed'
-    )
-
-    configManager.trackingManager = trackingManager
   })
 
   const hitScreen = new Screen({ documentLocation: 'home', visitorId })

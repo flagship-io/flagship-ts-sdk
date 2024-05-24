@@ -8,7 +8,7 @@ import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { Visitor } from '../../src/visitor/Visitor'
 import { HitType } from '../../src'
 import { EMIT_READY, SDK_INFO } from '../../src/enum'
-import { IFlag } from '../../src/flag/Flags'
+import { IFSFlag } from '../../src/flag/IFSFlag'
 import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
 import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
 
@@ -108,10 +108,10 @@ describe('test visitor', () => {
 
   it('test getFlag', () => {
     const getFlag = jest.spyOn(visitorDelegate, 'getFlag')
-    getFlag.mockReturnValue({} as IFlag<string>)
-    visitor.getFlag('key', 'defaultValue')
+    getFlag.mockReturnValue({} as IFSFlag)
+    visitor.getFlag('key')
     expect(getFlag).toBeCalledTimes(1)
-    expect(getFlag).toBeCalledWith('key', 'defaultValue')
+    expect(getFlag).toBeCalledWith('key')
   })
 
   it('test getFlagsArray', () => {
