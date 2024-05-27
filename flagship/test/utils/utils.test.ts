@@ -1,4 +1,4 @@
-import { logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarning, logWarningSprintf, sprintf, valueToHex, visitorFlagSyncStatusMessage } from '../../src/utils/utils'
+import { hexToValue, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarning, logWarningSprintf, sprintf, valueToHex, visitorFlagSyncStatusMessage } from '../../src/utils/utils'
 import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig } from '../../src/config/index'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
@@ -153,5 +153,41 @@ describe('valueToHex function', () => {
   it('should convert value to hex', () => {
     const result = valueToHex({ v: 'test' })
     expect(result).toBe('7b2276223a2274657374227d')
+  })
+})
+
+describe('Test hexToValue function', () => {
+  const config = new DecisionApiConfig()
+
+  const logManager = new FlagshipLogManager()
+
+  const errorMethod = jest.spyOn(logManager, 'error')
+
+  config.logManager = logManager
+
+  it('should return null for invalid hex string', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = hexToValue(true as any, config)
+    expect(result).toBeNull()
+    expect(errorMethod).toBeCalledTimes(1)
+  })
+
+  it('should return null for hex string with invalid characters', () => {
+    const result = hexToValue('zz', config)
+    expect(result).toBeNull()
+    expect(errorMethod).toBeCalledTimes(1)
+  })
+
+  it('should return parsed value for valid hex string', () => {
+    const hex = Buffer.from(JSON.stringify({ v: 'test' })).toString('hex')
+    const result = hexToValue(hex, config)
+    expect(result).toEqual({ v: 'test' })
+  })
+
+  it('should return null for hex string that does not represent valid JSON', () => {
+    const hex = Buffer.from('invalid').toString('hex')
+    const result = hexToValue(hex, config)
+    expect(result).toBeNull()
+    expect(errorMethod).toBeCalledTimes(1)
   })
 })
