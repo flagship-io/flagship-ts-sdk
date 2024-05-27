@@ -178,3 +178,32 @@ export function valueToHex (value: { v: unknown }): string {
   const hex = Array.from(jsonString, char => char.charCodeAt(0).toString(16)).join('')
   return hex
 }
+
+export function hexToValue (hex: string, config: IFlagshipConfig): {v: unknown} | null {
+  if (typeof hex !== 'string') {
+    logErrorSprintf(config, 'hexToValue', 'Invalid hex string: {0}', hex)
+    return null
+  }
+
+  let jsonString = ''
+
+  for (let i = 0; i < hex.length; i += 2) {
+    const hexChar = hex.slice(i, i + 2)
+    const charCode = parseInt(hexChar, 16)
+
+    if (isNaN(charCode)) {
+      logErrorSprintf(config, 'hexToValue', 'Invalid hex character: {0}', hexChar)
+      return null
+    }
+
+    jsonString += String.fromCharCode(charCode)
+  }
+
+  try {
+    const value: {v: unknown} = JSON.parse(jsonString)
+    return value
+  } catch (error) {
+    logErrorSprintf(config, 'hexToValue', 'Error while parsing JSON: {0}', error)
+    return null
+  }
+}
