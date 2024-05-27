@@ -106,10 +106,12 @@ describe('FSFlagCollection', () => {
     })
 
     it('should return a new FSFlag instance if the flag does not exist', () => {
+      const logWarningSpy = jest.spyOn(logManager, 'warning')
       const nonExistentFlag = flagCollection.get('nonExistentFlag')
       expect(nonExistentFlag).toBeInstanceOf(FSFlag)
       expect(nonExistentFlag.exists()).toBeFalsy()
       expect(nonExistentFlag.getValue('defaultValue')).toBe('defaultValue')
+      expect(logWarningSpy).toHaveBeenCalledTimes(1)
     })
   })
 
