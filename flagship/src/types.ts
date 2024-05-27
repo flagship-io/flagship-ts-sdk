@@ -23,6 +23,20 @@ export type FlagDTO= {
   value: any;
 }
 
+export type SerializedFlagMetadata = {
+  key: string
+  campaignId: string
+  campaignName: string
+  variationGroupId: string
+  variationGroupName: string
+  variationId: string
+  variationName: string
+  isReference?: boolean
+  campaignType?: string
+  slug?:string|null
+  hex: string
+}
+
 /**
  * Represents the status of visitor fetch for flag data.
  */
@@ -79,7 +93,7 @@ export type NewVisitor = {
   /**
    * A set of flag data provided to avoid the SDK from having an empty cache during the first initialization.
    */
-  initialFlagsData?: Map<string, FlagDTO> | FlagDTO[];
+  initialFlagsData?: SerializedFlagMetadata[];
 
   /**
    * If true, the newly created visitor instance will be returned and saved into Flagship.
@@ -172,7 +186,7 @@ export type sdkInitialData = {
   instanceId: string,
   lastInitializationTimestamp: string
   initialCampaigns?: CampaignDTO[]
-  initialFlagsData?: Map<string, FlagDTO> | FlagDTO[],
+  initialFlagsData?: SerializedFlagMetadata[],
   usingCustomHitCache?: boolean,
   usingCustomVisitorCache?: boolean
 }
@@ -213,18 +227,4 @@ export enum VisitorCacheStatus {
   ANONYMOUS_ID_CACHE = 'ANONYMOUS_ID_CACHE',
   VISITOR_ID_CACHE = 'VISITOR_ID_CACHE',
   VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE = 'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE'
-}
-
-export type SerializedFlagMetadata = {
-  key: string
-  campaignId: string
-  campaignName: string
-  variationGroupId: string
-  variationGroupName: string
-  variationId: string
-  variationName: string
-  isReference?: boolean
-  campaignType?: string
-  slug?:string|null
-  hex: string
 }
