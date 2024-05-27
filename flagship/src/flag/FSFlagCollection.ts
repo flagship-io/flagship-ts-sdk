@@ -10,7 +10,7 @@ import { GET_FLAG, GET_FLAG_NOT_FOUND } from '../enum/FlagshipConstant'
  * Represents a collection of flags.
  */
 export class FSFlagCollection implements IFSFlagCollection {
-  private _visitor: VisitorDelegate
+  private _visitor?: VisitorDelegate
   private _keys: Set<string> = new Set()
   private _flags: Map<string, IFSFlag>
 
@@ -20,13 +20,13 @@ export class FSFlagCollection implements IFSFlagCollection {
      * @param param.visitor - The visitor delegate.
      * @param param.flags - The initial flags.
      */
-  public constructor (param: { visitor: VisitorDelegate, flags?: Map<string, IFSFlag> }) {
+  public constructor (param: { visitor?: VisitorDelegate, flags?: Map<string, IFSFlag> }) {
     const { visitor, flags } = param
     this._visitor = visitor
     this._flags = flags || new Map()
 
     if (this._flags.size === 0) {
-      this._keys = new Set(visitor.flagsData.keys())
+      this._keys = new Set(visitor?.flagsData.keys())
       this._keys.forEach((key) => {
         this._flags.set(key, new FSFlag({ key, visitor }))
       })
@@ -48,7 +48,7 @@ export class FSFlagCollection implements IFSFlagCollection {
   public get (key: string): IFSFlag {
     const flag = this._flags.get(key)
     if (!flag) {
-      logWarningSprintf(this._visitor.config, GET_FLAG, GET_FLAG_NOT_FOUND, this._visitor.visitorId, key)
+      this._visitor?.config && logWarningSprintf(this._visitor?.config, GET_FLAG, GET_FLAG_NOT_FOUND, this._visitor?.visitorId, key)
       return new FSFlag({ key })
     }
     return flag
