@@ -1,11 +1,11 @@
 import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
-import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFSFlagMetadata, sdkInitialData, VisitorCacheStatus, FetchFlagsStatus } from '../types'
+import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFSFlagMetadata, sdkInitialData, VisitorCacheStatus, FetchFlagsStatus, SerializedFlagMetadata } from '../types'
 
 import { IVisitor } from './IVisitor'
 import { CampaignDTO } from '../decision/api/models'
 import { FSSdkStatus, SDK_INFO, VISITOR_ID_ERROR } from '../enum/index'
-import { logDebugSprintf, logError, uuidV4 } from '../utils/utils'
+import { hexToValue, logDebugSprintf, logError, uuidV4 } from '../utils/utils'
 import { HitAbstract } from '../hit/index'
 import { DefaultStrategy } from './DefaultStrategy'
 import { StrategyAbstract } from './StrategyAbstract'
@@ -192,18 +192,25 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._isCleaningDeDuplicationCache = false
   }
 
-  public getFlagsDataArray (): FlagDTO[] {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    return Array.from(this._flags, ([_, item]) => item)
-  }
-
-  protected setInitialFlags (flags?: Map<string, FlagDTO> | FlagDTO[]): void {
+  protected setInitialFlags (flags?: SerializedFlagMetadata[]): void {
     this._flags = new Map<string, FlagDTO>()
-    if (!flags || (!(flags instanceof Map) && !Array.isArray(flags))) {
+    if (!Array.isArray(flags)) {
       return
     }
-    flags.forEach((item: FlagDTO) => {
-      this._flags.set(item.key, item)
+    flags.forEach((item: SerializedFlagMetadata) => {
+      this._flags.set(item.key, {
+        key: item.key,
+        campaignId: item.campaignId,
+        campaignName: item.campaignName,
+        variationGroupId: item.variationGroupId,
+        variationGroupName: item.variationGroupName,
+        variationId: item.variationId,
+        variationName: item.variationName,
+        isReference: item.isReference,
+        value: hexToValue(item.hex, this.config)?.v,
+        slug: item.slug,
+        campaignType: item.campaignType
+      })
     })
   }
 

@@ -1,4 +1,4 @@
-import { FetchFlagsStatus, primitive } from './../../src/types'
+import { FetchFlagsStatus, SerializedFlagMetadata, primitive } from './../../src/types'
 import { jest, expect, it, describe } from '@jest/globals'
 import { FlagDTO } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
@@ -157,7 +157,6 @@ describe('test VisitorDelegate', () => {
     const newFlag = new Map([['key', flag]])
     visitorDelegate.flagsData = newFlag
     expect(visitorDelegate.flagsData).toEqual(newFlag)
-    expect(visitorDelegate.getFlagsDataArray()).toEqual([flag])
     visitorDelegate.flagsData.clear()
   })
 
@@ -500,78 +499,44 @@ describe('test initialFlagsData', () => {
     }
   }]
 
-  it('should initialize flagsData with Map', () => {
-    const newFlag = new Map([['newKey', {
+  it('should initialize flagsData', () => {
+    const initialFlagsData:SerializedFlagMetadata[] = [{
       key: 'newKey',
       campaignId: 'cma',
       variationGroupId: 'var',
       variationId: 'varId',
       isReference: true,
-      value: 'value',
+      hex: '7b2276223a2276616c756531227d',
       campaignName: 'campaignName',
       variationGroupName: 'variationGroupName',
-      variationName: 'variationName'
-    }]])
-    const visitorDelegate = new VisitorDelegate({
-      visitorId,
-      context,
-      configManager: configManager as ConfigManager,
-      initialCampaigns: campaigns,
-      initialFlagsData: newFlag,
-      hasConsented: true
-    })
-
-    expect(visitorDelegate.flagsData).toEqual(newFlag)
-  })
-
-  it('should initialize flagsData with Array', () => {
-    const flag = {
+      variationName: 'variationName',
+      slug: 'slug',
+      campaignType: 'ab'
+    }]
+    const flagsData = new Map<string, FlagDTO>()
+    flagsData.set('newKey', {
       key: 'newKey',
       campaignId: 'cma',
       variationGroupId: 'var',
       variationId: 'varId',
       isReference: true,
-      value: 'value',
+      value: 'value1',
       campaignName: 'campaignName',
       variationGroupName: 'variationGroupName',
-      variationName: 'variationName'
-    }
-    const newModification = new Map([['newKey', flag]])
+      variationName: 'variationName',
+      campaignType: 'ab',
+      slug: 'slug'
+    })
     const visitorDelegate = new VisitorDelegate({
       visitorId,
       context,
       configManager: configManager as ConfigManager,
       initialCampaigns: campaigns,
-      initialFlagsData: [flag],
+      initialFlagsData,
       hasConsented: true
     })
 
-    expect(visitorDelegate.flagsData).toEqual(newModification)
-  })
-
-  it('should initialize flagsData with plain object', () => {
-    const flag = {
-      key: 'newKey',
-      campaignId: 'cma',
-      variationGroupId: 'var',
-      variationId: 'varId',
-      isReference: true,
-      value: 'value',
-      campaignName: 'campaignName',
-      variationGroupName: 'variationGroupName',
-      variationName: 'variationName'
-    }
-    const newFlag = new Map([['newKey', flag]])
-    const visitorDelegate = new VisitorDelegate({
-      visitorId,
-      context,
-      configManager: configManager as ConfigManager,
-      initialCampaigns: campaigns,
-      initialFlagsData: [flag],
-      hasConsented: true
-    })
-
-    expect(visitorDelegate.flagsData).toEqual(newFlag)
+    expect(visitorDelegate.flagsData).toEqual(flagsData)
   })
 
   it('should initialize flagsData with empty Array', () => {

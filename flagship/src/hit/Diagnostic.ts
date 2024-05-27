@@ -10,7 +10,7 @@ import {
 } from '../enum/FlagshipConstant'
 import { HitAbstract, IHitAbstract } from './HitAbstract'
 import { BucketingDTO } from '../decision/api/bucketingDTO'
-import { FlagDTO, TroubleshootingLabel, primitive } from '../types'
+import { FlagDTO, SerializedFlagMetadata, TroubleshootingLabel, primitive } from '../types'
 import { CampaignDTO } from '../mod'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 
@@ -81,7 +81,7 @@ export interface IDiagnostic extends IHitAbstract{
     visitorCampaignFromCache?: CampaignDTO[] | null
     visitorIsAuthenticated?:boolean
     visitorInitialCampaigns?:CampaignDTO[]
-    visitorInitialFlagsData? : Map<string, FlagDTO>|FlagDTO[]
+    visitorInitialFlagsData? : SerializedFlagMetadata[]
 
     contextKey?:string
     contextValue?: unknown
@@ -164,7 +164,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
   private _sdkConfigDecisionApiUrl? : string
   private _sdkConfigHitDeduplicationTime? : number
   private _visitorInitialCampaigns? : CampaignDTO[]
-  private _visitorInitialFlagsData? : Map<string, FlagDTO>|FlagDTO[]
+  private _visitorInitialFlagsData? : SerializedFlagMetadata[]
   private _visitorCampaign? : CampaignDTO[]|null
   private _httRequestTime? : number
   private _hitContent? : Record<string, unknown>
@@ -410,11 +410,11 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     this._visitorCampaign = v
   }
 
-  public get visitorInitialFlagsData () : Map<string, FlagDTO>|FlagDTO[]|undefined {
+  public get visitorInitialFlagsData () : SerializedFlagMetadata[]|undefined {
     return this._visitorInitialFlagsData
   }
 
-  public set visitorInitialFlagsData (v : Map<string, FlagDTO>|FlagDTO[]|undefined) {
+  public set visitorInitialFlagsData (v : SerializedFlagMetadata[]|undefined) {
     this._visitorInitialFlagsData = v
   }
 
