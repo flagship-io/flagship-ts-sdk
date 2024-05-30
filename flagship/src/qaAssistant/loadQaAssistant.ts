@@ -36,7 +36,6 @@ export function loadQaAssistant (config: IFlagshipConfig, bundleUrl:string|null 
   window.addEventListener('message', eventListenerMessage)
 
   logInfoSprintf(config, 'QA assistant', 'Loading QA Assistant')
-  // const bundleFileUrl = 'https://127.0.0.1/bundle.js'
 
   appendScript(bundleUrl || QA_ASSISTANT_PROD_URL)
 
