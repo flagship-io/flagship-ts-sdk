@@ -45,7 +45,7 @@ describe('Qa Assistant', () => {
 
     launchQaAssistant(config)
     expect(loadQaAssistantSpy).toBeCalledTimes(1)
-    expect(loadQaAssistantSpy).toBeCalledWith(config, null)
+    expect(loadQaAssistantSpy).toBeCalledWith(config, undefined)
     expect(listenForKeyboardQaAssistantSpy).toBeCalledTimes(0)
   })
 
