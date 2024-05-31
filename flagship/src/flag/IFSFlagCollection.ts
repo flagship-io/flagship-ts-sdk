@@ -61,5 +61,9 @@ export interface IFSFlagCollection extends Iterable<[string, IFSFlag]> {
      */
     toJSON(): SerializedFlagMetadata[];
 
+    /**
+     * Iterates over each flag in the collection.
+     * @param callbackfn - The function to execute for each flag.
+     */
     forEach (callbackfn: (value: IFSFlag, key: string, collection: IFSFlagCollection) => void): void
 }
