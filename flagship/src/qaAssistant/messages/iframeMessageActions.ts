@@ -13,11 +13,15 @@ export function onQaAssistantReady () {
   }
 }
 
-export function render () {
+export function render (forcedReFetchFlags = false) {
   if (SDK_INFO.name === 'TypeScript') {
     document.location.reload()
   }
-  const triggerRenderEvent = new CustomEvent(INTERNAL_EVENTS.FsTriggerRendering)
+  const triggerRenderEvent = new CustomEvent<{ forcedReFetchFlags: boolean }>(INTERNAL_EVENTS.FsTriggerRendering, {
+    detail: {
+      forcedReFetchFlags
+    }
+  })
   window.dispatchEvent(triggerRenderEvent)
 }
 
