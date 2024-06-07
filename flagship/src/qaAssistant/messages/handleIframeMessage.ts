@@ -23,7 +23,7 @@ export function handleIframeMessage ({ event, config, func }: { event: MessageEv
       onResetForcedVariations()
       break
     case MSG_NAME_FROM_IFRAME.FsTriggerRender:
-      render()
+      render(true)
       break
   }
 }
