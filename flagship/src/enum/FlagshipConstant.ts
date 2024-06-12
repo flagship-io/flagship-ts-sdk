@@ -1,10 +1,11 @@
 import { version } from '../sdkVersion'
+import { SdkInfoType } from '../types'
 
 /**
  * SDK language
  */
 
-export const SDK_INFO = {
+export const SDK_INFO:SdkInfoType = {
   name: 'TypeScript',
   version
 }
@@ -43,11 +44,27 @@ export const THIRD_PARTY_SEGMENT_URL = 'https://api-data-connector.flagship.io/a
 export const HIT_CONSENT_URL = 'https://ariane.abtasty.com'
 export const URL_CAMPAIGNS = '/campaigns'
 export const URL_ACTIVATE_MODIFICATION = 'activate'
+export const QA_ASSISTANT_PROD_URL = 'https://qa-assistant.flagship.io/bundle.js'
+export const QA_ASSISTANT_STAGING_URL = 'https://staging-qa-assistant.flagship.io/bundle.js'
+export const QA_ASSISTANT_LOCAL_URL = 'https://local-qa-assistant.flagship.io/bundle.js'
+export const FS_QA_ASSISTANT = 'fs_qa_assistant'
+export const FS_QA_ASSISTANT_STAGING = 'fs_qa_assistant_staging'
+export const FS_QA_ASSISTANT_LOCAL = 'fs_qa_assistant_local'
+export const TAG_QA_ASSISTANT = 'abtasty_qa_assistant'
+export const TAG_QA_ASSISTANT_STAGING = 'abtasty_qa_assistant_staging'
+export const TAG_QA_ASSISTANT_LOCAL = 'abtasty_qa_assistant_local'
+
+export const TAG_QA_URL = 'qa-assistant.abtasty.com'
+export const FS_QA_URL = 'qa-assistant.flagship.io'
 
 export const EXPOSE_ALL_KEYS = 'exposeAllKeys'
 export const SEND_CONTEXT_EVENT = 'sendContextEvent'
 
 export const FS_CONSENT = 'fs_consent'
+
+export const FS_IS_QA_MODE_ENABLED = 'FS_IS_QA_MODE_ENABLED'
+export const FS_FORCED_VARIATIONS = 'FS_FORCED_VARIATIONS'
+export const FS_QA_ASSISTANT_SCRIPT_TAG_ID = 'FS_QA_ASSISTANT_SCRIPT_TAG_ID'
 
 /**
  * SDK version

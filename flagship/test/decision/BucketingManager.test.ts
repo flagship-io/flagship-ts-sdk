@@ -8,7 +8,6 @@ import { BUCKETING_API_URL, FSSdkStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT
 import { sprintf, sleep } from '../../src/utils/utils'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { BucketingDTO } from '../../src/decision/api/bucketingDTO'
 import { DecisionManager } from '../../src/decision/DecisionManager'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { CampaignDTO, TroubleshootingLabel } from '../../src'
@@ -242,12 +241,8 @@ describe('test bucketing polling', () => {
 })
 
 describe('test update', () => {
-  const onBucketingSuccess = (param: {
-    status: number
-    payload: BucketingDTO
-  }) => {
-    expect(param).toEqual({ status: 200, payload: bucketing })
-  }
+  const onBucketingSuccess = jest.fn()
+
   const config = new BucketingConfig({ pollingInterval: 0, onBucketingSuccess })
   const murmurHash = new MurmurHash()
   const httpClient = new HttpClient()
@@ -278,6 +273,8 @@ describe('test update', () => {
     expect(statusChangedCallback).toBeCalledTimes(2)
     expect(statusChangedCallback).toHaveBeenNthCalledWith(1, FSSdkStatus.SDK_INITIALIZING)
     expect(statusChangedCallback).toHaveBeenNthCalledWith(2, FSSdkStatus.SDK_INITIALIZED)
+    expect(onBucketingSuccess).toBeCalledTimes(1)
+    expect(onBucketingSuccess).toBeCalledWith({ status: 200, payload: bucketing })
   })
 })
 

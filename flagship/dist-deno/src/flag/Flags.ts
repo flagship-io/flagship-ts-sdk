@@ -3,6 +3,7 @@ import { IFlagMetadata } from '../types.ts'
 import { hasSameType, logDebugSprintf } from '../utils/utils.ts'
 import { VisitorDelegate } from '../visitor/index.ts'
 import { FlagMetadata } from './FlagMetadata.ts'
+import { forceVariation } from './forceVariation.ts'
 
 export type FlagValue<S> = {
   defaultValue: S,
@@ -50,12 +51,16 @@ export class Flag<T> implements IFlag<T> {
   }
 
   exists ():boolean {
-    const flagDTO = this._visitor.flagsData.get(this._key)
+    const visitorFlagDTO = this._visitor.flagsData.get(this._key)
+    const forcedFlagDTO = forceVariation({ flagDTO: visitorFlagDTO, config: this._visitor.config })
+    const flagDTO = forcedFlagDTO || visitorFlagDTO
     return !!(flagDTO?.campaignId && flagDTO.variationId && flagDTO.variationGroupId)
   }
 
   get metadata ():IFlagMetadata {
-    const flagDTO = this._visitor.flagsData.get(this._key)
+    const visitorFlagDTO = this._visitor.flagsData.get(this._key)
+    const forcedFlagDTO = forceVariation({ flagDTO: visitorFlagDTO, config: this._visitor.config })
+    const flagDTO = forcedFlagDTO || visitorFlagDTO
     const metadata = new FlagMetadata({
       campaignId: flagDTO?.campaignId || '',
       campaignName: flagDTO?.campaignName || '',
@@ -86,15 +91,22 @@ export class Flag<T> implements IFlag<T> {
 
   visitorExposed () : Promise<void> {
     const flagDTO = this._visitor.flagsData.get(this._key)
-    return this._visitor.visitorExposed({ key: this._key, flag: flagDTO, defaultValue: this._defaultValue })
+    const forcedFlagDTO = forceVariation({ flagDTO, config: this._visitor.config })
+    return this._visitor.visitorExposed({ key: this._key, flag: forcedFlagDTO || flagDTO, defaultValue: this._defaultValue })
   }
 
   getValue (userExposed = true) : T {
     const flagDTO = this._visitor.flagsData.get(this._key)
+    const forcedFlagDTO = forceVariation({ flagDTO, config: this._visitor.config })
+
+    const flag = forcedFlagDTO || flagDTO
+
+    this._visitor.sendExposedVariation(flag)
+
     return this._visitor.getFlagValue({
       key: this._key,
       defaultValue: this._defaultValue,
-      flag: flagDTO,
+      flag,
       userExposed
     })
   }

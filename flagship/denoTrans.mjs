@@ -1,6 +1,8 @@
 import { readdirSync, lstatSync, readFile, writeFile, mkdirSync, copyFileSync, existsSync } from 'fs'
 import path from 'path'
 
+const DIST_DENO = 'dist-deno'
+
 function getDirectoryContent (dirPath) {
   const directories = readdirSync(dirPath, {
     withFileTypes: true
@@ -63,8 +65,8 @@ function transformFile (filePath, dirPath, packageResolves = null) {
       }
     }
 
-    mkdirSync(`dist-deno/${dirPath}`, { recursive: true })
-    writeFile(path.resolve(`dist-deno/${filePath}`), content, (writeErr) => {
+    mkdirSync(`${DIST_DENO}/${dirPath}`, { recursive: true })
+    writeFile(path.resolve(`${DIST_DENO}/${filePath}`), content, (writeErr) => {
       if (writeErr) {
         console.log('err', writeErr)
       }
@@ -79,7 +81,7 @@ const packageResolve = {
 const src = 'src'
 transformFromDir(src, packageResolve)
 
-const distDenoSrc = 'dist-deno/src'
+const distDenoSrc = `${DIST_DENO}/src`
 if (!existsSync(distDenoSrc)) {
   mkdirSync(distDenoSrc, { recursive: true })
 }

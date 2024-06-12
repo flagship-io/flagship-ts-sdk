@@ -1,5 +1,5 @@
 import { expect, it, describe, jest } from '@jest/globals'
-import { DecisionApiConfig, FSSdkStatus, FlagDTO } from '../../src'
+import { DecisionApiConfig, FSFetchStatus, FSFlagStatus, FSSdkStatus, FlagDTO } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
@@ -8,10 +8,17 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
-import { FSFlagStatus } from '../../src/enum/FSFlagStatus'
-import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
+import * as forceVariation from '../../src/flag/forceVariation'
 
-describe('Flag', () => {
+describe('test Flag', () => {
+  beforeEach(() => {
+    forceVariationSpy.mockReturnValue(undefined)
+  })
+
+  afterAll(() => {
+    forceVariationSpy.mockReturnValue(undefined)
+  })
+
   const visitorId = 'visitorId'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const context: any = {
@@ -41,6 +48,8 @@ describe('Flag', () => {
 
   const visitorExposed = jest.spyOn(visitorDelegate, 'visitorExposed')
   const getFlagValue = jest.spyOn(visitorDelegate, 'getFlagValue')
+  const sendExposedVariationSpy = jest.spyOn(visitorDelegate, 'sendExposedVariation')
+  const forceVariationSpy = jest.spyOn(forceVariation, 'forceVariation')
 
   const flagDto: FlagDTO = {
     key: 'key',
@@ -54,6 +63,20 @@ describe('Flag', () => {
     campaignName: 'campaignName',
     variationGroupName: 'variationGroupName',
     variationName: 'variationName'
+  }
+
+  const forcedFlagDto:FlagDTO = {
+    key: 'key',
+    campaignId: 'campaignID',
+    variationGroupId: 'variationGroupID',
+    variationId: 'forcedVariationID',
+    isReference: true,
+    value: 'forcedValue',
+    slug: 'campaign-slug',
+    campaignType: 'ab',
+    campaignName: 'campaignName',
+    variationGroupName: 'variationGroupName',
+    variationName: 'forcedVariationName'
   }
 
   visitorDelegate.flagsData.set('key', flagDto)
@@ -122,6 +145,52 @@ describe('Flag', () => {
         defaultValue,
         flag: expect.objectContaining(flagDto),
         visitorExposed: false
+      })
+    })
+    expect(sendExposedVariationSpy).toBeCalledTimes(1)
+    expect(sendExposedVariationSpy).toBeCalledWith(flagDto)
+
+    it('test forced flag exists', () => {
+      forceVariationSpy.mockReturnValue(forcedFlagDto)
+      expect(flag.exists()).toBeTruthy()
+    })
+
+    it('test forced flag metadata', () => {
+      forceVariationSpy.mockReturnValue(forcedFlagDto)
+      expect(flag.metadata).toEqual({
+        campaignId: forcedFlagDto.campaignId,
+        variationGroupId: forcedFlagDto.variationGroupId,
+        variationId: forcedFlagDto.variationId,
+        isReference: true,
+        campaignType: forcedFlagDto.campaignType,
+        slug: forcedFlagDto.slug,
+        campaignName: forcedFlagDto.campaignName,
+        variationGroupName: forcedFlagDto.variationGroupName,
+        variationName: forcedFlagDto.variationName
+      })
+    })
+
+    it('test forced flag userExposed', () => {
+      forceVariationSpy.mockReturnValue(forcedFlagDto)
+      flag.visitorExposed()
+      expect(visitorExposed).toBeCalledTimes(1)
+      expect(visitorExposed).toBeCalledWith({
+        key: forcedFlagDto.key,
+        flag: expect.objectContaining(forcedFlagDto),
+        defaultValue
+      })
+    })
+
+    it('test forced flag value', () => {
+      forceVariationSpy.mockReturnValue(forcedFlagDto)
+      const value = flag.getValue('defaultValue')
+      expect(value).toBe(forcedFlagDto.value)
+      expect(getFlagValue).toBeCalledTimes(1)
+      expect(getFlagValue).toBeCalledWith({
+        key: forcedFlagDto.key,
+        defaultValue,
+        flag: expect.objectContaining(forcedFlagDto),
+        userExposed: true
       })
     })
   })

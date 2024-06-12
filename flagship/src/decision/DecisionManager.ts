@@ -1,15 +1,16 @@
 import { IDecisionManager } from './IDecisionManager'
 import { IFlagshipConfig } from '../config/index'
 import { IHttpClient } from '../utils/HttpClient'
-import { CampaignDTO } from './api/models'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FSSdkStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, PROCESS_FETCHING_FLAGS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
-import { FlagDTO, TroubleshootingData, TroubleshootingLabel } from '../types'
+import { CampaignDTO, FlagDTO, TroubleshootingData, TroubleshootingLabel } from '../types'
 import { errorFormat, logDebug } from '../utils/utils'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { ITrackingManager } from '../api/ITrackingManager'
+import { BucketingDTO } from './api/bucketingDTO'
 
 export abstract class DecisionManager implements IDecisionManager {
+  protected _bucketingContent?: BucketingDTO
   protected _config: IFlagshipConfig
   protected _panic = false
   protected _httpClient: IHttpClient

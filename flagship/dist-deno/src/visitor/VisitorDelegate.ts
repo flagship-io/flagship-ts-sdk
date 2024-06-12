@@ -1,7 +1,6 @@
 import { HitAbstract, HitShape } from '../hit/index.ts'
-import { primitive, modificationsRequested, IHit, IFlagMetadata, FlagDTO } from '../types.ts'
+import { primitive, modificationsRequested, IHit, IFlagMetadata, FlagDTO, CampaignDTO } from '../types.ts'
 import { VisitorAbstract } from './VisitorAbstract.ts'
-import { CampaignDTO } from '../decision/api/models.ts'
 import { Flag, IFlag } from '../flag/Flags.ts'
 import { logWarningSprintf, visitorFlagSyncStatusMessage } from '../utils/utils.ts'
 import { GET_FLAG } from '../enum/FlagshipConstant.ts'

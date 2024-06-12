@@ -1,9 +1,8 @@
-import { IHit } from '../types.ts'
+import { CampaignDTO, IHit } from '../types.ts'
 import { FLAG_USER_EXPOSED, METHOD_DEACTIVATED_CONSENT_ERROR } from '../enum/index.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
 import { logInfo, sprintf } from '../utils/utils.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
-import { CampaignDTO } from '../decision/api/models.ts'
 import { BatchDTO } from '../hit/Batch.ts'
 import { Troubleshooting } from '../hit/Troubleshooting.ts'
 

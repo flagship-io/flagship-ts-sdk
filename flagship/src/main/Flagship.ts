@@ -1,6 +1,6 @@
-import { IBucketingConfig } from './../config/IBucketingConfig'
-import { IDecisionApiConfig } from './../config/IDecisionApiConfig'
-import { IEdgeConfig } from './../config/IEdgeConfig'
+import { IBucketingConfig } from '../config/IBucketingConfig'
+import { IDecisionApiConfig } from '../config/IDecisionApiConfig'
+import { IEdgeConfig } from '../config/IEdgeConfig'
 import { Visitor } from '../visitor/Visitor'
 import { FSSdkStatus } from '../enum/FSSdkStatus'
 import { DecisionMode, FlagshipConfig, type IFlagshipConfig, BucketingConfig, DecisionApiConfig } from '../config/index'
@@ -34,6 +34,7 @@ import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 import { EdgeManager } from '../decision/EdgeManager'
 import { EdgeConfig } from '../config/EdgeConfig'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
+import { launchQaAssistant } from '../qaAssistant/index'
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
@@ -256,11 +257,16 @@ export class Flagship {
       PROCESS_INITIALIZATION
     )
 
+    launchQaAssistant(localConfig)
+
     flagship.lastInitializationTimestamp = new Date().toISOString()
 
     return flagship
   }
 
+  /**
+   * When called, it will batch and send all hits that are in the pool before the application is closed
+   */
   public async close () {
     await Flagship.close()
   }

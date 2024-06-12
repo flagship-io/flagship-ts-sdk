@@ -49,10 +49,9 @@ import {
   Page,
   Transaction
 } from '../hit/index'
-import { primitive, IHit, FlagDTO, IFSFlagMetadata, TroubleshootingLabel } from '../types'
+import { primitive, IHit, FlagDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorVariations, CampaignDTO } from '../types'
 import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils'
 import { StrategyAbstract } from './StrategyAbstract'
-import { CampaignDTO } from '../decision/api/models'
 import { FLAGSHIP_CLIENT, FLAGSHIP_CONTEXT, FLAGSHIP_VERSION, FLAGSHIP_VISITOR } from '../enum/FlagshipContext'
 import { VisitorDelegate } from './index'
 import { FSFlagMetadata } from '../flag/FSFlagMetadata'
@@ -61,6 +60,7 @@ import { Troubleshooting } from '../hit/Troubleshooting'
 import { FSFetchStatus } from '../enum/FSFetchStatus'
 import { FSFetchReasons } from '../enum/FSFetchReasons'
 import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
+import { sendVisitorAllocatedVariations } from '../qaAssistant/messages'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'
@@ -497,6 +497,18 @@ export class DefaultStrategy extends StrategyAbstract {
           reason: FSFetchReasons.NONE
         }
       }
+
+      const visitorAllocatedVariations: Record<string, VisitorVariations> = {}
+
+      this.visitor.flagsData.forEach(item => {
+        visitorAllocatedVariations[item.campaignId] = {
+          variationId: item.variationId,
+          variationGroupId: item.variationGroupId,
+          campaignId: item.campaignId
+        }
+      })
+
+      sendVisitorAllocatedVariations(visitorAllocatedVariations)
 
       logDebugSprintf(this.config, functionName, FETCH_FLAGS_FROM_CAMPAIGNS,
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, this.visitor.flagsData)

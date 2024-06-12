@@ -111,4 +111,5 @@ export interface IVisitor {
    * Changes an authenticated visitor to an anonymous visitor.
    */
   unauthenticate(): void;
+
 }

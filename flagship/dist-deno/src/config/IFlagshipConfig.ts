@@ -72,7 +72,7 @@ export interface IFlagshipConfig {
     /**
      * Define a callable in order to get callback when the first bucketing polling succeed.
      */
-    onBucketingSuccess?: (param: { status: number; payload: BucketingDTO }) => void
+    onBucketingSuccess?: (param: { status: number; payload?: BucketingDTO }) => void
 
     /**
      * Define a callable to get callback when the first bucketing polling failed.
@@ -157,7 +157,8 @@ export interface IFlagshipConfig {
      */
     fetchFlagsBufferingTime?: number
 
-    /**
+    isQAModeEnabled?: boolean
+    /*
      * Disable the collect of analytics data
      */
     disableDeveloperUsageTracking?: boolean

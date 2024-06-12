@@ -22,6 +22,9 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
   afterAll(() => {
     Date.now = methodNow
   })
+  beforeEach(() => {
+    postAsync.mockResolvedValue({ status: 200, body: null })
+  })
   const visitorId = 'visitorId'
   const httpClient = new HttpClient()
 
@@ -53,18 +56,27 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
   }
 
   const urlActivate = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
-  it('test addHit method', async () => {
-    postAsync.mockResolvedValue({ status: 200, body: null })
-    const hitsPoolQueue = new Map<string, HitAbstract>()
-    const activatePoolQueue = new Map<string, Activate>()
-    const troubleshootingQueue = new Map<string, Troubleshooting>()
-    const analyticHitQueue = new Map<string, UsageHit>()
-    const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
+  const hitsPoolQueue = new Map<string, HitAbstract>()
+  const activatePoolQueue = new Map<string, Activate>()
+  const troubleshootingQueue = new Map<string, Troubleshooting>()
+  const analyticHitQueue = new Map<string, UsageHit>()
+  const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const cacheHitSpy = jest.spyOn(batchingStrategy as any, 'cacheHit')
+
+  const sendTroubleshootingHitSpy = jest.spyOn(batchingStrategy, 'sendTroubleshootingHit')
+
+  const flushHitsSpy = jest.spyOn(batchingStrategy, 'flushHits')
+
+  const sendHitsToFsQaSpy = jest.spyOn(batchingStrategy, 'sendHitsToFsQa')
+  sendHitsToFsQaSpy.mockImplementation(() => {
+    //
+  })
+
+  it('test addHit method 1', async () => {
+    postAsync.mockResolvedValue({ status: 200, body: null })
 
     const consentHit = new Event({
       visitorId,
@@ -84,9 +96,13 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
       body: consentHit.toApiKeys(),
       timeout: config.timeout
     })
+
+    expect(sendHitsToFsQaSpy).toBeCalledTimes(1)
+    expect(sendHitsToFsQaSpy).toBeCalledWith([consentHit])
+
     expect(hitsPoolQueue.size).toBe(0)
-    expect(cacheHit).toBeCalledTimes(0)
-    expect(flushHits).toBeCalledTimes(0)
+    expect(cacheHitSpy).toBeCalledTimes(0)
+    expect(flushHitsSpy).toBeCalledTimes(0)
 
     const pageHit = new Page({
       documentLocation: 'http://127.0.0.1:5500',
@@ -104,8 +120,8 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
       timeout: config.timeout
     })
     expect(hitsPoolQueue.size).toBe(0)
-    expect(cacheHit).toBeCalledTimes(0)
-    expect(flushHits).toBeCalledTimes(0)
+    expect(cacheHitSpy).toBeCalledTimes(0)
+    expect(flushHitsSpy).toBeCalledTimes(0)
 
     const consentHitFalse = new Event({
       visitorId,
@@ -119,24 +135,14 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     await batchingStrategy.addHit(consentHitFalse)
 
     expect(hitsPoolQueue.size).toBe(0)
-    expect(cacheHit).toBeCalledTimes(0)
-    expect(flushHits).toBeCalledTimes(0)
+    expect(cacheHitSpy).toBeCalledTimes(0)
+    expect(flushHitsSpy).toBeCalledTimes(0)
 
     await batchingStrategy.addHitInPoolQueue(consentHitFalse)
   })
 
   it('test addHit method consent false', async () => {
     postAsync.mockResolvedValue({ status: 200, body: null })
-    const hitsPoolQueue = new Map<string, HitAbstract>()
-    const activatePoolQueue = new Map<string, Activate>()
-    const troubleshootingQueue = new Map<string, Troubleshooting>()
-    const analyticHitQueue = new Map<string, UsageHit>()
-    const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
 
     const eventHit = new Event({
       visitorId,
@@ -197,27 +203,14 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     await batchingStrategy.addHit(consentHitFalse)
 
     expect(hitsPoolQueue.size).toBe(0)
-    expect(cacheHit).toBeCalledTimes(0)
-    expect(flushHits).toBeCalledTimes(1)
-    expect(flushHits).toHaveBeenNthCalledWith(1, [pageHit.key, eventHit.key, activateHit.key])
+    expect(cacheHitSpy).toBeCalledTimes(0)
+    expect(flushHitsSpy).toBeCalledTimes(1)
+    expect(flushHitsSpy).toHaveBeenNthCalledWith(1, [pageHit.key, eventHit.key, activateHit.key])
   })
 
   it('test addHit method throw error', async () => {
     const error = 'message error'
     postAsync.mockRejectedValue(error)
-
-    const hitsPoolQueue = new Map<string, HitAbstract>()
-    const activatePoolQueue = new Map<string, Activate>()
-    const troubleshootingQueue = new Map<string, Troubleshooting>()
-    const analyticHitQueue = new Map<string, UsageHit>()
-    const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sendTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'sendTroubleshootingHit')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
 
     const pageHit = new Page({
       documentLocation: 'http://localhost',
@@ -230,8 +223,10 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
 
     expect(postAsync).toHaveBeenCalledTimes(1)
 
-    expect(cacheHit).toBeCalledTimes(1)
-    expect(flushHits).toBeCalledTimes(0)
+    expect(sendHitsToFsQaSpy).toBeCalledTimes(0)
+
+    expect(cacheHitSpy).toBeCalledTimes(1)
+    expect(flushHitsSpy).toBeCalledTimes(0)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let cacheHitKeys = Object.keys((batchingStrategy as any).cacheHitKeys)
     expect(cacheHitKeys.length).toBe(1)
@@ -259,10 +254,10 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
 
     expect(postAsync).toHaveBeenCalledTimes(2)
     expect(hitsPoolQueue.size).toBe(0)
-    expect(cacheHit).toBeCalledTimes(2)
-    expect(flushHits).toBeCalledTimes(1)
+    expect(cacheHitSpy).toBeCalledTimes(2)
+    expect(flushHitsSpy).toBeCalledTimes(1)
 
-    expect(flushHits).toHaveBeenCalledWith(expect.arrayContaining([expect.stringContaining(visitorId)]))
+    expect(flushHitsSpy).toHaveBeenCalledWith(expect.arrayContaining([expect.stringContaining(visitorId)]))
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     cacheHitKeys = Object.keys((batchingStrategy as any).cacheHitKeys)
 
@@ -277,23 +272,13 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
       batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.DirectHit]
     }), TRACKING_MANAGER)
 
-    expect(sendTroubleshootingHit).toBeCalledTimes(2)
+    expect(sendTroubleshootingHitSpy).toBeCalledTimes(2)
     const label: TroubleshootingLabel = TroubleshootingLabel.SEND_HIT_ROUTE_ERROR
-    expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
+    expect(sendTroubleshootingHitSpy).toBeCalledWith(expect.objectContaining({ label }))
   })
 
   it('test activateFlag method', async () => {
     postAsync.mockResolvedValue({ status: 200, body: null })
-    const hitsPoolQueue = new Map<string, HitAbstract>()
-    const activatePoolQueue = new Map<string, Activate>()
-    const troubleshootingQueue = new Map<string, Troubleshooting>()
-    const analyticHitQueue = new Map<string, UsageHit>()
-    const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
 
     // Test activate
     const activateHit = new Activate({
@@ -327,10 +312,13 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
       body: new ActivateBatch([activateHit], config).toApiKeys(),
       timeout: config.timeout
     })
+
+    expect(sendHitsToFsQaSpy).toBeCalledTimes(1)
+    expect(sendHitsToFsQaSpy).toBeCalledWith([activateHit])
     expect(hitsPoolQueue.size).toBe(0)
     expect(activatePoolQueue.size).toBe(0)
-    expect(cacheHit).toBeCalledTimes(0)
-    expect(flushHits).toBeCalledTimes(0)
+    expect(cacheHitSpy).toBeCalledTimes(0)
+    expect(flushHitsSpy).toBeCalledTimes(0)
 
     expect(onVisitorExposed).toBeCalledTimes(1)
   })
@@ -339,19 +327,6 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     const error = 'message error'
     postAsync.mockRejectedValue(error)
 
-    const hitsPoolQueue = new Map<string, HitAbstract>()
-    const activatePoolQueue = new Map<string, Activate>()
-    const troubleshootingQueue = new Map<string, Troubleshooting>()
-    const analyticHitQueue = new Map<string, UsageHit>()
-    const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sendTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'sendTroubleshootingHit')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
-
     // Test activate
     const activateHit = new Activate({
       variationGroupId: 'varGrId',
@@ -384,20 +359,21 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
       body: new ActivateBatch([activateHit], config).toApiKeys(),
       timeout: config.timeout
     })
+    expect(sendHitsToFsQaSpy).toBeCalledTimes(0)
     expect(hitsPoolQueue.size).toBe(0)
     expect(activatePoolQueue.size).toBe(0)
 
-    expect(cacheHit).toBeCalledTimes(1)
-    expect(flushHits).toBeCalledTimes(0)
+    expect(cacheHitSpy).toBeCalledTimes(1)
+    expect(flushHitsSpy).toBeCalledTimes(0)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cacheHitKeys = Object.keys((batchingStrategy as any).cacheHitKeys)
     expect(cacheHitKeys.length).toBe(1)
 
     expect(onVisitorExposed).toBeCalledTimes(0)
 
-    expect(sendTroubleshootingHit).toBeCalledTimes(1)
+    expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
     const label: TroubleshootingLabel = TroubleshootingLabel.SEND_ACTIVATE_HIT_ROUTE_ERROR
-    expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
+    expect(sendTroubleshootingHitSpy).toBeCalledWith(expect.objectContaining({ label }))
   })
 })
 
@@ -407,6 +383,9 @@ describe('test sendBatch method', () => {
   beforeAll(() => {
     Date.now = mockNow
     mockNow.mockReturnValue(1)
+    sendHitsToFsQaSpy.mockImplementation(() => {
+      //
+    })
   })
   afterAll(() => {
     Date.now = methodNow
@@ -429,10 +408,11 @@ describe('test sendBatch method', () => {
   const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
+  const cacheHitSpy = jest.spyOn(batchingStrategy as any, 'cacheHit')
 
+  const flushHitsSpy = jest.spyOn(batchingStrategy, 'flushHits')
+
+  const sendHitsToFsQaSpy = jest.spyOn(batchingStrategy, 'sendHitsToFsQa')
   const visitorId = 'visitorId'
 
   const globalPageHit = new Page({
@@ -493,8 +473,12 @@ describe('test sendBatch method', () => {
       body: batch.toApiKeys(),
       timeout: config.timeout
     })
-    expect(flushHits).toBeCalledTimes(1)
-    expect(flushHits).toHaveBeenCalledWith(expect.arrayContaining([expect.stringContaining(visitorId)]))
+
+    expect(sendHitsToFsQaSpy).toBeCalledTimes(1)
+    expect(sendHitsToFsQaSpy).toBeCalledWith(batch.hits)
+
+    expect(flushHitsSpy).toBeCalledTimes(1)
+    expect(flushHitsSpy).toHaveBeenCalledWith(expect.arrayContaining([expect.stringContaining(visitorId)]))
 
     await batchingStrategy.sendBatch()
 
@@ -545,8 +529,8 @@ describe('test sendBatch method', () => {
       timeout: config.timeout
     })
 
-    expect(flushHits).toBeCalledTimes(1)
-    expect(flushHits).toHaveBeenCalledWith(expect.arrayContaining([expect.stringContaining(visitorId)]))
+    expect(flushHitsSpy).toBeCalledTimes(1)
+    expect(flushHitsSpy).toHaveBeenCalledWith(expect.arrayContaining([expect.stringContaining(visitorId)]))
   })
 
   it('test sendBatch method throw exception ', async () => {
@@ -572,8 +556,9 @@ describe('test sendBatch method', () => {
       body: batch.toApiKeys(),
       timeout: config.timeout
     })
-    expect(flushHits).toBeCalledTimes(0)
-    expect(cacheHit).toBeCalledTimes(0)
+    expect(sendHitsToFsQaSpy).toBeCalledTimes(0)
+    expect(flushHitsSpy).toBeCalledTimes(0)
+    expect(cacheHitSpy).toBeCalledTimes(0)
     expect(hitsPoolQueue.size).toBe(1)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(sprintf(TRACKING_MANAGER_ERROR, BATCH_HIT, {
@@ -635,6 +620,8 @@ describe('test sendBatch method', () => {
       body: new ActivateBatch([activateHit], config).toApiKeys(),
       timeout: config.timeout
     })
+    expect(sendHitsToFsQaSpy).toBeCalledTimes(1)
+    expect(sendHitsToFsQaSpy).toBeCalledWith([activateHit])
   })
 
   it('test sendBatch method with empty hitsPoolQueue', async () => {

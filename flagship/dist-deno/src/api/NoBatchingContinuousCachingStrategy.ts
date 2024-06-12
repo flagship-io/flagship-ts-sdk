@@ -65,6 +65,8 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.DirectHit]
       })
 
+      this.sendHitsToFsQa([hit])
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       if (hit.type !== HitType.EVENT || (hit as Event).action !== FS_CONSENT) {
@@ -188,6 +190,8 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       if (hitKeysToRemove.length) {
         await this.flushHits(hitKeysToRemove)
       }
+
+      this.sendHitsToFsQa(activateBatch.hits)
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {

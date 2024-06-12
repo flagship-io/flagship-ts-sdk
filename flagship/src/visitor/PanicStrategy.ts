@@ -1,12 +1,11 @@
 
 import { FSSdkStatus, FLAG_VISITOR_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_PANIC_MODE } from '../enum/index'
-import { FlagDTO, IFSFlagMetadata, IHit } from '../types'
+import { CampaignDTO, FlagDTO, IFSFlagMetadata, IHit } from '../types'
 import { logInfoSprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
 import { HitAbstract } from '../hit/index'
 import { BatchDTO } from '../hit/Batch'
 import { FSFlagMetadata } from '../flag/FSFlagMetadata'
-import { CampaignDTO } from '../decision/api/models'
 import { Troubleshooting } from '../hit/Troubleshooting'
 
 export class PanicStrategy extends DefaultStrategy {

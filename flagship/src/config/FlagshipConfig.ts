@@ -1,8 +1,8 @@
 import { BucketingDTO } from '../decision/api/bucketingDTO'
-import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FETCH_FLAG_BUFFERING_DEFAULT_TIME, FSSdkStatus, LogLevel, REQUEST_TIME_OUT, SDK_INFO, TYPE_ERROR } from '../enum/index'
+import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FS_IS_QA_MODE_ENABLED, FETCH_FLAG_BUFFERING_DEFAULT_TIME, LogLevel, REQUEST_TIME_OUT, SDK_INFO, TYPE_ERROR, FSSdkStatus } from '../enum/index'
 import { IHitCacheImplementation } from '../cache/IHitCacheImplementation'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
-import { logError, sprintf } from '../utils/utils'
+import { errorFormat, isBrowser, logError, sprintf } from '../utils/utils'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation'
 import { ITrackingManagerConfig, TrackingManagerConfig } from './TrackingManagerConfig'
 import { OnVisitorExposed } from '../types'
@@ -23,7 +23,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _fetchNow!: boolean
   private _pollingInterval!: number
   private _onBucketingFail?: (error: Error) => void
-  private _onBucketingSuccess?: (param: { status: number; payload: BucketingDTO }) => void
+  private _onBucketingSuccess?: (param: { status: number; payload?: BucketingDTO }) => void
   private _onBucketingUpdated?: (lastUpdate: Date) => void
   private _reuseVisitorIds!: boolean
   private _initialBucketing?: BucketingDTO
@@ -39,6 +39,17 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _fetchFlagsBufferingTime? : number
   private _disableDeveloperUsageTracking? : boolean
   private _onLog? : (level: LogLevel, tag: string, message: string)=>void
+  private _isQAModeEnabled? : boolean
+
+  public get isQAModeEnabled () : boolean|undefined {
+    return this._isQAModeEnabled
+  }
+
+  public set isQAModeEnabled (v : boolean|undefined) {
+    this._isQAModeEnabled = v
+  }
+
+  private _enableAnalytics? : boolean
 
   public get disableDeveloperUsageTracking () : boolean|undefined {
     return this._disableDeveloperUsageTracking
@@ -97,6 +108,8 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       onVisitorExposed, nextFetchConfig, fetchFlagsBufferingTime, disableDeveloperUsageTracking
     } = param
 
+    this.initQaMode()
+
     this.initSDKInfo(language, sdkVersion)
 
     if (logManager) {
@@ -132,6 +145,20 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._onVisitorExposed = onVisitorExposed
   }
 
+  protected initQaMode () {
+    if (!isBrowser()) {
+      return
+    }
+    try {
+      const isQAModeEnabled = sessionStorage.getItem(FS_IS_QA_MODE_ENABLED)
+      this.isQAModeEnabled = isQAModeEnabled ? JSON.parse(isQAModeEnabled) : undefined
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      logError(this, errorFormat(error.message || error), 'initQaMode')
+      this.isQAModeEnabled = false
+    }
+  }
+
   protected initSDKInfo (language?:number, sdkVersion?:string) {
     switch (language) {
       case 1:
@@ -143,7 +170,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
         SDK_INFO.version = sdkVersion ?? SDK_VERSION
         break
       default:
-        SDK_INFO.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'Typescript'
+        SDK_INFO.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'TypeScript'
         SDK_INFO.version = SDK_VERSION
         break
     }
@@ -165,11 +192,11 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._reuseVisitorIds = v
   }
 
-  public get onBucketingSuccess (): ((param: { status: number; payload: BucketingDTO }) => void) | undefined {
+  public get onBucketingSuccess (): ((param: { status: number; payload?: BucketingDTO }) => void) | undefined {
     return this._onBucketingSuccess
   }
 
-  public set onBucketingSuccess (v: ((param: { status: number; payload: BucketingDTO }) => void) | undefined) {
+  public set onBucketingSuccess (v: ((param: { status: number; payload?: BucketingDTO }) => void) | undefined) {
     this._onBucketingSuccess = v
   }
 

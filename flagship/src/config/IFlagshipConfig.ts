@@ -168,8 +168,9 @@ export interface IFlagshipConfig {
    */
   fetchFlagsBufferingTime?: number;
 
-  /**
-   * Determines whether to disable the collection of analytics data.
-   */
-  disableDeveloperUsageTracking?: boolean;
-}
+    isQAModeEnabled?: boolean
+    /*
+     * Disable the collect of analytics data
+     */
+    disableDeveloperUsageTracking?: boolean
+  }

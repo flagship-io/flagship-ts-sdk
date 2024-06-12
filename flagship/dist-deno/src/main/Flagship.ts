@@ -1,6 +1,6 @@
-import { IBucketingConfig } from './../config/IBucketingConfig.ts'
-import { IDecisionApiConfig } from './../config/IDecisionApiConfig.ts'
-import { IEdgeConfig } from './../config/IEdgeConfig.ts'
+import { IBucketingConfig } from '../config/IBucketingConfig.ts'
+import { IDecisionApiConfig } from '../config/IDecisionApiConfig.ts'
+import { IEdgeConfig } from '../config/IEdgeConfig.ts'
 import { Visitor } from '../visitor/Visitor.ts'
 import { FlagshipStatus } from '../enum/FlagshipStatus.ts'
 import { DecisionMode, FlagshipConfig, type IFlagshipConfig, BucketingConfig, DecisionApiConfig } from '../config/index.ts'
@@ -27,13 +27,13 @@ import { BucketingManager } from '../decision/BucketingManager.ts'
 import { MurmurHash } from '../utils/MurmurHash.ts'
 import { DecisionManager } from '../decision/DecisionManager.ts'
 import { HttpClient } from '../utils/HttpClient.ts'
-import { FlagDTO, NewVisitor, primitive } from '../types.ts'
-import { CampaignDTO } from '../decision/api/models.ts'
+import { CampaignDTO, FlagDTO, NewVisitor, primitive } from '../types.ts'
 import { DefaultHitCache } from '../cache/DefaultHitCache.ts'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache.ts'
 import { EdgeManager } from '../decision/EdgeManager.ts'
 import { EdgeConfig } from '../config/EdgeConfig.ts'
 import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
+import { launchQaAssistant } from '../qaAssistant/index.ts'
 
 export class Flagship {
   // eslint-disable-next-line no-use-before-define
@@ -258,11 +258,16 @@ export class Flagship {
       PROCESS_INITIALIZATION
     )
 
+    launchQaAssistant(localConfig)
+
     flagship.lastInitializationTimestamp = new Date().toISOString()
 
     return flagship
   }
 
+  /**
+   * When called, it will batch and send all hits that are in the pool before the application is closed
+   */
   public async close () {
     await Flagship.close()
   }
@@ -301,6 +306,7 @@ export class Flagship {
    */
   public static newVisitor(params?: NewVisitor): Visitor
   public static newVisitor(param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor
+  // eslint-disable-next-line complexity
   public static newVisitor (param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor {
     let visitorId: string | undefined
     let context: Record<string, primitive>

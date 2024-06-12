@@ -6,12 +6,11 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { IHttpResponse, HttpClient } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { Visitor } from '../../src/visitor/Visitor'
-import { HitType } from '../../src'
+import { HitType, IFSFlagCollection } from '../../src'
 import { EMIT_READY, SDK_INFO } from '../../src/enum'
 import { IFSFlag } from '../../src/flag/IFSFlag'
 import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
 import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
-import { IFSFlagCollection } from '../../dist/flag/IFSFlagCollection'
 
 describe('test visitor', () => {
   const visitorId = 'visitorId'

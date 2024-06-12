@@ -4,6 +4,7 @@ import { IFSFlagMetadata } from '../types'
 import { VisitorDelegate } from '../visitor/index'
 import { FSFlagMetadata } from './FSFlagMetadata'
 import { IFSFlag } from './IFSFlag'
+import { forceVariation } from './forceVariation'
 
 export class FSFlag implements IFSFlag {
   private _visitor?:VisitorDelegate
@@ -18,8 +19,15 @@ export class FSFlag implements IFSFlag {
   }
 
   exists ():boolean {
+    if (!this._visitor) {
+      return false
+    }
     const flagDTO = this._visitor?.flagsData.get(this._key)
-    return !!(flagDTO?.campaignId && flagDTO?.variationId && flagDTO?.variationGroupId)
+    const forcedFlagDTO = forceVariation({ flagDTO, config: this._visitor.config })
+
+    const flag = forcedFlagDTO || flagDTO
+
+    return !!(flag?.campaignId && flag?.variationId && flag?.variationGroupId)
   }
 
   get metadata ():IFSFlagMetadata {
@@ -28,10 +36,11 @@ export class FSFlag implements IFSFlag {
     }
 
     const flagDTO = this._visitor.flagsData.get(this._key)
+    const forcedFlagDTO = forceVariation({ flagDTO, config: this._visitor.config })
 
     return this._visitor.getFlagMetadata({
       key: this._key,
-      flag: flagDTO
+      flag: forcedFlagDTO || flagDTO
     })
   }
 
@@ -41,9 +50,11 @@ export class FSFlag implements IFSFlag {
     }
 
     const flagDTO = this._visitor.flagsData.get(this._key)
+    const forcedFlagDTO = forceVariation({ flagDTO, config: this._visitor.config })
+
     return this._visitor.visitorExposed({
       key: this._key,
-      flag: flagDTO,
+      flag: forcedFlagDTO || flagDTO,
       defaultValue: this._defaultValue,
       hasGetValueBeenCalled: this.hasGetValueBeenCalled
     })
@@ -58,10 +69,12 @@ export class FSFlag implements IFSFlag {
     }
 
     const flagDTO = this._visitor.flagsData.get(this._key)
+    const forcedFlagDTO = forceVariation({ flagDTO, config: this._visitor.config })
+
     return this._visitor.getFlagValue({
       key: this._key,
       defaultValue,
-      flag: flagDTO,
+      flag: forcedFlagDTO || flagDTO,
       visitorExposed
     })
   }

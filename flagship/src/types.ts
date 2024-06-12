@@ -1,10 +1,52 @@
-import { CampaignDTO } from './decision/api/models'
 import { FSFetchReasons } from './enum/FSFetchReasons'
 import { FSFetchStatus } from './enum/FSFetchStatus'
 import { HitType } from './enum/index'
 import { IEvent, IItem, IPage, IScreen, ITransaction, IHitAbstract } from './hit/index'
 
+export type modificationsRequested<T> = {
+    key: string,
+    defaultValue: T,
+    activate? :boolean
+  }
+
 export type primitive=string | number | boolean
+
+export type ModificationsDTO = {
+  type: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  value:any;
+}
+
+export type VariationDTO = {
+  id: string
+  name?: string
+  reference?:boolean;
+  modifications: ModificationsDTO
+}
+
+export type CampaignDTO = {
+  id:string
+  name?: string
+  slug?:string|null
+  variationGroupId: string;
+  variationGroupName?: string
+  variation: VariationDTO;
+  type?: string
+}
+
+export type ForcedVariation = {
+  campaignId: string,
+  variationGroupId: string
+  variationId: string
+  originalVariationId?: string;
+}
+
+export type ExposedVariation = {
+  campaignId: string;
+  variationGroupId: string;
+  variationId: string;
+  originalVariationId: string
+};
 
 export type IHit = Omit<IPage, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IScreen, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IEvent, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IItem, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<ITransaction, 'createdAt'|'visitorId'|'anonymousId'|'ds'>
 
@@ -19,6 +61,7 @@ export type FlagDTO= {
   isReference?: boolean;
   campaignType?: string;
   slug?:string|null;
+  originalVariationId?:string
  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
 }
@@ -227,4 +270,34 @@ export enum VisitorCacheStatus {
   ANONYMOUS_ID_CACHE = 'ANONYMOUS_ID_CACHE',
   VISITOR_ID_CACHE = 'VISITOR_ID_CACHE',
   VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE = 'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE'
+}
+export type onFsForcedVariationsType = (arg: {forcedVariations:ForcedVariation[]}) => void
+
+export type qaModule = {
+  onFsForcedVariations?: onFsForcedVariationsType
+  init(args: {
+    flagship: Flagship;
+}): void
+  getForcedVariations(): ForcedVariation[] | undefined
+}
+
+export type VisitorVariations = {
+  variationId: string,
+  variationGroupId: string,
+  campaignId: string
+}
+
+export type FsVariationToForce = {
+  campaignId: string;
+  campaignName: string;
+  campaignType: string;
+  CampaignSlug?: string | null;
+  variationGroupId: string;
+  variationGroupName?: string;
+  variation: VariationDTO;
+};
+
+export type SdkInfoType= {
+  name: 'ReactJS'|'React-Native'|'Deno'|'TypeScript';
+  version: string;
 }

@@ -1,8 +1,7 @@
 import { IFlagshipConfig } from '../config/index.ts'
-import { CampaignDTO } from '../decision/api/models.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
 import { IFlag } from '../flag/Flags.ts'
-import { IHit, FlagDTO, modificationsRequested, primitive, Modification } from '../types.ts'
+import { IHit, FlagDTO, modificationsRequested, primitive, Modification, CampaignDTO } from '../types.ts'
 
 export interface IVisitor {
   visitorId: string;
@@ -240,4 +239,5 @@ export interface IVisitor {
    * This function change authenticated Visitor to anonymous visitor
    */
   unauthenticate(): void;
+
 }

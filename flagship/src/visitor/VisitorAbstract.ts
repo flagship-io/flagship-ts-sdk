@@ -1,11 +1,10 @@
 import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
-import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFSFlagMetadata, sdkInitialData, VisitorCacheStatus, FetchFlagsStatus, SerializedFlagMetadata } from '../types'
+import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFSFlagMetadata, sdkInitialData, VisitorCacheStatus, FetchFlagsStatus, SerializedFlagMetadata, CampaignDTO, VisitorVariations } from '../types'
 
 import { IVisitor } from './IVisitor'
-import { CampaignDTO } from '../decision/api/models'
 import { FSSdkStatus, SDK_INFO, VISITOR_ID_ERROR } from '../enum/index'
-import { hexToValue, logDebugSprintf, logError, uuidV4 } from '../utils/utils'
+import { hexToValue, isBrowser, logDebugSprintf, logError, uuidV4 } from '../utils/utils'
 import { HitAbstract } from '../hit/index'
 import { DefaultStrategy } from './DefaultStrategy'
 import { StrategyAbstract } from './StrategyAbstract'
@@ -21,6 +20,7 @@ import { FSFetchReasons } from '../enum/FSFetchReasons'
 import { IFSFlag } from '../flag/IFSFlag'
 import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
 import { IFSFlagCollection } from '../flag/IFSFlagCollection'
+import { sendVisitorExposedVariations } from '../qaAssistant/messages'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -33,6 +33,9 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   public deDuplicationCache: Record<string, number>
   protected _isCleaningDeDuplicationCache: boolean
   public visitorCache?: VisitorCacheDTO
+  protected _exposedVariations: Record<string, VisitorVariations>
+  protected _sendExposedVariationTimeoutId?:NodeJS.Timeout
+
   private _instanceId : string
   private _traffic! : number
   protected _sdkInitialData?: sdkInitialData
@@ -114,6 +117,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   }) {
     const { visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData, onFetchFlagsStatusChanged } = param
     super()
+    this._exposedVariations = {}
     this._sdkInitialData = monitoringData
     this._instanceId = uuidV4()
     this._isCleaningDeDuplicationCache = false
@@ -320,6 +324,47 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     }
 
     return strategy
+  }
+
+  public sendExposedVariation (flag?:FlagDTO) {
+    if (!flag || !isBrowser()) {
+      return
+    }
+    this._exposedVariations[flag.campaignId] = {
+      campaignId: flag.campaignId,
+      variationGroupId: flag.variationGroupId,
+      variationId: flag.variationId
+    }
+
+    window.flagship = {
+      ...window.flagship,
+      exposedVariations: this._exposedVariations
+    }
+
+    if (!this.config.isQAModeEnabled) {
+      return
+    }
+
+    const BATCH_SIZE = 10
+    const DELAY = 100
+
+    if (Object.keys(this._exposedVariations).length >= BATCH_SIZE) {
+      sendVisitorExposedVariations(this._exposedVariations)
+      this._exposedVariations = {}
+    }
+
+    if (this._sendExposedVariationTimeoutId) {
+      clearTimeout(this._sendExposedVariationTimeoutId)
+    }
+
+    if (Object.keys(this._exposedVariations).length === 0) {
+      return
+    }
+
+    this._sendExposedVariationTimeoutId = setTimeout(() => {
+      sendVisitorExposedVariations(this._exposedVariations)
+      this._exposedVariations = {}
+    }, DELAY)
   }
 
   abstract updateContext(key: string, value: primitive):void

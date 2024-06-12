@@ -1,4 +1,4 @@
-import { expect, it, describe, jest } from '@jest/globals'
+import { expect, it, describe, jest, beforeAll, afterAll, beforeEach } from '@jest/globals'
 import { IHitCacheImplementation, IVisitorCacheImplementation } from '../../src'
 import { DecisionApiConfig, DecisionMode } from '../../src/config/index'
 import { TrackingManagerConfig } from '../../src/config/TrackingManagerConfig'
@@ -13,7 +13,7 @@ import {
 import { version } from '../../src/sdkVersion'
 import { HitCacheDTO, VisitorCacheDTO } from '../../src/types'
 import { FlagshipLogManager, IFlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-
+import * as utils from '../../src/utils/utils'
 describe('test DecisionApiConfig', () => {
   const config = new DecisionApiConfig()
   const nextFetchConfig = {
@@ -209,7 +209,7 @@ describe('Test SDK_LANGUAGE', () => {
   it('should be Typescript', () => {
     const sdkVersion = '2.6.5'
     const config = new DecisionApiConfig({ language: 0, sdkVersion })
-    expect(SDK_INFO.name).toBe('Typescript')
+    expect(SDK_INFO.name).toBe('TypeScript')
     expect(SDK_INFO.version).toBe(version)
     expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
   })
@@ -225,5 +225,68 @@ describe('Test SDK_LANGUAGE', () => {
     expect(SDK_INFO.name).toBe('Deno')
     expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
     global.window = window
+  })
+})
+
+describe('test initQaMode', () => {
+  beforeAll(() => {
+    global.sessionStorage = storageMock
+  })
+
+  afterAll(() => {
+    isBrowserSpy.mockReturnValue(false)
+  })
+
+  beforeEach(() => {
+    isBrowserSpy.mockReturnValue(false)
+  })
+
+  const isBrowserSpy = jest.spyOn(utils, 'isBrowser')
+
+  const storageMock = {
+    getItem: jest.fn<(key: string)=>string|null>(),
+    setItem: jest.fn<(key: string, value: string)=> void>(),
+    clear: jest.fn(),
+    removeItem: jest.fn<(key: string)=>void>(),
+    key: jest.fn<(key: number)=>string>(),
+    length: 0
+  }
+  it('test environment is not browser', () => {
+    expect(storageMock.getItem).toBeCalledTimes(0)
+    const config = new DecisionApiConfig()
+    expect(config.isQAModeEnabled).toBeFalsy()
+  })
+  it('test environment is browser and session storage is null', () => {
+    isBrowserSpy.mockReturnValue(true)
+    storageMock.getItem.mockReturnValue(null)
+    const config = new DecisionApiConfig()
+    expect(storageMock.getItem).toBeCalledTimes(1)
+    expect(config.isQAModeEnabled).toBeFalsy()
+  })
+
+  it('test environment is browser and session storage is true', () => {
+    isBrowserSpy.mockReturnValue(true)
+    storageMock.getItem.mockReturnValue('true')
+    const config = new DecisionApiConfig()
+    expect(storageMock.getItem).toBeCalledTimes(1)
+    expect(config.isQAModeEnabled).toBeTruthy()
+  })
+
+  it('test environment is browser and session storage is false', () => {
+    isBrowserSpy.mockReturnValue(true)
+    storageMock.getItem.mockReturnValue('false')
+    const config = new DecisionApiConfig()
+    expect(storageMock.getItem).toBeCalledTimes(1)
+    expect(config.isQAModeEnabled).toBeFalsy()
+  })
+
+  it('test environment is browser and throw error', () => {
+    isBrowserSpy.mockReturnValue(true)
+    storageMock.getItem.mockImplementation(() => {
+      throw new Error()
+    })
+    const config = new DecisionApiConfig()
+    expect(storageMock.getItem).toBeCalledTimes(1)
+    expect(config.isQAModeEnabled).toBeFalsy()
   })
 })

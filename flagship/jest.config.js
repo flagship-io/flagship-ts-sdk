@@ -1,6 +1,10 @@
 module.exports = {
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
+
+  moduleNameMapper: {
+    '@src/(.*)': '<rootDir>/src/$1'
+  },
   // All imported modules in your tests should be mocked automatically
   // automock: false,
 
@@ -27,7 +31,8 @@ module.exports = {
     'test/decision/bucketing.ts',
     'test/decision/campaigns.ts',
     'test/visitor/modification.ts',
-    'src/index.ts'
+    'src/index.ts',
+    'src/mod.ts'
   ],
 
   // Indicates which provider should be used to instrument code for coverage

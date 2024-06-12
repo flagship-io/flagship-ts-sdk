@@ -1,11 +1,10 @@
-import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant.ts'
+import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from '../enum/FlagshipConstant.ts'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index.ts'
-import { IHit, Modification, NewVisitor, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, sdkInitialData, VisitorCacheStatus } from '../types.ts'
+import { IHit, Modification, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, sdkInitialData, VisitorCacheStatus, VisitorVariations, CampaignDTO, NewVisitor } from '../types.ts'
 
 import { IVisitor } from './IVisitor.ts'
-import { CampaignDTO } from '../decision/api/models.ts'
 import { FlagshipStatus, SDK_INFO, VISITOR_ID_ERROR } from '../enum/index.ts'
-import { logDebugSprintf, logError, uuidV4 } from '../utils/utils.ts'
+import { isBrowser, logDebugSprintf, logError, uuidV4 } from '../utils/utils.ts'
 import { HitAbstract, HitShape } from '../hit/index.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
 import { VisitorStrategyAbstract } from './VisitorStrategyAbstract.ts'
@@ -17,6 +16,7 @@ import { cacheVisitor } from './VisitorCache.ts'
 import { IFlag } from '../flag/Flags.ts'
 import { MurmurHash } from '../utils/MurmurHash.ts'
 import { FlagSynchStatus } from '../enum/FlagSynchStatus.ts'
+import { sendVisitorExposedVariations } from '../qaAssistant/messages/index.ts'
 import { Troubleshooting } from '../hit/Troubleshooting.ts'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
@@ -30,6 +30,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   public deDuplicationCache: Record<string, number>
   protected _isCleaningDeDuplicationCache: boolean
   public visitorCache?: VisitorCacheDTO
+  private _flagSynchStatus : FlagSynchStatus
+  protected _exposedVariations: Record<string, VisitorVariations>
+  protected _sendExposedVariationTimeoutId?:NodeJS.Timeout
+
   private _instanceId : string
   private _traffic! : number
   protected _sdkInitialData?: sdkInitialData
@@ -62,7 +66,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     return VisitorAbstract.SdkStatus
   }
 
-  private _flagSynchStatus : FlagSynchStatus
   public lastFetchFlagsTimestamp = 0
   public isFlagFetching = false
   private _visitorCacheStatus? : VisitorCacheStatus
@@ -91,6 +94,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   }) {
     const { visitorId, configManager, context, isAuthenticated, hasConsented, initialModifications, initialFlagsData, initialCampaigns, monitoringData } = param
     super()
+    this._exposedVariations = {}
     this._sdkInitialData = monitoringData
     this._instanceId = uuidV4()
     this._isCleaningDeDuplicationCache = false
@@ -171,7 +175,9 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
   public getFlagsDataArray (): FlagDTO[] {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    return Array.from(this._flags, ([_, item]) => item)
+    return Array.from(this._flags, ([_, item]) => {
+      return item
+    })
   }
 
   protected setInitialFlags (modifications?: Map<string, FlagDTO> | FlagDTO[]): void {
@@ -309,6 +315,47 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     }
 
     return strategy
+  }
+
+  public sendExposedVariation (flag?:FlagDTO) {
+    if (!flag || !isBrowser()) {
+      return
+    }
+    this._exposedVariations[flag.campaignId] = {
+      campaignId: flag.campaignId,
+      variationGroupId: flag.variationGroupId,
+      variationId: flag.variationId
+    }
+
+    window.flagship = {
+      ...window.flagship,
+      exposedVariations: this._exposedVariations
+    }
+
+    if (!this.config.isQAModeEnabled) {
+      return
+    }
+
+    const BATCH_SIZE = 10
+    const DELAY = 100
+
+    if (Object.keys(this._exposedVariations).length >= BATCH_SIZE) {
+      sendVisitorExposedVariations(this._exposedVariations)
+      this._exposedVariations = {}
+    }
+
+    if (this._sendExposedVariationTimeoutId) {
+      clearTimeout(this._sendExposedVariationTimeoutId)
+    }
+
+    if (Object.keys(this._exposedVariations).length === 0) {
+      return
+    }
+
+    this._sendExposedVariationTimeoutId = setTimeout(() => {
+      sendVisitorExposedVariations(this._exposedVariations)
+      this._exposedVariations = {}
+    }, DELAY)
   }
 
   abstract updateContext(key: string, value: primitive):void
