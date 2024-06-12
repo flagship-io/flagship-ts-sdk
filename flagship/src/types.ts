@@ -273,14 +273,6 @@ export enum VisitorCacheStatus {
 }
 export type onFsForcedVariationsType = (arg: {forcedVariations:ForcedVariation[]}) => void
 
-export type qaModule = {
-  onFsForcedVariations?: onFsForcedVariationsType
-  init(args: {
-    flagship: Flagship;
-}): void
-  getForcedVariations(): ForcedVariation[] | undefined
-}
-
 export type VisitorVariations = {
   variationId: string,
   variationGroupId: string,
