@@ -21,6 +21,7 @@ export function loadQaAssistant (config: IFlagshipConfig, bundleUrl:string|null 
   try {
     forcedVariations = JSON.parse(sessionForcedVariations || '{}')
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error parsing sessionForcedVariations', error)
   }
 
