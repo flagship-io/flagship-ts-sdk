@@ -71,10 +71,14 @@ export class FSFlag implements IFSFlag {
     const flagDTO = this._visitor.flagsData.get(this._key)
     const forcedFlagDTO = forceVariation({ flagDTO, config: this._visitor.config })
 
+    const flag = forcedFlagDTO || flagDTO
+
+    this._visitor.sendExposedVariation(flag)
+
     return this._visitor.getFlagValue({
       key: this._key,
       defaultValue,
-      flag: forcedFlagDTO || flagDTO,
+      flag,
       visitorExposed
     })
   }
