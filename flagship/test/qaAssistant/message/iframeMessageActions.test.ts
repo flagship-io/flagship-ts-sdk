@@ -3,12 +3,12 @@
  */
 
 import { jest, describe, it, expect, beforeEach } from '@jest/globals'
-import * as messages from '@src/qaAssistant/messages'
-import { onQaAssistantReady, render, onQaAssistantClose, onApplyForcedVariations, onResetForcedVariations } from '@src/qaAssistant/messages/iframeMessageActions'
-import { EventDataFromIframe } from '@src/qaAssistant/type'
-import { DecisionApiConfig } from '@src/config/DecisionApiConfig'
-import { FsVariationToForce, VisitorVariations } from '@src/types'
-import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, FS_QA_ASSISTANT_SCRIPT_TAG_ID } from '@src/enum/FlagshipConstant'
+import * as messages from '../../../src/qaAssistant/messages'
+import { onQaAssistantReady, render, onQaAssistantClose, onApplyForcedVariations, onResetForcedVariations } from '../../../src/qaAssistant/messages/iframeMessageActions'
+import { EventDataFromIframe } from '../../../src/qaAssistant/type'
+import { DecisionApiConfig } from '../../../src/config/DecisionApiConfig'
+import { FsVariationToForce, VisitorVariations } from '../../../src/types'
+import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, FS_QA_ASSISTANT_SCRIPT_TAG_ID } from '../../../src/enum/FlagshipConstant'
 
 describe('Test iframeMessageActions', () => {
   beforeEach(() => {
