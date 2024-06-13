@@ -278,7 +278,7 @@ describe('test activateFlag method', () => {
     expect(sendHitsToFsQaSpy).toBeCalledTimes(1)
     expect(sendHitsToFsQaSpy).toBeCalledWith([activateHit])
 
-    const fromFlag : IExposedFlag = {
+    let fromFlag : IExposedFlag = {
       key: activateHit.flagKey,
       value: activateHit.flagValue,
       defaultValue: activateHit.flagDefaultValue,
@@ -293,7 +293,7 @@ describe('test activateFlag method', () => {
     expect(onVisitorExposed).toBeCalledTimes(1)
     expect(onVisitorExposed).toBeCalledWith({ exposedVisitor, fromFlag })
 
-    const flagData = {
+    fromFlag = {
       metadata: {
         campaignId: activateHit.flagMetadata.campaignId,
         campaignType: activateHit.flagMetadata.campaignType,
@@ -306,16 +306,12 @@ describe('test activateFlag method', () => {
         variationName: activateHit.flagMetadata.variationName
       },
       key: activateHit.flagKey,
-      value: activateHit.flagValue
+      value: activateHit.flagValue,
+      defaultValue: activateHit.flagDefaultValue
     }
 
-    const visitorData = {
-      visitorId: activateHit.visitorId,
-      anonymousId: activateHit.anonymousId as string,
-      context: activateHit.visitorContext
-    }
     expect(onVisitorExposed).toBeCalledTimes(1)
-    expect(onVisitorExposed).toBeCalledWith({ flagData, visitorData })
+    expect(onVisitorExposed).toBeCalledWith({ fromFlag, exposedVisitor })
 
     expect(flushHitsSpy).toBeCalledTimes(0)
   })
