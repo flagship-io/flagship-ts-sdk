@@ -9,6 +9,9 @@ jobs:
     env: 
       FS_API_KEY: "${{ secrets.FS_CI_CAMPAIGNS_API_KEY }}"
       FS_ENV_ID:  "${{ secrets.FS_CI_CAMPAIGNS_ENV_ID }}"
+    defaults:
+      run:
+        working-directory: ./flagship
         
     strategy:
       matrix:
