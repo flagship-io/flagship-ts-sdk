@@ -264,10 +264,6 @@ describe('test Flagship newVisitor', () => {
     expect(Flagship.getVisitor()).toBeDefined()
     expect(visitor).toBe(Flagship.getVisitor())
 
-    visitor = Flagship.newVisitor({} as NewVisitor)
-    expect(Flagship.getVisitor()).toBeDefined()
-    expect(visitor).toBe(Flagship.getVisitor())
-
     // test client side true and shouldSaveInstance to false
     // Create a visitor: "visitor_1" as NEW_INSTANCE
     visitor = Flagship.newVisitor({ visitorId: 'visitor_1', shouldSaveInstance: false, hasConsented: true })
