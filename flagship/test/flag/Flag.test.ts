@@ -146,9 +146,9 @@ describe('test Flag', () => {
         flag: expect.objectContaining(flagDto),
         visitorExposed: false
       })
+      expect(sendExposedVariationSpy).toBeCalledTimes(1)
+      expect(sendExposedVariationSpy).toBeCalledWith(flagDto)
     })
-    expect(sendExposedVariationSpy).toBeCalledTimes(1)
-    expect(sendExposedVariationSpy).toBeCalledWith(flagDto)
 
     it('test forced flag exists', () => {
       forceVariationSpy.mockReturnValue(forcedFlagDto)
@@ -177,7 +177,8 @@ describe('test Flag', () => {
       expect(visitorExposed).toBeCalledWith({
         key: forcedFlagDto.key,
         flag: expect.objectContaining(forcedFlagDto),
-        defaultValue
+        defaultValue,
+        hasGetValueBeenCalled: true
       })
     })
 
@@ -190,7 +191,7 @@ describe('test Flag', () => {
         key: forcedFlagDto.key,
         defaultValue,
         flag: expect.objectContaining(forcedFlagDto),
-        userExposed: true
+        visitorExposed: true
       })
     })
   })
