@@ -86,7 +86,7 @@ export interface IFlagshipConfig {
    * A callback function to be called when the first bucketing polling succeeds.
    * @param param - An object containing the status and payload of the bucketing response.
    */
-  onBucketingSuccess?: (param: { status: number; payload: BucketingDTO }) => void;
+  onBucketingSuccess?: (param: { status: number; payload?: BucketingDTO }) => void;
 
   /**
    * A callback function to be called when the first bucketing polling fails.
