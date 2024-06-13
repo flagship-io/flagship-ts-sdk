@@ -46,6 +46,7 @@ export function onApplyForcedVariations ({ value }:{ value:Record<string, FsVari
   try {
     forcedVariations = JSON.parse(sessionForcedVariations || '{}')
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error parsing sessionForcedVariations', error)
   }
   forcedVariations = { ...forcedVariations, ...value }
