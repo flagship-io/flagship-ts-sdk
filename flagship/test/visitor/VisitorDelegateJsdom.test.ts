@@ -8,9 +8,9 @@ import { ApiManager } from '../../src/decision/ApiManager'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
-import * as utils from '@src/utils/utils'
-import * as messages from '@src/qaAssistant/messages'
-import { VisitorVariations } from '@src/types'
+import * as utils from '../../src/utils/utils'
+import * as messages from '../../src/qaAssistant/messages'
+import { VisitorVariations } from '../../src/types'
 
 describe('test sendExposedVariation', () => {
   beforeEach(() => {
@@ -45,6 +45,7 @@ describe('test sendExposedVariation', () => {
   it('Test sendExposedVariation flag is undefined ', () => {
     const visitorDelegate = new VisitorDelegate({
       visitorId,
+      hasConsented: true,
       context,
       configManager: configManager as ConfigManager
     })
@@ -57,6 +58,7 @@ describe('test sendExposedVariation', () => {
     isBrowserSpy.mockReturnValue(false)
     const visitorDelegate = new VisitorDelegate({
       visitorId,
+      hasConsented: true,
       context,
       configManager: configManager as ConfigManager
     })
@@ -69,6 +71,7 @@ describe('test sendExposedVariation', () => {
     config.isQAModeEnabled = false
     const visitorDelegate = new VisitorDelegate({
       visitorId,
+      hasConsented: true,
       context,
       configManager: configManager as ConfigManager
     })
@@ -101,6 +104,7 @@ describe('test sendExposedVariation', () => {
   it('Test sendExposedVariation', async () => {
     const visitorDelegate = new VisitorDelegate({
       visitorId,
+      hasConsented: true,
       context,
       configManager: configManager as ConfigManager
     })
@@ -136,6 +140,7 @@ describe('test sendExposedVariation', () => {
   it('Test sendExposedVariation', async () => {
     const visitorDelegate = new VisitorDelegate({
       visitorId,
+      hasConsented: true,
       context,
       configManager: configManager as ConfigManager
     })
@@ -187,6 +192,7 @@ describe('test sendExposedVariation', () => {
   it('Test sendExposedVariation', async () => {
     const visitorDelegate = new VisitorDelegate({
       visitorId,
+      hasConsented: true,
       context,
       configManager: configManager as ConfigManager
     })
