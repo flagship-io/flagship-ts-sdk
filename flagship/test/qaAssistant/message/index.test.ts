@@ -3,11 +3,11 @@
  */
 
 import { jest, describe, it, expect, beforeEach } from '@jest/globals'
-import { sendFsHitToQA, sendMessageToIframe, sendVisitorAllocatedVariations, sendVisitorExposedVariations } from '@src/qaAssistant/messages'
-import { EventDataToIframe, MSG_NAME_TO_IFRAME } from '@src/qaAssistant/type'
-import { DecisionApiConfig } from '@src/config/DecisionApiConfig'
-import * as utils from '@src/utils/utils'
-import { VisitorVariations } from '@src/types'
+import { sendFsHitToQA, sendMessageToIframe, sendVisitorAllocatedVariations, sendVisitorExposedVariations } from '../../../src/qaAssistant/messages'
+import { EventDataToIframe, MSG_NAME_TO_IFRAME } from '../../../src/qaAssistant/type'
+import { DecisionApiConfig } from '../../../src/config/DecisionApiConfig'
+import * as utils from '../../../src/utils/utils'
+import { VisitorVariations } from '../../../src/types'
 
 describe('Test messages', () => {
   beforeEach(() => {
