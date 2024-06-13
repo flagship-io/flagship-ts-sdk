@@ -7,8 +7,8 @@ import * as utils from '../../src/utils/utils'
 import { launchQaAssistant } from '../../src/qaAssistant'
 import * as loadQaAssistant from '../../src/qaAssistant/loadQaAssistant'
 import * as listenForKeyboardQaAssistant from '../../src/qaAssistant/listenForKeyboardQaAssistant'
-import { DecisionApiConfig } from '@src/config/DecisionApiConfig'
-import { FS_QA_ASSISTANT, FS_QA_ASSISTANT_LOCAL, FS_QA_ASSISTANT_STAGING, QA_ASSISTANT_LOCAL_URL, QA_ASSISTANT_PROD_URL, QA_ASSISTANT_STAGING_URL } from '@src/enum/FlagshipConstant'
+import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
+import { FS_QA_ASSISTANT, FS_QA_ASSISTANT_LOCAL, FS_QA_ASSISTANT_STAGING, QA_ASSISTANT_LOCAL_URL, QA_ASSISTANT_PROD_URL, QA_ASSISTANT_STAGING_URL } from '../../src/enum/FlagshipConstant'
 describe('Qa Assistant', () => {
   const { location } = window
   beforeEach(() => {
