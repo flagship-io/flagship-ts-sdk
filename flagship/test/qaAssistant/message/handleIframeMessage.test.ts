@@ -3,12 +3,12 @@
  */
 
 import { jest, describe, it, expect, beforeEach } from '@jest/globals'
-import { handleIframeMessage } from '@src/qaAssistant/messages/handleIframeMessage'
-import * as iframeMessageActions from '@src/qaAssistant/messages/iframeMessageActions'
-import { EventDataFromIframe, MSG_NAME_FROM_IFRAME } from '@src/qaAssistant/type'
-import { DecisionApiConfig } from '@src/config/DecisionApiConfig'
-import * as utils from '@src/utils/utils'
-import { FsVariationToForce } from '@src/types'
+import { handleIframeMessage } from '../../../src/qaAssistant/messages/handleIframeMessage'
+import * as iframeMessageActions from '../../../src/qaAssistant/messages/iframeMessageActions'
+import { EventDataFromIframe, MSG_NAME_FROM_IFRAME } from '../../../src/qaAssistant/type'
+import { DecisionApiConfig } from '../../../src/config/DecisionApiConfig'
+import * as utils from '../../../src/utils/utils'
+import { FsVariationToForce } from '../../../src/types'
 
 describe('Test handleIframeMessage', () => {
   beforeEach(() => {
