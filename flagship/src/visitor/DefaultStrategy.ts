@@ -60,7 +60,7 @@ import { Troubleshooting } from '../hit/Troubleshooting'
 import { FSFetchStatus } from '../enum/FSFetchStatus'
 import { FSFetchReasons } from '../enum/FSFetchReasons'
 import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
-import { sendVisitorAllocatedVariations } from '../qaAssistant/messages'
+import { sendVisitorAllocatedVariations } from '../qaAssistant/messages/index'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'

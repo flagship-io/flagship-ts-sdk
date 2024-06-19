@@ -20,7 +20,7 @@ import { FSFetchReasons } from '../enum/FSFetchReasons'
 import { IFSFlag } from '../flag/IFSFlag'
 import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
 import { IFSFlagCollection } from '../flag/IFSFlagCollection'
-import { sendVisitorExposedVariations } from '../qaAssistant/messages'
+import { sendVisitorExposedVariations } from '../qaAssistant/messages/index'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string

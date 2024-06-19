@@ -11,7 +11,7 @@ import { IHttpClient } from '../utils/HttpClient.ts'
 import { errorFormat, isBrowser, logDebug, logDebugSprintf, logError, logErrorSprintf, sprintf, uuidV4 } from '../utils/utils.ts'
 import { ITrackingManagerCommon } from './ITrackingManagerCommon.ts'
 import type { BatchingCachingStrategyConstruct, SendActivate } from './types'
-import { sendFsHitToQA } from '../qaAssistant/messages.ts'
+import { sendFsHitToQA } from '../qaAssistant/messages/index.ts'
 
 export abstract class BatchingCachingStrategyAbstract implements ITrackingManagerCommon {
   protected _config : IFlagshipConfig
