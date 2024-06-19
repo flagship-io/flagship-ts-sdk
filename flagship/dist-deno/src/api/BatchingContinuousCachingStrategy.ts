@@ -54,7 +54,6 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
 
       activateBatch.hits.forEach(item => {
         this.onVisitorExposed(item)
-        this.onUserExposure(item)
       })
 
       if (hitKeysToRemove.length) {

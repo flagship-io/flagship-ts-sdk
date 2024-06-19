@@ -50,7 +50,6 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
 
       activateBatch.hits.forEach(item => {
         this.onVisitorExposed(item)
-        this.onUserExposure(item)
       })
 
       this.sendHitsToFsQa(activateBatch.hits)

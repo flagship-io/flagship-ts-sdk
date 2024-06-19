@@ -1,23 +1,26 @@
-import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from '../enum/FlagshipConstant.ts'
-import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index.ts'
-import { IHit, Modification, modificationsRequested, primitive, VisitorCacheDTO, FlagDTO, IFlagMetadata, sdkInitialData, VisitorCacheStatus, VisitorVariations, CampaignDTO, NewVisitor } from '../types.ts'
+import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant.ts'
+import { IConfigManager, IFlagshipConfig } from '../config/index.ts'
+import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFSFlagMetadata, sdkInitialData, VisitorCacheStatus, FetchFlagsStatus, SerializedFlagMetadata, CampaignDTO, VisitorVariations } from '../types.ts'
 
 import { IVisitor } from './IVisitor.ts'
-import { FlagshipStatus, SDK_INFO, VISITOR_ID_ERROR } from '../enum/index.ts'
-import { isBrowser, logDebugSprintf, logError, uuidV4 } from '../utils/utils.ts'
-import { HitAbstract, HitShape } from '../hit/index.ts'
+import { FSSdkStatus, SDK_INFO, VISITOR_ID_ERROR } from '../enum/index.ts'
+import { hexToValue, isBrowser, logDebugSprintf, logError, uuidV4 } from '../utils/utils.ts'
+import { HitAbstract } from '../hit/index.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
-import { VisitorStrategyAbstract } from './VisitorStrategyAbstract.ts'
+import { StrategyAbstract } from './StrategyAbstract.ts'
 import { EventEmitter } from '../depsDeno.ts'
 import { NotReadyStrategy } from './NotReadyStrategy.ts'
 import { PanicStrategy } from './PanicStrategy.ts'
 import { NoConsentStrategy } from './NoConsentStrategy.ts'
 import { cacheVisitor } from './VisitorCache.ts'
-import { IFlag } from '../flag/Flags.ts'
 import { MurmurHash } from '../utils/MurmurHash.ts'
-import { FlagSynchStatus } from '../enum/FlagSynchStatus.ts'
-import { sendVisitorExposedVariations } from '../qaAssistant/messages/index.ts'
 import { Troubleshooting } from '../hit/Troubleshooting.ts'
+import { FSFetchStatus } from '../enum/FSFetchStatus.ts'
+import { FSFetchReasons } from '../enum/FSFetchReasons.ts'
+import { IFSFlag } from '../flag/IFSFlag.ts'
+import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local.ts'
+import { IFSFlagCollection } from '../flag/IFSFlagCollection.ts'
+import { sendVisitorExposedVariations } from '../qaAssistant/messages.ts'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -30,7 +33,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   public deDuplicationCache: Record<string, number>
   protected _isCleaningDeDuplicationCache: boolean
   public visitorCache?: VisitorCacheDTO
-  private _flagSynchStatus : FlagSynchStatus
   protected _exposedVariations: Record<string, VisitorVariations>
   protected _sendExposedVariationTimeoutId?:NodeJS.Timeout
 
@@ -39,6 +41,36 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _sdkInitialData?: sdkInitialData
   private _consentHitTroubleshooting? : Troubleshooting
   private _segmentHitTroubleshooting? : Troubleshooting
+  private _fetchStatus! : FetchFlagsStatus
+  private _onFetchFlagsStatusChanged? : ({ status, reason }: FetchFlagsStatus) => void
+  private _getCampaignsPromise? : Promise<CampaignDTO[]|null>
+
+  public get getCampaignsPromise () : Promise<CampaignDTO[]|null>|undefined {
+    return this._getCampaignsPromise
+  }
+
+  public set getCampaignsPromise (v : Promise<CampaignDTO[]|null>|undefined) {
+    this._getCampaignsPromise = v
+  }
+
+  public get onFetchFlagsStatusChanged () : (({ status, reason }: FetchFlagsStatus) => void)|undefined {
+    return this._onFetchFlagsStatusChanged
+  }
+
+  public set onFetchFlagsStatusChanged (v : (({ status, reason }: FetchFlagsStatus) => void)|undefined) {
+    this._onFetchFlagsStatusChanged = v
+  }
+
+  public get fetchStatus () : FetchFlagsStatus {
+    return this._fetchStatus
+  }
+
+  public set fetchStatus (v : FetchFlagsStatus) {
+    this._fetchStatus = v
+    if (this.onFetchFlagsStatusChanged) {
+      this.onFetchFlagsStatusChanged(v)
+    }
+  }
 
   public get segmentHitTroubleshooting () : Troubleshooting|undefined {
     return this._segmentHitTroubleshooting
@@ -60,14 +92,13 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     return this._sdkInitialData
   }
 
-  public static SdkStatus?: FlagshipStatus
+  public static SdkStatus?: FSSdkStatus
 
-  public getSdkStatus () : FlagshipStatus|undefined {
+  public getSdkStatus () : FSSdkStatus|undefined {
     return VisitorAbstract.SdkStatus
   }
 
   public lastFetchFlagsTimestamp = 0
-  public isFlagFetching = false
   private _visitorCacheStatus? : VisitorCacheStatus
 
   public get visitorCacheStatus () : VisitorCacheStatus|undefined {
@@ -78,21 +109,13 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._visitorCacheStatus = v
   }
 
-  public get flagSynchStatus () : FlagSynchStatus {
-    return this._flagSynchStatus
-  }
-
-  public set flagSynchStatus (v : FlagSynchStatus) {
-    this._flagSynchStatus = v
-  }
-
   constructor (param: NewVisitor & {
     visitorId?: string
     configManager: IConfigManager
     context: Record<string, primitive>
     monitoringData?:sdkInitialData
   }) {
-    const { visitorId, configManager, context, isAuthenticated, hasConsented, initialModifications, initialFlagsData, initialCampaigns, monitoringData } = param
+    const { visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData, onFetchFlagsStatusChanged } = param
     super()
     this._exposedVariations = {}
     this._sdkInitialData = monitoringData
@@ -102,7 +125,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._context = {}
     this._configManager = configManager
 
-    const visitorCache = this.config.enableClientCache ? cacheVisitor.loadVisitorProfile() : null
+    const visitorCache = this.config.reuseVisitorIds ? cacheVisitor.loadVisitorProfile() : null
     if (visitorCache) {
       logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_PROFILE_LOADED, visitorCache)
     }
@@ -110,13 +133,12 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     this.campaigns = []
 
-    this._anonymousId = isAuthenticated && visitorCache?.anonymousId ? visitorCache?.anonymousId : null
-
-    if (!this._anonymousId && isAuthenticated && (this.config.decisionMode === DecisionMode.DECISION_API || this.config.decisionMode === DecisionMode.API)) {
-      this._anonymousId = uuidV4()
+    this._anonymousId = null
+    if (isAuthenticated) {
+      this._anonymousId = visitorCache?.anonymousId || uuidV4()
     }
 
-    this.setConsent(hasConsented ?? true)
+    this.setConsent(hasConsented || false)
 
     this.updateContext(context)
 
@@ -128,9 +150,15 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     })
 
     this.updateCache()
-    this.setInitialFlags(initialFlagsData || initialModifications)
-    this.setInitializeCampaigns(initialCampaigns, !!initialModifications)
-    this._flagSynchStatus = FlagSynchStatus.CREATED
+    this.setInitialFlags(initialFlagsData)
+    this.setInitializeCampaigns(initialCampaigns, !!initialFlagsData)
+
+    this.onFetchFlagsStatusChanged = onFetchFlagsStatusChanged
+
+    this.fetchStatus = {
+      status: FSFetchStatus.FETCH_REQUIRED,
+      reason: FSFetchReasons.VISITOR_CREATED
+    }
 
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
   }
@@ -168,30 +196,30 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._isCleaningDeDuplicationCache = false
   }
 
-  public getModificationsArray (): Modification[] {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    return Array.from(this._flags, ([_, item]) => item)
-  }
-
-  public getFlagsDataArray (): FlagDTO[] {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    return Array.from(this._flags, ([_, item]) => {
-      return item
-    })
-  }
-
-  protected setInitialFlags (modifications?: Map<string, FlagDTO> | FlagDTO[]): void {
+  protected setInitialFlags (flags?: SerializedFlagMetadata[]): void {
     this._flags = new Map<string, FlagDTO>()
-    if (!modifications || (!(modifications instanceof Map) && !Array.isArray(modifications))) {
+    if (!Array.isArray(flags)) {
       return
     }
-    modifications.forEach((item: FlagDTO) => {
-      this._flags.set(item.key, item)
+    flags.forEach((item: SerializedFlagMetadata) => {
+      this._flags.set(item.key, {
+        key: item.key,
+        campaignId: item.campaignId,
+        campaignName: item.campaignName,
+        variationGroupId: item.variationGroupId,
+        variationGroupName: item.variationGroupName,
+        variationId: item.variationId,
+        variationName: item.variationName,
+        isReference: item.isReference,
+        value: hexToValue(item.hex, this.config)?.v,
+        slug: item.slug,
+        campaignType: item.campaignType
+      })
     })
   }
 
-  protected setInitializeCampaigns (campaigns?: CampaignDTO[], hasModifications?: boolean): void {
-    if (campaigns && Array.isArray(campaigns) && !hasModifications) {
+  protected setInitializeCampaigns (campaigns?: CampaignDTO[], hasInitialFlags?: boolean): void {
+    if (campaigns && Array.isArray(campaigns) && !hasInitialFlags) {
       this.getStrategy().updateCampaigns(campaigns)
     }
   }
@@ -224,10 +252,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.visitorCache = undefined
   }
 
-  /**
-   * Return True or False if the visitor has consented for protected data usage.
-   * @return bool
-   */
   public get hasConsented (): boolean {
     return this._hasConsented
   }
@@ -236,10 +260,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._hasConsented = v
   }
 
-  /**
-    * Set if visitor has consented for protected data usage.
-    * @param {boolean} hasConsented True if the visitor has consented false otherwise.
-    */
   public setConsent (hasConsented: boolean): void {
     this.hasConsented = hasConsented
     this.getStrategy().setConsent(hasConsented)
@@ -249,9 +269,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     return this._context
   }
 
-  /**
-  * Clear the current context and set a new context value
-  */
   public set context (v: Record<string, primitive>) {
     this._context = {}
     this.updateContext(v)
@@ -262,14 +279,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   }
 
   public set flagsData (v: Map<string, FlagDTO>) {
-    this._flags = v
-  }
-
-  public get modifications (): Map<string, Modification> {
-    return this._flags
-  }
-
-  public set modifications (v: Map<string, Modification>) {
     this._flags = v
   }
 
@@ -297,16 +306,16 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._anonymousId = v
   }
 
-  protected getStrategy (): VisitorStrategyAbstract {
-    let strategy: VisitorStrategyAbstract
+  protected getStrategy (): StrategyAbstract {
+    let strategy: StrategyAbstract
     const params = {
       visitor: this,
       murmurHash: new MurmurHash()
     }
     const status = this.getSdkStatus()
-    if (status === undefined || status === FlagshipStatus.NOT_INITIALIZED) {
+    if (status === undefined || status === FSSdkStatus.SDK_NOT_INITIALIZED) {
       strategy = new NotReadyStrategy(params)
-    } else if (status === FlagshipStatus.READY_PANIC_ON) {
+    } else if (status === FSSdkStatus.SDK_PANIC) {
       strategy = new PanicStrategy(params)
     } else if (!this.hasConsented) {
       strategy = new NoConsentStrategy(params)
@@ -363,49 +372,22 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   abstract updateContext (context: Record<string, primitive> | string, value?:primitive): void
   abstract clearContext(): void
 
-  abstract getModification<T>(params: modificationsRequested<T>): Promise<T>;
-  abstract getModificationSync<T>(params: modificationsRequested<T>): T
-
-  abstract getFlag<T>(key: string, defaultValue: T): IFlag<T>
-
-  abstract getModifications<T>(params: modificationsRequested<T>[], activateAll?: boolean): Promise<Record<string, T>>
-  abstract getModificationsSync<T>(params: modificationsRequested<T>[], activateAll?: boolean): Record<string, T>
-
-  abstract getModificationInfo(key: string): Promise<Modification | null>
-
-  abstract getModificationInfoSync(key: string): Modification | null
-
-  abstract synchronizeModifications(): Promise<void>
-
-  abstract activateModification(key: string): Promise<void>;
-
-  abstract activateModifications(keys: { key: string; }[]): Promise<void>;
-  abstract activateModifications(keys: string[]): Promise<void>;
-  abstract activateModifications(params: Array<{ key: string }> | Array<string>): Promise<void>
+  abstract getFlag(key: string): IFSFlag
+  abstract getFlags(): IFSFlagCollection
 
   abstract sendHit(hit: HitAbstract): Promise<void>;
   abstract sendHit(hit: IHit): Promise<void>;
-  abstract sendHit(hit: HitShape): Promise<void>;
-  abstract sendHit(hit: IHit | HitAbstract | HitShape): Promise<void>;
+  abstract sendHit(hit: IHit | HitAbstract): Promise<void>;
 
   abstract sendHits(hit: HitAbstract[]): Promise<void>;
   abstract sendHits(hit: IHit[]): Promise<void>;
-  abstract sendHits(hit: HitShape[]): Promise<void>;
-  abstract sendHits(hit: HitAbstract[] | IHit[] | HitShape[]): Promise<void>
-
-  abstract getAllModifications(activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
-
-  abstract getModificationsForCampaign(campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
-
-  abstract getAllFlagsData(activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
-
-  abstract getFlatsDataForCampaign(campaignId: string, activate: boolean): Promise<{ visitorId: string; campaigns: CampaignDTO[] }>
+  abstract sendHits(hit: HitAbstract[] | IHit[]): Promise<void>
 
   abstract authenticate(visitorId: string): void
   abstract unauthenticate(): void
 
-  abstract visitorExposed<T>(param: { key: string, flag?: FlagDTO, defaultValue: T }): Promise<void>
-  abstract getFlagValue<T>(param: { key: string, defaultValue: T, flag?: FlagDTO, userExposed?: boolean }): T
+  abstract visitorExposed (param:VisitorExposedParam): Promise<void>
+  abstract getFlagValue<T>(param:GetFlagValueParam<T>):T extends null ? unknown : T
   abstract fetchFlags(): Promise<void>
-  abstract getFlagMetadata(param: { metadata: IFlagMetadata, key?: string, hasSameType: boolean }): IFlagMetadata
+  abstract getFlagMetadata(param:GetFlagMetadataParam):IFSFlagMetadata
 }

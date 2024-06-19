@@ -11,7 +11,7 @@ import { IHttpClient } from '../utils/HttpClient.ts'
 import { errorFormat, isBrowser, logDebug, logDebugSprintf, logError, logErrorSprintf, sprintf, uuidV4 } from '../utils/utils.ts'
 import { ITrackingManagerCommon } from './ITrackingManagerCommon.ts'
 import type { BatchingCachingStrategyConstruct, SendActivate } from './types'
-import { sendFsHitToQA } from '@src/qaAssistant/messages.ts'
+import { sendFsHitToQA } from '../qaAssistant/messages.ts'
 
 export abstract class BatchingCachingStrategyAbstract implements ITrackingManagerCommon {
   protected _config : IFlagshipConfig
@@ -130,36 +130,6 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   protected async activateFlagEdgeMode (hit: Activate): Promise<void> {
     this._activatePoolQueue.set(hit.key, hit)
     await this.cacheHit(new Map<string, HitAbstract>([[hit.key, hit]]))
-  }
-
-  protected onUserExposure (activate: Activate) {
-    const onUserExposure = this.config.onUserExposure
-    if (typeof onUserExposure !== 'function') {
-      return
-    }
-
-    const flagData = {
-      metadata: {
-        campaignId: activate.flagMetadata.campaignId,
-        campaignName: activate.flagMetadata.campaignName,
-        campaignType: activate.flagMetadata.campaignType,
-        slug: activate.flagMetadata.slug,
-        isReference: activate.flagMetadata.isReference,
-        variationGroupId: activate.flagMetadata.variationGroupId,
-        variationGroupName: activate.flagMetadata.variationGroupName,
-        variationId: activate.flagMetadata.variationId,
-        variationName: activate.flagMetadata.variationName
-      },
-      key: activate.flagKey,
-      value: activate.flagValue
-    }
-
-    const visitorData = {
-      visitorId: activate.visitorId,
-      anonymousId: activate.anonymousId as string,
-      context: activate.visitorContext
-    }
-    onUserExposure({ flagData, visitorData })
   }
 
   protected onVisitorExposed (activate: Activate) {

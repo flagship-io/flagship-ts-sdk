@@ -1,5 +1,5 @@
 import { IFlagshipConfig } from '../config/index.ts'
-import { CacheStrategy, FlagshipStatus, LogLevel } from '../enum/index.ts'
+import { CacheStrategy, FSSdkStatus, LogLevel } from '../enum/index.ts'
 import {
   CUSTOMER_ENV_ID_API_ITEM,
   DS_API_ITEM,
@@ -10,7 +10,7 @@ import {
 } from '../enum/FlagshipConstant.ts'
 import { HitAbstract, IHitAbstract } from './HitAbstract.ts'
 import { BucketingDTO } from '../decision/api/bucketingDTO.ts'
-import { FlagDTO, TroubleshootingLabel, primitive } from '../types.ts'
+import { FlagDTO, SerializedFlagMetadata, TroubleshootingLabel, primitive } from '../types.ts'
 import { CampaignDTO } from '../mod.ts'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy.ts'
 
@@ -33,7 +33,7 @@ export interface IDiagnostic extends IHitAbstract{
     stackOriginName?: string
     stackOriginVersion?: string
 
-    sdkStatus?: FlagshipStatus
+    sdkStatus?: FSSdkStatus
     sdkConfigMode?: string
     sdkConfigLogLevel?:LogLevel
     sdkConfigCustomLogManager?: boolean
@@ -42,7 +42,7 @@ export interface IDiagnostic extends IHitAbstract{
     sdkConfigTimeout?: number
     sdkConfigPollingInterval?: number
     sdkConfigFetchNow?: boolean
-    sdkConfigEnableClientCache?: boolean
+    sdkConfigReuseVisitorIds?: boolean
     sdkConfigInitialBucketing?:BucketingDTO
     sdkConfigDecisionApiUrl?: string
     sdkConfigHitDeduplicationTime?: number
@@ -81,7 +81,7 @@ export interface IDiagnostic extends IHitAbstract{
     visitorCampaignFromCache?: CampaignDTO[] | null
     visitorIsAuthenticated?:boolean
     visitorInitialCampaigns?:CampaignDTO[]
-    visitorInitialFlagsData? : Map<string, FlagDTO>|FlagDTO[]
+    visitorInitialFlagsData? : SerializedFlagMetadata[]
 
     contextKey?:string
     contextValue?: unknown
@@ -125,7 +125,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
   private _stackVersion? : string
   private _stackOriginName? : string
   private _stackOriginVersion? : string
-  private _sdkStatus? : FlagshipStatus
+  private _sdkStatus? : FSSdkStatus
   private _sdkConfigMode? : string
   private _sdkConfigCustomLogManager? : boolean
   private _sdkConfigCustomCacheManager? : boolean
@@ -159,12 +159,12 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
   private _flagMetadataCampaignSlug? : string | null | undefined
   private _flagMetadataCampaignType? : string
   private _sdkConfigFetchNow? : boolean
-  private _sdkConfigEnableClientCache? : boolean
+  private _sdkConfigReuseVisitorIds? : boolean
   private _sdkConfigInitialBucketing? : BucketingDTO
   private _sdkConfigDecisionApiUrl? : string
   private _sdkConfigHitDeduplicationTime? : number
   private _visitorInitialCampaigns? : CampaignDTO[]
-  private _visitorInitialFlagsData? : Map<string, FlagDTO>|FlagDTO[]
+  private _visitorInitialFlagsData? : SerializedFlagMetadata[]
   private _visitorCampaign? : CampaignDTO[]|null
   private _httRequestTime? : number
   private _hitContent? : Record<string, unknown>
@@ -410,11 +410,11 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     this._visitorCampaign = v
   }
 
-  public get visitorInitialFlagsData () : Map<string, FlagDTO>|FlagDTO[]|undefined {
+  public get visitorInitialFlagsData () : SerializedFlagMetadata[]|undefined {
     return this._visitorInitialFlagsData
   }
 
-  public set visitorInitialFlagsData (v : Map<string, FlagDTO>|FlagDTO[]|undefined) {
+  public set visitorInitialFlagsData (v : SerializedFlagMetadata[]|undefined) {
     this._visitorInitialFlagsData = v
   }
 
@@ -450,12 +450,12 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     this._sdkConfigInitialBucketing = v
   }
 
-  public get sdkConfigEnableClientCache () : boolean|undefined {
-    return this._sdkConfigEnableClientCache
+  public get sdkConfigReuseVisitorIds () : boolean|undefined {
+    return this._sdkConfigReuseVisitorIds
   }
 
-  public set sdkConfigEnableClientCache (v : boolean|undefined) {
-    this._sdkConfigEnableClientCache = v
+  public set sdkConfigReuseVisitorIds (v : boolean|undefined) {
+    this._sdkConfigReuseVisitorIds = v
   }
 
   public get sdkConfigFetchNow () : boolean|undefined {
@@ -731,11 +731,11 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     this._sdkConfigMode = v
   }
 
-  public get sdkStatus () : FlagshipStatus|undefined {
+  public get sdkStatus () : FSSdkStatus|undefined {
     return this._sdkStatus
   }
 
-  public set sdkStatus (v : FlagshipStatus|undefined) {
+  public set sdkStatus (v : FSSdkStatus|undefined) {
     this._sdkStatus = v
   }
 
@@ -846,7 +846,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       httpRequestHeaders, httpRequestBody, httpResponseTime,
       httpResponseUrl, httpResponseMethod, httpResponseHeaders, httpResponseCode, httpResponseBody, visitorStatus, visitorInstanceType, visitorContext,
       visitorConsent, visitorAssignmentHistory, visitorFlags, visitorIsAuthenticated, config, flagKey, flagValue, flagDefault,
-      flagMetadataCampaignId, flagMetadataVariationGroupId, flagMetadataVariationId, flagMetadataCampaignSlug, flagMetadataCampaignType, sdkConfigFetchNow, sdkConfigEnableClientCache,
+      flagMetadataCampaignId, flagMetadataVariationGroupId, flagMetadataVariationId, flagMetadataCampaignSlug, flagMetadataCampaignType, sdkConfigFetchNow, sdkConfigReuseVisitorIds,
       sdkConfigInitialBucketing, sdkConfigDecisionApiUrl, sdkConfigHitDeduplicationTime, flagshipInstanceId, hitContent, traffic,
       lastInitializationTimestamp, lastBucketingTimestamp, batchTriggeredBy, visitorCampaigns, visitorCampaignFromCache, visitorInitialCampaigns,
       visitorInitialFlagsData, flagMetadataCampaignIsReference, contextKey, contextValue, sdkBucketingFile, flagMetadataCampaignName, flagMetadataVariationGroupName,
@@ -903,7 +903,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     this.sdkConfigTrackingManagerBatchIntervals = sdkConfigTrackingManagerConfigBatchIntervals
     this.sdkConfigTrackingManagerPoolMaxSize = sdkConfigTrackingManagerConfigPoolMaxSize
     this.sdkConfigFetchNow = sdkConfigFetchNow
-    this.sdkConfigEnableClientCache = sdkConfigEnableClientCache
+    this.sdkConfigReuseVisitorIds = sdkConfigReuseVisitorIds
     this.sdkConfigInitialBucketing = sdkConfigInitialBucketing
     this.sdkConfigDecisionApiUrl = sdkConfigDecisionApiUrl
     this.sdkConfigHitDeduplicationTime = sdkConfigHitDeduplicationTime
@@ -997,7 +997,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       customVariable['stack.origin.version'] = `${this.stackOriginVersion}`
     }
     if (this.sdkStatus !== undefined) {
-      customVariable['sdk.status'] = `${FlagshipStatus[this.sdkStatus]}`
+      customVariable['sdk.status'] = `${FSSdkStatus[this.sdkStatus]}`
     }
     if (this.sdkConfigLogLevel !== undefined) {
       customVariable['sdk.config.logLevel'] = `${LogLevel[this.sdkConfigLogLevel]}`
@@ -1032,8 +1032,8 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     if (this.sdkConfigFetchNow !== undefined) {
       customVariable['sdk.config.fetchNow'] = `${this.sdkConfigFetchNow}`
     }
-    if (this.sdkConfigEnableClientCache !== undefined) {
-      customVariable['sdk.config.enableClientCache'] = `${this.sdkConfigEnableClientCache}`
+    if (this.sdkConfigReuseVisitorIds !== undefined) {
+      customVariable['sdk.config.reuseVisitorIds'] = `${this.sdkConfigReuseVisitorIds}`
     }
     if (this.sdkConfigInitialBucketing !== undefined) {
       customVariable['sdk.config.initialBucketing'] = JSON.stringify(this.sdkConfigInitialBucketing)

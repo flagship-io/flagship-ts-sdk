@@ -1,22 +1,12 @@
 import { CampaignDTO, IHit } from '../types.ts'
-import { FLAG_USER_EXPOSED, METHOD_DEACTIVATED_CONSENT_ERROR } from '../enum/index.ts'
-import { HitAbstract, HitShape } from '../hit/index.ts'
+import { FLAG_VISITOR_EXPOSED, METHOD_DEACTIVATED_CONSENT_ERROR } from '../enum/index.ts'
+import { HitAbstract } from '../hit/index.ts'
 import { logInfo, sprintf } from '../utils/utils.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
 import { BatchDTO } from '../hit/Batch.ts'
 import { Troubleshooting } from '../hit/Troubleshooting.ts'
 
 export class NoConsentStrategy extends DefaultStrategy {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async activateModification (_params: string): Promise<void> {
-    this.log('activateModification')
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async activateModifications (_params: string[] | { key: string }[]): Promise<void> {
-    this.log('activateModifications')
-  }
-
   async lookupHits (): Promise<void> {
     //
   }
@@ -38,24 +28,22 @@ export class NoConsentStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  sendHit (_hit: HitAbstract | IHit| HitShape| BatchDTO): Promise<void> {
+  async sendHit (_hit: HitAbstract | IHit| BatchDTO): Promise<void> {
     this.log('sendHit')
-    return Promise.resolve()
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  sendHits (_hits: HitAbstract[] | IHit[] | HitShape[]|BatchDTO[]): Promise<void> {
+  async sendHits (_hits: HitAbstract[] | IHit[] |BatchDTO[]): Promise<void> {
     this.log('sendHits')
-    return Promise.resolve()
   }
 
   async visitorExposed (): Promise<void> {
-    this.log(FLAG_USER_EXPOSED)
+    this.log(FLAG_VISITOR_EXPOSED)
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public sendTroubleshootingHit (_hit: Troubleshooting): Promise<void> {
-    return Promise.resolve()
+  public async sendTroubleshootingHit (_hit: Troubleshooting): Promise<void> {
+    //
   }
 
   private log (methodName:string) {

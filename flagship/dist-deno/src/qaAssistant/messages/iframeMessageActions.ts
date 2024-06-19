@@ -13,11 +13,15 @@ export function onQaAssistantReady () {
   }
 }
 
-export function render () {
+export function render (forcedReFetchFlags = false) {
   if (SDK_INFO.name === 'TypeScript') {
     document.location.reload()
   }
-  const triggerRenderEvent = new CustomEvent(INTERNAL_EVENTS.FsTriggerRendering)
+  const triggerRenderEvent = new CustomEvent<{ forcedReFetchFlags: boolean }>(INTERNAL_EVENTS.FsTriggerRendering, {
+    detail: {
+      forcedReFetchFlags
+    }
+  })
   window.dispatchEvent(triggerRenderEvent)
 }
 
@@ -42,6 +46,7 @@ export function onApplyForcedVariations ({ value }:{ value:Record<string, FsVari
   try {
     forcedVariations = JSON.parse(sessionForcedVariations || '{}')
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error parsing sessionForcedVariations', error)
   }
   forcedVariations = { ...forcedVariations, ...value }

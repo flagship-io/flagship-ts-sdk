@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { FLAGSHIP_SDK, LogLevel } from '../enum/index.ts'
 
 export interface IFlagshipLogManager {

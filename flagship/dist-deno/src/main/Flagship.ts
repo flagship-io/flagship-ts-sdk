@@ -2,13 +2,13 @@ import { IBucketingConfig } from '../config/IBucketingConfig.ts'
 import { IDecisionApiConfig } from '../config/IDecisionApiConfig.ts'
 import { IEdgeConfig } from '../config/IEdgeConfig.ts'
 import { Visitor } from '../visitor/Visitor.ts'
-import { FlagshipStatus } from '../enum/FlagshipStatus.ts'
+import { FSSdkStatus } from '../enum/FSSdkStatus.ts'
 import { DecisionMode, FlagshipConfig, type IFlagshipConfig, BucketingConfig, DecisionApiConfig } from '../config/index.ts'
 import { ConfigManager, IConfigManager } from '../config/ConfigManager.ts'
 import { ApiManager } from '../decision/ApiManager.ts'
 import { TrackingManager } from '../api/TrackingManager.ts'
 import { FlagshipLogManager } from '../utils/FlagshipLogManager.ts'
-import { isBrowser, logDebugSprintf, logError, logInfo, logInfoSprintf, sprintf, uuidV4 } from '../utils/utils.ts'
+import { isBrowser, logDebugSprintf, logError, logInfo, logInfoSprintf, logWarning, sprintf, uuidV4 } from '../utils/utils.ts'
 import {
   INITIALIZATION_PARAM_ERROR,
   INITIALIZATION_STARTING,
@@ -19,7 +19,8 @@ import {
   SDK_STARTED_INFO,
   PROCESS_SDK_STATUS,
   SDK_STATUS_CHANGED,
-  SAVE_VISITOR_INSTANCE
+  SAVE_VISITOR_INSTANCE,
+  CONSENT_NOT_SPECIFY_WARNING
 } from '../enum/index.ts'
 import { VisitorDelegate } from '../visitor/VisitorDelegate.ts'
 
@@ -27,7 +28,7 @@ import { BucketingManager } from '../decision/BucketingManager.ts'
 import { MurmurHash } from '../utils/MurmurHash.ts'
 import { DecisionManager } from '../decision/DecisionManager.ts'
 import { HttpClient } from '../utils/HttpClient.ts'
-import { CampaignDTO, FlagDTO, NewVisitor, primitive } from '../types.ts'
+import { NewVisitor } from '../types.ts'
 import { DefaultHitCache } from '../cache/DefaultHitCache.ts'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache.ts'
 import { EdgeManager } from '../decision/EdgeManager.ts'
@@ -35,12 +36,15 @@ import { EdgeConfig } from '../config/EdgeConfig.ts'
 import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 import { launchQaAssistant } from '../qaAssistant/index.ts'
 
+/**
+ * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
+ */
 export class Flagship {
   // eslint-disable-next-line no-use-before-define
   private static _instance: Flagship
   private _configManager!: IConfigManager
   private _config!: IFlagshipConfig
-  private _status!: FlagshipStatus
+  private _status!: FSSdkStatus
   private _visitorInstance?: Visitor
   private instanceId:string
   private lastInitializationTimestamp!: string
@@ -53,10 +57,9 @@ export class Flagship {
     return this._configManager
   }
 
-  // eslint-disable-next-line no-useless-constructor
   private constructor () {
     this.instanceId = uuidV4()
-    // singleton
+    this._status = FSSdkStatus.SDK_NOT_INITIALIZED
   }
 
   protected static getInstance (): Flagship {
@@ -66,7 +69,7 @@ export class Flagship {
     return this._instance
   }
 
-  protected setStatus (status: FlagshipStatus): void {
+  protected setStatus (status: FSSdkStatus): void {
     if (this._status === status) {
       return
     }
@@ -74,15 +77,15 @@ export class Flagship {
     this._status = status
     VisitorAbstract.SdkStatus = status
 
-    const statusChanged = this.getConfig()?.statusChangedCallback
+    const statusChanged = this.getConfig()?.onSdkStatusChanged
 
-    logInfoSprintf(this._config, PROCESS_SDK_STATUS, SDK_STATUS_CHANGED, FlagshipStatus[status])
+    logInfoSprintf(this._config, PROCESS_SDK_STATUS, SDK_STATUS_CHANGED, FSSdkStatus[status])
 
     if (this.getConfig().decisionMode !== DecisionMode.BUCKETING_EDGE) {
-      if (status === FlagshipStatus.READY) {
+      if (status === FSSdkStatus.SDK_INITIALIZED) {
         this.configManager?.trackingManager?.startBatchingLoop()
       }
-      if (status === FlagshipStatus.NOT_INITIALIZED) {
+      if (status === FSSdkStatus.SDK_NOT_INITIALIZED) {
         this.configManager?.trackingManager?.stopBatchingLoop()
       }
     }
@@ -95,14 +98,14 @@ export class Flagship {
   /**
    * Return current status of Flagship SDK.
    */
-  public static getStatus (): FlagshipStatus {
+  public static getStatus (): FSSdkStatus {
     return this.getInstance()._status
   }
 
   /**
    * Return current status of Flagship SDK.
    */
-  public getStatus (): FlagshipStatus {
+  public getStatus (): FSSdkStatus {
     return this._status
   }
 
@@ -152,7 +155,7 @@ export class Flagship {
 
   private buildDecisionManager (flagship: Flagship, config: FlagshipConfig, httpClient: HttpClient): DecisionManager {
     let decisionManager: DecisionManager
-    const setStatus = (status: FlagshipStatus) => {
+    const setStatus = (status: FSSdkStatus) => {
       flagship.setStatus(status)
     }
 
@@ -198,27 +201,23 @@ export class Flagship {
 
     flagship._config = localConfig
 
-    flagship.setStatus(FlagshipStatus.STARTING)
-
     // check custom logger
     if (!localConfig.onLog && !localConfig.logManager) {
       localConfig.logManager = new FlagshipLogManager()
     }
 
     if (!envId || !apiKey) {
-      flagship.setStatus(FlagshipStatus.NOT_INITIALIZED)
+      flagship.setStatus(FSSdkStatus.SDK_NOT_INITIALIZED)
       logError(localConfig, INITIALIZATION_PARAM_ERROR, PROCESS_INITIALIZATION)
       return flagship
     }
 
     logDebugSprintf(localConfig, PROCESS_INITIALIZATION, INITIALIZATION_STARTING, SDK_INFO.version, localConfig.decisionMode, localConfig)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (!localConfig.hitCacheImplementation && isBrowser()) {
       localConfig.hitCacheImplementation = new DefaultHitCache()
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (!localConfig.visitorCacheImplementation && isBrowser()) {
       localConfig.visitorCacheImplementation = new DefaultVisitorCache()
     }
@@ -248,13 +247,13 @@ export class Flagship {
     flagship.configManager.decisionManager.trackingManager = trackingManager
     flagship.configManager.decisionManager.flagshipInstanceId = flagship.instanceId
 
-    if (flagship._status === FlagshipStatus.STARTING) {
-      flagship.setStatus(FlagshipStatus.READY)
+    if (flagship._status !== FSSdkStatus.SDK_INITIALIZING) {
+      flagship.setStatus(FSSdkStatus.SDK_INITIALIZED)
     }
 
     logInfo(
       localConfig,
-      sprintf(SDK_STARTED_INFO, SDK_INFO.version, FlagshipStatus[flagship._status]),
+      sprintf(SDK_STARTED_INFO, SDK_INFO.version, FSSdkStatus[flagship._status]),
       PROCESS_INITIALIZATION
     )
 
@@ -280,55 +279,23 @@ export class Flagship {
   }
 
   /**
-   * Create a new visitor with a context.
-   * @param {string} visitorId : Unique visitor identifier.
-   * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
-   * @returns {Visitor} a new visitor instance
+   * Creates a new Visitor instance.
+   *
+   * @param params - The parameters for creating the new Visitor.
+   * @returns A new Visitor instance.
    */
-  public newVisitor(visitorId?: string | null, context?: Record<string, primitive>): Visitor
-  public newVisitor(params?: NewVisitor): Visitor
-  public newVisitor (param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor {
-    return Flagship.newVisitor(param1, param2)
+  public newVisitor (params: NewVisitor) {
+    return Flagship.newVisitor(params)
   }
 
   /**
-   * Create a new visitor with a context.
-   * @param {string} visitorId : Unique visitor identifier.
-   * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
-   * @returns {Visitor} a new visitor instance
+   * Creates a new Visitor instance.
+   *
+   * @param params - The parameters for creating the new Visitor.
+   * @returns A new Visitor instance.
    */
-  public static newVisitor(visitorId?: string | null, context?: Record<string, primitive>): Visitor
-  /**
-   * Create a new visitor with a context.
-   * @param {string} visitorId : Unique visitor identifier.
-   * @param {Record<string, primitive>} context : visitor context. e.g: { isVip: true, country: "UK" }.
-   * @returns {Visitor} a new visitor instance
-   */
-  public static newVisitor(params?: NewVisitor): Visitor
-  public static newVisitor(param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor
-  // eslint-disable-next-line complexity
-  public static newVisitor (param1?: NewVisitor | string | null, param2?: Record<string, primitive>): Visitor {
-    let visitorId: string | undefined
-    let context: Record<string, primitive>
-    let isAuthenticated = false
-    let hasConsented = true
-    let initialFlagsData: Map<string, FlagDTO> | FlagDTO[] | undefined
-    let initialCampaigns: CampaignDTO[] | undefined
-    const isServerSide = !isBrowser()
-    let isNewInstance = isServerSide
-
-    if (typeof param1 === 'string' || param1 === null) {
-      visitorId = param1 || undefined
-      context = param2 || {}
-    } else {
-      visitorId = param1?.visitorId
-      context = param1?.context || {}
-      isAuthenticated = !!param1?.isAuthenticated
-      hasConsented = param1?.hasConsented ?? true
-      initialFlagsData = param1?.initialFlagsData || param1?.initialModifications
-      initialCampaigns = param1?.initialCampaigns
-      isNewInstance = param1?.isNewInstance ?? isNewInstance
-    }
+  public static newVisitor ({ visitorId, context, isAuthenticated, hasConsented, initialCampaigns, initialFlagsData, shouldSaveInstance, onFetchFlagsStatusChanged }: NewVisitor) {
+    const saveInstance = shouldSaveInstance ?? isBrowser()
 
     if (!this._instance?.configManager) {
       const flagship = this.getInstance()
@@ -349,15 +316,19 @@ export class Flagship {
       logError(this.getConfig(), NEW_VISITOR_NOT_READY, PROCESS_NEW_VISITOR)
     }
 
+    if (hasConsented === undefined) {
+      logWarning(this.getConfig(), CONSENT_NOT_SPECIFY_WARNING, PROCESS_NEW_VISITOR)
+    }
+
     const visitorDelegate = new VisitorDelegate({
       visitorId,
-      context,
-      isAuthenticated,
-      hasConsented,
+      context: context || {},
+      isAuthenticated: isAuthenticated ?? false,
+      hasConsented: hasConsented ?? false,
       configManager: this.getInstance().configManager,
-      initialModifications: initialFlagsData,
       initialCampaigns,
       initialFlagsData,
+      onFetchFlagsStatusChanged,
       monitoringData: {
         instanceId: this.getInstance().instanceId,
         lastInitializationTimestamp: this.getInstance().lastInitializationTimestamp,
@@ -368,8 +339,8 @@ export class Flagship {
 
     const visitor = new Visitor(visitorDelegate)
 
-    this.getInstance()._visitorInstance = !isNewInstance ? visitor : undefined
-    if (!isNewInstance) {
+    this.getInstance()._visitorInstance = saveInstance ? visitor : undefined
+    if (saveInstance) {
       logDebugSprintf(this.getConfig(), PROCESS_NEW_VISITOR, SAVE_VISITOR_INSTANCE, visitor.visitorId)
     }
 

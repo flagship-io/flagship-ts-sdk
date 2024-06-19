@@ -1,5 +1,5 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig.ts'
-import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, QA_ASSISTANT_URL } from '../enum/FlagshipConstant.ts'
+import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, QA_ASSISTANT_PROD_URL } from '../enum/FlagshipConstant.ts'
 import { FsVariationToForce } from '../types.ts'
 import { logInfoSprintf } from '../utils/utils.ts'
 import { appendScript } from './appendScript.ts'
@@ -11,7 +11,7 @@ import { EventDataFromIframe } from './type.ts'
  * @param config
  * @returns
  */
-export function loadQaAssistant (config: IFlagshipConfig): void {
+export function loadQaAssistant (config: IFlagshipConfig, bundleUrl:string|null = null): void {
   if (window?.frames?.ABTastyQaAssistant) {
     return
   }
@@ -21,6 +21,7 @@ export function loadQaAssistant (config: IFlagshipConfig): void {
   try {
     forcedVariations = JSON.parse(sessionForcedVariations || '{}')
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error parsing sessionForcedVariations', error)
   }
 
@@ -36,8 +37,8 @@ export function loadQaAssistant (config: IFlagshipConfig): void {
   window.addEventListener('message', eventListenerMessage)
 
   logInfoSprintf(config, 'QA assistant', 'Loading QA Assistant')
-  //   const bundleFileUrl = 'https://127.0.0.1/bundle.js'
-  appendScript(QA_ASSISTANT_URL)
+
+  appendScript(bundleUrl || QA_ASSISTANT_PROD_URL)
 
   config.isQAModeEnabled = true
   sessionStorage.setItem(FS_IS_QA_MODE_ENABLED, 'true')

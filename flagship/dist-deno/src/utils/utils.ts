@@ -1,5 +1,5 @@
 import { type IFlagshipConfig } from '../config/IFlagshipConfig.ts'
-import { FlagSynchStatus } from '../enum/FlagSynchStatus.ts'
+import { FSFetchReasons } from '../enum/FSFetchReasons.ts'
 import { LogLevel, VISITOR_SYNC_FLAGS_MESSAGE } from '../enum/index.ts'
 
 /**
@@ -146,20 +146,26 @@ export function errorFormat (message:string, errorData?:Record<string, unknown>)
   })
 }
 
-export function visitorFlagSyncStatusMessage (status: FlagSynchStatus) {
+export function visitorFlagSyncStatusMessage (reason: FSFetchReasons) {
   let message = ''
-  switch (status) {
-    case FlagSynchStatus.CREATED:
+  switch (reason) {
+    case FSFetchReasons.VISITOR_CREATED:
       message = `Visitor \`{0}\` has been created ${VISITOR_SYNC_FLAGS_MESSAGE}`
       break
-    case FlagSynchStatus.CONTEXT_UPDATED:
+    case FSFetchReasons.UPDATE_CONTEXT:
       message = `Visitor context for visitor \`{0}\` has been updated ${VISITOR_SYNC_FLAGS_MESSAGE}`
       break
-    case FlagSynchStatus.AUTHENTICATED:
+    case FSFetchReasons.AUTHENTICATE:
       message = `Visitor \`{0}\` has been authenticated ${VISITOR_SYNC_FLAGS_MESSAGE}`
       break
-    case FlagSynchStatus.UNAUTHENTICATED :
+    case FSFetchReasons.UNAUTHENTICATE :
       message = `Visitor \`{0}\` has been unauthenticated ${VISITOR_SYNC_FLAGS_MESSAGE}`
+      break
+    case FSFetchReasons.FETCH_ERROR:
+      message = 'There was an error while fetching flags for visitor `{0}`. So the value of the flag `{1}` may be outdated"'
+      break
+    case FSFetchReasons.READ_FROM_CACHE:
+      message = 'Flags for visitor `{0}` have been fetched from cache'
       break
     default:
       break
@@ -167,46 +173,37 @@ export function visitorFlagSyncStatusMessage (status: FlagSynchStatus) {
   return message
 }
 
-// export function forceVariation (arg:{flagDTO?:FlagDTO, visitor: VisitorAbstract}): FlagDTO|null {
-//   const { flagDTO, visitor } = arg
-//   if (!flagDTO) {
-//     return null
-//   }
-//   if (!visitor.config.isQAModeEnabled || !visitor.forcedVariations) {
-//     return null
-//   }
-//   const forcedVariation = visitor.forcedVariations.find(x => x.campaignId === flagDTO?.campaignId)
-//   if (!forcedVariation) {
-//     return null
-//   }
-//   const bucketingContent = visitor.configManager.decisionManager.getBucketingContent()
-//   if (!bucketingContent) {
-//     return null
-//   }
-//   const campaign = bucketingContent.campaigns?.find(x => x.id === forcedVariation.campaignId)
-//   if (!campaign) {
-//     return null
-//   }
-//   const variationGroup = campaign.variationGroups.find(x => x.id === forcedVariation.variationGroupId)
-//   if (!variationGroup) {
-//     return null
-//   }
-//   const variation = variationGroup.variations.find(x => x.id === forcedVariation.variationId)
-//   if (!variation) {
-//     return null
-//   }
-//   return {
-//     key: flagDTO.key,
-//     campaignId: campaign.id,
-//     campaignName: campaign.name || '',
-//     variationGroupId: variationGroup.id,
-//     variationGroupName: variationGroup.name || '',
-//     variationId: variation.id,
-//     variationName: variation.name || '',
-//     isReference: !!variation.reference,
-//     campaignType: campaign.type,
-//     slug: campaign.slug,
-//     value: variation.modifications.value[flagDTO.key],
-//     originalVariationId: forcedVariation.originalVariationId
-//   }
-// }
+export function valueToHex (value: { v: unknown }): string {
+  const jsonString = JSON.stringify(value)
+  const hex = Array.from(jsonString, char => char.charCodeAt(0).toString(16)).join('')
+  return hex
+}
+
+export function hexToValue (hex: string, config: IFlagshipConfig): {v: unknown} | null {
+  if (typeof hex !== 'string') {
+    logErrorSprintf(config, 'hexToValue', 'Invalid hex string: {0}', hex)
+    return null
+  }
+
+  let jsonString = ''
+
+  for (let i = 0; i < hex.length; i += 2) {
+    const hexChar = hex.slice(i, i + 2)
+    const charCode = parseInt(hexChar, 16)
+
+    if (isNaN(charCode)) {
+      logErrorSprintf(config, 'hexToValue', 'Invalid hex character: {0}', hexChar)
+      return null
+    }
+
+    jsonString += String.fromCharCode(charCode)
+  }
+
+  try {
+    const value: {v: unknown} = JSON.parse(jsonString)
+    return value
+  } catch (error) {
+    logErrorSprintf(config, 'hexToValue', 'Error while parsing JSON: {0}', error)
+    return null
+  }
+}
