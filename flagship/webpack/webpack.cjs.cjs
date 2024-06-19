@@ -62,6 +62,7 @@ module.exports = merge(common(), {
     nodeExternals({
       allowlist: [
         /core-js\/modules\/es/,
+        /core-js\/modules\/web/,
         /@babel\/runtime/
       ]
     })
