@@ -1,6 +1,7 @@
-import { CampaignDTO } from './decision/api/models'
+import { FSFetchReasons } from './enum/FSFetchReasons'
+import { FSFetchStatus } from './enum/FSFetchStatus'
 import { HitType } from './enum/index'
-import { IEvent, IItem, IPage, IScreen, ITransaction, HitShape, IHitAbstract } from './hit/index'
+import { IEvent, IItem, IPage, IScreen, ITransaction, IHitAbstract } from './hit/index'
 
 export type modificationsRequested<T> = {
     key: string,
@@ -10,7 +11,43 @@ export type modificationsRequested<T> = {
 
 export type primitive=string | number | boolean
 
-export type { HitShape }
+export type ModificationsDTO = {
+  type: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  value:any;
+}
+
+export type VariationDTO = {
+  id: string
+  name?: string
+  reference?:boolean;
+  modifications: ModificationsDTO
+}
+
+export type CampaignDTO = {
+  id:string
+  name?: string
+  slug?:string|null
+  variationGroupId: string;
+  variationGroupName?: string
+  variation: VariationDTO;
+  type?: string
+}
+
+export type ForcedVariation = {
+  campaignId: string,
+  variationGroupId: string
+  variationId: string
+  originalVariationId?: string;
+}
+
+export type ExposedVariation = {
+  campaignId: string;
+  variationGroupId: string;
+  variationId: string;
+  originalVariationId: string
+};
+
 export type IHit = Omit<IPage, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IScreen, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IEvent, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IItem, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<ITransaction, 'createdAt'|'visitorId'|'anonymousId'|'ds'>
 
 export type FlagDTO= {
@@ -24,43 +61,98 @@ export type FlagDTO= {
   isReference?: boolean;
   campaignType?: string;
   slug?:string|null;
+  originalVariationId?:string
  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
 }
 
-/**
- * @deprecated use FlagDTO instead
- */
-export type Modification= FlagDTO
-
-export type NewVisitor={
-  /**
-   * Unique visitor identifier.
-   */
-  visitorId?:string
-  isAuthenticated?: boolean
-  /**
-   * visitor context
-   */
-  context?: Record<string, primitive>
-  hasConsented?:boolean,
-
-   initialCampaigns?: CampaignDTO[]
-   /**
-    * @deprecated use initialFlags instead
-    */
-   initialModifications?: Map<string, Modification>|Modification[]
-   initialFlagsData?: Map<string, FlagDTO>|FlagDTO[]
-
-   /**
-    * If true The newly created visitor instance won't be saved and will simply be returned otherwise
-    * the  newly created visitor instance will be returned and saved into the Flagship
-    *
-    * Note: will be default true on server-side and false on client-side
-    */
-   isNewInstance?:boolean
-
+export type SerializedFlagMetadata = {
+  key: string
+  campaignId: string
+  campaignName: string
+  variationGroupId: string
+  variationGroupName: string
+  variationId: string
+  variationName: string
+  isReference?: boolean
+  campaignType?: string
+  slug?:string|null
+  hex: string
 }
+
+/**
+ * Represents the status of visitor fetch for flag data.
+ */
+export type FetchFlagsStatus = {
+  /**
+   * The new status of the flags fetch.
+   */
+  status: FSFetchStatus;
+  /**
+   * The reason for the status change.
+   */
+  reason: FSFetchReasons;
+};
+
+/**
+ * Represents a new visitor.
+ */
+/**
+ * Represents a new visitor.
+ */
+export type NewVisitor = {
+  /**
+   * Optional - Unique visitor identifier.
+   *
+   * Note: If not set, it will be generated automatically.
+   * In client-side, if not specified, the id will either be automatically generated or will be the visitor id from the previous session (if `reuseVisitorIds` is set to true).
+   */
+  visitorId?: string;
+
+  /**
+   * Specifies if the visitor is authenticated or anonymous for experience continuity.
+   */
+  isAuthenticated?: boolean;
+
+  /**
+   * The visitor context is a dataset key/value that defines the current visitor.
+   * It is sent to Flagship for targeting purposes (use-case assignment) and to enrich reporting with Context Filters.
+   * Context keys must be strings, and the value types must be one of the following: number, boolean, or string.
+   */
+  context?: Record<string, primitive>;
+
+  /**
+   * Required - Specifies if the visitor has consented for personal data usage.
+   * When set to false, some features will be deactivated and the cache will be deactivated and cleared.
+   */
+  hasConsented: boolean;
+
+  /**
+   * An object containing the data received when fetching the Flagship decision API (decisionMode="API").
+   * Providing this property avoids the SDK from having an empty cache during first initialization.
+   */
+  initialCampaigns?: CampaignDTO[];
+
+  /**
+   * A set of flag data provided to avoid the SDK from having an empty cache during the first initialization.
+   */
+  initialFlagsData?: SerializedFlagMetadata[];
+
+  /**
+   * If true, the newly created visitor instance will be returned and saved into Flagship.
+   * Otherwise,  the newly created visitor instance won't be saved and will simply be returned.
+   * By default, it is false on server-side and true on client-side.
+   */
+  shouldSaveInstance?: boolean;
+
+  /**
+   * Callback function that will be called when the fetch flags status changes.
+   *
+   * @param newStatus - The new status of the flags fetch.
+   * @param reason - The reason for the status change.
+   */
+  onFetchFlagsStatusChanged?: ({ status, reason }: FetchFlagsStatus) => void;
+};
 
 export type InternalHitType = HitType|'BATCH'|'ACTIVATE'|'MONITORING'|'SEGMENT'|'TROUBLESHOOTING'|'USAGE'
 
@@ -96,7 +188,7 @@ export type VisitorCacheDTO = {
 }
 }
 
-export interface IFlagMetadata{
+export interface IFSFlagMetadata{
   campaignId:string
   campaignName:string
   variationGroupId:string
@@ -112,7 +204,7 @@ export interface IExposedFlag {
   key: string
   value: unknown
   defaultValue: unknown
-  metadata: IFlagMetadata
+  metadata: IFSFlagMetadata
 }
 
 export interface IExposedVisitor{
@@ -126,19 +218,6 @@ export type OnVisitorExposed ={
   fromFlag: IExposedFlag
 }
 
-export type UserExposureInfo = {
-  flagData: {
-    key: string
-    value: unknown
-    metadata: IFlagMetadata
-  },
-  visitorData: {
-    visitorId: string
-    anonymousId: string|null
-    context: Record<string, primitive>
-  }
- }
-
 export type TroubleshootingData = {
   startDate: Date
   endDate: Date
@@ -150,7 +229,7 @@ export type sdkInitialData = {
   instanceId: string,
   lastInitializationTimestamp: string
   initialCampaigns?: CampaignDTO[]
-  initialFlagsData?: Map<string, FlagDTO> | FlagDTO[],
+  initialFlagsData?: SerializedFlagMetadata[],
   usingCustomHitCache?: boolean,
   usingCustomVisitorCache?: boolean
 }
@@ -162,6 +241,7 @@ export enum TroubleshootingLabel {
   VISITOR_AUTHENTICATE = 'VISITOR_AUTHENTICATE',
   VISITOR_UNAUTHENTICATE = 'VISITOR_UNAUTHENTICATE',
   VISITOR_EXPOSED_FLAG_NOT_FOUND = 'VISITOR_EXPOSED_FLAG_NOT_FOUND',
+  FLAG_VALUE_NOT_CALLED = 'FLAG_VALUE_NOT_CALLED',
   GET_FLAG_VALUE_FLAG_NOT_FOUND = 'GET_FLAG_VALUE_FLAG_NOT_FOUND',
   GET_FLAG_METADATA_TYPE_WARNING = 'GET_FLAG_METADATA_TYPE_WARNING',
   GET_FLAG_VALUE_TYPE_WARNING = 'GET_FLAG_VALUE_TYPE_WARNING',
@@ -185,4 +265,31 @@ export type ThirdPartySegment = {
   partner: string
 }
 
-export type VisitorCacheStatus = 'NONE'|'ANONYMOUS_ID_CACHE'|'VISITOR_ID_CACHE'|'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE';
+export enum VisitorCacheStatus {
+  NONE = 'NONE',
+  ANONYMOUS_ID_CACHE = 'ANONYMOUS_ID_CACHE',
+  VISITOR_ID_CACHE = 'VISITOR_ID_CACHE',
+  VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE = 'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE'
+}
+export type onFsForcedVariationsType = (arg: {forcedVariations:ForcedVariation[]}) => void
+
+export type VisitorVariations = {
+  variationId: string,
+  variationGroupId: string,
+  campaignId: string
+}
+
+export type FsVariationToForce = {
+  campaignId: string;
+  campaignName: string;
+  campaignType: string;
+  CampaignSlug?: string | null;
+  variationGroupId: string;
+  variationGroupName?: string;
+  variation: VariationDTO;
+};
+
+export type SdkInfoType= {
+  name: 'ReactJS'|'React-Native'|'Deno'|'TypeScript';
+  version: string;
+}

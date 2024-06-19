@@ -1,10 +1,11 @@
 import { version } from '../sdkVersion'
+import { SdkInfoType } from '../types'
 
 /**
  * SDK language
  */
 
-export const SDK_INFO = {
+export const SDK_INFO:SdkInfoType = {
   name: 'TypeScript',
   version
 }
@@ -17,7 +18,7 @@ export const REQUEST_TIME_OUT = 2
 export const FETCH_FLAG_BUFFERING_DEFAULT_TIME = 2
 
 export const DEFAULT_DEDUPLICATION_TIME = 2.5
-export const DEFAULT_POLLING_INTERVAL = 1
+export const DEFAULT_POLLING_INTERVAL = 5
 
 export const DEFAULT_SERVER_TIME_INTERVAL = 10
 export const DEFAULT_SERVER_POOL_MAX_SIZE = 100
@@ -43,11 +44,27 @@ export const THIRD_PARTY_SEGMENT_URL = 'https://api-data-connector.flagship.io/a
 export const HIT_CONSENT_URL = 'https://ariane.abtasty.com'
 export const URL_CAMPAIGNS = '/campaigns'
 export const URL_ACTIVATE_MODIFICATION = 'activate'
+export const QA_ASSISTANT_PROD_URL = 'https://qa-assistant.flagship.io/bundle.js'
+export const QA_ASSISTANT_STAGING_URL = 'https://staging-qa-assistant.flagship.io/bundle.js'
+export const QA_ASSISTANT_LOCAL_URL = 'https://local-qa-assistant.flagship.io/bundle.js'
+export const FS_QA_ASSISTANT = 'fs_qa_assistant'
+export const FS_QA_ASSISTANT_STAGING = 'fs_qa_assistant_staging'
+export const FS_QA_ASSISTANT_LOCAL = 'fs_qa_assistant_local'
+export const TAG_QA_ASSISTANT = 'abtasty_qa_assistant'
+export const TAG_QA_ASSISTANT_STAGING = 'abtasty_qa_assistant_staging'
+export const TAG_QA_ASSISTANT_LOCAL = 'abtasty_qa_assistant_local'
+
+export const TAG_QA_URL = 'qa-assistant.abtasty.com'
+export const FS_QA_URL = 'qa-assistant.flagship.io'
 
 export const EXPOSE_ALL_KEYS = 'exposeAllKeys'
 export const SEND_CONTEXT_EVENT = 'sendContextEvent'
 
 export const FS_CONSENT = 'fs_consent'
+
+export const FS_IS_QA_MODE_ENABLED = 'FS_IS_QA_MODE_ENABLED'
+export const FS_FORCED_VARIATIONS = 'FS_FORCED_VARIATIONS'
+export const FS_QA_ASSISTANT_SCRIPT_TAG_ID = 'FS_QA_ASSISTANT_SCRIPT_TAG_ID'
 
 /**
  * SDK version
@@ -127,7 +144,7 @@ export const SEND_SEGMENT_HIT = 'SEND SEGMENT HIT'
 export const SEND_HIT = 'SEND HIT'
 export const EVENT_SUFFIX = 'events'
 export const FETCH_FLAGS_BUFFERING_MESSAGE = 'Visitor {0}, fetchFlags has been ignored and will continue to be ignored for the next {1}ms, this delay can be changed with `fetchFlagsBufferingTime` option in the SDK config'
-export const VISITOR_SYNC_FLAGS_MESSAGE = 'without calling `fetchFlags` method afterwards, the value of the flag `{1}` may be outdated'
+export const VISITOR_SYNC_FLAGS_MESSAGE = 'without calling `fetchFlags` method afterwards. So, the value of the flag `{1}` might be outdated'
 
 export const NEW_VISITOR_NOT_READY = `You can't create a new visitor without first calling the "Flagship.start" method.
 Learn more: ${JS_DOC_URL}#initialization
@@ -238,18 +255,20 @@ export const FETCH_FLAGS_FROM_CAMPAIGNS = 'Visitor {0}, anonymousId {1} with con
 export const FETCH_FLAGS_STARTED = 'visitor `{0}` fetchFlags process is started'
 export const FETCH_FLAGS_PANIC_MODE = 'Panic mode is enabled : all feature are disabled except fetchFlags.'
 export const PROCESS_FETCHING_FLAGS = 'FETCH_FLAGS'
-export const GET_FLAG_MISSING_ERROR = 'Visitor {0}, No Flags found for key {1} : Default value is returned {2}'
+export const GET_FLAG_MISSING_ERROR = 'For the visitor "{0}", no flags were found with the key "{1}". Therefore, the default value "{2}" has been returned.'
+export const GET_FLAG_NOT_FOUND = 'For the visitor "{0}", no flags were found with the key "{1}". Therefore, an empty flag has been returned.'
 export const FETCH_FLAGS_MISSING = 'Visitor {0} has {1} without calling fetchFlags method, '
 export const FLAG_VALUE = 'FLAG_VALUE'
 export const GET_FLAG = 'GET_FLAG'
-export const GET_FLAG_CAST_ERROR = 'Visitor {0}, Flag for key {1} has a different type with default value : Default value is returned {2}'
+export const GET_FLAG_CAST_ERROR = 'For the visitor "{0}", the flag with key "{1}" has a different type compared to the default value. Therefore, the default value "{2}" has been returned.'
 export const GET_FLAG_VALUE = 'Visitor {0}, Flag for key {1} returns value {2}'
-export const USER_EXPOSED_FLAG_ERROR = 'Visitor {0}, No Flags found for key {1}: User exposition wont be sent'
-export const FLAG_USER_EXPOSED = 'FLAG_USER_EXPOSED'
-export const USER_EXPOSED_CAST_ERROR = 'Visitor {0}, Flag for key {1} has a different type with default value: User exposition wont be sent'
+export const USER_EXPOSED_FLAG_ERROR = 'For the visitor "{0}", no flags were found with the key "{1}". As a result, user exposure will not be sent.'
+export const VISITOR_EXPOSED_VALUE_NOT_CALLED = 'Visitor "{0}", the flag with the key "{1}" has been exposed without calling the `getValue` method first.'
+export const FLAG_VISITOR_EXPOSED = 'FLAG_VISITOR_EXPOSED'
+export const USER_EXPOSED_CAST_ERROR = 'For the visitor "{0}", the flag with key "{1}" has been exposed despite having a different type compared to the default value'
 export const GET_METADATA_CAST_ERROR = 'Visitor {0}, Flag for key {1} has a different type with default value: Empty metadata object is returned {2}'
 export const FLAG_METADATA = 'FLAG_METADATA'
-export const NO_FLAG_METADATA = 'Visitor {0}, No Flags found for key {1}:  Empty metadata object is returned {2}'
+export const NO_FLAG_METADATA = 'Visitor {0}, No Flags found for key {1}:  Empty metadata object is returned'
 export const METADATA_SDK_NOT_READY = `Visitor {0}, Flag for key {1} Method Flag.metadata is deactivated while SDK status is NOT_READY: Empty metadata object is returned {2}
 Learn more: ${JS_DOC_URL}#getting-flags-campaigns-metadata`
 export const METADATA_PANIC_MODE = `Visitor {0}, Flag for key {1} Method Flag.metadata is deactivated while SDK status is PANIC: Empty metadata object is returned {2}
@@ -286,3 +305,5 @@ export const ACTIVATE_HIT = 'ACTIVATE HIT'
 export const BATCH_HIT = 'BATCH HIT'
 export const DIRECT_HIT = 'HIT'
 export const GET_THIRD_PARTY_SEGMENT = 'GET_THIRD_PARTY_SEGMENT'
+
+export const CONSENT_NOT_SPECIFY_WARNING = 'Consent has not been specified. By default, consent is set to false, which may result in some features being deactivated.'

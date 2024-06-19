@@ -1,9 +1,8 @@
 import { Event, EventCategory, HitAbstract, HitShape } from '../hit/index.ts'
-import { primitive, modificationsRequested, IHit, VisitorCacheDTO, IFlagMetadata, FlagDTO, TroubleshootingLabel } from '../types.ts'
+import { primitive, modificationsRequested, IHit, VisitorCacheDTO, IFlagMetadata, FlagDTO, TroubleshootingLabel, CampaignDTO } from '../types.ts'
 import { IVisitor } from './IVisitor.ts'
 import { VisitorAbstract } from './VisitorAbstract.ts'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index.ts'
-import { CampaignDTO } from '../decision/api/models.ts'
 import { IDecisionManager } from '../decision/IDecisionManager.ts'
 import { logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, sprintf } from '../utils/utils.ts'
 import { VISITOR_CACHE_ERROR, CONSENT_CHANGED, FS_CONSENT, LOOKUP_VISITOR_JSON_OBJECT_ERROR, PROCESS_CACHE, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION, VISITOR_CACHE_FLUSHED, VISITOR_CACHE_LOADED, VISITOR_CACHE_SAVED, LogLevel, ANALYTIC_HIT_ALLOCATION } from '../enum/index.ts'
@@ -23,7 +22,7 @@ export type StrategyAbstractConstruct = {
   visitor:VisitorAbstract,
   murmurHash: MurmurHash
 }
-export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'anonymousId'|'flagsData'|'modifications'|'context'|'hasConsented'|'getModificationsArray'|'getFlagsDataArray'|'getFlag'> {
+export abstract class VisitorStrategyAbstract implements Omit<IVisitor, 'visitorId'|'anonymousId'|'flagsData'|'modifications'|'context'|'hasConsented'|'getModificationsArray'|'getFlagsDataArray'|'getFlag'|'getExposedVariations'|'addForcedVariation'|'removeForcedVariation'|'getForcedVariations'> {
   protected visitor:VisitorAbstract
 
   protected get configManager ():IConfigManager {

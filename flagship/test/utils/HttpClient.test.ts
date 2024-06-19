@@ -1,12 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { jest, expect, it, describe } from '@jest/globals'
 import { HttpClient, IHttpOptions } from '../../src/utils/HttpClient'
 import { Response } from 'node-fetch'
 import * as nodeDeps from '../../src/depsNode.native'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 // globalThis.AbortController = require('node-abort-controller')
 
-describe('test Post method NOdeHttpClient', () => {
+describe('Post method tests for NOdeHttpClient', () => {
   const fetch = jest.spyOn(nodeDeps, 'myFetch') as any
   const nodeHttpClient = new HttpClient()
   const url = 'https://localhost'
@@ -23,7 +24,7 @@ describe('test Post method NOdeHttpClient', () => {
 
   const responseJson = { isVip: true }
 
-  it('should ', () => {
+  it('should return the correct response body', () => {
     fetch.mockResolvedValue(new Response(JSON.stringify(responseJson), {
       status: 200,
       headers: {
@@ -32,10 +33,10 @@ describe('test Post method NOdeHttpClient', () => {
     }))
     nodeHttpClient.postAsync(url, options).then((response) => {
       expect(response.body).toEqual(responseJson)
-    }).catch(er => console.log(er))
+    }).catch(er => expect(er).toBeUndefined())
   })
 
-  it('should ', async () => {
+  it('should handle errors correctly', async () => {
     const error = {
       config: {},
       isAxiosError: true,
@@ -52,9 +53,26 @@ describe('test Post method NOdeHttpClient', () => {
       expect(err).toEqual(error)
     }
   })
+
+  it('should handle timeout correctly', async () => {
+    const error = 'error'
+    fetch.mockImplementation((input: RequestInfo | URL, init?: RequestInit | undefined) => new Promise((resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => {
+        reject(error)
+      })
+    }))
+    try {
+      options.timeout = 0.01
+      await nodeHttpClient.postAsync(url, options)
+      expect(fetch).toBeCalledTimes(1)
+    } catch (err) {
+      expect(error).toEqual(error)
+    }
+  }
+  )
 })
 
-describe('test Get method NOdeHttpClient', () => {
+describe('Get method tests for NOdeHttpClient', () => {
   const fetch = jest.spyOn(nodeDeps, 'myFetch') as any
   const nodeHttpClient = new HttpClient()
   const url = 'https://localhost'
@@ -68,14 +86,14 @@ describe('test Get method NOdeHttpClient', () => {
 
   const responseJson = { isVip: true }
 
-  it('should ', () => {
+  it('should return the correct response body', () => {
     fetch.mockResolvedValue(new Response(JSON.stringify(responseJson), { status: 200, headers: { 'Content-Type': 'application/json' } }))
     nodeHttpClient.getAsync(url, options).then((response) => {
       expect(response.body).toEqual(responseJson)
     })
   })
 
-  it('should ', async () => {
+  it('should handle server errors correctly', async () => {
     const error = 'error'
     fetch.mockRejectedValue(new Response(JSON.stringify(error),
       { status: 500, headers: { 'Content-Type': 'application/json' } }))
@@ -88,7 +106,7 @@ describe('test Get method NOdeHttpClient', () => {
     }
   })
 
-  it('should ', async () => {
+  it('should handle network errors correctly', async () => {
     const error = 'error'
     fetch.mockRejectedValue(new Response(JSON.stringify(error),
       { status: 500, headers: { 'Content-Type': 'application/json' } }))
@@ -101,7 +119,7 @@ describe('test Get method NOdeHttpClient', () => {
     }
   })
 
-  it('should ', async () => {
+  it('should handle empty response body correctly', async () => {
     const error = 'error'
     fetch.mockResolvedValue(new Response(undefined,
       { statusText: JSON.stringify(error), status: 500, headers: { 'Content-Type': 'application/json' } }))
@@ -113,4 +131,21 @@ describe('test Get method NOdeHttpClient', () => {
       expect(error).toEqual(error)
     }
   })
+
+  it('should handle timeout correctly', async () => {
+    const error = 'error'
+    fetch.mockImplementation((input: RequestInfo | URL, init?: RequestInit | undefined) => new Promise((resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => {
+        reject(error)
+      })
+    }))
+    try {
+      options.timeout = 0.01
+      await nodeHttpClient.getAsync(url, options)
+      expect(fetch).toBeCalledTimes(1)
+    } catch (err) {
+      expect(error).toEqual(error)
+    }
+  }
+  )
 })

@@ -1,11 +1,11 @@
-import { expect, it, describe, jest } from '@jest/globals'
+import { expect, it, describe, jest, beforeAll, afterAll, beforeEach } from '@jest/globals'
 import { IHitCacheImplementation, IVisitorCacheImplementation } from '../../src'
 import { DecisionApiConfig, DecisionMode } from '../../src/config/index'
 import { TrackingManagerConfig } from '../../src/config/TrackingManagerConfig'
 import {
   BASE_API_URL,
   DEFAULT_DEDUPLICATION_TIME,
-  FlagshipStatus,
+  FSSdkStatus,
   LogLevel,
   REQUEST_TIME_OUT,
   SDK_INFO
@@ -13,7 +13,7 @@ import {
 import { version } from '../../src/sdkVersion'
 import { HitCacheDTO, VisitorCacheDTO } from '../../src/types'
 import { FlagshipLogManager, IFlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-
+import * as utils from '../../src/utils/utils'
 describe('test DecisionApiConfig', () => {
   const config = new DecisionApiConfig()
   const nextFetchConfig = {
@@ -24,17 +24,16 @@ describe('test DecisionApiConfig', () => {
     expect(config.envId).toBeUndefined()
     expect(config.logLevel).toBe(LogLevel.ALL)
     expect(config.logManager).toBeUndefined()
-    expect(config.statusChangedCallback).toBeUndefined()
+    expect(config.onSdkStatusChanged).toBeUndefined()
     expect(config.timeout).toBe(REQUEST_TIME_OUT)
     expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
     expect(config.fetchNow).toBeTruthy()
-    expect(config.enableClientCache).toBeTruthy()
+    expect(config.reuseVisitorIds).toBeTruthy()
     expect(config.initialBucketing).toBeUndefined()
     expect(config.decisionApiUrl).toBe(BASE_API_URL)
     expect(config.hitDeduplicationTime).toBe(DEFAULT_DEDUPLICATION_TIME)
     expect(config.hitCacheImplementation).toBeUndefined()
     expect(config.visitorCacheImplementation).toBeUndefined()
-    expect(config.onUserExposure).toBeUndefined()
     expect(config.disableCache).toBeFalsy()
     expect(config.trackingManagerConfig).toBeInstanceOf(TrackingManagerConfig)
     expect(config.onLog).toBeUndefined()
@@ -84,7 +83,6 @@ describe('test DecisionApiConfig', () => {
       }
     }
 
-    const onUserExposure = jest.fn()
     const onVisitorExposed = jest.fn()
 
     const onLog = jest.fn()
@@ -95,15 +93,14 @@ describe('test DecisionApiConfig', () => {
       logLevel: LogLevel.DEBUG,
       timeout: 5,
       logManager,
-      statusChangedCallback: statusChang,
+      onSdkStatusChanged: statusChang,
       fetchNow: false,
-      enableClientCache: false,
+      reuseVisitorIds: false,
       initialBucketing,
       visitorCacheImplementation,
       hitCacheImplementation,
       disableCache: true,
       hitDeduplicationTime: 20,
-      onUserExposure,
       onLog,
       onVisitorExposed
     })
@@ -112,16 +109,15 @@ describe('test DecisionApiConfig', () => {
     expect(config.envId).toBe(envId)
     expect(config.logLevel).toBe(LogLevel.DEBUG)
     expect(config.logManager).toBe(logManager)
-    expect(config.statusChangedCallback).toBe(statusChang)
+    expect(config.onSdkStatusChanged).toBe(statusChang)
     expect(config.timeout).toBe(5)
     expect(config.fetchNow).toBeFalsy()
-    expect(config.enableClientCache).toBeFalsy()
+    expect(config.reuseVisitorIds).toBeFalsy()
     expect(config.initialBucketing).toEqual(initialBucketing)
     expect(config.visitorCacheImplementation).toBe(visitorCacheImplementation)
     expect(config.hitCacheImplementation).toBe(hitCacheImplementation)
     expect(config.disableCache).toBeTruthy()
     expect(config.hitDeduplicationTime).toBe(20)
-    expect(config.onUserExposure).toBe(onUserExposure)
     expect(config.onVisitorExposed).toBe(onVisitorExposed)
     expect(config.onLog).toBe(onLog)
   })
@@ -178,16 +174,16 @@ describe('test DecisionApiConfig', () => {
   })
 
   it('test statusChangedCallback', () => {
-    const func = {} as (status: FlagshipStatus) => void
-    config.statusChangedCallback = func
-    expect(config.statusChangedCallback).toBeUndefined()
+    const func = {} as (status: FSSdkStatus) => void
+    config.onSdkStatusChanged = func
+    expect(config.onSdkStatusChanged).toBeUndefined()
 
     const func2 = () => {
       //
     }
-    config.statusChangedCallback = func2
+    config.onSdkStatusChanged = func2
 
-    expect(config.statusChangedCallback).toBe(func2)
+    expect(config.onSdkStatusChanged).toBe(func2)
 
     config.timeout = 3000
     expect(config.timeout).toBe(3000)
@@ -213,7 +209,7 @@ describe('Test SDK_LANGUAGE', () => {
   it('should be Typescript', () => {
     const sdkVersion = '2.6.5'
     const config = new DecisionApiConfig({ language: 0, sdkVersion })
-    expect(SDK_INFO.name).toBe('Typescript')
+    expect(SDK_INFO.name).toBe('TypeScript')
     expect(SDK_INFO.version).toBe(version)
     expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
   })
@@ -229,5 +225,68 @@ describe('Test SDK_LANGUAGE', () => {
     expect(SDK_INFO.name).toBe('Deno')
     expect(config.decisionMode).toBe(DecisionMode.DECISION_API)
     global.window = window
+  })
+})
+
+describe('test initQaMode', () => {
+  beforeAll(() => {
+    global.sessionStorage = storageMock
+  })
+
+  afterAll(() => {
+    isBrowserSpy.mockReturnValue(false)
+  })
+
+  beforeEach(() => {
+    isBrowserSpy.mockReturnValue(false)
+  })
+
+  const isBrowserSpy = jest.spyOn(utils, 'isBrowser')
+
+  const storageMock = {
+    getItem: jest.fn<(key: string)=>string|null>(),
+    setItem: jest.fn<(key: string, value: string)=> void>(),
+    clear: jest.fn(),
+    removeItem: jest.fn<(key: string)=>void>(),
+    key: jest.fn<(key: number)=>string>(),
+    length: 0
+  }
+  it('test environment is not browser', () => {
+    expect(storageMock.getItem).toBeCalledTimes(0)
+    const config = new DecisionApiConfig()
+    expect(config.isQAModeEnabled).toBeFalsy()
+  })
+  it('test environment is browser and session storage is null', () => {
+    isBrowserSpy.mockReturnValue(true)
+    storageMock.getItem.mockReturnValue(null)
+    const config = new DecisionApiConfig()
+    expect(storageMock.getItem).toBeCalledTimes(1)
+    expect(config.isQAModeEnabled).toBeFalsy()
+  })
+
+  it('test environment is browser and session storage is true', () => {
+    isBrowserSpy.mockReturnValue(true)
+    storageMock.getItem.mockReturnValue('true')
+    const config = new DecisionApiConfig()
+    expect(storageMock.getItem).toBeCalledTimes(1)
+    expect(config.isQAModeEnabled).toBeTruthy()
+  })
+
+  it('test environment is browser and session storage is false', () => {
+    isBrowserSpy.mockReturnValue(true)
+    storageMock.getItem.mockReturnValue('false')
+    const config = new DecisionApiConfig()
+    expect(storageMock.getItem).toBeCalledTimes(1)
+    expect(config.isQAModeEnabled).toBeFalsy()
+  })
+
+  it('test environment is browser and throw error', () => {
+    isBrowserSpy.mockReturnValue(true)
+    storageMock.getItem.mockImplementation(() => {
+      throw new Error()
+    })
+    const config = new DecisionApiConfig()
+    expect(storageMock.getItem).toBeCalledTimes(1)
+    expect(config.isQAModeEnabled).toBeFalsy()
   })
 })

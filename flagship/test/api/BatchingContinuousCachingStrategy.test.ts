@@ -1,5 +1,5 @@
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
-import { Event, EventCategory, HitAbstract, IExposedFlag, IExposedVisitor, LogLevel, OnVisitorExposed, Page, TroubleshootingLabel, UserExposureInfo } from '../../src'
+import { Event, EventCategory, HitAbstract, IExposedFlag, IExposedVisitor, LogLevel, OnVisitorExposed, Page, TroubleshootingLabel } from '../../src'
 import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinuousCachingStrategy'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
 import { EdgeConfig } from '../../src/config/EdgeConfig'
@@ -12,6 +12,8 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { sleep, sprintf } from '../../src/utils/utils'
 import { Troubleshooting } from '../../src/hit/Troubleshooting'
+import * as utils from '../../src/utils/utils'
+import * as qaAssistant from '../../src/qaAssistant/messages'
 import { UsageHit } from '../../src/hit/UsageHit'
 
 describe('Test BatchingContinuousCachingStrategy', () => {
@@ -170,6 +172,9 @@ describe('test activateFlag method', () => {
   beforeAll(() => {
     Date.now = mockNow
     mockNow.mockReturnValue(1)
+    sendHitsToFsQaSpy.mockImplementation(() => {
+      //
+    })
   })
   afterAll(() => {
     Date.now = methodNow
@@ -180,13 +185,11 @@ describe('test activateFlag method', () => {
   const postAsync = jest.spyOn(httpClient, 'postAsync')
 
   const onVisitorExposed = jest.fn<(arg: OnVisitorExposed)=>void>()
-  const onUserExposure = jest.fn<(param: UserExposureInfo)=>void>()
 
   const config = new DecisionApiConfig({
     envId: 'envId',
     apiKey: 'apiKey',
-    onVisitorExposed,
-    onUserExposure
+    onVisitorExposed
   })
 
   const logManager = new FlagshipLogManager()
@@ -200,9 +203,11 @@ describe('test activateFlag method', () => {
   const batchingStrategy = new BatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
+  const cacheHitSpy = jest.spyOn(batchingStrategy as any, 'cacheHit')
+
+  const flushHitsSpy = jest.spyOn(batchingStrategy, 'flushHits')
+
+  const sendHitsToFsQaSpy = jest.spyOn(batchingStrategy, 'sendHitsToFsQa')
 
   const visitorId = 'visitorId'
 
@@ -270,7 +275,10 @@ describe('test activateFlag method', () => {
         timeout: config.timeout
       })
 
-    const fromFlag : IExposedFlag = {
+    expect(sendHitsToFsQaSpy).toBeCalledTimes(1)
+    expect(sendHitsToFsQaSpy).toBeCalledWith([activateHit])
+
+    let fromFlag : IExposedFlag = {
       key: activateHit.flagKey,
       value: activateHit.flagValue,
       defaultValue: activateHit.flagDefaultValue,
@@ -285,7 +293,7 @@ describe('test activateFlag method', () => {
     expect(onVisitorExposed).toBeCalledTimes(1)
     expect(onVisitorExposed).toBeCalledWith({ exposedVisitor, fromFlag })
 
-    const flagData = {
+    fromFlag = {
       metadata: {
         campaignId: activateHit.flagMetadata.campaignId,
         campaignType: activateHit.flagMetadata.campaignType,
@@ -298,18 +306,14 @@ describe('test activateFlag method', () => {
         variationName: activateHit.flagMetadata.variationName
       },
       key: activateHit.flagKey,
-      value: activateHit.flagValue
+      value: activateHit.flagValue,
+      defaultValue: activateHit.flagDefaultValue
     }
 
-    const visitorData = {
-      visitorId: activateHit.visitorId,
-      anonymousId: activateHit.anonymousId as string,
-      context: activateHit.visitorContext
-    }
-    expect(onUserExposure).toBeCalledTimes(1)
-    expect(onUserExposure).toBeCalledWith({ flagData, visitorData })
+    expect(onVisitorExposed).toBeCalledTimes(1)
+    expect(onVisitorExposed).toBeCalledWith({ fromFlag, exposedVisitor })
 
-    expect(flushHits).toBeCalledTimes(0)
+    expect(flushHitsSpy).toBeCalledTimes(0)
   })
 
   it('test multiple activate success', async () => {
@@ -396,17 +400,21 @@ describe('test activateFlag method', () => {
     expect(activatePoolQueue.size).toBe(0)
 
     expect(postAsync).toBeCalledTimes(1)
+    const activateBatch = new ActivateBatch([activateHit2, activateHit3, activateHit], config)
     expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
       headers: headersActivate,
       nextFetchConfig,
-      body: new ActivateBatch([activateHit2, activateHit3, activateHit], config).toApiKeys(),
+      body: activateBatch.toApiKeys(),
       timeout: config.timeout
     })
 
+    expect(sendHitsToFsQaSpy).toBeCalledTimes(1)
+    expect(sendHitsToFsQaSpy).toBeCalledWith(activateBatch.hits)
+
     expect(onVisitorExposed).toBeCalledTimes(3)
-    expect(cacheHit).toBeCalledTimes(0)
-    expect(flushHits).toBeCalledTimes(1)
-    expect(flushHits).toHaveBeenCalledWith([activateHit2.key, activateHit3.key])
+    expect(cacheHitSpy).toBeCalledTimes(0)
+    expect(flushHitsSpy).toBeCalledTimes(1)
+    expect(flushHitsSpy).toHaveBeenCalledWith([activateHit2.key, activateHit3.key])
   })
 
   it('test multiple activate failed', async () => {
@@ -505,9 +513,9 @@ describe('test activateFlag method', () => {
     })
 
     expect(onVisitorExposed).toBeCalledTimes(0)
-    expect(flushHits).toBeCalledTimes(0)
-    expect(cacheHit).toBeCalledTimes(1)
-    expect(cacheHit).toHaveBeenCalledWith(new Map([[activateHit.key, activateHit]]))
+    expect(flushHitsSpy).toBeCalledTimes(0)
+    expect(cacheHitSpy).toBeCalledTimes(1)
+    expect(cacheHitSpy).toHaveBeenCalledWith(new Map([[activateHit.key, activateHit]]))
 
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
     const label = TroubleshootingLabel.SEND_ACTIVATE_HIT_ROUTE_ERROR
@@ -571,6 +579,9 @@ describe('test sendBatch method', () => {
   beforeAll(() => {
     Date.now = mockNow
     mockNow.mockReturnValue(1)
+    sendHitsToFsQaSpy.mockImplementation(() => {
+      //
+    })
   })
   afterAll(() => {
     Date.now = methodNow
@@ -593,9 +604,11 @@ describe('test sendBatch method', () => {
   const batchingStrategy = new BatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
+  const cacheHitSpy = jest.spyOn(batchingStrategy as any, 'cacheHit')
+
+  const flushHitsSpy = jest.spyOn(batchingStrategy, 'flushHits')
+
+  const sendHitsToFsQaSpy = jest.spyOn(batchingStrategy, 'sendHitsToFsQa')
 
   const visitorId = 'visitorId'
 
@@ -656,8 +669,12 @@ describe('test sendBatch method', () => {
       body: batch.toApiKeys(),
       timeout: config.timeout
     })
-    expect(flushHits).toBeCalledTimes(1)
-    expect(flushHits).toHaveBeenCalledWith(expect.arrayContaining([expect.stringContaining(visitorId)]))
+
+    expect(sendHitsToFsQaSpy).toBeCalledTimes(1)
+    expect(sendHitsToFsQaSpy).toBeCalledWith(batch.hits)
+
+    expect(flushHitsSpy).toBeCalledTimes(1)
+    expect(flushHitsSpy).toHaveBeenCalledWith(expect.arrayContaining([expect.stringContaining(visitorId)]))
 
     await batchingStrategy.sendBatch()
 
@@ -706,8 +723,8 @@ describe('test sendBatch method', () => {
       timeout: config.timeout
     })
 
-    expect(flushHits).toBeCalledTimes(1)
-    expect(flushHits).toHaveBeenCalledWith(expect.arrayContaining([expect.stringContaining(visitorId)]))
+    expect(flushHitsSpy).toBeCalledTimes(1)
+    expect(flushHitsSpy).toHaveBeenCalledWith(expect.arrayContaining([expect.stringContaining(visitorId)]))
   })
 
   it('test sendBatch with poolMaxSize', async () => {
@@ -741,8 +758,8 @@ describe('test sendBatch method', () => {
       body: batch.toApiKeys(),
       timeout: config.timeout
     })
-    expect(flushHits).toBeCalledTimes(1)
-    expect(flushHits).toHaveBeenCalledWith(expect.arrayContaining([expect.stringContaining(visitorId)]))
+    expect(flushHitsSpy).toBeCalledTimes(1)
+    expect(flushHitsSpy).toHaveBeenCalledWith(expect.arrayContaining([expect.stringContaining(visitorId)]))
   })
 
   it('test sendBatch method throw exception ', async () => {
@@ -774,9 +791,9 @@ describe('test sendBatch method', () => {
       duration: 0,
       batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.BatchLength]
     }
-
-    expect(flushHits).toBeCalledTimes(0)
-    expect(cacheHit).toBeCalledTimes(0)
+    expect(sendHitsToFsQaSpy).toBeCalledTimes(0)
+    expect(flushHitsSpy).toBeCalledTimes(0)
+    expect(cacheHitSpy).toBeCalledTimes(0)
     expect(hitsPoolQueue.size).toBe(1)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(sprintf(TRACKING_MANAGER_ERROR, BATCH_HIT, errorFormatMessage), TRACKING_MANAGER)
@@ -1353,5 +1370,105 @@ describe('test send analyticsHit hit', () => {
     await batchingStrategy.sendUsageHitQueue()
     expect(analyticHitQueue.size).toBe(0)
     expect(postAsync).toBeCalledTimes(0)
+  })
+})
+
+describe('test sendHitsToFsQa', () => {
+  const methodNow = Date.now
+  const mockNow = jest.fn<typeof Date.now>()
+  const isBrowserSpy = jest.spyOn(utils, 'isBrowser')
+  const sendFsHitToQASpy = jest.spyOn(qaAssistant, 'sendFsHitToQA')
+
+  beforeAll(() => {
+    Date.now = mockNow
+    mockNow.mockReturnValue(1)
+  })
+  afterAll(() => {
+    Date.now = methodNow
+    isBrowserSpy.mockReturnValue(false)
+  })
+
+  beforeEach(() => {
+    config.isQAModeEnabled = true
+    postAsync.mockResolvedValue({ status: 200, body: null })
+    sendFsHitToQASpy.mockImplementation(() => {
+      //
+    })
+    isBrowserSpy.mockReturnValue(true)
+  })
+
+  const httpClient = new HttpClient()
+
+  const postAsync = jest.spyOn(httpClient, 'postAsync')
+
+  const config = new DecisionApiConfig({
+    envId: 'envId',
+    apiKey: 'apiKey'
+  })
+
+  const logManager = new FlagshipLogManager()
+
+  config.logManager = logManager
+
+  const hitsPoolQueue = new Map<string, HitAbstract>()
+  const activatePoolQueue = new Map<string, Activate>()
+  const troubleshootingQueue = new Map<string, Troubleshooting>()
+  const analyticHitQueue = new Map<string, UsageHit>()
+  const flagshipInstanceId = 'flagshipInstanceId'
+  const batchingStrategy = new BatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, flagshipInstanceId, analyticHitQueue })
+
+  const visitorId = 'visitorId'
+
+  const activateHit = new Activate({
+    visitorId,
+    variationGroupId: 'variationGrID-activate',
+    variationId: 'variationId',
+    flagKey: 'flagKey',
+    flagValue: 'value',
+    flagDefaultValue: 'default-value',
+    flagMetadata: {
+      campaignId: 'campaignId',
+      campaignName: 'campaignName',
+      variationGroupId: 'variationGrID',
+      variationGroupName: 'variationGroupName',
+      variationId: 'varId',
+      variationName: 'variationName',
+      isReference: true,
+      campaignType: 'ab',
+      slug: 'slug'
+    },
+    visitorContext: { key: 'value' }
+  })
+
+  activateHit.config = config
+
+  it('test environment is not a browser', async () => {
+    isBrowserSpy.mockReturnValue(false)
+    await batchingStrategy.activateFlag(activateHit)
+    expect(sendFsHitToQASpy).toBeCalledTimes(0)
+  })
+  it('test QA Mode is disable  ', async () => {
+    config.isQAModeEnabled = false
+    await batchingStrategy.activateFlag(activateHit)
+    expect(sendFsHitToQASpy).toBeCalledTimes(0)
+  })
+  it('test activate to QA', async () => {
+    await batchingStrategy.activateFlag(activateHit)
+    await batchingStrategy.activateFlag(activateHit)
+    await sleep(3200)
+    expect(sendFsHitToQASpy).toBeCalledTimes(1)
+    expect(sendFsHitToQASpy).toBeCalledWith([activateHit.toApiKeys(), activateHit.toApiKeys()])
+  })
+
+  it('test multiple activate to QA', async () => {
+    const hitsApiKeys:Record<string, unknown>[] = []
+    for (let index = 0; index < 10; index++) {
+      activatePoolQueue.set(`${visitorId}${index}`, activateHit)
+      hitsApiKeys.push(activateHit.toApiKeys())
+    }
+    await batchingStrategy.activateFlag(activateHit)
+    hitsApiKeys.push(activateHit.toApiKeys())
+    expect(sendFsHitToQASpy).toBeCalledTimes(1)
+    expect(sendFsHitToQASpy).toBeCalledWith(hitsApiKeys)
   })
 })

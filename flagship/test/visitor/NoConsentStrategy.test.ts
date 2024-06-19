@@ -5,7 +5,7 @@ import { DecisionManager } from '../../src/decision/DecisionManager'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { NoConsentStrategy } from '../../src/visitor/index'
-import { FLAG_USER_EXPOSED, HitType, LogLevel, METHOD_DEACTIVATED_CONSENT_ERROR } from '../../src/enum/index'
+import { FLAG_VISITOR_EXPOSED, HitType, LogLevel, METHOD_DEACTIVATED_CONSENT_ERROR } from '../../src/enum/index'
 import { sprintf } from '../../src/utils/utils'
 import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { MurmurHash } from '../../src/utils/MurmurHash'
@@ -33,22 +33,6 @@ describe('test NoConsentStrategy', () => {
   const murmurHash = new MurmurHash()
   const noConsentStrategy = new NoConsentStrategy({ visitor: visitorDelegate, murmurHash })
 
-  it('test activateModification', () => {
-    noConsentStrategy.activateModification('key').then(() => {
-      const methodName = 'activateModification'
-      expect(logInfo).toBeCalledTimes(1)
-      expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
-    })
-  })
-
-  it('test activateModifications', () => {
-    noConsentStrategy.activateModifications(['key']).then(() => {
-      const methodName = 'activateModifications'
-      expect(logInfo).toBeCalledTimes(1)
-      expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
-    })
-  })
-
   it('test sendHit', () => {
     noConsentStrategy.sendHit({ type: HitType.PAGE, documentLocation: 'home' }).then(() => {
       const methodName = 'sendHit'
@@ -68,7 +52,7 @@ describe('test NoConsentStrategy', () => {
   it('test userExposed', () => {
     noConsentStrategy.visitorExposed().then(() => {
       expect(logInfo).toBeCalledTimes(1)
-      expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, FLAG_USER_EXPOSED, visitorDelegate.visitorId), FLAG_USER_EXPOSED)
+      expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, FLAG_VISITOR_EXPOSED, visitorDelegate.visitorId), FLAG_VISITOR_EXPOSED)
     })
   })
 })
@@ -132,7 +116,8 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
     monitoringData: {
       instanceId: FsInstanceId,
       lastInitializationTimestamp: ''
-    }
+    },
+    hasConsented: true
   })
   const noConsentStrategy = new NoConsentStrategy({ visitor: visitorDelegate, murmurHash })
   const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')

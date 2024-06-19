@@ -1,58 +1,29 @@
-import { primitive } from './../../src/types'
+import { CampaignDTO, FetchFlagsStatus, SerializedFlagMetadata, primitive } from './../../src/types'
 import { jest, expect, it, describe } from '@jest/globals'
 import { FlagDTO } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager, DecisionApiConfig } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
-import { FlagSynchStatus, HitType, VISITOR_ID_ERROR } from '../../src/enum'
+import { HitType, VISITOR_ID_ERROR } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
-import { IFlagMetadata, IHit, modificationsRequested } from '../../src/types'
-import { CampaignDTO } from '../../src/decision/api/models'
+import { IFSFlagMetadata, IHit } from '../../src/types'
 import { DecisionManager } from '../../src/decision/DecisionManager'
 import { cacheVisitor } from '../../src/visitor/VisitorCache'
+import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
+import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
+import { FSFlagCollection } from '../../src/flag/FSFlagCollection'
 
 const updateContext = jest.fn()
 const clearContext = jest.fn()
-const getModification = jest.fn<(params: modificationsRequested<unknown>, activateAll?: boolean)=>Promise<unknown>>()
-const getModificationSync = jest.fn()
-const getModifications = jest.fn<(params: modificationsRequested<unknown>[], activateAll?: boolean) =>Promise<Record<string, unknown>>>()
-const getModificationsSync = jest.fn()
-const getModificationInfo = jest.fn<(key: string)=>Promise<FlagDTO>>()
-const getModificationInfoSync = jest.fn()
-const synchronizeModifications = jest.fn<()=>Promise<void>>()
 const fetchFlags = jest.fn<()=>Promise<void>>()
-const activateModification = jest.fn<(keys: string)=>Promise<void>>()
-const activateModifications = jest.fn<(keys: string[])=>Promise<void>>()
-const activateModificationSync = jest.fn<(keys: string)=>void>()
-const activateModificationsSync = jest.fn<(keys: string[])=>void>()
 
-const getFlagMetadata = jest.fn<(metadata:IFlagMetadata)=>IFlagMetadata>()
+const getFlagMetadata = jest.fn<(metadata:IFSFlagMetadata)=>IFSFlagMetadata>()
 const sendHit = jest.fn<(hit: IHit)=> Promise<void>>()
 
 const sendHits = jest.fn<(hit: IHit[])=>Promise<void>>()
 const sendHitsSync = jest.fn<(hit: IHit[])=>void>()
-
-const getAllModifications = jest.fn<(activate: boolean)=>Promise<{
-  visitorId: string;
-  campaigns: CampaignDTO[];
-}>>()
-
-const getAllFlagsData = jest.fn<(activate: boolean)=>Promise<{
-  visitorId: string;
-  campaigns: CampaignDTO[];
-}>>()
-
-const getModificationsForCampaign = jest.fn<(campaignId: string, activate?: boolean)=>Promise<{
-  visitorId: string;
-  campaigns: CampaignDTO[];
-}>>()
-
-const getFlatsDataForCampaign = jest.fn<(campaignId: string, activate?: boolean)=>Promise<{
-  visitorId: string;
-  campaigns: CampaignDTO[];
-}>>()
 
 const authenticate = jest.fn<(visitorId:string)=>void>()
 const unauthenticate = jest.fn<()=>void>()
@@ -72,24 +43,9 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         setConsent,
         updateContext,
         clearContext,
-        getModification,
-        getModificationSync,
-        getModifications,
-        getModificationsSync,
-        getModificationInfo,
-        getModificationInfoSync,
-        synchronizeModifications,
-        activateModification,
-        activateModificationSync,
-        activateModifications,
-        activateModificationsSync,
         sendHit,
         sendHits,
         sendHitsSync,
-        getAllModifications,
-        getAllFlagsData,
-        getModificationsForCampaign,
-        getFlatsDataForCampaign,
         authenticate,
         unauthenticate,
         updateCampaigns,
@@ -141,14 +97,22 @@ describe('test VisitorDelegate', () => {
     }
   }]
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager: configManager as ConfigManager, initialCampaigns: campaigns })
+  const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
+
+  const visitorDelegate = new VisitorDelegate({
+    visitorId,
+    context,
+    configManager: configManager as ConfigManager,
+    initialCampaigns: campaigns,
+    hasConsented: true
+  })
 
   expect(updateContext).toBeCalledTimes(1)
   expect(updateContext).toBeCalledWith(context, undefined)
   expect(updateCampaigns).toBeCalledTimes(1)
   expect(updateCampaigns).toBeCalledWith(campaigns)
 
-  it('test visitorId', () => {
+  it('should test visitorId', () => {
     expect(visitorDelegate.visitorId).toBe(visitorId)
     const newVisitorId = 'newVisitorId'
     visitorDelegate.visitorId = newVisitorId
@@ -160,8 +124,8 @@ describe('test VisitorDelegate', () => {
     expect(logError).toBeCalledWith(VISITOR_ID_ERROR, 'VISITOR ID')
   })
 
-  it('test empty visitorId', () => {
-    const visitorDelegate = new VisitorDelegate({ context, configManager })
+  it('should test empty visitorId', () => {
+    const visitorDelegate = new VisitorDelegate({ context, configManager, hasConsented: true })
     expect(visitorDelegate.visitorId).toBeDefined()
     expect(visitorDelegate.visitorId).toHaveLength(36)
   })
@@ -176,7 +140,7 @@ describe('test VisitorDelegate', () => {
     expect(updateContext).toBeCalledWith(newContext, undefined)
   })
 
-  it('test flagsData', () => {
+  it('should test flagsData', () => {
     expect(visitorDelegate.flagsData.size).toBe(0)
     const flag = {
       key: 'newKey',
@@ -192,27 +156,7 @@ describe('test VisitorDelegate', () => {
     const newFlag = new Map([['key', flag]])
     visitorDelegate.flagsData = newFlag
     expect(visitorDelegate.flagsData).toEqual(newFlag)
-    expect(visitorDelegate.getFlagsDataArray()).toEqual([flag])
     visitorDelegate.flagsData.clear()
-  })
-
-  it('test modification', () => {
-    expect(visitorDelegate.flagsData.size).toBe(0)
-    const modification = {
-      key: 'newKey',
-      campaignId: 'cma',
-      variationGroupId: 'var',
-      variationId: 'varId',
-      isReference: true,
-      value: 'value',
-      campaignName: 'campaignName',
-      variationGroupName: 'variationGroupName',
-      variationName: 'variationName'
-    }
-    const newModification = new Map([['key', modification]])
-    visitorDelegate.modifications = newModification
-    expect(visitorDelegate.modifications).toEqual(newModification)
-    expect(visitorDelegate.getModificationsArray()).toEqual([modification])
   })
 
   it('test campaigns', () => {
@@ -235,6 +179,20 @@ describe('test VisitorDelegate', () => {
 
     visitorDelegate.campaigns = campaigns
     expect(visitorDelegate.campaigns).toBe(campaigns)
+  })
+
+  it('test onFetchFlagsStatusChanged callback', () => {
+    const visitorDelegate = new VisitorDelegate({
+      visitorId,
+      context,
+      configManager: configManager as ConfigManager,
+      initialCampaigns: campaigns,
+      hasConsented: true,
+      onFetchFlagsStatusChanged
+    })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(onFetchFlagsStatusChanged)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(1)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledWith({ status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.VISITOR_CREATED })
   })
 
   it('test property', () => {
@@ -260,7 +218,13 @@ describe('test VisitorDelegate', () => {
   })
 
   it('test anonymous', () => {
-    const visitorDelegate = new VisitorDelegate({ visitorId, isAuthenticated: true, context, configManager: configManager as ConfigManager })
+    const visitorDelegate = new VisitorDelegate({
+      visitorId,
+      isAuthenticated: true,
+      context,
+      configManager: configManager as ConfigManager,
+      hasConsented: true
+    })
     expect(visitorDelegate.anonymousId).toBeDefined()
     expect(visitorDelegate.anonymousId).toHaveLength(36)
   })
@@ -273,7 +237,12 @@ describe('test VisitorDelegate methods', () => {
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
 
-  const visitorDelegate = new VisitorDelegate({ visitorId: 'visitorId', context: {}, configManager: { config, decisionManager: {} as DecisionManager, trackingManager: {} as TrackingManager } })
+  const visitorDelegate = new VisitorDelegate({
+    visitorId: 'visitorId',
+    context: {},
+    configManager: { config, decisionManager: {} as DecisionManager, trackingManager: {} as TrackingManager },
+    hasConsented: true
+  })
 
   it('test setConsent', () => {
     visitorDelegate.setConsent(true)
@@ -326,10 +295,10 @@ describe('test VisitorDelegate methods', () => {
       variationName: flagDTO.variationName
     })
 
-    visitorDelegate.flagSynchStatus = FlagSynchStatus.FLAGS_FETCHED
+    visitorDelegate.fetchStatus = { status: FSFetchStatus.FETCHED, reason: FSFetchReasons.NONE }
 
     visitorDelegate.flagsData.set('newKey', flagDTO)
-    let flag = visitorDelegate.getFlag('newKey', 'defaultValue')
+    let flag = visitorDelegate.getFlag('newKey')
 
     expect(flag).toBeDefined()
     expect(flag.exists()).toBeTruthy()
@@ -344,99 +313,15 @@ describe('test VisitorDelegate methods', () => {
       variationName: flagDTO.variationName
     }))
 
-    visitorDelegate.flagSynchStatus = FlagSynchStatus.AUTHENTICATED
-    flag = visitorDelegate.getFlag('newKey', 'defaultValue')
+    visitorDelegate.fetchStatus = { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.AUTHENTICATE }
+    flag = visitorDelegate.getFlag('newKey')
     expect(logWarning).toBeCalledTimes(1)
   })
 
-  it('test getModification', () => {
-    getModification.mockResolvedValue([])
-    const param = { key: 'key', defaultValue: 'value' }
-    visitorDelegate.getModification(param)
-      .then(() => {
-        expect(getModification).toBeCalledTimes(2)
-        expect(getModification).toBeCalledWith(param)
-      })
-      .catch((error) => {
-        console.log(error)
-      })
-
-    visitorDelegate.getModification(param)
-      .then(() => {
-        expect(getModification).toBeCalledTimes(2)
-        expect(getModification).toBeCalledWith(param)
-      })
-      .catch((error) => {
-        console.log(error)
-      })
-  })
-
-  it('test getModifications', () => {
-    getModifications.mockResolvedValue({})
-    const param = [{ key: 'key', defaultValue: 'value' }]
-    visitorDelegate.getModifications(param)
-      .then(() => {
-        expect(getModifications).toBeCalledTimes(2)
-        expect(getModifications).toBeCalledWith(param, undefined)
-      })
-      .catch((error) => {
-        console.log(error)
-      })
-
-    visitorDelegate.getModifications(param, true)
-      .then(() => {
-        expect(getModifications).toBeCalledTimes(2)
-        expect(getModifications).toBeCalledWith(param, true)
-      })
-      .catch((error) => {
-        console.log(error)
-      })
-  })
-
-  it('test getModificationSync', () => {
-    getModificationSync.mockReturnValue([])
-    const param = { key: 'key', defaultValue: 'value' }
-    visitorDelegate.getModificationSync(param)
-    expect(getModificationSync).toBeCalledTimes(1)
-    expect(getModificationSync).toBeCalledWith(param)
-    visitorDelegate.getModificationSync(param)
-    expect(getModificationSync).toBeCalledTimes(2)
-    expect(getModificationSync).toBeCalledWith(param)
-  })
-
-  it('test getModificationsSync', () => {
-    getModificationSync.mockReturnValue([])
-    const param = [{ key: 'key', defaultValue: 'value' }]
-    visitorDelegate.getModificationsSync(param)
-    expect(getModificationsSync).toBeCalledTimes(1)
-    expect(getModificationsSync).toBeCalledWith(param, undefined)
-    visitorDelegate.getModificationsSync(param, true)
-    expect(getModificationsSync).toBeCalledTimes(2)
-    expect(getModificationsSync).toBeCalledWith(param, true)
-  })
-
-  it('test getModificationInfo', () => {
-    getModificationInfo.mockResolvedValue({} as FlagDTO)
-    visitorDelegate.getModificationInfo('key').then(() => {
-      expect(getModificationInfo).toBeCalledTimes(1)
-      expect(getModificationInfo).toBeCalledWith('key')
-    })
-  })
-
-  it('test getModificationInfoSync', () => {
-    getModificationInfoSync.mockReturnValue({} as FlagDTO)
-    visitorDelegate.getModificationInfoSync('key')
-    expect(getModificationInfoSync).toBeCalledTimes(1)
-    expect(getModificationInfoSync).toBeCalledWith('key')
-  })
-
-  it('test synchronizeModifications', () => {
-    synchronizeModifications.mockResolvedValue()
-    cacheVisitorFn.mockResolvedValue()
-    visitorDelegate.synchronizeModifications()
-      .then(() => {
-        expect(synchronizeModifications).toBeCalledTimes(1)
-      }).catch(err => console.log(err))
+  it('test getFlags', () => {
+    const flags = visitorDelegate.getFlags()
+    expect(flags).toBeInstanceOf(FSFlagCollection)
+    expect(flags.size).toBe(1)
   })
 
   it('test fetchFlags', () => {
@@ -445,17 +330,17 @@ describe('test VisitorDelegate methods', () => {
     visitorDelegate.fetchFlags()
       .then(() => {
         expect(fetchFlags).toBeCalledTimes(1)
-      }).catch(err => console.log(err))
+      }).catch(err => expect(err).toBeNull())
   })
 
   it('test userExposed', () => {
     visitorExposed.mockResolvedValue()
-    const params = { key: 'key', flag: undefined, defaultValue: 'defaultValue' }
+    const params = { key: 'key', flag: undefined, defaultValue: 'defaultValue', hasGetValueBeenCalled: true }
     visitorDelegate.visitorExposed(params)
       .then(() => {
         expect(visitorExposed).toBeCalledTimes(1)
         expect(visitorExposed).toBeCalledWith(params)
-      }).catch(err => console.log(err))
+      }).catch(err => expect(err).toBeNull())
   })
 
   it('test getFlagValue', () => {
@@ -466,22 +351,6 @@ describe('test VisitorDelegate methods', () => {
     expect(getFlagValue).toBeCalledTimes(1)
     expect(getFlagValue).toBeCalledWith(params)
     expect(value).toBe(flagValue)
-  })
-
-  it('test activateModification', () => {
-    activateModification.mockResolvedValue()
-    visitorDelegate.activateModification('key').then(() => {
-      expect(activateModification).toBeCalledTimes(1)
-      expect(activateModification).toBeCalledWith('key')
-    })
-  })
-
-  it('test activateModifications', () => {
-    activateModifications.mockResolvedValue()
-    visitorDelegate.activateModifications(['key']).then(() => {
-      expect(activateModifications).toBeCalledTimes(1)
-      expect(activateModifications).toBeCalledWith(['key'])
-    })
   })
 
   it('test sendHit', () => {
@@ -502,46 +371,6 @@ describe('test VisitorDelegate methods', () => {
     })
   })
 
-  it('test getAllModifications', async () => {
-    getAllModifications.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
-    await visitorDelegate.getAllModifications()
-    expect(getAllModifications).toBeCalledTimes(1)
-    await visitorDelegate.getAllModifications(false)
-    expect(getAllModifications).toBeCalledTimes(2)
-  })
-
-  it('test getAllFlags', async () => {
-    getAllFlagsData.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
-    await visitorDelegate.getAllFlagsData()
-    expect(getAllFlagsData).toBeCalledTimes(1)
-    await visitorDelegate.getAllFlagsData(false)
-    expect(getAllFlagsData).toBeCalledTimes(2)
-  })
-
-  it('test getModificationsForCampaign', async () => {
-    getModificationsForCampaign.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
-    const campaignId = 'campaignId'
-    await visitorDelegate.getModificationsForCampaign(campaignId)
-    expect(getModificationsForCampaign).toBeCalledTimes(1)
-    expect(getModificationsForCampaign).toBeCalledWith(campaignId, false)
-
-    await visitorDelegate.getModificationsForCampaign(campaignId, true)
-    expect(getModificationsForCampaign).toBeCalledTimes(2)
-    expect(getModificationsForCampaign).toBeCalledWith(campaignId, true)
-  })
-
-  it('test getFlatsForCampaign', async () => {
-    getFlatsDataForCampaign.mockResolvedValue({ visitorId: 'visitorId', campaigns: {} as CampaignDTO [] })
-    const campaignId = 'campaignId'
-    await visitorDelegate.getFlatsDataForCampaign(campaignId)
-    expect(getFlatsDataForCampaign).toBeCalledTimes(1)
-    expect(getFlatsDataForCampaign).toBeCalledWith(campaignId, false)
-
-    await visitorDelegate.getFlatsDataForCampaign(campaignId, true)
-    expect(getFlatsDataForCampaign).toBeCalledTimes(2)
-    expect(getFlatsDataForCampaign).toBeCalledWith(campaignId, true)
-  })
-
   it('test authenticate', () => {
     authenticate.mockReturnValue()
     const authenticateId = 'authenticateId'
@@ -557,14 +386,14 @@ describe('test VisitorDelegate methods', () => {
   })
 })
 
-describe('Name of the group', () => {
+describe('Initialization tests', () => {
   const config = new DecisionApiConfig()
-  config.enableClientCache = true
+  config.reuseVisitorIds = true
 
   const visitorId = 'visitorId'
   const anonymousId = 'anonymousId'
 
-  it('should ', () => {
+  it('should initialize visitorDelegate with anonymousId', () => {
     const loadVisitorProfile = jest.fn<typeof cacheVisitor.loadVisitorProfile>()
     cacheVisitor.loadVisitorProfile = loadVisitorProfile
     loadVisitorProfile.mockReturnValue({ visitorId, anonymousId })
@@ -574,13 +403,14 @@ describe('Name of the group', () => {
         config,
         decisionManager: {} as DecisionManager,
         trackingManager: {} as TrackingManager
-      }
+      },
+      hasConsented: true
     })
     expect(visitorDelegate.visitorId).toBe(anonymousId)
     expect(visitorDelegate.anonymousId).toBeNull()
   })
 
-  it('should ', () => {
+  it('should initialize visitorDelegate with authenticated visitorId and anonymousId', () => {
     const loadVisitorProfile = jest.fn<typeof cacheVisitor.loadVisitorProfile>()
     cacheVisitor.loadVisitorProfile = loadVisitorProfile
     loadVisitorProfile.mockReturnValue({ visitorId, anonymousId })
@@ -591,12 +421,13 @@ describe('Name of the group', () => {
         config,
         decisionManager: {} as DecisionManager,
         trackingManager: {} as TrackingManager
-      }
+      },
+      hasConsented: true
     })
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBe(anonymousId)
   })
-  it('should ', () => {
+  it('should initialize visitorDelegate with authenticated visitorId and generate anonymousId', () => {
     const loadVisitorProfile = jest.fn<typeof cacheVisitor.loadVisitorProfile>()
     cacheVisitor.loadVisitorProfile = loadVisitorProfile
     loadVisitorProfile.mockReturnValue({ visitorId, anonymousId: null })
@@ -607,13 +438,14 @@ describe('Name of the group', () => {
         config,
         decisionManager: {} as DecisionManager,
         trackingManager: {} as TrackingManager
-      }
+      },
+      hasConsented: true
     })
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBeDefined()
   })
 
-  it('should ', () => {
+  it('should initialize visitorDelegate with authenticated visitorId and null anonymousId', () => {
     const loadVisitorProfile = jest.fn<typeof cacheVisitor.loadVisitorProfile>()
     cacheVisitor.loadVisitorProfile = loadVisitorProfile
     loadVisitorProfile.mockReturnValue({ visitorId, anonymousId: null })
@@ -623,14 +455,15 @@ describe('Name of the group', () => {
         config,
         decisionManager: {} as DecisionManager,
         trackingManager: {} as TrackingManager
-      }
+      },
+      hasConsented: true
     })
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBeNull()
   })
 })
 
-describe('test initialModifications', () => {
+describe('test initialFlagsData', () => {
   const visitorId = 'visitorId'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const context: any = {
@@ -665,84 +498,54 @@ describe('test initialModifications', () => {
     }
   }]
 
-  it('should initialModifications with Map', () => {
-    const newModification = new Map([['newKey', {
+  it('should initialize flagsData', () => {
+    const initialFlagsData:SerializedFlagMetadata[] = [{
       key: 'newKey',
       campaignId: 'cma',
       variationGroupId: 'var',
       variationId: 'varId',
       isReference: true,
-      value: 'value',
+      hex: '7b2276223a2276616c756531227d',
       campaignName: 'campaignName',
       variationGroupName: 'variationGroupName',
-      variationName: 'variationName'
-    }]])
-    const visitorDelegate = new VisitorDelegate({
-      visitorId,
-      context,
-      configManager: configManager as ConfigManager,
-      initialCampaigns: campaigns,
-      initialModifications: newModification
-    })
-
-    expect(visitorDelegate.flagsData).toEqual(newModification)
-  })
-
-  it('should initialModifications with Array', () => {
-    const modification = {
+      variationName: 'variationName',
+      slug: 'slug',
+      campaignType: 'ab'
+    }]
+    const flagsData = new Map<string, FlagDTO>()
+    flagsData.set('newKey', {
       key: 'newKey',
       campaignId: 'cma',
       variationGroupId: 'var',
       variationId: 'varId',
       isReference: true,
-      value: 'value',
+      value: 'value1',
       campaignName: 'campaignName',
       variationGroupName: 'variationGroupName',
-      variationName: 'variationName'
-    }
-    const newModification = new Map([['newKey', modification]])
+      variationName: 'variationName',
+      campaignType: 'ab',
+      slug: 'slug'
+    })
     const visitorDelegate = new VisitorDelegate({
       visitorId,
       context,
       configManager: configManager as ConfigManager,
       initialCampaigns: campaigns,
-      initialModifications: [modification]
+      initialFlagsData,
+      hasConsented: true
     })
 
-    expect(visitorDelegate.flagsData).toEqual(newModification)
+    expect(visitorDelegate.flagsData).toEqual(flagsData)
   })
 
-  it('should initialModifications with plain objet', () => {
-    const modification = {
-      key: 'newKey',
-      campaignId: 'cma',
-      variationGroupId: 'var',
-      variationId: 'varId',
-      isReference: true,
-      value: 'value',
-      campaignName: 'campaignName',
-      variationGroupName: 'variationGroupName',
-      variationName: 'variationName'
-    }
-    const newModification = new Map([['newKey', modification]])
+  it('should initialize flagsData with empty Array', () => {
     const visitorDelegate = new VisitorDelegate({
       visitorId,
       context,
       configManager: configManager as ConfigManager,
       initialCampaigns: campaigns,
-      initialModifications: [modification]
-    })
-
-    expect(visitorDelegate.flagsData).toEqual(newModification)
-  })
-
-  it('should initialModifications with Array', () => {
-    const visitorDelegate = new VisitorDelegate({
-      visitorId,
-      context,
-      configManager: configManager as ConfigManager,
-      initialCampaigns: campaigns,
-      initialModifications: {} as []
+      initialFlagsData: [] as [],
+      hasConsented: true
     })
 
     expect(visitorDelegate.flagsData.size).toBe(0)

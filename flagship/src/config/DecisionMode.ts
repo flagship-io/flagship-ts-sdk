@@ -1,12 +1,5 @@
 export enum DecisionMode {
     /**
-     *
-     * Flagship SDK mode decision api
-     * @deprecated use DECISION_API instead of
-     */
-    API = 'API',
-
-    /**
      *   /**
      * Flagship SDK mode decision api
      */

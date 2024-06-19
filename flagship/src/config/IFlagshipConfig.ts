@@ -1,163 +1,175 @@
 import { IHitCacheImplementation } from '../cache/IHitCacheImplementation'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation'
 import { BucketingDTO } from '../decision/api/bucketingDTO'
-import { FlagshipStatus } from '../enum/index'
+import { FSSdkStatus } from '../enum/index'
 import { LogLevel } from '../enum/LogLevel'
-import { OnVisitorExposed, UserExposureInfo } from '../types'
+import { OnVisitorExposed } from '../types'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { DecisionMode } from './DecisionMode'
 import { ITrackingManagerConfig } from './TrackingManagerConfig'
 
+/**
+ * Represents the configuration options for the Flagship SDK.
+ */
 export interface IFlagshipConfig {
-    /**
-     * Specify the environment id provided by Flagship, to use.
-     */
-    envId?: string
+  /**
+   * The environment ID provided by Flagship.
+   */
+  envId?: string;
 
-    /**
-     * Specify the secure api key provided by Flagship, to use.
-     */
-    apiKey?: string
+  /**
+   * The secure API key provided by Flagship.
+   */
+  apiKey?: string;
 
-    /**
-     * Specify timeout in seconds for api request.
-     * Default is 2s.
-     */
-    timeout?: number;
+  /**
+   * The timeout in seconds for API requests.
+   *
+   * Default value is 2 seconds.
+   */
+  timeout?: number;
 
-    /**
-     * Set the maximum log level to display
-     */
-    logLevel?: LogLevel;
+  /**
+   * The maximum log level to display.
+   */
+  logLevel?: LogLevel;
 
-    /**
-     * Specify the SDK running mode.
-     * BUCKETING or DECISION_API
-     */
-    decisionMode?: DecisionMode
+  /**
+   * The SDK running mode. Can be "BUCKETING", "DECISION_API" or "BUCKETING_EDGE".
+   */
+  decisionMode?: DecisionMode;
 
-    /**
-     * Define a callable in order to get callback when the SDK status has changed.
-     */
-    statusChangedCallback?: (status: FlagshipStatus) => void;
+  /**
+   * A callback function to be called when the SDK status has changed.
+   * @param status - The new status of the SDK.
+   */
+  onSdkStatusChanged?: (status: FSSdkStatus) => void;
 
-    /** Specify a custom implementation of LogManager in order to receive logs from the SDK. */
-    logManager?: IFlagshipLogManager;
+  /**
+   * A custom implementation of the LogManager interface to receive logs from the SDK.
+   */
+  logManager?: IFlagshipLogManager;
 
-    /**
-     * Decide to fetch automatically modifications data when creating a new FlagshipVisitor
-     */
-    fetchNow?: boolean,
+  /**
+   * Determines whether to automatically fetch modification data when creating a new FlagshipVisitor.
+   */
+  fetchNow?: boolean;
 
-    /**
-     * Specify delay between two bucketing polling. Default is 2s.
-     *
-     * Note: If 0 is given then it should poll only once at start time.
-     */
-    pollingInterval?: number
+  /**
+   * **Bucketing mode only**
+   *
+   * The delay in seconds between two bucketing polling requests.
+   *
+   * If 0 is given, it will only poll once at start time.
+   *
+   * Default value is 5 seconds.
+   */
+  pollingInterval?: number;
 
-    /**
-     * Bucketing mode only
-     *
-     * If true, will fetch the visitor's segment from universal data connector each time fetchFlags is called and append those segments in the visitor context
-     */
-    fetchThirdPartyData?: boolean
+  /**
+   * **Bucketing mode only**
+   *
+   * If true, the SDK will fetch the visitor's segment from the universal data connector each time `fetchFlags` is called and append those segments in the visitor context.
+   */
+  fetchThirdPartyData?: boolean;
 
-    /**
-     * Indicates whether enables or disables the client cache manager.
-     * By enabling the client cache, it will allow you to keep cross sessions visitor experience.
-     */
-    enableClientCache?: boolean
+  /**
+   * **client-side only**
+   *
+   * If true, the SDK will save the visitor ID and/or anonymous ID in the local storage and reuse it for the next session if `visitorId` is not set, to maintain cross-session visitor experience.
+   *
+   * Default value is true.
+   */
+  reuseVisitorIds?: boolean;
 
-    /**
-     * Define a callable in order to get callback when the first bucketing polling succeed.
-     */
-    onBucketingSuccess?: (param: { status: number; payload: BucketingDTO }) => void
+  /**
+   * A callback function to be called when the first bucketing polling succeeds.
+   * @param param - An object containing the status and payload of the bucketing response.
+   */
+  onBucketingSuccess?: (param: { status: number; payload?: BucketingDTO }) => void;
 
-    /**
-     * Define a callable to get callback when the first bucketing polling failed.
-     */
-    onBucketingFail?: (error: Error) => void
+  /**
+   * A callback function to be called when the first bucketing polling fails.
+   * @param error - The error object representing the failure.
+   */
+  onBucketingFail?: (error: Error) => void;
 
-    /**
-     * Define a callable to get callback each time bucketing data from Flagship has updated.
-     */
-    onBucketingUpdated?: (lastUpdate: Date) => void
+  /**
+   * A callback function to be called each time bucketing data from Flagship has been updated.
+   * @param lastUpdate - The date of the last update.
+   */
+  onBucketingUpdated?: (lastUpdate: Date) => void;
 
-    /**
-     * You can define an object containing the data received when fetching the bucketing endpoint. Providing this object will make bucketing ready to use and the first polling will immediately check for updates.
-     */
-    initialBucketing?: BucketingDTO
+  /**
+   * An object containing the data received when fetching the bucketing endpoint.
+   * Providing this object will make bucketing ready to use and the first polling will immediately check for updates.
+   */
+  initialBucketing?: BucketingDTO;
 
-    decisionApiUrl?: string
+  /**
+   * The URL of the decision API.
+   */
+  decisionApiUrl?: string;
 
-    /**
-     * You can specify a delay in seconds for hit deduplication. After a hit is sent, any future attempts to send the same hit will be blocked until the specified delay has expired.
-     *
-     * Note: If a value of 0 is given, no deduplication process will be used.
-     */
-    hitDeduplicationTime?: number
+  /**
+   * The delay in seconds for hit deduplication. After a hit is sent, any future attempts to send the same hit will be blocked until the specified delay has expired.
+   * If a value of 0 is given, no deduplication process will be used.
+   */
+  hitDeduplicationTime?: number;
 
-    /**
-     * Define an object that implement the interface visitorCacheImplementation, to handle the visitor cache.
-     *
-     */
-    visitorCacheImplementation?: IVisitorCacheImplementation
+  /**
+   * An object that implements the IVisitorCacheImplementation interface to handle the visitor cache.
+   */
+  visitorCacheImplementation?: IVisitorCacheImplementation;
 
-    /**
-     * You can define an object that implements the IHitCacheImplementation interface to manage hits cache.
-     */
-    hitCacheImplementation?: IHitCacheImplementation
+  /**
+   * An object that implements the IHitCacheImplementation interface to manage hits cache.
+   */
+  hitCacheImplementation?: IHitCacheImplementation;
 
-    /**
-     * If it's set to true, hit cache and visitor cache will be disabled otherwise will be enabled.
-     */
-    disableCache?: boolean
+  /**
+   * If set to true, hit cache and visitor cache will be disabled; otherwise, they will be enabled.
+   */
+  disableCache?: boolean;
 
-    language?: 0 | 1 | 2
+  language?: 0 | 1 | 2;
 
-    /**
-     * Define options to configure hit batching
-     * @deprecated use trackingManagerConfig instead
-     */
-    trackingMangerConfig?: ITrackingManagerConfig
+  /**
+   * Options to configure hit batching.
+   */
+  trackingManagerConfig?: ITrackingManagerConfig;
 
-    /**
-     * Define options to configure hit batching
-    */
-    trackingManagerConfig?: ITrackingManagerConfig
+  /**
+   * A callback function to be called each time a flag is exposed to a visitor (i.e., when an activation hit is sent by the SDK).
+   * @param arg - The argument containing information about the exposed flag.
+   */
+  onVisitorExposed?: (arg: OnVisitorExposed) => void;
 
-    /**
-     * You can define a callback function that will be called each time a flag is exposed to a user (i.e., when an activation hit is sent by the SDK).
-     * @deprecated Use **onVisitorExposed** instead
-     */
-    onUserExposure?: (param: UserExposureInfo)=>void
-    /**
-     *You can define a callback function that will be called each time a flag is exposed to a visitor (i.e., when an activation hit is sent by the SDK).
-     * @param arg
-     * @returns
-     */
-    onVisitorExposed?:(arg: OnVisitorExposed)=> void
-    sdkVersion?: string
-    /**
-     * Define a callable to get a callback whenever the SDK needs to report a log
-     */
-    onLog?: (level: LogLevel, tag: string, message: string)=>void
+  sdkVersion?: string;
+
+  /**
+   * A callback function to be called whenever the SDK needs to report a log.
+   * @param level - The log level.
+   * @param tag - The tag associated with the log message.
+   * @param message - The log message.
+   */
+  onLog?: (level: LogLevel, tag: string, message: string) => void;
+
     /**
      * In Next.js 13, you can define the time in seconds for storing SDK route cache before revalidation.
      */
-    nextFetchConfig?: Record<string, unknown>
+  nextFetchConfig?: Record<string, unknown>;
 
-    /**
-     * (Default value 2) You can specify a delay in seconds for fetch flags call buffering. This means that after the SDK has fetched flags, they will be buffered for the specified delay. During this delay, any subsequent fetch flags calls will return the same flags.
-     *
-     * Note:
-     * - If a value of 0 is given, no buffering process will be used.
-     * - If visitor data has changed, the buffering will be bypassed.
-     */
-    fetchFlagsBufferingTime?: number
+  /**
+   * The delay in seconds for buffering fetch flags calls. After the SDK has fetched flags, they will be buffered for the specified delay.
+   * During this delay, any subsequent fetch flags calls will return the same flags.
+   * If a value of 0 is given, no buffering process will be used.
+   * If visitor data has changed, the buffering will be bypassed.
+   */
+  fetchFlagsBufferingTime?: number;
 
-    /**
+    isQAModeEnabled?: boolean
+    /*
      * Disable the collect of analytics data
      */
     disableDeveloperUsageTracking?: boolean

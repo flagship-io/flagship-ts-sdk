@@ -16,6 +16,7 @@
   },
   "plugins": ["@typescript-eslint"],
   "rules": {
-    "complexity": ["error", 16]
+    "complexity": ["error", 16],
+    "no-console":"error"
   }
 }

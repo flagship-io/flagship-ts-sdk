@@ -52,6 +52,8 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         this.onVisitorExposed(item)
         this.onUserExposure(item)
       })
+
+      this.sendHitsToFsQa(activateBatch.hits)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       activateBatch.hits.forEach(item => {
@@ -151,6 +153,8 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
         duration: Date.now() - now,
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
+
+      this.sendHitsToFsQa(batch.hits)
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {

@@ -2,6 +2,8 @@
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require('path')
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
@@ -12,6 +14,7 @@ const config = {
   },
   devtool: 'source-map',
   resolve: {
+    plugins: [new TsconfigPathsPlugin()],
     extensions: ['.ts', '.tsx', '.js']
   }
 }

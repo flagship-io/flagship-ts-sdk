@@ -1,8 +1,9 @@
-import { logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarning, logWarningSprintf, sprintf, visitorFlagSyncStatusMessage } from '../../src/utils/utils'
+import { hexToValue, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarning, logWarningSprintf, sprintf, valueToHex, visitorFlagSyncStatusMessage } from '../../src/utils/utils'
 import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig } from '../../src/config/index'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { FlagSynchStatus, LogLevel } from '../../src/enum/index'
+import { LogLevel } from '../../src/enum/index'
+import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
 
 describe('test sprintf function', () => {
   it('should ', () => {
@@ -111,17 +112,82 @@ describe('test logError function', () => {
   })
 })
 
-describe('Test visitorFlagSyncStatusMessage', () => {
-  it('should', () => {
-    let message = visitorFlagSyncStatusMessage(FlagSynchStatus.CREATED)
+describe('Test visitorFlagSyncStatusMessage function', () => {
+  it('should return a message containing "created" when FSFetchReasons.VISITOR_CREATED is passed', () => {
+    const message = visitorFlagSyncStatusMessage(FSFetchReasons.VISITOR_CREATED)
     expect(message).toEqual(expect.stringContaining('created'))
-    message = visitorFlagSyncStatusMessage(FlagSynchStatus.CONTEXT_UPDATED)
+  })
+
+  it('should return a message containing "updated" when FSFetchReasons.UPDATE_CONTEXT is passed', () => {
+    const message = visitorFlagSyncStatusMessage(FSFetchReasons.UPDATE_CONTEXT)
     expect(message).toEqual(expect.stringContaining('updated'))
-    message = visitorFlagSyncStatusMessage(FlagSynchStatus.AUTHENTICATED)
+  })
+
+  it('should return a message containing "authenticated" when FSFetchReasons.AUTHENTICATE is passed', () => {
+    const message = visitorFlagSyncStatusMessage(FSFetchReasons.AUTHENTICATE)
     expect(message).toEqual(expect.stringContaining('authenticated'))
-    message = visitorFlagSyncStatusMessage(FlagSynchStatus.UNAUTHENTICATED)
+  })
+
+  it('should return a message containing "unauthenticated" when FSFetchReasons.UNAUTHENTICATE is passed', () => {
+    const message = visitorFlagSyncStatusMessage(FSFetchReasons.UNAUTHENTICATE)
     expect(message).toEqual(expect.stringContaining('unauthenticated'))
-    message = visitorFlagSyncStatusMessage(FlagSynchStatus.FLAGS_FETCHED)
+  })
+
+  it('should return an empty string when FSFetchReasons.NONE is passed', () => {
+    const message = visitorFlagSyncStatusMessage(FSFetchReasons.NONE)
     expect(message).toBe('')
+  })
+
+  it('should return a message containing "error" when FSFetchReasons.FETCH_ERROR is passed', () => {
+    const message = visitorFlagSyncStatusMessage(FSFetchReasons.FETCH_ERROR)
+    expect(message).toEqual(expect.stringContaining('error'))
+  })
+
+  it('should return a message containing "fetched from cache" when FSFetchReasons.READ_FROM_CACHE is passed', () => {
+    const message = visitorFlagSyncStatusMessage(FSFetchReasons.READ_FROM_CACHE)
+    expect(message).toEqual(expect.stringContaining('fetched from cache'))
+  })
+})
+
+describe('valueToHex function', () => {
+  it('should convert value to hex', () => {
+    const result = valueToHex({ v: 'test' })
+    expect(result).toBe('7b2276223a2274657374227d')
+  })
+})
+
+describe('Test hexToValue function', () => {
+  const config = new DecisionApiConfig()
+
+  const logManager = new FlagshipLogManager()
+
+  const errorMethod = jest.spyOn(logManager, 'error')
+
+  config.logManager = logManager
+
+  it('should return null for invalid hex string', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = hexToValue(true as any, config)
+    expect(result).toBeNull()
+    expect(errorMethod).toBeCalledTimes(1)
+  })
+
+  it('should return null for hex string with invalid characters', () => {
+    const result = hexToValue('zz', config)
+    expect(result).toBeNull()
+    expect(errorMethod).toBeCalledTimes(1)
+  })
+
+  it('should return parsed value for valid hex string', () => {
+    const hex = Buffer.from(JSON.stringify({ v: 'test' })).toString('hex')
+    const result = hexToValue(hex, config)
+    expect(result).toEqual({ v: 'test' })
+  })
+
+  it('should return null for hex string that does not represent valid JSON', () => {
+    const hex = Buffer.from('invalid').toString('hex')
+    const result = hexToValue(hex, config)
+    expect(result).toBeNull()
+    expect(errorMethod).toBeCalledTimes(1)
   })
 })

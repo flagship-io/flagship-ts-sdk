@@ -4,11 +4,10 @@ import { MurmurHash } from '../../src/utils/MurmurHash'
 import { BucketingManager } from '../../src/decision/BucketingManager'
 import { bucketing } from './bucketing'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
-import { BUCKETING_API_URL, FlagshipStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, SDK_INFO } from '../../src/enum'
+import { BUCKETING_API_URL, FSSdkStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, SDK_INFO } from '../../src/enum'
 import { sprintf, sleep } from '../../src/utils/utils'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { BucketingDTO } from '../../src/decision/api/bucketingDTO'
 import { DecisionManager } from '../../src/decision/DecisionManager'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { CampaignDTO, TroubleshootingLabel } from '../../src'
@@ -221,7 +220,8 @@ describe('test bucketing polling', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((bucketingManager as any)._bucketingContent).toEqual(bucketing)
 
-    const label: TroubleshootingLabel = TroubleshootingLabel.SDK_BUCKETING_FILE_ERROR
+    expect(sendTroubleshootingHit).toBeCalled()
+    const label: TroubleshootingLabel = TroubleshootingLabel.SDK_BUCKETING_FILE
     expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
   })
 
@@ -241,12 +241,8 @@ describe('test bucketing polling', () => {
 })
 
 describe('test update', () => {
-  const onBucketingSuccess = (param: {
-    status: number
-    payload: BucketingDTO
-  }) => {
-    expect(param).toEqual({ status: 200, payload: bucketing })
-  }
+  const onBucketingSuccess = jest.fn()
+
   const config = new BucketingConfig({ pollingInterval: 0, onBucketingSuccess })
   const murmurHash = new MurmurHash()
   const httpClient = new HttpClient()
@@ -260,30 +256,25 @@ describe('test update', () => {
 
   bucketingManager.trackingManager = trackingManager
 
+  const statusChangedCallback = jest.fn<(status: FSSdkStatus) => void>()
+
   it('test', async () => {
     getAsync.mockResolvedValue({ body: bucketing, status: 200 })
     sendTroubleshootingHit.mockResolvedValue()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateFlagshipStatus = jest.spyOn(bucketingManager as any, 'updateFlagshipStatus')
-    let count = 0
-    bucketingManager.statusChangedCallback((status) => {
-      switch (count) {
-        case 0:
-          expect(status).toBe(FlagshipStatus.POLLING)
-          break
-        case 1:
-          expect(status).toBe(FlagshipStatus.READY)
-          break
-        default:
-          break
-      }
-      count++
-    })
+
+    bucketingManager.statusChangedCallback(statusChangedCallback)
     bucketingManager.startPolling()
     bucketingManager.startPolling()
     await sleep(500)
     expect(updateFlagshipStatus).toBeCalledTimes(2)
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
+    expect(statusChangedCallback).toBeCalledTimes(2)
+    expect(statusChangedCallback).toHaveBeenNthCalledWith(1, FSSdkStatus.SDK_INITIALIZING)
+    expect(statusChangedCallback).toHaveBeenNthCalledWith(2, FSSdkStatus.SDK_INITIALIZED)
+    expect(onBucketingSuccess).toBeCalledTimes(1)
+    expect(onBucketingSuccess).toBeCalledWith({ status: 200, payload: bucketing })
   })
 })
 
@@ -314,10 +305,10 @@ describe('test error', () => {
     bucketingManager.statusChangedCallback((status) => {
       switch (count) {
         case 0:
-          expect(status).toBe(FlagshipStatus.POLLING)
+          expect(status).toBe(FSSdkStatus.SDK_INITIALIZING)
           break
         case 1:
-          expect(status).toBe(FlagshipStatus.NOT_INITIALIZED)
+          expect(status).toBe(FSSdkStatus.SDK_NOT_INITIALIZED)
           break
         default:
           break

@@ -247,6 +247,28 @@ describe('test TrackingManager Strategy ', () => {
     expect(strategy.sendUsageHit).toBeCalledTimes(1)
     expect(strategy.sendUsageHit).toBeCalledWith(analyticHit)
   })
+
+  it('Test batchingLoop methods', async () => {
+    const pageHit = new Page({
+      documentLocation: 'https://myurl.com',
+      visitorId
+    })
+
+    pageHit.config = config
+
+    config.trackingManagerConfig.batchIntervals = 1
+
+    await trackingManager.addHit(pageHit)
+
+    await Promise.all([trackManagerMock.batchingLoop(), trackManagerMock.batchingLoop()])
+
+    expect(strategy.addHit).toBeCalledTimes(1)
+    expect(strategy.addHit).toBeCalledWith(pageHit)
+    expect(strategy.sendBatch).toBeCalledTimes(1)
+    expect(strategy.sendBatch).toBeCalledWith(BatchTriggeredBy.Timer)
+    expect(strategy.sendTroubleshootingQueue).toBeCalledTimes(1)
+    expect(strategy.sendUsageHitQueue).toBeCalledTimes(1)
+  })
 })
 
 describe('test TrackingManager lookupHits', () => {

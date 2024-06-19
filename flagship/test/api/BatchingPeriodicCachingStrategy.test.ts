@@ -1,5 +1,5 @@
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
-import { Event, EventCategory, OnVisitorExposed, TroubleshootingLabel, UserExposureInfo } from '../../src'
+import { Event, EventCategory, OnVisitorExposed, TroubleshootingLabel } from '../../src'
 import { BatchingPeriodicCachingStrategy } from '../../src/api/BatchingPeriodicCachingStrategy'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
 import { HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, SDK_INFO, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, BASE_API_URL, URL_ACTIVATE_MODIFICATION, FS_CONSENT, LogLevel, DEFAULT_HIT_CACHE_TIME_MS, BATCH_HIT, TRACKING_MANAGER, TRACKING_MANAGER_ERROR } from '../../src/enum'
@@ -141,6 +141,9 @@ describe('test sendBatch method', () => {
   beforeAll(() => {
     Date.now = mockNow
     mockNow.mockReturnValue(1)
+    sendHitsToFsQaSpy.mockImplementation(() => {
+      //
+    })
   })
   afterAll(() => {
     Date.now = methodNow
@@ -163,12 +166,13 @@ describe('test sendBatch method', () => {
   const batchingStrategy = new BatchingPeriodicCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
+  const cacheHitSpy = jest.spyOn(batchingStrategy as any, 'cacheHit')
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const flushAllHits = jest.spyOn(batchingStrategy as any, 'flushAllHits')
+  const flushHitsSpy = jest.spyOn(batchingStrategy, 'flushHits')
+
+  const flushAllHitsSpy = jest.spyOn(batchingStrategy, 'flushAllHits')
+
+  const sendHitsToFsQaSpy = jest.spyOn(batchingStrategy, 'sendHitsToFsQa')
 
   const visitorId = 'visitorId'
 
@@ -216,7 +220,7 @@ describe('test sendBatch method', () => {
     await batchingStrategy.sendBatch()
 
     expect(hitsPoolQueue.size).toBe(1)
-    expect(cacheHit).toHaveBeenNthCalledWith(1, hitsPoolQueue)
+    expect(cacheHitSpy).toHaveBeenNthCalledWith(1, hitsPoolQueue)
 
     expect(postAsync).toHaveBeenNthCalledWith(1, HIT_EVENT_URL, {
       headers,
@@ -225,10 +229,13 @@ describe('test sendBatch method', () => {
       timeout: config.timeout
     })
 
-    expect(flushHits).toBeCalledTimes(0)
-    expect(flushAllHits).toBeCalledTimes(1)
-    expect(cacheHit).toBeCalledTimes(1)
-    expect(cacheHit).toHaveBeenNthCalledWith(1, hitsPoolQueue)
+    expect(sendHitsToFsQaSpy).toBeCalledTimes(1)
+    expect(sendHitsToFsQaSpy).toBeCalledWith(batch.hits)
+
+    expect(flushHitsSpy).toBeCalledTimes(0)
+    expect(flushAllHitsSpy).toBeCalledTimes(1)
+    expect(cacheHitSpy).toBeCalledTimes(1)
+    expect(cacheHitSpy).toHaveBeenNthCalledWith(1, hitsPoolQueue)
 
     await batchingStrategy.sendBatch()
 
@@ -277,10 +284,10 @@ describe('test sendBatch method', () => {
       timeout: config.timeout
     })
 
-    expect(flushHits).toBeCalledTimes(0)
-    expect(flushAllHits).toBeCalledTimes(1)
-    expect(cacheHit).toBeCalledTimes(1)
-    expect(cacheHit).toHaveBeenNthCalledWith(1, hitsPoolQueue)
+    expect(flushHitsSpy).toBeCalledTimes(0)
+    expect(flushAllHitsSpy).toBeCalledTimes(1)
+    expect(cacheHitSpy).toBeCalledTimes(1)
+    expect(cacheHitSpy).toHaveBeenNthCalledWith(1, hitsPoolQueue)
   })
 
   it('test sendBatch with poolMaxSize', async () => {
@@ -315,8 +322,8 @@ describe('test sendBatch method', () => {
       timeout: config.timeout
     })
 
-    expect(cacheHit).toBeCalledTimes(1)
-    expect(cacheHit).toHaveBeenNthCalledWith(1, hitsPoolQueue)
+    expect(cacheHitSpy).toBeCalledTimes(1)
+    expect(cacheHitSpy).toHaveBeenNthCalledWith(1, hitsPoolQueue)
   })
 
   it('test sendBatch method throw exception ', async () => {
@@ -340,8 +347,9 @@ describe('test sendBatch method', () => {
       body: batch.toApiKeys(),
       timeout: config.timeout
     })
-    expect(flushAllHits).toBeCalledTimes(1)
-    expect(cacheHit).toBeCalledTimes(1)
+    expect(sendHitsToFsQaSpy).toBeCalledTimes(0)
+    expect(flushAllHitsSpy).toBeCalledTimes(1)
+    expect(cacheHitSpy).toBeCalledTimes(1)
     expect(hitsPoolQueue.size).toBe(1)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(sprintf(TRACKING_MANAGER_ERROR, BATCH_HIT, {
@@ -395,8 +403,8 @@ describe('test sendBatch method', () => {
 
     expect(postAsync).toBeCalledTimes(1)
 
-    expect(cacheHit).toBeCalledTimes(1)
-    expect(cacheHit).toHaveBeenNthCalledWith(1, hitsPoolQueue)
+    expect(cacheHitSpy).toBeCalledTimes(1)
+    expect(cacheHitSpy).toHaveBeenNthCalledWith(1, hitsPoolQueue)
 
     expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
       headers: headersActivate,
@@ -423,6 +431,9 @@ describe('test activateFlag method', () => {
   beforeAll(() => {
     Date.now = mockNow
     mockNow.mockReturnValue(1)
+    sendHitsToFsQaSpy.mockImplementation(() => {
+      //
+    })
   })
   afterAll(() => {
     Date.now = methodNow
@@ -433,9 +444,8 @@ describe('test activateFlag method', () => {
   const postAsync = jest.spyOn(httpClient, 'postAsync')
 
   const onVisitorExposed = jest.fn<(arg: OnVisitorExposed)=>void>()
-  const onUserExposure = jest.fn<(param: UserExposureInfo)=>void>()
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', onVisitorExposed, onUserExposure })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', onVisitorExposed })
   const logManager = new FlagshipLogManager()
 
   config.logManager = logManager
@@ -447,9 +457,11 @@ describe('test activateFlag method', () => {
   const batchingStrategy = new BatchingPeriodicCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
+  const cacheHitSpy = jest.spyOn(batchingStrategy as any, 'cacheHit')
+
+  const flushHitsSpy = jest.spyOn(batchingStrategy, 'flushHits')
+
+  const sendHitsToFsQaSpy = jest.spyOn(batchingStrategy, 'sendHitsToFsQa')
 
   const visitorId = 'visitorId'
 
@@ -506,11 +518,13 @@ describe('test activateFlag method', () => {
       timeout: config.timeout
     })
 
-    expect(flushHits).toBeCalledTimes(0)
-    expect(cacheHit).toBeCalledTimes(0)
+    expect(sendHitsToFsQaSpy).toBeCalledTimes(1)
+    expect(sendHitsToFsQaSpy).toBeCalledWith([activateHit])
+
+    expect(flushHitsSpy).toBeCalledTimes(0)
+    expect(cacheHitSpy).toBeCalledTimes(0)
 
     expect(onVisitorExposed).toBeCalledTimes(1)
-    expect(onUserExposure).toBeCalledTimes(1)
   })
 
   it('test multiple activate success', async () => {
@@ -597,18 +611,21 @@ describe('test activateFlag method', () => {
     expect(activatePoolQueue.size).toBe(0)
 
     expect(postAsync).toBeCalledTimes(1)
+    const activateBatch = new ActivateBatch([activateHit2, activateHit3, activateHit], config)
     expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
       headers: headersActivate,
       nextFetchConfig,
-      body: new ActivateBatch([activateHit2, activateHit3, activateHit], config).toApiKeys(),
+      body: activateBatch.toApiKeys(),
       timeout: config.timeout
     })
 
-    expect(cacheHit).toBeCalledTimes(0)
-    expect(flushHits).toBeCalledTimes(0)
+    expect(sendHitsToFsQaSpy).toBeCalledTimes(1)
+    expect(sendHitsToFsQaSpy).toBeCalledWith(activateBatch.hits)
+
+    expect(cacheHitSpy).toBeCalledTimes(0)
+    expect(flushHitsSpy).toBeCalledTimes(0)
 
     expect(onVisitorExposed).toBeCalledTimes(3)
-    expect(onUserExposure).toBeCalledTimes(3)
   })
 
   it('test multiple activate failed', async () => {
@@ -706,11 +723,11 @@ describe('test activateFlag method', () => {
       timeout: config.timeout
     })
 
-    expect(flushHits).toBeCalledTimes(0)
-    expect(cacheHit).toBeCalledTimes(0)
+    expect(sendHitsToFsQaSpy).toBeCalledTimes(0)
+    expect(flushHitsSpy).toBeCalledTimes(0)
+    expect(cacheHitSpy).toBeCalledTimes(0)
 
     expect(onVisitorExposed).toBeCalledTimes(0)
-    expect(onUserExposure).toBeCalledTimes(0)
 
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
     const label: TroubleshootingLabel = TroubleshootingLabel.SEND_ACTIVATE_HIT_ROUTE_ERROR

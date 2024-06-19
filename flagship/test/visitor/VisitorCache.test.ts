@@ -9,10 +9,12 @@ import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { VisitorDelegate, DefaultStrategy, NoConsentStrategy, NotReadyStrategy, PanicStrategy } from '../../src/visitor'
 import { VISITOR_CACHE_VERSION } from '../../src/enum'
 import { campaigns } from '../decision/campaigns'
-import { VisitorCacheDTO } from '../../src/types'
-import { VISITOR_ID_MISMATCH_ERROR } from '../../src/visitor/VisitorStrategyAbstract'
+import { FetchFlagsStatus, VisitorCacheDTO, VisitorCacheStatus } from '../../src/types'
 import { sprintf } from '../../src/utils/utils'
 import { MurmurHash } from '../../src/utils/MurmurHash'
+import { VISITOR_ID_MISMATCH_ERROR } from '../../src/visitor/StrategyAbstract'
+import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
+import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getUndefined = ():any => undefined
@@ -54,7 +56,9 @@ describe('test visitor cache', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+  const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getStrategy = jest.spyOn(visitorDelegate, 'getStrategy' as any)
@@ -97,6 +101,7 @@ describe('test visitor cache', () => {
     getStrategy.mockReturnValue(defaultStrategy)
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
     await visitorDelegate.fetchFlags()
+
     expect(cacheVisitor).toBeCalledTimes(1)
 
     expect(cacheVisitor).toBeCalledWith(visitorId, data)
@@ -105,14 +110,14 @@ describe('test visitor cache', () => {
   it('test saveCache noConsentStrategy', async () => {
     getStrategy.mockReturnValue(noConsentStrategy)
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
-    await visitorDelegate.synchronizeModifications()
+    await visitorDelegate.fetchFlags()
     expect(cacheVisitor).toBeCalledTimes(0)
   })
 
   it('test saveCache notReadyStrategy', async () => {
     getStrategy.mockReturnValue(notReadyStrategy)
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
-    await visitorDelegate.synchronizeModifications()
+    await visitorDelegate.fetchFlags()
     expect(cacheVisitor).toBeCalledTimes(0)
   })
 
@@ -120,7 +125,7 @@ describe('test visitor cache', () => {
     getStrategy.mockReturnValue(defaultStrategy)
     config.visitorCacheImplementation = getUndefined()
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
-    await visitorDelegate.synchronizeModifications()
+    await visitorDelegate.fetchFlags()
     expect(cacheVisitor).toBeCalledTimes(0)
     config.visitorCacheImplementation = visitorCacheImplementation
   })
@@ -132,7 +137,7 @@ describe('test visitor cache', () => {
       throw saveCacheError
     })
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
-    await visitorDelegate.synchronizeModifications()
+    await visitorDelegate.fetchFlags()
     expect(cacheVisitor).toBeCalledTimes(1)
     expect(logError).toBeCalledTimes(1)
     expect(logError).toBeCalledWith(sprintf(VISITOR_CACHE_ERROR, visitorId, 'cacheVisitor', saveCacheError), PROCESS_CACHE)
@@ -140,12 +145,17 @@ describe('test visitor cache', () => {
 
   it('test fetchVisitorCacheCampaigns defaultStrategy', async () => {
     getCampaignsAsync.mockResolvedValue(null)
-
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+    const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged })
     const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
     visitorDelegate.visitorCache = data
     await defaultStrategy.fetchFlags()
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(onFetchFlagsStatusChanged)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(3)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.VISITOR_CREATED })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { status: FSFetchStatus.FETCHING, reason: FSFetchReasons.NONE })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(3, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.READ_FROM_CACHE })
     expect(visitorDelegate.campaigns).toEqual(campaigns.campaigns)
   })
 
@@ -498,7 +508,7 @@ describe('test visitor cache status', () => {
 
   it('test visitorCacheStatus NONE ', async () => {
     lookupVisitor.mockResolvedValue(getUndefined())
-    visitorDelegate.visitorCacheStatus = 'NONE'
+    visitorDelegate.visitorCacheStatus = VisitorCacheStatus.NONE
     visitorDelegate.anonymousId = null
     await defaultStrategy.cacheVisitor()
     expect(cacheVisitor).toBeCalledTimes(1)
@@ -508,7 +518,7 @@ describe('test visitor cache status', () => {
   it('test visitorCacheStatus VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE ', async () => {
     const anonymousId = 'anonymousId'
     lookupVisitor.mockResolvedValue(getUndefined())
-    visitorDelegate.visitorCacheStatus = 'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE'
+    visitorDelegate.visitorCacheStatus = VisitorCacheStatus.VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE
     visitorDelegate.anonymousId = anonymousId
     await defaultStrategy.cacheVisitor()
     expect(cacheVisitor).toBeCalledTimes(2)
@@ -519,7 +529,7 @@ describe('test visitor cache status', () => {
   it('test visitorCacheStatus ANONYMOUS_ID_CACHE ', async () => {
     const anonymousId = 'anonymousId'
     lookupVisitor.mockResolvedValue(getUndefined())
-    visitorDelegate.visitorCacheStatus = 'ANONYMOUS_ID_CACHE'
+    visitorDelegate.visitorCacheStatus = VisitorCacheStatus.ANONYMOUS_ID_CACHE
     visitorDelegate.anonymousId = anonymousId
     await defaultStrategy.cacheVisitor()
     expect(cacheVisitor).toBeCalledTimes(1)
@@ -529,7 +539,7 @@ describe('test visitor cache status', () => {
   it('test visitorCacheStatus VISITOR_ID_CACHE ', async () => {
     const anonymousId = 'anonymousId'
     lookupVisitor.mockResolvedValue(getUndefined())
-    visitorDelegate.visitorCacheStatus = 'VISITOR_ID_CACHE'
+    visitorDelegate.visitorCacheStatus = VisitorCacheStatus.VISITOR_ID_CACHE
     visitorDelegate.anonymousId = anonymousId
     await defaultStrategy.cacheVisitor()
     expect(cacheVisitor).toBeCalledTimes(1)
@@ -580,13 +590,13 @@ describe('test visitorCache with disabledCache', () => {
 
   it('test saveCache defaultStrategy', async () => {
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
-    await defaultStrategy.synchronizeModifications()
+    await defaultStrategy.fetchFlags()
     expect(cacheVisitor).toBeCalledTimes(0)
   })
 
   it('test saveCache', async () => {
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns)
-    await defaultStrategy.synchronizeModifications()
+    await defaultStrategy.fetchFlags()
     expect(cacheVisitor).toBeCalledTimes(0)
   })
 

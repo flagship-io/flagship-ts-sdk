@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, deno_build]
+    branches: [main, clean-project]
 jobs:
   build:
     runs-on: ubuntu-latest

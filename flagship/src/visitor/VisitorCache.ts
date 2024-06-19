@@ -1,12 +1,12 @@
 export const CLIENT_CACHE_KEY = 'FS_CLIENT_VISITOR'
 
-export type VisitorProfil={
+export type VisitorProfile={
     visitorId:string,
     anonymousId: string|null
 }
 
 export const cacheVisitor = {
-  saveVisitorProfile (visitorProfile:VisitorProfil):void {
+  saveVisitorProfile (visitorProfile:VisitorProfile):void {
     try {
       localStorage.setItem(CLIENT_CACHE_KEY, JSON.stringify(visitorProfile))
     } catch (error) {
@@ -14,7 +14,7 @@ export const cacheVisitor = {
     }
   },
 
-  loadVisitorProfile ():VisitorProfil|null {
+  loadVisitorProfile ():VisitorProfile|null {
     let data = null
     try {
       data = localStorage.getItem(CLIENT_CACHE_KEY)

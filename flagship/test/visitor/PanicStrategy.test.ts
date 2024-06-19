@@ -3,7 +3,7 @@ import { DecisionApiConfig, IVisitorCacheImplementation, VisitorCacheDTO } from 
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
-import { FlagshipStatus, FLAG_METADATA, FLAG_USER_EXPOSED, HitType, LogLevel, METADATA_PANIC_MODE, METHOD_DEACTIVATED_ERROR, VISITOR_CACHE_VERSION } from '../../src/enum'
+import { FLAG_METADATA, FLAG_VISITOR_EXPOSED, FSSdkStatus, HitType, LogLevel, METADATA_PANIC_MODE, METHOD_DEACTIVATED_ERROR, VISITOR_CACHE_VERSION } from '../../src/enum'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
@@ -58,23 +58,14 @@ describe('test NotReadyStrategy', () => {
     const methodName = 'updateContext'
     panicStrategy.updateContext()
     expect(logInfo).toBeCalledTimes(1)
-    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FSSdkStatus[FSSdkStatus.SDK_PANIC]), methodName)
   })
 
   it('test clearContext', () => {
     const methodName = 'clearContext'
     panicStrategy.clearContext()
     expect(logInfo).toBeCalledTimes(1)
-    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
-  })
-
-  it('test getModification', async () => {
-    const defaultValue = 'value'
-    const value = await panicStrategy.getModification({ key: 'key', defaultValue })
-    const methodName = 'getModification'
-    expect(value).toBe(defaultValue)
-    expect(logInfo).toBeCalledTimes(1)
-    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FSSdkStatus[FSSdkStatus.SDK_PANIC]), methodName)
   })
 
   it('test getFlagValue', () => {
@@ -83,49 +74,12 @@ describe('test NotReadyStrategy', () => {
     const methodName = 'Flag.value'
     expect(flagValue).toBe(defaultValue)
     expect(logInfo).toBeCalledTimes(1)
-    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
-  })
-
-  it('test getModification array', async () => {
-    const defaultValue = 'value'
-    const value = await panicStrategy.getModifications([{ key: 'key', defaultValue }])
-
-    const methodName = 'getModifications'
-
-    expect(value).toEqual({ key: defaultValue })
-    expect(logInfo).toBeCalledTimes(1)
-    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
-  })
-
-  it('test getModificationInfo', async () => {
-    const modification = await panicStrategy.getModificationInfo('key')
-
-    const methodName = 'getModificationInfo'
-
-    expect(modification).toBeNull()
-    expect(logInfo).toBeCalledTimes(1)
-    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FSSdkStatus[FSSdkStatus.SDK_PANIC]), methodName)
   })
 
   it('test getFlagMetadata', () => {
     const key = 'flagKey'
-    const metadata = panicStrategy.getFlagMetadata(
-      {
-        metadata: {
-          campaignId: '',
-          variationGroupId: '',
-          variationId: '',
-          slug: '',
-          campaignType: '',
-          isReference: false,
-          campaignName: '',
-          variationGroupName: '',
-          variationName: ''
-        },
-        key,
-        hasSameType: true
-      }
-    )
+    const metadata = panicStrategy.getFlagMetadata({ key })
     expect(metadata).toEqual({
       campaignId: '',
       slug: null,
@@ -163,46 +117,31 @@ describe('test NotReadyStrategy', () => {
         })
       }
     }
-    await panicStrategy.synchronizeModifications()
+    await panicStrategy.fetchFlags()
     expect(visitorDelegate.campaigns).toEqual([])
     expect(cacheVisitor).toBeCalledTimes(0)
     await panicStrategy.lookupHits()
     await panicStrategy.lookupVisitor()
   })
 
-  it('test activateModification', async () => {
-    await panicStrategy.activateModification('key')
-
-    const methodName = 'activateModification'
-    expect(logInfo).toBeCalledTimes(1)
-    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
-  })
-
-  it('test userExposed', async () => {
+  it('test visitorExposed', async () => {
     await panicStrategy.visitorExposed()
     expect(logInfo).toBeCalledTimes(1)
-    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, FLAG_USER_EXPOSED, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), FLAG_USER_EXPOSED)
-  })
-
-  it('test activateModifications', async () => {
-    await panicStrategy.activateModifications(['key'])
-    const methodName = 'activateModifications'
-    expect(logInfo).toBeCalledTimes(1)
-    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, FLAG_VISITOR_EXPOSED, FSSdkStatus[FSSdkStatus.SDK_PANIC]), FLAG_VISITOR_EXPOSED)
   })
 
   it('test sendHit', async () => {
     await panicStrategy.sendHit({ type: HitType.PAGE, documentLocation: 'home' })
     const methodName = 'sendHit'
     expect(logInfo).toBeCalledTimes(1)
-    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FSSdkStatus[FSSdkStatus.SDK_PANIC]), methodName)
   })
 
   it('test sendHits', async () => {
     await panicStrategy.sendHits([{ type: HitType.PAGE, documentLocation: 'home' }])
     const methodName = 'sendHits'
     expect(logInfo).toBeCalledTimes(1)
-    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FlagshipStatus[FlagshipStatus.READY_PANIC_ON]), methodName)
+    expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_ERROR, visitorId, methodName, FSSdkStatus[FSSdkStatus.SDK_PANIC]), methodName)
   })
 
   it('test sendTroubleshootingHit', () => {

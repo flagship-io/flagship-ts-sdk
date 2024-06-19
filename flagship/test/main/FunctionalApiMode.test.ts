@@ -7,6 +7,7 @@ describe('Functional test decision API mode', () => {
   Flagship.start(envId, apiKey)
   it('test decision API mode', async () => {
     const visitor = Flagship.newVisitor({
+      hasConsented: true,
       visitorId: 'visitor-1',
       context: {
         'ci-test': true,
@@ -17,16 +18,17 @@ describe('Functional test decision API mode', () => {
     await visitor.fetchFlags()
 
     const defaultValue = 'default-value'
-    const flag = visitor.getFlag('ci_flag_1', defaultValue)
+    const flag = visitor.getFlag('ci_flag_1')
 
     await Flagship.close()
 
-    expect(flag.getValue(false)).toBe('flag-1-value-2')
+    expect(flag.getValue(defaultValue, false)).toBe('flag-1-value-2')
     expect(flag.metadata.campaignName).toBe('Test-campaign ab')
   })
 
   it('test decision API mode 2', async () => {
     const visitor = Flagship.newVisitor({
+      hasConsented: true,
       visitorId: 'visitor-6',
       context: {
         'ci-test': true,
@@ -37,16 +39,17 @@ describe('Functional test decision API mode', () => {
     await visitor.fetchFlags()
 
     const defaultValue = 'default-value'
-    const flag = visitor.getFlag('ci_flag_1', defaultValue)
+    const flag = visitor.getFlag('ci_flag_1')
 
     await Flagship.close()
 
-    expect(flag.getValue(false)).toBe(defaultValue)
+    expect(flag.getValue(defaultValue, false)).toBe(defaultValue)
     expect(flag.metadata.campaignName).toBe('Test-campaign ab')
   })
 
   it('test decision API mode 3', async () => {
     const visitor = Flagship.newVisitor({
+      hasConsented: true,
       visitorId: 'visitor-6',
       context: {
         'ci-test': true,
@@ -57,11 +60,11 @@ describe('Functional test decision API mode', () => {
     await visitor.fetchFlags()
 
     const defaultValue = 'default-value'
-    const flag = visitor.getFlag('ci_flag_1', defaultValue)
+    const flag = visitor.getFlag('ci_flag_1')
 
     await Flagship.close()
 
-    expect(flag.getValue(false)).toBe(defaultValue)
+    expect(flag.getValue(defaultValue, false)).toBe(defaultValue)
     expect(flag.metadata.campaignName).toBe('')
   })
 })

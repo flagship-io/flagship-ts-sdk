@@ -1,5 +1,5 @@
 import { ANONYMOUS_ID, CUSTOMER_ENV_ID_API_ACTIVATE, QT_API_ITEM, VARIATION_GROUP_ID_API_ITEM_ACTIVATE, VARIATION_ID_API_ITEM, VISITOR_ID_API_ITEM } from '../enum/index'
-import { IFlagMetadata, primitive } from '../types'
+import { IFSFlagMetadata, primitive } from '../types'
 import { HitAbstract, IHitAbstract } from './HitAbstract'
 
 export const ERROR_MESSAGE = 'variationGroupId and variationId are required'
@@ -10,7 +10,7 @@ export interface IActivate extends IHitAbstract{
     flagKey: string
     flagValue: unknown
     flagDefaultValue: unknown
-    flagMetadata: IFlagMetadata
+    flagMetadata: IFSFlagMetadata
     visitorContext: Record<string, primitive>
 }
 
@@ -20,7 +20,7 @@ export class Activate extends HitAbstract implements IActivate {
   private _flagKey! : string
   private _flagValue! : unknown
   private _flagDefaultValue! : unknown
-  private _flagMetadata! : IFlagMetadata
+  private _flagMetadata! : IFSFlagMetadata
   private _visitorContext! : Record<string, primitive>
 
   public constructor (param:Omit<IActivate, 'type'|'createdAt'|'traffic'>) {
@@ -86,11 +86,11 @@ export class Activate extends HitAbstract implements IActivate {
     this._flagDefaultValue = v
   }
 
-  public get flagMetadata () : IFlagMetadata {
+  public get flagMetadata () : IFSFlagMetadata {
     return this._flagMetadata
   }
 
-  public set flagMetadata (v : IFlagMetadata) {
+  public set flagMetadata (v : IFSFlagMetadata) {
     this._flagMetadata = v
   }
 

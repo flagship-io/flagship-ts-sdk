@@ -41,7 +41,7 @@ describe('Test newVisitor without starting the SDK', () => {
   FlagshipAny.getConfig = getConfig
 
   it('should ', () => {
-    const visitor = Flagship.newVisitor()
+    const visitor = Flagship.newVisitor({ visitorId: 'visitorId', context: { key: 'value' }, hasConsented: true })
     expect(visitor).toBeInstanceOf(Visitor)
     expect(errorLog).toBeCalledTimes(1)
     expect(errorLog).toBeCalledWith(NEW_VISITOR_NOT_READY, PROCESS_NEW_VISITOR)
