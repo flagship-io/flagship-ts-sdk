@@ -29,11 +29,11 @@ app.get("/item", async (req, res) => {
   await visitor.fetchFlags();
 
   // Step 4: Get the values of the flags for the visitor
-  const fsEnableDiscount = visitor.getFlag("fs_enable_discount", false);
-  const fsAddToCartBtnColor = visitor.getFlag("fs_add_to_cart_btn_color", "blue");
+  const fsEnableDiscount = visitor.getFlag("fs_enable_discount");
+  const fsAddToCartBtnColor = visitor.getFlag("fs_add_to_cart_btn_color");
 
-  const fsEnableDiscountValue = fsEnableDiscount.getValue();
-  const fsAddToCartBtnColorValue = fsAddToCartBtnColor.getValue();
+  const fsEnableDiscountValue = fsEnableDiscount.getValue(false);
+  const fsAddToCartBtnColorValue = fsAddToCartBtnColor.getValue("blue");
 
   res.json({
     item: {
