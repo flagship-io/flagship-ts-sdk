@@ -1,0 +1,21 @@
+{
+    "sdkInstallSteps": [
+        {
+            "order": 1,
+            "description": "Install SDK",
+            "rawCode": "yarn add @flagship.io/js-sdk",
+            "language": "shell"
+        }
+    ],
+    "sdkUseSteps": [
+        {
+            "fileName": "index.js",
+            "order": 1,
+            "description": "This is a basic example of how to use the Flagship SDK using express.js",
+            "codeRegexPatterns": [
+                "\/\/start demo([\\s\\S]*?)\/\/end demo"
+            ],
+            "language": "jsx"
+        }
+    ]
+}

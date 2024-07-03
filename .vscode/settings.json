@@ -14,7 +14,7 @@
     "source.fixAll.eslint": "explicit"
   },
   "[javascript]": {
-    "editor.defaultFormatter": null
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[typescript]": {
     "editor.defaultFormatter": null

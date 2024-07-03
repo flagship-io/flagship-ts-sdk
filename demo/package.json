@@ -1,0 +1,14 @@
+{
+  "name": "flagship-demo-node",
+  "version": "1.0.0",
+  "description": "This is a basic example of how to use the Flagship SDK using express.js",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@flagship.io/js-sdk": "^4.0.1",
+    "express": "^4.19.2"
+  }
+}
