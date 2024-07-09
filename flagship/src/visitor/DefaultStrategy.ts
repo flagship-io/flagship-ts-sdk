@@ -214,6 +214,7 @@ export class DefaultStrategy extends StrategyAbstract {
       }
     })
     activateHit.config = this.config
+    activateHit.qaMode = this.config.isQAModeEnabled
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { createdAt, ...hitInstanceItem } = activateHit.toObject()
@@ -310,6 +311,7 @@ export class DefaultStrategy extends StrategyAbstract {
     hitInstance.ds = SDK_APP
     hitInstance.config = this.config
     hitInstance.anonymousId = this.visitor.anonymousId as string
+    hitInstance.qaMode = this.config.isQAModeEnabled
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { createdAt, ...hitInstanceItem } = hitInstance.toObject()
