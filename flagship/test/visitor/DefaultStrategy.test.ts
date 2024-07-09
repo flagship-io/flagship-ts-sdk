@@ -1670,3 +1670,113 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
     expect(sendUsageHitSpy).toBeCalledTimes(0)
   })
 })
+
+describe('test DefaultStrategy with QA mode', () => {
+  const methodNow = Date.now
+  const mockNow = jest.fn<typeof Date.now>()
+  beforeAll(() => {
+    Date.now = mockNow
+    mockNow.mockReturnValue(1)
+  })
+  afterAll(() => {
+    Date.now = methodNow
+  })
+  const visitorId = 'ca0594f5-4a37-4a7d-91be-27c63f829380'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const context: any = {
+    isVip: true
+  }
+
+  const logManager = new FlagshipLogManager()
+
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0 })
+  config.logManager = logManager
+  config.isQAModeEnabled = true
+
+  const httpClient = new HttpClient()
+
+  const post = jest.fn<typeof httpClient.postAsync>()
+  httpClient.postAsync = post
+  post.mockResolvedValue({} as IHttpResponse)
+
+  const apiManager = new ApiManager(httpClient, config)
+
+  const getCampaignsAsync = jest.spyOn(
+    apiManager,
+    'getCampaignsAsync'
+  )
+
+  const getModifications = jest.spyOn(
+    apiManager,
+    'getModifications'
+  )
+
+  const trackingManager = new TrackingManager(httpClient, config)
+
+  const addHit = jest.spyOn(trackingManager, 'addHit')
+  addHit.mockResolvedValue()
+
+  const sendUsageHitSpy = jest.spyOn(trackingManager, 'sendUsageHit')
+
+  const configManager = new ConfigManager(config, apiManager, trackingManager)
+
+  const FsInstanceId = 'FsInstanceId'
+  const murmurHash = new MurmurHash()
+  const visitorDelegate = new VisitorDelegate({
+    visitorId,
+    context,
+    configManager,
+    monitoringData: {
+      instanceId: FsInstanceId,
+      lastInitializationTimestamp: ''
+    },
+    hasConsented: true
+  })
+  const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
+  const returnMod = returnFlag.get('keyString') as FlagDTO
+
+  const activateFlag = jest.spyOn(trackingManager, 'activateFlag')
+  activateFlag.mockResolvedValue()
+
+  it('test visitorExposed', async () => {
+    await defaultStrategy.visitorExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value, hasGetValueBeenCalled: true })
+    expect(activateFlag).toBeCalledTimes(1)
+    const activateHit = new Activate({
+      variationGroupId: returnMod.variationGroupId,
+      variationId: returnMod.variationId,
+      visitorId,
+      flagKey: returnMod.key,
+      flagValue: returnMod.value,
+      flagDefaultValue: returnMod.value,
+      qaMode: true,
+      visitorContext: visitorDelegate.context,
+      flagMetadata: {
+        campaignId: returnMod.campaignId,
+        variationGroupId: returnMod.variationGroupId,
+        variationId: returnMod.variationId,
+        isReference: returnMod.isReference as boolean,
+        campaignType: returnMod.campaignType as string,
+        slug: returnMod.slug,
+        campaignName: returnMod.campaignName,
+        variationGroupName: returnMod.variationGroupName,
+        variationName: returnMod.variationName
+      }
+    })
+    activateHit.config = config
+    activateHit.visitorId = visitorId
+    activateHit.ds = SDK_APP
+
+    expect(activateFlag).toBeCalledWith(activateHit)
+  })
+
+  it('test sendHitAsync with literal object Event ', async () => {
+    const hit = {
+      type: HitType.EVENT,
+      action: 'action_1',
+      category: EventCategory.ACTION_TRACKING
+    }
+    await defaultStrategy.sendHit(hit)
+    expect(addHit).toBeCalledTimes(1)
+    expect(addHit).toBeCalledWith(expect.objectContaining({ ...hit, visitorId, ds: SDK_APP, config, qaMode: true }))
+  })
+})
