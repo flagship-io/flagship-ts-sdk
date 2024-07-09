@@ -29,7 +29,8 @@ export class Screen extends HitAbstract implements IScreen {
       locale: param.locale,
       sessionNumber: param.sessionNumber,
       visitorId: param.visitorId,
-      anonymousId: param.anonymousId
+      anonymousId: param.anonymousId,
+      qaMode: param.qaMode
     })
     this.documentLocation = param.documentLocation
   }

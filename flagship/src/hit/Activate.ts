@@ -31,7 +31,8 @@ export class Activate extends HitAbstract implements IActivate {
       locale: param.locale,
       sessionNumber: param.sessionNumber,
       visitorId: param.visitorId,
-      anonymousId: param.anonymousId
+      anonymousId: param.anonymousId,
+      qaMode: param.qaMode
     })
     const {
       variationGroupId, variationId, flagKey, flagValue,

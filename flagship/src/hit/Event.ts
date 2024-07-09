@@ -100,7 +100,8 @@ export class Event extends HitAbstract implements IEvent {
       locale: param.locale,
       sessionNumber: param.sessionNumber,
       visitorId: param.visitorId,
-      anonymousId: param.anonymousId
+      anonymousId: param.anonymousId,
+      qaMode: param.qaMode
     })
     const { category, action, label, value } = param
     this.category = category
