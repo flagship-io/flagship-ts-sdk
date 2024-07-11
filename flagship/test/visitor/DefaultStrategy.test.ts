@@ -817,6 +817,16 @@ describe('test DefaultStrategy ', () => {
     expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.AUTHENTICATE })
   })
 
+  it('test multiple authentication ', () => {
+    defaultStrategy.authenticate('authenticateId2')
+    expect(visitorDelegate.visitorId).toBe(authenticateId)
+    expect(visitorDelegate.anonymousId).toBe(visitorId)
+    expect(sendTroubleshootingHitSpy).toBeCalledTimes(0)
+
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(0)
+    expect(logWarning).toBeCalledTimes(1)
+  })
+
   it('test unauthenticate', () => {
     defaultStrategy.unauthenticate()
     expect(visitorDelegate.visitorId).toBe(visitorId)
