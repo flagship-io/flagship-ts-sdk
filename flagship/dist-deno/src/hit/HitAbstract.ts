@@ -11,7 +11,8 @@ import {
   SESSION_NUMBER,
   USER_LANGUAGE,
   QT_API_ITEM,
-  SDK_APP
+  SDK_APP,
+  QA_MODE_API_ITEM
 } from '../enum/FlagshipConstant.ts'
 import { InternalHitType, primitive } from '../types.ts'
 import { logError, sprintf } from '../utils/utils.ts'
@@ -26,7 +27,7 @@ export interface IHitAbstract{
   locale?: string
   sessionNumber?: string,
   createdAt:number,
-
+  qaMode?: boolean
 }
 
 export abstract class HitAbstract implements IHitAbstract {
@@ -41,6 +42,7 @@ export abstract class HitAbstract implements IHitAbstract {
   private _sessionNumber! : string
   private _key! : string
   private _createdAt!: number
+  private _qaMode? : boolean
 
   public get key () : string {
     return this._key
@@ -126,8 +128,16 @@ export abstract class HitAbstract implements IHitAbstract {
     this._createdAt = v
   }
 
+  public get qaMode () : boolean|undefined {
+    return this._qaMode
+  }
+
+  public set qaMode (v : boolean|undefined) {
+    this._qaMode = v
+  }
+
   protected constructor (hit: Omit<IHitAbstract, 'createdAt'|'traffic'>) {
-    const { type, userIp, screenResolution, locale, sessionNumber, visitorId, anonymousId, ds } = hit
+    const { type, userIp, screenResolution, locale, sessionNumber, visitorId, anonymousId, ds, qaMode } = hit
     this._type = type
     if (userIp) {
       this.userIp = userIp
@@ -146,6 +156,7 @@ export abstract class HitAbstract implements IHitAbstract {
     this._anonymousId = anonymousId || null
     this.createdAt = Date.now()
     this.ds = ds || SDK_APP
+    this.qaMode = qaMode
   }
 
   /**
@@ -192,6 +203,11 @@ export abstract class HitAbstract implements IHitAbstract {
       [CUSTOMER_UID]: null,
       [QT_API_ITEM]: Date.now() - this._createdAt
     }
+
+    if (this.qaMode) {
+      apiKeys[QA_MODE_API_ITEM] = true
+    }
+
     if (this.userIp) {
       apiKeys[USER_IP_API_ITEM] = this.userIp
     }
@@ -222,7 +238,8 @@ export abstract class HitAbstract implements IHitAbstract {
       locale: this.locale,
       sessionNumber: this.sessionNumber,
       anonymousId: this.anonymousId,
-      createdAt: this.createdAt
+      createdAt: this.createdAt,
+      qaMode: this.qaMode
     }
   }
 

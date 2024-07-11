@@ -34,7 +34,8 @@ import {
   VISITOR_AUTHENTICATE,
   VISITOR_AUTHENTICATE_VISITOR_ID_ERROR,
   VISITOR_EXPOSED_VALUE_NOT_CALLED,
-  VISITOR_UNAUTHENTICATE
+  VISITOR_UNAUTHENTICATE,
+  VISITOR_ALREADY_AUTHENTICATE
 } from '../enum/index.ts'
 import {
   HitAbstract,
@@ -214,6 +215,7 @@ export class DefaultStrategy extends StrategyAbstract {
       }
     })
     activateHit.config = this.config
+    activateHit.qaMode = this.config.isQAModeEnabled
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { createdAt, ...hitInstanceItem } = activateHit.toObject()
@@ -310,6 +312,7 @@ export class DefaultStrategy extends StrategyAbstract {
     hitInstance.ds = SDK_APP
     hitInstance.config = this.config
     hitInstance.anonymousId = this.visitor.anonymousId as string
+    hitInstance.qaMode = this.config.isQAModeEnabled
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { createdAt, ...hitInstanceItem } = hitInstance.toObject()
@@ -348,6 +351,11 @@ export class DefaultStrategy extends StrategyAbstract {
   authenticate (visitorId: string): void {
     if (!visitorId) {
       logErrorSprintf(this.config, AUTHENTICATE, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, this.visitor.visitorId)
+      return
+    }
+
+    if (this.visitor.anonymousId) {
+      logWarningSprintf(this.config, AUTHENTICATE, VISITOR_ALREADY_AUTHENTICATE, this.visitor.visitorId, this.visitor.anonymousId)
       return
     }
 

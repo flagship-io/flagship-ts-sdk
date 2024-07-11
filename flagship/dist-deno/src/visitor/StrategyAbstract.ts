@@ -86,6 +86,8 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       category: EventCategory.USER_ENGAGEMENT
     })
 
+    consentHit.qaMode = this.config.isQAModeEnabled
+
     consentHit.ds = SDK_APP
     consentHit.config = this.config
 

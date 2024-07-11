@@ -186,6 +186,7 @@ export const VARIATION_ID_API_ITEM = 'vaid'
 export const DS_API_ITEM = 'ds'
 export const T_API_ITEM = 't'
 export const QT_API_ITEM = 'qt'
+export const QA_MODE_API_ITEM = 'qa'
 export const DL_API_ITEM = 'dl'
 export const SL_ITEM = 'sl'
 export const SDK_APP = 'APP'
@@ -275,6 +276,7 @@ export const METADATA_PANIC_MODE = `Visitor {0}, Flag for key {1} Method Flag.me
 Learn more: ${PANIC_MODE_DOC_URL}`
 export const AUTHENTICATE = 'AUTHENTICATE'
 export const VISITOR_AUTHENTICATE = 'The visitor is authenticated with new visitor ID {0} anonymous ID {1}'
+export const VISITOR_ALREADY_AUTHENTICATE = 'The visitor is already authenticated with visitor ID {0}'
 export const METHOD_DEACTIVATED_BUCKETING_ERROR = 'Visitor {0}, Method {1} is deactivated on Bucketing mode'
 export const VISITOR_AUTHENTICATE_VISITOR_ID_ERROR = `Visitor {0}, visitorId must not be null or empty
 Learn more: ${JS_DOC_URL}#authenticate`
