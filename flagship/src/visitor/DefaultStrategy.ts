@@ -34,7 +34,8 @@ import {
   VISITOR_AUTHENTICATE,
   VISITOR_AUTHENTICATE_VISITOR_ID_ERROR,
   VISITOR_EXPOSED_VALUE_NOT_CALLED,
-  VISITOR_UNAUTHENTICATE
+  VISITOR_UNAUTHENTICATE,
+  VISITOR_ALREADY_AUTHENTICATE
 } from '../enum/index'
 import {
   HitAbstract,
@@ -348,6 +349,11 @@ export class DefaultStrategy extends StrategyAbstract {
   authenticate (visitorId: string): void {
     if (!visitorId) {
       logErrorSprintf(this.config, AUTHENTICATE, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, this.visitor.visitorId)
+      return
+    }
+
+    if (this.visitor.anonymousId) {
+      logWarningSprintf(this.config, AUTHENTICATE, VISITOR_ALREADY_AUTHENTICATE, this.visitor.visitorId, this.visitor.anonymousId)
       return
     }
 
