@@ -48,7 +48,7 @@ export type ExposedVariation = {
   originalVariationId: string
 };
 
-export type IHit = Omit<IPage, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IScreen, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IEvent, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<IItem, 'createdAt'|'visitorId'|'anonymousId'|'ds'> | Omit<ITransaction, 'createdAt'|'visitorId'|'anonymousId'|'ds'>
+export type IHit = Omit<IPage, 'createdAt'|'visitorId'|'anonymousId'|'ds'|'qaMode'> | Omit<IScreen, 'createdAt'|'visitorId'|'anonymousId'|'ds'|'qaMode'> | Omit<IEvent, 'createdAt'|'visitorId'|'anonymousId'|'ds'|'qaMode'> | Omit<IItem, 'createdAt'|'visitorId'|'anonymousId'|'ds'|'qaMode'> | Omit<ITransaction, 'createdAt'|'visitorId'|'anonymousId'|'ds'|'qaMode'>
 
 export type FlagDTO= {
   key: string;

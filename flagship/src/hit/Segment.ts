@@ -26,7 +26,8 @@ export class Segment extends HitAbstract implements ISegment {
       locale: param.locale,
       sessionNumber: param.sessionNumber,
       visitorId: param.visitorId,
-      anonymousId: param.anonymousId
+      anonymousId: param.anonymousId,
+      qaMode: param.qaMode
     })
     this.context = param.context
   }

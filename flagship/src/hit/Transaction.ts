@@ -162,7 +162,8 @@ export class Transaction extends HitAbstract implements ITransaction {
       locale: param.locale,
       sessionNumber: param.sessionNumber,
       visitorId: param.visitorId,
-      anonymousId: param.anonymousId
+      anonymousId: param.anonymousId,
+      qaMode: param.qaMode
     })
     const {
       transactionId,
