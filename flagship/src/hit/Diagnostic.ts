@@ -10,7 +10,7 @@ import {
 } from '../enum/FlagshipConstant'
 import { HitAbstract, IHitAbstract } from './HitAbstract'
 import { BucketingDTO } from '../decision/api/bucketingDTO'
-import { FlagDTO, SerializedFlagMetadata, TroubleshootingLabel, primitive } from '../types'
+import { FlagDTO, SdkMethod, SerializedFlagMetadata, TroubleshootingLabel, primitive } from '../types'
 import { CampaignDTO } from '../mod'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 
@@ -82,6 +82,9 @@ export interface IDiagnostic extends IHitAbstract{
     visitorIsAuthenticated?:boolean
     visitorInitialCampaigns?:CampaignDTO[]
     visitorInitialFlagsData? : SerializedFlagMetadata[]
+    visitorHasOnFetchFlagsStatusChanged?: boolean
+    visitorOldContext?: Record<string, primitive>
+    visitorNewContext?: Record<string, primitive>
 
     contextKey?:string
     contextValue?: unknown
@@ -108,6 +111,7 @@ export interface IDiagnostic extends IHitAbstract{
     traffic?: number
     flagshipInstanceId?:string
 
+    sdkMethod?: SdkMethod
   }
 
 /**
@@ -190,6 +194,43 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
   private _sdkConfigDisableDeveloperUsageTracking? : boolean
   private _sdkConfigDisableCache? : boolean
   private _sdkConfigLogLevel? : LogLevel|undefined
+
+  private _visitorOldContext? : Record<string, primitive>
+  private _visitorNewContext? : Record<string, primitive>
+
+  public get visitorOldContext () : Record<string, primitive>|undefined {
+    return this._visitorOldContext
+  }
+
+  public set visitorOldContext (v : Record<string, primitive>|undefined) {
+    this._visitorOldContext = v
+  }
+
+  public get visitorNewContext () : Record<string, primitive>|undefined {
+    return this._visitorNewContext
+  }
+
+  public set visitorNewContext (v : Record<string, primitive>|undefined) {
+    this._visitorNewContext = v
+  }
+
+  private _visitorHasOnFetchFlagsStatusChanged : boolean|undefined
+  public get visitorHasOnFetchFlagsStatusChanged () : boolean|undefined {
+    return this._visitorHasOnFetchFlagsStatusChanged
+  }
+
+  public set visitorHasOnFetchFlagsStatusChanged (v : boolean|undefined) {
+    this._visitorHasOnFetchFlagsStatusChanged = v
+  }
+
+  private _sdkMethod : SdkMethod|undefined
+  public get sdkMethod () : SdkMethod|undefined {
+    return this._sdkMethod
+  }
+
+  public set sdkMethod (v : SdkMethod|undefined) {
+    this._sdkMethod = v
+  }
 
   public get sdkConfigLogLevel () : LogLevel|undefined {
     return this._sdkConfigLogLevel
@@ -966,6 +1007,10 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       'stack.version': `${this.stackVersion}`
     }
 
+    if (this.sdkMethod !== undefined) {
+      customVariable.sdkMethod = `${SdkMethod[this.sdkMethod]}`
+    }
+
     if (this.lastBucketingTimestamp !== undefined) {
       customVariable.lastBucketingTimestamp = `${this.lastBucketingTimestamp}`
     }
@@ -1122,6 +1167,21 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
         customVariable[`visitor.context.[${key}]`] = `${element}`
       }
     }
+
+    if (this.visitorOldContext !== undefined) {
+      for (const key in this.visitorOldContext) {
+        const element = this.visitorOldContext[key]
+        customVariable[`visitor.oldContext.[${key}]`] = `${element}`
+      }
+    }
+
+    if (this.visitorNewContext !== undefined) {
+      for (const key in this.visitorNewContext) {
+        const element = this.visitorNewContext[key]
+        customVariable[`visitor.newContext.[${key}]`] = `${element}`
+      }
+    }
+
     if (this.visitorConsent !== undefined) {
       customVariable['visitor.consent'] = `${this.visitorConsent}`
     }
@@ -1152,6 +1212,10 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
 
     if (this.visitorInitialFlagsData !== undefined) {
       customVariable['visitor.initialFlagsData'] = JSON.stringify(Array.isArray(this.visitorInitialFlagsData) ? this.visitorInitialFlagsData : Array.from(this.visitorInitialFlagsData))
+    }
+
+    if (this.visitorHasOnFetchFlagsStatusChanged !== undefined) {
+      customVariable['visitor.hasOnFetchFlagsStatusChanged'] = `${this.visitorHasOnFetchFlagsStatusChanged}`
     }
 
     if (this.visitorCampaigns !== undefined) {
