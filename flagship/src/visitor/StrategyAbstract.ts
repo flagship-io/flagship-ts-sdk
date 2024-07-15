@@ -1,5 +1,5 @@
 import { Event, EventCategory, HitAbstract } from '../hit/index'
-import { primitive, IHit, VisitorCacheDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorCacheStatus, CampaignDTO } from '../types'
+import { primitive, IHit, VisitorCacheDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorCacheStatus, CampaignDTO, SdkMethod } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
@@ -91,28 +91,11 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     consentHit.ds = SDK_APP
     consentHit.config = this.config
 
-    const hitTroubleshooting = new Troubleshooting({
-
-      label: TroubleshootingLabel.VISITOR_SEND_HIT,
-      logLevel: LogLevel.INFO,
-      traffic: this.visitor.traffic || 0,
-      visitorId: this.visitor.visitorId,
-      visitorSessionId: this.visitor.instanceId,
-      flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-      anonymousId: this.visitor.anonymousId,
-      config: this.config,
-      hitContent: consentHit.toApiKeys()
-    })
     this.trackingManager.addHit(consentHit)
 
+    this.sendDiagnosticHitConsent(consentHit)
+
     logDebugSprintf(this.config, PROCESS_SET_CONSENT, CONSENT_CHANGED, this.visitor.visitorId, hasConsented)
-
-    if (this.decisionManager.troubleshooting) {
-      this.trackingManager.sendTroubleshootingHit(hitTroubleshooting)
-      return
-    }
-
-    this.visitor.consentHitTroubleshooting = hitTroubleshooting
   }
 
   protected checKLookupVisitorDataV1 (item:VisitorCacheDTO):boolean {
@@ -279,8 +262,26 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     abstract getFlagValue<T>(param:GetFlagValueParam<T>):T extends null ? unknown : T
     abstract getFlagMetadata(param:GetFlagMetadataParam):IFSFlagMetadata
 
+    getVisitorAnalyticsTraffic ():number {
+      const uniqueId = this.visitor.visitorId + this.getCurrentDateTime().toDateString()
+      const hash = this._murmurHash.murmurHash3Int32(uniqueId)
+      return hash % 1000
+    }
+
     public async sendTroubleshootingHit (hit: Troubleshooting) {
       await this.trackingManager.sendTroubleshootingHit(hit)
+    }
+
+    protected async sendUsageHit (hit: UsageHit): Promise<void> {
+      if (this.config.disableDeveloperUsageTracking) {
+        return
+      }
+      const traffic = this.visitor.analyticTraffic
+
+      if (traffic > ANALYTIC_HIT_ALLOCATION) {
+        return
+      }
+      return this.trackingManager.sendUsageHit(hit)
     }
 
     public getCurrentDateTime () {
@@ -291,13 +292,140 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       return this.config.decisionMode === DecisionMode.DECISION_API ? 'DECISION_API' : this.config.decisionMode
     }
 
+    protected async processTroubleshootingHit (hit: Troubleshooting) {
+      if (this.decisionManager.troubleshooting) {
+        this.sendTroubleshootingHit(hit)
+        return
+      }
+
+      this.visitor.troubleshootingHits.push(hit)
+    }
+
+    public async sendDiagnosticHitNewVisitor () {
+      const troubleshooting = new Troubleshooting({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.FS_NEW_VISITOR,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        config: this.config,
+        visitorConsent: this.visitor.hasConsented,
+        visitorIsAuthenticated: !!this.visitor.anonymousId,
+        visitorContext: this.visitor.context,
+        visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
+        visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
+        visitorHasOnFetchFlagsStatusChanged: this.visitor.sdkInitialData?.hasOnFetchFlagsStatusChanged,
+        traffic: this.visitor.traffic || 0
+      })
+
+      const analytic = new UsageHit({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.FS_NEW_VISITOR,
+        visitorId: this.visitor.sdkInitialData?.instanceId as string,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        visitorSessionId: this.visitor.instanceId,
+        config: this.config
+      })
+
+      this.sendUsageHit(analytic)
+
+      this.processTroubleshootingHit(troubleshooting)
+    }
+
+    public sendDiagnosticHitConsent (consentHit: Event) {
+      const troubleshooting = new Troubleshooting({
+        label: TroubleshootingLabel.VISITOR_SEND_HIT,
+        logLevel: LogLevel.INFO,
+        traffic: this.visitor.traffic || 0,
+        visitorId: this.visitor.visitorId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        anonymousId: this.visitor.anonymousId,
+        config: this.config,
+        hitContent: consentHit.toApiKeys()
+      })
+
+      const analytic = new UsageHit({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.VISITOR_SET_CONSENT,
+        visitorId: this.visitor.sdkInitialData?.instanceId as string,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        config: this.config
+      })
+
+      this.sendUsageHit(analytic)
+
+      this.processTroubleshootingHit(troubleshooting)
+    }
+
+    public async sendDiagnosticHitUpdateContext (oldContext: Record<string, primitive>, newContext: Record<string, primitive>) {
+      const troubleshooting = new Troubleshooting({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.VISITOR_UPDATE_CONTEXT,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        config: this.config,
+        visitorOldContext: oldContext,
+        visitorNewContext: newContext,
+        traffic: this.visitor.traffic || 0
+      })
+
+      const analytic = new UsageHit({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.VISITOR_UPDATE_CONTEXT,
+        visitorId: this.visitor.sdkInitialData?.instanceId as string,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        visitorSessionId: this.visitor.instanceId,
+        config: this.config
+      })
+
+      this.sendUsageHit(analytic)
+
+      this.processTroubleshootingHit(troubleshooting)
+    }
+
+    public async sendDiagnosticHitClearContext () {
+      const troubleshooting = new Troubleshooting({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.VISITOR_CLEAR_CONTEXT,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        config: this.config,
+        visitorContext: this.visitor.context,
+        traffic: this.visitor.traffic || 0
+      })
+
+      const analytic = new UsageHit({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.VISITOR_CLEAR_CONTEXT,
+        visitorId: this.visitor.sdkInitialData?.instanceId as string,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        visitorSessionId: this.visitor.instanceId,
+        config: this.config
+      })
+
+      this.sendUsageHit(analytic)
+
+      this.processTroubleshootingHit(troubleshooting)
+    }
+
     public async sendSdkConfigAnalyticHit () {
       if (this.config.disableDeveloperUsageTracking) {
         return
       }
-      const uniqueId = this.visitor.visitorId + this.getCurrentDateTime().toDateString()
-      const hash = this._murmurHash.murmurHash3Int32(uniqueId)
-      const traffic = hash % 1000
+      const traffic = this.visitor.analyticTraffic
 
       if (traffic > ANALYTIC_HIT_ALLOCATION) {
         return
