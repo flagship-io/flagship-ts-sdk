@@ -118,6 +118,7 @@ export class DefaultStrategy extends StrategyAbstract {
   updateContext(key: string, value: primitive):void
   updateContext (context: Record<string, primitive>): void
   updateContext (context: Record<string, primitive> | string, value?:primitive): void {
+    const oldContext = this.visitor.context
     if (typeof context === 'string') {
       this.updateContextKeyValue(context, value as primitive)
       logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_KEY_VALUE_UPDATE, this.visitor.visitorId, context, value, this.visitor.context)
@@ -125,6 +126,8 @@ export class DefaultStrategy extends StrategyAbstract {
         status: FSFetchStatus.FETCH_REQUIRED,
         reason: FSFetchReasons.UPDATE_CONTEXT
       }
+      const newContext = { ...oldContext, [context]: value as primitive }
+      this.sendDiagnosticHitUpdateContext(oldContext, newContext)
       return
     }
 
@@ -141,6 +144,8 @@ export class DefaultStrategy extends StrategyAbstract {
       status: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.UPDATE_CONTEXT
     }
+    const newContext = { ...oldContext, ...context }
+    this.sendDiagnosticHitUpdateContext(oldContext, newContext)
     logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_OBJET_PARAM_UPDATE, this.visitor.visitorId, context, this.visitor.context)
   }
 
@@ -151,6 +156,7 @@ export class DefaultStrategy extends StrategyAbstract {
       status: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.UPDATE_CONTEXT
     }
+    this.sendDiagnosticHitClearContext()
     logDebugSprintf(this.config, PROCESS_CLEAR_CONTEXT, CLEAR_CONTEXT, this.visitor.visitorId, this.visitor.context)
   }
 
