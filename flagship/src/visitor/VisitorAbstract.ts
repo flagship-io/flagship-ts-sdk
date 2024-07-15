@@ -44,6 +44,16 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   private _fetchStatus! : FetchFlagsStatus
   private _onFetchFlagsStatusChanged? : ({ status, reason }: FetchFlagsStatus) => void
   private _getCampaignsPromise? : Promise<CampaignDTO[]|null>
+  private _analyticTraffic! : number
+  private _troubleshootingHits : Troubleshooting[]
+
+  public get troubleshootingHits () : Troubleshooting[] {
+    return this._troubleshootingHits
+  }
+
+  public set troubleshootingHits (v : Troubleshooting[]) {
+    this._troubleshootingHits = v
+  }
 
   public get getCampaignsPromise () : Promise<CampaignDTO[]|null>|undefined {
     return this._getCampaignsPromise
@@ -109,6 +119,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._visitorCacheStatus = v
   }
 
+  public get analyticTraffic () : number {
+    return this._analyticTraffic
+  }
+
   constructor (param: NewVisitor & {
     visitorId?: string
     configManager: IConfigManager
@@ -118,12 +132,13 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     const { visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData, onFetchFlagsStatusChanged } = param
     super()
     this._exposedVariations = {}
-    this._sdkInitialData = monitoringData
+    this.initData(monitoringData)
     this._instanceId = uuidV4()
     this._isCleaningDeDuplicationCache = false
     this.deDuplicationCache = {}
     this._context = {}
     this._configManager = configManager
+    this._troubleshootingHits = []
 
     const visitorCache = this.config.reuseVisitorIds ? cacheVisitor.loadVisitorProfile() : null
     if (visitorCache) {
@@ -137,6 +152,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     if (isAuthenticated) {
       this._anonymousId = visitorCache?.anonymousId || uuidV4()
     }
+
+    this.initAnalyticTraffic()
 
     this.setConsent(hasConsented || false)
 
@@ -160,6 +177,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       reason: FSFetchReasons.VISITOR_CREATED
     }
 
+    this.sendDiagnosticHitNewVisitor()
+
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
   }
 
@@ -173,6 +192,21 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
   public get instanceId () : string {
     return this._instanceId
+  }
+
+  protected sendDiagnosticHitNewVisitor () {
+    this.getStrategy().sendDiagnosticHitNewVisitor()
+  }
+
+  protected initData (param?: sdkInitialData) : void {
+    if (param) {
+      param.hasOnFetchFlagsStatusChanged = !!this.onFetchFlagsStatusChanged
+    }
+    this._sdkInitialData = param
+  }
+
+  protected initAnalyticTraffic () : void {
+    this._analyticTraffic = this.getStrategy().getVisitorAnalyticsTraffic()
   }
 
   protected generateVisitorId ():string {
