@@ -1,5 +1,5 @@
 import { IFlagshipConfig } from '../config/index'
-import { CacheStrategy, FSSdkStatus, LogLevel } from '../enum/index'
+import { CacheStrategy, FSFlagStatus, FSSdkStatus, LogLevel } from '../enum/index'
 import {
   CUSTOMER_ENV_ID_API_ITEM,
   DS_API_ITEM,
@@ -93,6 +93,8 @@ export interface IDiagnostic extends IHitAbstract{
     flagValue?: string
     flagDefault?: unknown
     visitorExposed?: boolean
+    flagExists?: boolean
+    flagStatus?: FSFlagStatus
 
     flagMetadataCampaignId?:string
     flagMetadataCampaignName?:string
@@ -197,6 +199,34 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
 
   private _visitorOldContext? : Record<string, primitive>
   private _visitorNewContext? : Record<string, primitive>
+
+  private _visitorExposed : boolean|undefined
+
+  public get visitorExposed () : boolean|undefined {
+    return this._visitorExposed
+  }
+
+  public set visitorExposed (v : boolean|undefined) {
+    this._visitorExposed = v
+  }
+
+  private _flagExists : boolean|undefined
+  public get flagExists () : boolean|undefined {
+    return this._flagExists
+  }
+
+  public set flagExists (v : boolean|undefined) {
+    this._flagExists = v
+  }
+
+  private _flagStatus : FSFlagStatus|undefined
+  public get flagStatus () : FSFlagStatus|undefined {
+    return this._flagStatus
+  }
+
+  public set flagStatus (v : FSFlagStatus|undefined) {
+    this._flagStatus = v
+  }
 
   public get visitorOldContext () : Record<string, primitive>|undefined {
     return this._visitorOldContext
@@ -1243,6 +1273,18 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     if (this.flagDefault !== undefined) {
       customVariable['flag.default'] = JSON.stringify(this.flagDefault)
     }
+    if (this.flagExists !== undefined) {
+      customVariable['flag.exists'] = `${this.flagExists}`
+    }
+
+    if (this.flagStatus !== undefined) {
+      customVariable['flag.status'] = `${FSFlagStatus[this.flagStatus]}`
+    }
+
+    if (this.visitorExposed !== undefined) {
+      customVariable['flag.exposed'] = `${this.visitorExposed}`
+    }
+
     if (this.flagMetadataCampaignId !== undefined) {
       customVariable['flag.metadata.campaignId'] = `${this.flagMetadataCampaignId}`
     }
