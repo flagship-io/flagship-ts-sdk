@@ -1,11 +1,11 @@
 import { Event, EventCategory, HitAbstract } from '../hit/index'
-import { primitive, IHit, VisitorCacheDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorCacheStatus, CampaignDTO, SdkMethod } from '../types'
+import { primitive, IHit, VisitorCacheDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorCacheStatus, CampaignDTO, SdkMethod, FlagDTO } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
 import { IDecisionManager } from '../decision/IDecisionManager'
 import { logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, sprintf } from '../utils/utils'
-import { VISITOR_CACHE_ERROR, CONSENT_CHANGED, FS_CONSENT, LOOKUP_VISITOR_JSON_OBJECT_ERROR, PROCESS_CACHE, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION, VISITOR_CACHE_FLUSHED, VISITOR_CACHE_LOADED, VISITOR_CACHE_SAVED, LogLevel, ANALYTIC_HIT_ALLOCATION } from '../enum/index'
+import { VISITOR_CACHE_ERROR, CONSENT_CHANGED, FS_CONSENT, LOOKUP_VISITOR_JSON_OBJECT_ERROR, PROCESS_CACHE, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION, VISITOR_CACHE_FLUSHED, VISITOR_CACHE_LOADED, VISITOR_CACHE_SAVED, LogLevel, ANALYTIC_HIT_ALLOCATION, FSFlagStatus } from '../enum/index'
 import { BatchDTO } from '../hit/Batch'
 import { ITrackingManager } from '../api/ITrackingManager'
 import { Troubleshooting } from '../hit/Troubleshooting'
@@ -337,8 +337,9 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
 
     public sendDiagnosticHitConsent (consentHit: Event) {
       const troubleshooting = new Troubleshooting({
-        label: TroubleshootingLabel.VISITOR_SEND_HIT,
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
         logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.VISITOR_SET_CONSENT,
         traffic: this.visitor.traffic || 0,
         visitorId: this.visitor.visitorId,
         visitorSessionId: this.visitor.instanceId,
@@ -410,6 +411,399 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         label: TroubleshootingLabel.VISITOR_JOURNEY,
         logLevel: LogLevel.INFO,
         sdkMethod: SdkMethod.VISITOR_CLEAR_CONTEXT,
+        visitorId: this.visitor.sdkInitialData?.instanceId as string,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        visitorSessionId: this.visitor.instanceId,
+        config: this.config
+      })
+
+      this.sendUsageHit(analytic)
+
+      this.processTroubleshootingHit(troubleshooting)
+    }
+
+    public async sendDiagnosticHitFetchFlags ({ isFromCache, campaigns, now }:{isFromCache: boolean, campaigns:CampaignDTO[], now: number }) {
+      const assignmentHistory: Record<string, string> = {}
+
+      this.visitor.flagsData.forEach(item => {
+        assignmentHistory[item.variationGroupId] = item.variationId
+      })
+
+      const troubleshooting = new Troubleshooting({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.VISITOR_FETCH_FLAGS,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        config: this.config,
+        traffic: this.visitor.traffic || 0,
+        sdkStatus: this.visitor.getSdkStatus(),
+        visitorContext: this.visitor.context,
+        visitorCampaigns: campaigns,
+        visitorCampaignFromCache: isFromCache ? campaigns : undefined,
+        visitorConsent: this.visitor.hasConsented,
+        visitorIsAuthenticated: !!this.visitor.anonymousId,
+        visitorFlags: this.visitor.flagsData,
+        visitorAssignmentHistory: assignmentHistory,
+        visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
+        visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
+        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+        lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
+        httpResponseTime: Date.now() - now
+      })
+
+      const analytic = new UsageHit({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.VISITOR_FETCH_FLAGS,
+        visitorId: this.visitor.sdkInitialData?.instanceId as string,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        visitorSessionId: this.visitor.sdkInitialData?.instanceId as string,
+        config: this.config
+      })
+
+      this.sendUsageHit(analytic)
+
+      this.processTroubleshootingHit(troubleshooting)
+    }
+
+    public async sendDiagnosticHitGetFlag (flagKey: string) {
+      const troubleshooting = new Troubleshooting({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.VISITOR_GET_FLAG,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        config: this.config,
+        flagKey,
+        traffic: this.visitor.traffic || 0
+      })
+
+      const analytic = new UsageHit({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.VISITOR_GET_FLAG,
+        visitorId: this.visitor.sdkInitialData?.instanceId as string,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        visitorSessionId: this.visitor.instanceId,
+        config: this.config
+      })
+
+      this.sendUsageHit(analytic)
+
+      this.processTroubleshootingHit(troubleshooting)
+    }
+
+    public async sendDiagnosticHitGetFlags () {
+      const troubleshooting = new Troubleshooting({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.VISITOR_GET_FLAGS,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        config: this.config,
+        traffic: this.visitor.traffic || 0
+      })
+
+      const analytic = new UsageHit({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.VISITOR_GET_FLAGS,
+        visitorId: this.visitor.sdkInitialData?.instanceId as string,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        visitorSessionId: this.visitor.instanceId,
+        config: this.config
+      })
+
+      this.sendUsageHit(analytic)
+
+      this.processTroubleshootingHit(troubleshooting)
+    }
+
+    public async sendDiagnosticHitSendHit (hit: HitAbstract) {
+      const troubleshooting = new Troubleshooting({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.VISITOR_SEND_HIT,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        config: this.config,
+        hitContent: hit.toApiKeys(),
+        traffic: this.visitor.traffic || 0
+      })
+
+      const analytic = new UsageHit({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.VISITOR_SEND_HIT,
+        visitorId: this.visitor.sdkInitialData?.instanceId as string,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        visitorSessionId: this.visitor.instanceId,
+        config: this.config
+      })
+
+      this.sendUsageHit(analytic)
+
+      this.processTroubleshootingHit(troubleshooting)
+    }
+
+    public async sendDiagnosticHitAuthenticate () {
+      const troubleshooting = new Troubleshooting({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.VISITOR_AUTHENTICATE,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        config: this.config,
+        traffic: this.visitor.traffic || 0
+      })
+
+      const analytic = new UsageHit({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.VISITOR_AUTHENTICATE,
+        visitorId: this.visitor.sdkInitialData?.instanceId as string,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        visitorSessionId: this.visitor.instanceId,
+        config: this.config
+      })
+
+      this.sendUsageHit(analytic)
+
+      this.processTroubleshootingHit(troubleshooting)
+    }
+
+    public async sendDiagnosticHitUnauthenticate () {
+      const troubleshooting = new Troubleshooting({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.VISITOR_UNAUTHENTICATE,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        config: this.config,
+        traffic: this.visitor.traffic || 0
+      })
+
+      const analytic = new UsageHit({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.VISITOR_UNAUTHENTICATE,
+        visitorId: this.visitor.sdkInitialData?.instanceId as string,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        visitorSessionId: this.visitor.instanceId,
+        config: this.config
+      })
+
+      this.sendUsageHit(analytic)
+
+      this.processTroubleshootingHit(troubleshooting)
+    }
+
+    public async sendDiagnosticHitFlagGetValue (flag: FlagDTO, defaultValue: unknown, visitorExposed: boolean) {
+      const troubleshooting = new Troubleshooting({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.FLAG_GET_VALUE,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        config: this.config,
+        traffic: this.visitor.traffic || 0,
+        flagKey: flag.key,
+        flagValue: flag.value,
+        flagDefault: defaultValue,
+        flagMetadataCampaignId: flag.campaignId,
+        flagMetadataVariationGroupId: flag.variationGroupId,
+        flagMetadataVariationId: flag.variationId,
+        flagMetadataCampaignIsReference: flag.isReference,
+        flagMetadataCampaignType: flag.campaignType,
+        flagMetadataVariationGroupName: flag.variationGroupName,
+        flagMetadataVariationName: flag.variationName,
+        flagMetadataCampaignName: flag.campaignName,
+        flagMetadataCampaignSlug: flag.slug,
+        visitorExposed
+      })
+
+      const analytic = new UsageHit({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.FLAG_GET_VALUE,
+        visitorId: this.visitor.sdkInitialData?.instanceId as string,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        visitorSessionId: this.visitor.instanceId,
+        config: this.config
+      })
+
+      this.sendUsageHit(analytic)
+
+      this.processTroubleshootingHit(troubleshooting)
+    }
+
+    public async sendDiagnosticHitFlagGetMetadata (flag: FlagDTO, defaultValue: unknown) {
+      const troubleshooting = new Troubleshooting({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.FLAG_GET_METADATA,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        config: this.config,
+        traffic: this.visitor.traffic || 0,
+        flagKey: flag.key,
+        flagValue: flag.value,
+        flagDefault: defaultValue,
+        flagMetadataCampaignId: flag.campaignId,
+        flagMetadataVariationGroupId: flag.variationGroupId,
+        flagMetadataVariationId: flag.variationId,
+        flagMetadataCampaignIsReference: flag.isReference,
+        flagMetadataCampaignType: flag.campaignType,
+        flagMetadataVariationGroupName: flag.variationGroupName,
+        flagMetadataVariationName: flag.variationName,
+        flagMetadataCampaignName: flag.campaignName,
+        flagMetadataCampaignSlug: flag.slug
+      })
+
+      const analytic = new UsageHit({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.FLAG_GET_METADATA,
+        visitorId: this.visitor.sdkInitialData?.instanceId as string,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        visitorSessionId: this.visitor.instanceId,
+        config: this.config
+      })
+
+      this.sendUsageHit(analytic)
+
+      this.processTroubleshootingHit(troubleshooting)
+    }
+
+    public async sendDiagnosticHitFlagExists (flag: FlagDTO, defaultValue: unknown, flagExists: boolean) {
+      const troubleshooting = new Troubleshooting({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.FLAG_EXISTS,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        config: this.config,
+        traffic: this.visitor.traffic || 0,
+        flagKey: flag.key,
+        flagValue: flag.value,
+        flagDefault: defaultValue,
+        flagMetadataCampaignId: flag.campaignId,
+        flagMetadataVariationGroupId: flag.variationGroupId,
+        flagMetadataVariationId: flag.variationId,
+        flagMetadataCampaignIsReference: flag.isReference,
+        flagMetadataCampaignType: flag.campaignType,
+        flagMetadataVariationGroupName: flag.variationGroupName,
+        flagMetadataVariationName: flag.variationName,
+        flagMetadataCampaignName: flag.campaignName,
+        flagMetadataCampaignSlug: flag.slug,
+        flagExists
+      })
+
+      const analytic = new UsageHit({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.FLAG_EXISTS,
+        visitorId: this.visitor.sdkInitialData?.instanceId as string,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        visitorSessionId: this.visitor.instanceId,
+        config: this.config
+      })
+
+      this.sendUsageHit(analytic)
+
+      this.processTroubleshootingHit(troubleshooting)
+    }
+
+    public async sendDiagnosticHitFlagStatus (flag: FlagDTO, defaultValue: unknown, flagStatus: FSFlagStatus) {
+      const troubleshooting = new Troubleshooting({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.FLAG_STATUS,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        config: this.config,
+        traffic: this.visitor.traffic || 0,
+        flagKey: flag.key,
+        flagValue: flag.value,
+        flagDefault: defaultValue,
+        flagMetadataCampaignId: flag.campaignId,
+        flagMetadataVariationGroupId: flag.variationGroupId,
+        flagMetadataVariationId: flag.variationId,
+        flagMetadataCampaignIsReference: flag.isReference,
+        flagMetadataCampaignType: flag.campaignType,
+        flagMetadataVariationGroupName: flag.variationGroupName,
+        flagMetadataVariationName: flag.variationName,
+        flagMetadataCampaignName: flag.campaignName,
+        flagMetadataCampaignSlug: flag.slug,
+        flagStatus
+      })
+
+      const analytic = new UsageHit({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.FLAG_STATUS,
+        visitorId: this.visitor.sdkInitialData?.instanceId as string,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        visitorSessionId: this.visitor.instanceId,
+        config: this.config
+      })
+
+      this.sendUsageHit(analytic)
+
+      this.processTroubleshootingHit(troubleshooting)
+    }
+
+    public async sendDiagnosticHitFlagVisitorExposed (flag: FlagDTO, defaultValue: unknown, flagStatus: FSFlagStatus) {
+      const troubleshooting = new Troubleshooting({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.FLAG_VISITOR_EXPOSED,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        config: this.config,
+        traffic: this.visitor.traffic || 0,
+        flagKey: flag.key,
+        flagValue: flag.value,
+        flagDefault: defaultValue,
+        flagMetadataCampaignId: flag.campaignId,
+        flagMetadataVariationGroupId: flag.variationGroupId,
+        flagMetadataVariationId: flag.variationId,
+        flagMetadataCampaignIsReference: flag.isReference,
+        flagMetadataCampaignType: flag.campaignType,
+        flagMetadataVariationGroupName: flag.variationGroupName,
+        flagMetadataVariationName: flag.variationName,
+        flagMetadataCampaignName: flag.campaignName,
+        flagMetadataCampaignSlug: flag.slug,
+        flagStatus
+      })
+
+      const analytic = new UsageHit({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.FLAG_VISITOR_EXPOSED,
         visitorId: this.visitor.sdkInitialData?.instanceId as string,
         flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         visitorSessionId: this.visitor.instanceId,
