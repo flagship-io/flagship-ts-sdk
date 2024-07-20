@@ -11,10 +11,14 @@ import { IFSFlagCollection } from '../flag/IFSFlagCollection'
 import { FSFlagCollection } from '../flag/FSFlagCollection'
 
 export class VisitorDelegate extends VisitorAbstract {
-  updateContext (key: string, value: primitive):void
-  updateContext (context: Record<string, primitive>): void
+  updateContext (key: string, value: primitive, isInitializing?: boolean):void
+  updateContext (context: Record<string, primitive>, isInitializing?: boolean): void
   updateContext (context: Record<string, primitive> | string, value?:primitive): void {
     this.getStrategy().updateContext(context, value)
+  }
+
+  updateContextCollection (context: Record<string, primitive>, isInitializing?: boolean): void {
+    this.getStrategy().updateContextCollection(context, isInitializing)
     this.loadPredefinedContext()
   }
 
@@ -26,10 +30,12 @@ export class VisitorDelegate extends VisitorAbstract {
     if (this.fetchStatus.status !== FSFetchStatus.FETCHED && this.fetchStatus.status !== FSFetchStatus.FETCHING) {
       logWarningSprintf(this.config, GET_FLAG, visitorFlagSyncStatusMessage(this.fetchStatus.reason), this.visitorId, key)
     }
+    this.getStrategy().sendDiagnosticHitGetFlag(key)
     return new FSFlag({ key, visitor: this })
   }
 
   getFlags (): IFSFlagCollection {
+    this.getStrategy().sendDiagnosticHitGetFlags()
     return new FSFlagCollection({ visitor: this })
   }
 

@@ -922,7 +922,8 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       lastInitializationTimestamp, lastBucketingTimestamp, batchTriggeredBy, visitorCampaigns, visitorCampaignFromCache, visitorInitialCampaigns,
       visitorInitialFlagsData, flagMetadataCampaignIsReference, contextKey, contextValue, sdkBucketingFile, flagMetadataCampaignName, flagMetadataVariationGroupName,
       flagMetadataVariationName, sdkConfigUsingCustomHitCache, sdkConfigUsingCustomVisitorCache, sdkConfigUsingOnVisitorExposed, sdkConfigFetchThirdPartyData,
-      sdkConfigFetchFlagsBufferingTime, sdkConfigDisableDeveloperUsageTracking, sdkConfigNextFetchConfig, sdkConfigDisableCache, visitorSessionId, sdkConfigLogLevel
+      sdkConfigFetchFlagsBufferingTime, sdkConfigDisableDeveloperUsageTracking, sdkConfigNextFetchConfig, sdkConfigDisableCache, visitorSessionId, sdkConfigLogLevel,
+      sdkMethod, visitorExposed, flagExists, flagStatus, visitorOldContext, visitorNewContext
     } = param
     this.visitorSessionId = visitorSessionId
     this.sdkConfigDisableCache = sdkConfigDisableCache
@@ -1006,6 +1007,12 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     this.hitContent = hitContent
     this.ds = SDK_APP
     this.sdkConfigLogLevel = sdkConfigLogLevel
+    this.sdkMethod = sdkMethod
+    this.visitorExposed = visitorExposed
+    this.flagExists = flagExists
+    this.flagStatus = flagStatus
+    this.visitorOldContext = visitorOldContext
+    this.visitorNewContext = visitorNewContext
   }
 
   /**

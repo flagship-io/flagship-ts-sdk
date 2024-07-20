@@ -68,7 +68,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     return !!check
   }
 
-  setConsent (hasConsented: boolean): void {
+  setConsent (hasConsented: boolean, isInitializing?: boolean): void {
     const method = 'setConsent'
     this.visitor.hasConsented = hasConsented
     if (!hasConsented) {
@@ -93,9 +93,10 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
 
     this.trackingManager.addHit(consentHit)
 
-    this.sendDiagnosticHitConsent(consentHit)
-
-    logDebugSprintf(this.config, PROCESS_SET_CONSENT, CONSENT_CHANGED, this.visitor.visitorId, hasConsented)
+    if (!isInitializing) {
+      this.sendDiagnosticHitConsent(consentHit)
+      logDebugSprintf(this.config, PROCESS_SET_CONSENT, CONSENT_CHANGED, this.visitor.visitorId, hasConsented)
+    }
   }
 
   protected checKLookupVisitorDataV1 (item:VisitorCacheDTO):boolean {
@@ -241,6 +242,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     }
   }
 
+    abstract updateContextCollection(context: Record<string, primitive>, isInitializing?: boolean): void
     abstract updateContext(key: string, value: primitive):void
     abstract updateContext(context: Record<string, primitive>): void
     abstract updateContext (context: Record<string, primitive> | string, value?:primitive): void
@@ -774,7 +776,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       this.processTroubleshootingHit(troubleshooting)
     }
 
-    public async sendDiagnosticHitFlagVisitorExposed (flag: FlagDTO, defaultValue: unknown, flagStatus: FSFlagStatus) {
+    public async sendDiagnosticHitFlagVisitorExposed (flag: FlagDTO, defaultValue: unknown) {
       const troubleshooting = new Troubleshooting({
         label: TroubleshootingLabel.VISITOR_JOURNEY,
         logLevel: LogLevel.INFO,
@@ -796,8 +798,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         flagMetadataVariationGroupName: flag.variationGroupName,
         flagMetadataVariationName: flag.variationName,
         flagMetadataCampaignName: flag.campaignName,
-        flagMetadataCampaignSlug: flag.slug,
-        flagStatus
+        flagMetadataCampaignSlug: flag.slug
       })
 
       const analytic = new UsageHit({
@@ -813,6 +814,15 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       this.sendUsageHit(analytic)
 
       this.processTroubleshootingHit(troubleshooting)
+    }
+
+    public async sendDiagnosticHitQueue () {
+      if (!this.decisionManager.troubleshooting) {
+        return
+      }
+      this.visitor.troubleshootingHits.forEach(hit => {
+        this.trackingManager.sendTroubleshootingHit(hit)
+      })
     }
 
     public async sendSdkConfigAnalyticHit () {

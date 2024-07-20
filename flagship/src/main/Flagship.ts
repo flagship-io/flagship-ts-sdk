@@ -20,7 +20,8 @@ import {
   PROCESS_SDK_STATUS,
   SDK_STATUS_CHANGED,
   SAVE_VISITOR_INSTANCE,
-  CONSENT_NOT_SPECIFY_WARNING
+  CONSENT_NOT_SPECIFY_WARNING,
+  LogLevel
 } from '../enum/index'
 import { VisitorDelegate } from '../visitor/VisitorDelegate'
 
@@ -28,13 +29,14 @@ import { BucketingManager } from '../decision/BucketingManager'
 import { MurmurHash } from '../utils/MurmurHash'
 import { DecisionManager } from '../decision/DecisionManager'
 import { HttpClient } from '../utils/HttpClient'
-import { NewVisitor } from '../types'
+import { NewVisitor, TroubleshootingLabel } from '../types'
 import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 import { EdgeManager } from '../decision/EdgeManager'
 import { EdgeConfig } from '../config/EdgeConfig'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { launchQaAssistant } from '../qaAssistant/index'
+import { Troubleshooting } from 'src/hit/Troubleshooting'
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
@@ -179,6 +181,18 @@ export class Flagship {
     }
 
     return decisionManager
+  }
+
+  private sendVisitorJourneyHitStart (flagship: Flagship) {
+    const troubleshooting = new Troubleshooting({
+      label: TroubleshootingLabel.VISITOR_JOURNEY,
+      config: flagship.getConfig(),
+      logLevel: LogLevel.INFO,
+      visitorId: this.instanceId,
+      flagshipInstanceId: this.instanceId,
+      visitorSessionId: this.instanceId
+    })
+    flagship.configManager.trackingManager.addTroubleshootingHit(troubleshooting)
   }
 
   /**

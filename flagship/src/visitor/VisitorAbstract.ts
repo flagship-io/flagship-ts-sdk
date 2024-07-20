@@ -155,9 +155,9 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     this.initAnalyticTraffic()
 
-    this.setConsent(hasConsented || false)
+    this.setConsent(hasConsented || false, true)
 
-    this.updateContext(context)
+    this.updateContextCollection(context, true)
 
     this.loadPredefinedContext()
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, PREDEFINED_CONTEXT_LOADED, {
@@ -294,9 +294,9 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._hasConsented = v
   }
 
-  public setConsent (hasConsented: boolean): void {
+  public setConsent (hasConsented: boolean, isInitializing?: boolean): void {
     this.hasConsented = hasConsented
-    this.getStrategy().setConsent(hasConsented)
+    this.getStrategy().setConsent(hasConsented, isInitializing)
   }
 
   public get context (): Record<string, primitive> {
@@ -401,6 +401,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     }, DELAY)
   }
 
+  abstract updateContextCollection(context: Record<string, primitive>, isInitializing?: boolean): void
   abstract updateContext(key: string, value: primitive):void
   abstract updateContext(context: Record<string, primitive>): void
   abstract updateContext (context: Record<string, primitive> | string, value?:primitive): void

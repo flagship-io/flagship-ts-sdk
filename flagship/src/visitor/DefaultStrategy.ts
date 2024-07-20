@@ -115,6 +115,29 @@ export class DefaultStrategy extends StrategyAbstract {
     this.visitor.context[key] = value
   }
 
+  updateContextCollection (context: Record<string, primitive>, isInitializing?:boolean): void {
+    if (!context) {
+      logError(this.visitor.config, CONTEXT_NULL_ERROR, PROCESS_UPDATE_CONTEXT)
+      return
+    }
+
+    const oldContext = this.visitor.context
+
+    for (const key in context) {
+      const value = context[key]
+      this.updateContextKeyValue(key, value)
+    }
+    if (!isInitializing) {
+      this.visitor.fetchStatus = {
+        status: FSFetchStatus.FETCH_REQUIRED,
+        reason: FSFetchReasons.UPDATE_CONTEXT
+      }
+      const newContext = { ...oldContext, ...context }
+      this.sendDiagnosticHitUpdateContext(oldContext, newContext)
+      logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_OBJET_PARAM_UPDATE, this.visitor.visitorId, context, this.visitor.context)
+    }
+  }
+
   updateContext(key: string, value: primitive):void
   updateContext (context: Record<string, primitive>): void
   updateContext (context: Record<string, primitive> | string, value?:primitive): void {
@@ -131,22 +154,7 @@ export class DefaultStrategy extends StrategyAbstract {
       return
     }
 
-    if (!context) {
-      logError(this.visitor.config, CONTEXT_NULL_ERROR, PROCESS_UPDATE_CONTEXT)
-      return
-    }
-
-    for (const key in context) {
-      const value = context[key]
-      this.updateContextKeyValue(key, value)
-    }
-    this.visitor.fetchStatus = {
-      status: FSFetchStatus.FETCH_REQUIRED,
-      reason: FSFetchReasons.UPDATE_CONTEXT
-    }
-    const newContext = { ...oldContext, ...context }
-    this.sendDiagnosticHitUpdateContext(oldContext, newContext)
-    logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_OBJET_PARAM_UPDATE, this.visitor.visitorId, context, this.visitor.context)
+    this.updateContextCollection(context)
   }
 
   clearContext (): void {
@@ -335,19 +343,21 @@ export class DefaultStrategy extends StrategyAbstract {
       if (hitInstance.type === 'SEGMENT') {
         return
       }
-      const sendHitTroubleshooting = new Troubleshooting({
+      // const sendHitTroubleshooting = new Troubleshooting({
 
-        label: TroubleshootingLabel.VISITOR_SEND_HIT,
-        logLevel: LogLevel.INFO,
-        traffic: this.visitor.traffic,
-        visitorId: hitInstance.visitorId,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        visitorSessionId: this.visitor.instanceId,
-        anonymousId: hitInstance.anonymousId,
-        config: this.config,
-        hitContent: hitInstance.toApiKeys()
-      })
-      this.sendTroubleshootingHit(sendHitTroubleshooting)
+      //   label: TroubleshootingLabel.VISITOR_SEND_HIT,
+      //   logLevel: LogLevel.INFO,
+      //   traffic: this.visitor.traffic,
+      //   visitorId: hitInstance.visitorId,
+      //   flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+      //   visitorSessionId: this.visitor.instanceId,
+      //   anonymousId: hitInstance.anonymousId,
+      //   config: this.config,
+      //   hitContent: hitInstance.toApiKeys()
+      // })
+      // this.sendTroubleshootingHit(sendHitTroubleshooting)
+
+      this.sendDiagnosticHitSendHit(hitInstance)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logError(this.config, error.message || error, functionName)
@@ -368,19 +378,21 @@ export class DefaultStrategy extends StrategyAbstract {
     this.visitor.anonymousId = this.visitor.visitorId
     this.visitor.visitorId = visitorId
 
-    const monitoring = new Troubleshooting({
+    // const monitoring = new Troubleshooting({
 
-      label: TroubleshootingLabel.VISITOR_AUTHENTICATE,
-      logLevel: LogLevel.INFO,
-      flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-      visitorId: this.visitor.visitorId,
-      anonymousId: this.visitor.anonymousId,
-      visitorContext: this.visitor.context,
-      traffic: this.visitor.traffic,
-      config: this.config
-    })
+    //   label: TroubleshootingLabel.VISITOR_AUTHENTICATE,
+    //   logLevel: LogLevel.INFO,
+    //   flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+    //   visitorId: this.visitor.visitorId,
+    //   anonymousId: this.visitor.anonymousId,
+    //   visitorContext: this.visitor.context,
+    //   traffic: this.visitor.traffic,
+    //   config: this.config
+    // })
 
-    this.sendTroubleshootingHit(monitoring)
+    // this.sendTroubleshootingHit(monitoring)
+
+    this.sendDiagnosticHitAuthenticate()
 
     this.visitor.fetchStatus = {
       status: FSFetchStatus.FETCH_REQUIRED,
@@ -398,19 +410,21 @@ export class DefaultStrategy extends StrategyAbstract {
     this.visitor.visitorId = this.visitor.anonymousId
     this.visitor.anonymousId = null
 
-    const monitoring = new Troubleshooting({
+    // const monitoring = new Troubleshooting({
 
-      label: TroubleshootingLabel.VISITOR_UNAUTHENTICATE,
-      logLevel: LogLevel.INFO,
-      visitorId: this.visitor.visitorId,
-      anonymousId: this.visitor.anonymousId,
-      flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-      visitorContext: this.visitor.context,
-      traffic: this.visitor.traffic,
-      config: this.config
-    })
+    //   label: TroubleshootingLabel.VISITOR_UNAUTHENTICATE,
+    //   logLevel: LogLevel.INFO,
+    //   visitorId: this.visitor.visitorId,
+    //   anonymousId: this.visitor.anonymousId,
+    //   flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+    //   visitorContext: this.visitor.context,
+    //   traffic: this.visitor.traffic,
+    //   config: this.config
+    // })
 
-    this.sendTroubleshootingHit(monitoring)
+    // this.sendTroubleshootingHit(monitoring)
+
+    this.sendDiagnosticHitUnauthenticate()
 
     this.visitor.fetchStatus = {
       status: FSFetchStatus.FETCH_REQUIRED,
@@ -526,13 +540,14 @@ export class DefaultStrategy extends StrategyAbstract {
 
       logDebugSprintf(this.config, functionName, FETCH_FLAGS_FROM_CAMPAIGNS,
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, this.visitor.flagsData)
-      if (this.decisionManager.troubleshooting) {
-        this.sendFetchFlagsTroubleshooting({ campaigns, now, isFromCache: logData.isFromCache })
-        this.sendConsentHitTroubleshooting()
-        this.sendSegmentHitTroubleshooting()
-      }
 
-      this.sendSdkConfigAnalyticHit()
+      this.sendDiagnosticHitQueue()
+      this.sendDiagnosticHitFetchFlags({ campaigns, now, isFromCache: logData.isFromCache })
+
+      // this.sendConsentHitTroubleshooting()
+      // this.sendSegmentHitTroubleshooting()
+
+      // this.sendSdkConfigAnalyticHit()
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
@@ -620,6 +635,8 @@ export class DefaultStrategy extends StrategyAbstract {
       this.sendFlagTroubleshooting(TroubleshootingLabel.VISITOR_EXPOSED_TYPE_WARNING, key, defaultValue)
     }
 
+    this.sendDiagnosticHitFlagVisitorExposed(flag, defaultValue)
+
     await this.sendActivate(flag, defaultValue)
   }
 
@@ -666,6 +683,8 @@ export class DefaultStrategy extends StrategyAbstract {
       return defaultValue as T extends null ? unknown : T
     }
 
+    this.sendDiagnosticHitFlagGetValue(flag, defaultValue, !!visitorExposed)
+
     logDebugSprintf(this.config, FLAG_VALUE, GET_FLAG_VALUE, this.visitor.visitorId, key, flag.value)
 
     return flag.value as T extends null ? unknown : T
@@ -697,6 +716,8 @@ export class DefaultStrategy extends StrategyAbstract {
       this.SendFlagMetadataTroubleshooting(key)
       return FSFlagMetadata.Empty()
     }
+
+    this.sendDiagnosticHitFlagGetMetadata(flag, '')
 
     const metadata = new FSFlagMetadata({
       campaignId: flag.campaignId,
