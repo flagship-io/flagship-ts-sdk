@@ -1,7 +1,8 @@
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
-import { HitCacheDTO, HitType, Screen } from '../../src'
+import { HitCacheDTO, HitType } from '../../src'
 import { DefaultHitCache, FS_HIT_PREFIX } from '../../src/cache/DefaultHitCache'
 import { HIT_CACHE_VERSION } from '../../src/enum'
+import { Screen } from '../../src/hit/Screen'
 
 describe('Test DefaultHitCache', () => {
   const methodNow = Date.now

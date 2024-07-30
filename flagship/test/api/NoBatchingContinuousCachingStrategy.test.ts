@@ -1,5 +1,5 @@
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
-import { DecisionApiConfig, Event, EventCategory, HitAbstract, OnVisitorExposed, Page, TroubleshootingLabel } from '../../src'
+import { DecisionApiConfig, EventCategory, OnVisitorExposed, TroubleshootingLabel } from '../../src'
 import { NoBatchingContinuousCachingStrategy } from '../../src/api/NoBatchingContinuousCachingStrategy'
 import { HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, SDK_INFO, HEADER_X_SDK_VERSION, SDK_VERSION, HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, BASE_API_URL, URL_ACTIVATE_MODIFICATION, FS_CONSENT, LogLevel, DEFAULT_HIT_CACHE_TIME_MS, TRACKING_MANAGER_ERROR, DIRECT_HIT, TRACKING_MANAGER, BATCH_HIT } from '../../src/enum'
 import { BatchTriggeredBy } from '../../src/enum/BatchTriggeredBy'
@@ -11,6 +11,7 @@ import { HttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
 import { Troubleshooting } from '../../src/hit/Troubleshooting'
 import { UsageHit } from '../../src/hit/UsageHit'
+import { HitAbstract, Event, Page } from '../../src/hit'
 
 describe('Test NoBatchingContinuousCachingStrategy', () => {
   const methodNow = Date.now

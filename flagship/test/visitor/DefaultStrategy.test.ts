@@ -1,6 +1,6 @@
 import { AUTHENTICATE, CONTEXT_KEY_ERROR, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, UNAUTHENTICATE, PROCESS_FETCHING_FLAGS, FLAG_VISITOR_EXPOSED } from './../../src/enum/FlagshipConstant'
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
-import { DecisionApiConfig, Event, EventCategory, FetchFlagsStatus, FlagDTO, FSFlagMetadata, Screen, TroubleshootingLabel } from '../../src/index'
+import { DecisionApiConfig, EventCategory, FetchFlagsStatus, FlagDTO, FSFlagMetadata, TroubleshootingLabel } from '../../src/index'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { BucketingConfig, ConfigManager } from '../../src/config/index'
 import { ApiManager } from '../../src/decision/ApiManager'
@@ -14,6 +14,8 @@ import { Activate } from '../../src/hit/Activate'
 import { MurmurHash } from '../../src/utils/MurmurHash'
 import { BucketingManager } from '../../src/decision/BucketingManager'
 import { Segment } from '../../src/hit/Segment'
+import { Screen } from '../../src/hit/Screen'
+import { Event } from '../../src/hit/Event'
 import { returnFlag } from './flags'
 import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
 import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
@@ -1711,22 +1713,10 @@ describe('test DefaultStrategy with QA mode', () => {
 
   const apiManager = new ApiManager(httpClient, config)
 
-  const getCampaignsAsync = jest.spyOn(
-    apiManager,
-    'getCampaignsAsync'
-  )
-
-  const getModifications = jest.spyOn(
-    apiManager,
-    'getModifications'
-  )
-
   const trackingManager = new TrackingManager(httpClient, config)
 
   const addHit = jest.spyOn(trackingManager, 'addHit')
   addHit.mockResolvedValue()
-
-  const sendUsageHitSpy = jest.spyOn(trackingManager, 'sendUsageHit')
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
