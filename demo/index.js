@@ -10,7 +10,7 @@ app.use(express.json());
 const visitorId = "visitor-id";
 
 // Step 1: Start the Flagship SDK by providing the environment ID and API key
-Flagship.start("c1ndrd07m0300ro0jf20", "QzdTI1M9iqaIhnJ66a34C5xdzrrvzq6q8XSVOsS6", {
+Flagship.start("<ENV_ID>", "<API_KEY>", {
   fetchNow: false,
 });
 
