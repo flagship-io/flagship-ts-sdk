@@ -1,6 +1,7 @@
 //start demo
 // Usage: node demo/index.js
 const express = require("express");
+const swagger = require('./swagger')
 const { Flagship, HitType, EventCategory } = require("@flagship.io/js-sdk");
 
 const app = express();
@@ -9,19 +10,21 @@ app.use(express.json());
 const visitorId = "visitor-id";
 
 // Step 1: Start the Flagship SDK by providing the environment ID and API key
-Flagship.start("<ENV_ID>", "<API_KEY>", {
+Flagship.start("c1ndrd07m0300ro0jf20", "QzdTI1M9iqaIhnJ66a34C5xdzrrvzq6q8XSVOsS6", {
   fetchNow: false,
 });
 
 // Endpoint to get an item
 app.get("/item", async (req, res) => {
 
+  const isVip = req.query.isVip === "true";
+
   // Step 2: Create a new visitor with a visitor ID and consent status
   const visitor = Flagship.newVisitor({
     visitorId,
     hasConsented: true,
     context: {
-      fs_is_vip: true,
+      fs_is_vip: isVip,
     },
   });
 
@@ -64,6 +67,8 @@ app.post("/add-to-cart", async (req, res) => {
 });
 
 const port = 3000;
+
+swagger(app)
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
