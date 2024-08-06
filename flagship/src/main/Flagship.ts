@@ -29,7 +29,7 @@ import { BucketingManager } from '../decision/BucketingManager'
 import { MurmurHash } from '../utils/MurmurHash'
 import { DecisionManager } from '../decision/DecisionManager'
 import { HttpClient } from '../utils/HttpClient'
-import { NewVisitor, TroubleshootingLabel } from '../types'
+import { NewVisitor, SdkMethod, TroubleshootingLabel } from '../types'
 import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 import { EdgeManager } from '../decision/EdgeManager'
@@ -37,6 +37,7 @@ import { EdgeConfig } from '../config/EdgeConfig'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { launchQaAssistant } from '../qaAssistant/index'
 import { Troubleshooting } from 'src/hit/Troubleshooting'
+import { UsageHit } from 'src/hit/UsageHit'
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
@@ -50,6 +51,8 @@ export class Flagship {
   private _visitorInstance?: Visitor
   private instanceId:string
   private lastInitializationTimestamp!: string
+  private _troubleshootingStartSdkHit!: Troubleshooting
+  private _usageStartSdkHit!: UsageHit
 
   private set configManager (value: IConfigManager) {
     this._configManager = value
@@ -184,15 +187,53 @@ export class Flagship {
   }
 
   private sendVisitorJourneyHitStart (flagship: Flagship) {
+    const config = flagship.getConfig()
+    const hitCacheImplementation = config.hitCacheImplementation
+    const visitorCacheImplementation = config.visitorCacheImplementation
+    const sdkConfigUsingCustomHitCache = hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
+    const sdkConfigUsingCustomVisitorCache = visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
+
     const troubleshooting = new Troubleshooting({
       label: TroubleshootingLabel.VISITOR_JOURNEY,
+      sdkMethod: SdkMethod.FS_START,
       config: flagship.getConfig(),
       logLevel: LogLevel.INFO,
       visitorId: this.instanceId,
       flagshipInstanceId: this.instanceId,
-      visitorSessionId: this.instanceId
+      visitorSessionId: this.instanceId,
+      sdkConfigLogLevel: config.logLevel,
+      sdkConfigMode: config.decisionMode,
+      sdkConfigTimeout: config.timeout,
+      sdkConfigPollingInterval: config.pollingInterval,
+      sdkConfigTrackingManagerStrategy: config.trackingManagerConfig?.cacheStrategy,
+      sdkConfigTrackingManagerBatchIntervals: config.trackingManagerConfig?.batchIntervals,
+      sdkConfigTrackingManagerPoolMaxSize: config.trackingManagerConfig?.poolMaxSize,
+      sdkConfigFetchNow: config.fetchNow,
+      sdkConfigReuseVisitorIds: config.reuseVisitorIds,
+      sdkConfigInitialBucketing: config.initialBucketing,
+      sdkConfigDecisionApiUrl: config.decisionApiUrl,
+      sdkConfigHitDeduplicationTime: config.hitDeduplicationTime,
+      sdkConfigUsingOnVisitorExposed: !!config.onVisitorExposed,
+      sdkConfigUsingCustomHitCache: !!sdkConfigUsingCustomHitCache,
+      sdkConfigUsingCustomVisitorCache: !!sdkConfigUsingCustomVisitorCache,
+      sdkConfigFetchThirdPartyData: config.fetchThirdPartyData,
+      sdkConfigFetchFlagsBufferingTime: config.fetchFlagsBufferingTime,
+      sdkConfigDisableDeveloperUsageTracking: config.disableDeveloperUsageTracking,
+      sdkConfigNextFetchConfig: config.nextFetchConfig,
+      sdkConfigDisableCache: config.disableCache
     })
-    flagship.configManager.trackingManager.addTroubleshootingHit(troubleshooting)
+    this._troubleshootingStartSdkHit = troubleshooting
+
+    const usage = new UsageHit({
+      label: TroubleshootingLabel.VISITOR_JOURNEY,
+      sdkMethod: SdkMethod.FS_START,
+      config: flagship.getConfig(),
+      logLevel: LogLevel.INFO,
+      visitorId: this.instanceId,
+      flagshipInstanceId: this.instanceId
+    })
+
+    this._usageStartSdkHit = usage
   }
 
   /**
@@ -275,6 +316,8 @@ export class Flagship {
 
     flagship.lastInitializationTimestamp = new Date().toISOString()
 
+    flagship.sendVisitorJourneyHitStart(flagship)
+
     return flagship
   }
 
@@ -334,20 +377,24 @@ export class Flagship {
       logWarning(this.getConfig(), CONSENT_NOT_SPECIFY_WARNING, PROCESS_NEW_VISITOR)
     }
 
+    const instance = this.getInstance()
+
     const visitorDelegate = new VisitorDelegate({
       visitorId,
       context: context || {},
       isAuthenticated: isAuthenticated ?? false,
       hasConsented: hasConsented ?? false,
-      configManager: this.getInstance().configManager,
+      configManager: instance.configManager,
       initialCampaigns,
       initialFlagsData,
       onFetchFlagsStatusChanged,
-      monitoringData: {
-        instanceId: this.getInstance().instanceId,
-        lastInitializationTimestamp: this.getInstance().lastInitializationTimestamp,
+      sdkInitialData: {
+        instanceId: instance.instanceId,
+        lastInitializationTimestamp: instance.lastInitializationTimestamp,
         initialCampaigns,
-        initialFlagsData
+        initialFlagsData,
+        troubleshootingStartSdkHit: instance._troubleshootingStartSdkHit,
+        usageStartSdkHit: instance._usageStartSdkHit
       }
     })
 
