@@ -127,18 +127,18 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     visitorId?: string
     configManager: IConfigManager
     context: Record<string, primitive>
-    monitoringData?:sdkInitialData
+    sdkInitialData?:sdkInitialData
   }) {
-    const { visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData, onFetchFlagsStatusChanged } = param
+    const { visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, sdkInitialData: monitoringData, onFetchFlagsStatusChanged } = param
     super()
     this._exposedVariations = {}
+    this._troubleshootingHits = []
     this.initData(monitoringData)
     this._instanceId = uuidV4()
     this._isCleaningDeDuplicationCache = false
     this.deDuplicationCache = {}
     this._context = {}
     this._configManager = configManager
-    this._troubleshootingHits = []
 
     const visitorCache = this.config.reuseVisitorIds ? cacheVisitor.loadVisitorProfile() : null
     if (visitorCache) {
@@ -200,7 +200,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
   protected initData (param?: sdkInitialData) : void {
     if (param) {
-      param.hasOnFetchFlagsStatusChanged = !!this.onFetchFlagsStatusChanged
+      this._troubleshootingHits.push(param.troubleshootingStartSdkHit)
+      this.getStrategy().sendUsageHit(param.usageStartSdkHit)
     }
     this._sdkInitialData = param
   }
