@@ -1,7 +1,6 @@
 import { IFlagshipConfig } from '../config/index'
 import { IFSFlag } from '../flag/IFSFlag'
 import { IFSFlagCollection } from '../flag/IFSFlagCollection'
-import { HitAbstract } from '../hit/index'
 import { IHit, primitive, FetchFlagsStatus } from '../types'
 
 /**
@@ -92,14 +91,14 @@ export interface IVisitor {
    * @param hit - The HitAbstract object to send.
    * @returns A promise that resolves when the hit is sent.
    */
-  sendHit(hit: HitAbstract | IHit): Promise<void>;
+  sendHit(hit: IHit): Promise<void>;
 
   /**
    * Sends Hits to Flagship servers for reporting.
    * @param hits - An array of HitAbstract objects to send.
    * @returns A promise that resolves when the hits are sent.
    */
-  sendHits(hits: Array<HitAbstract> | Array<IHit>): Promise<void>;
+  sendHits(hits: IHit[]): Promise<void>;
 
   /**
    * Authenticates an anonymous visitor.
