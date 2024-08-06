@@ -2,6 +2,8 @@ import { FSFetchReasons } from './enum/FSFetchReasons'
 import { FSFetchStatus } from './enum/FSFetchStatus'
 import { HitType } from './enum/index'
 import { IEvent, IItem, IPage, IScreen, ITransaction, IHitAbstract } from './hit/index'
+import { Troubleshooting } from './hit/Troubleshooting'
+import { UsageHit } from './hit/UsageHit'
 
 export type modificationsRequested<T> = {
     key: string,
@@ -230,9 +232,9 @@ export type sdkInitialData = {
   lastInitializationTimestamp: string
   initialCampaigns?: CampaignDTO[]
   initialFlagsData?: SerializedFlagMetadata[],
-  usingCustomHitCache?: boolean,
-  usingCustomVisitorCache?: boolean,
   hasOnFetchFlagsStatusChanged?: boolean,
+  troubleshootingStartSdkHit: Troubleshooting
+  usageStartSdkHit: UsageHit
 }
 
 export enum TroubleshootingLabel {
@@ -279,6 +281,7 @@ export enum SdkMethod{
   FLAG_STATUS = 'FLAG_STATUS',
   FLAG_VISITOR_EXPOSED = 'FLAG_VISITOR_EXPOSED',
 }
+
 
 export type ThirdPartySegment = {
   visitor_id: string,
