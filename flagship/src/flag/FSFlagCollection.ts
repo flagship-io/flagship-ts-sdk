@@ -5,6 +5,7 @@ import { FSFlag } from './FsFlags'
 import { IFSFlagCollection } from './IFSFlagCollection'
 import { IFSFlag } from './IFSFlag'
 import { GET_FLAG, GET_FLAG_NOT_FOUND } from '../enum/FlagshipConstant'
+import { SdkMethodBehavior } from 'src/type.local'
 
 /**
  * Represents a collection of flags.
@@ -49,8 +50,10 @@ export class FSFlagCollection implements IFSFlagCollection {
     const flag = this._flags.get(key)
     if (!flag) {
       this._visitor?.config && logWarningSprintf(this._visitor?.config, GET_FLAG, GET_FLAG_NOT_FOUND, this._visitor?.visitorId, key)
+      this._visitor?.sendDiagnosticHitFlagCollectionGet(key, SdkMethodBehavior.FLAG_NOT_FOUND_WARNING)
       return new FSFlag({ key })
     }
+    this._visitor?.sendDiagnosticHitFlagCollectionGet(key, SdkMethodBehavior.NONE)
     return flag
   }
 
@@ -104,6 +107,7 @@ export class FSFlagCollection implements IFSFlagCollection {
    */
   public async exposeAll (): Promise<void> {
     await Promise.all(Array.from(this._flags.values(), (flag) => flag.visitorExposed()))
+    this._visitor?.sendDiagnosticHitFlagCollectionExposeAll()
   }
 
   /**

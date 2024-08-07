@@ -3,7 +3,6 @@ import { EventEmitter } from '../depsNode.native'
 import { IVisitor } from './IVisitor'
 import { IFlagshipConfig } from '../config/index'
 import { EMIT_READY } from '../enum/index'
-import { HitAbstract } from '../hit/HitAbstract'
 import { VisitorAbstract } from './VisitorAbstract'
 import { IFSFlag } from '../flag/IFSFlag'
 import { IFSFlagCollection } from '../flag/IFSFlagCollection'
@@ -120,20 +119,14 @@ export class Visitor extends EventEmitter implements IVisitor {
   /**
    * @inheritdoc
    */
-  sendHit(hit: HitAbstract): Promise<void>;
-  sendHit(hit: IHit): Promise<void>;
-  sendHit (hit: IHit|HitAbstract): Promise<void>
-  sendHit (hit: IHit|HitAbstract): Promise<void> {
+  sendHit (hit: IHit): Promise<void> {
     return this.visitorDelegate.sendHit(hit)
   }
 
   /**
    * @inheritdoc
    */
-  sendHits(hits: HitAbstract[]): Promise<void>;
-  sendHits(hits: IHit[]): Promise<void>;
-  sendHits (hits: HitAbstract[] | IHit[]): Promise<void>
-  sendHits (hits: HitAbstract[] | IHit[]): Promise<void> {
+  sendHits (hits: IHit[]): Promise<void> {
     return this.visitorDelegate.sendHits(hits)
   }
 
