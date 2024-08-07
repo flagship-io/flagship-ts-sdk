@@ -2,17 +2,14 @@ import { Event, EventCategory, HitAbstract } from '../hit/index'
 import { primitive, IHit, VisitorCacheDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorCacheStatus, CampaignDTO, SdkMethod, FlagDTO } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
-import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
+import { IConfigManager, IFlagshipConfig } from '../config/index'
 import { IDecisionManager } from '../decision/IDecisionManager'
 import { logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, sprintf } from '../utils/utils'
 import { VISITOR_CACHE_ERROR, CONSENT_CHANGED, FS_CONSENT, LOOKUP_VISITOR_JSON_OBJECT_ERROR, PROCESS_CACHE, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION, VISITOR_CACHE_FLUSHED, VISITOR_CACHE_LOADED, VISITOR_CACHE_SAVED, LogLevel, ANALYTIC_HIT_ALLOCATION, FSFlagStatus } from '../enum/index'
-import { BatchDTO } from '../hit/Batch'
 import { ITrackingManager } from '../api/ITrackingManager'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { MurmurHash } from '../utils/MurmurHash'
 import { UsageHit } from '../hit/UsageHit'
-import { DefaultHitCache } from '../cache/DefaultHitCache'
-import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 import { GetFlagMetadataParam, GetFlagValueParam, SdkMethodBehavior, VisitorExposedParam } from '../type.local'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
@@ -69,13 +66,9 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
   }
 
   setConsent (hasConsented: boolean, isInitializing?: boolean): void {
-    const method = 'setConsent'
     this.visitor.hasConsented = hasConsented
     if (!hasConsented) {
       this.flushVisitor()
-    }
-    if (!this.hasTrackingManager(method)) {
-      return
     }
 
     const consentHit = new Event({
@@ -248,11 +241,11 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     abstract updateContext (context: Record<string, primitive> | string, value?:primitive): void
     abstract clearContext (): void
 
+    abstract sendHit(hit: HitAbstract): Promise<void>;
     abstract sendHit(hit: IHit): Promise<void>;
-    abstract sendHit(hit: IHit |BatchDTO): Promise<void>;
+    abstract sendHit (hit: HitAbstract|IHit): Promise<void>
 
     abstract sendHits(hit: IHit[]): Promise<void>;
-    abstract sendHits (hits: IHit[]|BatchDTO[]): Promise<void>
 
     abstract authenticate(visitorId: string): void
     abstract unauthenticate(): void
@@ -286,10 +279,6 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
 
     public getCurrentDateTime () {
       return new Date()
-    }
-
-    protected getSdkConfigDecisionMode () {
-      return this.config.decisionMode === DecisionMode.DECISION_API ? 'DECISION_API' : this.config.decisionMode
     }
 
     protected async processTroubleshootingHit (hit: Troubleshooting) {
@@ -363,11 +352,12 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       this.processTroubleshootingHit(troubleshooting)
     }
 
-    public async sendDiagnosticHitUpdateContext (oldContext: Record<string, primitive>, newContext: Record<string, primitive>) {
+    public async sendDiagnosticHitUpdateContext (sdkMethodBehavior: SdkMethodBehavior, oldContext: Record<string, primitive>, newContext: Record<string, primitive>) {
       const troubleshooting = new Troubleshooting({
         label: TroubleshootingLabel.VISITOR_JOURNEY,
         logLevel: LogLevel.INFO,
         sdkMethod: SdkMethod.VISITOR_UPDATE_CONTEXT,
+        sdkMethodBehavior,
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
         visitorSessionId: this.visitor.instanceId,
@@ -382,6 +372,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         label: TroubleshootingLabel.VISITOR_JOURNEY,
         logLevel: LogLevel.INFO,
         sdkMethod: SdkMethod.VISITOR_UPDATE_CONTEXT,
+        sdkMethodBehavior,
         visitorId: this.visitor.sdkInitialData?.instanceId as string,
         flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         visitorSessionId: this.visitor.instanceId,
@@ -422,7 +413,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       this.processTroubleshootingHit(troubleshooting)
     }
 
-    public async sendDiagnosticHitFetchFlags ({ isFromCache, campaigns, now }:{isFromCache: boolean, campaigns:CampaignDTO[], now: number }) {
+    public async sendDiagnosticHitFetchFlags ({ sdkMethodBehavior, campaigns, now, errorMessage }:{sdkMethodBehavior: SdkMethodBehavior, campaigns:CampaignDTO[]|null, now: number, errorMessage?: string}) {
       const assignmentHistory: Record<string, string> = {}
 
       this.visitor.flagsData.forEach(item => {
@@ -433,16 +424,17 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         label: TroubleshootingLabel.VISITOR_JOURNEY,
         logLevel: LogLevel.INFO,
         sdkMethod: SdkMethod.VISITOR_FETCH_FLAGS,
+        sdkMethodBehavior,
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
         visitorSessionId: this.visitor.instanceId,
         flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         config: this.config,
+        errorMessage,
         traffic: this.visitor.traffic || 0,
         sdkStatus: this.visitor.getSdkStatus(),
         visitorContext: this.visitor.context,
         visitorCampaigns: campaigns,
-        visitorCampaignFromCache: isFromCache ? campaigns : undefined,
         visitorConsent: this.visitor.hasConsented,
         visitorIsAuthenticated: !!this.visitor.anonymousId,
         visitorFlags: this.visitor.flagsData,
@@ -458,6 +450,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         label: TroubleshootingLabel.VISITOR_JOURNEY,
         logLevel: LogLevel.INFO,
         sdkMethod: SdkMethod.VISITOR_FETCH_FLAGS,
+        sdkMethodBehavior,
         visitorId: this.visitor.sdkInitialData?.instanceId as string,
         flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         visitorSessionId: this.visitor.sdkInitialData?.instanceId as string,
@@ -498,6 +491,65 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       this.processTroubleshootingHit(troubleshooting)
     }
 
+    public async sendDiagnosticHitFlagCollectionGet (flagKey: string, sdkMethodBehavior: SdkMethodBehavior) {
+      const troubleshooting = new Troubleshooting({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.FLAG_COLLECTION_GET,
+        sdkMethodBehavior,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        config: this.config,
+        flagKey,
+        traffic: this.visitor.traffic || 0
+      })
+
+      const analytic = new UsageHit({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.FLAG_COLLECTION_GET,
+        sdkMethodBehavior,
+        visitorId: this.visitor.sdkInitialData?.instanceId as string,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        visitorSessionId: this.visitor.instanceId,
+        config: this.config
+      })
+
+      this.sendUsageHit(analytic)
+
+      this.processTroubleshootingHit(troubleshooting)
+    }
+
+    public async sendDiagnosticHitFlagCollectionExposeAll () {
+      const troubleshooting = new Troubleshooting({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.FLAG_COLLECTION_EXPOSE_ALL,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        config: this.config,
+        traffic: this.visitor.traffic || 0
+      })
+
+      const analytic = new UsageHit({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.FLAG_COLLECTION_EXPOSE_ALL,
+        visitorId: this.visitor.sdkInitialData?.instanceId as string,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        visitorSessionId: this.visitor.instanceId,
+        config: this.config
+      })
+
+      this.sendUsageHit(analytic)
+
+      this.processTroubleshootingHit(troubleshooting)
+    }
+
     public async sendDiagnosticHitGetFlags () {
       const troubleshooting = new Troubleshooting({
         label: TroubleshootingLabel.VISITOR_JOURNEY,
@@ -526,7 +578,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       this.processTroubleshootingHit(troubleshooting)
     }
 
-    public async sendDiagnosticHitSendHit (hit?: HitAbstract) {
+    public async sendDiagnosticHitSendHit (sdkMethodBehavior: SdkMethodBehavior, hit?: HitAbstract, errorMessage?: string) {
       const troubleshooting = new Troubleshooting({
         label: TroubleshootingLabel.VISITOR_JOURNEY,
         logLevel: LogLevel.INFO,
@@ -535,8 +587,10 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         anonymousId: this.visitor.anonymousId,
         visitorSessionId: this.visitor.instanceId,
         flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        sdkMethodBehavior,
         config: this.config,
         hitContent: hit?.toApiKeys(),
+        errorMessage,
         traffic: this.visitor.traffic || 0
       })
 
@@ -544,6 +598,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         label: TroubleshootingLabel.VISITOR_JOURNEY,
         logLevel: LogLevel.INFO,
         sdkMethod: SdkMethod.VISITOR_SEND_HIT,
+        sdkMethodBehavior,
         visitorId: this.visitor.sdkInitialData?.instanceId as string,
         flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         visitorSessionId: this.visitor.instanceId,
@@ -615,7 +670,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       this.processTroubleshootingHit(troubleshooting)
     }
 
-    public async sendDiagnosticHitFlagGetValue (defaultValue: unknown, visitorExposed: boolean, flag?: FlagDTO) {
+    public async sendDiagnosticHitFlagGetValue (sdkMethodBehavior: SdkMethodBehavior, defaultValue: unknown, visitorExposed: boolean, flag?: FlagDTO) {
       const troubleshooting = new Troubleshooting({
         label: TroubleshootingLabel.VISITOR_JOURNEY,
         logLevel: LogLevel.INFO,
@@ -624,6 +679,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         anonymousId: this.visitor.anonymousId,
         visitorSessionId: this.visitor.instanceId,
         flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        sdkMethodBehavior,
         config: this.config,
         traffic: this.visitor.traffic || 0,
         flagKey: flag?.key,
@@ -645,6 +701,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         label: TroubleshootingLabel.VISITOR_JOURNEY,
         logLevel: LogLevel.INFO,
         sdkMethod: SdkMethod.FLAG_GET_VALUE,
+        sdkMethodBehavior,
         visitorId: this.visitor.sdkInitialData?.instanceId as string,
         flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         visitorSessionId: this.visitor.instanceId,
@@ -656,7 +713,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       this.processTroubleshootingHit(troubleshooting)
     }
 
-    public async sendDiagnosticHitFlagGetMetadata (flag?: FlagDTO) {
+    public async sendDiagnosticHitFlagGetMetadata (sdkMethodBehavior: SdkMethodBehavior, flag?: FlagDTO) {
       const troubleshooting = new Troubleshooting({
         label: TroubleshootingLabel.VISITOR_JOURNEY,
         logLevel: LogLevel.INFO,
@@ -665,6 +722,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         anonymousId: this.visitor.anonymousId,
         visitorSessionId: this.visitor.instanceId,
         flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        sdkMethodBehavior,
         config: this.config,
         traffic: this.visitor.traffic || 0,
         flagKey: flag?.key,
@@ -684,6 +742,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         label: TroubleshootingLabel.VISITOR_JOURNEY,
         logLevel: LogLevel.INFO,
         sdkMethod: SdkMethod.FLAG_GET_METADATA,
+        sdkMethodBehavior,
         visitorId: this.visitor.sdkInitialData?.instanceId as string,
         flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         visitorSessionId: this.visitor.instanceId,
@@ -695,7 +754,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       this.processTroubleshootingHit(troubleshooting)
     }
 
-    public async sendDiagnosticHitFlagExists (flag: FlagDTO, defaultValue: unknown, flagExists: boolean) {
+    public async sendDiagnosticHitFlagExists (defaultValue: unknown, flagExists: boolean, flag?: FlagDTO) {
       const troubleshooting = new Troubleshooting({
         label: TroubleshootingLabel.VISITOR_JOURNEY,
         logLevel: LogLevel.INFO,
@@ -706,18 +765,18 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         config: this.config,
         traffic: this.visitor.traffic || 0,
-        flagKey: flag.key,
-        flagValue: flag.value,
+        flagKey: flag?.key,
+        flagValue: flag?.value,
         flagDefault: defaultValue,
-        flagMetadataCampaignId: flag.campaignId,
-        flagMetadataVariationGroupId: flag.variationGroupId,
-        flagMetadataVariationId: flag.variationId,
-        flagMetadataCampaignIsReference: flag.isReference,
-        flagMetadataCampaignType: flag.campaignType,
-        flagMetadataVariationGroupName: flag.variationGroupName,
-        flagMetadataVariationName: flag.variationName,
-        flagMetadataCampaignName: flag.campaignName,
-        flagMetadataCampaignSlug: flag.slug,
+        flagMetadataCampaignId: flag?.campaignId,
+        flagMetadataVariationGroupId: flag?.variationGroupId,
+        flagMetadataVariationId: flag?.variationId,
+        flagMetadataCampaignIsReference: flag?.isReference,
+        flagMetadataCampaignType: flag?.campaignType,
+        flagMetadataVariationGroupName: flag?.variationGroupName,
+        flagMetadataVariationName: flag?.variationName,
+        flagMetadataCampaignName: flag?.campaignName,
+        flagMetadataCampaignSlug: flag?.slug,
         flagExists
       })
 
@@ -736,7 +795,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       this.processTroubleshootingHit(troubleshooting)
     }
 
-    public async sendDiagnosticHitFlagStatus (flag: FlagDTO, defaultValue: unknown, flagStatus: FSFlagStatus) {
+    public async sendDiagnosticHitFlagStatus (defaultValue: unknown, flagStatus: FSFlagStatus, flag?: FlagDTO) {
       const troubleshooting = new Troubleshooting({
         label: TroubleshootingLabel.VISITOR_JOURNEY,
         logLevel: LogLevel.INFO,
@@ -747,18 +806,18 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         config: this.config,
         traffic: this.visitor.traffic || 0,
-        flagKey: flag.key,
-        flagValue: flag.value,
+        flagKey: flag?.key,
+        flagValue: flag?.value,
         flagDefault: defaultValue,
-        flagMetadataCampaignId: flag.campaignId,
-        flagMetadataVariationGroupId: flag.variationGroupId,
-        flagMetadataVariationId: flag.variationId,
-        flagMetadataCampaignIsReference: flag.isReference,
-        flagMetadataCampaignType: flag.campaignType,
-        flagMetadataVariationGroupName: flag.variationGroupName,
-        flagMetadataVariationName: flag.variationName,
-        flagMetadataCampaignName: flag.campaignName,
-        flagMetadataCampaignSlug: flag.slug,
+        flagMetadataCampaignId: flag?.campaignId,
+        flagMetadataVariationGroupId: flag?.variationGroupId,
+        flagMetadataVariationId: flag?.variationId,
+        flagMetadataCampaignIsReference: flag?.isReference,
+        flagMetadataCampaignType: flag?.campaignType,
+        flagMetadataVariationGroupName: flag?.variationGroupName,
+        flagMetadataVariationName: flag?.variationName,
+        flagMetadataCampaignName: flag?.campaignName,
+        flagMetadataCampaignSlug: flag?.slug,
         flagStatus
       })
 
@@ -777,7 +836,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       this.processTroubleshootingHit(troubleshooting)
     }
 
-    public async sendDiagnosticHitFlagVisitorExposed (defaultValue: unknown, flag?: FlagDTO) {
+    public async sendDiagnosticHitFlagVisitorExposed (sdkMethodBehavior: SdkMethodBehavior, defaultValue: unknown, flag?: FlagDTO) {
       const troubleshooting = new Troubleshooting({
         label: TroubleshootingLabel.VISITOR_JOURNEY,
         logLevel: LogLevel.INFO,
@@ -786,6 +845,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         anonymousId: this.visitor.anonymousId,
         visitorSessionId: this.visitor.instanceId,
         flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        sdkMethodBehavior,
         config: this.config,
         traffic: this.visitor.traffic || 0,
         flagKey: flag?.key,
@@ -806,6 +866,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         label: TroubleshootingLabel.VISITOR_JOURNEY,
         logLevel: LogLevel.INFO,
         sdkMethod: SdkMethod.FLAG_VISITOR_EXPOSED,
+        sdkMethodBehavior,
         visitorId: this.visitor.sdkInitialData?.instanceId as string,
         flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         visitorSessionId: this.visitor.instanceId,
@@ -821,140 +882,9 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       if (!this.decisionManager.troubleshooting) {
         return
       }
+
       this.visitor.troubleshootingHits.forEach(hit => {
         this.trackingManager.sendTroubleshootingHit(hit)
       })
-    }
-
-    public async sendSdkConfigAnalyticHit () {
-      if (this.config.disableDeveloperUsageTracking) {
-        return
-      }
-      const traffic = this.visitor.analyticTraffic
-
-      if (traffic > ANALYTIC_HIT_ALLOCATION) {
-        return
-      }
-      const hitCacheImplementation = this.config.hitCacheImplementation
-      const visitorCacheImplementation = this.config.visitorCacheImplementation
-      const sdkConfigUsingCustomHitCache = hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
-      const sdkConfigUsingCustomVisitorCache = visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
-
-      const analyticData = new UsageHit({
-        label: TroubleshootingLabel.SDK_CONFIG,
-        logLevel: LogLevel.INFO,
-        visitorId: this.visitor.sdkInitialData?.instanceId as string,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        config: this.config,
-        sdkStatus: this.visitor.getSdkStatus(),
-        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
-        lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
-        sdkConfigMode: this.getSdkConfigDecisionMode(),
-        sdkConfigLogLevel: this.config.logLevel,
-        sdkConfigTimeout: this.config.timeout,
-        sdkConfigPollingInterval: this.config.pollingInterval,
-        sdkConfigTrackingManagerStrategy: this.config.trackingManagerConfig?.cacheStrategy,
-        sdkConfigTrackingManagerBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
-        sdkConfigTrackingManagerPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
-        sdkConfigFetchNow: this.config.fetchNow,
-        sdkConfigReuseVisitorIds: this.config.reuseVisitorIds,
-        sdkConfigInitialBucketing: this.config.initialBucketing,
-        sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
-        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
-        sdkConfigUsingOnVisitorExposed: !!this.config.onVisitorExposed,
-        sdkConfigUsingCustomHitCache: !!sdkConfigUsingCustomHitCache,
-        sdkConfigUsingCustomVisitorCache: !!sdkConfigUsingCustomVisitorCache,
-        sdkConfigFetchThirdPartyData: this.config.fetchThirdPartyData,
-        sdkConfigFetchFlagsBufferingTime: this.config.fetchFlagsBufferingTime,
-        sdkConfigDisableDeveloperUsageTracking: this.config.disableDeveloperUsageTracking,
-        sdkConfigNextFetchConfig: this.config.nextFetchConfig,
-        sdkConfigDisableCache: this.config.disableCache
-      })
-      await this.trackingManager.sendUsageHit(analyticData)
-    }
-
-    sendFetchFlagsTroubleshooting ({ isFromCache, campaigns, now }:{isFromCache: boolean, campaigns:CampaignDTO[], now: number }) {
-      const assignmentHistory: Record<string, string> = {}
-
-      this.visitor.flagsData.forEach(item => {
-        assignmentHistory[item.variationGroupId] = item.variationId
-      })
-
-      const uniqueId = this.visitor.visitorId + this.decisionManager.troubleshooting?.endDate.toUTCString()
-      const hash = this._murmurHash.murmurHash3Int32(uniqueId)
-      const traffic = hash % 100
-
-      this.visitor.traffic = traffic
-
-      const hitCacheImplementation = this.config.hitCacheImplementation
-      const visitorCacheImplementation = this.config.visitorCacheImplementation
-      const sdkConfigUsingCustomHitCache = hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
-      const sdkConfigUsingCustomVisitorCache = visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
-
-      const fetchFlagTroubleshooting = new Troubleshooting({
-        label: TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS,
-        logLevel: LogLevel.INFO,
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
-        visitorSessionId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        traffic,
-        config: this.config,
-        sdkStatus: this.visitor.getSdkStatus(),
-        visitorContext: this.visitor.context,
-        visitorCampaigns: campaigns,
-        visitorCampaignFromCache: isFromCache ? campaigns : undefined,
-        visitorConsent: this.visitor.hasConsented,
-        visitorIsAuthenticated: !!this.visitor.anonymousId,
-        visitorFlags: this.visitor.flagsData,
-        visitorAssignmentHistory: assignmentHistory,
-        visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
-        visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
-        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
-        lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
-        httpResponseTime: Date.now() - now,
-        sdkConfigLogLevel: this.config.logLevel,
-        sdkConfigMode: this.getSdkConfigDecisionMode(),
-        sdkConfigTimeout: this.config.timeout,
-        sdkConfigPollingInterval: this.config.pollingInterval,
-        sdkConfigTrackingManagerStrategy: this.config.trackingManagerConfig?.cacheStrategy,
-        sdkConfigTrackingManagerBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
-        sdkConfigTrackingManagerPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
-        sdkConfigFetchNow: this.config.fetchNow,
-        sdkConfigReuseVisitorIds: this.config.reuseVisitorIds,
-        sdkConfigInitialBucketing: this.config.initialBucketing,
-        sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
-        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
-        sdkConfigUsingOnVisitorExposed: !!this.config.onVisitorExposed,
-        sdkConfigUsingCustomHitCache: !!sdkConfigUsingCustomHitCache,
-        sdkConfigUsingCustomVisitorCache: !!sdkConfigUsingCustomVisitorCache,
-        sdkConfigFetchThirdPartyData: this.config.fetchThirdPartyData,
-        sdkConfigFetchFlagsBufferingTime: this.config.fetchFlagsBufferingTime,
-        sdkConfigDisableDeveloperUsageTracking: this.config.disableDeveloperUsageTracking,
-        sdkConfigNextFetchConfig: this.config.nextFetchConfig,
-        sdkConfigDisableCache: this.config.disableCache
-      })
-
-      this.sendTroubleshootingHit(fetchFlagTroubleshooting)
-    }
-
-    sendConsentHitTroubleshooting () {
-      const consentHitTroubleshooting = this.visitor.consentHitTroubleshooting
-      if (!consentHitTroubleshooting) {
-        return
-      }
-      consentHitTroubleshooting.traffic = this.visitor.traffic
-      this.trackingManager.sendTroubleshootingHit(consentHitTroubleshooting)
-      this.visitor.consentHitTroubleshooting = undefined
-    }
-
-    sendSegmentHitTroubleshooting () {
-      const segmentHitTroubleshooting = this.visitor.segmentHitTroubleshooting
-      if (!segmentHitTroubleshooting) {
-        return
-      }
-      segmentHitTroubleshooting.traffic = this.visitor.traffic
-      this.trackingManager.sendTroubleshootingHit(segmentHitTroubleshooting)
-      this.visitor.segmentHitTroubleshooting = undefined
     }
 }
