@@ -1,4 +1,3 @@
-import { HitAbstract } from '../hit/index'
 import { primitive, IHit, IFSFlagMetadata } from '../types'
 import { VisitorAbstract } from './VisitorAbstract'
 import { FSFlag } from '../flag/FsFlags'
@@ -9,6 +8,7 @@ import { IFSFlag } from '../flag/IFSFlag'
 import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
 import { IFSFlagCollection } from '../flag/IFSFlagCollection'
 import { FSFlagCollection } from '../flag/FSFlagCollection'
+import { HitAbstract } from 'src/hit'
 
 export class VisitorDelegate extends VisitorAbstract {
   updateContext (key: string, value: primitive, isInitializing?: boolean):void
@@ -39,15 +39,13 @@ export class VisitorDelegate extends VisitorAbstract {
     return new FSFlagCollection({ visitor: this })
   }
 
-  sendHit(hit: HitAbstract): Promise<void>
-  sendHit(hit: IHit): Promise<void>
-  sendHit (hit: HitAbstract | IHit): Promise<void> {
+  sendHit (hit: HitAbstract): Promise<void>
+  sendHit (hit: IHit): Promise<void>
+  sendHit (hit: HitAbstract|IHit): Promise<void> {
     return this.getStrategy().sendHit(hit)
   }
 
-  sendHits(hits: HitAbstract[]): Promise<void>
-  sendHits(hits: IHit[]): Promise<void>
-  sendHits (hits: HitAbstract[] | IHit[]): Promise<void> {
+  sendHits (hits: IHit[]): Promise<void> {
     return this.getStrategy().sendHits(hits)
   }
 

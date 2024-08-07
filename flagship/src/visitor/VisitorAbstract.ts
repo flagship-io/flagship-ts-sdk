@@ -3,7 +3,7 @@ import { IConfigManager, IFlagshipConfig } from '../config/index'
 import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFSFlagMetadata, sdkInitialData, VisitorCacheStatus, FetchFlagsStatus, SerializedFlagMetadata, CampaignDTO, VisitorVariations } from '../types'
 
 import { IVisitor } from './IVisitor'
-import { FSSdkStatus, SDK_INFO, VISITOR_ID_ERROR } from '../enum/index'
+import { FSFlagStatus, FSSdkStatus, SDK_INFO, VISITOR_ID_ERROR } from '../enum/index'
 import { hexToValue, isBrowser, logDebugSprintf, logError, uuidV4 } from '../utils/utils'
 import { HitAbstract } from '../hit/index'
 import { DefaultStrategy } from './DefaultStrategy'
@@ -18,7 +18,7 @@ import { Troubleshooting } from '../hit/Troubleshooting'
 import { FSFetchStatus } from '../enum/FSFetchStatus'
 import { FSFetchReasons } from '../enum/FSFetchReasons'
 import { IFSFlag } from '../flag/IFSFlag'
-import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
+import { GetFlagMetadataParam, GetFlagValueParam, SdkMethodBehavior, VisitorExposedParam } from '../type.local'
 import { IFSFlagCollection } from '../flag/IFSFlagCollection'
 import { sendVisitorExposedVariations } from '../qaAssistant/messages/index'
 
@@ -129,16 +129,16 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     context: Record<string, primitive>
     sdkInitialData?:sdkInitialData
   }) {
-    const { visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, sdkInitialData: monitoringData, onFetchFlagsStatusChanged } = param
+    const { visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, sdkInitialData, onFetchFlagsStatusChanged } = param
     super()
+    this._configManager = configManager
     this._exposedVariations = {}
     this._troubleshootingHits = []
-    this.initData(monitoringData)
+
     this._instanceId = uuidV4()
     this._isCleaningDeDuplicationCache = false
     this.deDuplicationCache = {}
     this._context = {}
-    this._configManager = configManager
 
     const visitorCache = this.config.reuseVisitorIds ? cacheVisitor.loadVisitorProfile() : null
     if (visitorCache) {
@@ -154,6 +154,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     }
 
     this.initAnalyticTraffic()
+    this.initData(sdkInitialData)
 
     this.setConsent(hasConsented || false, true)
 
@@ -402,6 +403,22 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     }, DELAY)
   }
 
+  public sendDiagnosticHitFlagExists (defaultValue: unknown, flagExists: boolean, flag?: FlagDTO) {
+    this.getStrategy().sendDiagnosticHitFlagExists(defaultValue, flagExists, flag)
+  }
+
+  public sendDiagnosticHitFlagStatus (defaultValue: unknown, flagStatus: FSFlagStatus, flag?: FlagDTO) {
+    this.getStrategy().sendDiagnosticHitFlagStatus(defaultValue, flagStatus, flag)
+  }
+
+  public async sendDiagnosticHitFlagCollectionGet (flagKey: string, sdkMethodBehavior: SdkMethodBehavior) {
+    this.getStrategy().sendDiagnosticHitFlagCollectionGet(flagKey, sdkMethodBehavior)
+  }
+
+  public async sendDiagnosticHitFlagCollectionExposeAll () {
+    this.getStrategy().sendDiagnosticHitFlagCollectionExposeAll()
+  }
+
   abstract updateContextCollection(context: Record<string, primitive>, isInitializing?: boolean): void
   abstract updateContext(key: string, value: primitive):void
   abstract updateContext(context: Record<string, primitive>): void
@@ -411,13 +428,11 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   abstract getFlag(key: string): IFSFlag
   abstract getFlags(): IFSFlagCollection
 
-  abstract sendHit(hit: HitAbstract): Promise<void>;
   abstract sendHit(hit: IHit): Promise<void>;
-  abstract sendHit(hit: IHit | HitAbstract): Promise<void>;
+  abstract sendHit(hit: HitAbstract): Promise<void>;
+  abstract sendHit(hit: IHit|HitAbstract): Promise<void>;
 
-  abstract sendHits(hit: HitAbstract[]): Promise<void>;
   abstract sendHits(hit: IHit[]): Promise<void>;
-  abstract sendHits(hit: HitAbstract[] | IHit[]): Promise<void>
 
   abstract authenticate(visitorId: string): void
   abstract unauthenticate(): void
