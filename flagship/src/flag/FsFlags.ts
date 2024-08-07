@@ -27,7 +27,11 @@ export class FSFlag implements IFSFlag {
 
     const flag = forcedFlagDTO || flagDTO
 
-    return !!(flag?.campaignId && flag?.variationId && flag?.variationGroupId)
+    const flagExists = !!(flag?.campaignId && flag?.variationId && flag?.variationGroupId)
+
+    this._visitor.sendDiagnosticHitFlagExists(this._defaultValue, flagExists, flag)
+
+    return flagExists
   }
 
   get metadata ():IFSFlagMetadata {
@@ -84,16 +88,21 @@ export class FSFlag implements IFSFlag {
   }
 
   get status (): FSFlagStatus {
+    const flagDTO = this._visitor?.flagsData?.get(this._key)
     if (this._visitor?.fetchStatus?.status === FSFetchStatus.PANIC) {
+      this._visitor?.sendDiagnosticHitFlagStatus(this._defaultValue, FSFlagStatus.PANIC, flagDTO)
       return FSFlagStatus.PANIC
     }
     if (!this.exists()) {
+      this._visitor?.sendDiagnosticHitFlagStatus(this._defaultValue, FSFlagStatus.NOT_FOUND, flagDTO)
       return FSFlagStatus.NOT_FOUND
     }
     if (this._visitor?.fetchStatus?.status === FSFetchStatus.FETCH_REQUIRED || this._visitor?.fetchStatus?.status === FSFetchStatus.FETCHING) {
+      this._visitor?.sendDiagnosticHitFlagStatus(this._defaultValue, FSFlagStatus.FETCH_REQUIRED, flagDTO)
       return FSFlagStatus.FETCH_REQUIRED
     }
 
+    this._visitor?.sendDiagnosticHitFlagStatus(this._defaultValue, FSFlagStatus.FETCHED, flagDTO)
     return FSFlagStatus.FETCHED
   }
 }
