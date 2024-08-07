@@ -199,6 +199,7 @@ export class Flagship {
       config: flagship.getConfig(),
       logLevel: LogLevel.INFO,
       visitorId: this.instanceId,
+      traffic: 0,
       flagshipInstanceId: this.instanceId,
       visitorSessionId: this.instanceId,
       sdkConfigLogLevel: config.logLevel,
