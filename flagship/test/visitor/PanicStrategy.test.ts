@@ -150,7 +150,7 @@ describe('test NotReadyStrategy', () => {
   })
 
   it('test sendAnalyticHit', () => {
-    panicStrategy.sendSdkConfigAnalyticHit()
+    // panicStrategy.sendSdkConfigAnalyticHit()
     expect(sendUsageHitSpy).toBeCalledTimes(0)
   })
 })

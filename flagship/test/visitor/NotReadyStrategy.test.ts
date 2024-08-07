@@ -97,7 +97,7 @@ describe('test NotReadyStrategy', () => {
   })
 
   it('test sendAnalyticHit', () => {
-    notReadyStrategy.sendSdkConfigAnalyticHit()
+    // notReadyStrategy.sendSdkConfigAnalyticHit()
     expect(sendUsageHitSpy).toBeCalledTimes(0)
   })
 })

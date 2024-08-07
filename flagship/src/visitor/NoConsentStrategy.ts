@@ -23,7 +23,7 @@ export class NoConsentStrategy extends DefaultStrategy {
     //
   }
 
-  protected fetchVisitorCampaigns (): CampaignDTO[] {
+  protected fetchCampaignsFromCache (): CampaignDTO[] {
     return []
   }
 

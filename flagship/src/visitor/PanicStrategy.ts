@@ -37,7 +37,7 @@ export class PanicStrategy extends DefaultStrategy {
     //
   }
 
-  protected fetchVisitorCampaigns (): CampaignDTO[] {
+  protected fetchCampaignsFromCache (): CampaignDTO[] {
     return []
   }
 
@@ -68,10 +68,6 @@ export class PanicStrategy extends DefaultStrategy {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async sendTroubleshootingHit (_hit: Troubleshooting): Promise<void> {
-    //
-  }
-
-  public async sendSdkConfigAnalyticHit () {
     //
   }
 

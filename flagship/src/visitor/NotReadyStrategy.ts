@@ -6,6 +6,7 @@ import { HitAbstract } from '../hit/index'
 import { BatchDTO } from '../hit/Batch'
 import { FSFlagMetadata } from '../flag/FSFlagMetadata'
 import { Troubleshooting } from '../hit/Troubleshooting'
+import { UsageHit } from 'src/hit/UsageHit'
 
 export class NotReadyStrategy extends DefaultStrategy {
   async lookupHits (): Promise<void> {
@@ -54,7 +55,8 @@ export class NotReadyStrategy extends DefaultStrategy {
     //
   }
 
-  public async sendSdkConfigAnalyticHit () {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async sendUsageHit (_hit: UsageHit): Promise<void> {
     //
   }
 
