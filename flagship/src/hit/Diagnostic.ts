@@ -132,6 +132,7 @@ export interface IDiagnostic {
 
   sdkMethod?: SdkMethod;
   sdkMethodBehavior?: SdkMethodBehavior;
+  errorMessage?: string;
 }
 
 /**
@@ -218,6 +219,15 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
   private _visitorNewContext?: Record<string, primitive>
   private _visitorExposed?: boolean
   private _sdkMethodBehavior? : SdkMethodBehavior
+  private _errorMessage : string|undefined
+
+  public get errorMessage () : string|undefined {
+    return this._errorMessage
+  }
+
+  public set errorMessage (v : string|undefined) {
+    this._errorMessage = v
+  }
 
   public get sdkMethodBehavior () : SdkMethodBehavior|undefined {
     return this._sdkMethodBehavior
@@ -1022,8 +1032,10 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       flagStatus,
       visitorOldContext,
       visitorNewContext,
-      sdkMethodBehavior
+      sdkMethodBehavior,
+      errorMessage
     } = param
+    this.errorMessage = errorMessage
     this.sdkMethodBehavior = sdkMethodBehavior
     this.visitorSessionId = visitorSessionId
     this.sdkConfigDisableCache = sdkConfigDisableCache
@@ -1157,6 +1169,10 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
 
     if (this.sdkMethodBehavior !== undefined) {
       customVariable.sdkMethodBehavior = `${SdkMethodBehavior[this.sdkMethodBehavior]}`
+    }
+
+    if (this.errorMessage !== undefined) {
+      customVariable.errorMessage = `${this.errorMessage}`
     }
 
     if (this.lastBucketingTimestamp !== undefined) {
