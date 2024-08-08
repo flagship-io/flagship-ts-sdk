@@ -419,6 +419,14 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.getStrategy().sendDiagnosticHitFlagCollectionExposeAll()
   }
 
+  public async sendDiagnosticHitFlagCollectionGetMetadata (metadata: Map<string, IFSFlagMetadata>) {
+    this.getStrategy().sendDiagnosticHitFlagCollectionGetMetadata(metadata)
+  }
+
+  public async sendDiagnosticHitFlagCollectionToJson (json: SerializedFlagMetadata[]) {
+    this.getStrategy().sendDiagnosticHitFlagCollectionToJson(json)
+  }
+
   abstract updateContextCollection(context: Record<string, primitive>, isInitializing?: boolean): void
   abstract updateContext(key: string, value: primitive):void
   abstract updateContext(context: Record<string, primitive>): void
