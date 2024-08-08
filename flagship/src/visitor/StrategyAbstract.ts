@@ -1,5 +1,5 @@
 import { Event, EventCategory, HitAbstract } from '../hit/index'
-import { primitive, IHit, VisitorCacheDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorCacheStatus, CampaignDTO, SdkMethod, FlagDTO } from '../types'
+import { primitive, IHit, VisitorCacheDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorCacheStatus, CampaignDTO, SdkMethod, FlagDTO, SerializedFlagMetadata } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
@@ -539,6 +539,64 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         label: TroubleshootingLabel.VISITOR_JOURNEY,
         logLevel: LogLevel.INFO,
         sdkMethod: SdkMethod.FLAG_COLLECTION_EXPOSE_ALL,
+        visitorId: this.visitor.sdkInitialData?.instanceId as string,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        visitorSessionId: this.visitor.instanceId,
+        config: this.config
+      })
+
+      this.sendUsageHit(analytic)
+
+      this.processTroubleshootingHit(troubleshooting)
+    }
+
+    public async sendDiagnosticHitFlagCollectionGetMetadata (metadata: Map<string, IFSFlagMetadata>) {
+      const troubleshooting = new Troubleshooting({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.FLAG_COLLECTION_GET_METADATA,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        config: this.config,
+        traffic: this.visitor.traffic || 0,
+        flagCollectionMetadata: metadata
+      })
+
+      const analytic = new UsageHit({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.FLAG_COLLECTION_GET_METADATA,
+        visitorId: this.visitor.sdkInitialData?.instanceId as string,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        visitorSessionId: this.visitor.instanceId,
+        config: this.config
+      })
+
+      this.sendUsageHit(analytic)
+
+      this.processTroubleshootingHit(troubleshooting)
+    }
+
+    public async sendDiagnosticHitFlagCollectionToJson (json: SerializedFlagMetadata[]) {
+      const troubleshooting = new Troubleshooting({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.FLAG_COLLECTION_TO_JSON,
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        visitorSessionId: this.visitor.instanceId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        config: this.config,
+        traffic: this.visitor.traffic || 0,
+        flagCollectionJson: json
+      })
+
+      const analytic = new UsageHit({
+        label: TroubleshootingLabel.VISITOR_JOURNEY,
+        logLevel: LogLevel.INFO,
+        sdkMethod: SdkMethod.FLAG_COLLECTION_TO_JSON,
         visitorId: this.visitor.sdkInitialData?.instanceId as string,
         flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         visitorSessionId: this.visitor.instanceId,
