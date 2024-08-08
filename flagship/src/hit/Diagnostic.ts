@@ -18,6 +18,7 @@ import { BucketingDTO } from '../decision/api/bucketingDTO'
 import {
   CampaignDTO,
   FlagDTO,
+  IFSFlagMetadata,
   InternalHitType,
   SdkMethod,
   SerializedFlagMetadata,
@@ -133,6 +134,9 @@ export interface IDiagnostic {
   sdkMethod?: SdkMethod;
   sdkMethodBehavior?: SdkMethodBehavior;
   errorMessage?: string;
+
+  flagCollectionMetadata?: Map<string, IFSFlagMetadata>;
+  flagCollectionJson?: SerializedFlagMetadata[];
 }
 
 /**
@@ -218,22 +222,44 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
   private _visitorOldContext?: Record<string, primitive>
   private _visitorNewContext?: Record<string, primitive>
   private _visitorExposed?: boolean
-  private _sdkMethodBehavior? : SdkMethodBehavior
-  private _errorMessage : string|undefined
+  private _sdkMethodBehavior?: SdkMethodBehavior
+  private _errorMessage: string | undefined
+  private _flagCollectionMetadata?: Map<string, IFSFlagMetadata>
+  private _flagCollectionJson : SerializedFlagMetadata[]|undefined
 
-  public get errorMessage () : string|undefined {
+  public get flagCollectionJson () : SerializedFlagMetadata[]|undefined {
+    return this._flagCollectionJson
+  }
+
+  public set flagCollectionJson (v : SerializedFlagMetadata[]|undefined) {
+    this._flagCollectionJson = v
+  }
+
+  public get flagCollectionMetadata ():
+    | Map<string, IFSFlagMetadata>
+    | undefined {
+    return this._flagCollectionMetadata
+  }
+
+  public set flagCollectionMetadata (
+    v: Map<string, IFSFlagMetadata> | undefined
+  ) {
+    this._flagCollectionMetadata = v
+  }
+
+  public get errorMessage (): string | undefined {
     return this._errorMessage
   }
 
-  public set errorMessage (v : string|undefined) {
+  public set errorMessage (v: string | undefined) {
     this._errorMessage = v
   }
 
-  public get sdkMethodBehavior () : SdkMethodBehavior|undefined {
+  public get sdkMethodBehavior (): SdkMethodBehavior | undefined {
     return this._sdkMethodBehavior
   }
 
-  public set sdkMethodBehavior (v : SdkMethodBehavior|undefined) {
+  public set sdkMethodBehavior (v: SdkMethodBehavior | undefined) {
     this._sdkMethodBehavior = v
   }
 
@@ -1033,8 +1059,10 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       visitorOldContext,
       visitorNewContext,
       sdkMethodBehavior,
-      errorMessage
+      errorMessage,
+      flagCollectionMetadata
     } = param
+    this.flagCollectionMetadata = flagCollectionMetadata
     this.errorMessage = errorMessage
     this.sdkMethodBehavior = sdkMethodBehavior
     this.visitorSessionId = visitorSessionId
@@ -1168,7 +1196,9 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     }
 
     if (this.sdkMethodBehavior !== undefined) {
-      customVariable.sdkMethodBehavior = `${SdkMethodBehavior[this.sdkMethodBehavior]}`
+      customVariable.sdkMethodBehavior = `${
+        SdkMethodBehavior[this.sdkMethodBehavior]
+      }`
     }
 
     if (this.errorMessage !== undefined) {
@@ -1544,6 +1574,20 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       customVariable.batchTriggeredBy = `${
         BatchTriggeredBy[this.batchTriggeredBy]
       }`
+    }
+
+    if (this.flagCollectionMetadata !== undefined) {
+      this.flagCollectionMetadata.forEach((item, flagKey) => {
+        Object.entries(item).forEach(([key, value]) => {
+          customVariable[`flagCollectionMetadata.${flagKey}.${key}`] = value
+        })
+      })
+    }
+
+    if (this.flagCollectionJson !== undefined) {
+      customVariable.flagCollectionJson = JSON.stringify(
+        this.flagCollectionJson
+      )
     }
 
     apiKeys.cv = customVariable
