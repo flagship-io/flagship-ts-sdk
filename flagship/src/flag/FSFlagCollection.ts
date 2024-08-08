@@ -118,6 +118,7 @@ export class FSFlagCollection implements IFSFlagCollection {
     this._flags.forEach((flag, key) => {
       metadata.set(key, flag.metadata)
     })
+    this._visitor?.sendDiagnosticHitFlagCollectionGetMetadata(metadata)
     return metadata
   }
 
@@ -142,6 +143,7 @@ export class FSFlagCollection implements IFSFlagCollection {
         hex: valueToHex({ v: flag.getValue(null, false) })
       })
     })
+    this._visitor?.sendDiagnosticHitFlagCollectionToJson(serializedData)
     return serializedData
   }
 
