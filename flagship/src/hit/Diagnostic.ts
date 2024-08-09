@@ -1503,7 +1503,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       customVariable['flag.value'] = `${this.flagValue}`
     }
     if (this.flagDefault !== undefined) {
-      customVariable['flag.default'] = JSON.stringify(this.flagDefault)
+      customVariable['flag.defaultValue'] = JSON.stringify(this.flagDefault)
     }
     if (this.flagExists !== undefined) {
       customVariable['flag.exists'] = `${this.flagExists}`
