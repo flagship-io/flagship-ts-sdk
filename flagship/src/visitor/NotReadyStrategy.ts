@@ -50,6 +50,11 @@ export class NotReadyStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected async sendActivate (_flagDto: FlagDTO, _defaultValue?: unknown): Promise<void> {
+    //
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async sendTroubleshootingHit (_hit: Troubleshooting): Promise<void> {
     //
   }

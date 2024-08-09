@@ -75,6 +75,11 @@ export class PanicStrategy extends DefaultStrategy {
     //
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected async sendActivate (_flagDto: FlagDTO, _defaultValue?: unknown): Promise<void> {
+    //
+  }
+
   private log (methodName:string) {
     logInfoSprintf(this.config, methodName, METHOD_DEACTIVATED_ERROR, this.visitor.visitorId, methodName, FSSdkStatus[FSSdkStatus.SDK_PANIC])
   }
