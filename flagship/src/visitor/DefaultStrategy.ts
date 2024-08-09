@@ -450,7 +450,7 @@ export class DefaultStrategy extends StrategyAbstract {
         this.visitor.visitorId
       )
       this.sendDiagnosticHitAuthenticate(
-        SdkMethodBehavior.VISITOR_AUTHENTICATE_VISITOR_ID_ERROR,
+        SdkMethodBehavior.VISITOR_ID_ERROR,
         this.visitor.visitorId,
         this.visitor.anonymousId
       )
