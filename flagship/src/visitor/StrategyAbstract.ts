@@ -274,6 +274,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       if (traffic > ANALYTIC_HIT_ALLOCATION) {
         return
       }
+
       return this.trackingManager.sendUsageHit(hit)
     }
 
