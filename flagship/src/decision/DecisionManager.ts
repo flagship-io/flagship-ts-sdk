@@ -111,6 +111,41 @@ export abstract class DecisionManager implements IDecisionManager {
     return this._panic
   }
 
+  protected async sendGetCampaignsDiagnosticHit ({
+    visitor, requestBody, headers, url, httpResponseBody, httpResponseHeaders,
+    httpResponseCode, now, label, logLevel
+  }:
+    {visitor: VisitorAbstract, requestBody: Record<string, unknown>, headers: Record<string, unknown>,
+      url: string,
+      httpResponseBody?:unknown,
+      httpResponseHeaders?:Record<string, unknown>,
+      httpResponseCode?:number,
+      now:number,
+      label: TroubleshootingLabel,
+      logLevel: LogLevel
+    }):Promise<void> {
+    const troubleshooting = new Troubleshooting({
+      label,
+      logLevel,
+      visitorId: visitor.visitorId,
+      anonymousId: visitor.anonymousId,
+      visitorSessionId: visitor.instanceId,
+      traffic: 100,
+      config: this.config,
+      visitorContext: visitor.context,
+      httpRequestBody: requestBody,
+      httpRequestHeaders: headers,
+      httpRequestMethod: 'POST',
+      httpRequestUrl: url,
+      httpResponseBody,
+      httpResponseHeaders,
+      httpResponseCode,
+      httpResponseTime: Date.now() - now
+    })
+
+    await this.trackingManager.addTroubleshootingHit(troubleshooting)
+  }
+
   protected async getDecisionApiCampaignsAsync (visitor: VisitorAbstract): Promise<CampaignDTO[]|null> {
     const headers = {
       [HEADER_X_API_KEY]: `${this.config.apiKey}`,
@@ -153,31 +188,36 @@ export abstract class DecisionManager implements IDecisionManager {
           timezone: troubleshooting.timezone,
           traffic: troubleshooting.traffic
         }
+
+        this.sendGetCampaignsDiagnosticHit({
+          visitor,
+          requestBody,
+          headers,
+          url,
+          httpResponseBody: response?.body,
+          httpResponseHeaders: response?.headers,
+          httpResponseCode: response?.status,
+          now,
+          label: TroubleshootingLabel.GET_CAMPAIGNS_ROUTE,
+          logLevel: LogLevel.INFO
+        })
       }
 
       return campaigns
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      const troubleshooting = new Troubleshooting({
-        label: TroubleshootingLabel.GET_CAMPAIGNS_ROUTE_RESPONSE_ERROR,
-        logLevel: LogLevel.ERROR,
-        visitorId: visitor.visitorId,
-        anonymousId: visitor.anonymousId,
-        visitorSessionId: visitor.instanceId,
-        traffic: 100,
-        config: this.config,
-        visitorContext: visitor.context,
-        httpRequestBody: requestBody,
-        httpRequestHeaders: headers,
-        httpRequestMethod: 'POST',
-        httpRequestUrl: url,
+      this.sendGetCampaignsDiagnosticHit({
+        visitor,
+        requestBody,
+        headers,
+        url,
         httpResponseBody: error?.message,
         httpResponseHeaders: error?.headers,
         httpResponseCode: error?.statusCode,
-        httpResponseTime: Date.now() - now
+        now,
+        label: TroubleshootingLabel.GET_CAMPAIGNS_ROUTE_RESPONSE_ERROR,
+        logLevel: LogLevel.ERROR
       })
-
-      await this.trackingManager.addTroubleshootingHit(troubleshooting)
 
       const errorMessage = errorFormat(error.message || error, {
         url,
