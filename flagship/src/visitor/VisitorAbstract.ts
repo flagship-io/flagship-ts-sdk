@@ -46,6 +46,15 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   private _getCampaignsPromise? : Promise<CampaignDTO[]|null>
   private _analyticTraffic! : number
   private _troubleshootingHits : Troubleshooting[]
+  private _hasFetchFlagsBeenCalled : boolean
+
+  public get hasFetchFlagsBeenCalled () : boolean {
+    return this._hasFetchFlagsBeenCalled
+  }
+
+  public set hasFetchFlagsBeenCalled (v : boolean) {
+    this._hasFetchFlagsBeenCalled = v
+  }
 
   public get troubleshootingHits () : Troubleshooting[] {
     return this._troubleshootingHits
@@ -131,6 +140,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   }) {
     const { visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, sdkInitialData, onFetchFlagsStatusChanged } = param
     super()
+    this._hasFetchFlagsBeenCalled = false
     this._configManager = configManager
     this._exposedVariations = {}
     this._troubleshootingHits = []
