@@ -287,6 +287,9 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         this.sendTroubleshootingHit(hit)
         return
       }
+      if (this.visitor.hasFetchFlagsBeenCalled) {
+        return
+      }
 
       this.visitor.troubleshootingHits.push(hit)
     }
@@ -936,6 +939,8 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
 
     public async sendDiagnosticHitQueue () {
       if (!this.decisionManager.troubleshooting) {
+        this.visitor.troubleshootingHits = this.visitor.troubleshootingHits.filter(hit =>
+          hit.sdkMethod === SdkMethod.FS_NEW_VISITOR || hit.sdkMethod === SdkMethod.FS_START)
         return
       }
 
