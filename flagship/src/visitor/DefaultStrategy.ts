@@ -735,6 +735,8 @@ export class DefaultStrategy extends StrategyAbstract {
         }
       }
 
+      this.visitor.hasFetchFlagsBeenCalled = true
+
       this.sendVisitorAllocatedVariations()
 
       logDebugSprintf(
