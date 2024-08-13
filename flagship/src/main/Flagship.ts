@@ -231,7 +231,27 @@ export class Flagship {
       config: flagship.getConfig(),
       logLevel: LogLevel.INFO,
       visitorId: this.instanceId,
-      flagshipInstanceId: this.instanceId
+      flagshipInstanceId: this.instanceId,
+      sdkConfigLogLevel: config.logLevel,
+      sdkConfigMode: config.decisionMode,
+      sdkConfigTimeout: config.timeout,
+      sdkConfigPollingInterval: config.pollingInterval,
+      sdkConfigTrackingManagerStrategy: config.trackingManagerConfig?.cacheStrategy,
+      sdkConfigTrackingManagerBatchIntervals: config.trackingManagerConfig?.batchIntervals,
+      sdkConfigTrackingManagerPoolMaxSize: config.trackingManagerConfig?.poolMaxSize,
+      sdkConfigFetchNow: config.fetchNow,
+      sdkConfigReuseVisitorIds: config.reuseVisitorIds,
+      sdkConfigInitialBucketing: config.initialBucketing,
+      sdkConfigDecisionApiUrl: config.decisionApiUrl,
+      sdkConfigHitDeduplicationTime: config.hitDeduplicationTime,
+      sdkConfigUsingOnVisitorExposed: !!config.onVisitorExposed,
+      sdkConfigUsingCustomHitCache: !!sdkConfigUsingCustomHitCache,
+      sdkConfigUsingCustomVisitorCache: !!sdkConfigUsingCustomVisitorCache,
+      sdkConfigFetchThirdPartyData: config.fetchThirdPartyData,
+      sdkConfigFetchFlagsBufferingTime: config.fetchFlagsBufferingTime,
+      sdkConfigDisableDeveloperUsageTracking: config.disableDeveloperUsageTracking,
+      sdkConfigNextFetchConfig: config.nextFetchConfig,
+      sdkConfigDisableCache: config.disableCache
     })
 
     this._usageStartSdkHit = usage
