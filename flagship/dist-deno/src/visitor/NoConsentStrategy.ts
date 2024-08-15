@@ -1,4 +1,4 @@
-import { CampaignDTO, IHit } from '../types.ts'
+import { CampaignDTO, FlagDTO, IHit } from '../types.ts'
 import { FLAG_VISITOR_EXPOSED, METHOD_DEACTIVATED_CONSENT_ERROR } from '../enum/index.ts'
 import { HitAbstract } from '../hit/index.ts'
 import { logInfo, sprintf } from '../utils/utils.ts'
@@ -35,6 +35,11 @@ export class NoConsentStrategy extends DefaultStrategy {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async sendHits (_hits: HitAbstract[] | IHit[] |BatchDTO[]): Promise<void> {
     this.log('sendHits')
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected async sendActivate (_flagDto: FlagDTO, _defaultValue?: unknown): Promise<void> {
+    //
   }
 
   async visitorExposed (): Promise<void> {
