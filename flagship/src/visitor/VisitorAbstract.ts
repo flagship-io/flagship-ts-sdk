@@ -44,6 +44,15 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   private _fetchStatus! : FetchFlagsStatus
   private _onFetchFlagsStatusChanged? : ({ status, reason }: FetchFlagsStatus) => void
   private _getCampaignsPromise? : Promise<CampaignDTO[]|null>
+  private _hasContextBeenUpdated : boolean
+
+  public get hasContextBeenUpdated () : boolean {
+    return this._hasContextBeenUpdated
+  }
+
+  public set hasContextBeenUpdated (v : boolean) {
+    this._hasContextBeenUpdated = v
+  }
 
   public get getCampaignsPromise () : Promise<CampaignDTO[]|null>|undefined {
     return this._getCampaignsPromise
@@ -117,6 +126,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   }) {
     const { visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData, onFetchFlagsStatusChanged } = param
     super()
+    this._hasContextBeenUpdated = true
     this._exposedVariations = {}
     this._sdkInitialData = monitoringData
     this._instanceId = uuidV4()
