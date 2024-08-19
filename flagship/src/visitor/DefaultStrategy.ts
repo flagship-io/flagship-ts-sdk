@@ -4,7 +4,6 @@ import {
   CONTEXT_KEY_ERROR,
   CONTEXT_KEY_VALUE_UPDATE,
   CONTEXT_NULL_ERROR,
-  CONTEXT_OBJET_PARAM_UPDATE,
   CONTEXT_VALUE_ERROR,
   EMIT_READY,
   FETCH_CAMPAIGNS_FROM_CACHE,
@@ -51,7 +50,7 @@ import {
   Transaction
 } from '../hit/index'
 import { primitive, IHit, FlagDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorVariations, CampaignDTO } from '../types'
-import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils'
+import { deepEqual, errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils'
 import { StrategyAbstract } from './StrategyAbstract'
 import { FLAGSHIP_CLIENT, FLAGSHIP_CONTEXT, FLAGSHIP_VERSION, FLAGSHIP_VISITOR } from '../enum/FlagshipContext'
 import { VisitorDelegate } from './index'
@@ -115,16 +114,31 @@ export class DefaultStrategy extends StrategyAbstract {
     this.visitor.context[key] = value
   }
 
+  private checkAndUpdateContext (oldContext: Record<string, primitive>, newContext: Record<string, primitive>, value: unknown): void {
+    if (deepEqual(oldContext, newContext)) {
+      return
+    }
+
+    this.visitor.hasContextBeenUpdated = true
+
+    this.visitor.fetchStatus = {
+      status: FSFetchStatus.FETCH_REQUIRED,
+      reason: FSFetchReasons.UPDATE_CONTEXT
+    }
+    logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_KEY_VALUE_UPDATE, this.visitor.visitorId, newContext, value, this.visitor.context)
+  }
+
   updateContext(key: string, value: primitive):void
   updateContext (context: Record<string, primitive>): void
   updateContext (context: Record<string, primitive> | string, value?:primitive): void {
+    this.visitor.hasContextBeenUpdated = false
+    const oldContext = { ...this.visitor.context }
     if (typeof context === 'string') {
       this.updateContextKeyValue(context, value as primitive)
-      logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_KEY_VALUE_UPDATE, this.visitor.visitorId, context, value, this.visitor.context)
-      this.visitor.fetchStatus = {
-        status: FSFetchStatus.FETCH_REQUIRED,
-        reason: FSFetchReasons.UPDATE_CONTEXT
-      }
+
+      const newContext = this.visitor.context
+
+      this.checkAndUpdateContext(oldContext, newContext, value)
       return
     }
 
@@ -137,11 +151,9 @@ export class DefaultStrategy extends StrategyAbstract {
       const value = context[key]
       this.updateContextKeyValue(key, value)
     }
-    this.visitor.fetchStatus = {
-      status: FSFetchStatus.FETCH_REQUIRED,
-      reason: FSFetchReasons.UPDATE_CONTEXT
-    }
-    logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_OBJET_PARAM_UPDATE, this.visitor.visitorId, context, this.visitor.context)
+    const newContext = this.visitor.context
+
+    this.checkAndUpdateContext(oldContext, newContext, context)
   }
 
   clearContext (): void {
