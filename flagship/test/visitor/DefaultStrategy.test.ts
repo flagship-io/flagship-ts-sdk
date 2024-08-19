@@ -140,6 +140,9 @@ describe('test DefaultStrategy ', () => {
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(onFetchFlagsStatusChanged)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(1)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledWith({ status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.UPDATE_CONTEXT })
+
+    defaultStrategy.updateContext(newContext)
+    expect(visitorDelegate.hasContextBeenUpdated).toBeFalsy()
   })
 
   it('test updateContext null', () => {
@@ -182,8 +185,8 @@ describe('test DefaultStrategy ', () => {
       fs_version: SDK_INFO.version,
       fs_users: visitorId
     })
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(2)
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.UPDATE_CONTEXT })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(1)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.UPDATE_CONTEXT })
   })
 
   it('test getCurrentDateTime', () => {
