@@ -131,7 +131,6 @@ export class DefaultStrategy extends StrategyAbstract {
   updateContext(key: string, value: primitive):void
   updateContext (context: Record<string, primitive>): void
   updateContext (context: Record<string, primitive> | string, value?:primitive): void {
-    this.visitor.hasContextBeenUpdated = false
     const oldContext = { ...this.visitor.context }
     if (typeof context === 'string') {
       this.updateContextKeyValue(context, value as primitive)
@@ -157,8 +156,15 @@ export class DefaultStrategy extends StrategyAbstract {
   }
 
   clearContext (): void {
+    const oldContext = { ...this.visitor.context }
     this.visitor.context = {}
     this.visitor.loadPredefinedContext()
+    const newContext = this.visitor.context
+    if (deepEqual(oldContext, newContext)) {
+      return
+    }
+
+    this.visitor.hasContextBeenUpdated = true
     this.visitor.fetchStatus = {
       status: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.UPDATE_CONTEXT
