@@ -729,7 +729,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       this.processTroubleshootingHit(troubleshooting)
     }
 
-    public async sendDiagnosticHitFlagGetValue (sdkMethodBehavior: SdkMethodBehavior, defaultValue: unknown, visitorExposed: boolean, flag?: FlagDTO) {
+    public async sendDiagnosticHitFlagGetValue (sdkMethodBehavior: SdkMethodBehavior, defaultValue: unknown, visitorExposed: boolean, flag?: FlagDTO, flagKey?:string) {
       const troubleshooting = new Troubleshooting({
         label: TroubleshootingLabel.VISITOR_JOURNEY,
         logLevel: LogLevel.INFO,
@@ -741,7 +741,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         sdkMethodBehavior,
         config: this.config,
         traffic: this.visitor.traffic || 0,
-        flagKey: flag?.key,
+        flagKey,
         flagValue: flag?.value,
         flagDefault: defaultValue,
         flagMetadataCampaignId: flag?.campaignId,
@@ -895,7 +895,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       this.processTroubleshootingHit(troubleshooting)
     }
 
-    public async sendDiagnosticHitFlagVisitorExposed (sdkMethodBehavior: SdkMethodBehavior, defaultValue: unknown, flag?: FlagDTO) {
+    public async sendDiagnosticHitFlagVisitorExposed (sdkMethodBehavior: SdkMethodBehavior, defaultValue: unknown, flag?: FlagDTO, flagKey?:string) {
       const troubleshooting = new Troubleshooting({
         label: TroubleshootingLabel.VISITOR_JOURNEY,
         logLevel: LogLevel.INFO,
@@ -907,7 +907,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         sdkMethodBehavior,
         config: this.config,
         traffic: this.visitor.traffic || 0,
-        flagKey: flag?.key,
+        flagKey,
         flagValue: flag?.value,
         flagDefault: defaultValue,
         flagMetadataCampaignId: flag?.campaignId,

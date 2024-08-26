@@ -775,7 +775,7 @@ export class DefaultStrategy extends StrategyAbstract {
       this.sendDiagnosticHitFlagVisitorExposed(
         SdkMethodBehavior.FLAG_NOT_FOUND_WARNING,
         defaultValue,
-        flag
+        flag, key
       )
       return
     }
@@ -791,7 +791,7 @@ export class DefaultStrategy extends StrategyAbstract {
       this.sendDiagnosticHitFlagVisitorExposed(
         SdkMethodBehavior.FLAG_VALUE_NOT_CALLED_WARNING,
         defaultValue,
-        flag
+        flag, key
       )
     }
 
@@ -811,14 +811,14 @@ export class DefaultStrategy extends StrategyAbstract {
       this.sendDiagnosticHitFlagVisitorExposed(
         SdkMethodBehavior.FLAG_TYPE_WARNING,
         defaultValue,
-        flag
+        flag, key
       )
     }
 
     this.sendDiagnosticHitFlagVisitorExposed(
       SdkMethodBehavior.NONE,
       defaultValue,
-      flag
+      flag, key
     )
 
     await this.sendActivate(flag, defaultValue)
@@ -840,7 +840,7 @@ export class DefaultStrategy extends StrategyAbstract {
         SdkMethodBehavior.FLAG_NOT_FOUND_WARNING,
         defaultValue,
         !!visitorExposed,
-        flag
+        flag, key
       )
 
       return defaultValue as T extends null ? unknown : T
@@ -855,7 +855,7 @@ export class DefaultStrategy extends StrategyAbstract {
         SdkMethodBehavior.NONE,
         defaultValue,
         !!visitorExposed,
-        flag
+        flag, key
       )
       return defaultValue as T extends null ? unknown : T
     }
@@ -877,7 +877,7 @@ export class DefaultStrategy extends StrategyAbstract {
         SdkMethodBehavior.FLAG_TYPE_WARNING,
         defaultValue,
         !!visitorExposed,
-        flag
+        flag, key
       )
       return defaultValue as T extends null ? unknown : T
     }
@@ -894,7 +894,7 @@ export class DefaultStrategy extends StrategyAbstract {
       SdkMethodBehavior.NONE,
       defaultValue,
       !!visitorExposed,
-      flag
+      flag, key
     )
 
     return flag.value as T extends null ? unknown : T
