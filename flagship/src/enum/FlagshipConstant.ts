@@ -74,6 +74,7 @@ export const SDK_VERSION = version
 export const VISITOR_CACHE_VERSION = 1
 export const HIT_CACHE_VERSION = 1
 export const DEFAULT_HIT_CACHE_TIME_MS = 14400000
+export const MAX_ACTIVATE_HIT_PER_BATCH = 100
 
 /**
  * Message Info
