@@ -1,4 +1,4 @@
-import { ACTIVATE_HIT, DEFAULT_HIT_CACHE_TIME_MS, HIT_SENT_SUCCESS, TRACKING_MANAGER, TRACKING_MANAGER_ERROR } from '../enum/FlagshipConstant'
+import { ACTIVATE_HIT, DEFAULT_HIT_CACHE_TIME_MS, HIT_SENT_SUCCESS, MAX_ACTIVATE_HIT_PER_BATCH, TRACKING_MANAGER, TRACKING_MANAGER_ERROR } from '../enum/FlagshipConstant'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 import { BASE_API_URL, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, SDK_INFO, URL_ACTIVATE_MODIFICATION } from '../enum/index'
 import { Activate } from '../hit/Activate'
@@ -16,20 +16,13 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     await this.cacheHit(new Map<string, HitAbstract>([[hit.key, hit]]))
   }
 
-  protected async sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate) {
+  protected async sendActivateHitBatch (activateBatch: ActivateBatch, batchTriggeredBy: BatchTriggeredBy, currentActivate?:Activate) {
     const headers = {
       [HEADER_X_API_KEY]: this.config.apiKey as string,
       [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
       [HEADER_X_SDK_VERSION]: SDK_INFO.version,
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
-
-    const activateBatch = new ActivateBatch(Array.from(activateHitsPool.filter(item => (Date.now() - item.createdAt) < DEFAULT_HIT_CACHE_TIME_MS)), this.config)
-
-    if (currentActivate) {
-      activateBatch.hits.push(currentActivate)
-    }
-
     const requestBody = activateBatch.toApiKeys()
     const url = BASE_API_URL + URL_ACTIVATE_MODIFICATION
     const now = Date.now()
@@ -50,7 +43,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
 
-      const hitKeysToRemove: string[] = activateHitsPool.map(item => item.key)
+      const hitKeysToRemove: string[] = activateBatch.hits.filter(item => item.key !== currentActivate?.key).map(item => item.key)
 
       activateBatch.hits.forEach(item => {
         this.onVisitorExposed(item)
@@ -102,6 +95,24 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       })
 
       await this.sendTroubleshootingHit(monitoringHttpResponse)
+    }
+  }
+
+  protected async sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate) {
+    const filteredItems = Array.from(activateHitsPool.filter(item => (Date.now() - item.createdAt) < DEFAULT_HIT_CACHE_TIME_MS))
+
+    if (!filteredItems.length && currentActivate) {
+      const batch = new ActivateBatch([currentActivate], this.config)
+      await this.sendActivateHitBatch(batch, batchTriggeredBy, currentActivate)
+      return
+    }
+
+    for (let i = 0; i < filteredItems.length; i += MAX_ACTIVATE_HIT_PER_BATCH) {
+      const batch = new ActivateBatch(filteredItems.slice(i, i + MAX_ACTIVATE_HIT_PER_BATCH), this.config)
+      if (i === 0 && currentActivate) {
+        batch.hits.push(currentActivate)
+      }
+      this.sendActivateHitBatch(batch, batchTriggeredBy, i === 0 ? currentActivate : undefined)
     }
   }
 }
