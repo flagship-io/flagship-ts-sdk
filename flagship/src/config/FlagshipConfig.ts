@@ -1,5 +1,5 @@
 import { BucketingDTO } from '../decision/api/bucketingDTO'
-import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FS_IS_QA_MODE_ENABLED, FETCH_FLAG_BUFFERING_DEFAULT_TIME, LogLevel, REQUEST_TIME_OUT, SDK_INFO, TYPE_ERROR, FSSdkStatus } from '../enum/index'
+import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FS_IS_QA_MODE_ENABLED, FETCH_FLAG_BUFFERING_DEFAULT_TIME, LogLevel, REQUEST_TIME_OUT, SDK_INFO, TYPE_ERROR, FSSdkStatus, DEFAULT_POLLING_INTERVAL } from '../enum/index'
 import { IHitCacheImplementation } from '../cache/IHitCacheImplementation'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager'
 import { errorFormat, isBrowser, logError, sprintf } from '../utils/utils'
@@ -115,7 +115,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     if (logManager) {
       this.logManager = logManager
     }
-
+    this.pollingInterval = param?.pollingInterval ?? DEFAULT_POLLING_INTERVAL
     this.fetchFlagsBufferingTime = fetchFlagsBufferingTime ?? FETCH_FLAG_BUFFERING_DEFAULT_TIME
     this.nextFetchConfig = nextFetchConfig || { revalidate: 20 }
     this._trackingManagerConfig = new TrackingManagerConfig(trackingManagerConfig || {})
