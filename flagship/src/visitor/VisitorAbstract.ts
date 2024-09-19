@@ -1,4 +1,4 @@
-import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
+import { BUCKETING_STATUS_EVENT, HTTP_CODE_200, PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
 import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFSFlagMetadata, sdkInitialData, VisitorCacheStatus, FetchFlagsStatus, SerializedFlagMetadata, CampaignDTO, VisitorVariations } from '../types'
 
@@ -21,6 +21,7 @@ import { IFSFlag } from '../flag/IFSFlag'
 import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
 import { IFSFlagCollection } from '../flag/IFSFlagCollection'
 import { sendVisitorExposedVariations } from '../qaAssistant/messages/index'
+import { IDecisionManager } from 'src/decision/IDecisionManager'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -44,6 +45,15 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   private _fetchStatus! : FetchFlagsStatus
   private _onFetchFlagsStatusChanged? : ({ status, reason }: FetchFlagsStatus) => void
   private _getCampaignsPromise? : Promise<CampaignDTO[]|null>
+  private _bucketingStatus : number|undefined
+
+  public get bucketingStatus () : number|undefined {
+    return this._bucketingStatus
+  }
+
+  public set bucketingStatus (v : number|undefined) {
+    this._bucketingStatus = v
+  }
 
   public get getCampaignsPromise () : Promise<CampaignDTO[]|null>|undefined {
     return this._getCampaignsPromise
@@ -161,6 +171,19 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     }
 
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
+
+    this.decisionManager.on(BUCKETING_STATUS_EVENT, this.onBucketingStatusChanged.bind(this))
+  }
+
+  protected onBucketingStatusChanged (status:number) {
+    if (status === HTTP_CODE_200 && this.bucketingStatus) {
+      this.fetchStatus = {
+        status: FSFetchStatus.FETCH_REQUIRED,
+        reason: FSFetchReasons.BUCKETING_CHANGED
+      }
+      this.fetchFlags()
+    }
+    this.bucketingStatus = status
   }
 
   public get traffic () : number {
@@ -284,6 +307,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
   get configManager (): IConfigManager {
     return this._configManager
+  }
+
+  protected get decisionManager ():IDecisionManager {
+    return this.configManager.decisionManager
   }
 
   public get config (): IFlagshipConfig {
