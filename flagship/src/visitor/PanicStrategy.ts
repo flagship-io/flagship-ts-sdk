@@ -37,7 +37,7 @@ export class PanicStrategy extends DefaultStrategy {
     //
   }
 
-  protected fetchVisitorCampaigns (): CampaignDTO[] {
+  protected fetchCampaignsFromCache (): CampaignDTO[] {
     return []
   }
 
