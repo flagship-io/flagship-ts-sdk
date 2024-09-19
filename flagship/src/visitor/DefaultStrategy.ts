@@ -35,7 +35,8 @@ import {
   VISITOR_AUTHENTICATE_VISITOR_ID_ERROR,
   VISITOR_EXPOSED_VALUE_NOT_CALLED,
   VISITOR_UNAUTHENTICATE,
-  VISITOR_ALREADY_AUTHENTICATE
+  VISITOR_ALREADY_AUTHENTICATE,
+  HTTP_CODE_304
 } from '../enum/index'
 import {
   HitAbstract,
@@ -435,12 +436,19 @@ export class DefaultStrategy extends StrategyAbstract {
         return
       }
 
-      const fetchFlagBufferingTime = (this.config.fetchFlagsBufferingTime as number * 1000)
+      const hasHttp304 = this.decisionManager.bucketingStatus() === HTTP_CODE_304
 
-      if (fetchStatus === FSFetchStatus.FETCHED && time < fetchFlagBufferingTime) {
-        logInfoSprintf(this.config, functionName, FETCH_FLAGS_BUFFERING_MESSAGE, this.visitor.visitorId, fetchFlagBufferingTime - time)
+      if (fetchStatus === FSFetchStatus.FETCHED && hasHttp304) {
+        logInfoSprintf(this.config, functionName, 'No changes in bucketing')
         return
       }
+
+      // const fetchFlagBufferingTime = (this.config.fetchFlagsBufferingTime as number * 1000)
+
+      // if (fetchStatus === FSFetchStatus.FETCHED && time < fetchFlagBufferingTime) {
+      //   logInfoSprintf(this.config, functionName, FETCH_FLAGS_BUFFERING_MESSAGE, this.visitor.visitorId, fetchFlagBufferingTime - time)
+      //   return
+      // }
 
       logDebugSprintf(this.config, functionName, FETCH_FLAGS_STARTED, this.visitor.visitorId)
 
