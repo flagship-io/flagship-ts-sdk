@@ -1,10 +1,10 @@
 import { IDecisionManager } from './IDecisionManager'
 import { IFlagshipConfig } from '../config/index'
-import { IHttpClient } from '../utils/HttpClient'
+import { IHttpClient, IHttpResponse } from '../utils/HttpClient'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
-import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FSSdkStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, PROCESS_FETCHING_FLAGS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
+import { BASE_API_URL, BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FSSdkStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_APP, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, POLLING_EVENT_200, POLLING_EVENT_300, POLLING_EVENT_FAILED, PROCESS_BUCKETING, PROCESS_FETCHING_FLAGS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
 import { CampaignDTO, FlagDTO, TroubleshootingData, TroubleshootingLabel } from '../types'
-import { errorFormat, logDebug } from '../utils/utils'
+import { errorFormat, logDebug, logDebugSprintf, logError, logInfo, sprintf } from '../utils/utils'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { ITrackingManager } from '../api/ITrackingManager'
 import { BucketingDTO } from './api/bucketingDTO'
@@ -16,6 +16,11 @@ export abstract class DecisionManager implements IDecisionManager {
   protected _httpClient: IHttpClient
   private _statusChangedCallback! : (status: FSSdkStatus)=>void
   private _troubleshooting? : TroubleshootingData
+  private _lastModified!: string
+  private _isPooling!: boolean
+  private _isFirstPooling: boolean
+  private _intervalID!: NodeJS.Timer
+  protected _bucketingStatus?: number
 
   protected _lastBucketingTimestamp?:string
 
@@ -70,6 +75,7 @@ export abstract class DecisionManager implements IDecisionManager {
   public constructor (httpClient: IHttpClient, config: IFlagshipConfig) {
     this._config = config
     this._httpClient = httpClient
+    this._isFirstPooling = true
   }
 
   protected updateFlagshipStatus (v:FSSdkStatus):void {
@@ -187,5 +193,140 @@ export abstract class DecisionManager implements IDecisionManager {
       })
       throw new Error(errorMessage)
     }
+  }
+
+  public bucketingStatus (): number|undefined {
+    return this._bucketingStatus
+  }
+
+  private finishLoop (params: {response: IHttpResponse, headers: Record<string, string>, url: string, now: number}) {
+    const { response, headers, url, now } = params
+    if (response.status === 200) {
+      logDebugSprintf(this.config, PROCESS_BUCKETING, POLLING_EVENT_200, response.body)
+      this._bucketingContent = response.body
+      this._lastBucketingTimestamp = new Date().toISOString()
+      const troubleshootingHit = new Troubleshooting({
+        visitorId: this.flagshipInstanceId,
+        flagshipInstanceId: this.flagshipInstanceId,
+        label: TroubleshootingLabel.SDK_BUCKETING_FILE,
+        traffic: 0,
+        logLevel: LogLevel.INFO,
+        config: this.config,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
+        httpResponseBody: response?.body,
+        httpResponseHeaders: response?.headers,
+        httpResponseCode: response?.status,
+        httpResponseTime: Date.now() - now
+      })
+      this.trackingManager.sendTroubleshootingHit(troubleshootingHit)
+    } else if (response.status === 304) {
+      logDebug(this.config, POLLING_EVENT_300, PROCESS_BUCKETING)
+    }
+
+    this._bucketingStatus = response.status
+
+    if (response.headers && response.headers['last-modified']) {
+      const lastModified = response.headers['last-modified']
+
+      if (this._lastModified !== lastModified && this.config.onBucketingUpdated) {
+        this.config.onBucketingUpdated(new Date(lastModified))
+      }
+      this._lastModified = lastModified
+    }
+
+    if (this._isFirstPooling) {
+      this._isFirstPooling = false
+      this.updateFlagshipStatus(FSSdkStatus.SDK_INITIALIZED)
+    }
+
+    if (typeof this.config.onBucketingSuccess === 'function') {
+      this.config.onBucketingSuccess({ status: response.status, payload: this._bucketingContent })
+    }
+
+    this._isPooling = false
+  }
+
+  async startPolling (): Promise<void> {
+    const timeout = this.config.pollingInterval as number * 1000
+    logInfo(this.config, BUCKETING_POOLING_STARTED, PROCESS_BUCKETING)
+    await this.polling()
+    if (timeout === 0) {
+      return
+    }
+    this._intervalID = setInterval(() => {
+      this.polling()
+    }, timeout)
+  }
+
+  private async polling () {
+    if (this._isPooling) {
+      return
+    }
+    this._isPooling = true
+    if (this._isFirstPooling) {
+      this.updateFlagshipStatus(FSSdkStatus.SDK_INITIALIZING)
+    }
+    const url = sprintf(BUCKETING_API_URL, this.config.envId)
+    const headers: Record<string, string> = {
+      [HEADER_X_APP]: 'SDK_POLLING',
+      [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
+      [HEADER_X_SDK_VERSION]: SDK_INFO.version,
+      [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
+    }
+    const now = Date.now()
+    try {
+      if (this._lastModified) {
+        headers['if-modified-since'] = this._lastModified
+      }
+
+      const response = await this._httpClient.getAsync(url, {
+        headers,
+        timeout: this.config.timeout,
+        nextFetchConfig: this.config.nextFetchConfig
+      })
+
+      this.finishLoop({ response, headers, url, now })
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      this._isPooling = false
+      logError(this.config, errorFormat(POLLING_EVENT_FAILED, {
+        url,
+        headers,
+        nextFetchConfig: this.config.nextFetchConfig,
+        method: 'GET',
+        duration: Date.now() - now
+      }), PROCESS_BUCKETING)
+      if (this._isFirstPooling) {
+        this.updateFlagshipStatus(FSSdkStatus.SDK_NOT_INITIALIZED)
+      }
+      if (typeof this.config.onBucketingFail === 'function') {
+        this.config.onBucketingFail(new Error(error))
+      }
+      const troubleshootingHit = new Troubleshooting({
+        visitorId: this.flagshipInstanceId,
+        flagshipInstanceId: this.flagshipInstanceId,
+        label: TroubleshootingLabel.SDK_BUCKETING_FILE_ERROR,
+        traffic: 0,
+        logLevel: LogLevel.INFO,
+        config: this.config,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'GET',
+        httpRequestUrl: url,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseCode: error?.statusCode,
+        httpResponseTime: Date.now() - now
+      })
+      this.trackingManager.sendTroubleshootingHit(troubleshootingHit)
+    }
+  }
+
+  public stopPolling (): void {
+    clearInterval(this._intervalID)
+    this._isPooling = false
+    logInfo(this.config, BUCKETING_POOLING_STOPPED, PROCESS_BUCKETING)
   }
 }
