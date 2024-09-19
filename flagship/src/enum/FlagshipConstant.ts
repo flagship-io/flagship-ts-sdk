@@ -33,6 +33,8 @@ export const ANALYTIC_HIT_ALLOCATION = 1
 export const HTTP_CODE_200 = 200
 export const HTTP_CODE_304 = 304
 
+export const BUCKETING_STATUS_EVENT = 'bucketingStatus'
+
 /**
  * Decision api base url
  */
