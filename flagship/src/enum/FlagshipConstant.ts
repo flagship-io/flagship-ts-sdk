@@ -30,6 +30,9 @@ export const BATCH_MAX_SIZE = 2500000
 
 export const ANALYTIC_HIT_ALLOCATION = 1
 
+export const HTTP_CODE_200 = 200
+export const HTTP_CODE_304 = 304
+
 /**
  * Decision api base url
  */
@@ -222,6 +225,7 @@ export const HEADER_CONTENT_TYPE = 'Content-Type'
 export const HEADER_X_SDK_CLIENT = 'x-sdk-client'
 export const HEADER_X_SDK_VERSION = 'x-sdk-version'
 export const HEADER_APPLICATION_JSON = 'application/json'
+export const HEADER_X_APP = 'x-app'
 
 // Log
 
