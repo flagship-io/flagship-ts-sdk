@@ -162,8 +162,8 @@ export class Flagship {
     switch (config.decisionMode) {
       case DecisionMode.BUCKETING:
         decisionManager = new BucketingManager(httpClient, config, new MurmurHash())
-        decisionManager.statusChangedCallback(setStatus);
-        (decisionManager as BucketingManager).startPolling()
+        decisionManager.statusChangedCallback(setStatus)
+        decisionManager.startPolling()
         break
       case DecisionMode.BUCKETING_EDGE:
         decisionManager = new EdgeManager(httpClient, config, new MurmurHash())
@@ -175,6 +175,7 @@ export class Flagship {
           config
         )
         decisionManager.statusChangedCallback(setStatus)
+        decisionManager.startPolling()
         break
     }
 
@@ -226,8 +227,8 @@ export class Flagship {
 
     const decisionManager = flagship.configManager?.decisionManager
 
-    if (decisionManager instanceof BucketingManager && localConfig.decisionMode !== DecisionMode.BUCKETING_EDGE) {
-      decisionManager.stopPolling()
+    if (localConfig.decisionMode !== DecisionMode.BUCKETING_EDGE) {
+      decisionManager?.stopPolling()
     }
 
     let trackingManager = flagship.configManager?.trackingManager
