@@ -37,6 +37,8 @@ export enum FSFetchReasons {
     /**
      * Indicates that there is no specific reason for fetching flags.
      */
-    NONE = 'NONE'
+    NONE = 'NONE',
+
+    BUCKETING_CHANGED = 'BUCKETING_CHANGED'
 
 }
