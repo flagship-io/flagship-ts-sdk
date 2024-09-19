@@ -22,4 +22,10 @@ export interface IDecisionManager {
   trackingManager : ITrackingManager
   flagshipInstanceId : string
 
+  startPolling (): Promise<void>
+
+  stopPolling (): void
+
+  bucketingStatus (): number|undefined
+
 }
