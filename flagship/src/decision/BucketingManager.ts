@@ -1,160 +1,25 @@
-import { ALLOCATION, BUCKETING_NEW_ALLOCATION, BUCKETING_VARIATION_CACHE, GET_THIRD_PARTY_SEGMENT, POLLING_EVENT_300, POLLING_EVENT_FAILED, THIRD_PARTY_SEGMENT_URL } from '../enum/FlagshipConstant'
+import { ALLOCATION, BUCKETING_NEW_ALLOCATION, BUCKETING_VARIATION_CACHE, GET_THIRD_PARTY_SEGMENT, THIRD_PARTY_SEGMENT_URL } from '../enum/FlagshipConstant'
 import { IFlagshipConfig } from '../config/index'
-import { BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, FSSdkStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, POLLING_EVENT_200, PROCESS_BUCKETING, SDK_INFO } from '../enum/index'
+import { LogLevel } from '../enum/index'
 import { Segment } from '../hit/Segment'
 import { CampaignDTO, ThirdPartySegment, TroubleshootingLabel, VariationDTO, primitive } from '../types'
-import { IHttpClient, IHttpResponse } from '../utils/HttpClient'
+import { IHttpClient } from '../utils/HttpClient'
 import { MurmurHash } from '../utils/MurmurHash'
-import { errorFormat, logDebug, logDebugSprintf, logError, logInfo, sprintf } from '../utils/utils'
+import { errorFormat, logDebugSprintf, logError, sprintf } from '../utils/utils'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { Targetings, VariationGroupDTO } from './api/bucketingDTO'
 import { DecisionManager } from './DecisionManager'
 import { Troubleshooting } from '../hit/Troubleshooting'
 
 export class BucketingManager extends DecisionManager {
-  private _lastModified!: string
-  private _isPooling!: boolean
   private _murmurHash: MurmurHash
-  private _isFirstPooling: boolean
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private _intervalID!: any
 
   public constructor (httpClient: IHttpClient, config: IFlagshipConfig, murmurHash: MurmurHash) {
     super(httpClient, config)
     this._murmurHash = murmurHash
-    this._isFirstPooling = true
     if (config.initialBucketing) {
       this._bucketingContent = config.initialBucketing
     }
-  }
-
-  private finishLoop (params: {response: IHttpResponse, headers: Record<string, string>, url: string, now: number}) {
-    const { response, headers, url, now } = params
-    if (response.status === 200) {
-      logDebugSprintf(this.config, PROCESS_BUCKETING, POLLING_EVENT_200, response.body)
-      this._bucketingContent = response.body
-      this._lastBucketingTimestamp = new Date().toISOString()
-      const troubleshootingHit = new Troubleshooting({
-        visitorId: this.flagshipInstanceId,
-        flagshipInstanceId: this.flagshipInstanceId,
-        label: TroubleshootingLabel.SDK_BUCKETING_FILE,
-        traffic: 0,
-        logLevel: LogLevel.INFO,
-        config: this.config,
-        httpRequestHeaders: headers,
-        httpRequestMethod: 'POST',
-        httpRequestUrl: url,
-        httpResponseBody: response?.body,
-        httpResponseHeaders: response?.headers,
-        httpResponseCode: response?.status,
-        httpResponseTime: Date.now() - now
-      })
-      this.trackingManager.sendTroubleshootingHit(troubleshootingHit)
-    } else if (response.status === 304) {
-      logDebug(this.config, POLLING_EVENT_300, PROCESS_BUCKETING)
-    }
-
-    if (response.headers && response.headers['last-modified']) {
-      const lastModified = response.headers['last-modified']
-
-      if (this._lastModified !== lastModified && this.config.onBucketingUpdated) {
-        this.config.onBucketingUpdated(new Date(lastModified))
-      }
-      this._lastModified = lastModified
-    }
-
-    if (this._isFirstPooling) {
-      this._isFirstPooling = false
-      this.updateFlagshipStatus(FSSdkStatus.SDK_INITIALIZED)
-    }
-
-    if (typeof this.config.onBucketingSuccess === 'function') {
-      this.config.onBucketingSuccess({ status: response.status, payload: this._bucketingContent })
-    }
-
-    this._isPooling = false
-  }
-
-  async startPolling (): Promise<void> {
-    const timeout = this.config.pollingInterval as number * 1000
-    logInfo(this.config, BUCKETING_POOLING_STARTED, PROCESS_BUCKETING)
-    await this.polling()
-    if (timeout === 0) {
-      return
-    }
-    this._intervalID = setInterval(() => {
-      this.polling()
-    }, timeout)
-  }
-
-  private async polling () {
-    if (this._isPooling) {
-      return
-    }
-    this._isPooling = true
-    if (this._isFirstPooling) {
-      this.updateFlagshipStatus(FSSdkStatus.SDK_INITIALIZING)
-    }
-    const url = sprintf(BUCKETING_API_URL, this.config.envId)
-    const headers: Record<string, string> = {
-      [HEADER_X_API_KEY]: `${this.config.apiKey}`,
-      [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
-      [HEADER_X_SDK_VERSION]: SDK_INFO.version,
-      [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
-    }
-    const now = Date.now()
-    try {
-      if (this._lastModified) {
-        headers['if-modified-since'] = this._lastModified
-      }
-
-      const response = await this._httpClient.getAsync(url, {
-        headers,
-        timeout: this.config.timeout,
-        nextFetchConfig: this.config.nextFetchConfig
-      })
-
-      this.finishLoop({ response, headers, url, now })
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this._isPooling = false
-      logError(this.config, errorFormat(POLLING_EVENT_FAILED, {
-        url,
-        headers,
-        nextFetchConfig: this.config.nextFetchConfig,
-        method: 'GET',
-        duration: Date.now() - now
-      }), PROCESS_BUCKETING)
-      if (this._isFirstPooling) {
-        this.updateFlagshipStatus(FSSdkStatus.SDK_NOT_INITIALIZED)
-      }
-      if (typeof this.config.onBucketingFail === 'function') {
-        this.config.onBucketingFail(new Error(error))
-      }
-      const troubleshootingHit = new Troubleshooting({
-        visitorId: this.flagshipInstanceId,
-        flagshipInstanceId: this.flagshipInstanceId,
-        label: TroubleshootingLabel.SDK_BUCKETING_FILE_ERROR,
-        traffic: 0,
-        logLevel: LogLevel.INFO,
-        config: this.config,
-        httpRequestHeaders: headers,
-        httpRequestMethod: 'GET',
-        httpRequestUrl: url,
-        httpResponseBody: error?.message,
-        httpResponseHeaders: error?.headers,
-        httpResponseCode: error?.statusCode,
-        httpResponseTime: Date.now() - now
-      })
-      this.trackingManager.sendTroubleshootingHit(troubleshootingHit)
-    }
-  }
-
-  public stopPolling (): void {
-    clearInterval(this._intervalID)
-    this._isPooling = false
-    logInfo(this.config, BUCKETING_POOLING_STOPPED, PROCESS_BUCKETING)
   }
 
   private async sendContext (visitor: VisitorAbstract): Promise<void> {
