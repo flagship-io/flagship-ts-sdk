@@ -2,14 +2,15 @@ import { IDecisionManager } from './IDecisionManager'
 import { IFlagshipConfig } from '../config/index'
 import { IHttpClient, IHttpResponse } from '../utils/HttpClient'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
-import { BASE_API_URL, BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FSSdkStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_APP, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, POLLING_EVENT_200, POLLING_EVENT_300, POLLING_EVENT_FAILED, PROCESS_BUCKETING, PROCESS_FETCHING_FLAGS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
+import { BASE_API_URL, BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, BUCKETING_STATUS_EVENT, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FSSdkStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_APP, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, POLLING_EVENT_200, POLLING_EVENT_300, POLLING_EVENT_FAILED, PROCESS_BUCKETING, PROCESS_FETCHING_FLAGS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
 import { CampaignDTO, FlagDTO, TroubleshootingData, TroubleshootingLabel } from '../types'
 import { errorFormat, logDebug, logDebugSprintf, logError, logInfo, sprintf } from '../utils/utils'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { ITrackingManager } from '../api/ITrackingManager'
 import { BucketingDTO } from './api/bucketingDTO'
+import { WeakEventEmitter } from 'src/utils/WeakEventEmitter'
 
-export abstract class DecisionManager implements IDecisionManager {
+export abstract class DecisionManager extends WeakEventEmitter implements IDecisionManager {
   protected _bucketingContent?: BucketingDTO
   protected _config: IFlagshipConfig
   protected _panic = false
@@ -73,6 +74,7 @@ export abstract class DecisionManager implements IDecisionManager {
   }
 
   public constructor (httpClient: IHttpClient, config: IFlagshipConfig) {
+    super()
     this._config = config
     this._httpClient = httpClient
     this._isFirstPooling = true
@@ -199,6 +201,11 @@ export abstract class DecisionManager implements IDecisionManager {
     return this._bucketingStatus
   }
 
+  public setBucketingStatus (status: number): void {
+    this._bucketingStatus = status
+    this.emit(BUCKETING_STATUS_EVENT, status)
+  }
+
   private finishLoop (params: {response: IHttpResponse, headers: Record<string, string>, url: string, now: number}) {
     const { response, headers, url, now } = params
     if (response.status === 200) {
@@ -225,7 +232,7 @@ export abstract class DecisionManager implements IDecisionManager {
       logDebug(this.config, POLLING_EVENT_300, PROCESS_BUCKETING)
     }
 
-    this._bucketingStatus = response.status
+    this.setBucketingStatus(response.status)
 
     if (response.headers && response.headers['last-modified']) {
       const lastModified = response.headers['last-modified']
@@ -297,7 +304,8 @@ export abstract class DecisionManager implements IDecisionManager {
         headers,
         nextFetchConfig: this.config.nextFetchConfig,
         method: 'GET',
-        duration: Date.now() - now
+        duration: Date.now() - now,
+        error: error?.message || error
       }), PROCESS_BUCKETING)
       if (this._isFirstPooling) {
         this.updateFlagshipStatus(FSSdkStatus.SDK_NOT_INITIALIZED)
