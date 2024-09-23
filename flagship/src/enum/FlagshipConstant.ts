@@ -150,6 +150,7 @@ export const SEND_SEGMENT_HIT = 'SEND SEGMENT HIT'
 export const SEND_HIT = 'SEND HIT'
 export const EVENT_SUFFIX = 'events'
 export const FETCH_FLAGS_BUFFERING_MESSAGE = 'Visitor {0}, fetchFlags has been ignored and will continue to be ignored for the next {1}ms, this delay can be changed with `fetchFlagsBufferingTime` option in the SDK config'
+export const FETCH_FLAGS_FLAGS_UP_TO_DATE = 'Visitor {0}, fetchFlags has been ignored because flags are up to date'
 export const VISITOR_SYNC_FLAGS_MESSAGE = 'without calling `fetchFlags` method afterwards. So, the value of the flag `{1}` might be outdated'
 
 export const NEW_VISITOR_NOT_READY = `You can't create a new visitor without first calling the "Flagship.start" method.
@@ -228,6 +229,8 @@ export const HEADER_X_SDK_CLIENT = 'x-sdk-client'
 export const HEADER_X_SDK_VERSION = 'x-sdk-version'
 export const HEADER_APPLICATION_JSON = 'application/json'
 export const HEADER_X_APP = 'x-app'
+export const SDK_API_POLLING = 'sdk-api-polling'
+export const SDK_BUCKETING_POLLING = 'sdk-bucketing-polling'
 
 // Log
 
