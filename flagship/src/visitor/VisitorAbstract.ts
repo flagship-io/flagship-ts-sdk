@@ -176,6 +176,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   }
 
   protected onBucketingStatusChanged (status:number) {
+    if (!this.config.autoRefreshFlags) {
+      return
+    }
+
     if (status === HTTP_CODE_200 && this.bucketingStatus) {
       this.fetchStatus = {
         status: FSFetchStatus.FETCH_REQUIRED,
