@@ -20,6 +20,7 @@ export interface IHttpResponse {
 export interface IHttpClient {
   postAsync(url: string, options: IHttpOptions): Promise<IHttpResponse>;
   getAsync(url: string, options?: IHttpOptions): Promise<IHttpResponse>;
+  headAsync(url: string, options: IHttpOptions): Promise<IHttpResponse>;
 }
 
 export class HttpClient implements IHttpClient {
@@ -48,13 +49,14 @@ export class HttpClient implements IHttpClient {
     }
   }
 
-  async getAsync (url: string, options?: IHttpOptions): Promise<IHttpResponse> {
+  async sendRequest (url: string, options: IHttpOptions, method: string): Promise<IHttpResponse> {
     const c = new LocalAbortController()
     const id = setTimeout(() => c.abort(), (options?.timeout ? options.timeout : REQUEST_TIME_OUT) * 1000)
     try {
       const response = await myFetch(url, {
-        method: 'GET',
+        method,
         headers: options?.headers,
+        body: JSON.stringify(options?.body),
         signal: c.signal as AbortSignal,
         keepalive: true,
         next: options?.nextFetchConfig
@@ -65,21 +67,15 @@ export class HttpClient implements IHttpClient {
     }
   }
 
+  async getAsync (url: string, options?: IHttpOptions): Promise<IHttpResponse> {
+    return this.sendRequest(url, options || {}, 'GET')
+  }
+
   public async postAsync (url: string, options: IHttpOptions): Promise<IHttpResponse> {
-    const c = new LocalAbortController()
-    const id = setTimeout(() => c.abort(), options.timeout ? options.timeout * 1000 : REQUEST_TIME_OUT * 1000)
-    try {
-      const response = await myFetch(url, {
-        method: 'POST',
-        headers: options.headers,
-        body: JSON.stringify(options.body),
-        signal: c.signal as AbortSignal,
-        keepalive: true,
-        next: options?.nextFetchConfig
-      }as Record<string, unknown>)
-      return this.getResponse(response)
-    } finally {
-      clearTimeout(id)
-    }
+    return this.sendRequest(url, options, 'POST')
+  }
+
+  public async headAsync (url: string, options: IHttpOptions): Promise<IHttpResponse> {
+    return this.sendRequest(url, options, 'HEAD')
   }
 }
