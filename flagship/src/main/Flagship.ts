@@ -175,7 +175,9 @@ export class Flagship {
           config
         )
         decisionManager.statusChangedCallback(setStatus)
-        decisionManager.startPolling()
+        if (config.autoRefreshFlags) {
+          decisionManager.startPolling()
+        }
         break
     }
 
