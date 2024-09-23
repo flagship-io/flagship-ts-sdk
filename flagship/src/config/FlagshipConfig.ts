@@ -40,6 +40,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _disableDeveloperUsageTracking? : boolean
   private _onLog? : (level: LogLevel, tag: string, message: string)=>void
   private _isQAModeEnabled? : boolean
+  private _autoRefreshFlags? : boolean
 
   public get isQAModeEnabled () : boolean|undefined {
     return this._isQAModeEnabled
@@ -99,13 +100,21 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     return this._onVisitorExposed
   }
 
+  public get autoRefreshFlags () : boolean|undefined {
+    return this._autoRefreshFlags
+  }
+
+  public set autoRefreshFlags (v : boolean|undefined) {
+    this._autoRefreshFlags = v
+  }
+
   protected constructor (param: IFlagshipConfig) {
     const {
       envId, apiKey, timeout, logLevel, logManager, onSdkStatusChanged,
       fetchNow, decisionMode, reuseVisitorIds, initialBucketing, decisionApiUrl,
       hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
       disableCache, language, sdkVersion, trackingManagerConfig, onLog,
-      onVisitorExposed, nextFetchConfig, fetchFlagsBufferingTime, disableDeveloperUsageTracking
+      onVisitorExposed, nextFetchConfig, fetchFlagsBufferingTime, disableDeveloperUsageTracking, autoRefreshFlags, pollingInterval
     } = param
 
     this.initQaMode()
@@ -115,7 +124,9 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     if (logManager) {
       this.logManager = logManager
     }
-    this.pollingInterval = param?.pollingInterval ?? DEFAULT_POLLING_INTERVAL
+
+    this.autoRefreshFlags = autoRefreshFlags
+    this.pollingInterval = pollingInterval ?? DEFAULT_POLLING_INTERVAL
     this.fetchFlagsBufferingTime = fetchFlagsBufferingTime ?? FETCH_FLAG_BUFFERING_DEFAULT_TIME
     this.nextFetchConfig = nextFetchConfig || { revalidate: 20 }
     this._trackingManagerConfig = new TrackingManagerConfig(trackingManagerConfig || {})

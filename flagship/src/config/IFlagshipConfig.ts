@@ -173,4 +173,9 @@ export interface IFlagshipConfig {
      * Disable the collect of analytics data
      */
     disableDeveloperUsageTracking?: boolean
+
+    /**
+     * If set to true, the SDK will automatically refresh flags when the visitor context changes or when campaigns are updated.
+     */
+    autoRefreshFlags?: boolean
   }
