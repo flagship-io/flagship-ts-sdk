@@ -37,7 +37,8 @@ import {
   VISITOR_UNAUTHENTICATE,
   VISITOR_ALREADY_AUTHENTICATE,
   HTTP_CODE_304,
-  FETCH_FLAGS_FLAGS_UP_TO_DATE
+  FETCH_FLAGS_FLAGS_UP_TO_DATE,
+  HTTP_CODE_200
 } from '../enum/index'
 import {
   HitAbstract,
@@ -53,7 +54,7 @@ import {
   Transaction
 } from '../hit/index'
 import { primitive, IHit, FlagDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorVariations, CampaignDTO } from '../types'
-import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logWarningSprintf, sprintf } from '../utils/utils'
+import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils'
 import { StrategyAbstract } from './StrategyAbstract'
 import { FLAGSHIP_CLIENT, FLAGSHIP_CONTEXT, FLAGSHIP_VERSION, FLAGSHIP_VISITOR } from '../enum/FlagshipContext'
 import { VisitorDelegate } from './index'
@@ -439,7 +440,7 @@ export class DefaultStrategy extends StrategyAbstract {
         fetchStatus === FSFetchStatus.FETCHED &&
       time < fetchFlagBufferingTime
       ) {
-        logDebugSprintf(
+        logInfoSprintf(
           this.config,
           PROCESS_FETCHING_FLAGS,
           FETCH_FLAGS_BUFFERING_MESSAGE,
@@ -449,10 +450,10 @@ export class DefaultStrategy extends StrategyAbstract {
         return { campaigns, isBuffered: true }
       }
 
-      const hasHttp304 = this.visitor.bucketingStatus === HTTP_CODE_304
+      const hasHttp304 = this.visitor.bucketingStatus === HTTP_CODE_304 || this.visitor.bucketingStatus === HTTP_CODE_200
 
       if (fetchStatus === FSFetchStatus.FETCHED && hasHttp304) {
-        logDebugSprintf(this.config, PROCESS_FETCHING_FLAGS, FETCH_FLAGS_FLAGS_UP_TO_DATE, this.visitor.visitorId)
+        logInfoSprintf(this.config, PROCESS_FETCHING_FLAGS, FETCH_FLAGS_FLAGS_UP_TO_DATE, this.visitor.visitorId)
         return { campaigns, isBuffered: true }
       }
 
