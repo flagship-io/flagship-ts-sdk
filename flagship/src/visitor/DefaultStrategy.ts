@@ -36,7 +36,8 @@ import {
   VISITOR_EXPOSED_VALUE_NOT_CALLED,
   VISITOR_UNAUTHENTICATE,
   VISITOR_ALREADY_AUTHENTICATE,
-  HTTP_CODE_304
+  HTTP_CODE_304,
+  FETCH_FLAGS_FLAGS_UP_TO_DATE
 } from '../enum/index'
 import {
   HitAbstract,
@@ -52,7 +53,7 @@ import {
   Transaction
 } from '../hit/index'
 import { primitive, IHit, FlagDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorVariations, CampaignDTO } from '../types'
-import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils'
+import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logWarningSprintf, sprintf } from '../utils/utils'
 import { StrategyAbstract } from './StrategyAbstract'
 import { FLAGSHIP_CLIENT, FLAGSHIP_CONTEXT, FLAGSHIP_VERSION, FLAGSHIP_VISITOR } from '../enum/FlagshipContext'
 import { VisitorDelegate } from './index'
@@ -431,27 +432,27 @@ export class DefaultStrategy extends StrategyAbstract {
         return { campaigns, isFetching: true }
       }
 
-      const hasHttp304 = this.visitor.bucketingStatus === HTTP_CODE_304
-
-      if (fetchStatus === FSFetchStatus.FETCHED && hasHttp304) {
-        logInfoSprintf(this.config, PROCESS_FETCHING_FLAGS, 'No changes in bucketing')
-        return { campaigns, isBuffered: true }
-      }
-
       const fetchFlagBufferingTime =
-        (this.config.fetchFlagsBufferingTime as number) * 1000
+      (this.config.fetchFlagsBufferingTime as number) * 1000
 
       if (
         fetchStatus === FSFetchStatus.FETCHED &&
-        time < fetchFlagBufferingTime
+      time < fetchFlagBufferingTime
       ) {
-        logInfoSprintf(
+        logDebugSprintf(
           this.config,
           PROCESS_FETCHING_FLAGS,
           FETCH_FLAGS_BUFFERING_MESSAGE,
           this.visitor.visitorId,
           fetchFlagBufferingTime - time
         )
+        return { campaigns, isBuffered: true }
+      }
+
+      const hasHttp304 = this.visitor.bucketingStatus === HTTP_CODE_304
+
+      if (fetchStatus === FSFetchStatus.FETCHED && hasHttp304) {
+        logDebugSprintf(this.config, PROCESS_FETCHING_FLAGS, FETCH_FLAGS_FLAGS_UP_TO_DATE, this.visitor.visitorId)
         return { campaigns, isBuffered: true }
       }
 
