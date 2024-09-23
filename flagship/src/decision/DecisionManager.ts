@@ -1,8 +1,8 @@
 import { IDecisionManager } from './IDecisionManager'
-import { IFlagshipConfig } from '../config/index'
+import { DecisionMode, IFlagshipConfig } from '../config/index'
 import { IHttpClient, IHttpResponse } from '../utils/HttpClient'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
-import { BASE_API_URL, BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, BUCKETING_STATUS_EVENT, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FSSdkStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_APP, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, POLLING_EVENT_200, POLLING_EVENT_300, POLLING_EVENT_FAILED, PROCESS_BUCKETING, PROCESS_FETCHING_FLAGS, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
+import { BASE_API_URL, BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, BUCKETING_STATUS_EVENT, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FSSdkStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_APP, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, POLLING_EVENT_200, POLLING_EVENT_300, POLLING_EVENT_FAILED, PROCESS_BUCKETING, PROCESS_FETCHING_FLAGS, SDK_API_POLLING, SDK_BUCKETING_POLLING, SDK_INFO, URL_CAMPAIGNS } from '../enum/index'
 import { CampaignDTO, FlagDTO, TroubleshootingData, TroubleshootingLabel } from '../types'
 import { errorFormat, logDebug, logDebugSprintf, logError, logInfo, sprintf } from '../utils/utils'
 import { Troubleshooting } from '../hit/Troubleshooting'
@@ -276,8 +276,10 @@ export abstract class DecisionManager extends WeakEventEmitter implements IDecis
       this.updateFlagshipStatus(FSSdkStatus.SDK_INITIALIZING)
     }
     const url = sprintf(BUCKETING_API_URL, this.config.envId)
+
+    const headerApp:string = this.config.decisionMode === DecisionMode.DECISION_API ? SDK_API_POLLING : SDK_BUCKETING_POLLING
     const headers: Record<string, string> = {
-      [HEADER_X_APP]: 'SDK_POLLING',
+      [HEADER_X_APP]: headerApp,
       [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
       [HEADER_X_SDK_VERSION]: SDK_INFO.version,
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
@@ -288,7 +290,11 @@ export abstract class DecisionManager extends WeakEventEmitter implements IDecis
         headers['if-modified-since'] = this._lastModified
       }
 
-      const response = await this._httpClient.getAsync(url, {
+      const sendRequestAsync = this.config.decisionMode === DecisionMode.DECISION_API
+        ? this._httpClient.getAsync.bind(this._httpClient)
+        : this._httpClient.getAsync.bind(this._httpClient)
+
+      const response = await sendRequestAsync(url, {
         headers,
         timeout: this.config.timeout,
         nextFetchConfig: this.config.nextFetchConfig
