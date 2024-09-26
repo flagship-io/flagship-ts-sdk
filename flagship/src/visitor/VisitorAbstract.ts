@@ -8,7 +8,6 @@ import { hexToValue, isBrowser, logDebugSprintf, logError, uuidV4 } from '../uti
 import { HitAbstract } from '../hit/index'
 import { DefaultStrategy } from './DefaultStrategy'
 import { StrategyAbstract } from './StrategyAbstract'
-import { EventEmitter } from '../depsNode.native'
 import { NotReadyStrategy } from './NotReadyStrategy'
 import { PanicStrategy } from './PanicStrategy'
 import { NoConsentStrategy } from './NoConsentStrategy'
@@ -21,9 +20,10 @@ import { IFSFlag } from '../flag/IFSFlag'
 import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
 import { IFSFlagCollection } from '../flag/IFSFlagCollection'
 import { sendVisitorExposedVariations } from '../qaAssistant/messages/index'
-import { IDecisionManager } from 'src/decision/IDecisionManager'
+import { IDecisionManager } from '../decision/IDecisionManager'
+import { WeakEventEmitter } from '../utils/WeakEventEmitter'
 
-export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
+export abstract class VisitorAbstract extends WeakEventEmitter implements IVisitor {
   protected _visitorId!: string
   protected _context: Record<string, primitive>
   protected _flags!: Map<string, FlagDTO>
@@ -46,6 +46,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   private _onFetchFlagsStatusChanged? : ({ status, reason }: FetchFlagsStatus) => void
   private _getCampaignsPromise? : Promise<CampaignDTO[]|null>
   private _bucketingStatus : number|undefined
+
+  private _onBucketingStatusChanged : (status:number) => void
 
   public get bucketingStatus () : number|undefined {
     return this._bucketingStatus
@@ -170,9 +172,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       reason: FSFetchReasons.VISITOR_CREATED
     }
 
-    logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
+    this._onBucketingStatusChanged = this.onBucketingStatusChanged.bind(this)
+    this.decisionManager.on(BUCKETING_STATUS_EVENT, this._onBucketingStatusChanged)
 
-    this.decisionManager.on(BUCKETING_STATUS_EVENT, this.onBucketingStatusChanged.bind(this))
+    logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
   }
 
   protected onBucketingStatusChanged (status:number) {
@@ -396,6 +399,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       sendVisitorExposedVariations(this._exposedVariations)
       this._exposedVariations = {}
     }, DELAY)
+  }
+
+  public cleanup (): void {
+    this.decisionManager.off(BUCKETING_STATUS_EVENT, this._onBucketingStatusChanged)
   }
 
   abstract updateContext(key: string, value: primitive):void

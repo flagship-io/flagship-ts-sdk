@@ -112,4 +112,8 @@ export interface IVisitor {
    */
   unauthenticate(): void;
 
+  /**
+   * Cleans up the visitor instance. This method should be called when the visitor is no longer needed.
+   */
+  cleanup(): void;
 }
