@@ -3,7 +3,7 @@ import { IFlagshipConfig } from '../config/index'
 import { FSSdkStatus } from '../enum/index'
 import { CampaignDTO, FlagDTO, TroubleshootingData } from '../types'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
-import { WeakEventEmitter } from 'src/utils/WeakEventEmitter'
+import { WeakEventEmitter } from '../utils/WeakEventEmitter'
 
 export interface IDecisionManager extends WeakEventEmitter {
   statusChangedCallback(func:(status: FSSdkStatus)=>void):void

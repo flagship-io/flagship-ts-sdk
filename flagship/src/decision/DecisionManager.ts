@@ -8,7 +8,7 @@ import { errorFormat, logDebug, logDebugSprintf, logError, logInfo, sprintf } fr
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { ITrackingManager } from '../api/ITrackingManager'
 import { BucketingDTO } from './api/bucketingDTO'
-import { WeakEventEmitter } from 'src/utils/WeakEventEmitter'
+import { WeakEventEmitter } from '../utils/WeakEventEmitter'
 
 export abstract class DecisionManager extends WeakEventEmitter implements IDecisionManager {
   protected _bucketingContent?: BucketingDTO
