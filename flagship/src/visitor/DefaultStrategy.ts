@@ -620,6 +620,7 @@ export class DefaultStrategy extends StrategyAbstract {
         VISITOR_EXPOSED_VALUE_NOT_CALLED, this.visitor.visitorId, key
       )
       this.sendFlagTroubleshooting(TroubleshootingLabel.FLAG_VALUE_NOT_CALLED, key, defaultValue, true)
+      return
     }
 
     if (defaultValue !== null && defaultValue !== undefined && flag.value !== null && !hasSameType(flag.value, defaultValue)) {
@@ -630,6 +631,7 @@ export class DefaultStrategy extends StrategyAbstract {
       )
 
       this.sendFlagTroubleshooting(TroubleshootingLabel.VISITOR_EXPOSED_TYPE_WARNING, key, defaultValue)
+      return
     }
 
     await this.sendActivate(flag, defaultValue)
