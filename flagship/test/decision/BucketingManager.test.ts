@@ -366,8 +366,23 @@ describe('test sendContext', () => {
     })
   })
 
+  it('should send segment hit once', () => {
+    sendHit.mockResolvedValue()
+    const SegmentHit = new Segment({ context: visitor.context, visitorId, anonymousId: visitor.anonymousId as string })
+    visitor.hasContextBeenUpdated = true
+    bucketingManager.sendContext(visitor).then(() => {
+      expect(sendHit).toBeCalledTimes(1)
+      expect(sendHit).toBeCalledWith(SegmentHit)
+    })
+    bucketingManager.sendContext(visitor).then(() => {
+      expect(sendHit).toBeCalledTimes(1)
+      expect(sendHit).toBeCalledWith(SegmentHit)
+    })
+  })
+
   it('should handle error when sendContext throws an error during bucketing', async () => {
     const messageError = 'error'
+    visitor.hasContextBeenUpdated = true
     sendHit.mockRejectedValue(messageError)
     await bucketingManager.sendContext(visitor)
     expect(sendHit).toBeCalledTimes(1)
