@@ -126,7 +126,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     if (!Array.isArray(campaigns)) {
       return false
     }
-    if ((this.visitor.visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE || this.visitor.visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE) && item.data.visitorId !== this.visitor.visitorId) {
+    if ((this.visitor.visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE || this.visitor.visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE_WITH_ANONYMOUS_ID_CACHE) && item.data.visitorId !== this.visitor.visitorId) {
       logInfoSprintf(this.config, PROCESS_CACHE, VISITOR_ID_MISMATCH_ERROR, item.data.visitorId, this.visitor.visitorId)
       return false
     }
@@ -155,13 +155,11 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       if (visitorCache) {
         this.visitor.visitorCacheStatus = VisitorCacheStatus.VISITOR_ID_CACHE
       }
-      if (this.visitor.anonymousId) {
+      if (this.visitor.anonymousId && !visitorCache) {
         const anonymousVisitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.anonymousId)
-        if (anonymousVisitorCache && !visitorCache) {
+        if (anonymousVisitorCache) {
           visitorCache = anonymousVisitorCache
           this.visitor.visitorCacheStatus = VisitorCacheStatus.ANONYMOUS_ID_CACHE
-        } else if (!anonymousVisitorCache && visitorCache) {
-          this.visitor.visitorCacheStatus = VisitorCacheStatus.VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE
         }
       }
 
@@ -176,6 +174,13 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       }
 
       this.visitor.visitorCache = visitorCache
+
+      if (this.visitor.visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE && this.visitor.anonymousId) {
+        const anonymousVisitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.anonymousId)
+        if (anonymousVisitorCache) {
+          this.visitor.visitorCacheStatus = VisitorCacheStatus.VISITOR_ID_CACHE_WITH_ANONYMOUS_ID_CACHE
+        }
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logErrorSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_ERROR, this.visitor.visitorId, 'lookupVisitor', error.message || error)
@@ -220,7 +225,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
 
       const visitorCacheStatus = this.visitor.visitorCacheStatus
 
-      if (!visitorCacheStatus || visitorCacheStatus === VisitorCacheStatus.NONE || visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE) {
+      if (!visitorCacheStatus || visitorCacheStatus === VisitorCacheStatus.NONE || visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE_WITH_ANONYMOUS_ID_CACHE) {
         if (this.visitor.anonymousId) {
           const anonymousVisitorCacheDTO:VisitorCacheDTO = {
             ...visitorCacheDTO,
