@@ -225,18 +225,16 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
 
       const visitorCacheStatus = this.visitor.visitorCacheStatus
 
-      if (!visitorCacheStatus || visitorCacheStatus === VisitorCacheStatus.NONE || visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE_WITH_ANONYMOUS_ID_CACHE) {
-        if (this.visitor.anonymousId) {
-          const anonymousVisitorCacheDTO:VisitorCacheDTO = {
-            ...visitorCacheDTO,
-            data: {
-              ...visitorCacheDTO.data,
-              visitorId: this.visitor.anonymousId,
-              anonymousId: null
-            }
+      if (this.visitor.anonymousId && (visitorCacheStatus === VisitorCacheStatus.NONE || visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE)) {
+        const anonymousVisitorCacheDTO:VisitorCacheDTO = {
+          ...visitorCacheDTO,
+          data: {
+            ...visitorCacheDTO.data,
+            visitorId: this.visitor.anonymousId,
+            anonymousId: null
           }
-          await visitorCacheInstance.cacheVisitor(this.visitor.anonymousId, anonymousVisitorCacheDTO)
         }
+        await visitorCacheInstance.cacheVisitor(this.visitor.anonymousId, anonymousVisitorCacheDTO)
       }
 
       logDebugSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_SAVED, this.visitor.visitorId, visitorCacheDTO)
