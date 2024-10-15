@@ -1,4 +1,4 @@
-import { hexToValue, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarning, logWarningSprintf, sprintf, valueToHex, visitorFlagSyncStatusMessage } from '../../src/utils/utils'
+import { deepEqual, errorFormat, hasSameType, hexToValue, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarning, logWarningSprintf, sprintf, uuidV4, valueToHex, visitorFlagSyncStatusMessage } from '../../src/utils/utils'
 import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig } from '../../src/config/index'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
@@ -189,5 +189,81 @@ describe('Test hexToValue function', () => {
     const result = hexToValue(hex, config)
     expect(result).toBeNull()
     expect(errorMethod).toBeCalledTimes(1)
+  })
+})
+
+describe('Test uuidV4 function', () => {
+  it('should generate a valid UUID', () => {
+    const uuid = uuidV4()
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+    expect(uuid).toMatch(uuidRegex)
+  })
+})
+
+describe('Test hasSameType function', () => {
+  it('should return true for same types', () => {
+    expect(hasSameType(1, 2)).toBe(true)
+    expect(hasSameType('a', 'b')).toBe(true)
+    expect(hasSameType([1, 2], [3, 4])).toBe(true)
+    expect(hasSameType({ a: 1 }, { b: 2 })).toBe(true)
+  })
+
+  it('should return false for different types', () => {
+    expect(hasSameType(1, '1')).toBe(false)
+    expect(hasSameType([1, 2], { a: 1 })).toBe(false)
+    expect(hasSameType(null, undefined)).toBe(false)
+  })
+})
+
+describe('Test errorFormat function', () => {
+  it('should format error message without data', () => {
+    const message = 'An error occurred'
+    const formatted = errorFormat(message)
+    expect(formatted).toBe(JSON.stringify({ message }))
+  })
+
+  it('should format error message with data', () => {
+    const message = 'An error occurred'
+    const data = { code: 500 }
+    const formatted = errorFormat(message, data)
+    expect(formatted).toBe(JSON.stringify({ message, data }))
+  })
+})
+
+describe('Test deepEqual function', () => {
+  it('should return true for deeply equal objects', () => {
+    const obj1 = { a: 1, b: { c: 2 } }
+    const obj2 = { a: 1, b: { c: 2 } }
+    expect(deepEqual(obj1, obj2)).toBe(true)
+  })
+
+  it('should return false for objects with different values', () => {
+    const obj1 = { a: 1, b: { c: 2 } }
+    const obj2 = { a: 1, b: { c: 3 } }
+    expect(deepEqual(obj1, obj2)).toBe(false)
+  })
+
+  it('should return false for objects with different keys', () => {
+    const obj1 = { a: 1, b: { c: 2 } }
+    const obj2 = { a: 1, b: { d: 2 } }
+    expect(deepEqual(obj1, obj2)).toBe(false)
+  })
+
+  it('should return true for deeply equal arrays', () => {
+    const arr1 = [1, [2, 3]]
+    const arr2 = [1, [2, 3]]
+    expect(deepEqual(arr1, arr2)).toBe(true)
+  })
+
+  it('should return false for arrays with different values', () => {
+    const arr1 = [1, [2, 3]]
+    const arr2 = [1, [2, 4]]
+    expect(deepEqual(arr1, arr2)).toBe(false)
+  })
+
+  it('should return false for arrays with different lengths', () => {
+    const arr1 = [1, [2, 3]]
+    const arr2 = [1, [2]]
+    expect(deepEqual(arr1, arr2)).toBe(false)
   })
 })

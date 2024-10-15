@@ -469,7 +469,7 @@ describe('test visitor cache status', () => {
     expect(lookupVisitor).toBeCalledTimes(2)
     expect(lookupVisitor).toHaveBeenNthCalledWith(1, visitorId)
     expect(lookupVisitor).toHaveBeenNthCalledWith(2, anonymousId)
-    expect(visitorDelegate.visitorCacheStatus).toEqual('VISITOR_ID_CACHE')
+    expect(visitorDelegate.visitorCacheStatus).toEqual(VisitorCacheStatus.VISITOR_ID_CACHE_WITH_ANONYMOUS_ID_CACHE)
   })
 
   it('test visitorCacheStatus VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE ', async () => {
@@ -486,7 +486,7 @@ describe('test visitor cache status', () => {
     expect(lookupVisitor).toBeCalledTimes(2)
     expect(lookupVisitor).toHaveBeenNthCalledWith(1, visitorId)
     expect(lookupVisitor).toHaveBeenNthCalledWith(2, anonymousId)
-    expect(visitorDelegate.visitorCacheStatus).toEqual('VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE')
+    expect(visitorDelegate.visitorCacheStatus).toEqual(VisitorCacheStatus.VISITOR_ID_CACHE)
   })
 
   it('test visitorCacheStatus ANONYMOUS_ID_CACHE ', async () => {
@@ -518,12 +518,11 @@ describe('test visitor cache status', () => {
   it('test visitorCacheStatus VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE ', async () => {
     const anonymousId = 'anonymousId'
     lookupVisitor.mockResolvedValue(getUndefined())
-    visitorDelegate.visitorCacheStatus = VisitorCacheStatus.VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE
+    visitorDelegate.visitorCacheStatus = VisitorCacheStatus.VISITOR_ID_CACHE_WITH_ANONYMOUS_ID_CACHE
     visitorDelegate.anonymousId = anonymousId
     await defaultStrategy.cacheVisitor()
-    expect(cacheVisitor).toBeCalledTimes(2)
+    expect(cacheVisitor).toBeCalledTimes(1)
     expect(cacheVisitor).toHaveBeenNthCalledWith(1, visitorId, expect.anything())
-    expect(cacheVisitor).toHaveBeenNthCalledWith(2, anonymousId, expect.anything())
   })
 
   it('test visitorCacheStatus ANONYMOUS_ID_CACHE ', async () => {
@@ -542,8 +541,9 @@ describe('test visitor cache status', () => {
     visitorDelegate.visitorCacheStatus = VisitorCacheStatus.VISITOR_ID_CACHE
     visitorDelegate.anonymousId = anonymousId
     await defaultStrategy.cacheVisitor()
-    expect(cacheVisitor).toBeCalledTimes(1)
+    expect(cacheVisitor).toBeCalledTimes(2)
     expect(cacheVisitor).toHaveBeenNthCalledWith(1, visitorId, expect.anything())
+    expect(cacheVisitor).toHaveBeenNthCalledWith(2, anonymousId, expect.anything())
   })
 })
 

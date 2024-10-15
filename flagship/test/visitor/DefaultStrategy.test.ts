@@ -140,6 +140,8 @@ describe('test DefaultStrategy ', () => {
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(onFetchFlagsStatusChanged)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(1)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledWith({ status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.UPDATE_CONTEXT })
+
+    expect(visitorDelegate.hasContextBeenUpdated).toBeTruthy()
   })
 
   it('test updateContext null', () => {
@@ -182,8 +184,8 @@ describe('test DefaultStrategy ', () => {
       fs_version: SDK_INFO.version,
       fs_users: visitorId
     })
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(2)
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.UPDATE_CONTEXT })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(1)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.UPDATE_CONTEXT })
   })
 
   it('test getCurrentDateTime', () => {
@@ -533,19 +535,27 @@ describe('test DefaultStrategy ', () => {
     expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
   })
 
+  it('test visitorExposed, getValue has not been called', async () => {
+    await defaultStrategy.visitorExposed({ key: returnMod.key, flag: returnMod, defaultValue: returnMod.value, hasGetValueBeenCalled: false })
+    expect(activateFlag).toBeCalledTimes(0)
+
+    expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
+    const label: TroubleshootingLabel = TroubleshootingLabel.FLAG_VALUE_NOT_CALLED
+    expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+  })
+
   it('test visitorExposed with different type', async () => {
     await defaultStrategy.visitorExposed({ key: returnMod.key, flag: returnMod, defaultValue: true, hasGetValueBeenCalled: true })
     expect(addHit).toBeCalledTimes(0)
-    expect(activateFlag).toBeCalledTimes(1)
+    expect(activateFlag).toBeCalledTimes(0)
     expect(logWarning).toBeCalledTimes(1)
     expect(logWarning).toBeCalledWith(
       sprintf(USER_EXPOSED_CAST_ERROR, visitorId, returnMod.key),
       FLAG_VISITOR_EXPOSED
     )
-    expect(sendTroubleshootingHitSpy).toBeCalledTimes(2)
+    expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
     const label: TroubleshootingLabel = TroubleshootingLabel.VISITOR_EXPOSED_TYPE_WARNING
     expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
-    expect(sendTroubleshootingHitSpy).toHaveBeenNthCalledWith(2, expect.objectContaining({ label: TroubleshootingLabel.VISITOR_SEND_ACTIVATE }))
   })
 
   it('test visitorExposed flag undefined', async () => {

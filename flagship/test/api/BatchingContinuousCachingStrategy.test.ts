@@ -345,65 +345,48 @@ describe('test activateFlag method', () => {
     activateHit.config = config
     activateHit.key = visitorId
 
-    const activateHit2 = new Activate({
-      visitorId,
-      variationGroupId: 'variationGrID-activate-2',
-      variationId: 'variationId-2',
-      flagKey: 'flagKey',
-      flagValue: 'value',
-      flagDefaultValue: 'default-value',
-      flagMetadata: {
-        campaignId: 'campaignId',
-        variationGroupId: 'variationGrID',
-        variationId: 'varId',
-        isReference: true,
-        campaignType: 'ab',
-        slug: 'slug',
-        campaignName: 'campaignName',
-        variationGroupName: 'variationGroupName',
-        variationName: 'variationName'
-      },
-      visitorContext: { key: 'value' }
-    })
+    const activates: Activate[] = []
 
-    activateHit2.config = config
-    activateHit2.key = visitorId + 'key-2'
+    for (let index = 0; index < 200; index++) {
+      const activateHit2 = new Activate({
+        visitorId,
+        variationGroupId: 'variationGrID-activate-' + index,
+        variationId: 'variationId-' + index,
+        flagKey: 'flagKey',
+        flagValue: 'value',
+        flagDefaultValue: 'default-value',
+        flagMetadata: {
+          campaignId: 'campaignId',
+          variationGroupId: 'variationGrID',
+          variationId: 'varId',
+          isReference: true,
+          campaignType: 'ab',
+          slug: 'slug',
+          campaignName: 'campaignName',
+          variationGroupName: 'variationGroupName',
+          variationName: 'variationName'
+        },
+        visitorContext: { key: 'value' }
+      })
 
-    const activateHit3 = new Activate({
-      visitorId,
-      variationGroupId: 'variationGrID-activate-3',
-      variationId: 'variationId-3',
-      flagKey: 'flagKey',
-      flagValue: 'value',
-      flagDefaultValue: 'default-value',
-      flagMetadata: {
-        campaignId: 'campaignId',
-        variationGroupId: 'variationGrID',
-        variationId: 'varId',
-        isReference: true,
-        campaignType: 'ab',
-        slug: 'slug',
-        campaignName: 'campaignName',
-        variationGroupName: 'variationGroupName',
-        variationName: 'variationName'
-      },
-      visitorContext: { key: 'value' }
-    })
-    activateHit3.config = config
-    activateHit3.key = visitorId + 'key-3'
+      activateHit2.config = config
+      activateHit2.key = visitorId + 'key-' + index
 
-    activatePoolQueue.set(activateHit2.key, activateHit2).set(activateHit3.key, activateHit3)
+      activatePoolQueue.set(activateHit2.key, activateHit2)
+      activates.push(activateHit2)
+    }
 
     expect(hitsPoolQueue.size).toBe(0)
-    expect(activatePoolQueue.size).toBe(2)
+    expect(activatePoolQueue.size).toBe(200)
 
     await batchingStrategy.activateFlag(activateHit)
 
     expect(hitsPoolQueue.size).toBe(0)
     expect(activatePoolQueue.size).toBe(0)
 
-    expect(postAsync).toBeCalledTimes(1)
-    const activateBatch = new ActivateBatch([activateHit2, activateHit3, activateHit], config)
+    expect(postAsync).toBeCalledTimes(2)
+
+    const activateBatch = new ActivateBatch([...activates.slice(0, 100), activateHit], config)
     expect(postAsync).toHaveBeenNthCalledWith(1, urlActivate, {
       headers: headersActivate,
       nextFetchConfig,
@@ -411,13 +394,23 @@ describe('test activateFlag method', () => {
       timeout: config.timeout
     })
 
-    expect(sendHitsToFsQaSpy).toBeCalledTimes(1)
-    expect(sendHitsToFsQaSpy).toBeCalledWith(activateBatch.hits)
+    const activateBatch2 = new ActivateBatch(activates.slice(100, 201), config)
+    expect(postAsync).toHaveBeenNthCalledWith(2, urlActivate, {
+      headers: headersActivate,
+      nextFetchConfig,
+      body: activateBatch2.toApiKeys(),
+      timeout: config.timeout
+    })
 
-    expect(onVisitorExposed).toBeCalledTimes(3)
+    expect(sendHitsToFsQaSpy).toBeCalledTimes(2)
+    expect(sendHitsToFsQaSpy).toHaveBeenNthCalledWith(1, activateBatch.hits)
+    expect(sendHitsToFsQaSpy).toHaveBeenNthCalledWith(2, activateBatch2.hits)
+
+    expect(onVisitorExposed).toBeCalledTimes(201)
     expect(cacheHitSpy).toBeCalledTimes(0)
-    expect(flushHitsSpy).toBeCalledTimes(1)
-    expect(flushHitsSpy).toHaveBeenCalledWith([activateHit2.key, activateHit3.key])
+    expect(flushHitsSpy).toBeCalledTimes(2)
+    expect(flushHitsSpy).toHaveBeenNthCalledWith(1, activates.slice(0, 100).map((activate) => activate.key))
+    expect(flushHitsSpy).toHaveBeenNthCalledWith(2, activates.slice(100, 201).map((activate) => activate.key))
   })
 
   it('test multiple activate failed', async () => {
