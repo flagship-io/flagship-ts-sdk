@@ -433,6 +433,8 @@ export class DefaultStrategy extends StrategyAbstract {
         return { campaigns, isFetching: true }
       }
 
+      console.log('getCampaignsAsync start')
+
       const fetchFlagBufferingTime =
       (this.config.fetchFlagsBufferingTime as number) * 1000
 
@@ -469,11 +471,13 @@ export class DefaultStrategy extends StrategyAbstract {
         reason: FSFetchReasons.NONE
       }
 
-      this.visitor.getCampaignsPromise = this.decisionManager.getCampaignsAsync(
+      this.visitor.getCampaignsPromise = this.visitor.apiManager.getCampaignsAsync(
         this.visitor
       )
 
+      await this.lookupVisitor()
       campaigns = await this.visitor.getCampaignsPromise
+      this.cacheVisitor()
 
       this.visitor.lastFetchFlagsTimestamp = Date.now()
 
