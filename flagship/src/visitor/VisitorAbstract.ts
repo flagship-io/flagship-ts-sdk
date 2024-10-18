@@ -20,8 +20,10 @@ import { IFSFlag } from '../flag/IFSFlag'
 import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
 import { IFSFlagCollection } from '../flag/IFSFlagCollection'
 import { sendVisitorExposedVariations } from '../qaAssistant/messages/index'
-import { IDecisionManager } from '../decision/IDecisionManager'
 import { WeakEventEmitter } from '../utils/WeakEventEmitter'
+import { VisitorApiManager } from './VisitorApiManager'
+import { HttpClient } from '../utils/HttpClient'
+import { IDecisionManager } from './IDecisionManager'
 
 export abstract class VisitorAbstract extends WeakEventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -46,8 +48,13 @@ export abstract class VisitorAbstract extends WeakEventEmitter implements IVisit
   private _onFetchFlagsStatusChanged? : ({ status, reason }: FetchFlagsStatus) => void
   private _getCampaignsPromise? : Promise<CampaignDTO[]|null>
   private _bucketingStatus : number|undefined
+  protected _apiManager:IDecisionManager
 
   private _onBucketingStatusChanged : (status:number) => void
+
+  public get apiManager () : IDecisionManager {
+    return this._apiManager
+  }
 
   public get bucketingStatus () : number|undefined {
     return this._bucketingStatus
@@ -129,6 +136,7 @@ export abstract class VisitorAbstract extends WeakEventEmitter implements IVisit
   }) {
     const { visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData, onFetchFlagsStatusChanged } = param
     super()
+    this._apiManager = new VisitorApiManager(configManager.decisionManager, new HttpClient(), configManager.config)
     this._exposedVariations = {}
     this._sdkInitialData = monitoringData
     this._instanceId = uuidV4()
