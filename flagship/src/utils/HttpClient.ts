@@ -7,7 +7,8 @@ export interface IHttpOptions {
   body?: any;
   headers?: Record<string, string>;
   timeout?: number;
-  nextFetchConfig?: Record<string, unknown>
+  nextFetchConfig?: Record<string, unknown>;
+  abortController?: AbortController
 }
 
 export interface IHttpResponse {
@@ -50,7 +51,7 @@ export class HttpClient implements IHttpClient {
   }
 
   async sendRequest (url: string, options: IHttpOptions, method: string): Promise<IHttpResponse> {
-    const c = new LocalAbortController()
+    const c = options.abortController || new LocalAbortController()
     const id = setTimeout(() => c.abort(), (options?.timeout ? options.timeout : REQUEST_TIME_OUT) * 1000)
     try {
       const response = await myFetch(url, {
