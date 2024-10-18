@@ -151,7 +151,10 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         return
       }
       this.visitor.visitorCacheStatus = VisitorCacheStatus.NONE
+      console.log('lookupVisitor start')
+
       let visitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
+      console.log('lookupVisitor end')
       if (visitorCache) {
         this.visitor.visitorCacheStatus = VisitorCacheStatus.VISITOR_ID_CACHE
       }
