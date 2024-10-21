@@ -3,7 +3,6 @@ import { primitive, IHit, VisitorCacheDTO, IFSFlagMetadata, TroubleshootingLabel
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
-import { IDecisionManager } from '../decision/IDecisionManager'
 import { logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, sprintf } from '../utils/utils'
 import { VISITOR_CACHE_ERROR, CONSENT_CHANGED, FS_CONSENT, LOOKUP_VISITOR_JSON_OBJECT_ERROR, PROCESS_CACHE, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION, VISITOR_CACHE_FLUSHED, VISITOR_CACHE_LOADED, VISITOR_CACHE_SAVED, LogLevel, ANALYTIC_HIT_ALLOCATION } from '../enum/index'
 import { BatchDTO } from '../hit/Batch'
@@ -14,6 +13,7 @@ import { UsageHit } from '../hit/UsageHit'
 import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
+import { IBucketingPolling } from '../decision/IBucketingPolling'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 
@@ -34,8 +34,8 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     return this.configManager.trackingManager
   }
 
-  protected get decisionManager ():IDecisionManager {
-    return this.configManager.decisionManager
+  protected get bucketingPolling ():IBucketingPolling {
+    return this.configManager.bucketingPolling
   }
 
   public get config ():IFlagshipConfig {
@@ -53,7 +53,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
   public updateCampaigns (campaigns:CampaignDTO[]):void {
     try {
       this.visitor.campaigns = campaigns
-      this.visitor.flagsData = this.decisionManager.getModifications(campaigns)
+      this.visitor.flagsData = this.visitor.extractFlags(campaigns)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logError(this.config, error.message || error, 'updateCampaigns')
@@ -107,7 +107,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
 
     logDebugSprintf(this.config, PROCESS_SET_CONSENT, CONSENT_CHANGED, this.visitor.visitorId, hasConsented)
 
-    if (this.decisionManager.troubleshooting) {
+    if (this.bucketingPolling.getTroubleshootingData()) {
       this.trackingManager.sendTroubleshootingHit(hitTroubleshooting)
       return
     }
@@ -151,10 +151,9 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         return
       }
       this.visitor.visitorCacheStatus = VisitorCacheStatus.NONE
-      console.log('lookupVisitor start')
 
       let visitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.visitorId)
-      console.log('lookupVisitor end')
+
       if (visitorCache) {
         this.visitor.visitorCacheStatus = VisitorCacheStatus.VISITOR_ID_CACHE
       }
@@ -317,7 +316,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         config: this.config,
         sdkStatus: this.visitor.getSdkStatus(),
-        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+        lastBucketingTimestamp: this.configManager.bucketingPolling.getLastPollingTimestamp(),
         lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
         sdkConfigMode: this.getSdkConfigDecisionMode(),
         sdkConfigLogLevel: this.config.logLevel,
@@ -350,7 +349,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         assignmentHistory[item.variationGroupId] = item.variationId
       })
 
-      const uniqueId = this.visitor.visitorId + this.decisionManager.troubleshooting?.endDate.toUTCString()
+      const uniqueId = this.visitor.visitorId + this.bucketingPolling.getTroubleshootingData()?.endDate.toUTCString()
       const hash = this._murmurHash.murmurHash3Int32(uniqueId)
       const traffic = hash % 100
 
@@ -380,7 +379,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         visitorAssignmentHistory: assignmentHistory,
         visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
         visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
-        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+        lastBucketingTimestamp: this.configManager.bucketingPolling.getLastPollingTimestamp(),
         lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
         httpResponseTime: Date.now() - now,
         sdkConfigLogLevel: this.config.logLevel,
