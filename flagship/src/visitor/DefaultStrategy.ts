@@ -433,8 +433,6 @@ export class DefaultStrategy extends StrategyAbstract {
         return { campaigns, isFetching: true }
       }
 
-      console.log('getCampaignsAsync start')
-
       const fetchFlagBufferingTime =
       (this.config.fetchFlagsBufferingTime as number) * 1000
 
@@ -481,7 +479,7 @@ export class DefaultStrategy extends StrategyAbstract {
 
       this.visitor.lastFetchFlagsTimestamp = Date.now()
 
-      if (this.decisionManager.isPanic()) {
+      if (this.bucketingPolling.isPanicMode()) {
         this.visitor.fetchStatus = {
           status: FSFetchStatus.PANIC,
           reason: FSFetchReasons.NONE
@@ -489,7 +487,7 @@ export class DefaultStrategy extends StrategyAbstract {
       }
 
       this.configManager.trackingManager.troubleshootingData =
-        this.decisionManager.troubleshooting
+        this.bucketingPolling.getTroubleshootingData()
 
       logDebugSprintf(
         this.config,
@@ -592,7 +590,7 @@ export class DefaultStrategy extends StrategyAbstract {
       visitorFlags: this.visitor.flagsData,
       visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
       visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
-      lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+      lastBucketingTimestamp: this.configManager.bucketingPolling.getLastPollingTimestamp(),
       lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
       httpResponseTime: Date.now() - now,
       sdkConfigMode: this.getSdkConfigDecisionMode(),
@@ -636,7 +634,7 @@ export class DefaultStrategy extends StrategyAbstract {
       campaigns = campaigns || []
 
       this.visitor.campaigns = campaigns
-      this.visitor.flagsData = this.decisionManager.getModifications(
+      this.visitor.flagsData = this.visitor.extractFlags(
         this.visitor.campaigns
       )
       this.visitor.emit(EMIT_READY, fetchCampaignError)
@@ -660,7 +658,7 @@ export class DefaultStrategy extends StrategyAbstract {
         this.visitor.flagsData
       )
 
-      if (this.decisionManager.troubleshooting) {
+      if (this.bucketingPolling.getTroubleshootingData()) {
         this.sendFetchFlagsTroubleshooting({
           campaigns,
           now,
