@@ -1,8 +1,8 @@
-import { BUCKETING_API_URL, BUCKETING_STATUS_EVENT, FSSdkStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_APP, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, POLLING_EVENT_200, POLLING_EVENT_300, POLLING_EVENT_FAILED, PROCESS_BUCKETING, SDK_INFO } from '../enum/index'
+import { BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, BUCKETING_STATUS_EVENT, FSSdkStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, POLLING_EVENT_200, POLLING_EVENT_300, POLLING_EVENT_FAILED, PROCESS_BUCKETING, SDK_INFO } from '../enum/index'
 import { TroubleshootingData, TroubleshootingLabel } from '../types'
 import { IBucketingPolling } from './IBucketingPolling'
 import { WeakEventEmitter } from '../utils/WeakEventEmitter'
-import { errorFormat, logDebug, logDebugSprintf, logError, sprintf } from '../utils/utils'
+import { errorFormat, logDebug, logDebugSprintf, logError, logInfo, sprintf } from '../utils/utils'
 import { IHttpClient, IHttpResponse } from '../utils/HttpClient'
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { ITrackingManager } from '../api/ITrackingManager'
@@ -20,6 +20,7 @@ type handlePollingErrorParams = {
     url: string
     headers: Record<string, string>
     now: number
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     error: any
 }
 
@@ -35,8 +36,9 @@ export class BucketingPolling extends WeakEventEmitter implements IBucketingPoll
   protected _isPanicMode: boolean
   protected _troubleshootingData?: TroubleshootingData
   protected _flagshipInstanceId: string
-  protected _bucketingContent?: string
+  protected _bucketingContent?: BucketingDTO
   protected _bucketingStatus?: number
+  protected _intervalID!: NodeJS.Timer
 
   public constructor ({ httpClient, config, trackingManager, flagshipInstanceId }:BucketingPollingConstructor) {
     super()
@@ -47,6 +49,9 @@ export class BucketingPolling extends WeakEventEmitter implements IBucketingPoll
     this._trackingManager = trackingManager
     this._isPanicMode = false
     this._flagshipInstanceId = flagshipInstanceId
+    if (config.initialBucketing) {
+      this._bucketingContent = config.initialBucketing
+    }
   }
 
   protected updateFlagshipStatus (v:FSSdkStatus):void {
@@ -56,6 +61,14 @@ export class BucketingPolling extends WeakEventEmitter implements IBucketingPoll
   public setBucketingStatus (status: number): void {
     this._bucketingStatus = status
     this.emit(BUCKETING_STATUS_EVENT, status)
+  }
+
+  public setPanicMode (v:boolean):void {
+    if (this._isPanicMode === v) {
+      return
+    }
+    this._isPanicMode = v
+    this.updateFlagshipStatus(v ? FSSdkStatus.SDK_PANIC : FSSdkStatus.SDK_INITIALIZED)
   }
 
   protected sendTroubleshootingHit ({
@@ -115,6 +128,7 @@ export class BucketingPolling extends WeakEventEmitter implements IBucketingPoll
     if (response.status === 200) {
       logDebugSprintf(config, PROCESS_BUCKETING, POLLING_EVENT_200, response.body)
       this._bucketingContent = response.body
+      this.setPanicMode(!!this._bucketingContent?.panic)
       this._lastBucketingTimestamp = new Date().toISOString()
       this.sendTroubleshootingHit({ url, headers, now, response })
     } else if (response.status === 304) {
@@ -134,7 +148,6 @@ export class BucketingPolling extends WeakEventEmitter implements IBucketingPoll
 
     if (this._isFirstPooling) {
       this._isFirstPooling = false
-      this.updateFlagshipStatus(FSSdkStatus.SDK_INITIALIZED)
     }
 
     // if (typeof this.config.onBucketingSuccess === 'function') {
@@ -183,24 +196,35 @@ export class BucketingPolling extends WeakEventEmitter implements IBucketingPoll
     }
   }
 
-  startPolling (): Promise<void> {
-    throw new Error('Method not implemented.')
+  async startPolling (): Promise<void> {
+    const config = this._config
+    const timeout = config.pollingInterval as number * 1000
+    logInfo(config, BUCKETING_POOLING_STARTED, PROCESS_BUCKETING)
+    await this.polling()
+    if (timeout === 0) {
+      return
+    }
+    this._intervalID = setInterval(() => {
+      this.polling()
+    }, timeout)
   }
 
   stopPolling (): void {
-    throw new Error('Method not implemented.')
+    clearInterval(this._intervalID)
+    this._isPooling = false
+    logInfo(this._config, BUCKETING_POOLING_STOPPED, PROCESS_BUCKETING)
   }
 
   bucketingStatus (): number | undefined {
-    throw new Error('Method not implemented.')
+    return this._bucketingStatus
   }
 
   getLastPollingTimestamp (): string | undefined {
-    throw new Error('Method not implemented.')
+    return this._lastBucketingTimestamp
   }
 
   getTroubleshootingData (): TroubleshootingData | undefined {
-    throw new Error('Method not implemented.')
+    return this._troubleshootingData
   }
 
   onStatusChanged (func: (status: FSSdkStatus) => void): void {
@@ -208,10 +232,10 @@ export class BucketingPolling extends WeakEventEmitter implements IBucketingPoll
   }
 
   isPanicMode (): boolean {
-    throw new Error('Method not implemented.')
+    return this._isPanicMode
   }
 
   getBucketingContent (): BucketingDTO | undefined {
-    throw new Error('Method not implemented.')
+    return this._bucketingContent
   }
 }
