@@ -21,9 +21,10 @@ import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '..
 import { IFSFlagCollection } from '../flag/IFSFlagCollection'
 import { sendVisitorExposedVariations } from '../qaAssistant/messages/index'
 import { WeakEventEmitter } from '../utils/WeakEventEmitter'
-import { VisitorApiManager } from './VisitorApiManager'
+import { ApiManager } from './ApiManager'
 import { HttpClient } from '../utils/HttpClient'
 import { IDecisionManager } from './IDecisionManager'
+import { IBucketingPolling } from '../decision/IBucketingPolling'
 
 export abstract class VisitorAbstract extends WeakEventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -128,15 +129,20 @@ export abstract class VisitorAbstract extends WeakEventEmitter implements IVisit
     this._visitorCacheStatus = v
   }
 
+  public get bucketingPolling () : IBucketingPolling {
+    return this.configManager.bucketingPolling
+  }
+
   constructor (param: NewVisitor & {
     visitorId?: string
     configManager: IConfigManager
     context: Record<string, primitive>
-    monitoringData?:sdkInitialData
+    monitoringData?:sdkInitialData,
+    decisionManager: IDecisionManager,
   }) {
-    const { visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData, onFetchFlagsStatusChanged } = param
+    const { visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData, onFetchFlagsStatusChanged, decisionManager } = param
     super()
-    this._apiManager = new VisitorApiManager(configManager.decisionManager, new HttpClient(), configManager.config)
+    this._apiManager = decisionManager
     this._exposedVariations = {}
     this._sdkInitialData = monitoringData
     this._instanceId = uuidV4()
@@ -181,7 +187,7 @@ export abstract class VisitorAbstract extends WeakEventEmitter implements IVisit
     }
 
     this._onBucketingStatusChanged = this.onBucketingStatusChanged.bind(this)
-    this.decisionManager.on(BUCKETING_STATUS_EVENT, this._onBucketingStatusChanged)
+    this.bucketingPolling.on(BUCKETING_STATUS_EVENT, this._onBucketingStatusChanged)
 
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
   }
@@ -324,10 +330,6 @@ export abstract class VisitorAbstract extends WeakEventEmitter implements IVisit
     return this._configManager
   }
 
-  protected get decisionManager ():IDecisionManager {
-    return this.configManager.decisionManager
-  }
-
   public get config (): IFlagshipConfig {
     return this.configManager.config
   }
@@ -410,7 +412,34 @@ export abstract class VisitorAbstract extends WeakEventEmitter implements IVisit
   }
 
   public cleanup (): void {
-    this.decisionManager.off(BUCKETING_STATUS_EVENT, this._onBucketingStatusChanged)
+    this.bucketingPolling.off(BUCKETING_STATUS_EVENT, this._onBucketingStatusChanged)
+  }
+
+  public extractFlags (campaigns: Array<CampaignDTO>):Map<string, FlagDTO> {
+    const flags = new Map<string, FlagDTO>()
+    campaigns.forEach((campaign) => {
+      const object = campaign.variation.modifications.value
+      for (const key in object) {
+        const value = object[key]
+        flags.set(
+          key,
+          {
+            key,
+            campaignId: campaign.id,
+            campaignName: campaign.name || '',
+            variationGroupId: campaign.variationGroupId,
+            variationGroupName: campaign.variationGroupName || '',
+            variationId: campaign.variation.id,
+            variationName: campaign.variation.name || '',
+            isReference: !!campaign.variation.reference,
+            campaignType: campaign.type,
+            slug: campaign.slug,
+            value
+          }
+        )
+      }
+    })
+    return flags
   }
 
   abstract updateContext(key: string, value: primitive):void
