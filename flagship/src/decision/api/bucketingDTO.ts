@@ -26,6 +26,13 @@ export interface VariationGroupDTO {
     }>
 }
 
+export type TroubleshootingDTO ={
+    startDate: string
+    endDate: string
+    traffic: number
+    timezone: string
+}
+
 export interface BucketingDTO {
     panic?:boolean
     campaigns?: Array<{
@@ -37,11 +44,6 @@ export interface BucketingDTO {
     }>
     accountSettings?:{
         enabledXPC?: true
-        troubleshooting?:{
-            startDate: string
-            endDate: string
-            traffic: number
-            timezone: string,
-           }
+        troubleshooting?:TroubleshootingDTO
     }
 }
