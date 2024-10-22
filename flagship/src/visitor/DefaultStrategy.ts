@@ -486,9 +486,6 @@ export class DefaultStrategy extends StrategyAbstract {
         }
       }
 
-      this.configManager.trackingManager.troubleshootingData =
-        this.bucketingPolling.getTroubleshootingData()
-
       logDebugSprintf(
         this.config,
         PROCESS_FETCHING_FLAGS,
