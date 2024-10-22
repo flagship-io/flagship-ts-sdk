@@ -7,7 +7,7 @@ import { IHttpClient, IHttpResponse } from '../utils/HttpClient'
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { ITrackingManager } from '../api/ITrackingManager'
 import { Troubleshooting } from '../hit/Troubleshooting'
-import { BucketingDTO } from './api/bucketingDTO'
+import { BucketingDTO, TroubleshootingDTO } from './api/bucketingDTO'
 
 type BucketingPollingConstructor = {
     httpClient: IHttpClient
@@ -63,12 +63,27 @@ export class BucketingPolling extends WeakEventEmitter implements IBucketingPoll
     this.emit(BUCKETING_STATUS_EVENT, status)
   }
 
-  public setPanicMode (v:boolean):void {
+  protected setPanicMode (v:boolean):void {
     if (this._isPanicMode === v) {
       return
     }
     this._isPanicMode = v
     this.updateFlagshipStatus(v ? FSSdkStatus.SDK_PANIC : FSSdkStatus.SDK_INITIALIZED)
+  }
+
+  protected setTroubleshootingData (v?:TroubleshootingDTO):void {
+    if (!v || this._isPanicMode) {
+      this._troubleshootingData = undefined
+      this._trackingManager.troubleshootingData = undefined
+      return
+    }
+    this._troubleshootingData = {
+      startDate: new Date(v.startDate),
+      endDate: new Date(v.endDate),
+      timezone: v.timezone,
+      traffic: v.traffic
+    }
+    this._trackingManager.troubleshootingData = this._troubleshootingData
   }
 
   protected sendTroubleshootingHit ({
@@ -129,6 +144,7 @@ export class BucketingPolling extends WeakEventEmitter implements IBucketingPoll
       logDebugSprintf(config, PROCESS_BUCKETING, POLLING_EVENT_200, response.body)
       this._bucketingContent = response.body
       this.setPanicMode(!!this._bucketingContent?.panic)
+      this.setTroubleshootingData(this._bucketingContent?.accountSettings?.troubleshooting)
       this._lastBucketingTimestamp = new Date().toISOString()
       this.sendTroubleshootingHit({ url, headers, now, response })
     } else if (response.status === 304) {
