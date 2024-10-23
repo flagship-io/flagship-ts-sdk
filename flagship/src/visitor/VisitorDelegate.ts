@@ -56,9 +56,7 @@ export class VisitorDelegate extends VisitorAbstract {
   }
 
   async fetchFlags ():Promise<void> {
-    await this.getStrategy().lookupVisitor()
     await this.getStrategy().fetchFlags()
-    await this.getStrategy().cacheVisitor()
   }
 
   visitorExposed (param:VisitorExposedParam): Promise<void> {
@@ -71,5 +69,23 @@ export class VisitorDelegate extends VisitorAbstract {
 
   getFlagMetadata (param:GetFlagMetadataParam):IFSFlagMetadata {
     return this.getStrategy().getFlagMetadata(param)
+  }
+
+  updateContextAsync(context: Record<string, primitive>): Promise<void>
+  updateContextAsync(key: string, value: primitive): Promise<void>
+  updateContextAsync (context: Record<string, primitive> | string, value?:primitive): Promise<void> {
+    return this.getStrategy().updateContextAsync(context, value)
+  }
+
+  clearContextAsync (): Promise<void> {
+    return this.getStrategy().clearContextAsync()
+  }
+
+  authenticateAsync (visitorId: string): Promise<void> {
+    return this.getStrategy().authenticateAsync(visitorId)
+  }
+
+  unauthenticateAsync (): Promise<void> {
+    return this.getStrategy().unauthenticateAsync()
   }
 }

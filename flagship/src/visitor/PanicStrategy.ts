@@ -1,6 +1,6 @@
 
 import { FSSdkStatus, FLAG_VISITOR_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_PANIC_MODE } from '../enum/index'
-import { CampaignDTO, FlagDTO, IFSFlagMetadata, IHit } from '../types'
+import { CampaignDTO, FlagDTO, IFSFlagMetadata, IHit, primitive } from '../types'
 import { logInfoSprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
 import { HitAbstract } from '../hit/index'
@@ -39,6 +39,32 @@ export class PanicStrategy extends DefaultStrategy {
 
   protected fetchCampaignsFromCache (): CampaignDTO[] {
     return []
+  }
+
+  authenticate (): void {
+    this.log('authenticate')
+  }
+
+  unauthenticate (): void {
+    this.log('unauthenticate')
+  }
+
+  updateContextAsync(context: Record<string, primitive>): Promise<void>;
+  updateContextAsync(key: string, value: primitive): Promise<void>;
+  async updateContextAsync (): Promise<void> {
+    this.log('updateContextAsync')
+  }
+
+  async clearContextAsync (): Promise<void> {
+    this.log('clearContextAsync')
+  }
+
+  async authenticateAsync (): Promise<void> {
+    this.log('authenticateAsync')
+  }
+
+  async unauthenticateAsync (): Promise<void> {
+    this.log('unauthenticateAsync')
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -284,7 +284,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
 
     abstract updateContextAsync(context: Record<string, primitive>): Promise<void>
     abstract updateContextAsync(key: string, value: primitive): Promise<void>
-    abstract updateContextAsync (key: unknown, value?: unknown): Promise<void>
+    abstract updateContextAsync (context: Record<string, primitive> | string, value?:primitive): Promise<void>
 
     abstract clearContextAsync (): Promise<void>
 

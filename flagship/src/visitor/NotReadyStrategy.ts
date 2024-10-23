@@ -1,5 +1,5 @@
 import { FSSdkStatus, FLAG_VISITOR_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_SDK_NOT_READY } from '../enum/index'
-import { FlagDTO, IFSFlagMetadata, IHit } from '../types'
+import { FlagDTO, IFSFlagMetadata, IHit, primitive } from '../types'
 import { logErrorSprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
 import { HitAbstract } from '../hit/index'
@@ -18,6 +18,40 @@ export class NotReadyStrategy extends DefaultStrategy {
 
   public async cacheVisitor ():Promise<void> {
     //
+  }
+
+  authenticate (): void {
+    this.log('authenticate')
+  }
+
+  unauthenticate (): void {
+    this.log('unauthenticate')
+  }
+
+  updateContext (): void {
+    this.log('updateContext')
+  }
+
+  clearContext (): void {
+    this.log('clearContext')
+  }
+
+  updateContextAsync(context: Record<string, primitive>): Promise<void>;
+  updateContextAsync(key: string, value: primitive): Promise<void>;
+  async updateContextAsync (): Promise<void> {
+    this.log('updateContextAsync')
+  }
+
+  async clearContextAsync (): Promise<void> {
+    this.log('clearContextAsync')
+  }
+
+  async authenticateAsync (): Promise<void> {
+    this.log('authenticateAsync')
+  }
+
+  async unauthenticateAsync (): Promise<void> {
+    this.log('unauthenticateAsync')
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

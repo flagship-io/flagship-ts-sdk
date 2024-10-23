@@ -130,6 +130,7 @@ export class DefaultStrategy extends StrategyAbstract {
 
   updateContext(key: string, value: primitive):void
   updateContext (context: Record<string, primitive>): void
+  updateContext (context: Record<string, primitive> | string, value?:primitive): void
   updateContext (context: Record<string, primitive> | string, value?:primitive): void {
     const oldContext = { ...this.visitor.context }
     if (typeof context === 'string') {
@@ -526,7 +527,9 @@ export class DefaultStrategy extends StrategyAbstract {
 
       this.visitor.getCampaignsPromise = this.decisionManager.getCampaignsAsync(this.visitor)
 
+      this.lookupVisitor()
       campaigns = await this.visitor.getCampaignsPromise
+      this.cacheVisitor()
 
       this.visitor.lastFetchFlagsTimestamp = Date.now()
 
@@ -808,5 +811,35 @@ export class DefaultStrategy extends StrategyAbstract {
     })
 
     return metadata
+  }
+
+  updateContextAsync(context: Record<string, primitive>): Promise<void>
+  updateContextAsync(key: string, value: primitive): Promise<void>
+  async updateContextAsync (context: Record<string, primitive> | string, value?:primitive): Promise<void> {
+    this.updateContext(context, value)
+    if (this.visitor.hasContextBeenUpdated) {
+      await this.fetchFlags()
+    }
+  }
+
+  async clearContextAsync (): Promise<void> {
+    this.clearContext()
+    if (this.visitor.hasContextBeenUpdated) {
+      return this.fetchFlags()
+    }
+  }
+
+  async authenticateAsync (visitorId: string): Promise<void> {
+    this.authenticate(visitorId)
+    if (this.visitor.fetchStatus.status === FSFetchStatus.FETCH_REQUIRED && this.visitor.fetchStatus.reason === FSFetchReasons.AUTHENTICATE) {
+      return this.fetchFlags()
+    }
+  }
+
+  async unauthenticateAsync (): Promise<void> {
+    this.unauthenticate()
+    if (this.visitor.fetchStatus.status === FSFetchStatus.FETCH_REQUIRED && this.visitor.fetchStatus.reason === FSFetchReasons.UNAUTHENTICATE) {
+      return this.fetchFlags()
+    }
   }
 }
