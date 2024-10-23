@@ -64,11 +64,7 @@ export class BucketingPolling extends WeakEventEmitter implements IBucketingPoll
   }
 
   protected setPanicMode (v:boolean):void {
-    if (this._isPanicMode === v) {
-      return
-    }
     this._isPanicMode = v
-    this.updateFlagshipStatus(v ? FSSdkStatus.SDK_PANIC : FSSdkStatus.SDK_INITIALIZED)
   }
 
   protected setTroubleshootingData (v?:TroubleshootingDTO):void {
@@ -143,10 +139,12 @@ export class BucketingPolling extends WeakEventEmitter implements IBucketingPoll
     if (response.status === 200) {
       logDebugSprintf(config, PROCESS_BUCKETING, POLLING_EVENT_200, response.body)
       this._bucketingContent = response.body
-      this.setPanicMode(!!this._bucketingContent?.panic)
+      const isPanic = this._bucketingContent?.panic
+      this.setPanicMode(!!isPanic)
       this.setTroubleshootingData(this._bucketingContent?.accountSettings?.troubleshooting)
       this._lastBucketingTimestamp = new Date().toISOString()
       this.sendTroubleshootingHit({ url, headers, now, response })
+      this.updateFlagshipStatus(isPanic ? FSSdkStatus.SDK_PANIC : FSSdkStatus.SDK_INITIALIZED)
     } else if (response.status === 304) {
       logDebug(config, POLLING_EVENT_300, PROCESS_BUCKETING)
     }
