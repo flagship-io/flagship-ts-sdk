@@ -150,4 +150,22 @@ export class Visitor extends EventEmitter implements IVisitor {
   unauthenticate (): void {
     this.visitorDelegate.unauthenticate()
   }
+
+  updateContextAsync(context: Record<string, primitive>): Promise<void>
+  updateContextAsync(key: string, value: primitive): Promise<void>
+  updateContextAsync (context: Record<string, primitive> | string, value?:primitive): Promise<void> {
+    return this.visitorDelegate.updateContextAsync(context, value)
+  }
+
+  clearContextAsync (): Promise<void> {
+    return this.visitorDelegate.clearContextAsync()
+  }
+
+  authenticateAsync (visitorId: string): Promise<void> {
+    return this.visitorDelegate.authenticateAsync(visitorId)
+  }
+
+  unauthenticateAsync (): Promise<void> {
+    return this.visitorDelegate.unauthenticateAsync()
+  }
 }
