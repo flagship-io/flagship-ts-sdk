@@ -202,7 +202,7 @@ export abstract class VisitorAbstract extends WeakEventEmitter implements IVisit
         status: FSFetchStatus.FETCH_REQUIRED,
         reason: FSFetchReasons.BUCKETING_CHANGED
       }
-      this.fetchFlags()
+      // this.fetchFlags()
     }
     this.bucketingStatus = status
   }
