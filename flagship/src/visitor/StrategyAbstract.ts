@@ -282,6 +282,16 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     abstract getFlagValue<T>(param:GetFlagValueParam<T>):T extends null ? unknown : T
     abstract getFlagMetadata(param:GetFlagMetadataParam):IFSFlagMetadata
 
+    abstract updateContextAsync(context: Record<string, primitive>): Promise<void>
+    abstract updateContextAsync(key: string, value: primitive): Promise<void>
+    abstract updateContextAsync (key: unknown, value?: unknown): Promise<void>
+
+    abstract clearContextAsync (): Promise<void>
+
+    abstract authenticateAsync (visitorId: string): Promise<void>
+
+    abstract unauthenticateAsync (): Promise<void>
+
     public async sendTroubleshootingHit (hit: Troubleshooting) {
       await this.trackingManager.sendTroubleshootingHit(hit)
     }

@@ -62,10 +62,31 @@ export interface IVisitor {
    */
   updateContext(key: string, value: primitive): void;
 
+   /**
+   * Updates the visitor context values, matching the given keys, used for targeting.
+   * This method is asynchronous will call the `decision API` to refresh the flags.
+   * @param context
+   */
+   updateContextAsync(context: Record<string, primitive>): Promise<void>;
+
+  /**
+   * Updates the visitor context value for the given key, used for targeting.
+   * This method is asynchronous will call the `decision API` to refresh the flags.
+   * @param key - The context key.
+   * @param value - The context value.
+   */
+  updateContextAsync(key: string, value: primitive): Promise<void>;
+
   /**
    * Clears the actual visitor context.
    */
   clearContext(): void;
+
+  /**
+   * Clears the actual visitor context.
+   * This method is asynchronous will call the `decision API` to refresh the flags.
+   */
+  clearContextAsync(): Promise<void>;
 
   /**
    * Returns a Flag object by its key. If no flag matches the given key, an empty flag will be returned.
@@ -108,8 +129,21 @@ export interface IVisitor {
   authenticate(visitorId: string): void;
 
   /**
+   * Authenticates an anonymous visitor.
+   * This method is asynchronous will call the `decision API` to refresh the flags.
+   * @param visitorId
+   */
+  authenticateAsync(visitorId: string): Promise<void>;
+
+  /**
    * Changes an authenticated visitor to an anonymous visitor.
    */
   unauthenticate(): void;
+
+  /**
+   * Changes an authenticated visitor to an anonymous visitor.
+   * This method is asynchronous will call the `decision API` to refresh the flags.
+   */
+  unauthenticateAsync(): Promise<void>;
 
 }
