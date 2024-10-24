@@ -533,15 +533,6 @@ export class DefaultStrategy extends StrategyAbstract {
 
       this.visitor.lastFetchFlagsTimestamp = Date.now()
 
-      if (this.decisionManager.isPanic()) {
-        this.visitor.fetchStatus = {
-          status: FSFetchStatus.PANIC,
-          reason: FSFetchReasons.NONE
-        }
-      }
-
-      this.configManager.trackingManager.troubleshootingData = this.decisionManager.troubleshooting
-
       logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_SUCCESS,
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
       )
@@ -594,33 +585,6 @@ export class DefaultStrategy extends StrategyAbstract {
     sendVisitorAllocatedVariations(visitorAllocatedVariations)
   }
 
-  private extractFlags (campaigns: CampaignDTO[]): Map<string, FlagDTO> {
-    const flags = new Map<string, FlagDTO>()
-    campaigns.forEach((campaign) => {
-      const object = campaign.variation.modifications.value
-      for (const key in object) {
-        const value = object[key]
-        flags.set(
-          key,
-          {
-            key,
-            campaignId: campaign.id,
-            campaignName: campaign.name || '',
-            variationGroupId: campaign.variationGroupId,
-            variationGroupName: campaign.variationGroupName || '',
-            variationId: campaign.variation.id,
-            variationName: campaign.variation.name || '',
-            isReference: !!campaign.variation.reference,
-            campaignType: campaign.type,
-            slug: campaign.slug,
-            value
-          }
-        )
-      }
-    })
-    return flags
-  }
-
   async fetchFlags (): Promise<void> {
     const now = Date.now()
 
@@ -670,7 +634,7 @@ export class DefaultStrategy extends StrategyAbstract {
         this.visitor.flagsData
       )
 
-      if (this.decisionManager.troubleshooting) {
+      if (this.bucketingPolling.getTroubleshootingData()) {
         this.sendFetchFlagsTroubleshooting({
           campaigns,
           now,
