@@ -1,9 +1,8 @@
 import { Event, EventCategory, HitAbstract } from '../hit/index'
-import { primitive, IHit, VisitorCacheDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorCacheStatus, CampaignDTO } from '../types'
+import { primitive, IHit, VisitorCacheDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorCacheStatus, CampaignDTO, FlagDTO } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
-import { IDecisionManager } from '../decision/IDecisionManager'
 import { logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, sprintf } from '../utils/utils'
 import { VISITOR_CACHE_ERROR, CONSENT_CHANGED, FS_CONSENT, LOOKUP_VISITOR_JSON_OBJECT_ERROR, PROCESS_CACHE, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION, VISITOR_CACHE_FLUSHED, VISITOR_CACHE_LOADED, VISITOR_CACHE_SAVED, LogLevel, ANALYTIC_HIT_ALLOCATION } from '../enum/index'
 import { BatchDTO } from '../hit/Batch'
@@ -14,6 +13,8 @@ import { UsageHit } from '../hit/UsageHit'
 import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
+import { IBucketingPolling } from '../polling/IBucketingPolling'
+import { IDecisionManager } from '../decision/IDecisionManager'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 
@@ -23,7 +24,7 @@ export type StrategyAbstractConstruct = {
   visitor:VisitorAbstract,
   murmurHash: MurmurHash
 }
-export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'anonymousId'| 'fetchStatus'|'flagsData'|'context'|'hasConsented'|'getFlagsDataArray'|'getFlag'|'getFlags'> {
+export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'anonymousId'| 'fetchStatus'|'flagsData'|'context'|'hasConsented'|'getFlagsDataArray'|'getFlag'|'getFlags'|'cleanup'> {
   protected visitor:VisitorAbstract
 
   protected get configManager ():IConfigManager {
@@ -34,8 +35,12 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     return this.configManager.trackingManager
   }
 
+  protected get bucketingPolling ():IBucketingPolling {
+    return this.configManager.bucketingPolling
+  }
+
   protected get decisionManager ():IDecisionManager {
-    return this.configManager.decisionManager
+    return this.visitor.apiManager
   }
 
   public get config ():IFlagshipConfig {
@@ -53,7 +58,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
   public updateCampaigns (campaigns:CampaignDTO[]):void {
     try {
       this.visitor.campaigns = campaigns
-      this.visitor.flagsData = this.decisionManager.getModifications(campaigns)
+      this.visitor.flagsData = this.extractFlags(campaigns)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logError(this.config, error.message || error, 'updateCampaigns')
@@ -107,7 +112,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
 
     logDebugSprintf(this.config, PROCESS_SET_CONSENT, CONSENT_CHANGED, this.visitor.visitorId, hasConsented)
 
-    if (this.decisionManager.troubleshooting) {
+    if (this.bucketingPolling.getTroubleshootingData()) {
       this.trackingManager.sendTroubleshootingHit(hitTroubleshooting)
       return
     }
@@ -327,7 +332,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
         config: this.config,
         sdkStatus: this.visitor.getSdkStatus(),
-        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+        lastBucketingTimestamp: this.configManager.bucketingPolling.getLastPollingTimestamp(),
         lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
         sdkConfigMode: this.getSdkConfigDecisionMode(),
         sdkConfigLogLevel: this.config.logLevel,
@@ -360,7 +365,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         assignmentHistory[item.variationGroupId] = item.variationId
       })
 
-      const uniqueId = this.visitor.visitorId + this.decisionManager.troubleshooting?.endDate.toUTCString()
+      const uniqueId = this.visitor.visitorId + this.bucketingPolling.getTroubleshootingData()?.endDate.toUTCString()
       const hash = this._murmurHash.murmurHash3Int32(uniqueId)
       const traffic = hash % 100
 
@@ -390,7 +395,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         visitorAssignmentHistory: assignmentHistory,
         visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
         visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
-        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+        lastBucketingTimestamp: this.configManager.bucketingPolling.getLastPollingTimestamp(),
         lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
         httpResponseTime: Date.now() - now,
         sdkConfigLogLevel: this.config.logLevel,
@@ -436,5 +441,32 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       segmentHitTroubleshooting.traffic = this.visitor.traffic
       this.trackingManager.sendTroubleshootingHit(segmentHitTroubleshooting)
       this.visitor.segmentHitTroubleshooting = undefined
+    }
+
+    protected extractFlags (campaigns: CampaignDTO[]): Map<string, FlagDTO> {
+      const flags = new Map<string, FlagDTO>()
+      campaigns.forEach((campaign) => {
+        const object = campaign.variation.modifications.value
+        for (const key in object) {
+          const value = object[key]
+          flags.set(
+            key,
+            {
+              key,
+              campaignId: campaign.id,
+              campaignName: campaign.name || '',
+              variationGroupId: campaign.variationGroupId,
+              variationGroupName: campaign.variationGroupName || '',
+              variationId: campaign.variation.id,
+              variationName: campaign.variation.name || '',
+              isReference: !!campaign.variation.reference,
+              campaignType: campaign.type,
+              slug: campaign.slug,
+              value
+            }
+          )
+        }
+      })
+      return flags
     }
 }
