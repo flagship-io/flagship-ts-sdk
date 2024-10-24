@@ -11,17 +11,19 @@ import { IFSFlagCollection } from '../flag/IFSFlagCollection'
 /**
  * The `Visitor` class represents a unique user within your application. It aids in
  * managing the visitor's data and fetching the corresponding flags for the visitor
- * from the [Flagship platform](https://app.flagship.io/login) .
+ * from the [Flagship platform](https://app.flagship.io) .
  */
 export class Visitor extends EventEmitter implements IVisitor {
   private visitorDelegate:VisitorAbstract
+  private _onReady:((err:unknown)=>void)
   public constructor (visitorDelegate: VisitorAbstract) {
     super()
     this.visitorDelegate = visitorDelegate
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.visitorDelegate.on(EMIT_READY, (err:any) => {
+
+    this._onReady = (err:unknown) => {
       this.emit(EMIT_READY, err)
-    })
+    }
+    this.visitorDelegate.on(EMIT_READY, this._onReady)
   }
 
   /**
@@ -167,5 +169,13 @@ export class Visitor extends EventEmitter implements IVisitor {
 
   unauthenticateAsync (): Promise<void> {
     return this.visitorDelegate.unauthenticateAsync()
+  }
+
+  /**
+   * @inheritdoc
+   */
+  public cleanup (): void {
+    this.visitorDelegate.cleanup()
+    this.visitorDelegate.off(EMIT_READY, this._onReady)
   }
 }
