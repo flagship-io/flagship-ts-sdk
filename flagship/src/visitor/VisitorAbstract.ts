@@ -1,4 +1,4 @@
-import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
+import { BUCKETING_STATUS_EVENT, HTTP_CODE_200, PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
 import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFSFlagMetadata, sdkInitialData, VisitorCacheStatus, FetchFlagsStatus, SerializedFlagMetadata, CampaignDTO, VisitorVariations } from '../types'
 
@@ -8,7 +8,6 @@ import { hexToValue, isBrowser, logDebugSprintf, logError, uuidV4 } from '../uti
 import { HitAbstract } from '../hit/index'
 import { DefaultStrategy } from './DefaultStrategy'
 import { StrategyAbstract } from './StrategyAbstract'
-import { EventEmitter } from '../depsNode.native'
 import { NotReadyStrategy } from './NotReadyStrategy'
 import { PanicStrategy } from './PanicStrategy'
 import { NoConsentStrategy } from './NoConsentStrategy'
@@ -21,8 +20,11 @@ import { IFSFlag } from '../flag/IFSFlag'
 import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
 import { IFSFlagCollection } from '../flag/IFSFlagCollection'
 import { sendVisitorExposedVariations } from '../qaAssistant/messages/index'
+import { IDecisionManager } from '../decision/IDecisionManager'
+import { IBucketingPolling } from '../polling/IBucketingPolling'
+import { WeakEventEmitter } from '../utils/WeakEventEmitter'
 
-export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
+export abstract class VisitorAbstract extends WeakEventEmitter implements IVisitor {
   protected _visitorId!: string
   protected _context: Record<string, primitive>
   protected _flags!: Map<string, FlagDTO>
@@ -45,6 +47,14 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   private _onFetchFlagsStatusChanged? : ({ status, reason }: FetchFlagsStatus) => void
   private _getCampaignsPromise? : Promise<CampaignDTO[]|null>
   private _hasContextBeenUpdated : boolean
+
+  protected _apiManager:IDecisionManager
+
+  private _onBucketingStatusChanged : (status:number) => void
+
+  public get apiManager () : IDecisionManager {
+    return this._apiManager
+  }
 
   public get hasContextBeenUpdated () : boolean {
     return this._hasContextBeenUpdated
@@ -71,6 +81,12 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   }
 
   public get fetchStatus () : FetchFlagsStatus {
+    if (VisitorAbstract.SdkStatus === FSSdkStatus.SDK_PANIC) {
+      return {
+        status: FSFetchStatus.PANIC,
+        reason: FSFetchReasons.NONE
+      }
+    }
     return this._fetchStatus
   }
 
@@ -101,10 +117,14 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     return this._sdkInitialData
   }
 
-  public static SdkStatus?: FSSdkStatus
+  protected static SdkStatus?: FSSdkStatus
 
   public getSdkStatus () : FSSdkStatus|undefined {
     return VisitorAbstract.SdkStatus
+  }
+
+  public static setSdkStatus (v : FSSdkStatus|undefined) {
+    VisitorAbstract.SdkStatus = v
   }
 
   public lastFetchFlagsTimestamp = 0
@@ -118,14 +138,20 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._visitorCacheStatus = v
   }
 
+  public get bucketingPolling () : IBucketingPolling {
+    return this.configManager.bucketingPolling
+  }
+
   constructor (param: NewVisitor & {
     visitorId?: string
     configManager: IConfigManager
     context: Record<string, primitive>
-    monitoringData?:sdkInitialData
+    monitoringData?:sdkInitialData,
+    decisionManager: IDecisionManager
   }) {
-    const { visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData, onFetchFlagsStatusChanged } = param
+    const { visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData, onFetchFlagsStatusChanged, decisionManager } = param
     super()
+    this._apiManager = decisionManager
     this._hasContextBeenUpdated = true
     this._exposedVariations = {}
     this._sdkInitialData = monitoringData
@@ -170,7 +196,19 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       reason: FSFetchReasons.VISITOR_CREATED
     }
 
+    this._onBucketingStatusChanged = this.onBucketingStatusChanged.bind(this)
+    this.bucketingPolling.on(BUCKETING_STATUS_EVENT, this._onBucketingStatusChanged)
+
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
+  }
+
+  protected onBucketingStatusChanged (status:number) {
+    if (status === HTTP_CODE_200) {
+      this.fetchStatus = {
+        status: FSFetchStatus.FETCH_REQUIRED,
+        reason: FSFetchReasons.BUCKETING_CHANGED
+      }
+    }
   }
 
   public get traffic () : number {
@@ -375,6 +413,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       sendVisitorExposedVariations(this._exposedVariations)
       this._exposedVariations = {}
     }, DELAY)
+  }
+
+  public cleanup (): void {
+    this.bucketingPolling.off(BUCKETING_STATUS_EVENT, this._onBucketingStatusChanged)
   }
 
   abstract updateContext(key: string, value: primitive):void
