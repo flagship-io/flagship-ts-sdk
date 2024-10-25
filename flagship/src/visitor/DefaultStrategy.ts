@@ -8,7 +8,6 @@ import {
   EMIT_READY,
   FETCH_CAMPAIGNS_FROM_CACHE,
   FETCH_CAMPAIGNS_SUCCESS,
-  FETCH_FLAGS_BUFFERING_MESSAGE,
   FETCH_FLAGS_FROM_CAMPAIGNS,
   FETCH_FLAGS_STARTED,
   FLAGSHIP_VISITOR_NOT_AUTHENTICATE,
@@ -34,7 +33,9 @@ import {
   VISITOR_AUTHENTICATE_VISITOR_ID_ERROR,
   VISITOR_EXPOSED_VALUE_NOT_CALLED,
   VISITOR_UNAUTHENTICATE,
-  VISITOR_ALREADY_AUTHENTICATE
+  VISITOR_ALREADY_AUTHENTICATE,
+  FETCH_FLAGS_FLAGS_UP_TO_DATE,
+  FETCH_FLAGS_PANIC_MODE_WARNING
 } from '../enum/index'
 import {
   HitAbstract,
@@ -475,7 +476,7 @@ export class DefaultStrategy extends StrategyAbstract {
       visitorFlags: this.visitor.flagsData,
       visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
       visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
-      lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+      lastBucketingTimestamp: this.configManager.bucketingPolling.getLastPollingTimestamp(),
       lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
       httpResponseTime: Date.now() - now,
       sdkConfigMode: this.getSdkConfigDecisionMode(),
@@ -499,11 +500,11 @@ export class DefaultStrategy extends StrategyAbstract {
     error?: string;
     isFetching?: boolean;
     isBuffered?: boolean;
+    isPanic?: boolean;
   }> {
     let campaigns: CampaignDTO[] | null = null
     const functionName = PROCESS_FETCHING_FLAGS
     try {
-      const time = Date.now() - this.visitor.lastFetchFlagsTimestamp
       const fetchStatus = this.visitor.fetchStatus.status
 
       if (fetchStatus === FSFetchStatus.FETCHING) {
@@ -511,10 +512,13 @@ export class DefaultStrategy extends StrategyAbstract {
         return { campaigns, isFetching: true }
       }
 
-      const fetchFlagBufferingTime = (this.config.fetchFlagsBufferingTime as number * 1000)
+      if (fetchStatus === FSFetchStatus.PANIC) {
+        logInfoSprintf(this.config, functionName, FETCH_FLAGS_PANIC_MODE_WARNING, this.visitor.visitorId)
+        return { campaigns, isPanic: true }
+      }
 
-      if (fetchStatus === FSFetchStatus.FETCHED && time < fetchFlagBufferingTime) {
-        logInfoSprintf(this.config, functionName, FETCH_FLAGS_BUFFERING_MESSAGE, this.visitor.visitorId, fetchFlagBufferingTime - time)
+      if (fetchStatus === FSFetchStatus.FETCHED) {
+        logDebugSprintf(this.config, functionName, FETCH_FLAGS_FLAGS_UP_TO_DATE, this.visitor.visitorId)
         return { campaigns, isBuffered: true }
       }
 
