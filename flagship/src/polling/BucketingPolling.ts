@@ -24,6 +24,9 @@ type handlePollingErrorParams = {
     error: any
 }
 
+/**
+ * Represents the Bucketing Polling module.
+ */
 export class BucketingPolling extends WeakEventEmitter implements IBucketingPolling {
   protected _isPooling: boolean
   protected _isFirstPooling: boolean
@@ -227,7 +230,7 @@ export class BucketingPolling extends WeakEventEmitter implements IBucketingPoll
     logInfo(this._config, BUCKETING_POOLING_STOPPED, PROCESS_BUCKETING)
   }
 
-  bucketingStatus (): number | undefined {
+  getBucketingStatus (): number | undefined {
     return this._bucketingStatus
   }
 

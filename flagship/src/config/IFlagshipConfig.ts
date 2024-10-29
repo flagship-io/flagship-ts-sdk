@@ -173,4 +173,9 @@ export interface IFlagshipConfig {
      * Disable the collect of analytics data
      */
     disableDeveloperUsageTracking?: boolean
+
+  /**
+   * If true, notifies all visitors that campaigns have been updated from the platform.
+   */
+  notifyOnCampaignUpdate?: boolean;
   }

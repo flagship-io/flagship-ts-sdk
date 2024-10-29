@@ -50,7 +50,7 @@ export abstract class VisitorAbstract extends WeakEventEmitter implements IVisit
 
   protected _apiManager:IDecisionManager
 
-  private _onBucketingStatusChanged : (status:number) => void
+  private _onBucketingStatusChanged! : (status:number) => void
 
   public get apiManager () : IDecisionManager {
     return this._apiManager
@@ -196,10 +196,17 @@ export abstract class VisitorAbstract extends WeakEventEmitter implements IVisit
       reason: FSFetchReasons.VISITOR_CREATED
     }
 
-    this._onBucketingStatusChanged = this.onBucketingStatusChanged.bind(this)
-    this.bucketingPolling.on(BUCKETING_STATUS_EVENT, this._onBucketingStatusChanged)
+    this.subscribeToBucketingStatusChanged()
 
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
+  }
+
+  protected subscribeToBucketingStatusChanged () {
+    if (!this.config.notifyOnCampaignUpdate) {
+      return
+    }
+    this._onBucketingStatusChanged = this.onBucketingStatusChanged.bind(this)
+    this.bucketingPolling.on(BUCKETING_STATUS_EVENT, this._onBucketingStatusChanged)
   }
 
   protected onBucketingStatusChanged (status:number) {

@@ -41,6 +41,15 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _onLog? : (level: LogLevel, tag: string, message: string)=>void
   private _isQAModeEnabled? : boolean
 
+  private _notifyOnCampaignUpdate : boolean|undefined
+  public get notifyOnCampaignUpdate () : boolean|undefined {
+    return this._notifyOnCampaignUpdate
+  }
+
+  public set notifyOnCampaignUpdate (v : boolean|undefined) {
+    this._notifyOnCampaignUpdate = v
+  }
+
   public get isQAModeEnabled () : boolean|undefined {
     return this._isQAModeEnabled
   }
@@ -105,9 +114,10 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       fetchNow, decisionMode, reuseVisitorIds, initialBucketing, decisionApiUrl,
       hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
       disableCache, language, sdkVersion, trackingManagerConfig, onLog,
-      onVisitorExposed, nextFetchConfig, fetchFlagsBufferingTime, disableDeveloperUsageTracking, pollingInterval
+      onVisitorExposed, nextFetchConfig, fetchFlagsBufferingTime, disableDeveloperUsageTracking, pollingInterval, notifyOnCampaignUpdate
     } = param
 
+    this.notifyOnCampaignUpdate = notifyOnCampaignUpdate
     this.pollingInterval = pollingInterval ?? DEFAULT_POLLING_INTERVAL
     this.initQaMode()
 
