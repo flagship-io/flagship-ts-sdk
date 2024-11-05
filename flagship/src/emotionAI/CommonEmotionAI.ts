@@ -17,12 +17,15 @@ export abstract class CommonEmotionAI implements IEmotionAI {
   protected _httpClient: IHttpClient
   protected _sdkConfig: IFlagshipConfig
   protected _eAIConfig: EAIConfig
+  protected _isEAIDataCollecting: boolean
+  protected _startCollectingEAIDataTime?: number
 
   public constructor ({ httpClient, sdkConfig, eAIConfig }: ConstructorParam) {
     this._EAIScoreChecked = false
     this._httpClient = httpClient
     this._sdkConfig = sdkConfig
     this._eAIConfig = eAIConfig
+    this._isEAIDataCollecting = false
   }
 
   public get EAIScore (): string | undefined {
@@ -77,7 +80,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
   protected abstract startCollectingEAIData (visitorId: string): void
 
   public async collectEAIData (visitorId: string): Promise<void> {
-    if (this._EAIScoreChecked || !this._eAIConfig.EAICollectEnabled) {
+    if (!this._eAIConfig.EAICollectEnabled || this._isEAIDataCollecting) {
       return
     }
     const score = await this.fetchEAIScore(visitorId)
