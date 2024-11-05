@@ -16,6 +16,26 @@ export class EmotionAI extends CommonEmotionAI {
   }
 
   protected startCollectingEAIData (visitorId: string): void {
-    // Send EAIData to server
+    this._isEAIDataCollecting = true
+    this._startCollectingEAIDataTime = Date.now()
+    const scrollHandler = (event: Event) => this.handleScroll(event, visitorId)
+    const mouseMoveHandler = (event: MouseEvent) => this.handleMouseMove(event, visitorId)
+    const clickHandler = (event: MouseEvent) => this.handleClick(event, visitorId)
+
+    window.addEventListener('scroll', scrollHandler)
+    document.addEventListener('mousemove', mouseMoveHandler)
+    document.addEventListener('click', clickHandler)
+  }
+
+  private handleScroll = (event: Event, visitorId: string): void => {
+    console.log('scroll', event, visitorId)
+  }
+
+  private handleMouseMove = (event: MouseEvent, visitorId: string): void => {
+    console.log('mousemove', event, visitorId)
+  }
+
+  private handleClick = (event: MouseEvent, visitorId: string): void => {
+    console.log('click', event, visitorId)
   }
 }
