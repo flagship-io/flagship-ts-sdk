@@ -18,7 +18,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
   protected _sdkConfig: IFlagshipConfig
   protected _eAIConfig: EAIConfig
   protected _isEAIDataCollecting: boolean
-  protected _startCollectingEAIDataTime?: number
+  protected _startCollectingEAIDataTimestamp!: number
 
   public constructor ({ httpClient, sdkConfig, eAIConfig }: ConstructorParam) {
     this._EAIScoreChecked = false
