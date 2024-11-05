@@ -66,6 +66,9 @@ export const FS_IS_QA_MODE_ENABLED = 'FS_IS_QA_MODE_ENABLED'
 export const FS_FORCED_VARIATIONS = 'FS_FORCED_VARIATIONS'
 export const FS_QA_ASSISTANT_SCRIPT_TAG_ID = 'FS_QA_ASSISTANT_SCRIPT_TAG_ID'
 
+export const EMOTION_AI_UC_URL = 'https://uc-info.staging.abtasty.com/v1/emotionsai?sp=1&uid={0}'
+export const VISITOR_EAI_SCORE_KEY = '{0}_EAIScore'
+
 /**
  * SDK version
  */
@@ -92,6 +95,7 @@ export const NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY = 3
 export const JS_DOC_URL = 'https://docs.developers.flagship.io/docs/js-v3'
 
 export const PANIC_MODE_DOC_URL = 'https://docs.developers.flagship.io/docs/glossary#panic-mode'
+
 /**
  * Message Error
  */
