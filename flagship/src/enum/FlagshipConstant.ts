@@ -30,6 +30,9 @@ export const BATCH_MAX_SIZE = 2500000
 
 export const ANALYTIC_HIT_ALLOCATION = 1
 
+export const MAX_COLLECTING_TIME_MS = 30000
+export const MAX_LAST_COLLECTING_TIME_MS = 120000
+
 /**
  * Decision api base url
  */
