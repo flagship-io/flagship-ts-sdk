@@ -18,3 +18,8 @@ export type GetFlagMetadataParam = {
     key: string;
     flag?: FlagDTO;
   };
+
+export type EAIConfig = {
+  EAICollectEnabled: boolean;
+  EAIActivationEnabled: boolean;
+}
