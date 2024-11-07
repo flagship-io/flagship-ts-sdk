@@ -112,4 +112,8 @@ export interface IVisitor {
    */
   unauthenticate(): void;
 
+  /**
+   * Collects Emotion AI data for the visitor.
+   */
+  collectEAIData(): void;
 }
