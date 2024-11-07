@@ -150,4 +150,11 @@ export class Visitor extends EventEmitter implements IVisitor {
   unauthenticate (): void {
     this.visitorDelegate.unauthenticate()
   }
+
+  /**
+   * @inheritdoc
+   */
+  collectEAIData (): void {
+    this.visitorDelegate.collectEAIData()
+  }
 }
