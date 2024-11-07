@@ -45,7 +45,7 @@ export class VisitorEvent implements IVisitorEvent {
     clickPosition,
     screenSize,
     scrollPosition
-  }: IVisitorEvent) {
+  }: Omit<IVisitorEvent, 'toApiKeys'>) {
     this._customerAccountId = customerAccountId
     this._visitorId = visitorId
     this._currentUrl = currentUrl
