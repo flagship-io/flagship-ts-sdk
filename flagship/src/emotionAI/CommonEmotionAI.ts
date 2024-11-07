@@ -4,6 +4,8 @@ import { IEmotionAI } from './IEmotionAI'
 import { EAIConfig } from '../type.local'
 import { logErrorSprintf, sprintf } from '../utils/utils'
 import { EMOTION_AI_UC_URL, VISITOR_EAI_SCORE_KEY } from '../enum/FlagshipConstant'
+import { IVisitorEvent } from './hit/IVisitorEvent'
+import { IPageView } from './hit/IPageView'
 
 type ConstructorParam = {
   httpClient: IHttpClient;
@@ -77,7 +79,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     return this._EAIScore
   }
 
-  protected abstract startCollectingEAIData (visitorId: string): void
+  protected abstract startCollectingEAIData (visitorId: string): Promise<void> ;
 
   public async collectEAIData (visitorId: string): Promise<void> {
     if (!this._eAIConfig.EAICollectEnabled || this._isEAIDataCollecting) {
@@ -87,6 +89,22 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     if (score !== undefined) {
       return
     }
-    this.startCollectingEAIData(visitorId)
+    await this.startCollectingEAIData(visitorId)
+  }
+
+  protected async sendVisitorEvent (visitorEvent:IVisitorEvent): Promise<void> {
+    try {
+      console.log('sendVisitorEvent', visitorEvent.toApiKeys())
+    } catch (error) {
+      //
+    }
+  }
+
+  protected async sendPageView (pageView:IPageView): Promise<void> {
+    try {
+      console.log('sendPageView', pageView.toApiKeys())
+    } catch (error) {
+      //
+    }
   }
 }
