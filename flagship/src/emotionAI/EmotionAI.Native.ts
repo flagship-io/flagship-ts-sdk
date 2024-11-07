@@ -10,7 +10,7 @@ export class EmotionAI extends CommonEmotionAI {
     throw new Error('Method not implemented.')
   }
 
-  protected startCollectingEAIData (visitorId: string): void {
+  protected startCollectingEAIData (visitorId: string): Promise<void> {
     throw new Error('Method not implemented.')
   }
 }
