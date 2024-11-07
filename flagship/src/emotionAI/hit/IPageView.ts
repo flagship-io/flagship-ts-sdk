@@ -195,4 +195,9 @@ export interface IPageView {
      * **Optional**
      */
     customerUserId?: string;
+
+    /**
+     * Convert the visitor event to an object that can be sent to the Flagship API.
+     */
+    toApiKeys (): Record<string, boolean|string|number>
 }
