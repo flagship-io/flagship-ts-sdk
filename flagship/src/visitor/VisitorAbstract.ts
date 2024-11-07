@@ -21,6 +21,7 @@ import { IFSFlag } from '../flag/IFSFlag'
 import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
 import { IFSFlagCollection } from '../flag/IFSFlagCollection'
 import { sendVisitorExposedVariations } from '../qaAssistant/messages/index'
+import { IEmotionAI } from '../emotionAI/IEmotionAI'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -45,6 +46,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   private _onFetchFlagsStatusChanged? : ({ status, reason }: FetchFlagsStatus) => void
   private _getCampaignsPromise? : Promise<CampaignDTO[]|null>
   private _hasContextBeenUpdated : boolean
+  private _emotionAi: IEmotionAI
 
   public get hasContextBeenUpdated () : boolean {
     return this._hasContextBeenUpdated
@@ -118,14 +120,20 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._visitorCacheStatus = v
   }
 
+  public get emotionAi () : IEmotionAI {
+    return this._emotionAi
+  }
+
   constructor (param: NewVisitor & {
     visitorId?: string
     configManager: IConfigManager
     context: Record<string, primitive>
-    monitoringData?:sdkInitialData
+    monitoringData?:sdkInitialData,
+    emotionAi: IEmotionAI
   }) {
-    const { visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData, onFetchFlagsStatusChanged } = param
+    const { visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData, onFetchFlagsStatusChanged, emotionAi } = param
     super()
+    this._emotionAi = emotionAi
     this._hasContextBeenUpdated = true
     this._exposedVariations = {}
     this._sdkInitialData = monitoringData
@@ -375,6 +383,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       sendVisitorExposedVariations(this._exposedVariations)
       this._exposedVariations = {}
     }, DELAY)
+  }
+
+  public collectEAIData (): void {
+    this.emotionAi.collectEAIData(this.visitorId)
   }
 
   abstract updateContext(key: string, value: primitive):void
