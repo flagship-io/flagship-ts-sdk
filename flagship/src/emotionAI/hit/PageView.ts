@@ -129,7 +129,7 @@ export class PageView implements IPageView {
     currentUrl,
     userAgent,
     customerUserId
-  }: IPageView) {
+  }: Omit<IPageView, 'toApiKeys'>) {
     this._customerAccountId = customerAccountId
     this._visitorId = visitorId
     this._hasAdBlocker = hasAdBlocker
