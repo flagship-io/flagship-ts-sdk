@@ -36,6 +36,11 @@ import { EdgeConfig } from '../config/EdgeConfig'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { launchQaAssistant } from '../qaAssistant/index'
 import { EmotionAI } from '../emotionAI/EmotionAI'
+import { ISdkManager } from './ISdkManager'
+import { BucketingSdkManager } from './BucketingSdkManager'
+import { EdgeSdkManager } from './EdgeSdkManager'
+import { ApiSdkManager } from './ApiSdkManager'
+import { ITrackingManager } from 'src/api/ITrackingManager'
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
@@ -49,6 +54,7 @@ export class Flagship {
   private _visitorInstance?: Visitor
   private instanceId:string
   private lastInitializationTimestamp!: string
+  private _sdkManager : ISdkManager|undefined
 
   private set configManager (value: IConfigManager) {
     this._configManager = value
@@ -154,30 +160,61 @@ export class Flagship {
     return newConfig
   }
 
-  private buildDecisionManager (flagship: Flagship, config: FlagshipConfig, httpClient: HttpClient): DecisionManager {
-    let decisionManager: DecisionManager
-    const setStatus = this.setStatus.bind(flagship)
-
-    switch (config.decisionMode) {
+  private createManagers (
+    httpClient: HttpClient,
+    sdkConfig: IFlagshipConfig,
+    trackingManager: ITrackingManager
+  ): { sdkManager: ISdkManager; decisionManager: DecisionManager } {
+    let sdkManager: ISdkManager
+    switch (sdkConfig.decisionMode) {
       case DecisionMode.BUCKETING:
-        decisionManager = new BucketingManager(httpClient, config, new MurmurHash())
-        decisionManager.statusChangedCallback(setStatus);
-        (decisionManager as BucketingManager).startPolling()
-        break
+        sdkManager = new BucketingSdkManager({ httpClient, sdkConfig, trackingManager })
+        return {
+          sdkManager,
+          decisionManager: new BucketingManager({
+            httpClient,
+            config: sdkConfig,
+            murmurHash: new MurmurHash(),
+            sdkManager
+          })
+        }
       case DecisionMode.BUCKETING_EDGE:
-        decisionManager = new EdgeManager(httpClient, config, new MurmurHash())
-        decisionManager.statusChangedCallback(setStatus)
-        break
+        sdkManager = new EdgeSdkManager({ httpClient, sdkConfig, trackingManager })
+        return {
+          sdkManager,
+          decisionManager: new EdgeManager({
+            httpClient,
+            config: sdkConfig,
+            murmurHash: new MurmurHash(),
+            sdkManager
+          })
+        }
       default:
-        decisionManager = new ApiManager(
-          httpClient,
-          config
-        )
-        decisionManager.statusChangedCallback(setStatus)
-        break
+        return {
+          sdkManager: new ApiSdkManager({ httpClient, sdkConfig, trackingManager }),
+          decisionManager: new ApiManager(httpClient, sdkConfig)
+        }
     }
+  }
 
-    return decisionManager
+  private async initializeSdk (sdkConfig: IFlagshipConfig): Promise<void> {
+    this.setStatus(FSSdkStatus.SDK_INITIALIZING)
+
+    this._sdkManager?.resetSdk()
+
+    const httpClient = new HttpClient()
+    const trackingManager = this.configManager?.trackingManager || new TrackingManager(httpClient, sdkConfig, this.instanceId)
+
+    const { sdkManager, decisionManager } = this.createManagers(httpClient, sdkConfig, trackingManager)
+
+    decisionManager.statusChangedCallback(this.setStatus.bind(this))
+    decisionManager.flagshipInstanceId = this.instanceId
+
+    this.configManager = new ConfigManager(sdkConfig, decisionManager, trackingManager)
+
+    await sdkManager.initSdk()
+
+    this.setStatus(FSSdkStatus.SDK_INITIALIZED)
   }
 
   /**
@@ -186,11 +223,11 @@ export class Flagship {
    * @param {string} apiKey : Secure api key provided by Flagship.
    * @param {IFlagshipConfig} config : (optional) SDK configuration.
    */
-  public static start (
+  public static async start (
     envId: string,
     apiKey: string,
     config?: IDecisionApiConfig| IBucketingConfig |IEdgeConfig
-  ): Flagship {
+  ): Promise<Flagship> {
     const flagship = this.getInstance()
 
     const localConfig = flagship.buildConfig(config)
@@ -221,34 +258,7 @@ export class Flagship {
       localConfig.visitorCacheImplementation = new DefaultVisitorCache()
     }
 
-    const httpClient = new HttpClient()
-
-    const decisionManager = flagship.configManager?.decisionManager
-
-    if (decisionManager instanceof BucketingManager && localConfig.decisionMode !== DecisionMode.BUCKETING_EDGE) {
-      decisionManager.stopPolling()
-    }
-
-    let trackingManager = flagship.configManager?.trackingManager
-
-    if (!trackingManager) {
-      trackingManager = new TrackingManager(httpClient, localConfig, flagship.instanceId)
-    }
-
-    flagship.configManager = new ConfigManager(
-      localConfig,
-      decisionManager,
-      trackingManager
-    )
-
-    flagship.configManager.decisionManager = flagship.buildDecisionManager(flagship, localConfig as FlagshipConfig, httpClient)
-
-    flagship.configManager.decisionManager.trackingManager = trackingManager
-    flagship.configManager.decisionManager.flagshipInstanceId = flagship.instanceId
-
-    if (flagship._status !== FSSdkStatus.SDK_INITIALIZING) {
-      flagship.setStatus(FSSdkStatus.SDK_INITIALIZED)
-    }
+    await flagship.initializeSdk(localConfig)
 
     logInfo(
       localConfig,
@@ -287,6 +297,15 @@ export class Flagship {
     return Flagship.newVisitor(params)
   }
 
+  private initializeConfigManager (): void {
+    const config = new DecisionApiConfig()
+    config.logManager = new FlagshipLogManager()
+    const httpClient = new HttpClient()
+    const trackingManager = new TrackingManager(httpClient, config)
+    const decisionManager = new ApiManager(httpClient, config)
+    this.configManager = new ConfigManager(config, decisionManager, trackingManager)
+  }
+
   /**
    * Creates a new Visitor instance.
    *
@@ -295,37 +314,21 @@ export class Flagship {
    */
   public static newVisitor ({ visitorId, context, isAuthenticated, hasConsented, initialCampaigns, initialFlagsData, shouldSaveInstance, onFetchFlagsStatusChanged }: NewVisitor) {
     const saveInstance = shouldSaveInstance ?? isBrowser()
+    const flagship = this.getInstance()
 
-    if (!this._instance?.configManager) {
-      const flagship = this.getInstance()
-      const config = new DecisionApiConfig()
-      config.logManager = new FlagshipLogManager()
-      flagship._config = config
-      const httpClient = new HttpClient()
-      const trackingManager = new TrackingManager(httpClient, config)
-      const decisionManager = new ApiManager(
-        httpClient,
-        config
-      )
-      flagship.configManager = new ConfigManager(
-        config,
-        decisionManager,
-        trackingManager
-      )
-      logError(this.getConfig(), NEW_VISITOR_NOT_READY, PROCESS_NEW_VISITOR)
+    if (!flagship.configManager) {
+      flagship.initializeConfigManager()
+      logError(flagship.getConfig(), NEW_VISITOR_NOT_READY, PROCESS_NEW_VISITOR)
     }
 
     if (hasConsented === undefined) {
-      logWarning(this.getConfig(), CONSENT_NOT_SPECIFY_WARNING, PROCESS_NEW_VISITOR)
+      logWarning(flagship.getConfig(), CONSENT_NOT_SPECIFY_WARNING, PROCESS_NEW_VISITOR)
     }
 
     const emotionAi = new EmotionAI({
       sdkConfig: this.getInstance().getConfig(),
       httpClient: new HttpClient(),
-      eAIConfig: {
-        EAIActivationEnabled: true,
-        EAICollectEnabled: true
-      }
+      eAIConfig: flagship._sdkManager?.getEAIConfig()
     })
 
     const visitorDelegate = new VisitorDelegate({
@@ -347,8 +350,8 @@ export class Flagship {
     })
 
     const visitor = new Visitor(visitorDelegate)
-
     this.getInstance()._visitorInstance = saveInstance ? visitor : undefined
+
     if (saveInstance) {
       logDebugSprintf(this.getConfig(), PROCESS_NEW_VISITOR, SAVE_VISITOR_INSTANCE, visitor.visitorId)
     }
