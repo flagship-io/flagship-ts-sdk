@@ -10,7 +10,7 @@ import { IPageView } from './hit/IPageView'
 type ConstructorParam = {
   httpClient: IHttpClient;
   sdkConfig: IFlagshipConfig;
-  eAIConfig: EAIConfig;
+  eAIConfig: EAIConfig|undefined;
 }
 
 export abstract class CommonEmotionAI implements IEmotionAI {
@@ -18,7 +18,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
   protected _EAIScoreChecked
   protected _httpClient: IHttpClient
   protected _sdkConfig: IFlagshipConfig
-  protected _eAIConfig: EAIConfig
+  protected _eAIConfig?: EAIConfig
   protected _isEAIDataCollecting: boolean
   protected _startCollectingEAIDataTimestamp!: number
 
@@ -43,7 +43,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
   protected abstract setCachedScore (cacheKey: string, score: string): void ;
 
   public async fetchEAIScore (visitorId:string): Promise<string|undefined> {
-    if (!this._eAIConfig.EAIActivationEnabled) {
+    if (!this._eAIConfig?.eaiCollectEnabled) {
       return undefined
     }
 
@@ -82,7 +82,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
   protected abstract startCollectingEAIData (visitorId: string): Promise<void> ;
 
   public async collectEAIData (visitorId: string): Promise<void> {
-    if (!this._eAIConfig.EAICollectEnabled || this._isEAIDataCollecting) {
+    if (!this._eAIConfig?.eaiActivationEnabled || this._isEAIDataCollecting) {
       return
     }
     const score = await this.fetchEAIScore(visitorId)
