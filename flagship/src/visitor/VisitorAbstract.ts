@@ -386,7 +386,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   }
 
   public collectEAIData (): void {
-    this.emotionAi.collectEAIData(this.visitorId)
+    this.getStrategy().collectEAIData()
   }
 
   abstract updateContext(key: string, value: primitive):void

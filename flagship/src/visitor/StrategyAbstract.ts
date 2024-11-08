@@ -23,7 +23,7 @@ export type StrategyAbstractConstruct = {
   visitor:VisitorAbstract,
   murmurHash: MurmurHash
 }
-export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'anonymousId'| 'fetchStatus'|'flagsData'|'context'|'hasConsented'|'getFlagsDataArray'|'getFlag'|'getFlags'|'collectEAIData'> {
+export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'anonymousId'| 'fetchStatus'|'flagsData'|'context'|'hasConsented'|'getFlagsDataArray'|'getFlag'|'getFlags'> {
   protected visitor:VisitorAbstract
 
   protected get configManager ():IConfigManager {
@@ -48,6 +48,10 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     const { visitor, murmurHash } = param
     this.visitor = visitor
     this._murmurHash = murmurHash
+  }
+
+  collectEAIData (): void {
+    this.visitor.emotionAi.collectEAIData(this.visitor.visitorId)
   }
 
   public updateCampaigns (campaigns:CampaignDTO[]):void {
