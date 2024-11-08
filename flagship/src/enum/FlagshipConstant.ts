@@ -72,6 +72,7 @@ export const FS_FORCED_VARIATIONS = 'FS_FORCED_VARIATIONS'
 export const FS_QA_ASSISTANT_SCRIPT_TAG_ID = 'FS_QA_ASSISTANT_SCRIPT_TAG_ID'
 
 export const EMOTION_AI_UC_URL = 'https://uc-info.staging.abtasty.com/v1/emotionsai?sp=1&uid={0}'
+export const CDN_ACCOUNT_SETTINGS_URL = 'https://62c6b9662b03e73a58d53846.mockapi.io/accountSettings/1'
 export const VISITOR_EAI_SCORE_KEY = '{0}_EAIScore'
 
 /**
