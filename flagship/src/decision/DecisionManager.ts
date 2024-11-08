@@ -7,10 +7,8 @@ import { CampaignDTO, FlagDTO, TroubleshootingData, TroubleshootingLabel } from 
 import { errorFormat, logDebug } from '../utils/utils'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { ITrackingManager } from '../api/ITrackingManager'
-import { BucketingDTO } from './api/bucketingDTO'
 
 export abstract class DecisionManager implements IDecisionManager {
-  protected _bucketingContent?: BucketingDTO
   protected _config: IFlagshipConfig
   protected _panic = false
   protected _httpClient: IHttpClient
