@@ -20,6 +20,6 @@ export type GetFlagMetadataParam = {
   };
 
 export type EAIConfig = {
-  EAICollectEnabled: boolean;
-  EAIActivationEnabled: boolean;
+  eaiActivationEnabled: boolean;
+  eaiCollectEnabled: boolean;
 }
