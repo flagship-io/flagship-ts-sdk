@@ -14,7 +14,7 @@ type ConstructorParam = {
 }
 
 export abstract class CommonEmotionAI implements IEmotionAI {
-  protected _EAIScore?: string
+  protected _EAIScore?: Record<string, string>
   protected _EAIScoreChecked: boolean
   protected _httpClient: IHttpClient
   protected _sdkConfig: IFlagshipConfig
@@ -36,7 +36,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     this._isEAIDataCollected = false
   }
 
-  public get EAIScore (): string | undefined {
+  public get EAIScore (): Record<string, string> | undefined {
     return this._EAIScore
   }
 
@@ -48,9 +48,12 @@ export abstract class CommonEmotionAI implements IEmotionAI {
 
   protected abstract setCachedScore (cacheKey: string, score: string): void ;
 
-  public async fetchEAIScore (visitorId:string): Promise<string|undefined> {
+  public abstract cleanup (): void ;
+
+  public async fetchEAIScore (visitorId:string): Promise<Record<string, string>|undefined> {
     if (this._fetchEAIScorePromise) {
       await this._fetchEAIScorePromise
+      return this._EAIScore
     }
 
     if (!this._eAIConfig?.eaiActivationEnabled) {
@@ -65,7 +68,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     const cachedEAIScore = this.getCachedScore(cacheKey)
 
     if (cachedEAIScore) {
-      this._EAIScore = cachedEAIScore
+      this._EAIScore = JSON.parse(cachedEAIScore)
       this._EAIScoreChecked = true
       return this._EAIScore
     }
@@ -76,7 +79,9 @@ export abstract class CommonEmotionAI implements IEmotionAI {
       const response = await this._fetchEAIScorePromise
       this._EAIScore = response.body
       this._EAIScoreChecked = true
-      this.setCachedScore(cacheKey, this._EAIScore as string)
+      if (this._EAIScore) {
+        this.setCachedScore(cacheKey, JSON.stringify(this._EAIScore))
+      }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logErrorSprintf(
@@ -99,7 +104,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
       return
     }
     const score = await this.fetchEAIScore(visitorId)
-    if (score !== undefined) {
+    if (score) {
       return
     }
     await this.startCollectingEAIData(visitorId)
