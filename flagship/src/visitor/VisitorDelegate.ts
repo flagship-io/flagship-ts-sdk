@@ -56,9 +56,7 @@ export class VisitorDelegate extends VisitorAbstract {
   }
 
   async fetchFlags ():Promise<void> {
-    await this.getStrategy().lookupVisitor()
     await this.getStrategy().fetchFlags()
-    await this.getStrategy().cacheVisitor()
   }
 
   visitorExposed (param:VisitorExposedParam): Promise<void> {

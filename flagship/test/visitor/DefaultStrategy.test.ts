@@ -179,6 +179,7 @@ describe('test DefaultStrategy ', () => {
   })
   it('test clear Context', () => {
     defaultStrategy.clearContext()
+    defaultStrategy.clearContext()
     expect(visitorDelegate.context).toEqual({
       fs_client: SDK_INFO.name,
       fs_version: SDK_INFO.version,
@@ -219,8 +220,6 @@ describe('test DefaultStrategy ', () => {
     await defaultStrategy.fetchFlags()
     expect(getCampaignsAsync).toBeCalledTimes(1)
     expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
-    expect(getModifications).toBeCalledTimes(1)
-    expect(getModifications).toBeCalledWith(campaignDTO)
     expect(visitorDelegate.fetchStatus).toEqual({ status: FSFetchStatus.FETCHED, reason: FSFetchReasons.NONE })
 
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(2)
@@ -989,8 +988,6 @@ describe('test DefaultStrategy fetch flags buffering', () => {
     await defaultStrategy.fetchFlags()
     expect(getCampaignsAsync).toBeCalledTimes(1)
     expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
-    expect(getModifications).toBeCalledTimes(1)
-    expect(getModifications).toBeCalledWith(campaignDTO)
     expect(logInfo).toBeCalledTimes(1)
 
     visitorDelegate.updateContext('key', 'value1')
@@ -1009,8 +1006,6 @@ describe('test DefaultStrategy fetch flags buffering', () => {
     await defaultStrategy.fetchFlags()
     expect(getCampaignsAsync).toBeCalledTimes(2)
     expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
-    expect(getModifications).toBeCalledTimes(2)
-    expect(getModifications).toBeCalledWith(campaignDTO)
     expect(logInfo).toBeCalledTimes(0)
   })
 
@@ -1025,8 +1020,6 @@ describe('test DefaultStrategy fetch flags buffering', () => {
     await defaultStrategy.fetchFlags()
     expect(getCampaignsAsync).toBeCalledTimes(2)
     expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
-    expect(getModifications).toBeCalledTimes(2)
-    expect(getModifications).toBeCalledWith(campaignDTO)
     expect(logInfo).toBeCalledTimes(0)
   })
 
@@ -1040,8 +1033,6 @@ describe('test DefaultStrategy fetch flags buffering', () => {
     await Promise.all([defaultStrategy.fetchFlags(), defaultStrategy.fetchFlags()])
     expect(getCampaignsAsync).toBeCalledTimes(1)
     expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
-    expect(getModifications).toBeCalledTimes(1)
-    expect(getModifications).toBeCalledWith(campaignDTO)
     expect(logInfo).toBeCalledTimes(0)
   })
 })
@@ -1196,7 +1187,9 @@ describe('test fetchFlags errors 2', () => {
     })
 
     getCampaignsAsync.mockResolvedValue([])
-    getModifications.mockImplementation(() => {
+
+    const extractFlagsMock = jest.spyOn(defaultStrategy as any, 'extractFlags')
+    extractFlagsMock.mockImplementation(() => {
       throw error
     })
 
@@ -1206,7 +1199,7 @@ describe('test fetchFlags errors 2', () => {
       visitorId,
       anonymousId: visitorDelegate.anonymousId,
       context: visitorDelegate.context,
-      isFromCache: false,
+      statusReason: FSFetchReasons.NONE,
       duration: 0
     }), PROCESS_FETCHING_FLAGS)
   })
@@ -1246,11 +1239,6 @@ describe('test DefaultStrategy troubleshootingHit 1', () => {
     'getCampaignsAsync'
   )
 
-  const getModifications = jest.spyOn(
-    apiManager,
-    'getModifications'
-  )
-
   const trackingManager = new TrackingManager(httpClient, config)
 
   const addHit = jest.spyOn(trackingManager, 'addHit')
@@ -1276,19 +1264,23 @@ describe('test DefaultStrategy troubleshootingHit 1', () => {
   }
 
   it('test fetchFlags', async () => {
-    const flagDTO: FlagDTO = {
-      key: 'key',
-      campaignId: 'campaignId',
-      campaignName: 'campaignName',
-      variationGroupId: 'variationGroupId',
-      variationGroupName: 'variationGroupName',
-      variationId: 'variationId',
-      variationName: 'variationName',
-      value: 'value'
-    }
-    const flags = new Map<string, FlagDTO>().set(flagDTO.key, flagDTO)
-    getCampaignsAsync.mockResolvedValue([])
-    getModifications.mockReturnValueOnce(flags)
+    const campaignDTO = [
+      {
+        id: 'c2nrh1hjg50l9thhu8bg',
+        variationGroupId: 'c2nrh1hjg50l9thhu8cg',
+        variation: {
+          id: 'c2nrh1hjg50l9thhu8dg',
+          modifications: {
+            type: 'JSON',
+            value: {
+              key: 'value'
+            }
+          },
+          reference: false
+        }
+      }
+    ]
+    getCampaignsAsync.mockResolvedValue(campaignDTO)
 
     await defaultStrategy.fetchFlags()
 
@@ -1576,7 +1568,9 @@ describe('test DefaultStrategy troubleshootingHit', () => {
   ]
   it('test fetchFlags throw error here ', async () => {
     getCampaignsAsync.mockResolvedValue(campaignDTO)
-    getModifications.mockImplementation(() => {
+
+    const extractFlagsMock = jest.spyOn(defaultStrategy as any, 'extractFlags')
+    extractFlagsMock.mockImplementation(() => {
       throw new Error('error')
     })
     await defaultStrategy.fetchFlags()
@@ -1649,20 +1643,23 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
   it('test fetchFlags', async () => {
-    const flagDTO: FlagDTO = {
-      key: 'key',
-      campaignId: 'campaignId',
-      campaignName: 'campaignName',
-      variationGroupId: 'variationGroupId',
-      variationGroupName: 'variationGroupName',
-      variationId: 'variationId',
-      variationName: 'variationName',
-      value: 'value'
-    }
+    const campaignDTO = [
+      {
+        id: 'c2nrh1hjg50l9stringgu8bg',
+        slug: 'slug',
+        variationGroupId: 'id',
+        variation: {
+          id: '1dl',
+          reference: false,
+          modifications: {
+            type: 'number',
+            value: 12
+          }
+        }
+      }
+    ]
     const getCurrentDateTime = jest.spyOn(defaultStrategy, 'getCurrentDateTime')
-    const flags = new Map<string, FlagDTO>().set(flagDTO.key, flagDTO)
-    getCampaignsAsync.mockResolvedValue([])
-    getModifications.mockReturnValueOnce(flags)
+    getCampaignsAsync.mockResolvedValue(campaignDTO)
     getCurrentDateTime.mockReturnValue(new Date(2024, 0, 29))
 
     await defaultStrategy.fetchFlags()
