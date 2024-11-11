@@ -155,9 +155,7 @@ export class Flagship {
 
   private buildDecisionManager (flagship: Flagship, config: FlagshipConfig, httpClient: HttpClient): DecisionManager {
     let decisionManager: DecisionManager
-    const setStatus = (status: FSSdkStatus) => {
-      flagship.setStatus(status)
-    }
+    const setStatus = this.setStatus.bind(flagship)
 
     switch (config.decisionMode) {
       case DecisionMode.BUCKETING:
