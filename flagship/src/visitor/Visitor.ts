@@ -15,13 +15,14 @@ import { IFSFlagCollection } from '../flag/IFSFlagCollection'
  */
 export class Visitor extends EventEmitter implements IVisitor {
   private visitorDelegate:VisitorAbstract
+  private _onReady:((err:any)=>void)
   public constructor (visitorDelegate: VisitorAbstract) {
     super()
     this.visitorDelegate = visitorDelegate
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.visitorDelegate.on(EMIT_READY, (err:any) => {
+    this._onReady = (err:any) => {
       this.emit(EMIT_READY, err)
-    })
+    }
+    this.visitorDelegate.on(EMIT_READY, this._onReady)
   }
 
   /**
@@ -156,5 +157,14 @@ export class Visitor extends EventEmitter implements IVisitor {
    */
   collectEAIData (): void {
     this.visitorDelegate.collectEAIData()
+  }
+
+  /**
+   * @inheritdoc
+   */
+
+  public cleanup (): void {
+    this.visitorDelegate.cleanup()
+    this.visitorDelegate.off(EMIT_READY, this._onReady)
   }
 }
