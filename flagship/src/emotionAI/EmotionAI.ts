@@ -15,6 +15,7 @@ export class EmotionAI extends CommonEmotionAI {
   protected _clickPathTimeoutId: number | null = null
   protected _scoringInterval = 5000
   protected _startScoringTimestamp!: number
+  protected _scoringIntervalId?: NodeJS.Timer
 
   protected getCachedScore (cacheKey: string): string | null {
     if (typeof localStorage !== 'undefined') {
@@ -27,6 +28,13 @@ export class EmotionAI extends CommonEmotionAI {
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem(cacheKey, score)
     }
+  }
+
+  public cleanup (): void {
+    this.removeListeners()
+    this._isEAIDataCollecting = false
+    this._isEAIDataCollected = false
+    clearInterval(this._scoringIntervalId)
   }
 
   protected async processPageView (visitorId: string): Promise<void> {
@@ -100,16 +108,16 @@ export class EmotionAI extends CommonEmotionAI {
     this.removeListeners()
     this._startScoringTimestamp = Date.now()
 
-    const scoringIntervalId = setInterval(async () => {
+    this._scoringIntervalId = setInterval(async () => {
       if (Date.now() - this._startScoringTimestamp > MAX_SCORING_POLLING_TIME) {
-        clearInterval(scoringIntervalId)
+        clearInterval(this._scoringIntervalId)
         this._isEAIDataCollecting = false
         this._isEAIDataCollected = true
       }
       this._EAIScoreChecked = false
       const score = await this.fetchEAIScore(visitorId)
       if (score) {
-        clearInterval(scoringIntervalId)
+        clearInterval(this._scoringIntervalId)
         this._isEAIDataCollecting = false
         this._isEAIDataCollected = true
       }
