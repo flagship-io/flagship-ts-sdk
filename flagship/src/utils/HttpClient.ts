@@ -25,7 +25,7 @@ export interface IHttpClient {
 export class HttpClient implements IHttpClient {
   private async getResponse (response:Response) {
     const applicationType = response.headers.get('Content-Type')
-    const checkJson = applicationType === 'application/json'
+    const checkJson = applicationType?.includes('application/json')
     let body:Record<string, unknown>|undefined
     const headers:Record<string, string> = {}
     response.headers.forEach((value, key) => {
