@@ -10,7 +10,7 @@ import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { Targetings, VariationGroupDTO } from './api/bucketingDTO'
 import { DecisionManager } from './DecisionManager'
 import { Troubleshooting } from '../hit/Troubleshooting'
-import { ISdkManager } from 'src/main/ISdkManager'
+import { ISdkManager } from '../main/ISdkManager'
 
 type ConstructorParam = {
   httpClient: IHttpClient;
