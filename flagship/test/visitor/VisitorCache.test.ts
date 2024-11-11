@@ -39,7 +39,7 @@ describe('test visitor cache', () => {
     flushVisitor
   }
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', visitorCacheImplementation })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', visitorCacheImplementation, fetchFlagsBufferingTime: 0 })
   config.logManager = logManager
 
   const httpClient = new HttpClient()
@@ -174,10 +174,10 @@ describe('test visitor cache', () => {
     getCampaignsAsync.mockResolvedValue(null)
 
     const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
-    const noConsentStrategy = new PanicStrategy({ visitor: visitorDelegate, murmurHash })
+    const panicStrategy = new PanicStrategy({ visitor: visitorDelegate, murmurHash })
 
     visitorDelegate.visitorCache = data
-    await noConsentStrategy.fetchFlags()
+    await panicStrategy.fetchFlags()
     expect(visitorDelegate.campaigns).toEqual([])
   })
 
