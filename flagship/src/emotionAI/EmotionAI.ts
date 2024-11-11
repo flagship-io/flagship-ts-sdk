@@ -82,7 +82,6 @@ export class EmotionAI extends CommonEmotionAI {
   }
 
   protected removeListeners (): void {
-    this._isEAIDataCollecting = false
     window.removeEventListener('scroll', this.onScroll)
     document.removeEventListener('mousemove', this.onMouseMove)
     document.removeEventListener('mousedown', this.onMouseDown)
@@ -104,11 +103,15 @@ export class EmotionAI extends CommonEmotionAI {
     const scoringIntervalId = setInterval(async () => {
       if (Date.now() - this._startScoringTimestamp > MAX_SCORING_POLLING_TIME) {
         clearInterval(scoringIntervalId)
+        this._isEAIDataCollecting = false
+        this._isEAIDataCollected = true
       }
       this._EAIScoreChecked = false
       const score = await this.fetchEAIScore(visitorId)
       if (score) {
         clearInterval(scoringIntervalId)
+        this._isEAIDataCollecting = false
+        this._isEAIDataCollected = true
       }
     }, this._scoringInterval)
   }
@@ -148,6 +151,8 @@ export class EmotionAI extends CommonEmotionAI {
     }
     if (timestampDiff > MAX_LAST_COLLECTING_TIME_MS) {
       this.removeListeners()
+      this._isEAIDataCollecting = false
+      this._isEAIDataCollected = true
     }
   }
 

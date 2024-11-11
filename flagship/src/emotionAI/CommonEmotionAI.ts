@@ -1,11 +1,11 @@
-import { IFlagshipConfig } from 'src/mod'
-import { IHttpClient } from '../utils/HttpClient'
+import { IHttpClient, IHttpResponse } from '../utils/HttpClient'
 import { IEmotionAI } from './IEmotionAI'
 import { EAIConfig } from '../type.local'
 import { logErrorSprintf, sprintf } from '../utils/utils'
 import { EMOTION_AI_UC_URL, VISITOR_EAI_SCORE_KEY } from '../enum/FlagshipConstant'
 import { IVisitorEvent } from './hit/IVisitorEvent'
 import { IPageView } from './hit/IPageView'
+import { IFlagshipConfig } from '../config/IFlagshipConfig'
 
 type ConstructorParam = {
   httpClient: IHttpClient;
@@ -15,11 +15,16 @@ type ConstructorParam = {
 
 export abstract class CommonEmotionAI implements IEmotionAI {
   protected _EAIScore?: string
-  protected _EAIScoreChecked
+  protected _EAIScoreChecked: boolean
   protected _httpClient: IHttpClient
   protected _sdkConfig: IFlagshipConfig
   protected _eAIConfig?: EAIConfig
   protected _isEAIDataCollecting: boolean
+  protected _fetchEAIScorePromise?: Promise<IHttpResponse>
+  /**
+   * Indicates whether EAI data has been collected
+   */
+  protected _isEAIDataCollected: boolean
   protected _startCollectingEAIDataTimestamp!: number
 
   public constructor ({ httpClient, sdkConfig, eAIConfig }: ConstructorParam) {
@@ -28,6 +33,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     this._sdkConfig = sdkConfig
     this._eAIConfig = eAIConfig
     this._isEAIDataCollecting = false
+    this._isEAIDataCollected = false
   }
 
   public get EAIScore (): string | undefined {
@@ -43,7 +49,11 @@ export abstract class CommonEmotionAI implements IEmotionAI {
   protected abstract setCachedScore (cacheKey: string, score: string): void ;
 
   public async fetchEAIScore (visitorId:string): Promise<string|undefined> {
-    if (!this._eAIConfig?.eaiCollectEnabled) {
+    if (this._fetchEAIScorePromise) {
+      await this._fetchEAIScorePromise
+    }
+
+    if (!this._eAIConfig?.eaiActivationEnabled) {
       return undefined
     }
 
@@ -62,7 +72,8 @@ export abstract class CommonEmotionAI implements IEmotionAI {
 
     try {
       const url = sprintf(EMOTION_AI_UC_URL, visitorId)
-      const response = await this._httpClient.getAsync(url)
+      this._fetchEAIScorePromise = this._httpClient.getAsync(url)
+      const response = await this._fetchEAIScorePromise
       this._EAIScore = response.body
       this._EAIScoreChecked = true
       this.setCachedScore(cacheKey, this._EAIScore as string)
@@ -74,15 +85,17 @@ export abstract class CommonEmotionAI implements IEmotionAI {
         'Failed to fetch EAIScore: {0}',
         error.message
       )
+    } finally {
+      this._fetchEAIScorePromise = undefined
     }
-
     return this._EAIScore
   }
 
   protected abstract startCollectingEAIData (visitorId: string): Promise<void> ;
 
   public async collectEAIData (visitorId: string): Promise<void> {
-    if (!this._eAIConfig?.eaiActivationEnabled || this._isEAIDataCollecting) {
+    if (!this._eAIConfig?.eaiActivationEnabled || this._isEAIDataCollecting ||
+      !this._eAIConfig?.eaiCollectEnabled || this._isEAIDataCollected) {
       return
     }
     const score = await this.fetchEAIScore(visitorId)
