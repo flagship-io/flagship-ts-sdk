@@ -502,13 +502,13 @@ export class DefaultStrategy extends StrategyAbstract {
         reason: FSFetchReasons.NONE
       }
 
-      this.visitor.getCampaignsPromise = this.decisionManager.getCampaignsAsync(this.visitor)
-
       const eaiScore = await this.visitor.emotionAi.fetchEAIScore(this.visitor.visitorId)
 
       if (eaiScore) {
-        this.updateContextKeyValue('eaiScore', eaiScore)
+        this.updateContextKeyValue('eaiScore', eaiScore.score)
       }
+
+      this.visitor.getCampaignsPromise = this.decisionManager.getCampaignsAsync(this.visitor)
 
       await this.lookupVisitor()
       campaigns = await this.visitor.getCampaignsPromise
