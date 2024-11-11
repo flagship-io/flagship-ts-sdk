@@ -1,9 +1,9 @@
 
 export interface IEmotionAI {
-    readonly EAIScore? : string;
-    readonly EAIScoreChecked : boolean;
 
-    fetchEAIScore(visitorId:string) : Promise<string|undefined>;
+    fetchEAIScore(visitorId:string) : Promise<Record<string, string>|undefined>;
 
     collectEAIData(visitorId:string) : void;
+
+    cleanup() : void;
 }
