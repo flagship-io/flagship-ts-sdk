@@ -12,6 +12,5 @@
     "declaration": true,
     "esModuleInterop": true,
     "strict": true,
-    "baseUrl": ".",
   }
 }
