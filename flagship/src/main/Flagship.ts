@@ -40,7 +40,7 @@ import { ISdkManager } from './ISdkManager'
 import { BucketingSdkManager } from './BucketingSdkManager'
 import { EdgeSdkManager } from './EdgeSdkManager'
 import { ApiSdkManager } from './ApiSdkManager'
-import { ITrackingManager } from 'src/api/ITrackingManager'
+import { ITrackingManager } from '../api/ITrackingManager'
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
@@ -207,12 +207,14 @@ export class Flagship {
 
     const { sdkManager, decisionManager } = this.createManagers(httpClient, sdkConfig, trackingManager)
 
+    this._sdkManager = sdkManager
+
     decisionManager.statusChangedCallback(this.setStatus.bind(this))
     decisionManager.flagshipInstanceId = this.instanceId
 
     this.configManager = new ConfigManager(sdkConfig, decisionManager, trackingManager)
 
-    await sdkManager.initSdk()
+    await this._sdkManager?.initSdk()
 
     this.setStatus(FSSdkStatus.SDK_INITIALIZED)
   }
