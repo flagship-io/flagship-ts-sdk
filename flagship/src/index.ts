@@ -12,7 +12,6 @@ export { Visitor } from './visitor/index'
 export type { IVisitorCacheImplementation } from './cache/IVisitorCacheImplementation'
 export type { IHitCacheImplementation } from './cache/IHitCacheImplementation'
 export type { IFlagshipLogManager } from './utils/FlagshipLogManager'
-export type { BucketingDTO } from './decision/api/bucketingDTO'
 
 export * from './flag/index'
 
