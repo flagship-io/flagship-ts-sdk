@@ -4,8 +4,8 @@ import { ISdkManager } from './ISdkManager'
 import { ITrackingManager } from '../api/ITrackingManager'
 import { IHttpClient } from '../utils/HttpClient'
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
-import { logErrorSprintf, sprintf } from 'src/utils/utils'
 import { CDN_ACCOUNT_SETTINGS_URL } from '../enum/FlagshipConstant'
+import { logErrorSprintf, sprintf } from '../utils/utils'
 
 type constructorParam = {
   httpClient: IHttpClient;
