@@ -12,7 +12,8 @@ module.exports = merge(common(), {
   target: 'node',
   resolve: {
     alias: {
-      '../depsNode.native': '../depsNode'
+      '../depsNode.native': '../depsNode',
+      '../emotionAI/EmotionAI': '../emotionAI/EmotionAI.node'
     }
   },
   output: {
