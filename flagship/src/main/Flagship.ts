@@ -35,12 +35,14 @@ import { EdgeManager } from '../decision/EdgeManager'
 import { EdgeConfig } from '../config/EdgeConfig'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { launchQaAssistant } from '../qaAssistant/index'
-import { EmotionAI } from '../emotionAI/EmotionAI'
 import { ISdkManager } from './ISdkManager'
 import { BucketingSdkManager } from './BucketingSdkManager'
 import { EdgeSdkManager } from './EdgeSdkManager'
 import { ApiSdkManager } from './ApiSdkManager'
 import { ITrackingManager } from '../api/ITrackingManager'
+import { EmotionAI as EmotionAINode } from '../emotionAI/EmotionAI.node'
+import { EmotionAI as EmotionAIBrowser } from '../emotionAI/EmotionAI'
+import { IEmotionAI } from '../emotionAI/IEmotionAI'
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
@@ -55,6 +57,7 @@ export class Flagship {
   private instanceId:string
   private lastInitializationTimestamp!: string
   private _sdkManager : ISdkManager|undefined
+  private _eaiClass!: typeof import('../emotionAI/EmotionAI') | typeof import('../emotionAI/EmotionAI.node')
 
   private set configManager (value: IConfigManager) {
     this._configManager = value
@@ -327,11 +330,21 @@ export class Flagship {
       logWarning(flagship.getConfig(), CONSENT_NOT_SPECIFY_WARNING, PROCESS_NEW_VISITOR)
     }
 
-    const emotionAi = new EmotionAI({
-      sdkConfig: this.getInstance().getConfig(),
-      httpClient: new HttpClient(),
-      eAIConfig: flagship._sdkManager?.getEAIConfig()
-    })
+    let emotionAi:IEmotionAI
+
+    if (!isBrowser()) {
+      emotionAi = new EmotionAINode({
+        sdkConfig: this.getInstance().getConfig(),
+        httpClient: new HttpClient(),
+        eAIConfig: flagship._sdkManager?.getEAIConfig()
+      })
+    } else {
+      emotionAi = new EmotionAIBrowser({
+        sdkConfig: this.getInstance().getConfig(),
+        httpClient: new HttpClient(),
+        eAIConfig: flagship._sdkManager?.getEAIConfig()
+      })
+    }
 
     const visitorDelegate = new VisitorDelegate({
       visitorId,
