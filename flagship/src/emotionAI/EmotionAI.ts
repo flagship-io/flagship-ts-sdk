@@ -1,14 +1,26 @@
 
+import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { MAX_CLICK_PATH_LENGTH, MAX_COLLECTING_TIME_MS, MAX_LAST_COLLECTING_TIME_MS, MAX_SCORING_POLLING_TIME } from '../enum/FlagshipConstant'
+import { EAIConfig } from '../type.local'
+import { IHttpClient } from '../utils/HttpClient'
 import { CommonEmotionAI } from './CommonEmotionAI'
 import { PageView } from './hit/PageView'
 import { VisitorEvent } from './hit/VisitorEvent'
+
+type ConstructorParam = {
+  httpClient: IHttpClient;
+  sdkConfig: IFlagshipConfig;
+  eAIConfig: EAIConfig|undefined;
+}
 
 export class EmotionAI extends CommonEmotionAI {
   protected onScroll!: (event: Event) => void
   protected onMouseMove!: (event: MouseEvent) => void
   protected onMouseDown!: (event: MouseEvent) => void
   protected onMouseUp!: (event: MouseEvent) => void
+  protected onPopState!: (event: PopStateEvent) => void
+  protected _originalPushState: typeof window.history.pushState
+  protected _originalReplaceState: typeof window.history.replaceState
   protected _clickPath = ''
   protected scrollTimeoutId: number | null = null
   protected readonly scrollEndDelay: number = 200
@@ -16,6 +28,13 @@ export class EmotionAI extends CommonEmotionAI {
   protected _scoringInterval = 5000
   protected _startScoringTimestamp!: number
   protected _scoringIntervalId?: NodeJS.Timer
+  protected _lastPageViewLocation?: string
+
+  public constructor (params: ConstructorParam) {
+    super(params)
+    this._originalPushState = window.history.pushState
+    this._originalReplaceState = window.history.replaceState
+  }
 
   protected getCachedScore (cacheKey: string): string | null {
     if (typeof localStorage !== 'undefined') {
@@ -38,6 +57,12 @@ export class EmotionAI extends CommonEmotionAI {
   }
 
   protected async processPageView (visitorId: string): Promise<void> {
+    if (this._lastPageViewLocation === window.location.href) {
+      return
+    }
+
+    this._lastPageViewLocation = window.location.href
+
     const pageView = new PageView({
       visitorId,
       customerAccountId: this._sdkConfig.envId as string,
@@ -82,11 +107,25 @@ export class EmotionAI extends CommonEmotionAI {
         mouseDownTimestamp = null
       }
     }
+    this.onPopState = () => {
+      this.processPageView(visitorId)
+    }
+
+    window.history.pushState = (...args) => {
+      this._originalPushState.apply(window.history, args)
+      this.processPageView(visitorId)
+    }
+
+    window.history.replaceState = (...args) => {
+      this._originalReplaceState.apply(window.history, args)
+      this.processPageView(visitorId)
+    }
 
     window.addEventListener('scroll', this.onScroll)
     document.addEventListener('mousemove', this.onMouseMove)
     document.addEventListener('mousedown', this.onMouseDown)
     document.addEventListener('mouseup', this.onMouseUp)
+    window.addEventListener('popstate', this.onPopState)
   }
 
   protected removeListeners (): void {
@@ -94,6 +133,9 @@ export class EmotionAI extends CommonEmotionAI {
     document.removeEventListener('mousemove', this.onMouseMove)
     document.removeEventListener('mousedown', this.onMouseDown)
     document.removeEventListener('mouseup', this.onMouseUp)
+    window.removeEventListener('popstate', this.onPopState)
+    window.history.pushState = this._originalPushState
+    window.history.replaceState = this._originalReplaceState
     if (this.scrollTimeoutId !== null) {
       clearTimeout(this.scrollTimeoutId)
       this.scrollTimeoutId = null
