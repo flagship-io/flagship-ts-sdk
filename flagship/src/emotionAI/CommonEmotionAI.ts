@@ -44,9 +44,9 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     return this._EAIScoreChecked
   }
 
-  protected abstract getCachedScore (cacheKey: string): string | null ;
+  protected abstract getCachedScore (cacheKey: string): Promise<string | null> ;
 
-  protected abstract setCachedScore (cacheKey: string, score: string): void ;
+  protected abstract setCachedScore (cacheKey: string, score: string): Promise<void> ;
 
   public abstract cleanup (): void ;
 
@@ -65,7 +65,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     }
 
     const cacheKey = sprintf(VISITOR_EAI_SCORE_KEY, visitorId)
-    const cachedEAIScore = this.getCachedScore(cacheKey)
+    const cachedEAIScore = await this.getCachedScore(cacheKey)
 
     if (cachedEAIScore) {
       this._EAIScore = JSON.parse(cachedEAIScore)
