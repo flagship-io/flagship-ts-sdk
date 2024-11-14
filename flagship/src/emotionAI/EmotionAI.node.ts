@@ -6,11 +6,11 @@ export class EmotionAI extends CommonEmotionAI {
     //
   }
 
-  protected getCachedScore (_cacheKey: string): string | null {
+  protected async getCachedScore (_cacheKey: string): Promise<string | null> {
     return null
   }
 
-  protected setCachedScore (_cacheKey: string, _score: string): void {
+  protected async setCachedScore (_cacheKey: string, _score: string): Promise<void> {
     //
   }
 

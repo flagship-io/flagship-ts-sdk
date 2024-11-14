@@ -36,14 +36,14 @@ export class EmotionAI extends CommonEmotionAI {
     this._originalReplaceState = window.history.replaceState
   }
 
-  protected getCachedScore (cacheKey: string): string | null {
+  protected async getCachedScore (cacheKey: string): Promise<string | null> {
     if (typeof localStorage !== 'undefined') {
       return localStorage.getItem(cacheKey)
     }
     return null
   }
 
-  protected setCachedScore (cacheKey: string, score: string): void {
+  protected async setCachedScore (cacheKey: string, score: string): Promise<void> {
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem(cacheKey, score)
     }
