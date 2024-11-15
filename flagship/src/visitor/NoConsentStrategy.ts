@@ -27,6 +27,14 @@ export class NoConsentStrategy extends DefaultStrategy {
     this.log('collectEAIData')
   }
 
+  public sendEaiPageView (): void {
+    //
+  }
+
+  public sendEaiVisitorEvent (): void {
+    //
+  }
+
   protected fetchCampaignsFromCache (): CampaignDTO[] {
     return []
   }
