@@ -1,4 +1,3 @@
-
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { MAX_CLICK_PATH_LENGTH, MAX_COLLECTING_TIME_MS, MAX_LAST_COLLECTING_TIME_MS, MAX_SCORING_POLLING_TIME } from '../enum/FlagshipConstant'
 import { EAIConfig } from '../type.local'
@@ -27,7 +26,7 @@ export class EmotionAI extends CommonEmotionAI {
   protected _clickPathTimeoutId: number | null = null
   protected _scoringInterval = 5000
   protected _startScoringTimestamp!: number
-  protected _scoringIntervalId?: NodeJS.Timer
+  protected _scoringIntervalId?: NodeJS.Timeout
   protected _lastPageViewLocation?: string
 
   public constructor (params: ConstructorParam) {
