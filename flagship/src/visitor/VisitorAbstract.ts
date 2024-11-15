@@ -22,6 +22,8 @@ import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '..
 import { IFSFlagCollection } from '../flag/IFSFlagCollection'
 import { sendVisitorExposedVariations } from '../qaAssistant/messages/index'
 import { IEmotionAI } from '../emotionAI/IEmotionAI'
+import { IVisitorEvent } from '../emotionAI/hit/IVisitorEvent'
+import { IPageView } from '../emotionAI/hit/IPageView'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -387,6 +389,14 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
   public collectEAIData (): void {
     this.getStrategy().collectEAIData()
+  }
+
+  sendEaiVisitorEvent (event: IVisitorEvent):void {
+    this.getStrategy().sendEaiVisitorEvent(event)
+  }
+
+  sendEaiPageView (pageView: IPageView) {
+    this.getStrategy().sendEaiPageView(pageView)
   }
 
   public cleanup (): void {
