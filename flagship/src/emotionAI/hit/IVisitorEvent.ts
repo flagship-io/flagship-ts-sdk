@@ -1,4 +1,3 @@
-
 export interface IVisitorEvent {
     /**
      * The unique identifier for the customer's account.
