@@ -28,7 +28,7 @@ export class HttpClient implements IHttpClient {
     const checkJson = applicationType?.includes('application/json')
     let body:Record<string, unknown>|undefined
     const headers:Record<string, string> = {}
-    response.headers.forEach((value, key) => {
+    response.headers.forEach((value:string, key:string) => {
       headers[key] = value
     })
 
