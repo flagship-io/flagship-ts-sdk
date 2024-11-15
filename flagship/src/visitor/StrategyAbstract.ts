@@ -14,6 +14,10 @@ import { UsageHit } from '../hit/UsageHit'
 import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
+import { IVisitorEvent } from '../emotionAI/hit/IVisitorEvent'
+import { IPageView } from '../emotionAI/hit/IPageView'
+import { VisitorEvent } from '../emotionAI/hit/VisitorEvent'
+import { PageView } from '../emotionAI/hit/PageView'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 
@@ -52,6 +56,14 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
 
   collectEAIData (): void {
     this.visitor.emotionAi.collectEAIData(this.visitor.visitorId)
+  }
+
+  sendEaiVisitorEvent (event: IVisitorEvent):void {
+    this.visitor.emotionAi.sendVisitorEvent(new VisitorEvent(event))
+  }
+
+  sendEaiPageView (pageView: IPageView):void {
+    this.visitor.emotionAi.sendPageView(new PageView(pageView))
   }
 
   public updateCampaigns (campaigns:CampaignDTO[]):void {
