@@ -110,7 +110,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     await this.startCollectingEAIData(visitorId)
   }
 
-  protected async sendVisitorEvent (visitorEvent:IVisitorEvent): Promise<void> {
+  public async sendVisitorEvent (visitorEvent:IVisitorEvent): Promise<void> {
     try {
       console.log('sendVisitorEvent', visitorEvent.toApiKeys())
     } catch (error) {
@@ -118,7 +118,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     }
   }
 
-  protected async sendPageView (pageView:IPageView): Promise<void> {
+  public async sendPageView (pageView:IPageView): Promise<void> {
     try {
       console.log('sendPageView', pageView.toApiKeys())
     } catch (error) {

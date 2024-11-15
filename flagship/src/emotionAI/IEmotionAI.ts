@@ -1,3 +1,5 @@
+import { IPageView } from './hit/IPageView'
+import { IVisitorEvent } from './hit/IVisitorEvent'
 
 export interface IEmotionAI {
 
@@ -6,4 +8,8 @@ export interface IEmotionAI {
     collectEAIData(visitorId:string) : void;
 
     cleanup() : void;
+
+    sendVisitorEvent(event: IVisitorEvent): Promise<void>;
+
+    sendPageView(pageView: IPageView): Promise<void>;
 }
