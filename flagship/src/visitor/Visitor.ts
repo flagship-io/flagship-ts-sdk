@@ -7,6 +7,8 @@ import { HitAbstract } from '../hit/HitAbstract'
 import { VisitorAbstract } from './VisitorAbstract'
 import { IFSFlag } from '../flag/IFSFlag'
 import { IFSFlagCollection } from '../flag/IFSFlagCollection'
+import { IVisitorEvent } from '../emotionAI/hit/IVisitorEvent'
+import { IPageView } from '../emotionAI/hit/IPageView'
 
 /**
  * The `Visitor` class represents a unique user within your application. It aids in
@@ -22,7 +24,15 @@ export class Visitor extends EventEmitter implements IVisitor {
     this._onReady = (err:any) => {
       this.emit(EMIT_READY, err)
     }
-    this.visitorDelegate.on(EMIT_READY, this._onReady)
+    this.visitorDelegate.on(EMIT_READY, this._onReady);
+
+    (this as any).sendEaiVisitorEvent = (event: IVisitorEvent) => {
+      this.visitorDelegate.sendEaiVisitorEvent(event)
+    }
+
+    (this as any).sendEaiPageView = (pageView: IPageView) => {
+      this.visitorDelegate.sendEaiPageView(pageView)
+    }
   }
 
   /**
