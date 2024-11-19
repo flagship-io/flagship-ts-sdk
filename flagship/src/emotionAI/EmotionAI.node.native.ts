@@ -1,5 +1,7 @@
 import { CommonEmotionAI } from './CommonEmotionAI'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { VisitorEvent } from './hit/VisitorEvent'
+import { MAX_COLLECTING_TIME_MS, MAX_LAST_COLLECTING_TIME_MS, MAX_SCORING_POLLING_TIME } from '../enum/FlagshipConstant'
 
 export class EmotionAI extends CommonEmotionAI {
   public cleanup (): void {
@@ -47,5 +49,43 @@ export class EmotionAI extends CommonEmotionAI {
     // await this.processPageView(visitorId)
     this._isEAIDataCollecting = true
     this._startCollectingEAIDataTimestamp = Date.now()
+    this._onEAICollectStatusChange?.(true)
+  }
+
+  protected stopCollectingEAIData (visitorId:string): void {
+    this._onEAICollectStatusChange?.(false)
+    this._startScoringTimestamp = Date.now()
+
+    this._scoringIntervalId = setInterval(async () => {
+      if (Date.now() - this._startScoringTimestamp > MAX_SCORING_POLLING_TIME) {
+        clearInterval(this._scoringIntervalId)
+        this._isEAIDataCollecting = false
+        this._isEAIDataCollected = true
+      }
+      this._EAIScoreChecked = false
+      const score = await this.fetchEAIScore(visitorId)
+      if (score) {
+        clearInterval(this._scoringIntervalId)
+        this._isEAIDataCollecting = false
+        this._isEAIDataCollected = true
+      }
+    }, this._scoringInterval)
+  }
+
+  public async reportVisitorEvent (visitorEvent: VisitorEvent): Promise<void> {
+    const timestampDiff = Date.now() - this._startCollectingEAIDataTimestamp
+    if (timestampDiff <= MAX_COLLECTING_TIME_MS) {
+      this.sendVisitorEvent(visitorEvent)
+    }
+
+    if ((timestampDiff > MAX_COLLECTING_TIME_MS && timestampDiff <= MAX_LAST_COLLECTING_TIME_MS)) {
+      this.sendVisitorEvent(visitorEvent)
+      this.stopCollectingEAIData(visitorEvent.visitorId)
+    }
+    if (timestampDiff > MAX_LAST_COLLECTING_TIME_MS) {
+      this.stopCollectingEAIData(visitorEvent.visitorId)
+      this._isEAIDataCollecting = false
+      this._isEAIDataCollected = true
+    }
   }
 }

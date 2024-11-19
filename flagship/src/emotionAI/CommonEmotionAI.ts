@@ -21,6 +21,10 @@ export abstract class CommonEmotionAI implements IEmotionAI {
   protected _eAIConfig?: EAIConfig
   protected _isEAIDataCollecting: boolean
   protected _fetchEAIScorePromise?: Promise<IHttpResponse>
+  protected _startScoringTimestamp!: number
+  protected _scoringIntervalId?: NodeJS.Timeout
+  protected _scoringInterval = 5000
+  protected _onEAICollectStatusChange?: (status: boolean) => void
   /**
    * Indicates whether EAI data has been collected
    */
@@ -34,6 +38,10 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     this._eAIConfig = eAIConfig
     this._isEAIDataCollecting = false
     this._isEAIDataCollected = false
+  }
+
+  onEAICollectStatusChange (callback: (status: boolean) => void): void {
+    this._onEAICollectStatusChange = callback
   }
 
   public get EAIScore (): Record<string, string> | undefined {
@@ -110,7 +118,13 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     await this.startCollectingEAIData(visitorId)
   }
 
-  public async sendVisitorEvent (visitorEvent:IVisitorEvent): Promise<void> {
+  public abstract reportVisitorEvent (visitorEvent:IVisitorEvent): Promise<void>;
+
+  public reportPageView (pageView:IPageView): Promise<void> {
+    return this.sendPageView(pageView)
+  }
+
+  protected async sendVisitorEvent (visitorEvent:IVisitorEvent): Promise<void> {
     try {
       console.log('sendVisitorEvent', visitorEvent.toApiKeys())
     } catch (error) {
@@ -118,7 +132,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     }
   }
 
-  public async sendPageView (pageView:IPageView): Promise<void> {
+  protected async sendPageView (pageView:IPageView): Promise<void> {
     try {
       console.log('sendPageView', pageView.toApiKeys())
     } catch (error) {

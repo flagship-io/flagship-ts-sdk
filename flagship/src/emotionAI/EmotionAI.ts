@@ -24,9 +24,6 @@ export class EmotionAI extends CommonEmotionAI {
   protected scrollTimeoutId: number | null = null
   protected readonly scrollEndDelay: number = 200
   protected _clickPathTimeoutId: number | null = null
-  protected _scoringInterval = 5000
-  protected _startScoringTimestamp!: number
-  protected _scoringIntervalId?: NodeJS.Timeout
   protected _lastPageViewLocation?: string
 
   public constructor (params: ConstructorParam) {
@@ -84,7 +81,7 @@ export class EmotionAI extends CommonEmotionAI {
       userAgent: navigator.userAgent
     })
 
-    await this.sendPageView(pageView)
+    await this.reportPageView(pageView)
   }
 
   protected async startCollectingEAIData (visitorId: string): Promise<void> {
@@ -175,7 +172,7 @@ export class EmotionAI extends CommonEmotionAI {
       screenSize: `${window.innerWidth},${window.innerHeight};`,
       currentUrl: window.location.href
     })
-    this.processVisitorEvent(visitorEvent, visitorId)
+    this.reportVisitorEvent(visitorEvent)
   }
 
   protected handleScroll = (visitorId: string): void => {
@@ -188,7 +185,7 @@ export class EmotionAI extends CommonEmotionAI {
     }, this.scrollEndDelay)
   }
 
-  protected processVisitorEvent (visitorEvent: VisitorEvent, visitorId: string): void {
+  public async reportVisitorEvent (visitorEvent: VisitorEvent): Promise<void> {
     const timestampDiff = Date.now() - this._startCollectingEAIDataTimestamp
     if (timestampDiff <= MAX_COLLECTING_TIME_MS) {
       this.sendVisitorEvent(visitorEvent)
@@ -196,7 +193,7 @@ export class EmotionAI extends CommonEmotionAI {
 
     if ((timestampDiff > MAX_COLLECTING_TIME_MS && timestampDiff <= MAX_LAST_COLLECTING_TIME_MS)) {
       this.sendVisitorEvent(visitorEvent)
-      this.stopCollectingEAIData(visitorId)
+      this.stopCollectingEAIData(visitorEvent.visitorId)
     }
     if (timestampDiff > MAX_LAST_COLLECTING_TIME_MS) {
       this.removeListeners()
@@ -214,7 +211,7 @@ export class EmotionAI extends CommonEmotionAI {
       currentUrl: window.location.href
     })
     this._clickPath = ''
-    this.processVisitorEvent(visitorEvent, visitorId)
+    this.reportVisitorEvent(visitorEvent)
   }
 
   protected handleMouseMove = (event: MouseEvent, visitorId: string): void => {
@@ -240,6 +237,6 @@ export class EmotionAI extends CommonEmotionAI {
       screenSize: `${window.innerWidth},${window.innerHeight};`,
       currentUrl: window.location.href
     })
-    this.processVisitorEvent(visitorEvent, visitorId)
+    this.reportVisitorEvent(visitorEvent)
   }
 }
