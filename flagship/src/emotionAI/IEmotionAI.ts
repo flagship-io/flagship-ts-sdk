@@ -9,7 +9,9 @@ export interface IEmotionAI {
 
     cleanup() : void;
 
-    sendVisitorEvent(event: IVisitorEvent): Promise<void>;
+    reportVisitorEvent(event: IVisitorEvent): Promise<void>;
 
-    sendPageView(pageView: IPageView): Promise<void>;
+    reportPageView(pageView: IPageView): Promise<void>;
+
+    onEAICollectStatusChange(callback: (status: boolean) => void): void;
 }
