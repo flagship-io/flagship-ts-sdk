@@ -399,6 +399,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.getStrategy().sendEaiPageView(pageView)
   }
 
+  public onEAICollectStatusChange (callback: (status: boolean) => void): void {
+    this.getStrategy().onEAICollectStatusChange(callback)
+  }
+
   public cleanup (): void {
     this.emotionAi.cleanup()
   }

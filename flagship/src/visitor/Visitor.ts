@@ -24,14 +24,20 @@ export class Visitor extends EventEmitter implements IVisitor {
     this._onReady = (err:any) => {
       this.emit(EMIT_READY, err)
     }
-    this.visitorDelegate.on(EMIT_READY, this._onReady);
+    this.visitorDelegate.on(EMIT_READY, this._onReady)
 
-    (this as any).sendEaiVisitorEvent = (event: IVisitorEvent) => {
+    const instance = this as any
+
+    instance.sendEaiVisitorEvent = (event: IVisitorEvent) => {
       this.visitorDelegate.sendEaiVisitorEvent(event)
     }
 
-    (this as any).sendEaiPageView = (pageView: IPageView) => {
+    instance.sendEaiPageView = (pageView: IPageView) => {
       this.visitorDelegate.sendEaiPageView(pageView)
+    }
+
+    instance.onEAICollectStatusChange = (callback: (status: boolean) => void) => {
+      this.visitorDelegate.onEAICollectStatusChange(callback)
     }
   }
 
