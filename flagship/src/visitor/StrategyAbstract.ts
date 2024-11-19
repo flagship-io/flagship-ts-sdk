@@ -59,11 +59,15 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
   }
 
   sendEaiVisitorEvent (event: IVisitorEvent):void {
-    this.visitor.emotionAi.sendVisitorEvent(new VisitorEvent(event))
+    this.visitor.emotionAi.reportVisitorEvent(new VisitorEvent(event))
   }
 
   sendEaiPageView (pageView: IPageView):void {
-    this.visitor.emotionAi.sendPageView(new PageView(pageView))
+    this.visitor.emotionAi.reportPageView(new PageView(pageView))
+  }
+
+  onEAICollectStatusChange (callback: (status: boolean) => void):void {
+    this.visitor.emotionAi.onEAICollectStatusChange(callback)
   }
 
   public updateCampaigns (campaigns:CampaignDTO[]):void {

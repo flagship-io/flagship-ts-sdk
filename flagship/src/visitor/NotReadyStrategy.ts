@@ -24,6 +24,10 @@ export class NotReadyStrategy extends DefaultStrategy {
     this.log('collectEAIData')
   }
 
+  public onEAICollectStatusChange (): void {
+    //
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async sendHit (_hit: HitAbstract | IHit | BatchDTO): Promise<void> {
     this.log('sendHit')

@@ -35,6 +35,10 @@ export class NoConsentStrategy extends DefaultStrategy {
     //
   }
 
+  public onEAICollectStatusChange (): void {
+    //
+  }
+
   protected fetchCampaignsFromCache (): CampaignDTO[] {
     return []
   }

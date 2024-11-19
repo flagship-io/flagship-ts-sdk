@@ -1,4 +1,3 @@
-
 import { FSSdkStatus, FLAG_VISITOR_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_PANIC_MODE } from '../enum/index'
 import { CampaignDTO, FlagDTO, IFSFlagMetadata, IHit } from '../types'
 import { logInfoSprintf } from '../utils/utils'
@@ -77,6 +76,22 @@ export class PanicStrategy extends DefaultStrategy {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async sendActivate (_flagDto: FlagDTO, _defaultValue?: unknown): Promise<void> {
+    //
+  }
+
+  public collectEAIData (): void {
+    this.log('collectEAIData')
+  }
+
+  public sendEaiPageView (): void {
+    //
+  }
+
+  public sendEaiVisitorEvent (): void {
+    //
+  }
+
+  public onEAICollectStatusChange (): void {
     //
   }
 
