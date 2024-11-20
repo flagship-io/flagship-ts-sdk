@@ -54,15 +54,15 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     this._murmurHash = murmurHash
   }
 
-  collectEAIData (): void {
-    this.visitor.emotionAi.collectEAIData(this.visitor.visitorId)
+  collectEAIData (currentPage?: Omit<IPageView, 'toApiKeys'>): void {
+    this.visitor.emotionAi.collectEAIData(this.visitor.visitorId, currentPage)
   }
 
-  sendEaiVisitorEvent (event: IVisitorEvent):void {
+  reportEaiVisitorEvent (event: IVisitorEvent):void {
     this.visitor.emotionAi.reportVisitorEvent(new VisitorEvent(event))
   }
 
-  sendEaiPageView (pageView: IPageView):void {
+  reportEaiPageView (pageView: IPageView):void {
     this.visitor.emotionAi.reportPageView(new PageView(pageView))
   }
 
