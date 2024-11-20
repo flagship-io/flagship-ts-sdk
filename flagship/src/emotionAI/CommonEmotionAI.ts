@@ -1,8 +1,8 @@
 import { IHttpClient, IHttpResponse } from '../utils/HttpClient'
 import { IEmotionAI } from './IEmotionAI'
-import { EAIConfig } from '../type.local'
-import { logErrorSprintf, sprintf } from '../utils/utils'
-import { EMOTION_AI_UC_URL, VISITOR_EAI_SCORE_KEY } from '../enum/FlagshipConstant'
+import { EAIConfig, EAIScore } from '../type.local'
+import { logDebugSprintf, logErrorSprintf, sprintf } from '../utils/utils'
+import { EMOTION_AI_EVENT_URL, EMOTION_AI_UC_URL, FETCH_EAI_SCORE, FETCH_EAI_SCORE_ERROR, FETCH_EAI_SCORE_SUCCESS, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, SEND_EAI_EVENT, SEND_EAI_EVENT_ERROR, SEND_EAI_EVENT_SUCCESS, VISITOR_EAI_SCORE_KEY } from '../enum/FlagshipConstant'
 import { IVisitorEvent } from './hit/IVisitorEvent'
 import { IPageView } from './hit/IPageView'
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
@@ -14,7 +14,7 @@ type ConstructorParam = {
 }
 
 export abstract class CommonEmotionAI implements IEmotionAI {
-  protected _EAIScore?: Record<string, string>
+  protected _EAIScore?: EAIScore
   protected _EAIScoreChecked: boolean
   protected _httpClient: IHttpClient
   protected _sdkConfig: IFlagshipConfig
@@ -44,7 +44,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     this._onEAICollectStatusChange = callback
   }
 
-  public get EAIScore (): Record<string, string> | undefined {
+  public get EAIScore (): EAIScore | undefined {
     return this._EAIScore
   }
 
@@ -58,7 +58,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
 
   public abstract cleanup (): void ;
 
-  public async fetchEAIScore (visitorId:string): Promise<Record<string, string>|undefined> {
+  public async fetchEAIScore (visitorId:string): Promise<EAIScore|undefined> {
     if (this._fetchEAIScorePromise) {
       await this._fetchEAIScorePromise
       return this._EAIScore
@@ -82,7 +82,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     }
 
     try {
-      const url = sprintf(EMOTION_AI_UC_URL, visitorId)
+      const url = sprintf(EMOTION_AI_UC_URL, this._sdkConfig.envId, visitorId)
       this._fetchEAIScorePromise = this._httpClient.getAsync(url)
       const response = await this._fetchEAIScorePromise
       this._EAIScore = response.body
@@ -90,12 +90,15 @@ export abstract class CommonEmotionAI implements IEmotionAI {
       if (this._EAIScore) {
         this.setCachedScore(cacheKey, JSON.stringify(this._EAIScore))
       }
+
+      logDebugSprintf(this._sdkConfig, FETCH_EAI_SCORE, FETCH_EAI_SCORE_SUCCESS, visitorId, this._EAIScore)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logErrorSprintf(
         this._sdkConfig,
-        'EmotionAI.fetchEAIScore',
-        'Failed to fetch EAIScore: {0}',
+        FETCH_EAI_SCORE,
+        FETCH_EAI_SCORE_ERROR,
+        visitorId,
         error.message
       )
     } finally {
@@ -104,9 +107,9 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     return this._EAIScore
   }
 
-  protected abstract startCollectingEAIData (visitorId: string): Promise<void> ;
+  protected abstract startCollectingEAIData (visitorId: string, currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> ;
 
-  public async collectEAIData (visitorId: string): Promise<void> {
+  public async collectEAIData (visitorId: string, currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> {
     if (!this._eAIConfig?.eaiActivationEnabled || this._isEAIDataCollecting ||
       !this._eAIConfig?.eaiCollectEnabled || this._isEAIDataCollected) {
       return
@@ -115,28 +118,27 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     if (score) {
       return
     }
-    await this.startCollectingEAIData(visitorId)
+    await this.startCollectingEAIData(visitorId, currentPage)
   }
 
   public abstract reportVisitorEvent (visitorEvent:IVisitorEvent): Promise<void>;
 
   public reportPageView (pageView:IPageView): Promise<void> {
-    return this.sendPageView(pageView)
+    return this.sendEAIEvent(pageView)
   }
 
-  protected async sendVisitorEvent (visitorEvent:IVisitorEvent): Promise<void> {
+  protected async sendEAIEvent (event:IVisitorEvent|IPageView): Promise<void> {
     try {
-      console.log('sendVisitorEvent', visitorEvent.toApiKeys())
-    } catch (error) {
-      //
-    }
-  }
-
-  protected async sendPageView (pageView:IPageView): Promise<void> {
-    try {
-      console.log('sendPageView', pageView.toApiKeys())
-    } catch (error) {
-      //
+      await this._httpClient.postAsync(EMOTION_AI_EVENT_URL, {
+        body: event.toApiKeys(),
+        headers: {
+          [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
+        }
+      })
+      logDebugSprintf(this._sdkConfig, SEND_EAI_EVENT, SEND_EAI_EVENT_SUCCESS, event.toApiKeys())
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      logErrorSprintf(this._sdkConfig, SEND_EAI_EVENT, SEND_EAI_EVENT_ERROR, error.message)
     }
   }
 }
