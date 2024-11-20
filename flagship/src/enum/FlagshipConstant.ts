@@ -71,9 +71,16 @@ export const FS_IS_QA_MODE_ENABLED = 'FS_IS_QA_MODE_ENABLED'
 export const FS_FORCED_VARIATIONS = 'FS_FORCED_VARIATIONS'
 export const FS_QA_ASSISTANT_SCRIPT_TAG_ID = 'FS_QA_ASSISTANT_SCRIPT_TAG_ID'
 
-export const EMOTION_AI_UC_URL = 'http://localhost:3000/emotionsai?sp=1&uid={0}'
+export const EMOTION_AI_UC_URL = 'https://uc-info.flagship.io/v1/segments/accounts/{0}/visitors/{1}?partner=eai'
 export const CDN_ACCOUNT_SETTINGS_URL = 'http://localhost:3000/accountSettings'
 export const VISITOR_EAI_SCORE_KEY = '{0}_EAIScore'
+export const EMOTION_AI_EVENT_URL = 'https://events.flagship.io/emotionsai'
+export const SEND_EAI_EVENT = 'sendEAIEvent'
+export const SEND_EAI_EVENT_ERROR = 'Failed to send Emotion AI event: {0}'
+export const SEND_EAI_EVENT_SUCCESS = 'Emotion AI event sent: {0}'
+export const FETCH_EAI_SCORE = 'fetchEAIScore'
+export const FETCH_EAI_SCORE_ERROR = 'visitor {0}, Failed to fetch EAIScore: {1}'
+export const FETCH_EAI_SCORE_SUCCESS = 'visitor {0}, EAIScore fetched: {1}'
 
 /**
  * SDK version
