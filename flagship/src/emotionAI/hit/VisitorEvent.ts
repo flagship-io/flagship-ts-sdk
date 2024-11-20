@@ -60,7 +60,8 @@ export class VisitorEvent implements IVisitorEvent {
       cid: this._customerAccountId,
       vid: this._visitorId,
       dl: this._currentUrl,
-      sr: this._screenSize
+      sr: this._screenSize,
+      t: 'VISITOREVENT'
     }
     if (this._clickPath) {
       apiKeys.cp = this._clickPath
