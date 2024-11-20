@@ -83,11 +83,11 @@ export class PanicStrategy extends DefaultStrategy {
     this.log('collectEAIData')
   }
 
-  public sendEaiPageView (): void {
+  public reportEaiPageView (): void {
     //
   }
 
-  public sendEaiVisitorEvent (): void {
+  public reportEaiVisitorEvent (): void {
     //
   }
 
