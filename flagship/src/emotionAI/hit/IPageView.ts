@@ -29,11 +29,11 @@ export interface IPageView {
     /**
      * The color depth of the user's screen in bits per pixel.
      *
-     * **Type:** `number`
+     * **Type:** `string`
      * **Field:** `sd`
      * **Example:** `24`
      */
-    screenDepth: number;
+    screenDepth: string;
 
     /**
      * The dimensions of the user's browser window.
@@ -157,6 +157,14 @@ export interface IPageView {
     viewportSize: string;
 
     /**
+     * amount of time subtracted from or added to Coordinated Universal Time (UTC) time to get the current civil time
+     * **Type:** `int`
+     * **Field:** `tof`
+     * **Example:** `240`
+     */
+    timezoneOffset: number;
+
+    /**
      * Details about the device's touch support.
      *
      * **Type:** `string`
@@ -170,7 +178,7 @@ export interface IPageView {
      * The current browsing URL.
      *
      * **Type:** `string`
-     * **Field:** `url`
+     * **Field:** `dl`
      * **Format:** `https://example.com/reports/12345`
      * **Example:** `https://example.com/reports/12345`
      */
@@ -184,6 +192,14 @@ export interface IPageView {
      * **Example:** `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3`
      */
     userAgent: string;
+
+    /**
+     * Event category.
+     * **Type:** `string`
+     * **Field:** `ec`
+     * **Example:** `click tunnel auto`
+     */
+    eventCategory: string;
 
     /**
      * The unique identifier for the customer's user (Bring Your Own ID).
