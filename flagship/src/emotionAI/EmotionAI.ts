@@ -52,6 +52,31 @@ export class EmotionAI extends CommonEmotionAI {
     clearInterval(this._scoringIntervalId)
   }
 
+  getDeviceCategory (): string {
+    const userAgent = navigator.userAgent.toLowerCase()
+
+    if (/iphone|ipad|ipod/.test(userAgent)) {
+      return 'iphone'
+    }
+    if (/android/.test(userAgent)) {
+      return 'android'
+    }
+    if (/windows nt/.test(userAgent)) {
+      return 'win32'
+    }
+    if (/macintosh|mac os x/.test(userAgent)) {
+      return 'darwin'
+    }
+    if (/linux/.test(userAgent)) {
+      if (/armv8l/.test(userAgent)) {
+        return 'linux armv8l'
+      }
+      return 'linux'
+    }
+
+    return 'unknown'
+  }
+
   protected async processPageView (visitorId: string): Promise<void> {
     if (this._lastPageViewLocation === window.location.href) {
       return
@@ -59,25 +84,32 @@ export class EmotionAI extends CommonEmotionAI {
 
     this._lastPageViewLocation = window.location.href
 
+    const maxTouchPoints = navigator.maxTouchPoints || 0
+    const touchEvent = 'ontouchstart' in window
+    const touchStart = 'ontouchstart' in window || 'onmsgesturechange' in window
+    const touchSupport = JSON.stringify([maxTouchPoints, touchEvent, touchStart])
+
     const pageView = new PageView({
       visitorId,
       customerAccountId: this._sdkConfig.envId as string,
       currentUrl: window.location.href,
       hasAdBlocker: false,
-      screenDepth: window.screen.colorDepth,
-      screenSize: `${window.innerWidth}x${window.innerHeight}`,
+      screenDepth: `${window.screen.colorDepth}`,
+      screenSize: `${window.innerWidth},${window.innerHeight};`,
       doNotTrack: navigator.doNotTrack || 'unspecified',
-      fonts: '',
+      fonts: '[]',
       hasFakeBrowserInfos: false,
       hasFakeLanguageInfos: false,
       hasFakeOsInfos: false,
       hasFakeResolutionInfos: false,
       userLanguage: navigator.language,
-      deviceCategory: 'desktop',
+      deviceCategory: this.getDeviceCategory(),
       pixelRatio: window.devicePixelRatio,
       documentReferer: document.referrer,
-      viewportSize: `${document.documentElement.clientWidth}x${document.documentElement.clientHeight}`,
-      touchSupport: 'ontouchstart' in window ? 'yes' : 'no',
+      viewportSize: `[${document.documentElement.clientWidth},${document.documentElement.clientHeight}]`,
+      timezoneOffset: new Date().getTimezoneOffset(),
+      touchSupport,
+      eventCategory: 'click tunnel auto',
       userAgent: navigator.userAgent
     })
 
@@ -188,11 +220,11 @@ export class EmotionAI extends CommonEmotionAI {
   public async reportVisitorEvent (visitorEvent: VisitorEvent): Promise<void> {
     const timestampDiff = Date.now() - this._startCollectingEAIDataTimestamp
     if (timestampDiff <= MAX_COLLECTING_TIME_MS) {
-      this.sendVisitorEvent(visitorEvent)
+      this.sendEAIEvent(visitorEvent)
     }
 
     if ((timestampDiff > MAX_COLLECTING_TIME_MS && timestampDiff <= MAX_LAST_COLLECTING_TIME_MS)) {
-      this.sendVisitorEvent(visitorEvent)
+      this.sendEAIEvent(visitorEvent)
       this.stopCollectingEAIData(visitorEvent.visitorId)
     }
     if (timestampDiff > MAX_LAST_COLLECTING_TIME_MS) {
