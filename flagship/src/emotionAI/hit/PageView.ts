@@ -4,7 +4,7 @@ export class PageView implements IPageView {
   _customerAccountId: string
   _visitorId: string
   _hasAdBlocker: boolean
-  _screenDepth: number
+  _screenDepth: string
   _screenSize: string
   _doNotTrack: string
   _fonts: string
@@ -22,6 +22,8 @@ export class PageView implements IPageView {
   _currentUrl: string
   _userAgent: string
   _customerUserId?: string | undefined
+  _timezoneOffset: number
+  _eventCategory: string
 
   public get customerAccountId (): string {
     return this._customerAccountId
@@ -35,7 +37,7 @@ export class PageView implements IPageView {
     return this._hasAdBlocker
   }
 
-  public get screenDepth (): number {
+  public get screenDepth (): string {
     return this._screenDepth
   }
 
@@ -107,6 +109,14 @@ export class PageView implements IPageView {
     return this._customerUserId
   }
 
+  public get timezoneOffset (): number {
+    return this._timezoneOffset
+  }
+
+  public get eventCategory (): string {
+    return this._eventCategory
+  }
+
   public constructor ({
     customerAccountId,
     visitorId,
@@ -128,7 +138,9 @@ export class PageView implements IPageView {
     touchSupport,
     currentUrl,
     userAgent,
-    customerUserId
+    customerUserId,
+    timezoneOffset,
+    eventCategory
   }: Omit<IPageView, 'toApiKeys'>) {
     this._customerAccountId = customerAccountId
     this._visitorId = visitorId
@@ -151,6 +163,8 @@ export class PageView implements IPageView {
     this._currentUrl = currentUrl
     this._userAgent = userAgent
     this._customerUserId = customerUserId
+    this._timezoneOffset = timezoneOffset
+    this._eventCategory = eventCategory
   }
 
   public toApiKeys (): Record<string, boolean|string|number> {
@@ -171,9 +185,12 @@ export class PageView implements IPageView {
       pxr: this._pixelRatio,
       dr: this._documentReferer,
       vp: this._viewportSize,
+      tof: this._timezoneOffset,
       tsp: this._touchSupport,
-      url: this._currentUrl,
-      ua: this._userAgent
+      dl: this._currentUrl,
+      ua: this._userAgent,
+      ec: this._eventCategory,
+      t: 'PAGEVIEW'
     }
     if (this._plugins) {
       apiKeys.plu = this._plugins
