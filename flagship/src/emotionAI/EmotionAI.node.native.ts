@@ -2,10 +2,12 @@ import { CommonEmotionAI } from './CommonEmotionAI'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { VisitorEvent } from './hit/VisitorEvent'
 import { MAX_COLLECTING_TIME_MS, MAX_LAST_COLLECTING_TIME_MS, MAX_SCORING_POLLING_TIME } from '../enum/FlagshipConstant'
+import { IPageView } from './hit/IPageView'
+import { PageView } from './hit/PageView'
 
 export class EmotionAI extends CommonEmotionAI {
   public cleanup (): void {
-    throw new Error('Method not implemented.')
+    //
   }
 
   protected async getCachedScore (cacheKey: string): Promise<string | null> {
@@ -16,37 +18,15 @@ export class EmotionAI extends CommonEmotionAI {
     return AsyncStorage.setItem(cacheKey, score)
   }
 
-  async processPageView (visitorId: string): Promise<void> {
-    // const viewport = Dimensions.get('window')
-    // const screen = Dimensions.get('screen')
-
-    // const pageView = new PageView({
-    //   visitorId,
-    //   customerAccountId: this._sdkConfig.envId as string,
-    //   currentUrl: 'Home Screen',
-    //   hasAdBlocker: false,
-    //   screenDepth: 24,
-    //   screenSize: `${screen.width}x${screen.height}`,
-    //   doNotTrack: 'unspecified',
-    //   fonts: '',
-    //   hasFakeBrowserInfos: false,
-    //   hasFakeLanguageInfos: false,
-    //   hasFakeOsInfos: false,
-    //   hasFakeResolutionInfos: false,
-    //   userLanguage: 'en',
-    //   deviceCategory: 'mobile',
-    //   pixelRatio: PixelRatio.get(),
-    //   viewportSize: `${viewport.width}x${viewport.height}`,
-    //   touchSupport: 'true',
-    //   userAgent: 'React Native',
-    //   documentReferer: ''
-    // })
-
-    // await this.sendPageView(pageView)
+  protected async processPageView (currentPage: Omit<IPageView, 'toApiKeys'>): Promise<void> {
+    const pageView = new PageView(currentPage)
+    await this.reportPageView(pageView)
   }
 
-  protected async startCollectingEAIData (visitorId: string): Promise<void> {
-    // await this.processPageView(visitorId)
+  protected async startCollectingEAIData (visitorId: string, currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> {
+    if (currentPage) {
+      await this.processPageView(currentPage)
+    }
     this._isEAIDataCollecting = true
     this._startCollectingEAIDataTimestamp = Date.now()
     this._onEAICollectStatusChange?.(true)
@@ -75,11 +55,11 @@ export class EmotionAI extends CommonEmotionAI {
   public async reportVisitorEvent (visitorEvent: VisitorEvent): Promise<void> {
     const timestampDiff = Date.now() - this._startCollectingEAIDataTimestamp
     if (timestampDiff <= MAX_COLLECTING_TIME_MS) {
-      this.sendVisitorEvent(visitorEvent)
+      this.sendEAIEvent(visitorEvent)
     }
 
     if ((timestampDiff > MAX_COLLECTING_TIME_MS && timestampDiff <= MAX_LAST_COLLECTING_TIME_MS)) {
-      this.sendVisitorEvent(visitorEvent)
+      this.sendEAIEvent(visitorEvent)
       this.stopCollectingEAIData(visitorEvent.visitorId)
     }
     if (timestampDiff > MAX_LAST_COLLECTING_TIME_MS) {
