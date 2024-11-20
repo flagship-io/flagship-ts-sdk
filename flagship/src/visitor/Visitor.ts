@@ -171,8 +171,12 @@ export class Visitor extends EventEmitter implements IVisitor {
   /**
    * @inheritdoc
    */
-  collectEAIData (): void {
-    this.visitorDelegate.collectEAIData()
+  collectEAIData (...args: unknown[]): void {
+    let currentPage: IPageView | undefined
+    if (args.length > 0) {
+      currentPage = args[0] as IPageView
+    }
+    this.visitorDelegate.collectEAIData(currentPage)
   }
 
   /**
