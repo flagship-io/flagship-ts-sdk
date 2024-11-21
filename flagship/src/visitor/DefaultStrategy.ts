@@ -34,7 +34,8 @@ import {
   VISITOR_AUTHENTICATE_VISITOR_ID_ERROR,
   VISITOR_EXPOSED_VALUE_NOT_CALLED,
   VISITOR_UNAUTHENTICATE,
-  VISITOR_ALREADY_AUTHENTICATE
+  VISITOR_ALREADY_AUTHENTICATE,
+  EAI_SCORE_CONTEXT_KEY
 } from '../enum/index'
 import {
   HitAbstract,
@@ -505,7 +506,7 @@ export class DefaultStrategy extends StrategyAbstract {
       const eaiScore = await this.visitor.emotionAi.fetchEAIScore(this.visitor.visitorId)
 
       if (eaiScore) {
-        this.updateContextKeyValue('eaiScore', eaiScore.eai.eas)
+        this.updateContextKeyValue(EAI_SCORE_CONTEXT_KEY, eaiScore.eai.eas)
       }
 
       this.visitor.getCampaignsPromise = this.decisionManager.getCampaignsAsync(this.visitor)
