@@ -23,9 +23,3 @@ export type EAIConfig = {
   eaiActivationEnabled: boolean;
   eaiCollectEnabled: boolean;
 }
-
-export type EAIScore = {
-  eai: {
-      eas: string;
-  }
-}

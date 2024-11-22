@@ -189,6 +189,12 @@ export type HitCacheDTO = {
   };
 };
 
+export type EAIScore = {
+  eai: {
+      eas: string;
+  }
+}
+
 export type VisitorCacheDTO = {
   version: number;
   data: {
@@ -196,6 +202,7 @@ export type VisitorCacheDTO = {
     anonymousId: string | null;
     consent?: boolean;
     context?: Record<string, primitive>;
+    eAIScore?: EAIScore,
     assignmentsHistory?: Record<string, string>;
     campaigns?: Array<{
       slug?: string | null;
