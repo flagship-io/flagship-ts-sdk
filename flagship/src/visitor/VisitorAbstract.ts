@@ -1,6 +1,6 @@
 import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
-import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFSFlagMetadata, sdkInitialData, VisitorCacheStatus, FetchFlagsStatus, SerializedFlagMetadata, CampaignDTO, VisitorVariations } from '../types'
+import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFSFlagMetadata, sdkInitialData, VisitorCacheStatus, FetchFlagsStatus, SerializedFlagMetadata, CampaignDTO, VisitorVariations, EAIScore } from '../types'
 
 import { IVisitor } from './IVisitor'
 import { FSSdkStatus, SDK_INFO, VISITOR_ID_ERROR } from '../enum/index'
@@ -179,6 +179,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       status: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.VISITOR_CREATED
     }
+
+    this._emotionAi.init(this)
 
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
   }
@@ -405,6 +407,14 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
   public cleanup (): void {
     this.emotionAi.cleanup()
+  }
+
+  public getCachedEAIScore (): EAIScore|undefined {
+    return this.visitorCache?.data?.eAIScore
+  }
+
+  public setCachedEAIScore (eAIScore: EAIScore): void {
+    this.getStrategy().cacheVisitor(eAIScore)
   }
 
   abstract updateContext(key: string, value: primitive):void
