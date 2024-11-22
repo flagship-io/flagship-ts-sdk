@@ -1,12 +1,15 @@
-import { EAIScore } from '../type.local'
+import { EAIScore } from '../types'
+import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { IPageView } from './hit/IPageView'
 import { IVisitorEvent } from './hit/IVisitorEvent'
 
 export interface IEmotionAI {
 
-    fetchEAIScore(visitorId:string) : Promise<EAIScore|undefined>;
+    init(visitor:VisitorAbstract): void;
 
-    collectEAIData(visitorId:string, currentPage?: Omit<IPageView, 'toApiKeys'>) : void;
+    fetchEAIScore() : Promise<EAIScore|undefined>;
+
+    collectEAIData(currentPage?: Omit<IPageView, 'toApiKeys'>) : void;
 
     cleanup() : void;
 
