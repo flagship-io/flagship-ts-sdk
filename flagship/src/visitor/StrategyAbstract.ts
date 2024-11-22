@@ -1,5 +1,5 @@
 import { Event, EventCategory, HitAbstract } from '../hit/index'
-import { primitive, IHit, VisitorCacheDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorCacheStatus, CampaignDTO } from '../types'
+import { primitive, IHit, VisitorCacheDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorCacheStatus, CampaignDTO, EAIScore } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
@@ -55,7 +55,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
   }
 
   collectEAIData (currentPage?: Omit<IPageView, 'toApiKeys'>): void {
-    this.visitor.emotionAi.collectEAIData(this.visitor.visitorId, currentPage)
+    this.visitor.emotionAi.collectEAIData(currentPage)
   }
 
   reportEaiVisitorEvent (event: IVisitorEvent):void {
@@ -207,7 +207,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     }
   }
 
-  public async cacheVisitor ():Promise<void> {
+  public async cacheVisitor (eAIScore?: EAIScore):Promise<void> {
     try {
       const visitorCacheInstance = this.config.visitorCacheImplementation
 
@@ -223,6 +223,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
           anonymousId: this.visitor.anonymousId,
           consent: this.visitor.hasConsented,
           context: this.visitor.context,
+          eAIScore: this.visitor.getCachedEAIScore() || eAIScore,
           campaigns: this.visitor.campaigns.map(campaign => {
             assignmentsHistory[campaign.variationGroupId] = campaign.variation.id
             return {
