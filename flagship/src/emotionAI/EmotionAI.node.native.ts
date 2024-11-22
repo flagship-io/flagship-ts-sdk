@@ -1,5 +1,4 @@
 import { CommonEmotionAI } from './CommonEmotionAI'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { VisitorEvent } from './hit/VisitorEvent'
 import { MAX_COLLECTING_TIME_MS, MAX_LAST_COLLECTING_TIME_MS, MAX_SCORING_POLLING_TIME } from '../enum/FlagshipConstant'
 import { IPageView } from './hit/IPageView'
@@ -8,14 +7,6 @@ import { PageView } from './hit/PageView'
 export class EmotionAI extends CommonEmotionAI {
   public cleanup (): void {
     //
-  }
-
-  protected async getCachedScore (cacheKey: string): Promise<string | null> {
-    return AsyncStorage.getItem(cacheKey)
-  }
-
-  protected async setCachedScore (cacheKey: string, score: string): Promise<void> {
-    return AsyncStorage.setItem(cacheKey, score)
   }
 
   protected async processPageView (currentPage: Omit<IPageView, 'toApiKeys'>): Promise<void> {
@@ -32,7 +23,7 @@ export class EmotionAI extends CommonEmotionAI {
     this._onEAICollectStatusChange?.(true)
   }
 
-  protected stopCollectingEAIData (visitorId:string): void {
+  protected stopCollectingEAIData (): void {
     this._onEAICollectStatusChange?.(false)
     this._startScoringTimestamp = Date.now()
 
@@ -43,7 +34,7 @@ export class EmotionAI extends CommonEmotionAI {
         this._isEAIDataCollected = true
       }
       this._EAIScoreChecked = false
-      const score = await this.fetchEAIScore(visitorId)
+      const score = await this.fetchEAIScore()
       if (score) {
         clearInterval(this._scoringIntervalId)
         this._isEAIDataCollecting = false
@@ -60,10 +51,10 @@ export class EmotionAI extends CommonEmotionAI {
 
     if ((timestampDiff > MAX_COLLECTING_TIME_MS && timestampDiff <= MAX_LAST_COLLECTING_TIME_MS)) {
       this.sendEAIEvent(visitorEvent)
-      this.stopCollectingEAIData(visitorEvent.visitorId)
+      this.stopCollectingEAIData()
     }
     if (timestampDiff > MAX_LAST_COLLECTING_TIME_MS) {
-      this.stopCollectingEAIData(visitorEvent.visitorId)
+      this.stopCollectingEAIData()
       this._isEAIDataCollecting = false
       this._isEAIDataCollected = true
     }
