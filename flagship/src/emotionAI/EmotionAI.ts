@@ -32,19 +32,6 @@ export class EmotionAI extends CommonEmotionAI {
     this._originalReplaceState = window.history.replaceState
   }
 
-  protected async getCachedScore (cacheKey: string): Promise<string | null> {
-    if (typeof localStorage !== 'undefined') {
-      return localStorage.getItem(cacheKey)
-    }
-    return null
-  }
-
-  protected async setCachedScore (cacheKey: string, score: string): Promise<void> {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(cacheKey, score)
-    }
-  }
-
   public cleanup (): void {
     this.removeListeners()
     this._isEAIDataCollecting = false
@@ -174,7 +161,7 @@ export class EmotionAI extends CommonEmotionAI {
     }
   }
 
-  protected stopCollectingEAIData (visitorId:string): void {
+  protected stopCollectingEAIData (): void {
     this.removeListeners()
     this._startScoringTimestamp = Date.now()
 
@@ -185,7 +172,7 @@ export class EmotionAI extends CommonEmotionAI {
         this._isEAIDataCollected = true
       }
       this._EAIScoreChecked = false
-      const score = await this.fetchEAIScore(visitorId)
+      const score = await this.fetchEAIScore()
       if (score) {
         clearInterval(this._scoringIntervalId)
         this._isEAIDataCollecting = false
@@ -225,7 +212,7 @@ export class EmotionAI extends CommonEmotionAI {
 
     if ((timestampDiff > MAX_COLLECTING_TIME_MS && timestampDiff <= MAX_LAST_COLLECTING_TIME_MS)) {
       this.sendEAIEvent(visitorEvent)
-      this.stopCollectingEAIData(visitorEvent.visitorId)
+      this.stopCollectingEAIData()
     }
     if (timestampDiff > MAX_LAST_COLLECTING_TIME_MS) {
       this.removeListeners()
