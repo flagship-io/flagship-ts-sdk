@@ -409,11 +409,14 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.emotionAi.cleanup()
   }
 
-  public getCachedEAIScore (): EAIScore|undefined {
+  public async getCachedEAIScore (): Promise<EAIScore|undefined> {
+    if (!this.visitorCache) {
+      await this.getStrategy().lookupVisitor()
+    }
     return this.visitorCache?.data?.eAIScore
   }
 
-  public setCachedEAIScore (eAIScore: EAIScore): void {
+  public async setCachedEAIScore (eAIScore: EAIScore): Promise<void> {
     this.getStrategy().cacheVisitor(eAIScore)
   }
 
