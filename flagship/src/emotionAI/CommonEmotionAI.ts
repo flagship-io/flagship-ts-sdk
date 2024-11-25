@@ -76,7 +76,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
       return this._EAIScore
     }
 
-    const cachedEAIScore = this._visitor.getCachedEAIScore()
+    const cachedEAIScore = await this._visitor.getCachedEAIScore()
 
     if (cachedEAIScore) {
       this._EAIScore = cachedEAIScore
