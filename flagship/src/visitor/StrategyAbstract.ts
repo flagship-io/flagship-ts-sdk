@@ -167,7 +167,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
   public async lookupVisitor ():Promise<void> {
     try {
       const visitorCacheInstance = this.config.visitorCacheImplementation
-      if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
+      if (this.config.disableCache || typeof visitorCacheInstance?.lookupVisitor !== 'function' || !this.visitor.visitorCache) {
         return
       }
       this.visitor.visitorCacheStatus = VisitorCacheStatus.NONE
@@ -223,7 +223,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
           anonymousId: this.visitor.anonymousId,
           consent: this.visitor.hasConsented,
           context: this.visitor.context,
-          eAIScore: this.visitor.getCachedEAIScore() || eAIScore,
+          eAIScore: this.visitor.visitorCache?.data?.eAIScore || eAIScore,
           campaigns: this.visitor.campaigns.map(campaign => {
             assignmentsHistory[campaign.variationGroupId] = campaign.variation.id
             return {
