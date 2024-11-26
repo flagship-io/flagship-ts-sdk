@@ -10,9 +10,5 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "strict": true,
-    "baseUrl": "../",
-    "paths": {
-      "@src/*": ["src/*"]
-    }
   }
 }
