@@ -9,6 +9,7 @@ import { IHttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
 import { VisitorDelegate } from '../../src/visitor'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
+import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 
 describe('test getStrategy', () => {
   const visitorId = 'visitorId'
@@ -28,7 +29,11 @@ describe('test getStrategy', () => {
   const trackingManager = new TrackingManager({} as IHttpClient, config)
   const configManager = new ConfigManager(config, {} as ApiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, hasConsented: true, configManager: configManager as ConfigManager })
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>()
+  } as unknown as IEmotionAI
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, hasConsented: true, configManager: configManager as ConfigManager, emotionAi })
 
   it('test NotReadyStrategy flagship status is undefined', async () => {
     await visitorDelegate.visitorExposed({ key: 'key', defaultValue: 'defaultValue', hasGetValueBeenCalled: true })
