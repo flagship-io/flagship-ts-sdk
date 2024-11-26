@@ -14,6 +14,8 @@ import { cacheVisitor } from '../../src/visitor/VisitorCache'
 import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
 import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
 import { FSFlagCollection } from '../../src/flag/FSFlagCollection'
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
+import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 
 const updateContext = jest.fn()
 const clearContext = jest.fn()
@@ -99,12 +101,19 @@ describe('test VisitorDelegate', () => {
 
   const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
 
+  const init = jest.fn<(visitor:VisitorAbstract) => void>()
+
+  const emotionAi = {
+    init
+  } as unknown as IEmotionAI
+
   const visitorDelegate = new VisitorDelegate({
     visitorId,
     context,
     configManager: configManager as ConfigManager,
     initialCampaigns: campaigns,
-    hasConsented: true
+    hasConsented: true,
+    emotionAi
   })
 
   expect(updateContext).toBeCalledTimes(1)
@@ -125,7 +134,7 @@ describe('test VisitorDelegate', () => {
   })
 
   it('should test empty visitorId', () => {
-    const visitorDelegate = new VisitorDelegate({ context, configManager, hasConsented: true })
+    const visitorDelegate = new VisitorDelegate({ context, configManager, hasConsented: true, emotionAi })
     expect(visitorDelegate.visitorId).toBeDefined()
     expect(visitorDelegate.visitorId).toHaveLength(36)
   })
@@ -188,7 +197,8 @@ describe('test VisitorDelegate', () => {
       configManager: configManager as ConfigManager,
       initialCampaigns: campaigns,
       hasConsented: true,
-      onFetchFlagsStatusChanged
+      onFetchFlagsStatusChanged,
+      emotionAi
     })
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(onFetchFlagsStatusChanged)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(1)
@@ -223,7 +233,8 @@ describe('test VisitorDelegate', () => {
       isAuthenticated: true,
       context,
       configManager: configManager as ConfigManager,
-      hasConsented: true
+      hasConsented: true,
+      emotionAi
     })
     expect(visitorDelegate.anonymousId).toBeDefined()
     expect(visitorDelegate.anonymousId).toHaveLength(36)
@@ -237,11 +248,18 @@ describe('test VisitorDelegate methods', () => {
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
 
+  const init = jest.fn<(visitor:VisitorAbstract) => void>()
+
+  const emotionAi = {
+    init
+  } as unknown as IEmotionAI
+
   const visitorDelegate = new VisitorDelegate({
     visitorId: 'visitorId',
     context: {},
     configManager: { config, decisionManager: {} as DecisionManager, trackingManager: {} as TrackingManager },
-    hasConsented: true
+    hasConsented: true,
+    emotionAi
   })
 
   it('test setConsent', () => {
@@ -393,6 +411,12 @@ describe('Initialization tests', () => {
   const visitorId = 'visitorId'
   const anonymousId = 'anonymousId'
 
+  const init = jest.fn<(visitor:VisitorAbstract) => void>()
+
+  const emotionAi = {
+    init
+  } as unknown as IEmotionAI
+
   it('should initialize visitorDelegate with anonymousId', () => {
     const loadVisitorProfile = jest.fn<typeof cacheVisitor.loadVisitorProfile>()
     cacheVisitor.loadVisitorProfile = loadVisitorProfile
@@ -404,7 +428,8 @@ describe('Initialization tests', () => {
         decisionManager: {} as DecisionManager,
         trackingManager: {} as TrackingManager
       },
-      hasConsented: true
+      hasConsented: true,
+      emotionAi
     })
     expect(visitorDelegate.visitorId).toBe(anonymousId)
     expect(visitorDelegate.anonymousId).toBeNull()
@@ -422,7 +447,8 @@ describe('Initialization tests', () => {
         decisionManager: {} as DecisionManager,
         trackingManager: {} as TrackingManager
       },
-      hasConsented: true
+      hasConsented: true,
+      emotionAi
     })
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBe(anonymousId)
@@ -439,7 +465,8 @@ describe('Initialization tests', () => {
         decisionManager: {} as DecisionManager,
         trackingManager: {} as TrackingManager
       },
-      hasConsented: true
+      hasConsented: true,
+      emotionAi
     })
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBeDefined()
@@ -456,7 +483,8 @@ describe('Initialization tests', () => {
         decisionManager: {} as DecisionManager,
         trackingManager: {} as TrackingManager
       },
-      hasConsented: true
+      hasConsented: true,
+      emotionAi
     })
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBeNull()
@@ -482,6 +510,12 @@ describe('test initialFlagsData', () => {
   const trackingManager = new TrackingManager(httpClient, config)
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
+
+  const init = jest.fn<(visitor:VisitorAbstract) => void>()
+
+  const emotionAi = {
+    init
+  } as unknown as IEmotionAI
 
   const campaigns = [{
     id: 'c2nrh1hjg50l9thhu8bg',
@@ -532,7 +566,8 @@ describe('test initialFlagsData', () => {
       configManager: configManager as ConfigManager,
       initialCampaigns: campaigns,
       initialFlagsData,
-      hasConsented: true
+      hasConsented: true,
+      emotionAi
     })
 
     expect(visitorDelegate.flagsData).toEqual(flagsData)
@@ -545,7 +580,8 @@ describe('test initialFlagsData', () => {
       configManager: configManager as ConfigManager,
       initialCampaigns: campaigns,
       initialFlagsData: [] as [],
-      hasConsented: true
+      hasConsented: true,
+      emotionAi
     })
 
     expect(visitorDelegate.flagsData.size).toBe(0)
