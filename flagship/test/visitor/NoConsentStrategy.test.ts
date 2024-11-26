@@ -12,6 +12,8 @@ import { MurmurHash } from '../../src/utils/MurmurHash'
 import { FlagDTO, TroubleshootingLabel } from '../../src'
 import { ApiManager } from '../../src/decision/ApiManager'
 import { Troubleshooting } from '../../src/hit/Troubleshooting'
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
+import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 
 describe('test NoConsentStrategy', () => {
   const visitorId = 'visitorId'
@@ -29,7 +31,10 @@ describe('test NoConsentStrategy', () => {
   const trackingManager = new TrackingManager({} as HttpClient, config)
 
   const configManager = new ConfigManager(config, {} as DecisionManager, trackingManager)
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>()
+  } as unknown as IEmotionAI
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
   const murmurHash = new MurmurHash()
   const noConsentStrategy = new NoConsentStrategy({ visitor: visitorDelegate, murmurHash })
 
@@ -108,6 +113,10 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
 
   const FsInstanceId = 'FsInstanceId'
 
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>()
+  } as unknown as IEmotionAI
+
   const murmurHash = new MurmurHash()
   const visitorDelegate = new VisitorDelegate({
     visitorId,
@@ -117,7 +126,8 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
       instanceId: FsInstanceId,
       lastInitializationTimestamp: ''
     },
-    hasConsented: true
+    hasConsented: true,
+    emotionAi
   })
   const noConsentStrategy = new NoConsentStrategy({ visitor: visitorDelegate, murmurHash })
   const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
