@@ -1,6 +1,6 @@
 import { AUTHENTICATE, CONTEXT_KEY_ERROR, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, UNAUTHENTICATE, PROCESS_FETCHING_FLAGS, FLAG_VISITOR_EXPOSED } from './../../src/enum/FlagshipConstant'
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
-import { DecisionApiConfig, EventCategory, FetchFlagsStatus, FlagDTO, FSFlagMetadata, TroubleshootingLabel } from '../../src/index'
+import { DecisionApiConfig, EAIScore, EventCategory, FetchFlagsStatus, FlagDTO, FSFlagMetadata, TroubleshootingLabel } from '../../src/index'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { BucketingConfig, ConfigManager } from '../../src/config/index'
 import { ApiManager } from '../../src/decision/ApiManager'
@@ -19,6 +19,10 @@ import { Event } from '../../src/hit/Event'
 import { returnFlag } from './flags'
 import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
 import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
+import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
+import { ISdkManager } from '../../src/main/ISdkManager'
+import { BucketingDTO } from '../../src/decision/api/bucketingDTO'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getNull = (): any => {
@@ -86,7 +90,16 @@ describe('test DefaultStrategy ', () => {
 
   const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged })
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>(),
+    fetchEAIScore
+  } as unknown as IEmotionAI
+
+  fetchEAIScore.mockResolvedValue(undefined)
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged, emotionAi })
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
   const predefinedContext = {
@@ -225,6 +238,7 @@ describe('test DefaultStrategy ', () => {
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(2)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { status: FSFetchStatus.FETCHING, reason: FSFetchReasons.NONE })
     expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { status: FSFetchStatus.FETCHED, reason: FSFetchReasons.NONE })
+    expect(emotionAi.fetchEAIScore).toBeCalledTimes(1)
   })
 
   it('test fetchFlags panic mode ', async () => {
@@ -958,7 +972,16 @@ describe('test DefaultStrategy fetch flags buffering', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
   const murmurHash = new MurmurHash()
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>(),
+    fetchEAIScore
+  } as unknown as IEmotionAI
+
+  fetchEAIScore.mockResolvedValue(undefined)
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
   const campaignDtoId = 'c2nrh1hjg50l9stringgu8bg'
@@ -1053,7 +1076,16 @@ describe('test authenticate on bucketing mode', () => {
 
   const configManager = new ConfigManager(config, {} as ApiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>(),
+    fetchEAIScore
+  } as unknown as IEmotionAI
+
+  fetchEAIScore.mockResolvedValue(undefined)
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
   const murmurHash = new MurmurHash()
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
@@ -1105,7 +1137,16 @@ describe('test fetchFlags errors', () => {
 
   const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged })
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>(),
+    fetchEAIScore
+  } as unknown as IEmotionAI
+
+  fetchEAIScore.mockResolvedValue(undefined)
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged, emotionAi })
 
   const murmurHash = new MurmurHash()
 
@@ -1173,7 +1214,16 @@ describe('test fetchFlags errors 2', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>(),
+    fetchEAIScore
+  } as unknown as IEmotionAI
+
+  fetchEAIScore.mockResolvedValue(undefined)
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
 
   const murmurHash = new MurmurHash()
 
@@ -1252,8 +1302,17 @@ describe('test DefaultStrategy troubleshootingHit 1', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>(),
+    fetchEAIScore
+  } as unknown as IEmotionAI
+
+  fetchEAIScore.mockResolvedValue(undefined)
+
   const murmurHash = new MurmurHash()
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
   apiManager.troubleshooting = {
@@ -1363,15 +1422,26 @@ describe('test DefaultStrategy troubleshootingHit Bucketing mode', () => {
           }
         ]
       }],
+
     accountSettings: {
       troubleshooting: {
         startDate: '2023-04-13T09:33:38.049Z',
         endDate: '2023-04-13T10:03:38.049Z',
         timezone: 'Europe/Paris',
         traffic: 40
-      }
+      },
+      eaiCollectEnabled: false,
+      eaiActivationEnabled: false
     }
   }
+
+  const getBucketingContent = jest.fn<() => BucketingDTO | undefined>()
+
+  const sdkManager = {
+    getBucketingContent
+  } as unknown as ISdkManager
+
+  getBucketingContent.mockReturnValue(bucketing)
 
   const config = new BucketingConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0, initialBucketing: bucketing })
   config.logManager = logManager
@@ -1383,7 +1453,7 @@ describe('test DefaultStrategy troubleshootingHit Bucketing mode', () => {
   post.mockResolvedValue({} as IHttpResponse)
   const murmurHash = new MurmurHash()
 
-  const decisionManager = new BucketingManager(httpClient, config, murmurHash)
+  const decisionManager = new BucketingManager({ httpClient, config, murmurHash, sdkManager })
 
   const getModifications = jest.spyOn(
     decisionManager,
@@ -1402,7 +1472,16 @@ describe('test DefaultStrategy troubleshootingHit Bucketing mode', () => {
 
   const configManager = new ConfigManager(config, decisionManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>(),
+    fetchEAIScore
+  } as unknown as IEmotionAI
+
+  fetchEAIScore.mockResolvedValue(undefined)
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
   it('test fetchFlags', async () => {
@@ -1476,7 +1555,17 @@ describe('test DefaultStrategy troubleshootingHit send SEGMENT HIT', () => {
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
   const murmurHash = new MurmurHash()
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>(),
+    fetchEAIScore
+  } as unknown as IEmotionAI
+
+  fetchEAIScore.mockResolvedValue(undefined)
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
   it('test send hit', async () => {
@@ -1547,8 +1636,17 @@ describe('test DefaultStrategy troubleshootingHit', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>(),
+    fetchEAIScore
+  } as unknown as IEmotionAI
+
+  fetchEAIScore.mockResolvedValue(undefined)
+
   const murmurHash = new MurmurHash()
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
   const campaignDtoId = 'c2nrh1hjg50l9stringgu8bg'
   const campaignDTO = [
@@ -1628,6 +1726,15 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>(),
+    fetchEAIScore
+  } as unknown as IEmotionAI
+
+  fetchEAIScore.mockResolvedValue(undefined)
+
   const FsInstanceId = 'FsInstanceId'
   const murmurHash = new MurmurHash()
   const visitorDelegate = new VisitorDelegate({
@@ -1638,7 +1745,8 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
       instanceId: FsInstanceId,
       lastInitializationTimestamp: ''
     },
-    hasConsented: true
+    hasConsented: true,
+    emotionAi
   })
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
@@ -1727,6 +1835,15 @@ describe('test DefaultStrategy with QA mode', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>(),
+    fetchEAIScore
+  } as unknown as IEmotionAI
+
+  fetchEAIScore.mockResolvedValue(undefined)
+
   const FsInstanceId = 'FsInstanceId'
   const murmurHash = new MurmurHash()
   const visitorDelegate = new VisitorDelegate({
@@ -1737,7 +1854,8 @@ describe('test DefaultStrategy with QA mode', () => {
       instanceId: FsInstanceId,
       lastInitializationTimestamp: ''
     },
-    hasConsented: true
+    hasConsented: true,
+    emotionAi
   })
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
   const returnMod = returnFlag.get('keyString') as FlagDTO
