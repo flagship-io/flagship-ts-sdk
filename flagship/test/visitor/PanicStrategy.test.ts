@@ -11,6 +11,8 @@ import { VisitorDelegate, PanicStrategy } from '../../src/visitor'
 import { campaigns } from '../decision/campaigns'
 import { MurmurHash } from '../../src/utils/MurmurHash'
 import { Troubleshooting } from '../../src/hit/Troubleshooting'
+import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 
 describe('test NotReadyStrategy', () => {
   const visitorId = 'visitorId'
@@ -44,7 +46,11 @@ describe('test NotReadyStrategy', () => {
   const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>()
+  } as unknown as IEmotionAI
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
   const murmurHash = new MurmurHash()
 
   const panicStrategy = new PanicStrategy({ visitor: visitorDelegate, murmurHash })
