@@ -15,6 +15,8 @@ import { MurmurHash } from '../../src/utils/MurmurHash'
 import { VISITOR_ID_MISMATCH_ERROR } from '../../src/visitor/StrategyAbstract'
 import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
 import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
+import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getUndefined = ():any => undefined
@@ -58,7 +60,11 @@ describe('test visitor cache', () => {
 
   const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged })
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>()
+  } as unknown as IEmotionAI
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged, emotionAi })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getStrategy = jest.spyOn(visitorDelegate, 'getStrategy' as any)
@@ -146,7 +152,7 @@ describe('test visitor cache', () => {
   it('test fetchVisitorCacheCampaigns defaultStrategy', async () => {
     getCampaignsAsync.mockResolvedValue(null)
     const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged })
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged, emotionAi })
     const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
     visitorDelegate.visitorCache = data
@@ -162,7 +168,7 @@ describe('test visitor cache', () => {
   it('test fetchVisitorCacheCampaigns noConsentStrategy', async () => {
     getCampaignsAsync.mockResolvedValue(null)
 
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
     const noConsentStrategy = new NoConsentStrategy({ visitor: visitorDelegate, murmurHash })
 
     visitorDelegate.visitorCache = data
@@ -173,7 +179,7 @@ describe('test visitor cache', () => {
   it('test fetchVisitorCacheCampaigns panicStrategy', async () => {
     getCampaignsAsync.mockResolvedValue(null)
 
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
     const panicStrategy = new PanicStrategy({ visitor: visitorDelegate, murmurHash })
 
     visitorDelegate.visitorCache = data
@@ -184,7 +190,7 @@ describe('test visitor cache', () => {
   it('test fetchVisitorCacheCampaigns', async () => {
     getCampaignsAsync.mockResolvedValue(null)
 
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
     const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
     visitorDelegate.visitorCache = {
@@ -270,7 +276,7 @@ describe('test visitor cache', () => {
   })
 
   it('test lookupVisitor', async () => {
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
     const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
     const data = {
       data: {
@@ -288,7 +294,7 @@ describe('test visitor cache', () => {
   })
 
   it('test lookupVisitor', async () => {
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
     const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
     const data = {
       version: VISITOR_CACHE_VERSION,
@@ -309,7 +315,7 @@ describe('test visitor cache', () => {
   })
 
   it('test lookupVisitor', async () => {
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
     const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
     lookupVisitor.mockReturnValue(getUndefined())
@@ -319,7 +325,7 @@ describe('test visitor cache', () => {
   })
 
   it('test lookupVisitor', async () => {
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
     const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
     const data = {
       version: VISITOR_CACHE_VERSION,
@@ -417,7 +423,11 @@ describe('test visitor cache status', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>()
+  } as unknown as IEmotionAI
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
 
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash: new MurmurHash() })
 
@@ -582,7 +592,11 @@ describe('test visitorCache with disabledCache', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>()
+  } as unknown as IEmotionAI
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
 
   const murmurHash = new MurmurHash()
 
