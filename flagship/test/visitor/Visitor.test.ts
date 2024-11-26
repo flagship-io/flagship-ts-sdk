@@ -11,6 +11,8 @@ import { EMIT_READY, SDK_INFO } from '../../src/enum'
 import { IFSFlag } from '../../src/flag/IFSFlag'
 import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
 import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
+import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 
 describe('test visitor', () => {
   const visitorId = 'visitorId'
@@ -36,9 +38,25 @@ describe('test visitor', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, isAuthenticated: true, hasConsented: true })
+  const init = jest.fn<(visitor:VisitorAbstract) => void>()
+
+  const emotionAi = {
+    init
+  } as unknown as IEmotionAI
+
+  const visitorDelegate = new VisitorDelegate({
+    visitorId,
+    context,
+    configManager,
+    isAuthenticated: true,
+    hasConsented: true,
+    emotionAi
+  })
 
   const visitor = new Visitor(visitorDelegate)
+
+  expect(emotionAi.init).toBeCalledTimes(1)
+  expect(emotionAi.init).toBeCalledWith(visitorDelegate)
 
   const predefinedContext = {
     fs_client: SDK_INFO.name,
