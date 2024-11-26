@@ -10,6 +10,8 @@ import { sprintf } from '../../src/utils/utils'
 import { VisitorDelegate, NotReadyStrategy } from '../../src/visitor'
 import { MurmurHash } from '../../src/utils/MurmurHash'
 import { Troubleshooting } from '../../src/hit/Troubleshooting'
+import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 
 describe('test NotReadyStrategy', () => {
   const visitorId = 'visitorId'
@@ -29,8 +31,12 @@ describe('test NotReadyStrategy', () => {
   const sendUsageHitSpy = jest.spyOn(trackingManager, 'sendUsageHit')
   const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
 
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>()
+  } as unknown as IEmotionAI
+
   const configManager = new ConfigManager(config, {} as DecisionManager, trackingManager)
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
   const murmurHash = new MurmurHash()
   const notReadyStrategy = new NotReadyStrategy({ visitor: visitorDelegate, murmurHash })
 
