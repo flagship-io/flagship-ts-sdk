@@ -11,6 +11,8 @@ import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import * as utils from '../../src/utils/utils'
 import * as messages from '../../src/qaAssistant/messages'
 import { VisitorVariations } from '../../src/types'
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
+import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 
 describe('test sendExposedVariation', () => {
   beforeEach(() => {
@@ -42,12 +44,19 @@ describe('test sendExposedVariation', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
+  const init = jest.fn<(visitor:VisitorAbstract) => void>()
+
+  const emotionAi = {
+    init
+  } as unknown as IEmotionAI
+
   it('Test sendExposedVariation flag is undefined ', () => {
     const visitorDelegate = new VisitorDelegate({
       visitorId,
       hasConsented: true,
       context,
-      configManager: configManager as ConfigManager
+      configManager: configManager as ConfigManager,
+      emotionAi
     })
 
     visitorDelegate.sendExposedVariation(undefined)
@@ -60,7 +69,8 @@ describe('test sendExposedVariation', () => {
       visitorId,
       hasConsented: true,
       context,
-      configManager: configManager as ConfigManager
+      configManager: configManager as ConfigManager,
+      emotionAi
     })
 
     visitorDelegate.sendExposedVariation(undefined)
@@ -73,7 +83,8 @@ describe('test sendExposedVariation', () => {
       visitorId,
       hasConsented: true,
       context,
-      configManager: configManager as ConfigManager
+      configManager: configManager as ConfigManager,
+      emotionAi
     })
 
     const flag = {
@@ -106,7 +117,8 @@ describe('test sendExposedVariation', () => {
       visitorId,
       hasConsented: true,
       context,
-      configManager: configManager as ConfigManager
+      configManager: configManager as ConfigManager,
+      emotionAi
     })
 
     const flag = {
@@ -142,7 +154,8 @@ describe('test sendExposedVariation', () => {
       visitorId,
       hasConsented: true,
       context,
-      configManager: configManager as ConfigManager
+      configManager: configManager as ConfigManager,
+      emotionAi
     })
 
     const flag = {
@@ -194,7 +207,8 @@ describe('test sendExposedVariation', () => {
       visitorId,
       hasConsented: true,
       context,
-      configManager: configManager as ConfigManager
+      configManager: configManager as ConfigManager,
+      emotionAi
     })
 
     const exposedVariations:Record<string, VisitorVariations> = {}
