@@ -308,6 +308,7 @@ export class Flagship {
     const httpClient = new HttpClient()
     const trackingManager = new TrackingManager(httpClient, config)
     const decisionManager = new ApiManager(httpClient, config)
+    this._config = config
     this.configManager = new ConfigManager(config, decisionManager, trackingManager)
   }
 
@@ -326,21 +327,23 @@ export class Flagship {
       logError(flagship.getConfig(), NEW_VISITOR_NOT_READY, PROCESS_NEW_VISITOR)
     }
 
+    const sdkConfig = flagship.getConfig()
+
     if (hasConsented === undefined) {
-      logWarning(flagship.getConfig(), CONSENT_NOT_SPECIFY_WARNING, PROCESS_NEW_VISITOR)
+      logWarning(sdkConfig, CONSENT_NOT_SPECIFY_WARNING, PROCESS_NEW_VISITOR)
     }
 
     let emotionAi:IEmotionAI
 
     if (!isBrowser()) {
       emotionAi = new EmotionAINode({
-        sdkConfig: this.getInstance().getConfig(),
+        sdkConfig,
         httpClient: new HttpClient(),
         eAIConfig: flagship._sdkManager?.getEAIConfig()
       })
     } else {
       emotionAi = new EmotionAIBrowser({
-        sdkConfig: this.getInstance().getConfig(),
+        sdkConfig,
         httpClient: new HttpClient(),
         eAIConfig: flagship._sdkManager?.getEAIConfig()
       })
@@ -368,10 +371,10 @@ export class Flagship {
     this.getInstance()._visitorInstance = saveInstance ? visitor : undefined
 
     if (saveInstance) {
-      logDebugSprintf(this.getConfig(), PROCESS_NEW_VISITOR, SAVE_VISITOR_INSTANCE, visitor.visitorId)
+      logDebugSprintf(sdkConfig, PROCESS_NEW_VISITOR, SAVE_VISITOR_INSTANCE, visitor.visitorId)
     }
 
-    if (this.getConfig().fetchNow && this.getConfig().decisionMode !== DecisionMode.BUCKETING_EDGE) {
+    if (sdkConfig.fetchNow && sdkConfig.decisionMode !== DecisionMode.BUCKETING_EDGE) {
       visitor.fetchFlags()
     }
 
