@@ -9,6 +9,7 @@ import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 import * as forceVariation from '../../src/flag/forceVariation'
+import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 
 describe('test Flag', () => {
   beforeEach(() => {
@@ -44,7 +45,12 @@ describe('test Flag', () => {
 
   VisitorAbstract.SdkStatus = FSSdkStatus.SDK_INITIALIZED
 
-  const visitorDelegate = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager })
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>()
+
+  } as unknown as IEmotionAI
+
+  const visitorDelegate = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager, emotionAi })
 
   const visitorExposed = jest.spyOn(visitorDelegate, 'visitorExposed')
   const getFlagValue = jest.spyOn(visitorDelegate, 'getFlagValue')
