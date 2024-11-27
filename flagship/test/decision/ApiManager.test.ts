@@ -21,6 +21,8 @@ import { CampaignDTO, FetchFlagsStatus } from '../../src'
 import { errorFormat } from '../../src/utils/utils'
 import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
 import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
+import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 
 describe('test ApiManager', () => {
   const methodNow = Date.now
@@ -44,7 +46,19 @@ describe('test ApiManager', () => {
 
   const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
 
-  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: apiManager, trackingManager }, onFetchFlagsStatusChanged })
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>()
+
+  } as unknown as IEmotionAI
+
+  const visitor = new VisitorDelegate({
+    hasConsented: true,
+    visitorId,
+    context,
+    configManager: { config, decisionManager: apiManager, trackingManager },
+    onFetchFlagsStatusChanged,
+    emotionAi
+  })
 
   const campaignResponse = { status: 200, body: campaigns }
 
