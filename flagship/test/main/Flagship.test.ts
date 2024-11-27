@@ -31,6 +31,7 @@ jest.mock('../../src/decision/ApiManager', () => {
     })
   }
 })
+
 const startBatchingLoop = jest.fn<()=>Promise<void>>()
 startBatchingLoop.mockResolvedValue()
 const addHit = jest.fn<()=>Promise<void>>()
@@ -73,8 +74,8 @@ describe('test Flagship class', () => {
     //
   })
 
-  it('test flagship start works properly', () => {
-    Flagship.start(envId, apiKey)
+  it('test flagship start works properly', async () => {
+    await Flagship.start(envId, apiKey)
 
     expect(Flagship.getConfig()).toBeDefined()
     expect(Flagship.getConfig()).toBeInstanceOf(DecisionApiConfig)
@@ -100,7 +101,7 @@ describe('test Flagship class', () => {
   })
 
   it('should test Flagship.close method', async () => {
-    const fs = Flagship.start(envId, apiKey)
+    const fs = await Flagship.start(envId, apiKey)
     sendBatch.mockResolvedValue()
     await fs.close()
     expect(sendBatch).toBeCalledTimes(1)
@@ -108,12 +109,12 @@ describe('test Flagship class', () => {
 })
 
 describe('test Flagship with custom config literal object', () => {
-  it('should ', () => {
+  it('should ', async () => {
     const envId = 'envId'
     const apiKey = 'apiKey'
     const logManager = new FlagshipLogManager()
 
-    Flagship.start(envId, apiKey, { decisionMode: DecisionMode.DECISION_API, logManager })
+    await Flagship.start(envId, apiKey, { decisionMode: DecisionMode.DECISION_API, logManager })
 
     expect(Flagship.getConfig().envId).toBe(envId)
     expect(Flagship.getConfig().apiKey).toBe(apiKey)
@@ -126,12 +127,10 @@ describe('test Flagship with custom config (Decision API)', () => {
   const envId = 'envId'
   const apiKey = 'apiKey'
 
-  const onSdkStatusChanged = (status:FSSdkStatus) => {
-    expect(status).toBe(FSSdkStatus.SDK_INITIALIZED)
-  }
+  const onSdkStatusChanged = jest.fn<(status:FSSdkStatus)=>void>()
 
-  it('should start in Decision API mode', () => {
-    const instance = Flagship.start(envId, apiKey, {
+  it('should start in Decision API mode', async () => {
+    const instance = await Flagship.start(envId, apiKey, {
       decisionMode: DecisionMode.DECISION_API,
       onSdkStatusChanged
     })
@@ -140,14 +139,17 @@ describe('test Flagship with custom config (Decision API)', () => {
     expect(Flagship.getConfig().envId).toBe(envId)
     expect(Flagship.getConfig().apiKey).toBe(apiKey)
     expect(Flagship.getConfig().logManager).toBeInstanceOf(FlagshipLogManager)
+    expect(onSdkStatusChanged).toBeCalledTimes(2)
+    expect(onSdkStatusChanged).toHaveBeenNthCalledWith(1, FSSdkStatus.SDK_INITIALIZING)
+    expect(onSdkStatusChanged).toHaveBeenNthCalledWith(2, FSSdkStatus.SDK_INITIALIZED)
 
     expect(instance?.getStatus()).toBe(FSSdkStatus.SDK_INITIALIZED)
 
     expect(instance).toBeInstanceOf(Flagship)
   })
 
-  it('should start in default mode', () => {
-    const instance = Flagship.start('', '')
+  it('should start in default mode', async () => {
+    const instance = await Flagship.start('', '')
     expect(Flagship.getStatus()).toBe(FSSdkStatus.SDK_NOT_INITIALIZED)
     expect(instance).toBeInstanceOf(Flagship)
   })
@@ -157,12 +159,10 @@ describe('test Flagship with custom config (Bucketing Edge)', () => {
   const envId = 'envId'
   const apiKey = 'apiKey'
 
-  const onSdkStatusChanged = (status:FSSdkStatus) => {
-    expect(status).toBe(FSSdkStatus.SDK_INITIALIZED)
-  }
+  const onSdkStatusChanged = jest.fn<(status:FSSdkStatus)=>void>()
 
-  it('should start in Bucketing Edge mode', () => {
-    const instance = Flagship.start(envId, apiKey, {
+  it('should start in Bucketing Edge mode', async () => {
+    const instance = await Flagship.start(envId, apiKey, {
       decisionMode: DecisionMode.BUCKETING_EDGE,
       onSdkStatusChanged,
       initialBucketing: {}
@@ -173,17 +173,21 @@ describe('test Flagship with custom config (Bucketing Edge)', () => {
     expect(Flagship.getConfig().apiKey).toBe(apiKey)
     expect(Flagship.getConfig().logManager).toBeInstanceOf(FlagshipLogManager)
 
+    expect(onSdkStatusChanged).toBeCalledTimes(2)
+    expect(onSdkStatusChanged).toHaveBeenNthCalledWith(1, FSSdkStatus.SDK_INITIALIZING)
+    expect(onSdkStatusChanged).toHaveBeenNthCalledWith(2, FSSdkStatus.SDK_INITIALIZED)
+
     expect(instance?.getStatus()).toBe(FSSdkStatus.SDK_INITIALIZED)
 
     expect(instance).toBeInstanceOf(Flagship)
   })
 
-  it('should start in default mode', () => {
+  it('should start in default mode', async () => {
     const onSdkStatusChanged = (status:FSSdkStatus) => {
       expect(status).toBe(FSSdkStatus.SDK_NOT_INITIALIZED)
     }
 
-    const instance = Flagship.start('', '', {
+    const instance = await Flagship.start('', '', {
       onSdkStatusChanged
     })
     expect(Flagship.getStatus()).toBe(FSSdkStatus.SDK_NOT_INITIALIZED)
@@ -209,8 +213,9 @@ describe('test Flagship newVisitor', () => {
     const logManager = new FlagshipLogManager()
     const logWarning = jest.spyOn(logManager, 'warning')
 
-    Flagship.start('envId', 'apiKey', {
-      logManager
+    await Flagship.start('envId', 'apiKey', {
+      logManager,
+      fetchNow: false
     })
     const visitorId = 'visitorId'
     const context = { isVip: true }
@@ -219,7 +224,7 @@ describe('test Flagship newVisitor', () => {
       fs_version: SDK_INFO.version,
       fs_users: visitorId
     }
-    // expect(addHit).toBeCalledTimes(1)
+
     let visitor = Flagship.newVisitor({ visitorId, context, hasConsented: true })
 
     expect(visitor?.visitorId).toBe(visitorId)
@@ -234,10 +239,6 @@ describe('test Flagship newVisitor', () => {
     const newVisitor = Flagship.newVisitor({ visitorId, hasConsented: true })
     expect(newVisitor?.context).toEqual({ ...predefinedContext })
     expect(newVisitor?.hasConsented).toBe(true)
-
-    await sleep(500)
-    expect(getCampaignsAsync).toBeCalledTimes(3)
-    expect(getCampaignsAsync).toBeCalledWith(expect.objectContaining({ visitorId: visitor?.visitorId, context: visitor?.context }))
 
     visitor = Flagship.newVisitor({ visitorId, context, hasConsented: true })
 
