@@ -167,7 +167,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
   public async lookupVisitor ():Promise<void> {
     try {
       const visitorCacheInstance = this.config.visitorCacheImplementation
-      if (this.config.disableCache || typeof visitorCacheInstance?.lookupVisitor !== 'function' || !this.visitor.visitorCache) {
+      if (this.config.disableCache || typeof visitorCacheInstance?.lookupVisitor !== 'function' || this.visitor.visitorCache) {
         return
       }
       this.visitor.visitorCacheStatus = VisitorCacheStatus.NONE
