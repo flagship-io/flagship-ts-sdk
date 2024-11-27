@@ -3,15 +3,20 @@ import { Flagship, DecisionMode, Visitor, NewVisitor } from '../../src'
 import { IFlagshipConfig } from '../../src/config'
 import { MurmurHash } from '../../src/utils/MurmurHash'
 import { HttpClient } from '../../src/utils/HttpClient'
+import { EAIConfig } from '../../src/type.local'
 
-const startPolling = jest.fn()
-const stopPolling = jest.fn()
-jest.mock('../../src/decision/BucketingManager', () => {
+const initSdk = jest.fn<()=>Promise<void>>()
+const resetSdk = jest.fn<()=>void>()
+const getEAIConfig = jest.fn<()=>EAIConfig|undefined>()
+
+jest.mock('../../src/main/BucketingSdkManager.ts', () => {
   return {
-    BucketingManager: jest.fn().mockImplementation(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { BucketingManager } = jest.requireActual('../../src/decision/BucketingManager') as any
-      return Object.assign(new BucketingManager({} as HttpClient, {} as IFlagshipConfig, {} as MurmurHash), { startPolling, stopPolling })
+    BucketingSdkManager: jest.fn().mockImplementation(() => {
+      return {
+        initSdk,
+        resetSdk,
+        getEAIConfig
+      }
     })
   }
 })
@@ -42,17 +47,20 @@ jest.mock('../../src/api/TrackingManager', () => {
 })
 
 describe('test start in Bucketing mode', () => {
-  it('should ', () => {
-    Flagship.start('envId', 'apiKey', {
+  it('should ', async () => {
+    initSdk.mockResolvedValue()
+    getEAIConfig.mockReturnValue(undefined)
+
+    await Flagship.start('envId', 'apiKey', {
       decisionMode: DecisionMode.BUCKETING
     })
-    const instance = Flagship.start('envId', 'apiKey', {
+    const instance = await Flagship.start('envId', 'apiKey', {
       decisionMode: DecisionMode.BUCKETING,
       pollingInterval: 0
     })
 
     expect(instance).toBeInstanceOf(Flagship)
-    expect(startPolling).toBeCalledTimes(2)
+    expect(initSdk).toBeCalledTimes(2)
     if (instance) {
       const context = {
         key: 'value'
