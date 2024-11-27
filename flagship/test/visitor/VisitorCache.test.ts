@@ -9,7 +9,7 @@ import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { VisitorDelegate, DefaultStrategy, NoConsentStrategy, NotReadyStrategy, PanicStrategy } from '../../src/visitor'
 import { VISITOR_CACHE_VERSION } from '../../src/enum'
 import { campaigns } from '../decision/campaigns'
-import { FetchFlagsStatus, VisitorCacheDTO, VisitorCacheStatus } from '../../src/types'
+import { EAIScore, FetchFlagsStatus, VisitorCacheDTO, VisitorCacheStatus } from '../../src/types'
 import { sprintf } from '../../src/utils/utils'
 import { MurmurHash } from '../../src/utils/MurmurHash'
 import { VISITOR_ID_MISMATCH_ERROR } from '../../src/visitor/StrategyAbstract'
@@ -60,9 +60,14 @@ describe('test visitor cache', () => {
 
   const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
 
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+
   const emotionAi = {
-    init: jest.fn<(visitor:VisitorAbstract) => void>()
+    init: jest.fn<(visitor:VisitorAbstract) => void>(),
+    fetchEAIScore
   } as unknown as IEmotionAI
+
+  fetchEAIScore.mockResolvedValue(undefined)
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged, emotionAi })
 
@@ -208,6 +213,7 @@ describe('test visitor cache', () => {
 
   it('test lookupVisitor defaultStrategy', async () => {
     getStrategy.mockReturnValue(defaultStrategy)
+    visitorDelegate.visitorCache = getUndefined()
     lookupVisitor.mockResolvedValue((data))
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(1)
@@ -358,6 +364,7 @@ describe('test visitor cache', () => {
     lookupVisitor.mockImplementationOnce(() => {
       throw lookVisitorError
     })
+    visitorDelegate.visitorCache = getUndefined()
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(1)
     expect(logError).toBeCalledTimes(1)
@@ -423,9 +430,14 @@ describe('test visitor cache status', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+
   const emotionAi = {
-    init: jest.fn<(visitor:VisitorAbstract) => void>()
+    init: jest.fn<(visitor:VisitorAbstract) => void>(),
+    fetchEAIScore
   } as unknown as IEmotionAI
+
+  fetchEAIScore.mockResolvedValue(undefined)
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
 
@@ -474,6 +486,7 @@ describe('test visitor cache status', () => {
   it('test visitorCacheStatus VISITOR_ID_CACHE ', async () => {
     lookupVisitor.mockResolvedValue(data)
     const anonymousId = 'anonymousId'
+    visitorDelegate.visitorCache = getUndefined()
     visitorDelegate.anonymousId = anonymousId
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(2)
@@ -490,7 +503,7 @@ describe('test visitor cache status', () => {
       }
       return getUndefined()
     })
-
+    visitorDelegate.visitorCache = getUndefined()
     visitorDelegate.anonymousId = anonymousId
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(2)
@@ -507,7 +520,7 @@ describe('test visitor cache status', () => {
       }
       return data
     })
-
+    visitorDelegate.visitorCache = getUndefined()
     visitorDelegate.anonymousId = anonymousId
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(2)
@@ -592,9 +605,14 @@ describe('test visitorCache with disabledCache', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+
   const emotionAi = {
-    init: jest.fn<(visitor:VisitorAbstract) => void>()
+    init: jest.fn<(visitor:VisitorAbstract) => void>(),
+    fetchEAIScore
   } as unknown as IEmotionAI
+
+  fetchEAIScore.mockResolvedValue(undefined)
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
 
