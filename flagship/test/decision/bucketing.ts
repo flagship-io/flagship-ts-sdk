@@ -324,6 +324,8 @@ export const bucketing = {
       endDate: '2023-04-13T10:03:38.049Z',
       timezone: 'Europe/Paris',
       traffic: 40
-    }
+    },
+    eaiCollectEnabled: false,
+    eaiActivationEnabled: false
   }
 }
