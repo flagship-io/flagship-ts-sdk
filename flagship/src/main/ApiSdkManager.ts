@@ -11,6 +11,7 @@ type constructorParam = {
   httpClient: IHttpClient;
   sdkConfig: IFlagshipConfig;
   trackingManager: ITrackingManager;
+  flagshipInstanceId: string;
 }
 
 export class ApiSdkManager implements ISdkManager {
@@ -18,11 +19,13 @@ export class ApiSdkManager implements ISdkManager {
   protected _config: IFlagshipConfig
   protected _trackingManager: ITrackingManager
   protected _EAIConfig?: EAIConfig
+  protected _flagshipInstanceId: string
 
-  public constructor ({ httpClient, sdkConfig, trackingManager }: constructorParam) {
+  public constructor ({ httpClient, sdkConfig, trackingManager, flagshipInstanceId }: constructorParam) {
     this._httpClient = httpClient
     this._config = sdkConfig
     this._trackingManager = trackingManager
+    this._flagshipInstanceId = flagshipInstanceId
   }
 
   resetSdk (): void {
