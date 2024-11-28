@@ -257,9 +257,6 @@ describe('test Flagship newVisitor', () => {
     visitor = Flagship.newVisitor({ shouldSaveInstance: false, hasConsented: true })
     expect(Flagship.getVisitor()).toBeUndefined()
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    global.window = jest.fn() as any
-
     // test client side true and shouldSaveInstance to false
     visitor = Flagship.newVisitor({ shouldSaveInstance: true, hasConsented: false })
     expect(Flagship.getVisitor()).toBeDefined()
