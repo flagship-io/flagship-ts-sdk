@@ -1,5 +1,5 @@
 import { jest, describe, it, expect } from '@jest/globals'
-import { BUCKETING_API_URL, CDN_ACCOUNT_SETTINGS_URL, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, SDK_INFO } from '../../src/enum'
+import { BUCKETING_API_URL, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, SDK_INFO } from '../../src/enum'
 import { EAIConfig } from '../../src/type.local'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { sleep, sprintf } from '../../src/utils/utils'
@@ -19,7 +19,6 @@ describe('BucketingSdkManager', () => {
   sdkConfig.logManager = logManager
 
   const errorLog = jest.spyOn(logManager, 'error')
-  const debugLog = jest.spyOn(logManager, 'debug')
 
   const getAsyncSpy = jest.spyOn(httpClient, 'getAsync')
 
@@ -75,6 +74,20 @@ describe('BucketingSdkManager', () => {
       expect(bucketingSdkManager.getEAIConfig()).toBeUndefined()
       expect(errorLog).toHaveBeenCalledTimes(1)
     })
+  })
+})
+
+describe('BucketingSdkManager with initialBucketing', () => {
+  const httpClient = new HttpClient()
+  const sdkConfig = new BucketingConfig({ envId: 'envId', apiKey: 'apiKey', pollingInterval: 0, initialBucketing: bucketing })
+  const trackingManager = new TrackingManager(httpClient, sdkConfig)
+  const bucketingSdkManager = new BucketingSdkManager({ httpClient, sdkConfig, trackingManager, flagshipInstanceId: 'flagshipInstanceId' })
+  const logManager = new FlagshipLogManager()
+  sdkConfig.logManager = logManager
+
+  it('getBucketingContent should return initialBucketing', () => {
+    const result = bucketingSdkManager.getBucketingContent()
+    expect(result).toEqual(bucketing)
   })
 })
 
