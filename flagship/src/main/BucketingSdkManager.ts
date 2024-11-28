@@ -1,16 +1,18 @@
 import { EAIConfig } from '../type.local'
-import { BucketingDTO } from '../types'
+import { BucketingDTO, TroubleshootingLabel } from '../types'
 import { ISdkManager } from './ISdkManager'
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { IHttpClient, IHttpResponse } from '../utils/HttpClient'
 import { ITrackingManager } from '../api/ITrackingManager'
-import { BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, POLLING_EVENT_200, POLLING_EVENT_300, POLLING_EVENT_FAILED, PROCESS_BUCKETING, SDK_INFO } from '../enum/index'
+import { BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, POLLING_EVENT_200, POLLING_EVENT_300, POLLING_EVENT_FAILED, PROCESS_BUCKETING, SDK_INFO } from '../enum/index'
 import { errorFormat, logDebug, logDebugSprintf, logError, logInfo, sprintf } from '../utils/utils'
+import { Troubleshooting } from '../hit/Troubleshooting'
 
 type constructorParam = {
   httpClient: IHttpClient;
   sdkConfig: IFlagshipConfig;
   trackingManager: ITrackingManager;
+  flagshipInstanceId: string;
 }
 
 export class BucketingSdkManager implements ISdkManager {
@@ -18,21 +20,26 @@ export class BucketingSdkManager implements ISdkManager {
   protected _config: IFlagshipConfig
   protected _trackingManager: ITrackingManager
   protected _intervalID?: NodeJS.Timeout
-  protected _lastModified!: string
+  protected _lastModified: string
   protected _isPooling!: boolean
   protected _EAIConfig?: EAIConfig
   protected _bucketingContent?: BucketingDTO
   protected _lastBucketingTimestamp!: string
+  protected _flagshipInstanceId: string
 
-  public constructor ({ httpClient, sdkConfig, trackingManager }: constructorParam) {
+  public constructor ({ httpClient, sdkConfig, trackingManager, flagshipInstanceId }: constructorParam) {
     this._httpClient = httpClient
     this._config = sdkConfig
     this._trackingManager = trackingManager
     this._bucketingContent = sdkConfig.initialBucketing
+    this._flagshipInstanceId = flagshipInstanceId
+    this._lastModified = ''
   }
 
   resetSdk (): void {
-    clearInterval(this._intervalID)
+    if (this._intervalID) {
+      clearInterval(this._intervalID)
+    }
     this._isPooling = false
     this._intervalID = undefined
     this._lastModified = ''
@@ -61,6 +68,54 @@ export class BucketingSdkManager implements ISdkManager {
     return this._EAIConfig
   }
 
+  protected sendTroubleshooting (
+    headers: Record<string, string>,
+    url: string,
+    response: IHttpResponse | undefined,
+    now: number
+  ) {
+    const troubleshootingHit = new Troubleshooting({
+      visitorId: this._flagshipInstanceId,
+      flagshipInstanceId: this._flagshipInstanceId,
+      label: TroubleshootingLabel.SDK_BUCKETING_FILE,
+      traffic: 0,
+      logLevel: LogLevel.INFO,
+      config: this._config,
+      httpRequestHeaders: headers,
+      httpRequestMethod: 'POST',
+      httpRequestUrl: url,
+      httpResponseBody: response?.body,
+      httpResponseHeaders: response?.headers,
+      httpResponseCode: response?.status,
+      httpResponseTime: Date.now() - now
+    })
+    this._trackingManager.addTroubleshootingHit(troubleshootingHit)
+  }
+
+  protected sendErrorTroubleshooting (
+    headers: Record<string, string>,
+    url: string,
+    error: { message: string, headers: Record<string, string>, statusCode: number },
+    now: number
+  ) {
+    const troubleshootingHit = new Troubleshooting({
+      visitorId: this._flagshipInstanceId,
+      flagshipInstanceId: this._flagshipInstanceId,
+      label: TroubleshootingLabel.SDK_BUCKETING_FILE_ERROR,
+      traffic: 0,
+      logLevel: LogLevel.INFO,
+      config: this._config,
+      httpRequestHeaders: headers,
+      httpRequestMethod: 'POST',
+      httpRequestUrl: url,
+      httpResponseBody: error?.message,
+      httpResponseHeaders: error?.headers,
+      httpResponseCode: error?.statusCode,
+      httpResponseTime: Date.now() - now
+    })
+    this._trackingManager.sendTroubleshootingHit(troubleshootingHit)
+  }
+
   protected handlePollingResponse (params: {response: IHttpResponse, headers: Record<string, string>, url: string, now: number}) {
     const { response } = params
     if (response.status === 200) {
@@ -71,6 +126,7 @@ export class BucketingSdkManager implements ISdkManager {
         eaiCollectEnabled: !!this._bucketingContent?.accountSettings?.eaiActivationEnabled,
         eaiActivationEnabled: !!this._bucketingContent?.accountSettings?.eaiCollectEnabled
       }
+      this.sendTroubleshooting(params.headers, params.url, response, params.now)
     } else if (response.status === 304) {
       logDebug(this._config, POLLING_EVENT_300, PROCESS_BUCKETING)
     }
@@ -119,10 +175,12 @@ export class BucketingSdkManager implements ISdkManager {
       logError(this._config, errorFormat(POLLING_EVENT_FAILED, {
         url,
         headers,
+        error,
         nextFetchConfig: this._config.nextFetchConfig,
         method: 'GET',
         duration: Date.now() - now
       }), PROCESS_BUCKETING)
+      this.sendErrorTroubleshooting(headers, url, error, now)
     }
   }
 }
