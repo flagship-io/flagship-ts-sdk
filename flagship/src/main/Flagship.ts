@@ -171,7 +171,7 @@ export class Flagship {
     let sdkManager: ISdkManager
     switch (sdkConfig.decisionMode) {
       case DecisionMode.BUCKETING:
-        sdkManager = new BucketingSdkManager({ httpClient, sdkConfig, trackingManager })
+        sdkManager = new BucketingSdkManager({ httpClient, sdkConfig, trackingManager, flagshipInstanceId: this.instanceId })
         return {
           sdkManager,
           decisionManager: new BucketingManager({
@@ -182,7 +182,7 @@ export class Flagship {
           })
         }
       case DecisionMode.BUCKETING_EDGE:
-        sdkManager = new EdgeSdkManager({ httpClient, sdkConfig, trackingManager })
+        sdkManager = new EdgeSdkManager({ httpClient, sdkConfig, trackingManager, flagshipInstanceId: this.instanceId })
         return {
           sdkManager,
           decisionManager: new EdgeManager({
@@ -194,7 +194,7 @@ export class Flagship {
         }
       default:
         return {
-          sdkManager: new ApiSdkManager({ httpClient, sdkConfig, trackingManager }),
+          sdkManager: new ApiSdkManager({ httpClient, sdkConfig, trackingManager, flagshipInstanceId: this.instanceId }),
           decisionManager: new ApiManager(httpClient, sdkConfig)
         }
     }
