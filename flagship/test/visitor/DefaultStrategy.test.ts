@@ -23,6 +23,8 @@ import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 import { ISdkManager } from '../../src/main/ISdkManager'
 import { BucketingDTO } from '../../src/decision/api/bucketingDTO'
+import { IPageView } from '../../src/emotionAI/hit/IPageView'
+import { IVisitorEvent } from '../../src/emotionAI/hit/IVisitorEvent'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getNull = (): any => {
@@ -92,9 +94,21 @@ describe('test DefaultStrategy ', () => {
 
   const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
 
+  const collectEAIData = jest.fn<(currentPage?: Omit<IPageView, 'toApiKeys'>) => void>()
+
+  const reportVisitorEvent = jest.fn<(event: IVisitorEvent)=> Promise<void>>()
+
+  const reportPageView = jest.fn<(pageView: IPageView) => Promise<void>>()
+
+  const onEAICollectStatusChange = jest.fn<(callback: (status: boolean) => void) => void>()
+
   const emotionAi = {
     init: jest.fn<(visitor:VisitorAbstract) => void>(),
-    fetchEAIScore
+    fetchEAIScore,
+    collectEAIData,
+    reportVisitorEvent,
+    reportPageView,
+    onEAICollectStatusChange
   } as unknown as IEmotionAI
 
   fetchEAIScore.mockResolvedValue(undefined)
@@ -200,6 +214,40 @@ describe('test DefaultStrategy ', () => {
     })
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(1)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.UPDATE_CONTEXT })
+  })
+
+  it('test collectEAIData', () => {
+    defaultStrategy.collectEAIData()
+    expect(emotionAi.collectEAIData).toBeCalledTimes(1)
+    expect(emotionAi.collectEAIData).toBeCalledWith(undefined)
+  })
+
+  it('test collectEAIData', () => {
+    const currentPage = {} as IPageView
+    defaultStrategy.collectEAIData(currentPage)
+    expect(emotionAi.collectEAIData).toBeCalledTimes(1)
+    expect(emotionAi.collectEAIData).toBeCalledWith(currentPage)
+  })
+
+  it('test reportEaiVisitorEvent', () => {
+    const event = {} as IVisitorEvent
+    defaultStrategy.reportEaiVisitorEvent(event)
+    expect(emotionAi.reportVisitorEvent).toBeCalledTimes(1)
+    expect(emotionAi.reportVisitorEvent).toBeCalledWith(event)
+  })
+
+  it('test reportEaiPageView', () => {
+    const pageView = {} as IPageView
+    defaultStrategy.reportEaiPageView(pageView)
+    expect(emotionAi.reportPageView).toBeCalledTimes(1)
+    expect(emotionAi.reportPageView).toBeCalledWith(pageView)
+  })
+
+  it('test onEAICollectStatusChange', () => {
+    const callback = jest.fn()
+    defaultStrategy.onEAICollectStatusChange(callback)
+    expect(emotionAi.onEAICollectStatusChange).toBeCalledTimes(1)
+    expect(emotionAi.onEAICollectStatusChange).toBeCalledWith(callback)
   })
 
   it('test getCurrentDateTime', () => {
