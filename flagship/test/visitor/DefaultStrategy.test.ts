@@ -1,4 +1,4 @@
-import { AUTHENTICATE, CONTEXT_KEY_ERROR, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, UNAUTHENTICATE, PROCESS_FETCHING_FLAGS, FLAG_VISITOR_EXPOSED } from './../../src/enum/FlagshipConstant'
+import { AUTHENTICATE, CONTEXT_KEY_ERROR, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, UNAUTHENTICATE, PROCESS_FETCHING_FLAGS, FLAG_VISITOR_EXPOSED, EAI_SCORE_CONTEXT_KEY } from './../../src/enum/FlagshipConstant'
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { DecisionApiConfig, EAIScore, EventCategory, FetchFlagsStatus, FlagDTO, FSFlagMetadata, TroubleshootingLabel } from '../../src/index'
 import { TrackingManager } from '../../src/api/TrackingManager'
@@ -228,6 +228,13 @@ describe('test DefaultStrategy ', () => {
     visitorDelegate.on('ready', (err) => {
       expect(err).toBeUndefined()
     })
+
+    fetchEAIScore.mockResolvedValue({
+      eai: {
+        eas: 'straightforward'
+      }
+    })
+
     getCampaignsAsync.mockResolvedValue(campaignDTO)
     getModifications.mockReturnValue(returnFlag)
     await defaultStrategy.fetchFlags()
@@ -239,6 +246,7 @@ describe('test DefaultStrategy ', () => {
     expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { status: FSFetchStatus.FETCHING, reason: FSFetchReasons.NONE })
     expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { status: FSFetchStatus.FETCHED, reason: FSFetchReasons.NONE })
     expect(emotionAi.fetchEAIScore).toBeCalledTimes(1)
+    expect(visitorDelegate.context[EAI_SCORE_CONTEXT_KEY]).toEqual('straightforward')
   })
 
   it('test fetchFlags panic mode ', async () => {
