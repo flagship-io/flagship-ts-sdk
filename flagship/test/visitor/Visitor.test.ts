@@ -13,6 +13,8 @@ import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
 import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
 import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
+import { IPageView } from '../../src/emotionAI/hit/IPageView'
+import { IVisitorEvent } from '../../src/emotionAI/hit/IVisitorEvent'
 
 describe('test visitor', () => {
   const visitorId = 'visitorId'
@@ -176,5 +178,56 @@ describe('test visitor', () => {
       expect(params).toEqual(args)
     })
     visitorDelegate.emit(EMIT_READY, args)
+  })
+
+  it('test collectEAIData', () => {
+    const collectEAIData = jest.spyOn(visitorDelegate, 'collectEAIData')
+    collectEAIData.mockReturnValue()
+    visitor.collectEAIData()
+    expect(collectEAIData).toBeCalledTimes(1)
+    expect(collectEAIData).toBeCalledWith(undefined)
+  })
+
+  it('test collectEAIData', () => {
+    const collectEAIData = jest.spyOn(visitorDelegate, 'collectEAIData')
+    collectEAIData.mockReturnValue()
+    const currentPage = {} as IPageView
+    visitor.collectEAIData(currentPage)
+    expect(collectEAIData).toBeCalledTimes(1)
+    expect(collectEAIData).toBeCalledWith(currentPage)
+  })
+
+  it('test cleanup', () => {
+    const cleanup = jest.spyOn(visitorDelegate, 'cleanup')
+    cleanup.mockReturnValue()
+    visitor.cleanup()
+    expect(cleanup).toBeCalledTimes(1)
+  })
+
+  it('test sendEaiVisitorEvent', () => {
+    const sendEaiVisitorEvent = jest.spyOn(visitorDelegate, 'sendEaiVisitorEvent')
+    sendEaiVisitorEvent.mockReturnValue()
+    const event = {} as IVisitorEvent
+    (visitor as any).sendEaiVisitorEvent(event)
+    expect(sendEaiVisitorEvent).toBeCalledTimes(1)
+    expect(sendEaiVisitorEvent).toBeCalledWith(event)
+  })
+
+  it('test sendEaiPageView', () => {
+    const sendEaiPageView = jest.spyOn(visitorDelegate, 'sendEaiPageView')
+    sendEaiPageView.mockReturnValue()
+    const pageView = {} as IPageView
+    (visitor as any).sendEaiPageView(pageView)
+    expect(sendEaiPageView).toBeCalledTimes(1)
+    expect(sendEaiPageView).toBeCalledWith(pageView)
+  })
+
+  it('test onEAICollectStatusChange', () => {
+    const onEAICollectStatusChange = jest.spyOn(visitorDelegate, 'onEAICollectStatusChange')
+    onEAICollectStatusChange.mockReturnValue()
+    const callback = jest.fn<(status: boolean) => void>();
+    (visitor as any).onEAICollectStatusChange(callback)
+    expect(onEAICollectStatusChange).toBeCalledTimes(1)
+    expect(onEAICollectStatusChange).toBeCalledWith(callback)
   })
 })
