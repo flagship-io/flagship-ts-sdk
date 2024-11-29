@@ -70,6 +70,10 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     this.visitor.emotionAi.onEAICollectStatusChange(callback)
   }
 
+  cleanup ():void {
+    this.visitor.emotionAi.cleanup()
+  }
+
   public updateCampaigns (campaigns:CampaignDTO[]):void {
     try {
       this.visitor.campaigns = campaigns
