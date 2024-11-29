@@ -9,11 +9,13 @@ import { FLAG_VISITOR_EXPOSED, HitType, LogLevel, METHOD_DEACTIVATED_CONSENT_ERR
 import { sprintf } from '../../src/utils/utils'
 import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { MurmurHash } from '../../src/utils/MurmurHash'
-import { FlagDTO, TroubleshootingLabel } from '../../src'
+import { EAIScore, FetchFlagsStatus, FlagDTO, TroubleshootingLabel } from '../../src'
 import { ApiManager } from '../../src/decision/ApiManager'
 import { Troubleshooting } from '../../src/hit/Troubleshooting'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
+import { IPageView } from '../../src/emotionAI/hit/IPageView'
+import { IVisitorEvent } from '../../src/emotionAI/hit/IVisitorEvent'
 
 describe('test NoConsentStrategy', () => {
   const visitorId = 'visitorId'
@@ -31,8 +33,27 @@ describe('test NoConsentStrategy', () => {
   const trackingManager = new TrackingManager({} as HttpClient, config)
 
   const configManager = new ConfigManager(config, {} as DecisionManager, trackingManager)
+
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+
+  const collectEAIData = jest.fn<(currentPage?: Omit<IPageView, 'toApiKeys'>) => void>()
+
+  const reportVisitorEvent = jest.fn<(event: IVisitorEvent)=> Promise<void>>()
+
+  const reportPageView = jest.fn<(pageView: IPageView) => Promise<void>>()
+
+  const onEAICollectStatusChange = jest.fn<(callback: (status: boolean) => void) => void>()
+
+  const cleanup = jest.fn<() => void>()
+
   const emotionAi = {
-    init: jest.fn<(visitor:VisitorAbstract) => void>()
+    init: jest.fn<(visitor:VisitorAbstract) => void>(),
+    fetchEAIScore,
+    collectEAIData,
+    reportVisitorEvent,
+    reportPageView,
+    onEAICollectStatusChange,
+    cleanup
   } as unknown as IEmotionAI
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
   const murmurHash = new MurmurHash()
@@ -59,6 +80,29 @@ describe('test NoConsentStrategy', () => {
       expect(logInfo).toBeCalledTimes(1)
       expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, FLAG_VISITOR_EXPOSED, visitorDelegate.visitorId), FLAG_VISITOR_EXPOSED)
     })
+  })
+
+  it('test collectEAIData', () => {
+    noConsentStrategy.collectEAIData()
+    expect(logInfo).toBeCalledTimes(1)
+  })
+
+  it('test reportEaiPageView', () => {
+    noConsentStrategy.reportEaiPageView()
+    expect(logInfo).toBeCalledTimes(0)
+    expect(emotionAi.reportPageView).toBeCalledTimes(0)
+  })
+
+  it('test reportEaiVisitorEvent', () => {
+    noConsentStrategy.reportEaiVisitorEvent()
+    expect(logInfo).toBeCalledTimes(0)
+    expect(emotionAi.reportVisitorEvent).toBeCalledTimes(0)
+  })
+
+  it('test onEAICollectStatusChange', () => {
+    noConsentStrategy.onEAICollectStatusChange()
+    expect(logInfo).toBeCalledTimes(0)
+    expect(emotionAi.onEAICollectStatusChange).toBeCalledTimes(0)
   })
 })
 
