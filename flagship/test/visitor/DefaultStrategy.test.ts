@@ -102,13 +102,16 @@ describe('test DefaultStrategy ', () => {
 
   const onEAICollectStatusChange = jest.fn<(callback: (status: boolean) => void) => void>()
 
+  const cleanup = jest.fn<() => void>()
+
   const emotionAi = {
     init: jest.fn<(visitor:VisitorAbstract) => void>(),
     fetchEAIScore,
     collectEAIData,
     reportVisitorEvent,
     reportPageView,
-    onEAICollectStatusChange
+    onEAICollectStatusChange,
+    cleanup
   } as unknown as IEmotionAI
 
   fetchEAIScore.mockResolvedValue(undefined)
@@ -248,6 +251,11 @@ describe('test DefaultStrategy ', () => {
     defaultStrategy.onEAICollectStatusChange(callback)
     expect(emotionAi.onEAICollectStatusChange).toBeCalledTimes(1)
     expect(emotionAi.onEAICollectStatusChange).toBeCalledWith(callback)
+  })
+
+  it('test cleanup', () => {
+    defaultStrategy.cleanup()
+    expect(emotionAi.cleanup).toBeCalledTimes(1)
   })
 
   it('test getCurrentDateTime', () => {
