@@ -1,4 +1,4 @@
-import { CampaignDTO, FetchFlagsStatus, SerializedFlagMetadata, primitive } from './../../src/types'
+import { CampaignDTO, EAIScore, FetchFlagsStatus, SerializedFlagMetadata, primitive } from './../../src/types'
 import { jest, expect, it, describe } from '@jest/globals'
 import { FlagDTO } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
@@ -16,6 +16,8 @@ import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
 import { FSFlagCollection } from '../../src/flag/FSFlagCollection'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
+import { IPageView } from '../../src/emotionAI/hit/IPageView'
+import { IVisitorEvent } from '../../src/emotionAI/hit/IVisitorEvent'
 
 const updateContext = jest.fn()
 const clearContext = jest.fn()
@@ -37,6 +39,11 @@ const lookupHits = jest.fn()
 const cacheVisitorFn = jest.fn<()=>Promise<void>>()
 const visitorExposed = jest.fn<(param:{key:string, flag?:FlagDTO, defaultValue:unknown})=>Promise<void>>()
 const getFlagValue = jest.fn<(param:{ key:string, defaultValue: unknown, flag?:FlagDTO, userExposed?: boolean})=>unknown>()
+const collectEAIData = jest.fn<(currentPage?: Omit<IPageView, 'toApiKeys'>) => void>()
+const reportEaiVisitorEvent = jest.fn<(event: IVisitorEvent) => Promise<void>>()
+const reportEaiPageView = jest.fn<(pageView: IPageView) => Promise<void>>()
+const onEAICollectStatusChange = jest.fn<(callback: (status: boolean) => void) => void>()
+const cleanup = jest.fn<() => void>()
 
 jest.mock('../../src/visitor/DefaultStrategy', () => {
   return {
@@ -57,7 +64,12 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         getFlagMetadata,
         cacheVisitor: cacheVisitorFn,
         visitorExposed,
-        getFlagValue
+        getFlagValue,
+        collectEAIData,
+        reportEaiVisitorEvent,
+        reportEaiPageView,
+        onEAICollectStatusChange,
+        cleanup
       }
     })
   }
@@ -102,9 +114,11 @@ describe('test VisitorDelegate', () => {
   const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
 
   const init = jest.fn<(visitor:VisitorAbstract) => void>()
+  const collectEAIData = jest.fn<() => Promise<EAIScore|undefined>>
 
   const emotionAi = {
-    init
+    init,
+    collectEAIData
   } as unknown as IEmotionAI
 
   const visitorDelegate = new VisitorDelegate({
@@ -401,6 +415,82 @@ describe('test VisitorDelegate methods', () => {
     unauthenticate.mockReturnValue()
     visitorDelegate.unauthenticate()
     expect(unauthenticate).toBeCalledTimes(1)
+  })
+
+  it('test collectEAIData', () => {
+    collectEAIData.mockReturnValue()
+    visitorDelegate.collectEAIData()
+    expect(collectEAIData).toBeCalledTimes(1)
+    expect(collectEAIData).toBeCalledWith(undefined)
+  })
+
+  it('test collectEAIData', () => {
+    collectEAIData.mockReturnValue()
+    const currentPage = {} as IPageView
+    visitorDelegate.collectEAIData(currentPage)
+    expect(collectEAIData).toBeCalledTimes(1)
+    expect(collectEAIData).toBeCalledWith(currentPage)
+  })
+
+  it('test reportEaiVisitorEvent', () => {
+    reportEaiVisitorEvent.mockResolvedValue()
+    const event = {} as IVisitorEvent
+    visitorDelegate.sendEaiVisitorEvent(event)
+    expect(reportEaiVisitorEvent).toBeCalledTimes(1)
+    expect(reportEaiVisitorEvent).toBeCalledWith(event)
+  })
+
+  it('test reportEaiPageView', () => {
+    reportEaiPageView.mockResolvedValue()
+    const pageView = {} as IPageView
+    visitorDelegate.sendEaiPageView(pageView)
+    expect(reportEaiPageView).toBeCalledTimes(1)
+    expect(reportEaiPageView).toBeCalledWith(pageView)
+  })
+
+  it('test onEAICollectStatusChange', () => {
+    const callback = jest.fn()
+    onEAICollectStatusChange.mockReturnValue()
+    visitorDelegate.onEAICollectStatusChange(callback)
+    expect(onEAICollectStatusChange).toBeCalledTimes(1)
+    expect(onEAICollectStatusChange).toBeCalledWith(callback)
+  })
+
+  it('test cleanup', () => {
+    cleanup.mockReturnValue()
+    visitorDelegate.cleanup()
+    expect(cleanup).toBeCalledTimes(1)
+  })
+
+  it('test getCachedEAIScore', async () => {
+    const score = await visitorDelegate.getCachedEAIScore()
+    expect(score).toBeUndefined()
+    expect(lookupVisitor).toBeCalledTimes(1)
+  })
+
+  it('test getCachedEAIScore', async () => {
+    visitorDelegate.visitorCache = {
+      version: 1,
+      data: {
+        visitorId: 'visitorId',
+        anonymousId: 'anonymousId',
+        eAIScore: {
+          eai: {
+            eas: 'eas'
+          }
+        }
+      }
+    }
+    const score = await visitorDelegate.getCachedEAIScore()
+    expect(score).toEqual({ eai: { eas: 'eas' } })
+    expect(lookupVisitor).toBeCalledTimes(0)
+  })
+
+  it('test setCachedEAIScore', () => {
+    const score = { eai: { eas: 'eas' } }
+    visitorDelegate.setCachedEAIScore(score)
+    expect(cacheVisitorFn).toBeCalledTimes(1)
+    expect(cacheVisitorFn).toBeCalledWith(score)
   })
 })
 
