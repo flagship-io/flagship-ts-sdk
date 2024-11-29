@@ -63,10 +63,6 @@ export abstract class CommonEmotionAI implements IEmotionAI {
 
   public async fetchEAIScore (): Promise<EAIScore|undefined> {
     const visitorId = this._visitor.visitorId
-    if (this._fetchEAIScorePromise) {
-      await this._fetchEAIScorePromise
-      return this._EAIScore
-    }
 
     if (!this._eAIConfig?.eaiActivationEnabled) {
       return undefined
@@ -84,10 +80,16 @@ export abstract class CommonEmotionAI implements IEmotionAI {
       return this._EAIScore
     }
 
+    if (this._fetchEAIScorePromise) {
+      await this._fetchEAIScorePromise
+      return this._EAIScore
+    }
     try {
       const url = sprintf(EMOTION_AI_UC_URL, this._sdkConfig.envId, visitorId)
       this._fetchEAIScorePromise = this._httpClient.getAsync(url)
+
       const response = await this._fetchEAIScorePromise
+
       this._EAIScore = response.body
       this._EAIScoreChecked = true
 
