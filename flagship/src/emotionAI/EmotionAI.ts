@@ -207,8 +207,9 @@ export class EmotionAI extends CommonEmotionAI {
 
   public async reportVisitorEvent (visitorEvent: VisitorEvent): Promise<void> {
     const timestampDiff = Date.now() - this._startCollectingEAIDataTimestamp
-
-    this.sendEAIEvent(visitorEvent)
+    if (timestampDiff <= MAX_COLLECTING_TIME_MS) {
+      this.sendEAIEvent(visitorEvent)
+    }
 
     if ((timestampDiff > MAX_COLLECTING_TIME_MS && timestampDiff <= MAX_LAST_COLLECTING_TIME_MS)) {
       this.sendEAIEvent(visitorEvent)
