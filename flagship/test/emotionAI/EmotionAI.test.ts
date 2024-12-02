@@ -10,7 +10,7 @@ import { VisitorDelegate } from '../../src/visitor'
 import { ConfigManager } from '../../src/config'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ApiManager } from '../../src/decision/ApiManager'
-import { CLICK_PATH_DELAY_MS, EMOTION_AI_EVENT_URL, EMOTION_AI_UC_URL, MAX_LAST_COLLECTING_TIME_MS, SCROLL_END_DELAY_MS } from '../../src/enum/FlagshipConstant'
+import { CLICK_PATH_DELAY_MS, EMOTION_AI_EVENT_URL, EMOTION_AI_UC_URL, MAX_COLLECTING_TIME_MS, MAX_LAST_COLLECTING_TIME_MS, SCROLL_END_DELAY_MS } from '../../src/enum/FlagshipConstant'
 import { sleep, sprintf } from '../../src/utils/utils'
 import { PageView } from '../../src/emotionAI/hit/PageView'
 import { VisitorEvent } from '../../src/emotionAI/hit/VisitorEvent'
@@ -431,7 +431,7 @@ describe('EmotionAI', () => {
 
       expect(postAsyncSpy).toHaveBeenCalledTimes(8)
 
-      jest.setSystemTime(fixedTimestamp + MAX_LAST_COLLECTING_TIME_MS + 1000)
+      jest.setSystemTime(fixedTimestamp + MAX_COLLECTING_TIME_MS + 1000)
 
       window.dispatchEvent(new Event('scroll', {
         bubbles: true,
