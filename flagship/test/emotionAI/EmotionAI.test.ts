@@ -10,12 +10,14 @@ import { VisitorDelegate } from '../../src/visitor'
 import { ConfigManager } from '../../src/config'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ApiManager } from '../../src/decision/ApiManager'
-import { EMOTION_AI_UC_URL } from '../../src/enum/FlagshipConstant'
+import { CLICK_PATH_DELAY_MS, EMOTION_AI_EVENT_URL, EMOTION_AI_UC_URL, MAX_LAST_COLLECTING_TIME_MS, SCROLL_END_DELAY_MS } from '../../src/enum/FlagshipConstant'
 import { sleep, sprintf } from '../../src/utils/utils'
+import { PageView } from '../../src/emotionAI/hit/PageView'
+import { VisitorEvent } from '../../src/emotionAI/hit/VisitorEvent'
 
 describe('EmotionAI', () => {
   const httpClient = new HttpClient()
-  const sdkConfig = new DecisionApiConfig()
+  const sdkConfig = new DecisionApiConfig({ envId: 'env', apiKey: 'api' })
   const eAIConfig: EAIConfig = {
     eaiActivationEnabled: true,
     eaiCollectEnabled: true
@@ -58,18 +60,18 @@ describe('EmotionAI', () => {
 
   beforeEach(() => {
     // Mock global objects
-    Object.defineProperty(window, 'history', {
-      value: {
-        pushState: jest.fn(),
-        replaceState: jest.fn()
-      },
-      writable: true
-    })
+    // Object.defineProperty(window, 'history', {
+    //   value: {
+    //     pushState: jest.fn(),
+    //     replaceState: jest.fn()
+    //   },
+    //   writable: true
+    // })
 
-    window.addEventListener = jest.fn()
-    window.removeEventListener = jest.fn()
-    document.addEventListener = jest.fn()
-    document.removeEventListener = jest.fn()
+    // window.addEventListener = jest.fn()
+    // window.removeEventListener = jest.fn()
+    // document.addEventListener = jest.fn()
+    // document.removeEventListener = jest.fn()
     // jest.useFakeTimers()
   })
 
@@ -108,6 +110,8 @@ describe('EmotionAI', () => {
       expect(getAsyncSpy).toHaveBeenCalledTimes(1)
       expect(getAsyncSpy).toHaveBeenCalledWith(url)
       expect(response).toBe(eAIScore)
+      expect(emotionAI.EAIScore).toBe(eAIScore)
+      expect(emotionAI.EAIScoreChecked).toBe(true)
       expect(setCachedEAIScore).toHaveBeenCalledWith(eAIScore)
       expect(setCachedEAIScore).toBeCalledTimes(1)
 
@@ -170,6 +174,273 @@ describe('EmotionAI', () => {
       expect(getAsyncSpy).toHaveBeenCalledTimes(0)
       expect(setCachedEAIScore).toBeCalledTimes(0)
       expect(response).toBeUndefined()
+    })
+  })
+
+  describe('test collectEAIData', () => {
+    const emotionAI: EmotionAI = new EmotionAI({
+      httpClient,
+      sdkConfig,
+      eAIConfig: {
+        eaiActivationEnabled: true,
+        eaiCollectEnabled: true
+      }
+    })
+
+    const { location } = window
+
+    const fixedTimestamp = 254889889 // 1978-05-25T11:48:09.889Z
+
+    beforeEach(() => {
+      jest.useFakeTimers({ now: fixedTimestamp })
+    })
+
+    afterEach(() => {
+      jest.useRealTimers()
+    })
+
+    afterAll(() => {
+      window.location = location
+    })
+
+    const postAsyncSpy = jest.spyOn(httpClient, 'postAsync')
+
+    emotionAI.init(visitorDelegate)
+
+    const onEAICollectStatusChange = jest.fn<(status: boolean) => void>()
+
+    it('should not collect data if eaiCollectEnabled is false', async () => {
+      postAsyncSpy.mockResolvedValue({ body: null, status: 200 })
+      expect(emotionAI.EAIScore).toBeUndefined()
+      expect(emotionAI.EAIScoreChecked).toBe(false)
+
+      emotionAI.onEAICollectStatusChange(onEAICollectStatusChange)
+
+      await emotionAI.collectEAIData()
+
+      expect(onEAICollectStatusChange).toHaveBeenCalledTimes(0)
+
+      const mouseUpEventClientX = 100
+      const mouseUpEventClientY = 150
+
+      const mouseDownEvent = new MouseEvent('mousedown', {
+        clientX: mouseUpEventClientX,
+        clientY: mouseUpEventClientY,
+        bubbles: true,
+        cancelable: true
+      })
+
+      jest.setSystemTime(fixedTimestamp)
+      document.dispatchEvent(mouseDownEvent)
+
+      const mouseUpEvent = new MouseEvent('mouseup', {
+        clientX: mouseUpEventClientX,
+        clientY: mouseUpEventClientY,
+        bubbles: true,
+        cancelable: true
+      })
+
+      jest.setSystemTime(fixedTimestamp + 1000)
+
+      document.dispatchEvent(mouseUpEvent)
+
+      const maxTouchPoints = navigator.maxTouchPoints || 0
+      const touchEvent = 'ontouchstart' in window
+      const touchStart = 'ontouchstart' in window || 'onmsgesturechange' in window
+      const touchSupport = JSON.stringify([maxTouchPoints, touchEvent, touchStart])
+
+      const pageView = () => new PageView({
+        visitorId,
+        customerAccountId: sdkConfig.envId as string,
+        currentUrl: window.location.href,
+        hasAdBlocker: false,
+        screenDepth: `${window.screen.colorDepth}`,
+        screenSize: `${window.innerWidth},${window.innerHeight};`,
+        doNotTrack: navigator.doNotTrack || 'unspecified',
+        fonts: '[]',
+        hasFakeBrowserInfos: false,
+        hasFakeLanguageInfos: false,
+        hasFakeOsInfos: false,
+        hasFakeResolutionInfos: false,
+        userLanguage: navigator.language,
+        deviceCategory: 'unknown',
+        pixelRatio: window.devicePixelRatio,
+        documentReferer: document.referrer,
+        viewportSize: `[${document.documentElement.clientWidth},${document.documentElement.clientHeight}]`,
+        timezoneOffset: new Date().getTimezoneOffset(),
+        touchSupport,
+        eventCategory: 'click tunnel auto',
+        userAgent: navigator.userAgent
+      })
+
+      expect(postAsyncSpy).toHaveBeenCalledTimes(2)
+
+      expect(postAsyncSpy).toHaveBeenNthCalledWith(1, EMOTION_AI_EVENT_URL, {
+        body: pageView().toApiKeys(),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      let timestamp = (fixedTimestamp + 1000).toString().slice(-5)
+
+      const clickDuration = 1000
+
+      const visitorEvent = new VisitorEvent({
+        visitorId,
+        customerAccountId: sdkConfig.envId as string,
+        clickPosition: `${mouseUpEventClientX},${mouseUpEventClientY},${timestamp},${clickDuration};`,
+        screenSize: `${window.innerWidth},${window.innerHeight};`,
+        currentUrl: window.location.href
+      })
+
+      expect(postAsyncSpy).toHaveBeenNthCalledWith(2, EMOTION_AI_EVENT_URL, {
+        body: visitorEvent.toApiKeys(),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const scrollEvent = new Event('scroll', {
+        bubbles: true,
+        cancelable: true
+      })
+
+      jest.setSystemTime(fixedTimestamp)
+
+      window.dispatchEvent(scrollEvent)
+      window.dispatchEvent(scrollEvent)
+
+      jest.advanceTimersByTime(SCROLL_END_DELAY_MS)
+
+      timestamp = (fixedTimestamp + SCROLL_END_DELAY_MS).toString().slice(-5)
+
+      const scrollPosition = `${window.scrollY},${timestamp};`
+      const visitorEventScroll = new VisitorEvent({
+        visitorId,
+        customerAccountId: sdkConfig.envId as string,
+        scrollPosition,
+        screenSize: `${window.innerWidth},${window.innerHeight};`,
+        currentUrl: window.location.href
+      })
+
+      expect(postAsyncSpy).toHaveBeenNthCalledWith(3, EMOTION_AI_EVENT_URL, {
+        body: visitorEventScroll.toApiKeys(),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const mouseMoveEvent = {
+        clientX: 0, // X-coordinate of the mouse
+        clientY: 0, // Y-coordinate of the mouse
+        bubbles: true, // Allows the event to bubble up through the DOM
+        cancelable: true, // Allows the event to be canceled
+        view: window // Sets the `window` as the view
+      }
+
+      let clickPath = ''
+
+      jest.setSystemTime(fixedTimestamp)
+
+      for (let index = 0; index < 148; index++) {
+        mouseMoveEvent.clientX = index
+        mouseMoveEvent.clientY = index + 50
+        clickPath += `${mouseMoveEvent.clientX},${mouseMoveEvent.clientY},${fixedTimestamp.toString().slice(-5)};`
+        document.dispatchEvent(new MouseEvent('mousemove', mouseMoveEvent))
+      }
+
+      const visitorEventMove = new VisitorEvent({
+        visitorId,
+        customerAccountId: sdkConfig.envId as string,
+        clickPath,
+        screenSize: `${window.innerWidth},${window.innerHeight};`,
+        currentUrl: window.location.href
+      })
+
+      expect(postAsyncSpy).toHaveBeenCalledTimes(4)
+
+      expect(postAsyncSpy).toHaveBeenNthCalledWith(4, EMOTION_AI_EVENT_URL, {
+        body: visitorEventMove.toApiKeys(),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      jest.setSystemTime(fixedTimestamp)
+
+      document.dispatchEvent(new MouseEvent('mousemove', mouseMoveEvent))
+      clickPath = `${mouseMoveEvent.clientX},${mouseMoveEvent.clientY},${fixedTimestamp.toString().slice(-5)};`
+
+      jest.advanceTimersByTime(CLICK_PATH_DELAY_MS)
+
+      expect(postAsyncSpy).toHaveBeenCalledTimes(5)
+
+      const visitorEventMove2 = new VisitorEvent({
+        visitorId,
+        customerAccountId: sdkConfig.envId as string,
+        clickPath,
+        screenSize: `${window.innerWidth},${window.innerHeight};`,
+        currentUrl: window.location.href
+      })
+
+      expect(postAsyncSpy).toHaveBeenNthCalledWith(5, EMOTION_AI_EVENT_URL, {
+        body: visitorEventMove2.toApiKeys(),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      window.history.pushState({ page: 1 }, 'title 1', '?page=1')
+
+      expect(postAsyncSpy).toHaveBeenCalledTimes(6)
+
+      expect(postAsyncSpy).toHaveBeenNthCalledWith(6, EMOTION_AI_EVENT_URL, {
+        body: pageView().toApiKeys(),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      window.history.replaceState({ page: 2 }, 'title 2', '?page=2')
+
+      expect(postAsyncSpy).toHaveBeenCalledTimes(7)
+
+      expect(postAsyncSpy).toHaveBeenNthCalledWith(7, EMOTION_AI_EVENT_URL, {
+        body: pageView().toApiKeys(),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      delete (window as any).location
+      window.location = { ...location, href: 'http://test.com' }
+
+      window.dispatchEvent(new Event('popstate'))
+
+      expect(postAsyncSpy).toHaveBeenCalledTimes(8)
+
+      expect(postAsyncSpy).toHaveBeenNthCalledWith(8, EMOTION_AI_EVENT_URL, {
+        body: pageView().toApiKeys(),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      window.dispatchEvent(new Event('popstate'))
+
+      expect(postAsyncSpy).toHaveBeenCalledTimes(8)
+
+      jest.setSystemTime(fixedTimestamp + MAX_LAST_COLLECTING_TIME_MS + 1000)
+
+      window.dispatchEvent(new Event('scroll', {
+        bubbles: true,
+        cancelable: true
+      }))
+
+      jest.advanceTimersByTime(SCROLL_END_DELAY_MS)
+
+      expect(postAsyncSpy).toHaveBeenCalledTimes(9)
     })
   })
 
