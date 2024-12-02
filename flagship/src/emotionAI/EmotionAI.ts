@@ -1,5 +1,5 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
-import { MAX_CLICK_PATH_LENGTH, MAX_COLLECTING_TIME_MS, MAX_LAST_COLLECTING_TIME_MS, MAX_SCORING_POLLING_TIME } from '../enum/FlagshipConstant'
+import { CLICK_PATH_DELAY_MS, MAX_CLICK_PATH_LENGTH, MAX_COLLECTING_TIME_MS, MAX_LAST_COLLECTING_TIME_MS, MAX_SCORING_POLLING_TIME, SCROLL_END_DELAY_MS } from '../enum/FlagshipConstant'
 import { EAIConfig } from '../type.local'
 import { IHttpClient } from '../utils/HttpClient'
 import { CommonEmotionAI } from './CommonEmotionAI'
@@ -201,14 +201,14 @@ export class EmotionAI extends CommonEmotionAI {
 
     this.scrollTimeoutId = window.setTimeout(() => {
       this.onScrollEnd(visitorId)
-    }, this.scrollEndDelay)
+      this.scrollTimeoutId = null
+    }, SCROLL_END_DELAY_MS)
   }
 
   public async reportVisitorEvent (visitorEvent: VisitorEvent): Promise<void> {
     const timestampDiff = Date.now() - this._startCollectingEAIDataTimestamp
-    if (timestampDiff <= MAX_COLLECTING_TIME_MS) {
-      this.sendEAIEvent(visitorEvent)
-    }
+
+    this.sendEAIEvent(visitorEvent)
 
     if ((timestampDiff > MAX_COLLECTING_TIME_MS && timestampDiff <= MAX_LAST_COLLECTING_TIME_MS)) {
       this.sendEAIEvent(visitorEvent)
@@ -238,13 +238,14 @@ export class EmotionAI extends CommonEmotionAI {
       clearTimeout(this._clickPathTimeoutId)
     }
     this._clickPath += `${event.clientX},${event.clientY},${Date.now().toString().slice(-5)};`
+
     if (this._clickPath.length >= MAX_CLICK_PATH_LENGTH) {
       this.sendClickPath(visitorId)
       return
     }
     this._clickPathTimeoutId = window.setTimeout(() => {
       this.sendClickPath(visitorId)
-    }, 500)
+    }, CLICK_PATH_DELAY_MS)
   }
 
   protected handleClick = (event: MouseEvent, visitorId: string, clickDuration: number): void => {
