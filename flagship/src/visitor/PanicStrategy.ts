@@ -79,7 +79,7 @@ export class PanicStrategy extends DefaultStrategy {
     //
   }
 
-  public collectEAIData (): void {
+  public async collectEAIDataAsync (): Promise<void> {
     this.log('collectEAIData')
   }
 
