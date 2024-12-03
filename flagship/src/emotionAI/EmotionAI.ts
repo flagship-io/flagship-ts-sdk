@@ -1,5 +1,5 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
-import { CLICK_PATH_DELAY_MS, MAX_CLICK_PATH_LENGTH, MAX_COLLECTING_TIME_MS, MAX_LAST_COLLECTING_TIME_MS, MAX_SCORING_POLLING_TIME, SCROLL_END_DELAY_MS } from '../enum/FlagshipConstant'
+import { CLICK_PATH_DELAY_MS, MAX_CLICK_PATH_LENGTH, MAX_COLLECTING_TIME_MS, MAX_LAST_COLLECTING_TIME_MS, MAX_SCORING_POLLING_TIME, SCORING_INTERVAL, SCROLL_END_DELAY_MS } from '../enum/FlagshipConstant'
 import { EAIConfig } from '../type.local'
 import { IHttpClient } from '../utils/HttpClient'
 import { CommonEmotionAI } from './CommonEmotionAI'
@@ -172,13 +172,13 @@ export class EmotionAI extends CommonEmotionAI {
         this._isEAIDataCollected = true
       }
       this._EAIScoreChecked = false
-      const score = await this.fetchEAIScore()
+      const score = await this._fetchEAIScore()
       if (score) {
         clearInterval(this._scoringIntervalId)
         this._isEAIDataCollecting = false
         this._isEAIDataCollected = true
       }
-    }, this._scoringInterval)
+    }, SCORING_INTERVAL)
   }
 
   protected onScrollEnd (visitorId: string): void {
@@ -209,13 +209,10 @@ export class EmotionAI extends CommonEmotionAI {
     const timestampDiff = Date.now() - this._startCollectingEAIDataTimestamp
     if (timestampDiff <= MAX_COLLECTING_TIME_MS) {
       this.sendEAIEvent(visitorEvent)
-    }
-
-    if ((timestampDiff > MAX_COLLECTING_TIME_MS && timestampDiff <= MAX_LAST_COLLECTING_TIME_MS)) {
+    } else if ((timestampDiff <= MAX_LAST_COLLECTING_TIME_MS)) {
       this.sendEAIEvent(visitorEvent)
       this.stopCollectingEAIData()
-    }
-    if (timestampDiff > MAX_LAST_COLLECTING_TIME_MS) {
+    } else {
       this.removeListeners()
       this._isEAIDataCollecting = false
       this._isEAIDataCollected = true
