@@ -115,7 +115,7 @@ export interface IVisitor {
   /**
    * Collects Emotion AI data for the visitor.
    */
-  collectEAIData(): void;
+  collectEAIDataAsync(): Promise<void>;
 
   /**
    * Cleans up the visitor instance. This method should be called when the visitor is no longer needed.
