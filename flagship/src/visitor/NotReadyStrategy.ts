@@ -20,7 +20,7 @@ export class NotReadyStrategy extends DefaultStrategy {
     //
   }
 
-  public collectEAIData (): void {
+  public async collectEAIDataAsync (): Promise<void> {
     this.log('collectEAIData')
   }
 
