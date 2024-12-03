@@ -83,7 +83,7 @@ describe('test NoConsentStrategy', () => {
   })
 
   it('test collectEAIData', () => {
-    noConsentStrategy.collectEAIData()
+    noConsentStrategy.collectEAIDataAsync()
     expect(logInfo).toBeCalledTimes(1)
   })
 
