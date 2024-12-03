@@ -25,7 +25,6 @@ export abstract class CommonEmotionAI implements IEmotionAI {
   protected _fetchEAIScorePromise?: Promise<IHttpResponse>
   protected _startScoringTimestamp!: number
   protected _scoringIntervalId?: NodeJS.Timeout
-  protected _scoringInterval = 5000
   protected _onEAICollectStatusChange?: (status: boolean) => void
   protected _visitor!: VisitorAbstract
   /**
@@ -62,12 +61,13 @@ export abstract class CommonEmotionAI implements IEmotionAI {
   public abstract cleanup (): void ;
 
   public async fetchEAIScore (): Promise<EAIScore|undefined> {
-    const visitorId = this._visitor.visitorId
-
     if (!this._eAIConfig?.eaiActivationEnabled) {
       return undefined
     }
+    return this._fetchEAIScore()
+  }
 
+  protected async _fetchEAIScore (): Promise<EAIScore|undefined> {
     if (this._EAIScoreChecked) {
       return this._EAIScore
     }
@@ -84,8 +84,11 @@ export abstract class CommonEmotionAI implements IEmotionAI {
       await this._fetchEAIScorePromise
       return this._EAIScore
     }
+
+    const visitorId = this._visitor.visitorId
     try {
       const url = sprintf(EMOTION_AI_UC_URL, this._sdkConfig.envId, visitorId)
+
       this._fetchEAIScorePromise = this._httpClient.getAsync(url)
 
       const response = await this._fetchEAIScorePromise
@@ -116,11 +119,11 @@ export abstract class CommonEmotionAI implements IEmotionAI {
   protected abstract startCollectingEAIData (visitorId: string, currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> ;
 
   public async collectEAIData (currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> {
-    if (!this._eAIConfig?.eaiActivationEnabled || this._isEAIDataCollecting ||
+    if (this._isEAIDataCollecting ||
       !this._eAIConfig?.eaiCollectEnabled || this._isEAIDataCollected) {
       return
     }
-    const score = await this.fetchEAIScore()
+    const score = await this._fetchEAIScore()
     if (score) {
       return
     }
