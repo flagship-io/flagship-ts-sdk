@@ -220,14 +220,14 @@ describe('test DefaultStrategy ', () => {
   })
 
   it('test collectEAIData', () => {
-    defaultStrategy.collectEAIData()
+    defaultStrategy.collectEAIDataAsync()
     expect(emotionAi.collectEAIData).toBeCalledTimes(1)
     expect(emotionAi.collectEAIData).toBeCalledWith(undefined)
   })
 
   it('test collectEAIData', () => {
     const currentPage = {} as IPageView
-    defaultStrategy.collectEAIData(currentPage)
+    defaultStrategy.collectEAIDataAsync(currentPage)
     expect(emotionAi.collectEAIData).toBeCalledTimes(1)
     expect(emotionAi.collectEAIData).toBeCalledWith(currentPage)
   })
