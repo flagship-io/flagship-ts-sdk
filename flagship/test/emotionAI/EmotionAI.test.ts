@@ -55,23 +55,6 @@ describe('EmotionAI', () => {
   const setCachedEAIScore = jest.spyOn(visitorDelegate, 'setCachedEAIScore')
   const getCachedEAIScore = jest.spyOn(visitorDelegate, 'getCachedEAIScore')
 
-  beforeEach(() => {
-    // Mock global objects
-    // Object.defineProperty(window, 'history', {
-    //   value: {
-    //     pushState: jest.fn(),
-    //     replaceState: jest.fn()
-    //   },
-    //   writable: true
-    // })
-
-    // window.addEventListener = jest.fn()
-    // window.removeEventListener = jest.fn()
-    // document.addEventListener = jest.fn()
-    // document.removeEventListener = jest.fn()
-    // jest.useFakeTimers()
-  })
-
   afterEach(() => {
     postAsyncSpy.mockReset()
   })
