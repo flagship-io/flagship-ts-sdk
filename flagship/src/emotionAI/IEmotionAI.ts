@@ -9,7 +9,7 @@ export interface IEmotionAI {
 
     fetchEAIScore() : Promise<EAIScore|undefined>;
 
-    collectEAIData(currentPage?: Omit<IPageView, 'toApiKeys'>) : void;
+    collectEAIData(currentPage?: Omit<IPageView, 'toApiKeys'>) : Promise<void>;
 
     cleanup() : void;
 
