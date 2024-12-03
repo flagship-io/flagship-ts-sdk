@@ -181,7 +181,7 @@ describe('test NotReadyStrategy', () => {
   })
 
   it('test collectEAIData', () => {
-    panicStrategy.collectEAIData()
+    panicStrategy.collectEAIDataAsync()
     expect(logInfo).toBeCalledTimes(1)
   })
 
