@@ -1,7 +1,13 @@
+import { EAIScore } from '../types'
 import { CommonEmotionAI } from './CommonEmotionAI'
+import { IPageView } from './hit/IPageView'
 import { IVisitorEvent } from './hit/IVisitorEvent'
 
 export class EmotionAI extends CommonEmotionAI {
+  protected async startCollectingEAIData (visitorId: string, currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> {
+    //
+  }
+
   public async reportVisitorEvent (visitorEvent: IVisitorEvent): Promise<void> {
     //
   }
@@ -10,15 +16,11 @@ export class EmotionAI extends CommonEmotionAI {
     //
   }
 
-  protected async getCachedScore (_cacheKey: string): Promise<string | null> {
-    return null
+  public async fetchEAIScore (): Promise<EAIScore | undefined> {
+    return undefined
   }
 
-  protected async setCachedScore (_cacheKey: string, _score: string): Promise<void> {
-    //
-  }
-
-  protected async startCollectingEAIData (_visitorId: string): Promise<void> {
+  public async collectEAIData (currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> {
     //
   }
 }
