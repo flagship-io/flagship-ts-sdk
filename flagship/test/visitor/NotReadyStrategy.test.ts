@@ -128,7 +128,7 @@ describe('test NotReadyStrategy', () => {
   })
 
   it('test collectEAIData', () => {
-    notReadyStrategy.collectEAIData()
+    notReadyStrategy.collectEAIDataAsync()
   })
 
   it('test reportEaiPageView', () => {
