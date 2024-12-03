@@ -36,6 +36,7 @@ export const MAX_CLICK_PATH_LENGTH = 1900
 export const MAX_SCORING_POLLING_TIME = 120000
 export const SCROLL_END_DELAY_MS = 200
 export const CLICK_PATH_DELAY_MS = 500
+export const SCORING_INTERVAL = 5000
 
 /**
  * Decision api base url
