@@ -54,6 +54,8 @@ describe('EmotionAI', () => {
 
   const setCachedEAIScore = jest.spyOn(visitorDelegate, 'setCachedEAIScore')
   const getCachedEAIScore = jest.spyOn(visitorDelegate, 'getCachedEAIScore')
+  const setIsEAIDataCollected = jest.spyOn(visitorDelegate, 'setIsEAIDataCollected')
+  const isEAIDataCollected = jest.spyOn(visitorDelegate, 'isEAIDataCollected')
 
   afterEach(() => {
     postAsyncSpy.mockReset()
@@ -453,6 +455,10 @@ describe('EmotionAI', () => {
 
       expect(emotionAI.EAIScore).toEqual(eAIScore)
 
+      expect(setIsEAIDataCollected).toHaveBeenCalledTimes(1)
+
+      expect(setIsEAIDataCollected).toHaveBeenCalledWith(true)
+
       document.dispatchEvent(new MouseEvent('mousedown', {
         clientX: mouseUpEventClientX,
         clientY: mouseUpEventClientY,
@@ -547,6 +553,8 @@ describe('EmotionAI', () => {
       }))
 
       expect(postAsyncSpy).toHaveBeenCalledTimes(2)
+      expect(setIsEAIDataCollected).toHaveBeenCalledTimes(1)
+      expect(setIsEAIDataCollected).toHaveBeenCalledWith(true)
     })
 
     it('should stop polling for score when max scoring polling time is reached', async () => {
@@ -609,6 +617,8 @@ describe('EmotionAI', () => {
       jest.advanceTimersByTime(SCORING_INTERVAL + MAX_SCORING_POLLING_TIME)
 
       expect(getAsyncSpy).toHaveBeenCalledTimes(1)
+
+    //   expect(setIsEAIDataCollected).toHaveBeenCalledTimes(0)
     })
 
     it('should not collect data if eaiCollectEnabled is false', async () => {
@@ -659,6 +669,8 @@ describe('EmotionAI', () => {
       await emotionAI.collectEAIData()
 
       expect(postAsyncSpy).toHaveBeenCalledTimes(1)
+
+      emotionAI.cleanup()
     })
 
     it('should not collect data if score exists', async () => {
@@ -666,7 +678,7 @@ describe('EmotionAI', () => {
         httpClient,
         sdkConfig,
         eAIConfig: {
-          eaiActivationEnabled: false,
+          eaiActivationEnabled: true,
           eaiCollectEnabled: true
         }
       })
@@ -688,6 +700,166 @@ describe('EmotionAI', () => {
       await emotionAI.collectEAIData()
 
       expect(postAsyncSpy).toHaveBeenCalledTimes(0)
+      expect(setIsEAIDataCollected).toHaveBeenCalledTimes(0)
+    })
+
+    it('should not polling for score if  eaiActivationEnabled is false', async () => {
+      const emotionAI: EmotionAI = new EmotionAI({
+        httpClient,
+        sdkConfig,
+        eAIConfig: {
+          eaiActivationEnabled: false,
+          eaiCollectEnabled: true
+        }
+      })
+
+      emotionAI.init(visitorDelegate)
+
+      postAsyncSpy.mockResolvedValue({ body: null, status: 200 })
+
+      expect(emotionAI.EAIScore).toBeUndefined()
+      expect(emotionAI.EAIScoreChecked).toBe(false)
+
+      getAsyncSpy.mockResolvedValue({ body: null, status: 200 })
+
+      await emotionAI.collectEAIData()
+
+      const mouseUpEventClientX = 100
+      const mouseUpEventClientY = 150
+
+      document.dispatchEvent(new MouseEvent('mousedown', {
+        clientX: mouseUpEventClientX,
+        clientY: mouseUpEventClientY,
+        bubbles: true,
+        cancelable: true
+      }))
+
+      await jest.advanceTimersByTimeAsync(100)
+
+      document.dispatchEvent(new MouseEvent('mouseup', {
+        clientX: mouseUpEventClientX + 1,
+        clientY: mouseUpEventClientY + 1,
+        bubbles: true,
+        cancelable: true
+      }))
+
+      expect(postAsyncSpy).toHaveBeenCalledTimes(2)
+
+      await jest.advanceTimersByTimeAsync(MAX_COLLECTING_TIME_MS + 10)
+
+      document.dispatchEvent(new MouseEvent('mousedown', {
+        clientX: mouseUpEventClientX,
+        clientY: mouseUpEventClientY,
+        bubbles: true,
+        cancelable: true
+      }))
+
+      document.dispatchEvent(new MouseEvent('mouseup', {
+        clientX: mouseUpEventClientX,
+        clientY: mouseUpEventClientY,
+        bubbles: true,
+        cancelable: true
+      }))
+
+      expect(postAsyncSpy).toHaveBeenCalledTimes(3)
+
+      jest.advanceTimersByTime(SCORING_INTERVAL + MAX_SCORING_POLLING_TIME)
+
+      expect(getAsyncSpy).toHaveBeenCalledTimes(0)
+      expect(setIsEAIDataCollected).toHaveBeenCalledTimes(1)
+      expect(setIsEAIDataCollected).toHaveBeenCalledWith(true)
+    })
+
+    it('should not collect data if eaiActivationEnabled is false and isEAIDataCollected is true', async () => {
+      const emotionAI: EmotionAI = new EmotionAI({
+        httpClient,
+        sdkConfig,
+        eAIConfig: {
+          eaiActivationEnabled: false,
+          eaiCollectEnabled: true
+        }
+      })
+
+      emotionAI.init(visitorDelegate)
+
+      postAsyncSpy.mockResolvedValue({ body: null, status: 200 })
+      expect(emotionAI.EAIScore).toBeUndefined()
+      expect(emotionAI.EAIScoreChecked).toBe(false)
+
+      isEAIDataCollected.mockResolvedValue(true)
+
+      await emotionAI.collectEAIData()
+
+      expect(postAsyncSpy).toHaveBeenCalledTimes(0)
+    })
+
+    it('should collect data if eaiActivationEnabled is false and isEAIDataCollected is false', async () => {
+      const emotionAI: EmotionAI = new EmotionAI({
+        httpClient,
+        sdkConfig,
+        eAIConfig: {
+          eaiActivationEnabled: false,
+          eaiCollectEnabled: true
+        }
+      })
+
+      emotionAI.init(visitorDelegate)
+
+      postAsyncSpy.mockResolvedValue({ body: null, status: 200 })
+      expect(emotionAI.EAIScore).toBeUndefined()
+      expect(emotionAI.EAIScoreChecked).toBe(false)
+
+      isEAIDataCollected.mockResolvedValue(false)
+
+      getAsyncSpy.mockResolvedValue({ body: null, status: 200 })
+
+      await emotionAI.collectEAIData()
+
+      const mouseUpEventClientX = 100
+      const mouseUpEventClientY = 150
+
+      document.dispatchEvent(new MouseEvent('mousedown', {
+        clientX: mouseUpEventClientX,
+        clientY: mouseUpEventClientY,
+        bubbles: true,
+        cancelable: true
+      }))
+
+      document.dispatchEvent(new MouseEvent('mouseup', {
+        clientX: mouseUpEventClientX,
+        clientY: mouseUpEventClientY,
+        bubbles: true,
+        cancelable: true
+      }))
+
+      expect(postAsyncSpy).toHaveBeenCalledTimes(2)
+
+      emotionAI.cleanup()
+    })
+
+    it('should collect data if eaiActivationEnabled is true and isEAIDataCollected is true', async () => {
+      const emotionAI: EmotionAI = new EmotionAI({
+        httpClient,
+        sdkConfig,
+        eAIConfig: {
+          eaiActivationEnabled: true,
+          eaiCollectEnabled: true
+        }
+      })
+
+      emotionAI.init(visitorDelegate)
+
+      postAsyncSpy.mockResolvedValue({ body: null, status: 200 })
+      expect(emotionAI.EAIScore).toBeUndefined()
+      expect(emotionAI.EAIScoreChecked).toBe(false)
+
+      isEAIDataCollected.mockResolvedValue(true)
+
+      await emotionAI.collectEAIData()
+
+      expect(postAsyncSpy).toHaveBeenCalledTimes(1)
+
+      emotionAI.cleanup()
     })
   })
 
@@ -770,6 +942,7 @@ describe('EmotionAI', () => {
       }))
 
       expect(postAsyncSpy).toHaveBeenCalledTimes(2)
+      expect(setIsEAIDataCollected).toHaveBeenCalledTimes(0)
     })
   })
 
