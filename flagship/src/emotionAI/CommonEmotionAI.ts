@@ -2,12 +2,13 @@ import { IHttpClient, IHttpResponse } from '../utils/HttpClient'
 import { IEmotionAI } from './IEmotionAI'
 import { EAIConfig } from '../type.local'
 import { logDebugSprintf, logErrorSprintf, sprintf } from '../utils/utils'
-import { EMOTION_AI_EVENT_URL, EMOTION_AI_UC_URL, FETCH_EAI_SCORE, FETCH_EAI_SCORE_ERROR, FETCH_EAI_SCORE_SUCCESS, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, SEND_EAI_EVENT, SEND_EAI_EVENT_ERROR, SEND_EAI_EVENT_SUCCESS } from '../enum/FlagshipConstant'
+import { EMOTION_AI_EVENT_URL, EMOTION_AI_UC_URL, FETCH_EAI_SCORE, FETCH_EAI_SCORE_ERROR, FETCH_EAI_SCORE_SUCCESS, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, MAX_COLLECTING_TIME_MS, MAX_LAST_COLLECTING_TIME_MS, MAX_SCORING_POLLING_TIME, SCORING_INTERVAL, SEND_EAI_EVENT, SEND_EAI_EVENT_ERROR, SEND_EAI_EVENT_SUCCESS } from '../enum/FlagshipConstant'
 import { IVisitorEvent } from './hit/IVisitorEvent'
 import { IPageView } from './hit/IPageView'
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { EAIScore } from '../types'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
+import { VisitorEvent } from './hit/VisitorEvent'
 
 type ConstructorParam = {
   httpClient: IHttpClient;
@@ -30,7 +31,6 @@ export abstract class CommonEmotionAI implements IEmotionAI {
   /**
    * Indicates whether EAI data has been collected
    */
-  protected _isEAIDataCollected: boolean
   protected _startCollectingEAIDataTimestamp!: number
 
   public constructor ({ httpClient, sdkConfig, eAIConfig }: ConstructorParam) {
@@ -39,7 +39,6 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     this._sdkConfig = sdkConfig
     this._eAIConfig = eAIConfig
     this._isEAIDataCollecting = false
-    this._isEAIDataCollected = false
   }
 
   public init (visitor: VisitorAbstract): void {
@@ -60,14 +59,18 @@ export abstract class CommonEmotionAI implements IEmotionAI {
 
   public abstract cleanup (): void ;
 
+  protected setIsEAIDataCollected (isCollected: boolean): Promise<void> {
+    return this._visitor.setIsEAIDataCollected(isCollected)
+  }
+
+  protected isEAIDataCollected (): Promise<boolean> {
+    return this._visitor.isEAIDataCollected()
+  }
+
   public async fetchEAIScore (): Promise<EAIScore|undefined> {
     if (!this._eAIConfig?.eaiActivationEnabled) {
       return undefined
     }
-    return this._fetchEAIScore()
-  }
-
-  protected async _fetchEAIScore (): Promise<EAIScore|undefined> {
     if (this._EAIScoreChecked) {
       return this._EAIScore
     }
@@ -118,20 +121,27 @@ export abstract class CommonEmotionAI implements IEmotionAI {
 
   protected abstract startCollectingEAIData (visitorId: string, currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> ;
 
+  protected abstract removeListeners (): void ;
+
   public async collectEAIData (currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> {
     if (this._isEAIDataCollecting ||
-      !this._eAIConfig?.eaiCollectEnabled || this._isEAIDataCollected) {
+      !this._eAIConfig?.eaiCollectEnabled) {
       return
     }
-    const score = await this._fetchEAIScore()
+
+    const isEAIDataCollected = await this.isEAIDataCollected()
+
+    if (!this._eAIConfig.eaiActivationEnabled && isEAIDataCollected) {
+      return
+    }
+
+    const score = await this.fetchEAIScore()
     if (score) {
       return
     }
     const visitorId = this._visitor.visitorId
     await this.startCollectingEAIData(visitorId, currentPage)
   }
-
-  public abstract reportVisitorEvent (visitorEvent:IVisitorEvent): Promise<void>;
 
   public reportPageView (pageView:IPageView): Promise<void> {
     return this.sendEAIEvent(pageView)
@@ -149,6 +159,59 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logErrorSprintf(this._sdkConfig, SEND_EAI_EVENT, SEND_EAI_EVENT_ERROR, error.message)
+    }
+  }
+
+  protected finalizeDataCollection (): void {
+    if (this._scoringIntervalId) {
+      clearInterval(this._scoringIntervalId)
+      this._scoringIntervalId = undefined
+    }
+    this._isEAIDataCollecting = false
+    this.setIsEAIDataCollected(true)
+  }
+
+  protected stopCollectingEAIData (): void {
+    this.removeListeners()
+
+    this._startScoringTimestamp = Date.now()
+
+    if (!this._eAIConfig?.eaiActivationEnabled) {
+      this._isEAIDataCollecting = false
+      this.setIsEAIDataCollected(true)
+      return
+    }
+
+    this._scoringIntervalId = setInterval(async () => {
+      const elapsedTime = Date.now() - this._startScoringTimestamp
+
+      if (elapsedTime > MAX_SCORING_POLLING_TIME) {
+        // should be considered as collected
+        this.finalizeDataCollection()
+        return
+      }
+
+      this._EAIScoreChecked = false
+      const score = await this.fetchEAIScore()
+
+      if (score) {
+        this.finalizeDataCollection()
+      }
+    }, SCORING_INTERVAL)
+  }
+
+  public async reportVisitorEvent (visitorEvent: VisitorEvent): Promise<void> {
+    const timestampDiff = Date.now() - this._startCollectingEAIDataTimestamp
+    if (timestampDiff <= MAX_COLLECTING_TIME_MS) {
+      this.sendEAIEvent(visitorEvent)
+    } else if ((timestampDiff <= MAX_LAST_COLLECTING_TIME_MS)) {
+      this.sendEAIEvent(visitorEvent)
+      this.stopCollectingEAIData()
+    } else {
+      this.removeListeners()
+      this._isEAIDataCollecting = false
+      // should be considered as collected
+      this.setIsEAIDataCollected(true)
     }
   }
 }
