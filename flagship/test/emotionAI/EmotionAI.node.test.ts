@@ -6,7 +6,6 @@ import { EmotionAI } from '../../src/emotionAI/EmotionAI.node'
 import { IHttpClient, IHttpOptions, IHttpResponse } from '../../src/utils/HttpClient'
 import { jest } from '@jest/globals'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
-import { VisitorEvent } from '../../src/emotionAI/hit/VisitorEvent'
 
 describe('EmotionAI', () => {
   const getAsyncSpy = jest.fn<(url: string, options?: IHttpOptions) => Promise<IHttpResponse>>()
@@ -59,14 +58,7 @@ describe('EmotionAI', () => {
   })
 
   it('should reportVisitorEvent', async () => {
-    const visitorEvent = new VisitorEvent({
-      visitorId,
-      customerAccountId: sdkConfig.envId as string,
-      clickPosition: '',
-      screenSize: '',
-      currentUrl: ''
-    })
-    await emotionAI.reportVisitorEvent(visitorEvent)
+    await emotionAI.reportVisitorEvent()
     expect(postAsyncSpy).not.toHaveBeenCalled()
   })
 
