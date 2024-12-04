@@ -4,7 +4,7 @@ import { PageView } from './hit/PageView'
 
 export class EmotionAI extends CommonEmotionAI {
   public cleanup (): void {
-    //
+    this._isEAIDataCollecting = false
   }
 
   protected async processPageView (currentPage: Omit<IPageView, 'toApiKeys'>): Promise<void> {
@@ -13,12 +13,12 @@ export class EmotionAI extends CommonEmotionAI {
   }
 
   protected async startCollectingEAIData (visitorId: string, currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> {
-    if (currentPage) {
-      await this.processPageView(currentPage)
-    }
     this._isEAIDataCollecting = true
     this._startCollectingEAIDataTimestamp = Date.now()
     this._onEAICollectStatusChange?.(true)
+    if (currentPage) {
+      await this.processPageView(currentPage)
+    }
   }
 
   protected removeListeners (): void {
