@@ -143,7 +143,10 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     await this.startCollectingEAIData(visitorId, currentPage)
   }
 
-  public reportPageView (pageView:IPageView): Promise<void> {
+  public async reportPageView (pageView:IPageView): Promise<void> {
+    if (!this._isEAIDataCollecting) {
+      return
+    }
     return this.sendEAIEvent(pageView)
   }
 
@@ -201,6 +204,9 @@ export abstract class CommonEmotionAI implements IEmotionAI {
   }
 
   public async reportVisitorEvent (visitorEvent: VisitorEvent): Promise<void> {
+    if (!this._isEAIDataCollecting) {
+      return
+    }
     const timestampDiff = Date.now() - this._startCollectingEAIDataTimestamp
     if (timestampDiff <= MAX_COLLECTING_TIME_MS) {
       this.sendEAIEvent(visitorEvent)
