@@ -1,6 +1,4 @@
 import { CommonEmotionAI } from './CommonEmotionAI'
-import { VisitorEvent } from './hit/VisitorEvent'
-import { MAX_COLLECTING_TIME_MS, MAX_LAST_COLLECTING_TIME_MS, MAX_SCORING_POLLING_TIME } from '../enum/FlagshipConstant'
 import { IPageView } from './hit/IPageView'
 import { PageView } from './hit/PageView'
 
@@ -23,40 +21,7 @@ export class EmotionAI extends CommonEmotionAI {
     this._onEAICollectStatusChange?.(true)
   }
 
-  protected stopCollectingEAIData (): void {
+  protected removeListeners (): void {
     this._onEAICollectStatusChange?.(false)
-    this._startScoringTimestamp = Date.now()
-
-    this._scoringIntervalId = setInterval(async () => {
-      if (Date.now() - this._startScoringTimestamp > MAX_SCORING_POLLING_TIME) {
-        clearInterval(this._scoringIntervalId)
-        this._isEAIDataCollecting = false
-        this._isEAIDataCollected = true
-      }
-      this._EAIScoreChecked = false
-      const score = await this.fetchEAIScore()
-      if (score) {
-        clearInterval(this._scoringIntervalId)
-        this._isEAIDataCollecting = false
-        this._isEAIDataCollected = true
-      }
-    }, this._scoringInterval)
-  }
-
-  public async reportVisitorEvent (visitorEvent: VisitorEvent): Promise<void> {
-    const timestampDiff = Date.now() - this._startCollectingEAIDataTimestamp
-    if (timestampDiff <= MAX_COLLECTING_TIME_MS) {
-      this.sendEAIEvent(visitorEvent)
-    }
-
-    if ((timestampDiff > MAX_COLLECTING_TIME_MS && timestampDiff <= MAX_LAST_COLLECTING_TIME_MS)) {
-      this.sendEAIEvent(visitorEvent)
-      this.stopCollectingEAIData()
-    }
-    if (timestampDiff > MAX_LAST_COLLECTING_TIME_MS) {
-      this.stopCollectingEAIData()
-      this._isEAIDataCollecting = false
-      this._isEAIDataCollected = true
-    }
   }
 }
