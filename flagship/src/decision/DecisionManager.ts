@@ -160,6 +160,7 @@ export abstract class DecisionManager implements IDecisionManager {
         label: TroubleshootingLabel.GET_CAMPAIGNS_ROUTE_RESPONSE_ERROR,
         logLevel: LogLevel.ERROR,
         visitorId: visitor.visitorId,
+        flagshipInstanceId: this.flagshipInstanceId,
         anonymousId: visitor.anonymousId,
         visitorSessionId: visitor.instanceId,
         traffic: 100,
