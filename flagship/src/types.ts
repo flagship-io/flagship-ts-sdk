@@ -203,6 +203,7 @@ export type VisitorCacheDTO = {
     consent?: boolean;
     context?: Record<string, primitive>;
     eAIScore?: EAIScore,
+    isEAIDataCollected?: boolean;
     assignmentsHistory?: Record<string, string>;
     campaigns?: Array<{
       slug?: string | null;
