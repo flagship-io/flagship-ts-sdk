@@ -4,13 +4,11 @@ import { MurmurHash } from '../../src/utils/MurmurHash'
 import { BucketingManager } from '../../src/decision/BucketingManager'
 import { bucketing } from './bucketing'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
-import { BUCKETING_API_URL, FSSdkStatus, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, SDK_INFO } from '../../src/enum'
-import { sprintf, sleep } from '../../src/utils/utils'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { DecisionManager } from '../../src/decision/DecisionManager'
 import { TrackingManager } from '../../src/api/TrackingManager'
-import { BucketingDTO, CampaignDTO, EAIScore, TroubleshootingLabel } from '../../src'
+import { BucketingDTO, CampaignDTO, EAIScore } from '../../src'
 import { Segment } from '../../src/hit/Segment'
 import { ISdkManager } from '../../src/main/ISdkManager'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
@@ -181,146 +179,6 @@ describe('test getCampaignsAsync campaign with thirdPartySegment', () => {
     expect(modifications.get('thirdIntegration')?.value).toEqual('value2')
   })
 })
-/*
-describe('test bucketing polling', () => {
-  const config = new BucketingConfig({ envId: 'envID', apiKey: 'apiKey' })
-  const murmurHash = new MurmurHash()
-  const httpClient = new HttpClient()
-
-  const getAsync = jest.spyOn(httpClient, 'getAsync')
-
-  const bucketingManager = new BucketingManager(httpClient, config, murmurHash)
-
-  const trackingManager = new TrackingManager(httpClient, config)
-
-  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
-
-  bucketingManager.trackingManager = trackingManager
-  it('should ', async () => {
-    sendTroubleshootingHit.mockResolvedValue()
-    const lastModified = Date.now()
-    config.pollingInterval = 0.5
-    config.onBucketingUpdated = (lastUpdate) => {
-      expect(lastModified.toString()).toBe(lastUpdate.toString())
-    }
-    getAsync.mockResolvedValue({ body: bucketing, status: 200, headers: { 'last-modified': lastModified.toString() } })
-    await bucketingManager.startPolling()
-    await sleep(1000)
-    bucketingManager.stopPolling()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((bucketingManager as any)._bucketingContent).toEqual(bucketing)
-
-    expect(sendTroubleshootingHit).toBeCalled()
-    const label: TroubleshootingLabel = TroubleshootingLabel.SDK_BUCKETING_FILE
-    expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
-  })
-
-  it('should ', async () => {
-    const lastModified = Date.now()
-    config.pollingInterval = 0.5
-    config.onBucketingUpdated = (lastUpdate) => {
-      expect(lastModified.toString()).toBe(lastUpdate.toString())
-    }
-    getAsync.mockResolvedValue({ body: null, status: 304, headers: { 'last-modified': lastModified.toString() } })
-    await bucketingManager.startPolling()
-    await sleep(1000)
-    bucketingManager.stopPolling()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((bucketingManager as any)._bucketingContent).toEqual(bucketing)
-  })
-})
-
-describe('test update', () => {
-  const onBucketingSuccess = jest.fn()
-
-  const config = new BucketingConfig({ pollingInterval: 0, onBucketingSuccess })
-  const murmurHash = new MurmurHash()
-  const httpClient = new HttpClient()
-
-  const getBucketingContent = jest.fn<() => BucketingDTO | undefined>()
-
-  const sdkManager = {
-    getBucketingContent
-  } as unknown as ISdkManager
-
-  const getAsync = jest.spyOn(httpClient, 'getAsync')
-
-  const bucketingManager = new BucketingManager({ httpClient, config, murmurHash, sdkManager })
-  const trackingManager = new TrackingManager(httpClient, config)
-
-  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
-
-  bucketingManager.trackingManager = trackingManager
-
-  const statusChangedCallback = jest.fn<(status: FSSdkStatus) => void>()
-
-  it('test', async () => {
-    getAsync.mockResolvedValue({ body: bucketing, status: 200 })
-    sendTroubleshootingHit.mockResolvedValue()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updateFlagshipStatus = jest.spyOn(bucketingManager as any, 'updateFlagshipStatus')
-
-    bucketingManager.statusChangedCallback(statusChangedCallback)
-    bucketingManager.startPolling()
-    bucketingManager.startPolling()
-    await sleep(500)
-    expect(updateFlagshipStatus).toBeCalledTimes(2)
-    expect(sendTroubleshootingHit).toBeCalledTimes(1)
-    expect(statusChangedCallback).toBeCalledTimes(2)
-    expect(statusChangedCallback).toHaveBeenNthCalledWith(1, FSSdkStatus.SDK_INITIALIZING)
-    expect(statusChangedCallback).toHaveBeenNthCalledWith(2, FSSdkStatus.SDK_INITIALIZED)
-    expect(onBucketingSuccess).toBeCalledTimes(1)
-    expect(onBucketingSuccess).toBeCalledWith({ status: 200, payload: bucketing })
-  })
-})
-
-describe('test error', () => {
-  const error = new Error('Error')
-  const onBucketingFail = (error: Error) => {
-    expect(error).toEqual(error)
-  }
-  const config = new BucketingConfig({ pollingInterval: 0, onBucketingFail })
-  const murmurHash = new MurmurHash()
-  const httpClient = new HttpClient()
-
-  const getAsync = jest.spyOn(httpClient, 'getAsync')
-
-  const bucketingManager = new BucketingManager(httpClient, config, murmurHash)
-  const trackingManager = new TrackingManager(httpClient, config)
-
-  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
-
-  bucketingManager.trackingManager = trackingManager
-
-  it('test', async () => {
-    getAsync.mockRejectedValue(error)
-    sendTroubleshootingHit.mockResolvedValue()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updateFlagshipStatus = jest.spyOn(bucketingManager as any, 'updateFlagshipStatus')
-    let count = 0
-    bucketingManager.statusChangedCallback((status) => {
-      switch (count) {
-        case 0:
-          expect(status).toBe(FSSdkStatus.SDK_INITIALIZING)
-          break
-        case 1:
-          expect(status).toBe(FSSdkStatus.SDK_NOT_INITIALIZED)
-          break
-        default:
-          break
-      }
-      count++
-    })
-
-    bucketingManager.startPolling()
-    await sleep(500)
-    expect(updateFlagshipStatus).toBeCalledTimes(2)
-    expect(sendTroubleshootingHit).toBeCalledTimes(1)
-    const troubleshootingLabel:TroubleshootingLabel = TroubleshootingLabel.SDK_BUCKETING_FILE_ERROR
-    expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label: troubleshootingLabel }))
-  })
-})
-    */
 
 describe('test sendContext', () => {
   const methodNow = Date.now
@@ -1070,36 +928,7 @@ describe('test bucketing method', () => {
     expect(response).toBeFalsy()
   })
 })
-/*
-describe('test initBucketing', () => {
-  const config = new BucketingConfig({ pollingInterval: 0, initialBucketing: bucketing })
-  const murmurHash = new MurmurHash()
-  const httpClient = new HttpClient()
 
-  const getAsync = jest.spyOn(httpClient, 'getAsync')
-
-  const bucketingManager = new BucketingManager(httpClient, config, murmurHash)
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sendContext = jest.spyOn(bucketingManager as any, 'sendContext')
-
-  sendContext.mockReturnValue(Promise.resolve())
-
-  const visitorId = 'visitor_1'
-  const context = {
-    age: 20
-  }
-  it('should ', async () => {
-    const trackingManager = new TrackingManager({} as HttpClient, config)
-
-    const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: bucketingManager, trackingManager } })
-    const campaigns = await bucketingManager.getCampaignsAsync(visitor)
-    const modifications = bucketingManager.getModifications(campaigns as CampaignDTO[])
-    expect(modifications.size).toBe(6)
-    expect(getAsync).toBeCalledTimes(0)
-  })
-})
-*/
 describe('test getThirdPartySegment', () => {
   const methodNow = Date.now
   const mockNow = jest.fn<typeof Date.now>()
