@@ -416,8 +416,19 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     return this.visitorCache?.data?.eAIScore
   }
 
+  public async isEAIDataCollected (): Promise<boolean> {
+    if (!this.visitorCache) {
+      await this.getStrategy().lookupVisitor()
+    }
+    return this.visitorCache?.data?.isEAIDataCollected || false
+  }
+
   public async setCachedEAIScore (eAIScore: EAIScore): Promise<void> {
     this.getStrategy().cacheVisitor(eAIScore)
+  }
+
+  public async setIsEAIDataCollected (isEAIDataCollected: boolean): Promise<void> {
+    this.getStrategy().cacheVisitor(undefined, isEAIDataCollected)
   }
 
   abstract updateContext(key: string, value: primitive):void
