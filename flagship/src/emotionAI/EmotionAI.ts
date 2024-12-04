@@ -103,8 +103,8 @@ export class EmotionAI extends CommonEmotionAI {
   }
 
   protected async startCollectingEAIData (visitorId: string): Promise<void> {
-    await this.processPageView(visitorId)
     this._isEAIDataCollecting = true
+    await this.processPageView(visitorId)
     this._startCollectingEAIDataTimestamp = Date.now()
     let mouseDownTimestamp: number | null = null
 
