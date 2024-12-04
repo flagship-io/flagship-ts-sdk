@@ -492,6 +492,33 @@ describe('test VisitorDelegate methods', () => {
     expect(cacheVisitorFn).toBeCalledTimes(1)
     expect(cacheVisitorFn).toBeCalledWith(score)
   })
+
+  it('test isEAIDataCollected', async () => {
+    visitorDelegate.visitorCache = undefined
+    const isEAIDataCollected = await visitorDelegate.isEAIDataCollected()
+    expect(isEAIDataCollected).toBeFalsy()
+    expect(lookupVisitor).toBeCalledTimes(1)
+  })
+
+  it('test isEAIDataCollected', async () => {
+    visitorDelegate.visitorCache = {
+      version: 1,
+      data: {
+        visitorId: 'visitorId',
+        anonymousId: 'anonymousId',
+        isEAIDataCollected: true
+      }
+    }
+    const isEAIDataCollected = await visitorDelegate.isEAIDataCollected()
+    expect(isEAIDataCollected).toBeTruthy()
+    expect(lookupVisitor).toBeCalledTimes(0)
+  })
+
+  it('test setIsEAIDataCollected', () => {
+    visitorDelegate.setIsEAIDataCollected(true)
+    expect(cacheVisitorFn).toBeCalledTimes(1)
+    expect(cacheVisitorFn).toBeCalledWith(undefined, true)
+  })
 })
 
 describe('Initialization tests', () => {
