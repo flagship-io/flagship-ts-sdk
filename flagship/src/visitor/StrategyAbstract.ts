@@ -211,7 +211,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     }
   }
 
-  public async cacheVisitor (eAIScore?: EAIScore):Promise<void> {
+  public async cacheVisitor (eAIScore?: EAIScore, isEAIDataCollected?:boolean):Promise<void> {
     try {
       const visitorCacheInstance = this.config.visitorCacheImplementation
 
@@ -228,6 +228,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
           consent: this.visitor.hasConsented,
           context: this.visitor.context,
           eAIScore: this.visitor.visitorCache?.data?.eAIScore || eAIScore,
+          isEAIDataCollected: this.visitor.visitorCache?.data?.isEAIDataCollected || isEAIDataCollected,
           campaigns: this.visitor.campaigns.map(campaign => {
             assignmentsHistory[campaign.variationGroupId] = campaign.variation.id
             return {
