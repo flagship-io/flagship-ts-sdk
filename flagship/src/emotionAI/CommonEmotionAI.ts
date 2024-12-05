@@ -165,13 +165,13 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     }
   }
 
-  protected finalizeDataCollection (): void {
+  protected finalizeDataCollection (isCollected:boolean): void {
     if (this._scoringIntervalId) {
       clearInterval(this._scoringIntervalId)
       this._scoringIntervalId = undefined
     }
     this._isEAIDataCollecting = false
-    this.setIsEAIDataCollected(true)
+    this.setIsEAIDataCollected(isCollected)
   }
 
   protected stopCollectingEAIData (): void {
@@ -189,8 +189,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
       const elapsedTime = Date.now() - this._startScoringTimestamp
 
       if (elapsedTime > MAX_SCORING_POLLING_TIME) {
-        // should be considered as collected
-        this.finalizeDataCollection()
+        this.finalizeDataCollection(false)
         return
       }
 
@@ -198,7 +197,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
       const score = await this.fetchEAIScore()
 
       if (score) {
-        this.finalizeDataCollection()
+        this.finalizeDataCollection(true)
       }
     }, SCORING_INTERVAL)
   }
@@ -216,8 +215,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     } else {
       this.removeListeners()
       this._isEAIDataCollecting = false
-      // should be considered as collected
-      this.setIsEAIDataCollected(true)
+      this.setIsEAIDataCollected(false)
     }
   }
 }
