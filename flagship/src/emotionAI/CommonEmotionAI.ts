@@ -67,7 +67,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     return this._visitor.isEAIDataCollected()
   }
 
-  public async fetchEAIScore (): Promise<EAIScore|undefined> {
+  public async fetchEAIScore (noCache = false): Promise<EAIScore|undefined> {
     if (!this._eAIConfig?.eaiActivationEnabled) {
       return undefined
     }
@@ -92,7 +92,9 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     try {
       const url = sprintf(EMOTION_AI_UC_URL, this._sdkConfig.envId, visitorId)
 
-      this._fetchEAIScorePromise = this._httpClient.getAsync(url)
+      const query = noCache ? `?${Date.now()}` : ''
+
+      this._fetchEAIScorePromise = this._httpClient.getAsync(`${url}${query}`)
 
       const response = await this._fetchEAIScorePromise
 
@@ -139,6 +141,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     if (score) {
       return
     }
+
     const visitorId = this._visitor.visitorId
     await this.startCollectingEAIData(visitorId, currentPage)
   }
@@ -194,7 +197,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
       }
 
       this._EAIScoreChecked = false
-      const score = await this.fetchEAIScore()
+      const score = await this.fetchEAIScore(true)
 
       if (score) {
         this.finalizeDataCollection(true)
