@@ -40,7 +40,7 @@ export class ApiSdkManager implements ISdkManager {
     try {
       const url = sprintf(CDN_ACCOUNT_SETTINGS_URL, this._config.envId)
       const response = await this._httpClient.getAsync(url)
-      this._EAIConfig = response.body
+      this._EAIConfig = response.body.accountSettings
     } catch (error:any) {
       logErrorSprintf(this._config, 'Error while fetching EAI config: {0}', error?.message || error)
     }
