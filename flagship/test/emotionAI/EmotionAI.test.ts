@@ -554,7 +554,7 @@ describe('EmotionAI', () => {
 
       expect(postAsyncSpy).toHaveBeenCalledTimes(2)
       expect(setIsEAIDataCollected).toHaveBeenCalledTimes(1)
-      expect(setIsEAIDataCollected).toHaveBeenCalledWith(true)
+      expect(setIsEAIDataCollected).toHaveBeenCalledWith(false)
     })
 
     it('should stop polling for score when max scoring polling time is reached', async () => {
