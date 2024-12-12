@@ -12,7 +12,7 @@ import { EventEmitter } from '../depsNode.native'
 import { NotReadyStrategy } from './NotReadyStrategy'
 import { PanicStrategy } from './PanicStrategy'
 import { NoConsentStrategy } from './NoConsentStrategy'
-import { cacheVisitor } from './VisitorCache'
+import { visitorProfileCache } from './visitorProfileCache'
 import { MurmurHash } from '../utils/MurmurHash'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { FSFetchStatus } from '../enum/FSFetchStatus'
@@ -145,7 +145,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._context = {}
     this._configManager = configManager
 
-    const visitorCache = this.config.reuseVisitorIds ? cacheVisitor.loadVisitorProfile() : null
+    const visitorCache = this.config.reuseVisitorIds ? visitorProfileCache.loadVisitorProfile() : null
     if (visitorCache) {
       logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_PROFILE_LOADED, visitorCache)
     }
@@ -251,7 +251,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       visitorId: this.visitorId,
       anonymousId: this.anonymousId
     }
-    cacheVisitor.saveVisitorProfile(visitorProfile)
+    visitorProfileCache.saveVisitorProfile(visitorProfile)
   }
 
   public loadPredefinedContext (): void {

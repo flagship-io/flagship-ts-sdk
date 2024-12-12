@@ -5,7 +5,7 @@ export type VisitorProfile={
     anonymousId: string|null
 }
 
-export const cacheVisitor = {
+export const visitorProfileCache = {
   saveVisitorProfile (visitorProfile:VisitorProfile):void {
     try {
       localStorage.setItem(CLIENT_CACHE_KEY, JSON.stringify(visitorProfile))

@@ -31,9 +31,11 @@ describe('ApiSdkManager', () => {
 
   describe('initSdk', () => {
     it('should fetch and set EAIConfig successfully', async () => {
-      const mockConfig: EAIConfig = {
-        eaiActivationEnabled: true,
-        eaiCollectEnabled: true
+      const mockConfig = {
+        accountSettings: {
+          eaiActivationEnabled: true,
+          eaiCollectEnabled: true
+        }
       }
 
       getAsyncSpy.mockResolvedValue({ body: mockConfig, status: 200 })
@@ -43,7 +45,7 @@ describe('ApiSdkManager', () => {
       const url = sprintf(CDN_ACCOUNT_SETTINGS_URL, sdkConfig.envId)
       expect(getAsyncSpy).toHaveBeenCalledTimes(1)
       expect(getAsyncSpy).toHaveBeenCalledWith(url)
-      expect(apiSdkManager.getEAIConfig()).toBe(mockConfig)
+      expect(apiSdkManager.getEAIConfig()).toBe(mockConfig.accountSettings)
     })
 
     it('should log error if fetching EAIConfig fails', async () => {
@@ -61,9 +63,11 @@ describe('ApiSdkManager', () => {
 
   describe('resetSdk', () => {
     it('should fetch and set EAIConfig successfully then reset it', async () => {
-      const mockConfig: EAIConfig = {
-        eaiActivationEnabled: true,
-        eaiCollectEnabled: true
+      const mockConfig = {
+        accountSettings: {
+          eaiActivationEnabled: true,
+          eaiCollectEnabled: true
+        }
       }
 
       getAsyncSpy.mockResolvedValue({ body: mockConfig, status: 200 })
@@ -71,7 +75,7 @@ describe('ApiSdkManager', () => {
       await apiSdkManager.initSdk()
 
       expect(getAsyncSpy).toHaveBeenCalledTimes(1)
-      expect(apiSdkManager.getEAIConfig()).toBe(mockConfig)
+      expect(apiSdkManager.getEAIConfig()).toBe(mockConfig.accountSettings)
 
       apiSdkManager.resetSdk()
       expect(apiSdkManager.getEAIConfig()).toBeUndefined()

@@ -10,7 +10,7 @@ import { HttpClient } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { IFSFlagMetadata, IHit } from '../../src/types'
 import { DecisionManager } from '../../src/decision/DecisionManager'
-import { cacheVisitor } from '../../src/visitor/VisitorCache'
+import { visitorProfileCache } from '../../src/visitor/visitorProfileCache'
 import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
 import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
 import { FSFlagCollection } from '../../src/flag/FSFlagCollection'
@@ -535,8 +535,8 @@ describe('Initialization tests', () => {
   } as unknown as IEmotionAI
 
   it('should initialize visitorDelegate with anonymousId', () => {
-    const loadVisitorProfile = jest.fn<typeof cacheVisitor.loadVisitorProfile>()
-    cacheVisitor.loadVisitorProfile = loadVisitorProfile
+    const loadVisitorProfile = jest.fn<typeof visitorProfileCache.loadVisitorProfile>()
+    visitorProfileCache.loadVisitorProfile = loadVisitorProfile
     loadVisitorProfile.mockReturnValue({ visitorId, anonymousId })
     const visitorDelegate = new VisitorDelegate({
       context: {},
@@ -553,8 +553,8 @@ describe('Initialization tests', () => {
   })
 
   it('should initialize visitorDelegate with authenticated visitorId and anonymousId', () => {
-    const loadVisitorProfile = jest.fn<typeof cacheVisitor.loadVisitorProfile>()
-    cacheVisitor.loadVisitorProfile = loadVisitorProfile
+    const loadVisitorProfile = jest.fn<typeof visitorProfileCache.loadVisitorProfile>()
+    visitorProfileCache.loadVisitorProfile = loadVisitorProfile
     loadVisitorProfile.mockReturnValue({ visitorId, anonymousId })
     const visitorDelegate = new VisitorDelegate({
       context: {},
@@ -571,8 +571,8 @@ describe('Initialization tests', () => {
     expect(visitorDelegate.anonymousId).toBe(anonymousId)
   })
   it('should initialize visitorDelegate with authenticated visitorId and generate anonymousId', () => {
-    const loadVisitorProfile = jest.fn<typeof cacheVisitor.loadVisitorProfile>()
-    cacheVisitor.loadVisitorProfile = loadVisitorProfile
+    const loadVisitorProfile = jest.fn<typeof visitorProfileCache.loadVisitorProfile>()
+    visitorProfileCache.loadVisitorProfile = loadVisitorProfile
     loadVisitorProfile.mockReturnValue({ visitorId, anonymousId: null })
     const visitorDelegate = new VisitorDelegate({
       context: {},
@@ -590,8 +590,8 @@ describe('Initialization tests', () => {
   })
 
   it('should initialize visitorDelegate with authenticated visitorId and null anonymousId', () => {
-    const loadVisitorProfile = jest.fn<typeof cacheVisitor.loadVisitorProfile>()
-    cacheVisitor.loadVisitorProfile = loadVisitorProfile
+    const loadVisitorProfile = jest.fn<typeof visitorProfileCache.loadVisitorProfile>()
+    visitorProfileCache.loadVisitorProfile = loadVisitorProfile
     loadVisitorProfile.mockReturnValue({ visitorId, anonymousId: null })
     const visitorDelegate = new VisitorDelegate({
       context: {},
