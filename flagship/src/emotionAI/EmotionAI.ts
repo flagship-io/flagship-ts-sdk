@@ -1,6 +1,7 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { CLICK_PATH_DELAY_MS, MAX_CLICK_PATH_LENGTH, SCROLL_END_DELAY_MS } from '../enum/FlagshipConstant'
 import { EAIConfig } from '../type.local'
+import { TroubleshootingLabel } from '../types'
 import { IHttpClient } from '../utils/HttpClient'
 import { CommonEmotionAI } from './CommonEmotionAI'
 import { PageView } from './hit/PageView'
@@ -106,6 +107,9 @@ export class EmotionAI extends CommonEmotionAI {
     this._isEAIDataCollecting = true
     await this.processPageView(visitorId)
     this._startCollectingEAIDataTimestamp = Date.now()
+
+    this.sendCollectingTroubleshooting(this._startCollectingEAIDataTimestamp, TroubleshootingLabel.EMOTION_AI_START_COLLECTING)
+
     let mouseDownTimestamp: number | null = null
 
     this.onScroll = () => this.handleScroll(visitorId)
