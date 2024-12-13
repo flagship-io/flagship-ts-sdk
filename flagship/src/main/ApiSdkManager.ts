@@ -1,11 +1,13 @@
 import { EAIConfig } from '../type.local'
-import { BucketingDTO } from '../types'
+import { AccountSettings, BucketingDTO, TroubleshootingLabel } from '../types'
 import { ISdkManager } from './ISdkManager'
 import { ITrackingManager } from '../api/ITrackingManager'
 import { IHttpClient } from '../utils/HttpClient'
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { CDN_ACCOUNT_SETTINGS_URL } from '../enum/FlagshipConstant'
 import { logErrorSprintf, sprintf } from '../utils/utils'
+import { Troubleshooting } from '../hit/Troubleshooting'
+import { LogLevel } from '../enum/LogLevel'
 
 type constructorParam = {
   httpClient: IHttpClient;
@@ -34,6 +36,17 @@ export class ApiSdkManager implements ISdkManager {
 
   getBucketingContent (): BucketingDTO | undefined {
     return undefined
+  }
+
+  protected sendTroubleshooting (accountSettings:AccountSettings) {
+    const troubleshooting = new Troubleshooting({
+      flagshipInstanceId: this._flagshipInstanceId,
+      label: TroubleshootingLabel.ACCOUNT_SETTINGS,
+      logLevel: LogLevel.DEBUG,
+      visitorId: this._flagshipInstanceId,
+      config: this._config,
+      accountSettings
+    })
   }
 
   async initSdk (): Promise<void> {
