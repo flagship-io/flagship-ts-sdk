@@ -6,9 +6,11 @@ import { EMOTION_AI_EVENT_URL, EMOTION_AI_UC_URL, FETCH_EAI_SCORE, FETCH_EAI_SCO
 import { IVisitorEvent } from './hit/IVisitorEvent'
 import { IPageView } from './hit/IPageView'
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
-import { EAIScore } from '../types'
+import { EAIScore, TroubleshootingLabel } from '../types'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { VisitorEvent } from './hit/VisitorEvent'
+import { Troubleshooting } from '../hit/Troubleshooting'
+import { LogLevel } from '../enum'
 
 type ConstructorParam = {
   httpClient: IHttpClient;
@@ -67,6 +69,91 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     return this._visitor.isEAIDataCollected()
   }
 
+  protected sendEAIScoreTroubleshooting (eAIScore?: EAIScore, endpoint?:string): void {
+    const troubleshooting = new Troubleshooting({
+      flagshipInstanceId: this._visitor.sdkInitialData?.instanceId as string,
+      visitorId: this._visitor.visitorId,
+      label: TroubleshootingLabel.EMOTION_AI_SCORE,
+      logLevel: LogLevel.DEBUG,
+      eAIScore,
+      isEAIScoreFromLocalCache: true,
+      config: this._sdkConfig,
+      httpRequestUrl: endpoint,
+      traffic: this._visitor.traffic
+    })
+    this._visitor.sendTroubleshooting(troubleshooting)
+  }
+
+  protected sendRequestTroubleshooting (response:IHttpResponse,
+    label: TroubleshootingLabel,
+    endpoint?:string,
+    method = 'GET',
+    apiKeys?:Record<string, boolean | string | number>): void {
+    const troubleshooting = new Troubleshooting({
+      flagshipInstanceId: this._visitor.sdkInitialData?.instanceId as string,
+      visitorId: this._visitor.visitorId,
+      label,
+      logLevel: LogLevel.DEBUG,
+      hitContent: apiKeys,
+      httpResponseBody: response.body,
+      httpRequestMethod: method,
+      httpRequestUrl: endpoint,
+      httpResponseCode: response.status,
+      httpResponseHeaders: response.headers,
+      traffic: this._visitor.traffic,
+      config: this._sdkConfig
+    })
+    this._visitor.sendTroubleshooting(troubleshooting)
+  }
+
+  protected sendRequestTroubleshootingError (error: any,
+    label: TroubleshootingLabel,
+    endpoint?:string): void {
+    const troubleshooting = new Troubleshooting({
+      flagshipInstanceId: this._visitor.sdkInitialData?.instanceId as string,
+      visitorId: this._visitor.visitorId,
+      label,
+      logLevel: LogLevel.ERROR,
+      httpRequestMethod: 'GET',
+      httpRequestUrl: endpoint,
+      traffic: this._visitor.traffic,
+      httpResponseBody: error?.message,
+      httpResponseHeaders: error?.headers,
+      httpResponseCode: error?.statusCode,
+      config: this._sdkConfig
+    })
+    this._visitor.sendTroubleshooting(troubleshooting)
+  }
+
+  protected sendCollectingTroubleshooting (timestamp:number, label:TroubleshootingLabel, score?: EAIScore): void {
+    const troubleshooting = new Troubleshooting({
+      flagshipInstanceId: this._visitor.sdkInitialData?.instanceId as string,
+      visitorId: this._visitor.visitorId,
+      label,
+      logLevel: LogLevel.DEBUG,
+      startCollectingEAIDataTimestamp: new Date(timestamp).toISOString(),
+      isEAIScoreFromLocalCache: true,
+      config: this._sdkConfig,
+      eAIScore: score,
+      traffic: this._visitor.traffic
+    })
+    this._visitor.sendTroubleshooting(troubleshooting)
+  }
+
+  protected sendCollectingUsage (timestamp:number, label:TroubleshootingLabel): void {
+    const troubleshooting = new Troubleshooting({
+      flagshipInstanceId: this._visitor.sdkInitialData?.instanceId as string,
+      visitorId: this._visitor.sdkInitialData?.instanceId as string,
+      label,
+      logLevel: LogLevel.DEBUG,
+      startCollectingEAIDataTimestamp: new Date(timestamp).toISOString(),
+      isEAIScoreFromLocalCache: true,
+      config: this._sdkConfig,
+      traffic: this._visitor.traffic
+    })
+    this._visitor.sendTroubleshooting(troubleshooting)
+  }
+
   public async fetchEAIScore (noCache = false): Promise<EAIScore|undefined> {
     if (!this._eAIConfig?.eaiActivationEnabled) {
       return undefined
@@ -80,6 +167,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     if (cachedEAIScore) {
       this._EAIScore = cachedEAIScore
       this._EAIScoreChecked = true
+      this.sendEAIScoreTroubleshooting(this._EAIScore)
       return this._EAIScore
     }
 
@@ -89,17 +177,21 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     }
 
     const visitorId = this._visitor.visitorId
+
+    const url = sprintf(EMOTION_AI_UC_URL, this._sdkConfig.envId, visitorId)
+
+    const query = noCache ? `?${Date.now()}` : ''
+
+    const endpoint = `${url}${query}`
     try {
-      const url = sprintf(EMOTION_AI_UC_URL, this._sdkConfig.envId, visitorId)
-
-      const query = noCache ? `?${Date.now()}` : ''
-
-      this._fetchEAIScorePromise = this._httpClient.getAsync(`${url}${query}`)
+      this._fetchEAIScorePromise = this._httpClient.getAsync(endpoint)
 
       const response = await this._fetchEAIScorePromise
 
       this._EAIScore = response.body
       this._EAIScoreChecked = true
+
+      this.sendRequestTroubleshooting(response, TroubleshootingLabel.EMOTION_AI_SCORE, endpoint)
 
       if (this._EAIScore) {
         this._visitor.setCachedEAIScore(this._EAIScore)
@@ -115,6 +207,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
         visitorId,
         error.message
       )
+      this.sendRequestTroubleshootingError(error, TroubleshootingLabel.EMOTION_AI_SCORE_ERROR, endpoint)
     } finally {
       this._fetchEAIScorePromise = undefined
     }
@@ -154,16 +247,27 @@ export abstract class CommonEmotionAI implements IEmotionAI {
   }
 
   protected async sendEAIEvent (event:IVisitorEvent|IPageView): Promise<void> {
+    const apiKeys = event.toApiKeys()
     try {
-      await this._httpClient.postAsync(EMOTION_AI_EVENT_URL, {
-        body: event.toApiKeys(),
+      const response = await this._httpClient.postAsync(EMOTION_AI_EVENT_URL, {
+        body: apiKeys,
         headers: {
           [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
         }
       })
+
+      const label = apiKeys.t === 'pageView' ? TroubleshootingLabel.EMOTION_AI_PAGE_VIEW : TroubleshootingLabel.EMOTION_AI_VISITOR_EVENT
+
+      this.sendRequestTroubleshooting(response, label, EMOTION_AI_EVENT_URL, 'POST', event.toApiKeys())
+
       logDebugSprintf(this._sdkConfig, SEND_EAI_EVENT, SEND_EAI_EVENT_SUCCESS, event.toApiKeys())
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
+      const label = apiKeys.t === 'pageView' ? TroubleshootingLabel.EMOTION_AI_PAGE_VIEW_ERROR : TroubleshootingLabel.EMOTION_AI_VISITOR_EVENT_ERROR
+
+      this.sendRequestTroubleshootingError(error,
+        label,
+        EMOTION_AI_EVENT_URL)
       logErrorSprintf(this._sdkConfig, SEND_EAI_EVENT, SEND_EAI_EVENT_ERROR, error.message)
     }
   }
@@ -178,9 +282,9 @@ export abstract class CommonEmotionAI implements IEmotionAI {
   }
 
   protected stopCollectingEAIData (): void {
-    this.removeListeners()
+    this.sendCollectingTroubleshooting(this._startCollectingEAIDataTimestamp, TroubleshootingLabel.EMOTION_AI_STOP_COLLECTING)
 
-    this._startScoringTimestamp = Date.now()
+    this.removeListeners()
 
     if (!this._eAIConfig?.eaiActivationEnabled) {
       this._isEAIDataCollecting = false
@@ -188,10 +292,15 @@ export abstract class CommonEmotionAI implements IEmotionAI {
       return
     }
 
+    this._startScoringTimestamp = Date.now()
+
+    this.sendCollectingTroubleshooting(this._startScoringTimestamp, TroubleshootingLabel.EMOTION_AI_START_SCORING)
+
     this._scoringIntervalId = setInterval(async () => {
       const elapsedTime = Date.now() - this._startScoringTimestamp
 
       if (elapsedTime > MAX_SCORING_POLLING_TIME) {
+        this.sendCollectingTroubleshooting(this._startScoringTimestamp, TroubleshootingLabel.EMOTION_AI_SCORING_FAILED)
         this.finalizeDataCollection(false)
         return
       }
@@ -200,6 +309,8 @@ export abstract class CommonEmotionAI implements IEmotionAI {
       const score = await this.fetchEAIScore(true)
 
       if (score) {
+        this.sendCollectingTroubleshooting(this._startScoringTimestamp,
+          TroubleshootingLabel.EMOTION_AI_SCORING_SUCCESS, score)
         this.finalizeDataCollection(true)
       }
     }, SCORING_INTERVAL)
