@@ -10,7 +10,7 @@ import {
 } from '../enum/FlagshipConstant'
 import { HitAbstract, IHitAbstract } from './HitAbstract'
 import { BucketingDTO } from '../decision/api/bucketingDTO'
-import { FlagDTO, SerializedFlagMetadata, TroubleshootingLabel, primitive } from '../types'
+import { AccountSettings, EAIScore, FlagDTO, SerializedFlagMetadata, TroubleshootingLabel, primitive } from '../types'
 import { CampaignDTO } from '../mod'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 
@@ -108,6 +108,12 @@ export interface IDiagnostic extends IHitAbstract{
     traffic?: number
     flagshipInstanceId?:string
 
+    accountSettings? : AccountSettings
+
+    eAIScore?: EAIScore
+    isEAIScoreFromLocalCache?: boolean
+    startCollectingEAIDataTimestamp?: string
+
   }
 
 /**
@@ -190,6 +196,42 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
   private _sdkConfigDisableDeveloperUsageTracking? : boolean
   private _sdkConfigDisableCache? : boolean
   private _sdkConfigLogLevel? : LogLevel|undefined
+  private _accountSettings? : AccountSettings
+  private _eAIScore : EAIScore|undefined
+  private _isEAIScoreFromLocalCache? : boolean|undefined
+  private _startCollectingEAIDataTimestamp : string|undefined
+
+  public get startCollectingEAIDataTimestamp () : string|undefined {
+    return this._startCollectingEAIDataTimestamp
+  }
+
+  public set startCollectingEAIDataTimestamp (v : string|undefined) {
+    this._startCollectingEAIDataTimestamp = v
+  }
+
+  public get isEAIScoreFromLocalCache () : boolean|undefined {
+    return this._isEAIScoreFromLocalCache
+  }
+
+  public set isEAIScoreFromLocalCache (v : boolean|undefined) {
+    this._isEAIScoreFromLocalCache = v
+  }
+
+  public get eAIScore () : EAIScore|undefined {
+    return this._eAIScore
+  }
+
+  public set eAIScore (v : EAIScore|undefined) {
+    this._eAIScore = v
+  }
+
+  public get accountSettings () : AccountSettings|undefined {
+    return this._accountSettings
+  }
+
+  public set accountSettings (v : AccountSettings|undefined) {
+    this._accountSettings = v
+  }
 
   public get sdkConfigLogLevel () : LogLevel|undefined {
     return this._sdkConfigLogLevel
@@ -851,8 +893,13 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       lastInitializationTimestamp, lastBucketingTimestamp, batchTriggeredBy, visitorCampaigns, visitorCampaignFromCache, visitorInitialCampaigns,
       visitorInitialFlagsData, flagMetadataCampaignIsReference, contextKey, contextValue, sdkBucketingFile, flagMetadataCampaignName, flagMetadataVariationGroupName,
       flagMetadataVariationName, sdkConfigUsingCustomHitCache, sdkConfigUsingCustomVisitorCache, sdkConfigUsingOnVisitorExposed, sdkConfigFetchThirdPartyData,
-      sdkConfigFetchFlagsBufferingTime, sdkConfigDisableDeveloperUsageTracking, sdkConfigNextFetchConfig, sdkConfigDisableCache, visitorSessionId, sdkConfigLogLevel
+      sdkConfigFetchFlagsBufferingTime, sdkConfigDisableDeveloperUsageTracking, sdkConfigNextFetchConfig, sdkConfigDisableCache, visitorSessionId, sdkConfigLogLevel, accountSettings, eAIScore,
+      isEAIScoreFromLocalCache, startCollectingEAIDataTimestamp
     } = param
+    this.startCollectingEAIDataTimestamp = startCollectingEAIDataTimestamp
+    this.isEAIScoreFromLocalCache = isEAIScoreFromLocalCache
+    this.eAIScore = eAIScore
+    this.accountSettings = accountSettings
     this.visitorSessionId = visitorSessionId
     this.sdkConfigDisableCache = sdkConfigDisableCache
     this.sdkConfigDisableDeveloperUsageTracking = sdkConfigDisableDeveloperUsageTracking
@@ -1215,6 +1262,22 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     }
     if (this.batchTriggeredBy !== undefined) {
       customVariable.batchTriggeredBy = `${BatchTriggeredBy[this.batchTriggeredBy]}`
+    }
+
+    if (this.accountSettings !== undefined) {
+      customVariable.accountSettings = JSON.stringify(this.accountSettings)
+    }
+
+    if (this.eAIScore !== undefined) {
+      customVariable.eAIScore = JSON.stringify(this.eAIScore)
+    }
+
+    if (this.isEAIScoreFromLocalCache !== undefined) {
+      customVariable.isEAIScoreFromLocalCache = `${this.isEAIScoreFromLocalCache}`
+    }
+
+    if (this.startCollectingEAIDataTimestamp !== undefined) {
+      customVariable.startCollectingEAIDataTimestamp = `${this.startCollectingEAIDataTimestamp}`
     }
 
     apiKeys.cv = customVariable
