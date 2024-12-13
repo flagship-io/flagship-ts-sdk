@@ -431,6 +431,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.getStrategy().cacheVisitor(undefined, isEAIDataCollected)
   }
 
+  public sendTroubleshooting (hit: Troubleshooting): Promise<void> {
+    return this.getStrategy().sendTroubleshootingHit(hit)
+  }
+
   abstract updateContext(key: string, value: primitive):void
   abstract updateContext(context: Record<string, primitive>): void
   abstract updateContext (context: Record<string, primitive> | string, value?:primitive): void
