@@ -1,3 +1,4 @@
+import { TroubleshootingLabel } from '../types'
 import { CommonEmotionAI } from './CommonEmotionAI'
 import { IPageView } from './hit/IPageView'
 import { PageView } from './hit/PageView'
@@ -19,6 +20,7 @@ export class EmotionAI extends CommonEmotionAI {
     if (currentPage) {
       await this.processPageView(currentPage)
     }
+    this.sendCollectingTroubleshooting(this._startCollectingEAIDataTimestamp, TroubleshootingLabel.EMOTION_AI_STOP_COLLECTING)
   }
 
   protected removeListeners (): void {
