@@ -24,6 +24,7 @@ import { sendVisitorExposedVariations } from '../qaAssistant/messages/index'
 import { IEmotionAI } from '../emotionAI/IEmotionAI'
 import { IVisitorEvent } from '../emotionAI/hit/IVisitorEvent'
 import { IPageView } from '../emotionAI/hit/IPageView'
+import { UsageHit } from '../hit/UsageHit'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -49,6 +50,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   private _getCampaignsPromise? : Promise<CampaignDTO[]|null>
   private _hasContextBeenUpdated : boolean
   private _emotionAi: IEmotionAI
+  private _analyticTraffic!: number
+  private _murmurHash!: MurmurHash
 
   public get hasContextBeenUpdated () : boolean {
     return this._hasContextBeenUpdated
@@ -126,15 +129,21 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     return this._emotionAi
   }
 
+  public get analyticTraffic () : number {
+    return this._analyticTraffic
+  }
+
   constructor (param: NewVisitor & {
     visitorId?: string
     configManager: IConfigManager
     context: Record<string, primitive>
     monitoringData?:sdkInitialData,
-    emotionAi: IEmotionAI
+    emotionAi: IEmotionAI,
+    murmurHash?: MurmurHash,
   }) {
     const { visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData, onFetchFlagsStatusChanged, emotionAi } = param
     super()
+    this._murmurHash = param.murmurHash || new MurmurHash()
     this._emotionAi = emotionAi
     this._hasContextBeenUpdated = true
     this._exposedVariations = {}
@@ -157,6 +166,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     if (isAuthenticated) {
       this._anonymousId = visitorCache?.anonymousId || uuidV4()
     }
+
+    this.initAnalyticTraffic()
 
     this.setConsent(hasConsented || false)
 
@@ -195,6 +206,16 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
   public get instanceId () : string {
     return this._instanceId
+  }
+
+  public getCurrentDateTime () {
+    return new Date()
+  }
+
+  protected initAnalyticTraffic () : void {
+    const uniqueId = this.visitorId + this.getCurrentDateTime().toDateString()
+    const hash = this._murmurHash.murmurHash3Int32(uniqueId)
+    this._analyticTraffic = hash % 1000
   }
 
   protected generateVisitorId ():string {
@@ -433,6 +454,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
   public sendTroubleshooting (hit: Troubleshooting): Promise<void> {
     return this.getStrategy().sendTroubleshootingHit(hit)
+  }
+
+  public sendUsageHit (hit: UsageHit): Promise<void> {
+    return this.getStrategy().sendUsageHit(hit)
   }
 
   abstract updateContext(key: string, value: primitive):void
