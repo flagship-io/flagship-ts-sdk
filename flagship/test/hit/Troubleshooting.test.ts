@@ -99,6 +99,12 @@ describe('test hit type Monitoring', () => {
 
     const hitContent = new Page({ documentLocation: 'localhost', visitorId })
 
+    const eAIScore = {
+      eai: {
+        eas: 'score'
+      }
+    }
+
     const params:TroubleshootingType = {
       logLevel,
       accountId: 'accountId',
@@ -178,7 +184,15 @@ describe('test hit type Monitoring', () => {
       contextKey: 'key',
       contextValue: 'value',
       hitContent: hitContent.toApiKeys(),
-      batchTriggeredBy: BatchTriggeredBy.ActivateLength
+      batchTriggeredBy: BatchTriggeredBy.ActivateLength,
+
+      accountSettings: {
+        eaiActivationEnabled: true,
+        eaiCollectEnabled: true
+      },
+      eAIScore,
+      isEAIScoreFromLocalCache: true,
+      startCollectingEAIDataTimestamp: '2023/01/01'
     }
 
     const pageHit:Record<string, unknown> = {}
@@ -269,7 +283,12 @@ describe('test hit type Monitoring', () => {
         'visitor.sessionId': `${params.visitorSessionId}`,
         sdkBucketingFile: JSON.stringify(params.sdkBucketingFile),
         'visitor.visitorId': visitorId,
-        'visitor.anonymousId': 'null'
+        'visitor.anonymousId': 'null',
+        'accountSettings.eaiActivationEnabled': 'true',
+        'accountSettings.eaiCollectEnabled': 'true',
+        'eAIScore.eai.eas': eAIScore.eai.eas,
+        isEAIScoreFromLocalCache: `${params.isEAIScoreFromLocalCache}`,
+        startCollectingEAIDataTimestamp: `${params.startCollectingEAIDataTimestamp}`
       }
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
