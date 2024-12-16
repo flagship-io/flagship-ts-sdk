@@ -152,20 +152,6 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     this._visitor.sendUsageHit(usageHit)
   }
 
-  protected sendCollectingUsage (timestamp:number, label:TroubleshootingLabel): void {
-    const troubleshooting = new Troubleshooting({
-      flagshipInstanceId: this._visitor.sdkInitialData?.instanceId as string,
-      visitorId: this._visitor.sdkInitialData?.instanceId as string,
-      label,
-      logLevel: LogLevel.DEBUG,
-      startCollectingEAIDataTimestamp: new Date(timestamp).toISOString(),
-      isEAIScoreFromLocalCache: true,
-      config: this._sdkConfig,
-      traffic: this._visitor.traffic
-    })
-    this._visitor.sendTroubleshooting(troubleshooting)
-  }
-
   public async fetchEAIScore (noCache = false): Promise<EAIScore|undefined> {
     if (!this._eAIConfig?.eaiActivationEnabled) {
       return undefined
@@ -268,14 +254,14 @@ export abstract class CommonEmotionAI implements IEmotionAI {
         }
       })
 
-      const label = apiKeys.t === 'pageView' ? TroubleshootingLabel.EMOTION_AI_PAGE_VIEW : TroubleshootingLabel.EMOTION_AI_VISITOR_EVENT
+      const label = apiKeys.t === 'PAGEVIEW' ? TroubleshootingLabel.EMOTION_AI_PAGE_VIEW : TroubleshootingLabel.EMOTION_AI_VISITOR_EVENT
 
       this.sendRequestTroubleshooting(response, label, EMOTION_AI_EVENT_URL, 'POST', event.toApiKeys())
 
       logDebugSprintf(this._sdkConfig, SEND_EAI_EVENT, SEND_EAI_EVENT_SUCCESS, event.toApiKeys())
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      const label = apiKeys.t === 'pageView' ? TroubleshootingLabel.EMOTION_AI_PAGE_VIEW_ERROR : TroubleshootingLabel.EMOTION_AI_VISITOR_EVENT_ERROR
+      const label = apiKeys.t === 'PAGEVIEW' ? TroubleshootingLabel.EMOTION_AI_PAGE_VIEW_ERROR : TroubleshootingLabel.EMOTION_AI_VISITOR_EVENT_ERROR
 
       this.sendRequestTroubleshootingError(error,
         label,
