@@ -21,6 +21,7 @@ export class EmotionAI extends CommonEmotionAI {
       await this.processPageView(currentPage)
     }
     this.sendCollectingTroubleshooting(this._startCollectingEAIDataTimestamp, TroubleshootingLabel.EMOTION_AI_STOP_COLLECTING)
+    this.sendCollectingUsageHit(TroubleshootingLabel.EMOTION_AI_START_COLLECTING)
   }
 
   protected removeListeners (): void {
