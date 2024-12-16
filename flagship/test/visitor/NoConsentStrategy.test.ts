@@ -9,7 +9,7 @@ import { FLAG_VISITOR_EXPOSED, HitType, LogLevel, METHOD_DEACTIVATED_CONSENT_ERR
 import { sprintf } from '../../src/utils/utils'
 import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { MurmurHash } from '../../src/utils/MurmurHash'
-import { EAIScore, FetchFlagsStatus, FlagDTO, TroubleshootingLabel } from '../../src'
+import { EAIScore, FlagDTO, TroubleshootingLabel } from '../../src'
 import { ApiManager } from '../../src/decision/ApiManager'
 import { Troubleshooting } from '../../src/hit/Troubleshooting'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
@@ -162,6 +162,10 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
   } as unknown as IEmotionAI
 
   const murmurHash = new MurmurHash()
+
+  const murmurHash3Int32Spy = jest.spyOn(murmurHash, 'murmurHash3Int32')
+  murmurHash3Int32Spy.mockReturnValue(1000)
+
   const visitorDelegate = new VisitorDelegate({
     visitorId,
     context,
@@ -171,8 +175,10 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
       lastInitializationTimestamp: ''
     },
     hasConsented: true,
-    emotionAi
+    emotionAi,
+    murmurHash
   })
+
   const noConsentStrategy = new NoConsentStrategy({ visitor: visitorDelegate, murmurHash })
   const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
   it('test fetchFlags', async () => {
@@ -186,11 +192,11 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
       variationName: 'variationName',
       value: 'value'
     }
-    const getCurrentDateTime = jest.spyOn(noConsentStrategy, 'getCurrentDateTime')
+
     const flags = new Map<string, FlagDTO>().set(flagDTO.key, flagDTO)
     getCampaignsAsync.mockResolvedValue([])
     getModifications.mockReturnValueOnce(flags)
-    getCurrentDateTime.mockReturnValue(new Date(2024, 0, 29))
+
     await noConsentStrategy.fetchFlags()
 
     expect(sendUsageHitSpy).toBeCalledTimes(1)
