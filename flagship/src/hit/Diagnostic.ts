@@ -1265,7 +1265,10 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     }
 
     if (this.accountSettings !== undefined) {
-      customVariable.accountSettings = JSON.stringify(this.accountSettings)
+      for (const key in this.accountSettings) {
+        const element = this.accountSettings[key as keyof AccountSettings]
+        customVariable[`accountSettings.${key}`] = typeof element === 'string' ? element : JSON.stringify(element)
+      }
     }
 
     if (this.eAIScore !== undefined) {
