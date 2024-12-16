@@ -31,6 +31,16 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   protected _intervalID:any
   protected _isPooling = false
   private _flagshipInstanceId?: string
+  private _initTroubleshootingHit? : Troubleshooting
+
+  public get initTroubleshootingHit () : Troubleshooting|undefined {
+    return this._initTroubleshootingHit
+  }
+
+  public set initTroubleshootingHit (v : Troubleshooting|undefined) {
+    this._initTroubleshootingHit = v
+    this.strategy.initTroubleshootingHit = v
+  }
 
   public get flagshipInstanceId (): string|undefined {
     return this._flagshipInstanceId
@@ -65,7 +75,8 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
       activatePoolQueue: this._activatePoolQueue,
       troubleshootingQueue: this._troubleshootingQueue,
       analyticHitQueue: this._analyticHitQueue,
-      flagshipInstanceId: this.flagshipInstanceId
+      flagshipInstanceId: this.flagshipInstanceId,
+      initTroubleshootingHit: this.initTroubleshootingHit
     }
     switch (this.config.trackingManagerConfig?.cacheStrategy) {
       case CacheStrategy.PERIODIC_CACHING:
