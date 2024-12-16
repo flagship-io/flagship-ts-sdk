@@ -1037,6 +1037,29 @@ describe('test send troubleshooting hit', () => {
     hitContent: activateHit.toApiKeys()
   })
 
+  it('test initTroubleshootingHit === undefined', async () => {
+    expect(batchingStrategy.initTroubleshootingHit).toBeUndefined()
+  })
+
+  it('test initTroubleshootingHit !== undefined', async () => {
+    const initTroubleshootingHit = new Troubleshooting({
+      label: TroubleshootingLabel.VISITOR_SEND_ACTIVATE,
+      logLevel: LogLevel.INFO,
+      traffic: 2,
+      visitorId: activateHit.visitorId,
+      flagshipInstanceId,
+      visitorSessionId,
+      anonymousId: activateHit.anonymousId,
+      config,
+      hitContent: activateHit.toApiKeys()
+    })
+    const batchingStrategy = new BatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, flagshipInstanceId, analyticHitQueue })
+
+    batchingStrategy.initTroubleshootingHit = initTroubleshootingHit
+
+    expect(batchingStrategy.initTroubleshootingHit).toBe(initTroubleshootingHit)
+  })
+
   it('test troubleshootingData === undefined', async () => {
     postAsync.mockResolvedValue({ status: 200, body: null })
 
@@ -1228,6 +1251,17 @@ describe('test send troubleshooting hit', () => {
     const endDate = new Date(startDate)
     endDate.setMinutes(startDate.getMinutes() + 2)
 
+    batchingStrategy.initTroubleshootingHit = new Troubleshooting({
+      label: TroubleshootingLabel.ACCOUNT_SETTINGS,
+      logLevel: LogLevel.INFO,
+      traffic: 50,
+      visitorId: activateHit.visitorId,
+      flagshipInstanceId,
+      visitorSessionId,
+      anonymousId: activateHit.anonymousId,
+      config
+    })
+
     batchingStrategy.troubleshootingData = {
       startDate,
       endDate,
@@ -1239,11 +1273,11 @@ describe('test send troubleshooting hit', () => {
 
     await batchingStrategy.sendTroubleshootingQueue()
     expect(troubleshootingQueue.size).toBe(0)
-    expect(postAsync).toBeCalledTimes(1)
+    expect(postAsync).toBeCalledTimes(2)
 
     await batchingStrategy.sendTroubleshootingQueue()
     expect(troubleshootingQueue.size).toBe(0)
-    expect(postAsync).toBeCalledTimes(1)
+    expect(postAsync).toBeCalledTimes(2)
   })
 })
 
