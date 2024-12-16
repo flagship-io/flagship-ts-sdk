@@ -1272,7 +1272,7 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
     }
 
     if (this.eAIScore !== undefined) {
-      customVariable.eAIScore = JSON.stringify(this.eAIScore)
+      customVariable['eAIScore.eai.eas'] = this.eAIScore.eai.eas
     }
 
     if (this.isEAIScoreFromLocalCache !== undefined) {
