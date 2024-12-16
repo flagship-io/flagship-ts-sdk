@@ -14,7 +14,7 @@ export type BatchingCachingStrategyConstruct = {
     troubleshootingQueue: Map<string, Troubleshooting>
     analyticHitQueue: Map<string, UsageHit>
     flagshipInstanceId?:string
-    initTroubleshootingHi?: Troubleshooting
+    initTroubleshootingHit?: Troubleshooting
    }
 
 export type SendActivate = {
