@@ -364,7 +364,8 @@ export class Flagship {
         lastInitializationTimestamp: this.getInstance().lastInitializationTimestamp,
         initialCampaigns,
         initialFlagsData
-      }
+      },
+      murmurHash: new MurmurHash()
     })
 
     const visitor = new Visitor(visitorDelegate)
