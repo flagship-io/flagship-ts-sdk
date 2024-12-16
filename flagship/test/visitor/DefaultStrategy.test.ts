@@ -25,6 +25,7 @@ import { ISdkManager } from '../../src/main/ISdkManager'
 import { BucketingDTO } from '../../src/decision/api/bucketingDTO'
 import { IPageView } from '../../src/emotionAI/hit/IPageView'
 import { IVisitorEvent } from '../../src/emotionAI/hit/IVisitorEvent'
+import { UsageHit } from '../../src/hit/UsageHit'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getNull = (): any => {
@@ -1776,11 +1777,6 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
     'getCampaignsAsync'
   )
 
-  const getModifications = jest.spyOn(
-    apiManager,
-    'getModifications'
-  )
-
   const trackingManager = new TrackingManager(httpClient, config)
 
   const addHit = jest.spyOn(trackingManager, 'addHit')
@@ -1801,6 +1797,9 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
 
   const FsInstanceId = 'FsInstanceId'
   const murmurHash = new MurmurHash()
+  const murmurHash3Int32Spy = jest.spyOn(murmurHash, 'murmurHash3Int32')
+  murmurHash3Int32Spy.mockReturnValue(1000)
+
   const visitorDelegate = new VisitorDelegate({
     visitorId,
     context,
@@ -1810,7 +1809,8 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
       lastInitializationTimestamp: ''
     },
     hasConsented: true,
-    emotionAi
+    emotionAi,
+    murmurHash
   })
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
@@ -1830,9 +1830,8 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
         }
       }
     ]
-    const getCurrentDateTime = jest.spyOn(defaultStrategy, 'getCurrentDateTime')
+
     getCampaignsAsync.mockResolvedValue(campaignDTO)
-    getCurrentDateTime.mockReturnValue(new Date(2024, 0, 29))
 
     await defaultStrategy.fetchFlags()
 
@@ -1843,20 +1842,37 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
   })
 
   it('test sendAnalyticHit when visitor traffic >', async () => {
-    const getCurrentDateTime = jest.spyOn(defaultStrategy, 'getCurrentDateTime')
+    murmurHash3Int32Spy.mockReturnValue(100)
 
-    getCurrentDateTime.mockReturnValue(new Date(2023, 9, 14))
+    const visitorDelegate = new VisitorDelegate({
+      visitorId,
+      context,
+      configManager,
+      monitoringData: {
+        instanceId: FsInstanceId,
+        lastInitializationTimestamp: ''
+      },
+      hasConsented: true,
+      emotionAi,
+      murmurHash
+    })
+    const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
+
     await defaultStrategy.sendSdkConfigAnalyticHit()
 
     expect(sendUsageHitSpy).toBeCalledTimes(0)
   })
 
   it('test sendAnalyticHit when disableDeveloperUsageTracking is true', async () => {
-    const getCurrentDateTime = jest.spyOn(defaultStrategy, 'getCurrentDateTime')
-
-    getCurrentDateTime.mockReturnValue(new Date(2024, 0, 29))
     config.disableDeveloperUsageTracking = true
     await defaultStrategy.sendSdkConfigAnalyticHit()
+
+    expect(sendUsageHitSpy).toBeCalledTimes(0)
+  })
+
+  it('test sendUsageHit when disableDeveloperUsageTracking is true', async () => {
+    config.disableDeveloperUsageTracking = true
+    await defaultStrategy.sendUsageHit({} as UsageHit)
 
     expect(sendUsageHitSpy).toBeCalledTimes(0)
   })
