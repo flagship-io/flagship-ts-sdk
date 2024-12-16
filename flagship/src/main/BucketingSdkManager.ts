@@ -89,7 +89,7 @@ export class BucketingSdkManager implements ISdkManager {
       httpResponseCode: response?.status,
       httpResponseTime: Date.now() - now
     })
-    this._trackingManager.addTroubleshootingHit(troubleshootingHit)
+    this._trackingManager.initTroubleshootingHit = troubleshootingHit
   }
 
   protected sendErrorTroubleshooting (
@@ -113,7 +113,7 @@ export class BucketingSdkManager implements ISdkManager {
       httpResponseCode: error?.statusCode,
       httpResponseTime: Date.now() - now
     })
-    this._trackingManager.sendTroubleshootingHit(troubleshootingHit)
+    this._trackingManager.initTroubleshootingHit = troubleshootingHit
   }
 
   protected handlePollingResponse (params: {response: IHttpResponse, headers: Record<string, string>, url: string, now: number}) {
