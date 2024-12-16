@@ -11,6 +11,7 @@ import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { VisitorEvent } from './hit/VisitorEvent'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { LogLevel } from '../enum'
+import { UsageHit } from '../hit/UsageHit'
 
 type ConstructorParam = {
   httpClient: IHttpClient;
@@ -138,6 +139,17 @@ export abstract class CommonEmotionAI implements IEmotionAI {
       traffic: this._visitor.traffic
     })
     this._visitor.sendTroubleshooting(troubleshooting)
+  }
+
+  protected sendCollectingUsageHit (label:TroubleshootingLabel): void {
+    const usageHit = new UsageHit({
+      visitorId: this._visitor.sdkInitialData?.instanceId as string,
+      label,
+      config: this._sdkConfig,
+      logLevel: LogLevel.DEBUG
+    })
+
+    this._visitor.sendUsageHit(usageHit)
   }
 
   protected sendCollectingUsage (timestamp:number, label:TroubleshootingLabel): void {
@@ -283,6 +295,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
 
   protected stopCollectingEAIData (): void {
     this.sendCollectingTroubleshooting(this._startCollectingEAIDataTimestamp, TroubleshootingLabel.EMOTION_AI_STOP_COLLECTING)
+    this.sendCollectingUsageHit(TroubleshootingLabel.EMOTION_AI_STOP_COLLECTING)
 
     this.removeListeners()
 
