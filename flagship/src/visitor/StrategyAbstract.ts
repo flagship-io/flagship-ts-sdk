@@ -312,6 +312,19 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       await this.trackingManager.sendTroubleshootingHit(hit)
     }
 
+    public async sendUsageHit (hit: UsageHit): Promise<void> {
+      if (this.config.disableDeveloperUsageTracking) {
+        return
+      }
+      const traffic = this.visitor.analyticTraffic
+
+      if (traffic > ANALYTIC_HIT_ALLOCATION) {
+        return
+      }
+
+      return this.trackingManager.sendUsageHit(hit)
+    }
+
     public getCurrentDateTime () {
       return new Date()
     }
@@ -324,13 +337,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       if (this.config.disableDeveloperUsageTracking) {
         return
       }
-      const uniqueId = this.visitor.visitorId + this.getCurrentDateTime().toDateString()
-      const hash = this._murmurHash.murmurHash3Int32(uniqueId)
-      const traffic = hash % 1000
 
-      if (traffic > ANALYTIC_HIT_ALLOCATION) {
-        return
-      }
       const hitCacheImplementation = this.config.hitCacheImplementation
       const visitorCacheImplementation = this.config.visitorCacheImplementation
       const sdkConfigUsingCustomHitCache = hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
@@ -366,7 +373,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         sdkConfigNextFetchConfig: this.config.nextFetchConfig,
         sdkConfigDisableCache: this.config.disableCache
       })
-      await this.trackingManager.sendUsageHit(analyticData)
+      await this.sendUsageHit(analyticData)
     }
 
     sendFetchFlagsTroubleshooting ({ isFromCache, campaigns, now }:{isFromCache: boolean, campaigns:CampaignDTO[], now: number }) {
