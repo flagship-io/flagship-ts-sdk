@@ -2,7 +2,7 @@ import { EAIConfig } from '../type.local'
 import { AccountSettings, BucketingDTO, TroubleshootingLabel } from '../types'
 import { ISdkManager } from './ISdkManager'
 import { ITrackingManager } from '../api/ITrackingManager'
-import { IHttpClient } from '../utils/HttpClient'
+import { IHttpClient, IHttpResponse } from '../utils/HttpClient'
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { CDN_ACCOUNT_SETTINGS_URL } from '../enum/FlagshipConstant'
 import { logErrorSprintf, sprintf } from '../utils/utils'
@@ -38,24 +38,60 @@ export class ApiSdkManager implements ISdkManager {
     return undefined
   }
 
-  protected sendTroubleshooting (accountSettings:AccountSettings) {
+  protected sendTroubleshooting (accountSettings:AccountSettings,
+    url: string,
+    response: IHttpResponse | undefined,
+    now: number) {
     const troubleshooting = new Troubleshooting({
       flagshipInstanceId: this._flagshipInstanceId,
       label: TroubleshootingLabel.ACCOUNT_SETTINGS,
       logLevel: LogLevel.DEBUG,
       visitorId: this._flagshipInstanceId,
       config: this._config,
-      accountSettings
+      accountSettings,
+      traffic: 0,
+      httpRequestMethod: 'POST',
+      httpRequestUrl: url,
+      httpResponseHeaders: response?.headers,
+      httpResponseCode: response?.status,
+      httpResponseTime: Date.now() - now
     })
+
+    this._trackingManager.initTroubleshootingHit = troubleshooting
+  }
+
+  protected sendErrorTroubleshooting (
+    url: string,
+    error: { message: string, headers: Record<string, string>, statusCode: number },
+    now: number
+  ) {
+    const troubleshootingHit = new Troubleshooting({
+      visitorId: this._flagshipInstanceId,
+      flagshipInstanceId: this._flagshipInstanceId,
+      label: TroubleshootingLabel.SDK_BUCKETING_FILE_ERROR,
+      traffic: 0,
+      logLevel: LogLevel.INFO,
+      config: this._config,
+      httpRequestMethod: 'POST',
+      httpRequestUrl: url,
+      httpResponseBody: error?.message,
+      httpResponseHeaders: error?.headers,
+      httpResponseCode: error?.statusCode,
+      httpResponseTime: Date.now() - now
+    })
+    this._trackingManager.initTroubleshootingHit = troubleshootingHit
   }
 
   async initSdk (): Promise<void> {
+    const now = Date.now()
+    const url = sprintf(CDN_ACCOUNT_SETTINGS_URL, this._config.envId)
     try {
-      const url = sprintf(CDN_ACCOUNT_SETTINGS_URL, this._config.envId)
       const response = await this._httpClient.getAsync(url)
       this._EAIConfig = response.body.accountSettings
+      this.sendTroubleshooting(response.body.accountSettings, url, response, now)
     } catch (error:any) {
       logErrorSprintf(this._config, 'Error while fetching EAI config: {0}', error?.message || error)
+      this.sendErrorTroubleshooting(url, error, now)
     }
   }
 
