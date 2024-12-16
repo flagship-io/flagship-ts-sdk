@@ -26,6 +26,8 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   private _HitsToFsQa:HitAbstract[]
   private _sendFsHitToQATimeoutId?:NodeJS.Timeout
   private _troubleshootingData? : TroubleshootingData
+  private _initTroubleshootingHit?: Troubleshooting
+  private _hasInitTroubleshootingHitSent: boolean
 
   public get flagshipInstanceId (): string|undefined {
     return this._flagshipInstanceId
@@ -43,9 +45,18 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     return this._config
   }
 
+  public get initTroubleshootingHit () : Troubleshooting|undefined {
+    return this._initTroubleshootingHit
+  }
+
+  public set initTroubleshootingHit (v : Troubleshooting|undefined) {
+    this._initTroubleshootingHit = v
+  }
+
   constructor (param: BatchingCachingStrategyConstruct) {
-    const { config, hitsPoolQueue, httpClient, activatePoolQueue, troubleshootingQueue, flagshipInstanceId, analyticHitQueue } = param
+    const { config, hitsPoolQueue, httpClient, activatePoolQueue, troubleshootingQueue, flagshipInstanceId, analyticHitQueue, initTroubleshootingHit: initTroubleshootingHi } = param
     this._HitsToFsQa = []
+    this._hasInitTroubleshootingHitSent = false
     this._config = config
     this._hitsPoolQueue = hitsPoolQueue
     this._httpClient = httpClient
@@ -55,6 +66,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     this._usageHitQueue = analyticHitQueue
     this._isUsageHitQueueSending = false
     this._isTroubleshootingQueueSending = false
+    this._initTroubleshootingHit = initTroubleshootingHi
   }
 
   public sendHitsToFsQa (hits: HitAbstract[]) {
@@ -359,6 +371,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
     const isFinished = now > this.troubleshootingData.endDate
     if (isFinished) {
+      this._hasInitTroubleshootingHitSent = false
       return false
     }
     return true
@@ -406,12 +419,24 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     }
   }
 
+  protected async sendInitTroubleshootingHit () {
+    if (!this.isTroubleshootingActivated() || !this._initTroubleshootingHit || this._hasInitTroubleshootingHitSent) {
+      return
+    }
+
+    await this.sendTroubleshootingHit(this._initTroubleshootingHit)
+    this._hasInitTroubleshootingHitSent = true
+  }
+
   public async sendTroubleshootingQueue () {
+    await this.sendInitTroubleshootingHit()
+
     if (!this.isTroubleshootingActivated() || this._isTroubleshootingQueueSending || this._troubleshootingQueue.size === 0) {
       return
     }
 
     this._isTroubleshootingQueueSending = true
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (const [_, item] of Array.from(this._troubleshootingQueue)) {
       await this.sendTroubleshootingHit(item)
