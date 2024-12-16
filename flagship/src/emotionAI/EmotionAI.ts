@@ -109,6 +109,7 @@ export class EmotionAI extends CommonEmotionAI {
     this._startCollectingEAIDataTimestamp = Date.now()
 
     this.sendCollectingTroubleshooting(this._startCollectingEAIDataTimestamp, TroubleshootingLabel.EMOTION_AI_START_COLLECTING)
+    this.sendCollectingUsageHit(TroubleshootingLabel.EMOTION_AI_START_COLLECTING)
 
     let mouseDownTimestamp: number | null = null
 
