@@ -62,21 +62,21 @@ export class ApiSdkManager implements ISdkManager {
 
   protected sendErrorTroubleshooting (
     url: string,
-    error: { message: string, headers: Record<string, string>, statusCode: number },
+    error: { message: string, headers: Record<string, string>, status: number },
     now: number
   ) {
     const troubleshootingHit = new Troubleshooting({
       visitorId: this._flagshipInstanceId,
       flagshipInstanceId: this._flagshipInstanceId,
-      label: TroubleshootingLabel.SDK_BUCKETING_FILE_ERROR,
+      label: TroubleshootingLabel.ACCOUNT_SETTINGS_ERROR,
       traffic: 0,
-      logLevel: LogLevel.INFO,
+      logLevel: LogLevel.ERROR,
       config: this._config,
       httpRequestMethod: 'POST',
       httpRequestUrl: url,
       httpResponseBody: error?.message,
       httpResponseHeaders: error?.headers,
-      httpResponseCode: error?.statusCode,
+      httpResponseCode: error?.status,
       httpResponseTime: Date.now() - now
     })
     this._trackingManager.initTroubleshootingHit = troubleshootingHit
