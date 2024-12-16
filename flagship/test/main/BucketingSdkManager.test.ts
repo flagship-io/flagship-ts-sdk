@@ -129,9 +129,11 @@ describe('test bucketing polling', () => {
 
     expect(bucketingSdkManager.getBucketingContent()).toBeUndefined()
 
-    expect(addTroubleshootingHitSpy.mock.calls.length).toBeGreaterThan(1)
+    expect(trackingManager).toBeDefined()
+
     const label: TroubleshootingLabel = TroubleshootingLabel.SDK_BUCKETING_FILE
-    expect(addTroubleshootingHitSpy).toBeCalledWith(expect.objectContaining({ label }))
+
+    expect(trackingManager.initTroubleshootingHit).toEqual(expect.objectContaining({ label }))
 
     sdkConfig.pollingInterval = 0
 
