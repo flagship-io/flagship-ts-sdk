@@ -112,7 +112,7 @@ export interface IDiagnostic extends IHitAbstract{
 
     eAIScore?: EAIScore
     isEAIScoreFromLocalCache?: boolean
-    startCollectingEAIDataTimestamp?: string
+    eAIDataTimestamp?: string
 
   }
 
@@ -199,14 +199,14 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
   private _accountSettings? : AccountSettings
   private _eAIScore : EAIScore|undefined
   private _isEAIScoreFromLocalCache? : boolean|undefined
-  private _startCollectingEAIDataTimestamp : string|undefined
+  private _eAIDataTimestamp : string|undefined
 
-  public get startCollectingEAIDataTimestamp () : string|undefined {
-    return this._startCollectingEAIDataTimestamp
+  public get eAIDataTimestamp () : string|undefined {
+    return this._eAIDataTimestamp
   }
 
-  public set startCollectingEAIDataTimestamp (v : string|undefined) {
-    this._startCollectingEAIDataTimestamp = v
+  public set eAIDataTimestamp (v : string|undefined) {
+    this._eAIDataTimestamp = v
   }
 
   public get isEAIScoreFromLocalCache () : boolean|undefined {
@@ -894,9 +894,9 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       visitorInitialFlagsData, flagMetadataCampaignIsReference, contextKey, contextValue, sdkBucketingFile, flagMetadataCampaignName, flagMetadataVariationGroupName,
       flagMetadataVariationName, sdkConfigUsingCustomHitCache, sdkConfigUsingCustomVisitorCache, sdkConfigUsingOnVisitorExposed, sdkConfigFetchThirdPartyData,
       sdkConfigFetchFlagsBufferingTime, sdkConfigDisableDeveloperUsageTracking, sdkConfigNextFetchConfig, sdkConfigDisableCache, visitorSessionId, sdkConfigLogLevel, accountSettings, eAIScore,
-      isEAIScoreFromLocalCache, startCollectingEAIDataTimestamp
+      isEAIScoreFromLocalCache, eAIDataTimestamp: startCollectingEAIDataTimestamp
     } = param
-    this.startCollectingEAIDataTimestamp = startCollectingEAIDataTimestamp
+    this.eAIDataTimestamp = startCollectingEAIDataTimestamp
     this.isEAIScoreFromLocalCache = isEAIScoreFromLocalCache
     this.eAIScore = eAIScore
     this.accountSettings = accountSettings
@@ -1279,8 +1279,8 @@ export abstract class Diagnostic extends HitAbstract implements IDiagnostic {
       customVariable.isEAIScoreFromLocalCache = `${this.isEAIScoreFromLocalCache}`
     }
 
-    if (this.startCollectingEAIDataTimestamp !== undefined) {
-      customVariable.startCollectingEAIDataTimestamp = `${this.startCollectingEAIDataTimestamp}`
+    if (this.eAIDataTimestamp !== undefined) {
+      customVariable.eAIDataTimestamp = `${this.eAIDataTimestamp}`
     }
 
     apiKeys.cv = customVariable
