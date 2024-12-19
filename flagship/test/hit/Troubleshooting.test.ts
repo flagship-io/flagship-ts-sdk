@@ -192,7 +192,7 @@ describe('test hit type Monitoring', () => {
       },
       eAIScore,
       isEAIScoreFromLocalCache: true,
-      startCollectingEAIDataTimestamp: '2023/01/01'
+      eAIDataTimestamp: '2023/01/01'
     }
 
     const pageHit:Record<string, unknown> = {}
@@ -288,7 +288,7 @@ describe('test hit type Monitoring', () => {
         'accountSettings.eaiCollectEnabled': 'true',
         'eAIScore.eai.eas': eAIScore.eai.eas,
         isEAIScoreFromLocalCache: `${params.isEAIScoreFromLocalCache}`,
-        startCollectingEAIDataTimestamp: `${params.startCollectingEAIDataTimestamp}`
+        eAIDataTimestamp: `${params.eAIDataTimestamp}`
       }
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
