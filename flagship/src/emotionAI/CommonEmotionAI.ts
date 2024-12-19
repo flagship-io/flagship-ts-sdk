@@ -74,7 +74,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     const troubleshooting = new Troubleshooting({
       flagshipInstanceId: this._visitor.sdkInitialData?.instanceId as string,
       visitorId: this._visitor.visitorId,
-      label: TroubleshootingLabel.EMOTION_AI_SCORE,
+      label: TroubleshootingLabel.EMOTION_AI_SCORE_FROM_LOCAL_CACHE,
       logLevel: LogLevel.DEBUG,
       eAIScore,
       isEAIScoreFromLocalCache: true,
@@ -89,13 +89,15 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     label: TroubleshootingLabel,
     endpoint?:string,
     method = 'GET',
-    apiKeys?:Record<string, boolean | string | number>): void {
+    apiKeys?:Record<string, boolean | string | number>,
+    eAIScore?:EAIScore): void {
     const troubleshooting = new Troubleshooting({
       flagshipInstanceId: this._visitor.sdkInitialData?.instanceId as string,
       visitorId: this._visitor.visitorId,
       label,
       logLevel: LogLevel.DEBUG,
       hitContent: apiKeys,
+      eAIScore,
       httpResponseBody: response.body,
       httpRequestMethod: method,
       httpRequestUrl: endpoint,
@@ -109,7 +111,8 @@ export abstract class CommonEmotionAI implements IEmotionAI {
 
   protected sendRequestTroubleshootingError (error: any,
     label: TroubleshootingLabel,
-    endpoint?:string): void {
+    endpoint?:string,
+    apiKeys?:Record<string, boolean | string | number>): void {
     const troubleshooting = new Troubleshooting({
       flagshipInstanceId: this._visitor.sdkInitialData?.instanceId as string,
       visitorId: this._visitor.visitorId,
@@ -117,6 +120,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
       logLevel: LogLevel.ERROR,
       httpRequestMethod: 'GET',
       httpRequestUrl: endpoint,
+      hitContent: apiKeys,
       traffic: this._visitor.traffic,
       httpResponseBody: error?.message,
       httpResponseHeaders: error?.headers,
@@ -132,8 +136,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
       visitorId: this._visitor.visitorId,
       label,
       logLevel: LogLevel.DEBUG,
-      startCollectingEAIDataTimestamp: new Date(timestamp).toISOString(),
-      isEAIScoreFromLocalCache: true,
+      eAIDataTimestamp: new Date(timestamp).toISOString(),
       config: this._sdkConfig,
       eAIScore: score,
       traffic: this._visitor.traffic
@@ -189,7 +192,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
       this._EAIScore = response.body
       this._EAIScoreChecked = true
 
-      this.sendRequestTroubleshooting(response, TroubleshootingLabel.EMOTION_AI_SCORE, endpoint)
+      this.sendRequestTroubleshooting(response, TroubleshootingLabel.EMOTION_AI_SCORE, endpoint, 'GET', undefined, this._EAIScore)
 
       if (this._EAIScore) {
         this._visitor.setCachedEAIScore(this._EAIScore)
@@ -265,7 +268,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
 
       this.sendRequestTroubleshootingError(error,
         label,
-        EMOTION_AI_EVENT_URL)
+        EMOTION_AI_EVENT_URL, apiKeys)
       logErrorSprintf(this._sdkConfig, SEND_EAI_EVENT, SEND_EAI_EVENT_ERROR, error.message)
     }
   }
@@ -280,7 +283,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
   }
 
   protected stopCollectingEAIData (): void {
-    this.sendCollectingTroubleshooting(this._startCollectingEAIDataTimestamp, TroubleshootingLabel.EMOTION_AI_STOP_COLLECTING)
+    this.sendCollectingTroubleshooting(Date.now(), TroubleshootingLabel.EMOTION_AI_STOP_COLLECTING)
     this.sendCollectingUsageHit(TroubleshootingLabel.EMOTION_AI_STOP_COLLECTING)
 
     this.removeListeners()
@@ -299,7 +302,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
       const elapsedTime = Date.now() - this._startScoringTimestamp
 
       if (elapsedTime > MAX_SCORING_POLLING_TIME) {
-        this.sendCollectingTroubleshooting(this._startScoringTimestamp, TroubleshootingLabel.EMOTION_AI_SCORING_FAILED)
+        this.sendCollectingTroubleshooting(Date.now(), TroubleshootingLabel.EMOTION_AI_SCORING_FAILED)
         this.finalizeDataCollection(false)
         return
       }
@@ -308,7 +311,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
       const score = await this.fetchEAIScore(true)
 
       if (score) {
-        this.sendCollectingTroubleshooting(this._startScoringTimestamp,
+        this.sendCollectingTroubleshooting(Date.now(),
           TroubleshootingLabel.EMOTION_AI_SCORING_SUCCESS, score)
         this.finalizeDataCollection(true)
       }
