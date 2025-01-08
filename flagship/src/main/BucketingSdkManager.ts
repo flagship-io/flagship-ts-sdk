@@ -4,7 +4,7 @@ import { ISdkManager } from './ISdkManager'
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { IHttpClient, IHttpResponse } from '../utils/HttpClient'
 import { ITrackingManager } from '../api/ITrackingManager'
-import { BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, POLLING_EVENT_200, POLLING_EVENT_300, POLLING_EVENT_FAILED, PROCESS_BUCKETING, SDK_INFO } from '../enum/index'
+import { BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, POLLING_EVENT_200, POLLING_EVENT_300, POLLING_EVENT_FAILED, PROCESS_BUCKETING, SDK_INFO } from '../enum/index'
 import { errorFormat, logDebug, logDebugSprintf, logError, logInfo, sprintf } from '../utils/utils'
 import { Troubleshooting } from '../hit/Troubleshooting'
 
@@ -149,7 +149,7 @@ export class BucketingSdkManager implements ISdkManager {
     }
     this._isPooling = true
 
-    const url = sprintf(BUCKETING_API_URL, this._config.envId)
+    const url = sprintf('https://fs-decision-staging-bucket.s3.amazonaws.com/{0}/bucketing.json', this._config.envId)
     const headers: Record<string, string> = {
       [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
       [HEADER_X_SDK_VERSION]: SDK_INFO.version,

@@ -410,8 +410,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     }, DELAY)
   }
 
-  public collectEAIDataAsync (currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> {
-    return this.getStrategy().collectEAIDataAsync(currentPage)
+  public collectEAIEventsAsync (currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> {
+    return this.getStrategy().collectEAIEventsAsync(currentPage)
   }
 
   sendEaiVisitorEvent (event: IVisitorEvent):void {

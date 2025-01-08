@@ -23,7 +23,7 @@ export class NoConsentStrategy extends DefaultStrategy {
     //
   }
 
-  public async collectEAIDataAsync (): Promise<void> {
+  public async collectEAIEventsAsync (): Promise<void> {
     this.log('collectEAIData')
   }
 
