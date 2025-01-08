@@ -209,7 +209,7 @@ describe('EmotionAI', () => {
 
       getAsyncSpy.mockResolvedValue({ body: null, status: 200 })
 
-      await emotionAI.collectEAIData()
+      await emotionAI.collectEAIEventsAsync()
 
       expect(onEAICollectStatusChange).toHaveBeenCalledTimes(0)
 
@@ -515,7 +515,7 @@ describe('EmotionAI', () => {
 
       getAsyncSpy.mockResolvedValue({ body: null, status: 200 })
 
-      await emotionAI.collectEAIData()
+      await emotionAI.collectEAIEventsAsync()
 
       const mouseUpEventClientX = 100
       const mouseUpEventClientY = 150
@@ -575,7 +575,7 @@ describe('EmotionAI', () => {
 
       getAsyncSpy.mockResolvedValue({ body: null, status: 200 })
 
-      await emotionAI.collectEAIData()
+      await emotionAI.collectEAIEventsAsync()
 
       const mouseUpEventClientX = 100
       const mouseUpEventClientY = 150
@@ -639,7 +639,7 @@ describe('EmotionAI', () => {
 
       getAsyncSpy.mockResolvedValue({ body: null, status: 200 })
 
-      await emotionAI.collectEAIData()
+      await emotionAI.collectEAIEventsAsync()
 
       expect(postAsyncSpy).toHaveBeenCalledTimes(0)
     })
@@ -662,11 +662,11 @@ describe('EmotionAI', () => {
 
       getAsyncSpy.mockResolvedValue({ body: null, status: 200 })
 
-      await emotionAI.collectEAIData()
+      await emotionAI.collectEAIEventsAsync()
 
       expect(postAsyncSpy).toHaveBeenCalledTimes(1)
 
-      await emotionAI.collectEAIData()
+      await emotionAI.collectEAIEventsAsync()
 
       expect(postAsyncSpy).toHaveBeenCalledTimes(1)
 
@@ -697,7 +697,7 @@ describe('EmotionAI', () => {
 
       getAsyncSpy.mockResolvedValue({ body: eAIScore, status: 200 })
 
-      await emotionAI.collectEAIData()
+      await emotionAI.collectEAIEventsAsync()
 
       expect(postAsyncSpy).toHaveBeenCalledTimes(0)
       expect(setIsEAIDataCollected).toHaveBeenCalledTimes(0)
@@ -722,7 +722,7 @@ describe('EmotionAI', () => {
 
       getAsyncSpy.mockResolvedValue({ body: null, status: 200 })
 
-      await emotionAI.collectEAIData()
+      await emotionAI.collectEAIEventsAsync()
 
       const mouseUpEventClientX = 100
       const mouseUpEventClientY = 150
@@ -788,7 +788,7 @@ describe('EmotionAI', () => {
 
       isEAIDataCollected.mockResolvedValue(true)
 
-      await emotionAI.collectEAIData()
+      await emotionAI.collectEAIEventsAsync()
 
       expect(postAsyncSpy).toHaveBeenCalledTimes(0)
     })
@@ -813,7 +813,7 @@ describe('EmotionAI', () => {
 
       getAsyncSpy.mockResolvedValue({ body: null, status: 200 })
 
-      await emotionAI.collectEAIData()
+      await emotionAI.collectEAIEventsAsync()
 
       const mouseUpEventClientX = 100
       const mouseUpEventClientY = 150
@@ -855,7 +855,7 @@ describe('EmotionAI', () => {
 
       isEAIDataCollected.mockResolvedValue(true)
 
-      await emotionAI.collectEAIData()
+      await emotionAI.collectEAIEventsAsync()
 
       expect(postAsyncSpy).toHaveBeenCalledTimes(1)
 
@@ -904,7 +904,7 @@ describe('EmotionAI', () => {
 
       getAsyncSpy.mockResolvedValue({ body: null, status: 200 })
 
-      await emotionAI.collectEAIData()
+      await emotionAI.collectEAIEventsAsync()
 
       const mouseUpEventClientX = 100
       const mouseUpEventClientY = 150
@@ -1058,7 +1058,7 @@ describe('EmotionAI', () => {
 
       getAsyncSpy.mockResolvedValue({ body: null, status: 200 })
 
-      await emotionAI.collectEAIData()
+      await emotionAI.collectEAIEventsAsync()
 
       const mouseUpEventClientX = 100
       const mouseUpEventClientY = 150

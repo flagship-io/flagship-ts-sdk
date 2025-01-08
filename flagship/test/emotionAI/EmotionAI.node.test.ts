@@ -67,7 +67,7 @@ describe('EmotionAI', () => {
   })
 
   it('should collectEAIData', async () => {
-    await emotionAI.collectEAIData()
+    await emotionAI.collectEAIEventsAsync()
     expect(getAsyncSpy).not.toHaveBeenCalled()
     expect(postAsyncSpy).not.toHaveBeenCalled()
   })

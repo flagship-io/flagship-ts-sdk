@@ -114,7 +114,7 @@ describe('EmotionAI', () => {
         userAgent: 'React-native'
       }
 
-      await emotionAI.collectEAIData(pageViewData)
+      await emotionAI.collectEAIEventsAsync(pageViewData)
 
       expect(onEAICollectStatusChange).toHaveBeenCalledTimes(1)
       expect(onEAICollectStatusChange).toHaveBeenCalledWith(true)
@@ -314,7 +314,7 @@ describe('EmotionAI', () => {
 
       getAsyncSpy.mockResolvedValue({ body: null, status: 200 })
 
-      await emotionAI.collectEAIData({} as IPageView)
+      await emotionAI.collectEAIEventsAsync({} as IPageView)
 
       const mouseUpEventClientX = 100
       const mouseUpEventClientY = 150
@@ -378,7 +378,7 @@ describe('EmotionAI', () => {
 
       getAsyncSpy.mockResolvedValue({ body: null, status: 200 })
 
-      await emotionAI.collectEAIData({} as IPageView)
+      await emotionAI.collectEAIEventsAsync({} as IPageView)
 
       const mouseUpEventClientX = 100
       const mouseUpEventClientY = 150
