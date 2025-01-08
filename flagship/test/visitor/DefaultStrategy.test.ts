@@ -95,7 +95,7 @@ describe('test DefaultStrategy ', () => {
 
   const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
 
-  const collectEAIData = jest.fn<(currentPage?: Omit<IPageView, 'toApiKeys'>) => void>()
+  const collectEAIEventsAsync = jest.fn<(currentPage?: Omit<IPageView, 'toApiKeys'>) => void>()
 
   const reportVisitorEvent = jest.fn<(event: IVisitorEvent)=> Promise<void>>()
 
@@ -108,7 +108,7 @@ describe('test DefaultStrategy ', () => {
   const emotionAi = {
     init: jest.fn<(visitor:VisitorAbstract) => void>(),
     fetchEAIScore,
-    collectEAIData,
+    collectEAIEventsAsync,
     reportVisitorEvent,
     reportPageView,
     onEAICollectStatusChange,
@@ -221,16 +221,16 @@ describe('test DefaultStrategy ', () => {
   })
 
   it('test collectEAIData', () => {
-    defaultStrategy.collectEAIDataAsync()
-    expect(emotionAi.collectEAIData).toBeCalledTimes(1)
-    expect(emotionAi.collectEAIData).toBeCalledWith(undefined)
+    defaultStrategy.collectEAIEventsAsync()
+    expect(emotionAi.collectEAIEventsAsync).toBeCalledTimes(1)
+    expect(emotionAi.collectEAIEventsAsync).toBeCalledWith(undefined)
   })
 
   it('test collectEAIData', () => {
     const currentPage = {} as IPageView
-    defaultStrategy.collectEAIDataAsync(currentPage)
-    expect(emotionAi.collectEAIData).toBeCalledTimes(1)
-    expect(emotionAi.collectEAIData).toBeCalledWith(currentPage)
+    defaultStrategy.collectEAIEventsAsync(currentPage)
+    expect(emotionAi.collectEAIEventsAsync).toBeCalledTimes(1)
+    expect(emotionAi.collectEAIEventsAsync).toBeCalledWith(currentPage)
   })
 
   it('test reportEaiVisitorEvent', () => {

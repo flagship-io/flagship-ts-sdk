@@ -181,18 +181,18 @@ describe('test visitor', () => {
   })
 
   it('test collectEAIData', () => {
-    const collectEAIData = jest.spyOn(visitorDelegate, 'collectEAIDataAsync')
+    const collectEAIData = jest.spyOn(visitorDelegate, 'collectEAIEventsAsync')
     collectEAIData.mockResolvedValue()
-    visitor.collectEAIDataAsync()
+    visitor.collectEAIEventsAsync()
     expect(collectEAIData).toBeCalledTimes(1)
     expect(collectEAIData).toBeCalledWith(undefined)
   })
 
   it('test collectEAIData', () => {
-    const collectEAIData = jest.spyOn(visitorDelegate, 'collectEAIDataAsync')
+    const collectEAIData = jest.spyOn(visitorDelegate, 'collectEAIEventsAsync')
     collectEAIData.mockResolvedValue()
     const currentPage = {} as IPageView
-    visitor.collectEAIDataAsync(currentPage)
+    visitor.collectEAIEventsAsync(currentPage)
     expect(collectEAIData).toBeCalledTimes(1)
     expect(collectEAIData).toBeCalledWith(currentPage)
   })

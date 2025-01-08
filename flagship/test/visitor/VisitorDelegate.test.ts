@@ -39,7 +39,7 @@ const lookupHits = jest.fn()
 const cacheVisitorFn = jest.fn<()=>Promise<void>>()
 const visitorExposed = jest.fn<(param:{key:string, flag?:FlagDTO, defaultValue:unknown})=>Promise<void>>()
 const getFlagValue = jest.fn<(param:{ key:string, defaultValue: unknown, flag?:FlagDTO, userExposed?: boolean})=>unknown>()
-const collectEAIDataAsync = jest.fn<(currentPage?: Omit<IPageView, 'toApiKeys'>) => Promise<void>>()
+const collectEAIEventsAsync = jest.fn<(currentPage?: Omit<IPageView, 'toApiKeys'>) => Promise<void>>()
 const reportEaiVisitorEvent = jest.fn<(event: IVisitorEvent) => Promise<void>>()
 const reportEaiPageView = jest.fn<(pageView: IPageView) => Promise<void>>()
 const onEAICollectStatusChange = jest.fn<(callback: (status: boolean) => void) => void>()
@@ -65,7 +65,7 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         cacheVisitor: cacheVisitorFn,
         visitorExposed,
         getFlagValue,
-        collectEAIDataAsync,
+        collectEAIEventsAsync,
         reportEaiVisitorEvent,
         reportEaiPageView,
         onEAICollectStatusChange,
@@ -418,18 +418,18 @@ describe('test VisitorDelegate methods', () => {
   })
 
   it('test collectEAIData', async () => {
-    collectEAIDataAsync.mockResolvedValue()
-    await visitorDelegate.collectEAIDataAsync()
-    expect(collectEAIDataAsync).toBeCalledTimes(1)
-    expect(collectEAIDataAsync).toBeCalledWith(undefined)
+    collectEAIEventsAsync.mockResolvedValue()
+    await visitorDelegate.collectEAIEventsAsync()
+    expect(collectEAIEventsAsync).toBeCalledTimes(1)
+    expect(collectEAIEventsAsync).toBeCalledWith(undefined)
   })
 
   it('test collectEAIData', async () => {
-    collectEAIDataAsync.mockResolvedValue()
+    collectEAIEventsAsync.mockResolvedValue()
     const currentPage = {} as IPageView
-    await visitorDelegate.collectEAIDataAsync(currentPage)
-    expect(collectEAIDataAsync).toBeCalledTimes(1)
-    expect(collectEAIDataAsync).toBeCalledWith(currentPage)
+    await visitorDelegate.collectEAIEventsAsync(currentPage)
+    expect(collectEAIEventsAsync).toBeCalledTimes(1)
+    expect(collectEAIEventsAsync).toBeCalledWith(currentPage)
   })
 
   it('test reportEaiVisitorEvent', () => {
