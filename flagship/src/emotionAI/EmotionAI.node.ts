@@ -22,7 +22,7 @@ export class EmotionAI extends CommonEmotionAI {
     return undefined
   }
 
-  public async collectEAIData (): Promise<void> {
+  public async collectEAIEventsAsync (): Promise<void> {
     //
   }
 }

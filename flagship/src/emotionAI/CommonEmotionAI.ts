@@ -219,7 +219,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
 
   protected abstract removeListeners (): void ;
 
-  public async collectEAIData (currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> {
+  public async collectEAIEventsAsync (currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> {
     if (this._isEAIDataCollecting ||
       !this._eAIConfig?.eaiCollectEnabled) {
       return
