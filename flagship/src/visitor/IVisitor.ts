@@ -113,7 +113,7 @@ export interface IVisitor {
   unauthenticate(): void;
 
   /**
-   * Collects Emotion AI data for the visitor.
+   * Starts Collecting Emotion AI events for the visitor.
    */
   collectEAIEventsAsync(): Promise<void>;
 
