@@ -43,6 +43,9 @@ import { ITrackingManager } from '../api/ITrackingManager'
 import { EmotionAI as EmotionAINode } from '../emotionAI/EmotionAI.node'
 import { EmotionAI as EmotionAIBrowser } from '../emotionAI/EmotionAI'
 import { IEmotionAI } from '../emotionAI/IEmotionAI'
+import { IVisitorProfileCache } from '../type.local'
+import { VisitorProfileCacheNode } from '../visitor/VisitorProfileCacheNode'
+import { VisitorProfileCacheBrowser } from '../visitor/VisitorProfileCacheBrowser'
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
@@ -57,7 +60,8 @@ export class Flagship {
   private instanceId:string
   private lastInitializationTimestamp!: string
   private _sdkManager : ISdkManager|undefined
-  private _eaiClass!: typeof import('../emotionAI/EmotionAI') | typeof import('../emotionAI/EmotionAI.node')
+  private static visitorProfile:string|null
+  private static onSaveVisitorProfile:(visitorProfile:string)=>void
 
   private set configManager (value: IConfigManager) {
     this._configManager = value
@@ -70,6 +74,26 @@ export class Flagship {
   private constructor () {
     this.instanceId = uuidV4()
     this._status = FSSdkStatus.SDK_NOT_INITIALIZED
+
+    const extendedFlagship = Flagship as {
+      setVisitorProfile?: (value: string|null) => void,
+      getVisitorProfile?: () => string|null,
+      setOnSaveVisitorProfile?: (value: (visitorProfile:string)=>void) => void,
+      getOnSaveVisitorProfile?: () => (visitorProfile:string)=>void
+    }
+
+    extendedFlagship.setVisitorProfile = function (value: string|null) {
+      Flagship.visitorProfile = value
+    }
+    extendedFlagship.getVisitorProfile = function () {
+      return Flagship.visitorProfile
+    }
+    extendedFlagship.setOnSaveVisitorProfile = function (value: (visitorProfile:string)=>void) {
+      Flagship.onSaveVisitorProfile = value
+    }
+    extendedFlagship.getOnSaveVisitorProfile = function () {
+      return Flagship.onSaveVisitorProfile
+    }
   }
 
   protected static getInstance (): Flagship {
@@ -334,6 +358,7 @@ export class Flagship {
     }
 
     let emotionAi:IEmotionAI
+    let visitorProfileCache:IVisitorProfileCache
 
     if (!isBrowser()) {
       emotionAi = new EmotionAINode({
@@ -341,12 +366,14 @@ export class Flagship {
         httpClient: new HttpClient(),
         eAIConfig: flagship._sdkManager?.getEAIConfig()
       })
+      visitorProfileCache = new VisitorProfileCacheNode(sdkConfig)
     } else {
       emotionAi = new EmotionAIBrowser({
         sdkConfig,
         httpClient: new HttpClient(),
         eAIConfig: flagship._sdkManager?.getEAIConfig()
       })
+      visitorProfileCache = new VisitorProfileCacheBrowser(sdkConfig)
     }
 
     const visitorDelegate = new VisitorDelegate({
@@ -359,6 +386,7 @@ export class Flagship {
       initialFlagsData,
       onFetchFlagsStatusChanged,
       emotionAi,
+      visitorProfileCache,
       monitoringData: {
         instanceId: this.getInstance().instanceId,
         lastInitializationTimestamp: this.getInstance().lastInitializationTimestamp,
