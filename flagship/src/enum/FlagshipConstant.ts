@@ -85,6 +85,7 @@ export const FETCH_EAI_SCORE = 'fetchEAIScore'
 export const FETCH_EAI_SCORE_ERROR = 'visitor {0}, Failed to fetch EAIScore: {1}'
 export const FETCH_EAI_SCORE_SUCCESS = 'visitor {0}, EAIScore fetched: {1}'
 export const EAI_SCORE_CONTEXT_KEY = 'eai::eas'
+export const CLIENT_CACHE_KEY = 'FS_CLIENT_VISITOR'
 
 /**
  * SDK version
