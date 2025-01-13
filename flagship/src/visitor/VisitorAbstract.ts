@@ -12,13 +12,12 @@ import { EventEmitter } from '../depsNode.native'
 import { NotReadyStrategy } from './NotReadyStrategy'
 import { PanicStrategy } from './PanicStrategy'
 import { NoConsentStrategy } from './NoConsentStrategy'
-import { visitorProfileCache } from './visitorProfileCache'
 import { MurmurHash } from '../utils/MurmurHash'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { FSFetchStatus } from '../enum/FSFetchStatus'
 import { FSFetchReasons } from '../enum/FSFetchReasons'
 import { IFSFlag } from '../flag/IFSFlag'
-import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
+import { GetFlagMetadataParam, GetFlagValueParam, IVisitorProfileCache, VisitorExposedParam } from '../type.local'
 import { IFSFlagCollection } from '../flag/IFSFlagCollection'
 import { sendVisitorExposedVariations } from '../qaAssistant/messages/index'
 import { IEmotionAI } from '../emotionAI/IEmotionAI'
@@ -52,6 +51,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   private _emotionAi: IEmotionAI
   private _analyticTraffic!: number
   private _murmurHash!: MurmurHash
+  private _visitorProfileCache?: IVisitorProfileCache
 
   public get hasContextBeenUpdated () : boolean {
     return this._hasContextBeenUpdated
@@ -140,8 +140,12 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     monitoringData?:sdkInitialData,
     emotionAi: IEmotionAI,
     murmurHash?: MurmurHash,
+    visitorProfileCache?: IVisitorProfileCache
   }) {
-    const { visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData, onFetchFlagsStatusChanged, emotionAi } = param
+    const {
+      visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData, onFetchFlagsStatusChanged,
+      emotionAi, visitorProfileCache
+    } = param
     super()
     this._murmurHash = param.murmurHash || new MurmurHash()
     this._emotionAi = emotionAi
@@ -153,8 +157,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.deDuplicationCache = {}
     this._context = {}
     this._configManager = configManager
+    this.campaigns = []
+    this._visitorProfileCache = visitorProfileCache
 
-    const visitorCache = this.config.reuseVisitorIds ? visitorProfileCache.loadVisitorProfile() : null
+    const visitorCache = this.config.reuseVisitorIds ? visitorProfileCache?.loadVisitorProfile() : null
     if (visitorCache) {
       logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_PROFILE_LOADED, visitorCache)
     }
@@ -181,6 +187,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     })
 
     this.updateCache()
+
     this.setInitialFlags(initialFlagsData)
     this.setInitializeCampaigns(initialCampaigns, !!initialFlagsData)
 
@@ -194,6 +201,14 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._emotionAi.init(this)
 
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
+  }
+
+  protected updateCache (): void {
+    const visitorProfile = {
+      visitorId: this.visitorId,
+      anonymousId: this.anonymousId
+    }
+    this._visitorProfileCache?.saveVisitorProfile(visitorProfile)
   }
 
   public get traffic () : number {
@@ -265,14 +280,6 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     if (campaigns && Array.isArray(campaigns) && !hasInitialFlags) {
       this.getStrategy().updateCampaigns(campaigns)
     }
-  }
-
-  protected updateCache (): void {
-    const visitorProfile = {
-      visitorId: this.visitorId,
-      anonymousId: this.anonymousId
-    }
-    visitorProfileCache.saveVisitorProfile(visitorProfile)
   }
 
   public loadPredefinedContext (): void {
