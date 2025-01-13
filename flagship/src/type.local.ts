@@ -1,4 +1,4 @@
-import { FlagDTO } from './types'
+import { FlagDTO, VisitorProfile } from './types'
 
 export type VisitorExposedParam = {
     key: string;
@@ -22,4 +22,9 @@ export type GetFlagMetadataParam = {
 export type EAIConfig = {
   eaiActivationEnabled: boolean;
   eaiCollectEnabled: boolean;
+}
+
+export interface IVisitorProfileCache {
+  saveVisitorProfile(visitorProfile: VisitorProfile): void;
+  loadVisitorProfile(): VisitorProfile | null;
 }
