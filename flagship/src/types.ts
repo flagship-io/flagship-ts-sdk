@@ -391,3 +391,8 @@ export interface BucketingDTO {
   }>;
   accountSettings?: AccountSettings;
 }
+
+export type VisitorProfile={
+  visitorId:string,
+  anonymousId: string|null
+}
