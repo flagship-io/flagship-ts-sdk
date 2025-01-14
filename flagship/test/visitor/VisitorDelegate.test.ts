@@ -10,7 +10,6 @@ import { HttpClient } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { IFSFlagMetadata, IHit } from '../../src/types'
 import { DecisionManager } from '../../src/decision/DecisionManager'
-import { visitorProfileCache } from '../../src/visitor/visitorProfileCache'
 import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
 import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
 import { FSFlagCollection } from '../../src/flag/FSFlagCollection'
@@ -18,6 +17,7 @@ import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 import { IPageView } from '../../src/emotionAI/hit/IPageView'
 import { IVisitorEvent } from '../../src/emotionAI/hit/IVisitorEvent'
+import { VisitorProfileCacheNode } from '../../src/visitor/VisitorProfileCacheNode'
 
 const updateContext = jest.fn()
 const clearContext = jest.fn()
@@ -528,6 +528,9 @@ describe('Initialization tests', () => {
   const visitorId = 'visitorId'
   const anonymousId = 'anonymousId'
 
+  const visitorProfileCache = new VisitorProfileCacheNode(config)
+  const loadVisitorProfile = jest.spyOn(visitorProfileCache, 'loadVisitorProfile')
+
   const init = jest.fn<(visitor:VisitorAbstract) => void>()
 
   const emotionAi = {
@@ -535,8 +538,6 @@ describe('Initialization tests', () => {
   } as unknown as IEmotionAI
 
   it('should initialize visitorDelegate with anonymousId', () => {
-    const loadVisitorProfile = jest.fn<typeof visitorProfileCache.loadVisitorProfile>()
-    visitorProfileCache.loadVisitorProfile = loadVisitorProfile
     loadVisitorProfile.mockReturnValue({ visitorId, anonymousId })
     const visitorDelegate = new VisitorDelegate({
       context: {},
@@ -545,6 +546,7 @@ describe('Initialization tests', () => {
         decisionManager: {} as DecisionManager,
         trackingManager: {} as TrackingManager
       },
+      visitorProfileCache,
       hasConsented: true,
       emotionAi
     })
@@ -553,8 +555,6 @@ describe('Initialization tests', () => {
   })
 
   it('should initialize visitorDelegate with authenticated visitorId and anonymousId', () => {
-    const loadVisitorProfile = jest.fn<typeof visitorProfileCache.loadVisitorProfile>()
-    visitorProfileCache.loadVisitorProfile = loadVisitorProfile
     loadVisitorProfile.mockReturnValue({ visitorId, anonymousId })
     const visitorDelegate = new VisitorDelegate({
       context: {},
@@ -564,6 +564,7 @@ describe('Initialization tests', () => {
         decisionManager: {} as DecisionManager,
         trackingManager: {} as TrackingManager
       },
+      visitorProfileCache,
       hasConsented: true,
       emotionAi
     })
@@ -571,8 +572,6 @@ describe('Initialization tests', () => {
     expect(visitorDelegate.anonymousId).toBe(anonymousId)
   })
   it('should initialize visitorDelegate with authenticated visitorId and generate anonymousId', () => {
-    const loadVisitorProfile = jest.fn<typeof visitorProfileCache.loadVisitorProfile>()
-    visitorProfileCache.loadVisitorProfile = loadVisitorProfile
     loadVisitorProfile.mockReturnValue({ visitorId, anonymousId: null })
     const visitorDelegate = new VisitorDelegate({
       context: {},
@@ -582,6 +581,7 @@ describe('Initialization tests', () => {
         decisionManager: {} as DecisionManager,
         trackingManager: {} as TrackingManager
       },
+      visitorProfileCache,
       hasConsented: true,
       emotionAi
     })
@@ -590,8 +590,6 @@ describe('Initialization tests', () => {
   })
 
   it('should initialize visitorDelegate with authenticated visitorId and null anonymousId', () => {
-    const loadVisitorProfile = jest.fn<typeof visitorProfileCache.loadVisitorProfile>()
-    visitorProfileCache.loadVisitorProfile = loadVisitorProfile
     loadVisitorProfile.mockReturnValue({ visitorId, anonymousId: null })
     const visitorDelegate = new VisitorDelegate({
       context: {},
@@ -600,6 +598,7 @@ describe('Initialization tests', () => {
         decisionManager: {} as DecisionManager,
         trackingManager: {} as TrackingManager
       },
+      visitorProfileCache,
       hasConsented: true,
       emotionAi
     })
