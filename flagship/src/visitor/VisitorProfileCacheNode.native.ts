@@ -12,7 +12,10 @@ export class VisitorProfileCacheNode implements IVisitorProfileCache {
 
   saveVisitorProfile (visitorProfile: VisitorProfile): void {
     try {
-      const onSaveVisitorProfile = (Flagship as any).getOnSaveVisitorProfile()
+      const extendedFlagship = Flagship as unknown as {
+        getOnSaveVisitorProfile: () => (visitorProfile:string)=>void
+      }
+      const onSaveVisitorProfile = extendedFlagship.getOnSaveVisitorProfile()
       onSaveVisitorProfile?.(JSON.stringify(visitorProfile))
     } catch (error: any) {
       logErrorSprintf(this._sdkConfig, 'VisitorProfileCache.saveVisitorProfile', error?.message)
@@ -21,7 +24,10 @@ export class VisitorProfileCacheNode implements IVisitorProfileCache {
 
   loadVisitorProfile (): VisitorProfile | null {
     try {
-      const data = (Flagship as any).getVisitorProfile()
+      const extendedFlagship = Flagship as unknown as {
+        getVisitorProfile: () => string|null,
+      }
+      const data = extendedFlagship.getVisitorProfile()
       return data ? JSON.parse(data) : null
     } catch (error: any) {
       logErrorSprintf(this._sdkConfig, 'VisitorProfileCache.loadVisitorProfile', error?.message)
