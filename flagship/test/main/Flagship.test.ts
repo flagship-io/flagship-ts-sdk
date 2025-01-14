@@ -9,7 +9,6 @@ import {
 } from '../../src/enum/index'
 import { Flagship } from '../../src/main/Flagship'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { sleep } from '../../src/utils/utils'
 import * as utils from '../../src/utils/utils'
 import { Visitor } from '../../src/visitor/Visitor'
 import { DefaultVisitorCache } from '../../src/cache/DefaultVisitorCache'
@@ -92,6 +91,18 @@ describe('test Flagship class', () => {
     expect(startBatchingLoop).toBeCalledTimes(1)
     expect(launchQaAssistantSpy).toBeCalledTimes(1)
     expect(launchQaAssistantSpy).toBeCalledWith(Flagship.getConfig())
+
+    const extendedFlagship = Flagship as {
+      setVisitorProfile?: (value: string|null) => void,
+      getVisitorProfile?: () => string|null,
+      setOnSaveVisitorProfile?: (value: (visitorProfile:string)=>void) => void,
+      getOnSaveVisitorProfile?: () => (visitorProfile:string)=>void
+    }
+
+    expect(extendedFlagship.getVisitorProfile).toBeDefined()
+    expect(extendedFlagship.setVisitorProfile).toBeDefined()
+    expect(extendedFlagship.setOnSaveVisitorProfile).toBeDefined()
+    expect(extendedFlagship.getOnSaveVisitorProfile).toBeDefined()
   })
 
   it('should test Flagship.close method', async () => {
@@ -105,6 +116,34 @@ describe('test Flagship class', () => {
     sendBatch.mockResolvedValue()
     await fs.close()
     expect(sendBatch).toBeCalledTimes(1)
+  })
+
+  it('should test getVisitorProfile and setVisitorProfile', async () => {
+    const visitorProfile = { visitorId: 'visitorId', anonymousId: 'anonymousId' }
+    const extendedFlagship = Flagship as {
+      setVisitorProfile?: (value: string|null) => void,
+      getVisitorProfile?: () => string|null,
+      setOnSaveVisitorProfile?: (value: (visitorProfile:string)=>void) => void,
+      getOnSaveVisitorProfile?: () => (visitorProfile:string)=>void
+    }
+    const value = JSON.stringify(visitorProfile)
+    extendedFlagship.setVisitorProfile?.(value)
+    const result = extendedFlagship.getVisitorProfile?.()
+    expect(result).toBe(value)
+  })
+
+  it('should test getOnSaveVisitorProfile and setOnSaveVisitorProfile', async () => {
+    const extendedFlagship = Flagship as {
+      setVisitorProfile?: (value: string|null) => void,
+      getVisitorProfile?: () => string|null,
+      setOnSaveVisitorProfile?: (value: (visitorProfile:string)=>void) => void,
+      getOnSaveVisitorProfile?: () => (visitorProfile:string)=>void
+    }
+    const mockOnSave = jest.fn()
+    extendedFlagship.setOnSaveVisitorProfile?.(mockOnSave)
+    const result = extendedFlagship.getOnSaveVisitorProfile?.()
+    result?.('test')
+    expect(mockOnSave).toBeCalledTimes(1)
   })
 })
 
