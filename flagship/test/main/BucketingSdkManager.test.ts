@@ -1,5 +1,5 @@
 import { jest, describe, it, expect } from '@jest/globals'
-import { BUCKETING_API_URL, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, SDK_INFO } from '../../src/enum'
+import { BUCKETING_API_URL, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, SDK_INFO } from '../../src/enum'
 import { EAIConfig } from '../../src/type.local'
 import { HttpClient } from '../../src/utils/HttpClient'
 import { sleep, sprintf } from '../../src/utils/utils'
@@ -94,7 +94,7 @@ describe('BucketingSdkManager with initialBucketing', () => {
 describe('test bucketing polling', () => {
   const httpClient = new HttpClient()
   const getAsyncSpy = jest.spyOn(httpClient, 'getAsync')
-  const sdkConfig = new BucketingConfig({ envId: 'envId', apiKey: 'apiKey' })
+  const sdkConfig = new BucketingConfig({ envId: 'envId', apiKey: 'apiKey', logLevel: LogLevel.DEBUG })
   const logManager = new FlagshipLogManager()
   sdkConfig.logManager = logManager
   const trackingManager = new TrackingManager(httpClient, sdkConfig)
