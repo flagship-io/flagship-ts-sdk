@@ -22,7 +22,7 @@ describe('test DecisionApiConfig', () => {
   it('should ', () => {
     expect(config.apiKey).toBeUndefined()
     expect(config.envId).toBeUndefined()
-    expect(config.logLevel).toBe(LogLevel.ALL)
+    expect(config.logLevel).toBe(LogLevel.INFO)
     expect(config.logManager).toBeUndefined()
     expect(config.onSdkStatusChanged).toBeUndefined()
     expect(config.timeout).toBe(REQUEST_TIME_OUT)
