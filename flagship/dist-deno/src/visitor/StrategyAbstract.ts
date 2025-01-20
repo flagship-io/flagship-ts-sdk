@@ -1,5 +1,5 @@
 import { Event, EventCategory, HitAbstract } from '../hit/index.ts'
-import { primitive, IHit, VisitorCacheDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorCacheStatus, CampaignDTO } from '../types.ts'
+import { primitive, IHit, VisitorCacheDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorCacheStatus, CampaignDTO, EAIScore } from '../types.ts'
 import { IVisitor } from './IVisitor.ts'
 import { VisitorAbstract } from './VisitorAbstract.ts'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index.ts'
@@ -14,6 +14,10 @@ import { UsageHit } from '../hit/UsageHit.ts'
 import { DefaultHitCache } from '../cache/DefaultHitCache.ts'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache.ts'
 import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local.ts'
+import { IVisitorEvent } from '../emotionAI/hit/IVisitorEvent.ts'
+import { IPageView } from '../emotionAI/hit/IPageView.ts'
+import { VisitorEvent } from '../emotionAI/hit/VisitorEvent.ts'
+import { PageView } from '../emotionAI/hit/PageView.ts'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 
@@ -23,7 +27,7 @@ export type StrategyAbstractConstruct = {
   visitor:VisitorAbstract,
   murmurHash: MurmurHash
 }
-export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'anonymousId'| 'fetchStatus'|'flagsData'|'context'|'hasConsented'|'getFlagsDataArray'|'getFlag'|'getFlags'> {
+export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'anonymousId'| 'fetchStatus'|'flagsData'|'context'|'hasConsented'|'getFlagsDataArray'|'getFlag'|'getFlags'|'cleanup'> {
   protected visitor:VisitorAbstract
 
   protected get configManager ():IConfigManager {
@@ -48,6 +52,26 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     const { visitor, murmurHash } = param
     this.visitor = visitor
     this._murmurHash = murmurHash
+  }
+
+  collectEAIEventsAsync (currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> {
+    return this.visitor.emotionAi.collectEAIEventsAsync(currentPage)
+  }
+
+  reportEaiVisitorEvent (event: IVisitorEvent):void {
+    this.visitor.emotionAi.reportVisitorEvent(new VisitorEvent(event))
+  }
+
+  reportEaiPageView (pageView: IPageView):void {
+    this.visitor.emotionAi.reportPageView(new PageView(pageView))
+  }
+
+  onEAICollectStatusChange (callback: (status: boolean) => void):void {
+    this.visitor.emotionAi.onEAICollectStatusChange(callback)
+  }
+
+  cleanup ():void {
+    this.visitor.emotionAi.cleanup()
   }
 
   public updateCampaigns (campaigns:CampaignDTO[]):void {
@@ -126,7 +150,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     if (!Array.isArray(campaigns)) {
       return false
     }
-    if ((this.visitor.visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE || this.visitor.visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE) && item.data.visitorId !== this.visitor.visitorId) {
+    if ((this.visitor.visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE || this.visitor.visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE_WITH_ANONYMOUS_ID_CACHE) && item.data.visitorId !== this.visitor.visitorId) {
       logInfoSprintf(this.config, PROCESS_CACHE, VISITOR_ID_MISMATCH_ERROR, item.data.visitorId, this.visitor.visitorId)
       return false
     }
@@ -147,7 +171,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
   public async lookupVisitor ():Promise<void> {
     try {
       const visitorCacheInstance = this.config.visitorCacheImplementation
-      if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
+      if (this.config.disableCache || typeof visitorCacheInstance?.lookupVisitor !== 'function' || this.visitor.visitorCache) {
         return
       }
       this.visitor.visitorCacheStatus = VisitorCacheStatus.NONE
@@ -155,13 +179,11 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       if (visitorCache) {
         this.visitor.visitorCacheStatus = VisitorCacheStatus.VISITOR_ID_CACHE
       }
-      if (this.visitor.anonymousId) {
+      if (this.visitor.anonymousId && !visitorCache) {
         const anonymousVisitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.anonymousId)
-        if (anonymousVisitorCache && !visitorCache) {
+        if (anonymousVisitorCache) {
           visitorCache = anonymousVisitorCache
           this.visitor.visitorCacheStatus = VisitorCacheStatus.ANONYMOUS_ID_CACHE
-        } else if (!anonymousVisitorCache && visitorCache) {
-          this.visitor.visitorCacheStatus = VisitorCacheStatus.VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE
         }
       }
 
@@ -176,13 +198,20 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       }
 
       this.visitor.visitorCache = visitorCache
+
+      if (this.visitor.visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE && this.visitor.anonymousId) {
+        const anonymousVisitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.anonymousId)
+        if (anonymousVisitorCache) {
+          this.visitor.visitorCacheStatus = VisitorCacheStatus.VISITOR_ID_CACHE_WITH_ANONYMOUS_ID_CACHE
+        }
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logErrorSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_ERROR, this.visitor.visitorId, 'lookupVisitor', error.message || error)
     }
   }
 
-  public async cacheVisitor ():Promise<void> {
+  public async cacheVisitor (eAIScore?: EAIScore, isEAIDataCollected?:boolean):Promise<void> {
     try {
       const visitorCacheInstance = this.config.visitorCacheImplementation
 
@@ -198,6 +227,8 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
           anonymousId: this.visitor.anonymousId,
           consent: this.visitor.hasConsented,
           context: this.visitor.context,
+          eAIScore: this.visitor.visitorCache?.data?.eAIScore || eAIScore,
+          isEAIDataCollected: this.visitor.visitorCache?.data?.isEAIDataCollected || isEAIDataCollected,
           campaigns: this.visitor.campaigns.map(campaign => {
             assignmentsHistory[campaign.variationGroupId] = campaign.variation.id
             return {
@@ -220,18 +251,16 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
 
       const visitorCacheStatus = this.visitor.visitorCacheStatus
 
-      if (!visitorCacheStatus || visitorCacheStatus === VisitorCacheStatus.NONE || visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE) {
-        if (this.visitor.anonymousId) {
-          const anonymousVisitorCacheDTO:VisitorCacheDTO = {
-            ...visitorCacheDTO,
-            data: {
-              ...visitorCacheDTO.data,
-              visitorId: this.visitor.anonymousId,
-              anonymousId: null
-            }
+      if (this.visitor.anonymousId && (visitorCacheStatus === VisitorCacheStatus.NONE || visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE)) {
+        const anonymousVisitorCacheDTO:VisitorCacheDTO = {
+          ...visitorCacheDTO,
+          data: {
+            ...visitorCacheDTO.data,
+            visitorId: this.visitor.anonymousId,
+            anonymousId: null
           }
-          await visitorCacheInstance.cacheVisitor(this.visitor.anonymousId, anonymousVisitorCacheDTO)
         }
+        await visitorCacheInstance.cacheVisitor(this.visitor.anonymousId, anonymousVisitorCacheDTO)
       }
 
       logDebugSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_SAVED, this.visitor.visitorId, visitorCacheDTO)
@@ -283,6 +312,19 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       await this.trackingManager.sendTroubleshootingHit(hit)
     }
 
+    public async sendUsageHit (hit: UsageHit): Promise<void> {
+      if (this.config.disableDeveloperUsageTracking) {
+        return
+      }
+      const traffic = this.visitor.analyticTraffic
+
+      if (traffic > ANALYTIC_HIT_ALLOCATION) {
+        return
+      }
+
+      return this.trackingManager.sendUsageHit(hit)
+    }
+
     public getCurrentDateTime () {
       return new Date()
     }
@@ -295,13 +337,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       if (this.config.disableDeveloperUsageTracking) {
         return
       }
-      const uniqueId = this.visitor.visitorId + this.getCurrentDateTime().toDateString()
-      const hash = this._murmurHash.murmurHash3Int32(uniqueId)
-      const traffic = hash % 1000
 
-      if (traffic > ANALYTIC_HIT_ALLOCATION) {
-        return
-      }
       const hitCacheImplementation = this.config.hitCacheImplementation
       const visitorCacheImplementation = this.config.visitorCacheImplementation
       const sdkConfigUsingCustomHitCache = hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
@@ -337,7 +373,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         sdkConfigNextFetchConfig: this.config.nextFetchConfig,
         sdkConfigDisableCache: this.config.disableCache
       })
-      await this.trackingManager.sendUsageHit(analyticData)
+      await this.sendUsageHit(analyticData)
     }
 
     sendFetchFlagsTroubleshooting ({ isFromCache, campaigns, now }:{isFromCache: boolean, campaigns:CampaignDTO[], now: number }) {

@@ -23,6 +23,11 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
       [HEADER_X_SDK_VERSION]: SDK_INFO.version,
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
+
+    if (currentActivate) {
+      activateBatch.hits.push(currentActivate)
+    }
+
     const requestBody = activateBatch.toApiKeys()
     const url = BASE_API_URL + URL_ACTIVATE_MODIFICATION
     const now = Date.now()
@@ -43,7 +48,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
 
-      const hitKeysToRemove: string[] = activateBatch.hits.map(item => item.key)
+      const hitKeysToRemove: string[] = activateBatch.hits.filter(item => item.key !== currentActivate?.key).map(item => item.key)
 
       activateBatch.hits.forEach(item => {
         this.onVisitorExposed(item)
@@ -102,7 +107,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     const filteredItems = Array.from(activateHitsPool.filter(item => (Date.now() - item.createdAt) < DEFAULT_HIT_CACHE_TIME_MS))
 
     if (!filteredItems.length && currentActivate) {
-      const batch = new ActivateBatch([currentActivate], this.config)
+      const batch = new ActivateBatch([], this.config)
       await this.sendActivateHitBatch(batch, batchTriggeredBy, currentActivate)
       return
     }

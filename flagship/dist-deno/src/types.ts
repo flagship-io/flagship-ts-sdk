@@ -1,84 +1,99 @@
 import { FSFetchReasons } from './enum/FSFetchReasons.ts'
 import { FSFetchStatus } from './enum/FSFetchStatus.ts'
 import { HitType } from './enum/index.ts'
-import { IEvent, IItem, IPage, IScreen, ITransaction, IHitAbstract } from './hit/index.ts'
+import {
+  IEvent,
+  IItem,
+  IPage,
+  IScreen,
+  ITransaction,
+  IHitAbstract
+} from './hit/index.ts'
 
 export type modificationsRequested<T> = {
-    key: string,
-    defaultValue: T,
-    activate? :boolean
-  }
+  key: string;
+  defaultValue: T;
+  activate?: boolean;
+};
 
-export type primitive=string | number | boolean
+export type primitive = string | number | boolean;
 
 export type ModificationsDTO = {
   type: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  value:any;
-}
+  value: any;
+};
 
 export type VariationDTO = {
-  id: string
-  name?: string
-  reference?:boolean;
-  modifications: ModificationsDTO
-}
+  id: string;
+  name?: string;
+  reference?: boolean;
+  modifications: ModificationsDTO;
+};
 
 export type CampaignDTO = {
-  id:string
-  name?: string
-  slug?:string|null
+  id: string;
+  name?: string;
+  slug?: string | null;
   variationGroupId: string;
-  variationGroupName?: string
+  variationGroupName?: string;
   variation: VariationDTO;
-  type?: string
-}
+  type?: string;
+};
 
 export type ForcedVariation = {
-  campaignId: string,
-  variationGroupId: string
-  variationId: string
+  campaignId: string;
+  variationGroupId: string;
+  variationId: string;
   originalVariationId?: string;
-}
+};
 
 export type ExposedVariation = {
   campaignId: string;
   variationGroupId: string;
   variationId: string;
-  originalVariationId: string
+  originalVariationId: string;
 };
 
-export type IHit = Omit<IPage, 'createdAt'|'visitorId'|'anonymousId'|'ds'|'qaMode'> | Omit<IScreen, 'createdAt'|'visitorId'|'anonymousId'|'ds'|'qaMode'> | Omit<IEvent, 'createdAt'|'visitorId'|'anonymousId'|'ds'|'qaMode'> | Omit<IItem, 'createdAt'|'visitorId'|'anonymousId'|'ds'|'qaMode'> | Omit<ITransaction, 'createdAt'|'visitorId'|'anonymousId'|'ds'|'qaMode'>
+export type IHit =
+  | Omit<IPage, 'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'>
+  | Omit<IScreen, 'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'>
+  | Omit<IEvent, 'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'>
+  | Omit<IItem, 'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'>
+  | Omit<
+      ITransaction,
+      'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'
+    >;
 
-export type FlagDTO= {
+export type FlagDTO = {
   key: string;
   campaignId: string;
-  campaignName: string
+  campaignName: string;
   variationGroupId: string;
-  variationGroupName: string
+  variationGroupName: string;
   variationId: string;
-  variationName: string
+  variationName: string;
   isReference?: boolean;
   campaignType?: string;
-  slug?:string|null;
-  originalVariationId?:string
- // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  slug?: string | null;
+  originalVariationId?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
-}
+};
 
 export type SerializedFlagMetadata = {
-  key: string
-  campaignId: string
-  campaignName: string
-  variationGroupId: string
-  variationGroupName: string
-  variationId: string
-  variationName: string
-  isReference?: boolean
-  campaignType?: string
-  slug?:string|null
-  hex: string
-}
+  key: string;
+  campaignId: string;
+  campaignName: string;
+  variationGroupId: string;
+  variationGroupName: string;
+  variationId: string;
+  variationName: string;
+  isReference?: boolean;
+  campaignType?: string;
+  slug?: string | null;
+  hex: string;
+};
 
 /**
  * Represents the status of visitor fetch for flag data.
@@ -154,85 +169,100 @@ export type NewVisitor = {
   onFetchFlagsStatusChanged?: ({ status, reason }: FetchFlagsStatus) => void;
 };
 
-export type InternalHitType = HitType|'BATCH'|'ACTIVATE'|'MONITORING'|'SEGMENT'|'TROUBLESHOOTING'|'USAGE'
+export type InternalHitType =
+  | HitType
+  | 'BATCH'
+  | 'ACTIVATE'
+  | 'MONITORING'
+  | 'SEGMENT'
+  | 'TROUBLESHOOTING'
+  | 'USAGE';
 
-export type HitCacheDTO ={
-  version: number,
+export type HitCacheDTO = {
+  version: number;
   data: {
-      visitorId: string,
-      anonymousId?: string|null,
-      type: InternalHitType,
-      time: number,
-      content:IHitAbstract
+    visitorId: string;
+    anonymousId?: string | null;
+    type: InternalHitType;
+    time: number;
+    content: IHitAbstract;
+  };
+};
+
+export type EAIScore = {
+  eai: {
+      eas: string;
   }
 }
 
 export type VisitorCacheDTO = {
-  version: number,
+  version: number;
   data: {
-    visitorId: string,
-    anonymousId: string|null,
-    consent?: boolean,
-    context?: Record<string, primitive>,
-    assignmentsHistory?: Record<string, string>,
+    visitorId: string;
+    anonymousId: string | null;
+    consent?: boolean;
+    context?: Record<string, primitive>;
+    eAIScore?: EAIScore,
+    isEAIDataCollected?: boolean;
+    assignmentsHistory?: Record<string, string>;
     campaigns?: Array<{
-        slug?:string|null
-        campaignId: string,
-        variationGroupId: string,
-        variationId: string,
-        isReference?:boolean
-        type: string,
-        activated?: boolean,
-        flags?: Record<string, unknown>
-      }>
-}
-}
+      slug?: string | null;
+      campaignId: string;
+      variationGroupId: string;
+      variationId: string;
+      isReference?: boolean;
+      type: string;
+      activated?: boolean;
+      flags?: Record<string, unknown>;
+    }>;
+  };
+};
 
-export interface IFSFlagMetadata{
-  campaignId:string
-  campaignName:string
-  variationGroupId:string
-  variationGroupName:string
-  variationId: string
-  variationName: string
-  isReference: boolean
-  campaignType: string
-  slug?:string|null
+export interface IFSFlagMetadata {
+  campaignId: string;
+  campaignName: string;
+  variationGroupId: string;
+  variationGroupName: string;
+  variationId: string;
+  variationName: string;
+  isReference: boolean;
+  campaignType: string;
+  slug?: string | null;
 }
 
 export interface IExposedFlag {
-  key: string
-  value: unknown
-  defaultValue: unknown
-  metadata: IFSFlagMetadata
+  key: string;
+  value: unknown;
+  defaultValue: unknown;
+  metadata: IFSFlagMetadata;
 }
 
-export interface IExposedVisitor{
-  id: string
-  anonymousId?:string|null
-  context: Record<string, primitive>
+export interface IExposedVisitor {
+  id: string;
+  anonymousId?: string | null;
+  context: Record<string, primitive>;
 }
 
-export type OnVisitorExposed ={
-  exposedVisitor: IExposedVisitor
-  fromFlag: IExposedFlag
-}
+export type OnVisitorExposed = {
+  exposedVisitor: IExposedVisitor;
+  fromFlag: IExposedFlag;
+};
 
 export type TroubleshootingData = {
-  startDate: Date
-  endDate: Date
-  traffic: number
-  timezone: string,
- }
+  startDate: Date;
+  endDate: Date;
+  traffic: number;
+  timezone: string;
+};
 
 export type sdkInitialData = {
-  instanceId: string,
-  lastInitializationTimestamp: string
-  initialCampaigns?: CampaignDTO[]
-  initialFlagsData?: SerializedFlagMetadata[],
-  usingCustomHitCache?: boolean,
-  usingCustomVisitorCache?: boolean
-}
+  instanceId: string;
+  lastInitializationTimestamp: string;
+  initialCampaigns?: CampaignDTO[];
+  initialFlagsData?: SerializedFlagMetadata[];
+  usingCustomHitCache?: boolean;
+  usingCustomVisitorCache?: boolean;
+};
 
 export enum TroubleshootingLabel {
   VISITOR_SEND_HIT = 'VISITOR_SEND_HIT',
@@ -254,30 +284,47 @@ export enum TroubleshootingLabel {
   SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR = 'SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR',
   SEND_HIT_ROUTE_ERROR = 'SEND_HIT_ROUTE_ERROR',
   SDK_BUCKETING_FILE_ERROR = 'SDK_BUCKETING_FILE_ERROR',
-  SDK_CONFIG = 'SDK_CONFIG'
+  SDK_CONFIG = 'SDK_CONFIG',
+  ACCOUNT_SETTINGS = 'ACCOUNT_SETTINGS',
+  ACCOUNT_SETTINGS_ERROR = 'ACCOUNT_SETTINGS_ERROR',
+  EMOTION_AI_SCORE = 'EMOTION_EAI_SCORE',
+  EMOTION_AI_SCORE_FROM_LOCAL_CACHE = 'EMOTION_AI_SCORE_FROM_LOCAL_CACHE',
+  EMOTION_AI_SCORE_ERROR = 'EMOTION_EAI_SCORE_ERROR',
+  EMOTION_AI_VISITOR_EVENT = 'EMOTION_AI_VISITOR_EVENT',
+  EMOTION_AI_VISITOR_EVENT_ERROR = 'EMOTION_AI_VISITOR_EVENT_ERROR',
+  EMOTION_AI_PAGE_VIEW = 'EMOTION_AI_PAGE_VIEW',
+  EMOTION_AI_PAGE_VIEW_ERROR = 'EMOTION_AI_PAGE_VIEW_ERROR',
+  EMOTION_AI_START_COLLECTING = 'EMOTION_AI_START_COLLECTING',
+  EMOTION_AI_STOP_COLLECTING = 'EMOTION_AI_STOP_COLLECTING',
+  EMOTION_AI_START_SCORING = 'EMOTION_AI_START_SCORING',
+  EMOTION_AI_SCORING_FAILED = 'EMOTION_AI_SCORING_FAILED',
+  EMOTION_AI_SCORING_SUCCESS = 'EMOTION_AI_SCORING_SUCCESS',
+
 }
 
 export type ThirdPartySegment = {
-  visitor_id: string,
-  segment: string,
-  value: string,
-  expiration: number,
-  partner: string
-}
+  visitor_id: string;
+  segment: string;
+  value: string;
+  expiration: number;
+  partner: string;
+};
 
 export enum VisitorCacheStatus {
   NONE = 'NONE',
   ANONYMOUS_ID_CACHE = 'ANONYMOUS_ID_CACHE',
   VISITOR_ID_CACHE = 'VISITOR_ID_CACHE',
-  VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE = 'VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE'
+  VISITOR_ID_CACHE_WITH_ANONYMOUS_ID_CACHE = 'VISITOR_ID_CACHE_WITH_ANONYMOUS_ID_CACHE',
 }
-export type onFsForcedVariationsType = (arg: {forcedVariations:ForcedVariation[]}) => void
+export type onFsForcedVariationsType = (arg: {
+  forcedVariations: ForcedVariation[];
+}) => void;
 
 export type VisitorVariations = {
-  variationId: string,
-  variationGroupId: string,
-  campaignId: string
-}
+  variationId: string;
+  variationGroupId: string;
+  campaignId: string;
+};
 
 export type FsVariationToForce = {
   campaignId: string;
@@ -289,7 +336,63 @@ export type FsVariationToForce = {
   variation: VariationDTO;
 };
 
-export type SdkInfoType= {
-  name: 'ReactJS'|'React-Native'|'Deno'|'TypeScript';
+export type SdkInfoType = {
+  name: 'ReactJS' | 'React-Native' | 'Deno' | 'TypeScript';
   version: string;
+};
+
+export interface Targetings {
+  operator: string;
+  key: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  value: any;
+}
+export interface VariationGroupDTO {
+  id: string;
+  name?: string;
+  targeting: {
+    targetingGroups: Array<{
+      targetings: Array<Targetings>;
+    }>;
+  };
+  variations: Array<{
+    id: string;
+    name?: string;
+    modifications: {
+      type: string;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      value: any;
+    };
+    allocation?: number;
+    reference?: boolean;
+  }>;
+}
+
+export type AccountSettings = {
+  enabledXPC?: true;
+  troubleshooting?: {
+    startDate: string;
+    endDate: string;
+    traffic: number;
+    timezone: string;
+  };
+  eaiCollectEnabled: boolean;
+  eaiActivationEnabled: boolean;
+}
+
+export interface BucketingDTO {
+  panic?: boolean;
+  campaigns?: Array<{
+    id: string;
+    name?: string;
+    type: string;
+    slug?: string | null;
+    variationGroups: Array<VariationGroupDTO>;
+  }>;
+  accountSettings?: AccountSettings;
+}
+
+export type VisitorProfile={
+  visitorId:string,
+  anonymousId: string|null
 }

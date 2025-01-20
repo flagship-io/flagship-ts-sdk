@@ -112,4 +112,13 @@ export interface IVisitor {
    */
   unauthenticate(): void;
 
+  /**
+   * Starts Collecting Emotion AI events for the visitor.
+   */
+  collectEAIEventsAsync(): Promise<void>;
+
+  /**
+   * Cleans up the visitor instance. This method should be called when the visitor is no longer needed.
+   */
+  cleanup(): void;
 }

@@ -7,6 +7,8 @@ import { HitAbstract } from '../hit/HitAbstract.ts'
 import { VisitorAbstract } from './VisitorAbstract.ts'
 import { IFSFlag } from '../flag/IFSFlag.ts'
 import { IFSFlagCollection } from '../flag/IFSFlagCollection.ts'
+import { IVisitorEvent } from '../emotionAI/hit/IVisitorEvent.ts'
+import { IPageView } from '../emotionAI/hit/IPageView.ts'
 
 /**
  * The `Visitor` class represents a unique user within your application. It aids in
@@ -15,13 +17,28 @@ import { IFSFlagCollection } from '../flag/IFSFlagCollection.ts'
  */
 export class Visitor extends EventEmitter implements IVisitor {
   private visitorDelegate:VisitorAbstract
+  private _onReady:((err:any)=>void)
   public constructor (visitorDelegate: VisitorAbstract) {
     super()
     this.visitorDelegate = visitorDelegate
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.visitorDelegate.on(EMIT_READY, (err:any) => {
+    this._onReady = (err:any) => {
       this.emit(EMIT_READY, err)
-    })
+    }
+    this.visitorDelegate.on(EMIT_READY, this._onReady)
+
+    const instance = this as any
+
+    instance.sendEaiVisitorEvent = (event: IVisitorEvent) => {
+      this.visitorDelegate.sendEaiVisitorEvent(event)
+    }
+
+    instance.sendEaiPageView = (pageView: IPageView) => {
+      this.visitorDelegate.sendEaiPageView(pageView)
+    }
+
+    instance.onEAICollectStatusChange = (callback: (status: boolean) => void) => {
+      this.visitorDelegate.onEAICollectStatusChange(callback)
+    }
   }
 
   /**
@@ -149,5 +166,25 @@ export class Visitor extends EventEmitter implements IVisitor {
    */
   unauthenticate (): void {
     this.visitorDelegate.unauthenticate()
+  }
+
+  /**
+   * @inheritdoc
+   */
+  collectEAIEventsAsync (...args: unknown[]): Promise<void> {
+    let currentPage: IPageView | undefined
+    if (args.length > 0) {
+      currentPage = args[0] as IPageView
+    }
+    return this.visitorDelegate.collectEAIEventsAsync(currentPage)
+  }
+
+  /**
+   * @inheritdoc
+   */
+
+  public cleanup (): void {
+    this.visitorDelegate.cleanup()
+    this.visitorDelegate.off(EMIT_READY, this._onReady)
   }
 }

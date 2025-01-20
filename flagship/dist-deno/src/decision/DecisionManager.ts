@@ -7,10 +7,8 @@ import { CampaignDTO, FlagDTO, TroubleshootingData, TroubleshootingLabel } from 
 import { errorFormat, logDebug } from '../utils/utils.ts'
 import { Troubleshooting } from '../hit/Troubleshooting.ts'
 import { ITrackingManager } from '../api/ITrackingManager.ts'
-import { BucketingDTO } from './api/bucketingDTO.ts'
 
 export abstract class DecisionManager implements IDecisionManager {
-  protected _bucketingContent?: BucketingDTO
   protected _config: IFlagshipConfig
   protected _panic = false
   protected _httpClient: IHttpClient
@@ -162,6 +160,7 @@ export abstract class DecisionManager implements IDecisionManager {
         label: TroubleshootingLabel.GET_CAMPAIGNS_ROUTE_RESPONSE_ERROR,
         logLevel: LogLevel.ERROR,
         visitorId: visitor.visitorId,
+        flagshipInstanceId: this.flagshipInstanceId,
         anonymousId: visitor.anonymousId,
         visitorSessionId: visitor.instanceId,
         traffic: 100,

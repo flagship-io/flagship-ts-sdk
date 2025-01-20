@@ -4,7 +4,6 @@ import {
   CONTEXT_KEY_ERROR,
   CONTEXT_KEY_VALUE_UPDATE,
   CONTEXT_NULL_ERROR,
-  CONTEXT_OBJET_PARAM_UPDATE,
   CONTEXT_VALUE_ERROR,
   EMIT_READY,
   FETCH_CAMPAIGNS_FROM_CACHE,
@@ -35,7 +34,8 @@ import {
   VISITOR_AUTHENTICATE_VISITOR_ID_ERROR,
   VISITOR_EXPOSED_VALUE_NOT_CALLED,
   VISITOR_UNAUTHENTICATE,
-  VISITOR_ALREADY_AUTHENTICATE
+  VISITOR_ALREADY_AUTHENTICATE,
+  EAI_SCORE_CONTEXT_KEY
 } from '../enum/index.ts'
 import {
   HitAbstract,
@@ -51,7 +51,7 @@ import {
   Transaction
 } from '../hit/index.ts'
 import { primitive, IHit, FlagDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorVariations, CampaignDTO } from '../types.ts'
-import { errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils.ts'
+import { deepEqual, errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils.ts'
 import { StrategyAbstract } from './StrategyAbstract.ts'
 import { FLAGSHIP_CLIENT, FLAGSHIP_CONTEXT, FLAGSHIP_VERSION, FLAGSHIP_VISITOR } from '../enum/FlagshipContext.ts'
 import { VisitorDelegate } from './index.ts'
@@ -115,16 +115,30 @@ export class DefaultStrategy extends StrategyAbstract {
     this.visitor.context[key] = value
   }
 
+  private checkAndUpdateContext (oldContext: Record<string, primitive>, newContext: Record<string, primitive>, value: unknown): void {
+    if (deepEqual(oldContext, newContext)) {
+      return
+    }
+
+    this.visitor.hasContextBeenUpdated = true
+
+    this.visitor.fetchStatus = {
+      status: FSFetchStatus.FETCH_REQUIRED,
+      reason: FSFetchReasons.UPDATE_CONTEXT
+    }
+    logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_KEY_VALUE_UPDATE, this.visitor.visitorId, newContext, value, this.visitor.context)
+  }
+
   updateContext(key: string, value: primitive):void
   updateContext (context: Record<string, primitive>): void
   updateContext (context: Record<string, primitive> | string, value?:primitive): void {
+    const oldContext = { ...this.visitor.context }
     if (typeof context === 'string') {
       this.updateContextKeyValue(context, value as primitive)
-      logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_KEY_VALUE_UPDATE, this.visitor.visitorId, context, value, this.visitor.context)
-      this.visitor.fetchStatus = {
-        status: FSFetchStatus.FETCH_REQUIRED,
-        reason: FSFetchReasons.UPDATE_CONTEXT
-      }
+
+      const newContext = this.visitor.context
+
+      this.checkAndUpdateContext(oldContext, newContext, value)
       return
     }
 
@@ -137,43 +151,26 @@ export class DefaultStrategy extends StrategyAbstract {
       const value = context[key]
       this.updateContextKeyValue(key, value)
     }
-    this.visitor.fetchStatus = {
-      status: FSFetchStatus.FETCH_REQUIRED,
-      reason: FSFetchReasons.UPDATE_CONTEXT
-    }
-    logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_OBJET_PARAM_UPDATE, this.visitor.visitorId, context, this.visitor.context)
+    const newContext = this.visitor.context
+
+    this.checkAndUpdateContext(oldContext, newContext, context)
   }
 
   clearContext (): void {
+    const oldContext = { ...this.visitor.context }
     this.visitor.context = {}
     this.visitor.loadPredefinedContext()
+    const newContext = this.visitor.context
+    if (deepEqual(oldContext, newContext)) {
+      return
+    }
+
+    this.visitor.hasContextBeenUpdated = true
     this.visitor.fetchStatus = {
       status: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.UPDATE_CONTEXT
     }
     logDebugSprintf(this.config, PROCESS_CLEAR_CONTEXT, CLEAR_CONTEXT, this.visitor.visitorId, this.visitor.context)
-  }
-
-  protected fetchVisitorCampaigns (visitor: VisitorDelegate) :CampaignDTO[]|null {
-    if (!Array.isArray(visitor?.visitorCache?.data.campaigns)) {
-      return null
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (visitor.visitorCache as any).data.campaigns.map((campaign:any) => {
-      return {
-        id: campaign.campaignId,
-        variationGroupId: campaign.variationGroupId,
-        slug: campaign.slug,
-        variation: {
-          id: campaign.variationId,
-          reference: !!campaign.isReference,
-          modifications: {
-            type: campaign.type,
-            value: campaign.flags
-          }
-        }
-      }
-    })
   }
 
   private isDeDuplicated (key:string, deDuplicationTime:number):boolean {
@@ -414,32 +411,89 @@ export class DefaultStrategy extends StrategyAbstract {
     logDebugSprintf(this.config, UNAUTHENTICATE, VISITOR_UNAUTHENTICATE, this.visitor.visitorId)
   }
 
-  async fetchFlags (): Promise<void> {
-    const functionName = PROCESS_FETCHING_FLAGS
-    const now = Date.now()
-    const logData = {
+  handleFetchFlagsError (error: unknown, now: number, campaigns: CampaignDTO[] | null) {
+    this.visitor.emit(EMIT_READY, error)
+
+    const message = error instanceof Error ? error.message : error as string
+
+    const errorMessage = errorFormat(message, {
       visitorId: this.visitor.visitorId,
       anonymousId: this.visitor.anonymousId,
       context: this.visitor.context,
-      isFromCache: false,
-      duration: 0
+      statusReason: this.visitor.fetchStatus.reason,
+      duration: Date.now() - now
+    })
+
+    logError(
+      this.config,
+      errorMessage,
+      PROCESS_FETCHING_FLAGS
+    )
+
+    this.visitor.fetchStatus = {
+      status: FSFetchStatus.FETCH_REQUIRED,
+      reason: FSFetchReasons.FETCH_ERROR
     }
+
+    const troubleshootingHit = new Troubleshooting({
+
+      label: TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS_ERROR,
+      logLevel: LogLevel.INFO,
+      visitorId: this.visitor.visitorId,
+      anonymousId: this.visitor.anonymousId,
+      visitorSessionId: this.visitor.instanceId,
+      flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+      traffic: this.visitor.traffic,
+      config: this.config,
+      visitorContext: this.visitor.context,
+      sdkStatus: this.visitor.getSdkStatus(),
+      visitorCampaigns: campaigns,
+      visitorConsent: this.visitor.hasConsented,
+      visitorIsAuthenticated: !!this.visitor.anonymousId,
+      visitorFlags: this.visitor.flagsData,
+      visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
+      visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
+      lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+      lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
+      httpResponseTime: Date.now() - now,
+      sdkConfigMode: this.getSdkConfigDecisionMode(),
+      sdkConfigTimeout: this.config.timeout,
+      sdkConfigPollingInterval: this.config.pollingInterval,
+      sdkConfigTrackingManagerStrategy: this.config.trackingManagerConfig?.cacheStrategy,
+      sdkConfigTrackingManagerBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
+      sdkConfigTrackingManagerPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
+      sdkConfigFetchNow: this.config.fetchNow,
+      sdkConfigReuseVisitorIds: this.config.reuseVisitorIds,
+      sdkConfigInitialBucketing: this.config.initialBucketing,
+      sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
+      sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
+    })
+
+    this.trackingManager.addTroubleshootingHit(troubleshootingHit)
+  }
+
+  async getCampaigns (now: number): Promise<{
+    campaigns: CampaignDTO[] | null;
+    error?: string;
+    isFetching?: boolean;
+    isBuffered?: boolean;
+  }> {
     let campaigns: CampaignDTO[] | null = null
-    let fetchCampaignError:string|undefined
+    const functionName = PROCESS_FETCHING_FLAGS
     try {
       const time = Date.now() - this.visitor.lastFetchFlagsTimestamp
       const fetchStatus = this.visitor.fetchStatus.status
 
       if (fetchStatus === FSFetchStatus.FETCHING) {
         await this.visitor.getCampaignsPromise
-        return
+        return { campaigns, isFetching: true }
       }
 
       const fetchFlagBufferingTime = (this.config.fetchFlagsBufferingTime as number * 1000)
 
       if (fetchStatus === FSFetchStatus.FETCHED && time < fetchFlagBufferingTime) {
         logInfoSprintf(this.config, functionName, FETCH_FLAGS_BUFFERING_MESSAGE, this.visitor.visitorId, fetchFlagBufferingTime - time)
-        return
+        return { campaigns, isBuffered: true }
       }
 
       logDebugSprintf(this.config, functionName, FETCH_FLAGS_STARTED, this.visitor.visitorId)
@@ -447,6 +501,14 @@ export class DefaultStrategy extends StrategyAbstract {
       this.visitor.fetchStatus = {
         status: FSFetchStatus.FETCHING,
         reason: FSFetchReasons.NONE
+      }
+
+      await this.lookupVisitor()
+
+      const eaiScore = await this.visitor.emotionAi.fetchEAIScore()
+
+      if (eaiScore) {
+        this.updateContextKeyValue(EAI_SCORE_CONTEXT_KEY, eaiScore?.eai?.eas)
       }
 
       this.visitor.getCampaignsPromise = this.decisionManager.getCampaignsAsync(this.visitor)
@@ -467,36 +529,135 @@ export class DefaultStrategy extends StrategyAbstract {
       logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_SUCCESS,
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
       )
+      return { campaigns }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      logError(this.config, error.message, functionName)
-      fetchCampaignError = error
+      logError(this.config, error.message, PROCESS_FETCHING_FLAGS)
 
       this.visitor.fetchStatus = {
         status: FSFetchStatus.FETCH_REQUIRED,
         reason: FSFetchReasons.FETCH_ERROR
       }
+      return { error: error as string, campaigns }
     }
+  }
+
+  protected fetchCampaignsFromCache (visitor: VisitorDelegate) :CampaignDTO[]|null {
+    if (!Array.isArray(visitor?.visitorCache?.data.campaigns)) {
+      return null
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (visitor.visitorCache as any).data.campaigns.map((campaign:any) => {
+      return {
+        id: campaign.campaignId,
+        variationGroupId: campaign.variationGroupId,
+        slug: campaign.slug,
+        variation: {
+          id: campaign.variationId,
+          reference: !!campaign.isReference,
+          modifications: {
+            type: campaign.type,
+            value: campaign.flags
+          }
+        }
+      }
+    })
+  }
+
+  handleNoCampaigns (now:number) {
+    const campaigns = this.fetchCampaignsFromCache(this.visitor)
+    if (campaigns) {
+      this.visitor.fetchStatus = {
+        status: FSFetchStatus.FETCH_REQUIRED,
+        reason: FSFetchReasons.READ_FROM_CACHE
+      }
+
+      logDebugSprintf(
+        this.config,
+        PROCESS_FETCHING_FLAGS,
+        FETCH_CAMPAIGNS_FROM_CACHE,
+        this.visitor.visitorId,
+        this.visitor.anonymousId,
+        this.visitor.context,
+        campaigns,
+        Date.now() - now
+      )
+    }
+    return campaigns
+  }
+
+  sendVisitorAllocatedVariations () {
+    const visitorAllocatedVariations: Record<string, VisitorVariations> = {}
+
+    this.visitor.flagsData.forEach((item) => {
+      visitorAllocatedVariations[item.campaignId] = {
+        variationId: item.variationId,
+        variationGroupId: item.variationGroupId,
+        campaignId: item.campaignId
+      }
+    })
+
+    sendVisitorAllocatedVariations(visitorAllocatedVariations)
+  }
+
+  private extractFlags (campaigns: CampaignDTO[]): Map<string, FlagDTO> {
+    const flags = new Map<string, FlagDTO>()
+    campaigns.forEach((campaign) => {
+      const object = campaign.variation.modifications.value
+      for (const key in object) {
+        const value = object[key]
+        flags.set(
+          key,
+          {
+            key,
+            campaignId: campaign.id,
+            campaignName: campaign.name || '',
+            variationGroupId: campaign.variationGroupId,
+            variationGroupName: campaign.variationGroupName || '',
+            variationId: campaign.variation.id,
+            variationName: campaign.variation.name || '',
+            isReference: !!campaign.variation.reference,
+            campaignType: campaign.type,
+            slug: campaign.slug,
+            value
+          }
+        )
+      }
+    })
+    return flags
+  }
+
+  async fetchFlags (): Promise<void> {
+    const now = Date.now()
+
+    let campaigns: CampaignDTO[] | null = null
+
+    const {
+      campaigns: fetchedCampaigns,
+      error: fetchCampaignError,
+      isFetching, isBuffered
+    } = await this.getCampaigns(now)
+
+    if (isFetching || isBuffered) {
+      return
+    }
+
+    campaigns = fetchedCampaigns
+
     try {
       if (!campaigns) {
-        campaigns = this.fetchVisitorCampaigns(this.visitor)
-        logData.isFromCache = true
-        if (campaigns) {
-          this.visitor.fetchStatus = {
-            status: FSFetchStatus.FETCH_REQUIRED,
-            reason: FSFetchReasons.READ_FROM_CACHE
-          }
-
-          logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_FROM_CACHE,
-            this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
-          )
-        }
+        campaigns = this.handleNoCampaigns(now)
       }
 
       campaigns = campaigns || []
 
       this.visitor.campaigns = campaigns
-      this.visitor.flagsData = this.decisionManager.getModifications(this.visitor.campaigns)
+      this.visitor.flagsData = this.extractFlags(
+        this.visitor.campaigns
+      )
+
+      this.cacheVisitor()
+
       this.visitor.emit(EMIT_READY, fetchCampaignError)
 
       if (this.visitor.fetchStatus.status === FSFetchStatus.FETCHING) {
@@ -506,79 +667,31 @@ export class DefaultStrategy extends StrategyAbstract {
         }
       }
 
-      const visitorAllocatedVariations: Record<string, VisitorVariations> = {}
+      this.sendVisitorAllocatedVariations()
 
-      this.visitor.flagsData.forEach(item => {
-        visitorAllocatedVariations[item.campaignId] = {
-          variationId: item.variationId,
-          variationGroupId: item.variationGroupId,
-          campaignId: item.campaignId
-        }
-      })
+      logDebugSprintf(
+        this.config,
+        PROCESS_FETCHING_FLAGS,
+        FETCH_FLAGS_FROM_CAMPAIGNS,
+        this.visitor.visitorId,
+        this.visitor.anonymousId,
+        this.visitor.context,
+        this.visitor.flagsData
+      )
 
-      sendVisitorAllocatedVariations(visitorAllocatedVariations)
-
-      logDebugSprintf(this.config, functionName, FETCH_FLAGS_FROM_CAMPAIGNS,
-        this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, this.visitor.flagsData)
       if (this.decisionManager.troubleshooting) {
-        this.sendFetchFlagsTroubleshooting({ campaigns, now, isFromCache: logData.isFromCache })
+        this.sendFetchFlagsTroubleshooting({
+          campaigns,
+          now,
+          isFromCache: this.visitor.fetchStatus.reason === FSFetchReasons.READ_FROM_CACHE
+        })
         this.sendConsentHitTroubleshooting()
         this.sendSegmentHitTroubleshooting()
       }
 
       this.sendSdkConfigAnalyticHit()
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      this.visitor.emit(EMIT_READY, error)
-      logData.duration = Date.now() - now
-      logError(
-        this.config,
-        errorFormat(error.message || error, logData),
-        functionName
-      )
-
-      this.visitor.fetchStatus = {
-        status: FSFetchStatus.FETCH_REQUIRED,
-        reason: FSFetchReasons.FETCH_ERROR
-      }
-
-      const troubleshootingHit = new Troubleshooting({
-
-        label: TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS_ERROR,
-        logLevel: LogLevel.INFO,
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
-        visitorSessionId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        traffic: this.visitor.traffic,
-        config: this.config,
-        visitorContext: this.visitor.context,
-        sdkStatus: this.visitor.getSdkStatus(),
-        visitorCampaigns: campaigns,
-        visitorCampaignFromCache: logData.isFromCache ? campaigns : undefined,
-        visitorConsent: this.visitor.hasConsented,
-        visitorIsAuthenticated: !!this.visitor.anonymousId,
-        visitorFlags: this.visitor.flagsData,
-        visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
-        visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
-        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
-        lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
-        httpResponseTime: Date.now() - now,
-        sdkConfigMode: this.getSdkConfigDecisionMode(),
-        sdkConfigTimeout: this.config.timeout,
-        sdkConfigPollingInterval: this.config.pollingInterval,
-        sdkConfigTrackingManagerStrategy: this.config.trackingManagerConfig?.cacheStrategy,
-        sdkConfigTrackingManagerBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
-        sdkConfigTrackingManagerPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
-        sdkConfigFetchNow: this.config.fetchNow,
-        sdkConfigReuseVisitorIds: this.config.reuseVisitorIds,
-        sdkConfigInitialBucketing: this.config.initialBucketing,
-        sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
-        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
-      })
-
-      this.trackingManager.addTroubleshootingHit(troubleshootingHit)
+    } catch (error: unknown) {
+      this.handleFetchFlagsError(error, now, campaigns)
     }
   }
 
@@ -602,6 +715,7 @@ export class DefaultStrategy extends StrategyAbstract {
         VISITOR_EXPOSED_VALUE_NOT_CALLED, this.visitor.visitorId, key
       )
       this.sendFlagTroubleshooting(TroubleshootingLabel.FLAG_VALUE_NOT_CALLED, key, defaultValue, true)
+      return
     }
 
     if (defaultValue !== null && defaultValue !== undefined && flag.value !== null && !hasSameType(flag.value, defaultValue)) {
@@ -612,6 +726,7 @@ export class DefaultStrategy extends StrategyAbstract {
       )
 
       this.sendFlagTroubleshooting(TroubleshootingLabel.VISITOR_EXPOSED_TYPE_WARNING, key, defaultValue)
+      return
     }
 
     await this.sendActivate(flag, defaultValue)

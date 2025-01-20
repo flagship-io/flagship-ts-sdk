@@ -30,6 +30,14 @@ export const BATCH_MAX_SIZE = 2500000
 
 export const ANALYTIC_HIT_ALLOCATION = 1
 
+export const MAX_COLLECTING_TIME_MS = 30000
+export const MAX_LAST_COLLECTING_TIME_MS = 120000
+export const MAX_CLICK_PATH_LENGTH = 1900
+export const MAX_SCORING_POLLING_TIME = 120000
+export const SCROLL_END_DELAY_MS = 200
+export const CLICK_PATH_DELAY_MS = 500
+export const SCORING_INTERVAL = 5000
+
 /**
  * Decision api base url
  */
@@ -66,6 +74,19 @@ export const FS_IS_QA_MODE_ENABLED = 'FS_IS_QA_MODE_ENABLED'
 export const FS_FORCED_VARIATIONS = 'FS_FORCED_VARIATIONS'
 export const FS_QA_ASSISTANT_SCRIPT_TAG_ID = 'FS_QA_ASSISTANT_SCRIPT_TAG_ID'
 
+export const EMOTION_AI_UC_URL = 'https://uc-info.flagship.io/v1/segments/clients/{0}/visitors/{1}?partner=eai'
+export const CDN_ACCOUNT_SETTINGS_URL = 'https://cdn.flagship.io/{0}/accountSettings.json'
+export const VISITOR_EAI_SCORE_KEY = '{0}_EAIScore'
+export const EMOTION_AI_EVENT_URL = 'https://events.flagship.io/emotionsai'
+export const SEND_EAI_EVENT = 'sendEAIEvent'
+export const SEND_EAI_EVENT_ERROR = 'Failed to send Emotion AI event: {0}'
+export const SEND_EAI_EVENT_SUCCESS = 'Emotion AI event sent: {0}'
+export const FETCH_EAI_SCORE = 'fetchEAIScore'
+export const FETCH_EAI_SCORE_ERROR = 'visitor {0}, Failed to fetch EAIScore: {1}'
+export const FETCH_EAI_SCORE_SUCCESS = 'visitor {0}, EAIScore fetched: {1}'
+export const EAI_SCORE_CONTEXT_KEY = 'eai::eas'
+export const CLIENT_CACHE_KEY = 'FS_CLIENT_VISITOR'
+
 /**
  * SDK version
  */
@@ -92,6 +113,7 @@ export const NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY = 3
 export const JS_DOC_URL = 'https://docs.developers.flagship.io/docs/js-v3'
 
 export const PANIC_MODE_DOC_URL = 'https://docs.developers.flagship.io/docs/glossary#panic-mode'
+
 /**
  * Message Error
  */
@@ -265,9 +287,9 @@ export const GET_FLAG = 'GET_FLAG'
 export const GET_FLAG_CAST_ERROR = 'For the visitor "{0}", the flag with key "{1}" has a different type compared to the default value. Therefore, the default value "{2}" has been returned.'
 export const GET_FLAG_VALUE = 'Visitor {0}, Flag for key {1} returns value {2}'
 export const USER_EXPOSED_FLAG_ERROR = 'For the visitor "{0}", no flags were found with the key "{1}". As a result, user exposure will not be sent.'
-export const VISITOR_EXPOSED_VALUE_NOT_CALLED = 'Visitor "{0}", the flag with the key "{1}" has been exposed without calling the `getValue` method first.'
+export const VISITOR_EXPOSED_VALUE_NOT_CALLED = 'For the visitor `{0}`,assuming the getValue() method has not previously been invoked for the flag `{0}`. Therefore, the exposure is canceled'
 export const FLAG_VISITOR_EXPOSED = 'FLAG_VISITOR_EXPOSED'
-export const USER_EXPOSED_CAST_ERROR = 'For the visitor "{0}", the flag with key "{1}" has been exposed despite having a different type compared to the default value'
+export const USER_EXPOSED_CAST_ERROR = 'For the visitor `{0}, the flag with the key `{0}` has a different type compared to the default value. Therefore, the exposure is interrupted'
 export const GET_METADATA_CAST_ERROR = 'Visitor {0}, Flag for key {1} has a different type with default value: Empty metadata object is returned {2}'
 export const FLAG_METADATA = 'FLAG_METADATA'
 export const NO_FLAG_METADATA = 'Visitor {0}, No Flags found for key {1}:  Empty metadata object is returned'

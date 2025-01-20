@@ -11,4 +11,5 @@ export interface ITrackingManagerCommon {
     addHit(hit: HitAbstract): Promise<void>
 
     activateFlag (hit: Activate): Promise<void>
-  }
+
+}

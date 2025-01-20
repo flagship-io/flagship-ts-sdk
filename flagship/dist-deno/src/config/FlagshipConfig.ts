@@ -1,11 +1,10 @@
-import { BucketingDTO } from '../decision/api/bucketingDTO.ts'
 import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FS_IS_QA_MODE_ENABLED, FETCH_FLAG_BUFFERING_DEFAULT_TIME, LogLevel, REQUEST_TIME_OUT, SDK_INFO, TYPE_ERROR, FSSdkStatus } from '../enum/index.ts'
 import { IHitCacheImplementation } from '../cache/IHitCacheImplementation.ts'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager.ts'
 import { errorFormat, isBrowser, logError, sprintf } from '../utils/utils.ts'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation.ts'
 import { ITrackingManagerConfig, TrackingManagerConfig } from './TrackingManagerConfig.ts'
-import { OnVisitorExposed } from '../types.ts'
+import { BucketingDTO, OnVisitorExposed } from '../types.ts'
 import { version as SDK_VERSION } from '../sdkVersion.ts'
 import { IFlagshipConfig } from './IFlagshipConfig.ts'
 import { DecisionMode } from './DecisionMode.ts'
@@ -123,7 +122,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
     this._envId = envId
     this._apiKey = apiKey
-    this.logLevel = logLevel ?? LogLevel.ALL
+    this.logLevel = logLevel ?? LogLevel.INFO
     this.timeout = timeout || REQUEST_TIME_OUT
     this.fetchNow = typeof fetchNow === 'undefined' || fetchNow
     this.reuseVisitorIds = typeof reuseVisitorIds === 'undefined' || reuseVisitorIds
