@@ -10,7 +10,7 @@ import { EAIScore, TroubleshootingLabel } from '../types'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { VisitorEvent } from './hit/VisitorEvent'
 import { Troubleshooting } from '../hit/Troubleshooting'
-import { LogLevel } from '../enum'
+import { LogLevel } from '../enum/index'
 import { UsageHit } from '../hit/UsageHit'
 
 type ConstructorParam = {
