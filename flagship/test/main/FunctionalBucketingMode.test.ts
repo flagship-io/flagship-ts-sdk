@@ -2,15 +2,25 @@ import { expect, it, describe } from '@jest/globals'
 import { Flagship } from '../../src/main/Flagship'
 import { DecisionMode } from '../../src/config'
 import { sleep } from '../../src/utils/utils'
+import { FSSdkStatus } from '../../src/enum/FSSdkStatus'
+import { LogLevel } from '../../src/enum/LogLevel'
 
 describe('Functional test Bucketing mode', () => {
   const envId = process.env.FS_ENV_ID as string
   const apiKey = process.env.FS_API_KEY as string
-  Flagship.start(envId, apiKey, {
-    decisionMode: DecisionMode.BUCKETING
-  })
+
+  async function startSDK () {
+    if (Flagship.getStatus() !== FSSdkStatus.SDK_NOT_INITIALIZED) {
+      return
+    }
+    await Flagship.start(envId, apiKey, {
+      logLevel: LogLevel.DEBUG,
+      fetchNow: false,
+      decisionMode: DecisionMode.BUCKETING
+    })
+  }
   it('test decision Bucketing mode', async () => {
-    await sleep(500)
+    await startSDK()
     const visitor = Flagship.newVisitor({
       hasConsented: true,
       visitorId: 'visitor-1',
@@ -32,7 +42,7 @@ describe('Functional test Bucketing mode', () => {
   })
 
   it('test decision Bucketing mode 2', async () => {
-    await sleep(500)
+    await startSDK()
     const visitor = Flagship.newVisitor({
       hasConsented: true,
       visitorId: 'visitor-6',
@@ -54,7 +64,7 @@ describe('Functional test Bucketing mode', () => {
   })
 
   it('test decision Bucketing mode 3', async () => {
-    await sleep(500)
+    await startSDK()
     const visitor = Flagship.newVisitor({
       hasConsented: true,
       visitorId: 'visitor-6',
