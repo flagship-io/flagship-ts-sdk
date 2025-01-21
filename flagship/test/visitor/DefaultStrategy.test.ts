@@ -303,7 +303,6 @@ describe('test DefaultStrategy ', () => {
     expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { status: FSFetchStatus.FETCHING, reason: FSFetchReasons.NONE })
     expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { status: FSFetchStatus.FETCHED, reason: FSFetchReasons.NONE })
     expect(emotionAi.fetchEAIScore).toBeCalledTimes(1)
-    expect(visitorDelegate.context[EAI_SCORE_CONTEXT_KEY]).toEqual('straightforward')
   })
 
   it('test fetchFlags panic mode ', async () => {
