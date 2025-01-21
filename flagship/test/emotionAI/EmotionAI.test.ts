@@ -4,13 +4,13 @@
 import { jest } from '@jest/globals'
 import { EmotionAI } from '../../src/emotionAI/EmotionAI'
 import { IHttpClient, IHttpOptions, IHttpResponse } from '../../src/utils/HttpClient'
-import { DecisionApiConfig, EAIScore } from '../../src'
+import { DecisionApiConfig, EAIScore, FSFetchReasons } from '../../src'
 import { EAIConfig } from '../../src/type.local'
 import { VisitorDelegate } from '../../src/visitor'
 import { ConfigManager } from '../../src/config'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ApiManager } from '../../src/decision/ApiManager'
-import { CLICK_PATH_DELAY_MS, EMOTION_AI_EVENT_URL, EMOTION_AI_UC_URL, MAX_COLLECTING_TIME_MS, MAX_LAST_COLLECTING_TIME_MS, MAX_SCORING_POLLING_TIME, SCORING_INTERVAL, SCROLL_END_DELAY_MS } from '../../src/enum/FlagshipConstant'
+import { CLICK_PATH_DELAY_MS, EAI_SCORE_CONTEXT_KEY, EMOTION_AI_EVENT_URL, EMOTION_AI_UC_URL, MAX_COLLECTING_TIME_MS, MAX_LAST_COLLECTING_TIME_MS, MAX_SCORING_POLLING_TIME, SCORING_INTERVAL, SCROLL_END_DELAY_MS } from '../../src/enum/FlagshipConstant'
 import { sleep, sprintf } from '../../src/utils/utils'
 import { PageView } from '../../src/emotionAI/hit/PageView'
 import { VisitorEvent } from '../../src/emotionAI/hit/VisitorEvent'
@@ -57,6 +57,8 @@ describe('EmotionAI', () => {
   const setIsEAIDataCollected = jest.spyOn(visitorDelegate, 'setIsEAIDataCollected')
   const isEAIDataCollected = jest.spyOn(visitorDelegate, 'isEAIDataCollected')
 
+  const url = sprintf(EMOTION_AI_UC_URL, sdkConfig.envId, visitorId) + '?partner=eai'
+
   afterEach(() => {
     postAsyncSpy.mockReset()
   })
@@ -68,7 +70,6 @@ describe('EmotionAI', () => {
       getAsync: getAsyncSpy,
       postAsync: postAsyncSpy
     }
-    const url = sprintf(EMOTION_AI_UC_URL, sdkConfig.envId, visitorId)
     const emotionAI: EmotionAI = new EmotionAI({
       httpClient,
       sdkConfig,
@@ -107,6 +108,9 @@ describe('EmotionAI', () => {
 
       expect(getAsyncSpy).toBeCalledTimes(1)
       expect(setCachedEAIScore).toBeCalledTimes(1)
+
+      expect(visitorDelegate.context[EAI_SCORE_CONTEXT_KEY]).toEqual('straightforward')
+      expect(visitorDelegate.fetchStatus.reason).toEqual(FSFetchReasons.UPDATE_CONTEXT)
     })
 
     it('should return score from cache if available', async () => {
@@ -127,6 +131,8 @@ describe('EmotionAI', () => {
       const response = await emotionAI.fetchEAIScore()
       expect(getAsyncSpy).toHaveBeenCalledTimes(0)
       expect(response).toEqual(eAIScore)
+      expect(visitorDelegate.context[EAI_SCORE_CONTEXT_KEY]).toEqual('straightforward-2')
+      expect(visitorDelegate.fetchStatus.reason).toEqual(FSFetchReasons.UPDATE_CONTEXT)
     })
 
     it('should return null if status is not 200', async () => {
@@ -216,6 +222,8 @@ describe('EmotionAI', () => {
       await emotionAI.collectEAIEventsAsync()
 
       expect(onEAICollectStatusChange).toHaveBeenCalledTimes(0)
+      expect(getAsyncSpy).toHaveBeenCalledTimes(1)
+      expect(getAsyncSpy).toHaveBeenNthCalledWith(1, url)
 
       const mouseUpEventClientX = 100
       const mouseUpEventClientY = 150
@@ -456,6 +464,7 @@ describe('EmotionAI', () => {
       await jest.advanceTimersByTimeAsync(SCORING_INTERVAL)
 
       expect(getAsyncSpy).toHaveBeenCalledTimes(2)
+      expect(getAsyncSpy).toHaveBeenNthCalledWith(2, expect.stringContaining(url + '&v='))
 
       expect(emotionAI.EAIScore).toEqual(eAIScore)
 
