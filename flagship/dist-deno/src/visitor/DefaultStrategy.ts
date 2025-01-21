@@ -505,11 +505,7 @@ export class DefaultStrategy extends StrategyAbstract {
 
       await this.lookupVisitor()
 
-      const eaiScore = await this.visitor.emotionAi.fetchEAIScore()
-
-      if (eaiScore) {
-        this.updateContextKeyValue(EAI_SCORE_CONTEXT_KEY, eaiScore?.eai?.eas)
-      }
+      await this.visitor.emotionAi.fetchEAIScore()
 
       this.visitor.getCampaignsPromise = this.decisionManager.getCampaignsAsync(this.visitor)
 

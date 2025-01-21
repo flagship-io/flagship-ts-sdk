@@ -2,7 +2,7 @@ import { IHttpClient, IHttpResponse } from '../utils/HttpClient.ts'
 import { IEmotionAI } from './IEmotionAI.ts'
 import { EAIConfig } from '../type.local.ts'
 import { logDebugSprintf, logErrorSprintf, sprintf } from '../utils/utils.ts'
-import { EMOTION_AI_EVENT_URL, EMOTION_AI_UC_URL, FETCH_EAI_SCORE, FETCH_EAI_SCORE_ERROR, FETCH_EAI_SCORE_SUCCESS, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, MAX_COLLECTING_TIME_MS, MAX_LAST_COLLECTING_TIME_MS, MAX_SCORING_POLLING_TIME, SCORING_INTERVAL, SEND_EAI_EVENT, SEND_EAI_EVENT_ERROR, SEND_EAI_EVENT_SUCCESS } from '../enum/FlagshipConstant.ts'
+import { EAI_SCORE_CONTEXT_KEY, EMOTION_AI_EVENT_URL, EMOTION_AI_UC_URL, FETCH_EAI_SCORE, FETCH_EAI_SCORE_ERROR, FETCH_EAI_SCORE_SUCCESS, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, MAX_COLLECTING_TIME_MS, MAX_LAST_COLLECTING_TIME_MS, MAX_SCORING_POLLING_TIME, SCORING_INTERVAL, SEND_EAI_EVENT, SEND_EAI_EVENT_ERROR, SEND_EAI_EVENT_SUCCESS } from '../enum/FlagshipConstant.ts'
 import { IVisitorEvent } from './hit/IVisitorEvent.ts'
 import { IPageView } from './hit/IPageView.ts'
 import { IFlagshipConfig } from '../config/IFlagshipConfig.ts'
@@ -168,6 +168,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     if (cachedEAIScore) {
       this._EAIScore = cachedEAIScore
       this._EAIScoreChecked = true
+      this._visitor.updateContext(EAI_SCORE_CONTEXT_KEY, this._EAIScore?.eai?.eas)
       this.sendEAIScoreTroubleshooting(this._EAIScore)
       return this._EAIScore
     }
@@ -181,9 +182,10 @@ export abstract class CommonEmotionAI implements IEmotionAI {
 
     const url = sprintf(EMOTION_AI_UC_URL, this._sdkConfig.envId, visitorId)
 
-    const query = noCache ? `?${Date.now()}` : ''
+    const versionQuery = noCache ? `&v=${Date.now()}` : ''
 
-    const endpoint = `${url}${query}`
+    const endpoint = `${url}?partner=eai${versionQuery}`
+
     try {
       this._fetchEAIScorePromise = this._httpClient.getAsync(endpoint)
 
@@ -196,6 +198,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
 
       if (this._EAIScore) {
         this._visitor.setCachedEAIScore(this._EAIScore)
+        this._visitor.updateContext(EAI_SCORE_CONTEXT_KEY, this._EAIScore?.eai?.eas)
       }
 
       logDebugSprintf(this._sdkConfig, FETCH_EAI_SCORE, FETCH_EAI_SCORE_SUCCESS, visitorId, this._EAIScore)
