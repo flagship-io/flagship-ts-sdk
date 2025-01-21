@@ -177,6 +177,10 @@ describe('EmotionAI', () => {
 
     beforeEach(() => {
       jest.useFakeTimers({ now: fixedTimestamp })
+      Object.defineProperty(navigator, 'userAgent', {
+        value: 'SomeRandomUserAgent',
+        writable: true
+      })
     })
 
     afterEach(() => {
