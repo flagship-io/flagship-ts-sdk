@@ -2,7 +2,7 @@ import { IFlagshipConfig } from '../config/index'
 import { IFSFlag } from '../flag/IFSFlag'
 import { IFSFlagCollection } from '../flag/IFSFlagCollection'
 import { HitAbstract } from '../hit/index'
-import { IHit, primitive, FetchFlagsStatus } from '../types'
+import { IHit, primitive, FlagsStatus } from '../types'
 
 /**
  * The `Visitor` class represents a unique user within your application. It aids in
@@ -28,7 +28,7 @@ export interface IVisitor {
   /**
    * The fetch status of the flags.
    */
-  readonly fetchStatus: FetchFlagsStatus
+  readonly fetchStatus: FlagsStatus
 
   /**
    * The Flagship configuration.
