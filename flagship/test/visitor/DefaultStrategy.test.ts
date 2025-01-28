@@ -1,6 +1,6 @@
 import { AUTHENTICATE, CONTEXT_KEY_ERROR, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, UNAUTHENTICATE, PROCESS_FETCHING_FLAGS, FLAG_VISITOR_EXPOSED, EAI_SCORE_CONTEXT_KEY } from './../../src/enum/FlagshipConstant'
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
-import { DecisionApiConfig, EAIScore, EventCategory, FetchFlagsStatus, FlagDTO, FSFlagMetadata, TroubleshootingLabel } from '../../src/index'
+import { DecisionApiConfig, EAIScore, EventCategory, FlagsStatus, FlagDTO, FSFlagMetadata, TroubleshootingLabel } from '../../src/index'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { BucketingConfig, ConfigManager } from '../../src/config/index'
 import { ApiManager } from '../../src/decision/ApiManager'
@@ -91,7 +91,7 @@ describe('test DefaultStrategy ', () => {
 
   const murmurHash = new MurmurHash()
 
-  const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
+  const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>()
 
   const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
 
@@ -1199,7 +1199,7 @@ describe('test fetchFlags errors', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
+  const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>()
 
   const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
 
@@ -1232,7 +1232,7 @@ describe('test fetchFlags errors', () => {
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(onFetchFlagsStatusChanged)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(2)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { status: FSFetchStatus.FETCHING, reason: FSFetchReasons.NONE })
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.FETCH_ERROR })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.FLAGS_FETCHING_ERROR })
   })
 })
 

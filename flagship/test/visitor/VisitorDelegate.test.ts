@@ -1,4 +1,4 @@
-import { CampaignDTO, EAIScore, FetchFlagsStatus, SerializedFlagMetadata, primitive } from './../../src/types'
+import { CampaignDTO, EAIScore, FlagsStatus, SerializedFlagMetadata, primitive } from './../../src/types'
 import { jest, expect, it, describe } from '@jest/globals'
 import { FlagDTO } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
@@ -111,7 +111,7 @@ describe('test VisitorDelegate', () => {
     }
   }]
 
-  const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
+  const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>()
 
   const init = jest.fn<(visitor:VisitorAbstract) => void>()
   const collectEAIData = jest.fn<() => Promise<EAIScore|undefined>>
@@ -216,7 +216,10 @@ describe('test VisitorDelegate', () => {
     })
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(onFetchFlagsStatusChanged)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(1)
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledWith({ status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.VISITOR_CREATED })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledWith({
+      status: FSFetchStatus.FETCH_REQUIRED,
+      reason: FSFetchReasons.FLAGS_NEVER_FETCHED
+    })
   })
 
   it('test property', () => {

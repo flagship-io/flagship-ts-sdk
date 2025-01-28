@@ -114,7 +114,7 @@ describe('test logError function', () => {
 
 describe('Test visitorFlagSyncStatusMessage function', () => {
   it('should return a message containing "created" when FSFetchReasons.VISITOR_CREATED is passed', () => {
-    const message = visitorFlagSyncStatusMessage(FSFetchReasons.VISITOR_CREATED)
+    const message = visitorFlagSyncStatusMessage(FSFetchReasons.FLAGS_NEVER_FETCHED)
     expect(message).toEqual(expect.stringContaining('created'))
   })
 
@@ -139,12 +139,12 @@ describe('Test visitorFlagSyncStatusMessage function', () => {
   })
 
   it('should return a message containing "error" when FSFetchReasons.FETCH_ERROR is passed', () => {
-    const message = visitorFlagSyncStatusMessage(FSFetchReasons.FETCH_ERROR)
+    const message = visitorFlagSyncStatusMessage(FSFetchReasons.FLAGS_FETCHING_ERROR)
     expect(message).toEqual(expect.stringContaining('error'))
   })
 
   it('should return a message containing "fetched from cache" when FSFetchReasons.READ_FROM_CACHE is passed', () => {
-    const message = visitorFlagSyncStatusMessage(FSFetchReasons.READ_FROM_CACHE)
+    const message = visitorFlagSyncStatusMessage(FSFetchReasons.FLAGS_FETCHED_FROM_CACHE)
     expect(message).toEqual(expect.stringContaining('fetched from cache'))
   })
 })

@@ -1,6 +1,6 @@
 import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
-import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFSFlagMetadata, sdkInitialData, VisitorCacheStatus, FetchFlagsStatus, SerializedFlagMetadata, CampaignDTO, VisitorVariations, EAIScore } from '../types'
+import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFSFlagMetadata, sdkInitialData, VisitorCacheStatus, FlagsStatus, SerializedFlagMetadata, CampaignDTO, VisitorVariations, EAIScore } from '../types'
 
 import { IVisitor } from './IVisitor'
 import { FSSdkStatus, SDK_INFO, VISITOR_ID_ERROR } from '../enum/index'
@@ -44,8 +44,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _sdkInitialData?: sdkInitialData
   private _consentHitTroubleshooting? : Troubleshooting
   private _segmentHitTroubleshooting? : Troubleshooting
-  private _fetchStatus! : FetchFlagsStatus
-  private _onFetchFlagsStatusChanged? : ({ status, reason }: FetchFlagsStatus) => void
+  private _fetchStatus! : FlagsStatus
+  private _onFetchFlagsStatusChanged? : ({ status, reason }: FlagsStatus) => void
   private _getCampaignsPromise? : Promise<CampaignDTO[]|null>
   private _hasContextBeenUpdated : boolean
   private _emotionAi: IEmotionAI
@@ -69,19 +69,19 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._getCampaignsPromise = v
   }
 
-  public get onFetchFlagsStatusChanged () : (({ status, reason }: FetchFlagsStatus) => void)|undefined {
+  public get onFetchFlagsStatusChanged () : (({ status, reason }: FlagsStatus) => void)|undefined {
     return this._onFetchFlagsStatusChanged
   }
 
-  public set onFetchFlagsStatusChanged (v : (({ status, reason }: FetchFlagsStatus) => void)|undefined) {
+  public set onFetchFlagsStatusChanged (v : (({ status, reason }: FlagsStatus) => void)|undefined) {
     this._onFetchFlagsStatusChanged = v
   }
 
-  public get fetchStatus () : FetchFlagsStatus {
+  public get fetchStatus () : FlagsStatus {
     return this._fetchStatus
   }
 
-  public set fetchStatus (v : FetchFlagsStatus) {
+  public set fetchStatus (v : FlagsStatus) {
     this._fetchStatus = v
     if (this.onFetchFlagsStatusChanged) {
       this.onFetchFlagsStatusChanged(v)
@@ -195,7 +195,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     this.fetchStatus = {
       status: FSFetchStatus.FETCH_REQUIRED,
-      reason: FSFetchReasons.VISITOR_CREATED
+      reason: FSFetchReasons.FLAGS_NEVER_FETCHED
     }
 
     this._emotionAi.init(this)
