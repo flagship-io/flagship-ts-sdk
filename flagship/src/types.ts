@@ -98,7 +98,7 @@ export type SerializedFlagMetadata = {
 /**
  * Represents the status of visitor fetch for flag data.
  */
-export type FetchFlagsStatus = {
+export type FlagsStatus = {
   /**
    * The new status of the flags fetch.
    */
@@ -109,9 +109,6 @@ export type FetchFlagsStatus = {
   reason: FSFetchReasons;
 };
 
-/**
- * Represents a new visitor.
- */
 /**
  * Represents a new visitor.
  */
@@ -166,7 +163,7 @@ export type NewVisitor = {
    * @param newStatus - The new status of the flags fetch.
    * @param reason - The reason for the status change.
    */
-  onFetchFlagsStatusChanged?: ({ status, reason }: FetchFlagsStatus) => void;
+  onFetchFlagsStatusChanged?: ({ status, reason }: FlagsStatus) => void;
 };
 
 export type InternalHitType =
