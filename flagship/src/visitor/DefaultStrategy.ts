@@ -432,7 +432,7 @@ export class DefaultStrategy extends StrategyAbstract {
 
     this.visitor.fetchStatus = {
       status: FSFetchStatus.FETCH_REQUIRED,
-      reason: FSFetchReasons.FETCH_ERROR
+      reason: FSFetchReasons.FLAGS_FETCHING_ERROR
     }
 
     const troubleshootingHit = new Troubleshooting({
@@ -532,7 +532,7 @@ export class DefaultStrategy extends StrategyAbstract {
 
       this.visitor.fetchStatus = {
         status: FSFetchStatus.FETCH_REQUIRED,
-        reason: FSFetchReasons.FETCH_ERROR
+        reason: FSFetchReasons.FLAGS_FETCHING_ERROR
       }
       return { error: error as string, campaigns }
     }
@@ -565,7 +565,7 @@ export class DefaultStrategy extends StrategyAbstract {
     if (campaigns) {
       this.visitor.fetchStatus = {
         status: FSFetchStatus.FETCH_REQUIRED,
-        reason: FSFetchReasons.READ_FROM_CACHE
+        reason: FSFetchReasons.FLAGS_FETCHED_FROM_CACHE
       }
 
       logDebugSprintf(
@@ -679,7 +679,7 @@ export class DefaultStrategy extends StrategyAbstract {
         this.sendFetchFlagsTroubleshooting({
           campaigns,
           now,
-          isFromCache: this.visitor.fetchStatus.reason === FSFetchReasons.READ_FROM_CACHE
+          isFromCache: this.visitor.fetchStatus.reason === FSFetchReasons.FLAGS_FETCHED_FROM_CACHE
         })
         this.sendConsentHitTroubleshooting()
         this.sendSegmentHitTroubleshooting()
