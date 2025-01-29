@@ -82,18 +82,6 @@ export interface IFlagshipConfig {
   reuseVisitorIds?: boolean;
 
   /**
-   * A callback function to be called when the first bucketing polling succeeds.
-   * @param param - An object containing the status and payload of the bucketing response.
-   */
-  onBucketingSuccess?: (param: { status: number; payload?: BucketingDTO }) => void;
-
-  /**
-   * A callback function to be called when the first bucketing polling fails.
-   * @param error - The error object representing the failure.
-   */
-  onBucketingFail?: (error: Error) => void;
-
-  /**
    * A callback function to be called each time bucketing data from Flagship has been updated.
    * @param lastUpdate - The date of the last update.
    */
