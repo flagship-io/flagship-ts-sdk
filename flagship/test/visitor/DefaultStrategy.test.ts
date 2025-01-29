@@ -117,7 +117,7 @@ describe('test DefaultStrategy ', () => {
 
   fetchEAIScore.mockResolvedValue(undefined)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, OnFlagStatusChanged, emotionAi })
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFlagsStatusChanged: OnFlagStatusChanged, emotionAi })
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
   const predefinedContext = {
@@ -1210,7 +1210,7 @@ describe('test fetchFlags errors', () => {
 
   fetchEAIScore.mockResolvedValue(undefined)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, OnFlagStatusChanged, emotionAi })
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFlagsStatusChanged: OnFlagStatusChanged, emotionAi })
 
   const murmurHash = new MurmurHash()
 

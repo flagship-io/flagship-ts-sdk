@@ -143,7 +143,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     visitorProfileCache?: IVisitorProfileCache
   }) {
     const {
-      visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData, OnFlagStatusChanged: onFetchFlagsStatusChanged,
+      visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData, onFlagsStatusChanged: onFetchFlagsStatusChanged,
       emotionAi, visitorProfileCache
     } = param
     super()

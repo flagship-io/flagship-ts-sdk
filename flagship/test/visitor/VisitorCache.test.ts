@@ -69,7 +69,7 @@ describe('test visitor cache', () => {
 
   fetchEAIScore.mockResolvedValue(undefined)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, OnFlagStatusChanged, emotionAi })
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFlagsStatusChanged: OnFlagStatusChanged, emotionAi })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getStrategy = jest.spyOn(visitorDelegate, 'getStrategy' as any)
@@ -157,7 +157,7 @@ describe('test visitor cache', () => {
   it('test fetchVisitorCacheCampaigns defaultStrategy', async () => {
     getCampaignsAsync.mockResolvedValue(null)
     const OnFlagStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>()
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, OnFlagStatusChanged, emotionAi })
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFlagsStatusChanged: OnFlagStatusChanged, emotionAi })
     const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
     visitorDelegate.visitorCache = data

@@ -56,7 +56,7 @@ describe('test ApiManager', () => {
     visitorId,
     context,
     configManager: { config, decisionManager: apiManager, trackingManager },
-    OnFlagStatusChanged,
+    onFlagsStatusChanged: OnFlagStatusChanged,
     emotionAi
   })
 

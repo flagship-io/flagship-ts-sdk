@@ -211,7 +211,7 @@ describe('test VisitorDelegate', () => {
       configManager: configManager as ConfigManager,
       initialCampaigns: campaigns,
       hasConsented: true,
-      OnFlagStatusChanged,
+      onFlagsStatusChanged: OnFlagStatusChanged,
       emotionAi
     })
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(OnFlagStatusChanged)
