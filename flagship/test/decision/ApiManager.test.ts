@@ -44,7 +44,7 @@ describe('test ApiManager', () => {
   const visitorId = 'visitorId'
   const context = { age: 20 }
 
-  const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>()
+  const OnFlagStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>()
 
   const emotionAi = {
     init: jest.fn<(visitor:VisitorAbstract) => void>()
@@ -56,7 +56,7 @@ describe('test ApiManager', () => {
     visitorId,
     context,
     configManager: { config, decisionManager: apiManager, trackingManager },
-    onFetchFlagsStatusChanged,
+    OnFlagStatusChanged,
     emotionAi
   })
 

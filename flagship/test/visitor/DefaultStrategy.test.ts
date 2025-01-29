@@ -91,7 +91,7 @@ describe('test DefaultStrategy ', () => {
 
   const murmurHash = new MurmurHash()
 
-  const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>()
+  const OnFlagStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>()
 
   const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
 
@@ -117,7 +117,7 @@ describe('test DefaultStrategy ', () => {
 
   fetchEAIScore.mockResolvedValue(undefined)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged, emotionAi })
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, OnFlagStatusChanged, emotionAi })
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
   const predefinedContext = {
@@ -168,7 +168,7 @@ describe('test DefaultStrategy ', () => {
     expect(visitorDelegate.context).toStrictEqual({ ...context, ...newContext, ...predefinedContext })
     expect(visitorDelegate.fetchStatus).toEqual({ status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.UPDATE_CONTEXT })
 
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(onFetchFlagsStatusChanged)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(OnFlagStatusChanged)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(1)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledWith({ status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.UPDATE_CONTEXT })
 
@@ -1199,7 +1199,7 @@ describe('test fetchFlags errors', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>()
+  const OnFlagStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>()
 
   const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
 
@@ -1210,7 +1210,7 @@ describe('test fetchFlags errors', () => {
 
   fetchEAIScore.mockResolvedValue(undefined)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged, emotionAi })
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, OnFlagStatusChanged, emotionAi })
 
   const murmurHash = new MurmurHash()
 
@@ -1229,7 +1229,7 @@ describe('test fetchFlags errors', () => {
     expect(logError).toBeCalled()
     expect(logError).toBeCalledWith(error.message, PROCESS_FETCHING_FLAGS)
 
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(onFetchFlagsStatusChanged)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(OnFlagStatusChanged)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(2)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { status: FSFetchStatus.FETCHING, reason: FSFetchReasons.NONE })
     expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.FLAGS_FETCHING_ERROR })

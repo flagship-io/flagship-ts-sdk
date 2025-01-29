@@ -111,7 +111,7 @@ describe('test VisitorDelegate', () => {
     }
   }]
 
-  const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>()
+  const OnFlagStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>()
 
   const init = jest.fn<(visitor:VisitorAbstract) => void>()
   const collectEAIData = jest.fn<() => Promise<EAIScore|undefined>>
@@ -211,10 +211,10 @@ describe('test VisitorDelegate', () => {
       configManager: configManager as ConfigManager,
       initialCampaigns: campaigns,
       hasConsented: true,
-      onFetchFlagsStatusChanged,
+      OnFlagStatusChanged,
       emotionAi
     })
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(onFetchFlagsStatusChanged)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(OnFlagStatusChanged)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(1)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledWith({
       status: FSFetchStatus.FETCH_REQUIRED,

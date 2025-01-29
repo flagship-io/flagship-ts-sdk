@@ -163,7 +163,7 @@ export type NewVisitor = {
    * @param newStatus - The new status of the flags fetch.
    * @param reason - The reason for the status change.
    */
-  onFetchFlagsStatusChanged?: ({ status, reason }: FlagsStatus) => void;
+  OnFlagStatusChanged?: ({ status, reason }: FlagsStatus) => void;
 };
 
 export type InternalHitType =

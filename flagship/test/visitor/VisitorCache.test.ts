@@ -58,7 +58,7 @@ describe('test visitor cache', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>()
+  const OnFlagStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>()
 
   const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
 
@@ -69,7 +69,7 @@ describe('test visitor cache', () => {
 
   fetchEAIScore.mockResolvedValue(undefined)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged, emotionAi })
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, OnFlagStatusChanged, emotionAi })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getStrategy = jest.spyOn(visitorDelegate, 'getStrategy' as any)
@@ -156,13 +156,13 @@ describe('test visitor cache', () => {
 
   it('test fetchVisitorCacheCampaigns defaultStrategy', async () => {
     getCampaignsAsync.mockResolvedValue(null)
-    const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>()
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged, emotionAi })
+    const OnFlagStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>()
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, OnFlagStatusChanged, emotionAi })
     const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
     visitorDelegate.visitorCache = data
     await defaultStrategy.fetchFlags()
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(onFetchFlagsStatusChanged)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(OnFlagStatusChanged)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(3)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.FLAGS_NEVER_FETCHED })
     expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { status: FSFetchStatus.FETCHING, reason: FSFetchReasons.NONE })
