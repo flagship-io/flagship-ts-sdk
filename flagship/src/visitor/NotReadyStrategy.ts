@@ -79,6 +79,10 @@ export class NotReadyStrategy extends DefaultStrategy {
     //
   }
 
+  public async dispatchHit (): Promise<void> {
+    //
+  }
+
   private log (methodName:string) {
     logErrorSprintf(this.config, methodName, METHOD_DEACTIVATED_ERROR, this.visitor.visitorId, methodName, FSSdkStatus[FSSdkStatus.SDK_NOT_INITIALIZED])
   }
