@@ -67,6 +67,10 @@ export class NoConsentStrategy extends DefaultStrategy {
     //
   }
 
+  public async dispatchHit (): Promise<void> {
+    //
+  }
+
   private log (methodName:string) {
     logInfo(this.config, sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, this.visitor.visitorId), methodName)
   }
