@@ -95,6 +95,10 @@ export class PanicStrategy extends DefaultStrategy {
     //
   }
 
+  public async dispatchHit (): Promise<void> {
+    //
+  }
+
   private log (methodName:string) {
     logInfoSprintf(this.config, methodName, METHOD_DEACTIVATED_ERROR, this.visitor.visitorId, methodName, FSSdkStatus[FSSdkStatus.SDK_PANIC])
   }
