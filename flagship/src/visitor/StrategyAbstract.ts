@@ -287,6 +287,10 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     }
   }
 
+  public dispatchHit (hit: HitAbstract): Promise<void> {
+    return this.trackingManager.addHit(hit)
+  }
+
     abstract updateContext(key: string, value: primitive):void
     abstract updateContext(context: Record<string, primitive>): void
     abstract updateContext (context: Record<string, primitive> | string, value?:primitive): void
