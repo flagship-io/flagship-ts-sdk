@@ -47,6 +47,8 @@ import { IVisitorProfileCache } from '../type.local'
 import { VisitorProfileCacheNode } from '../visitor/VisitorProfileCacheNode'
 import { VisitorProfileCacheBrowser } from '../visitor/VisitorProfileCacheBrowser'
 import { SharedActionTracking } from '../sharedFeature/SharedActionTracking'
+import { SdkApi } from '../sdkApi/v1/SdkApi'
+import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking'
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
@@ -225,6 +227,15 @@ export class Flagship {
     }
   }
 
+  private buildSdkApi (sharedActionTracking: ISharedActionTracking):void {
+    window.ABTasty = {
+      ...window.ABTasty,
+      webSdk: {
+        v1: new SdkApi({ sharedActionTracking })
+      }
+    }
+  }
+
   private async initializeSdk (sdkConfig: IFlagshipConfig): Promise<void> {
     this.setStatus(FSSdkStatus.SDK_INITIALIZING)
 
@@ -243,6 +254,7 @@ export class Flagship {
     let sharedActionTracking = this.configManager?.sharedActionTracking
     if (!sharedActionTracking && isBrowser()) {
       sharedActionTracking = new SharedActionTracking()
+      this.buildSdkApi(sharedActionTracking)
     }
 
     this.configManager = new ConfigManager(sdkConfig, decisionManager, trackingManager, sharedActionTracking)
