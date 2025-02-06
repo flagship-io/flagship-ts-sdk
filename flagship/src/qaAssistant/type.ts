@@ -1,3 +1,4 @@
+import { ISdkApi } from '../sdkApi/v1/ISdkApi'
 import { FsVariationToForce, VisitorVariations } from '../types'
 
 declare global {
@@ -8,6 +9,11 @@ declare global {
             forcedVariations?:Record<string, FsVariationToForce>
             visitorVariations?: Record<string, VisitorVariations>
             exposedVariations?: Record<string, VisitorVariations>
+        },
+        ABTasty:{
+            webSdk:{
+                v1: ISdkApi
+            }
         }
     }
 }
