@@ -168,7 +168,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     if (cachedEAIScore) {
       this._EAIScore = cachedEAIScore
       this._EAIScoreChecked = true
-      this._visitor.updateContext(EAI_SCORE_CONTEXT_KEY, this._EAIScore?.eai?.eas)
+      this._visitor.context[EAI_SCORE_CONTEXT_KEY] = this._EAIScore?.eai?.eas
       this.sendEAIScoreTroubleshooting(this._EAIScore)
       return this._EAIScore
     }
