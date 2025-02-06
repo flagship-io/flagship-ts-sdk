@@ -47,13 +47,13 @@ export class SharedActionTracking implements ISharedActionTracking {
 
     const payload = event.data
 
-    if (payload.action !== SharedAction.ABT_TAG_TRACK_ACTION || !payload.nonce) {
+    if (payload.action !== SharedAction.ABT_WEB_SDK_TRACK_ACTION || !payload.nonce) {
       return
     }
 
     const { nonce } = payload
 
-    if (!(nonce in this.trustedNonces) || !this.trustedNonces[nonce]) {
+    if (this.trustedNonces[nonce]) {
       return
     }
 
@@ -90,7 +90,7 @@ export class SharedActionTracking implements ISharedActionTracking {
     const nonce = Date.now().toString() // Will be replaced by a real nonce generator from tag API
 
     const payload: SharedActionPayload = {
-      action: SharedAction.ABT_WEB_SDK_TRACK_ACTION,
+      action: SharedAction.ABT_TAG_TRACK_ACTION,
       data: {
         ec: 'Action Tracking',
         ea: hit.action,
