@@ -46,6 +46,7 @@ import { IEmotionAI } from '../emotionAI/IEmotionAI'
 import { IVisitorProfileCache } from '../type.local'
 import { VisitorProfileCacheNode } from '../visitor/VisitorProfileCacheNode'
 import { VisitorProfileCacheBrowser } from '../visitor/VisitorProfileCacheBrowser'
+import { SharedActionTracking } from '../sharedFeature/SharedActionTracking'
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
@@ -239,7 +240,12 @@ export class Flagship {
     decisionManager.statusChangedCallback(this.setStatus.bind(this))
     decisionManager.flagshipInstanceId = this.instanceId
 
-    this.configManager = new ConfigManager(sdkConfig, decisionManager, trackingManager)
+    let sharedActionTracking = this.configManager?.sharedActionTracking
+    if (!sharedActionTracking && isBrowser()) {
+      sharedActionTracking = new SharedActionTracking()
+    }
+
+    this.configManager = new ConfigManager(sdkConfig, decisionManager, trackingManager, sharedActionTracking)
 
     await this._sdkManager?.initSdk()
 
@@ -352,6 +358,7 @@ export class Flagship {
     }
 
     const sdkConfig = flagship.getConfig()
+    const configManager = flagship.configManager
 
     if (hasConsented === undefined) {
       logWarning(sdkConfig, CONSENT_NOT_SPECIFY_WARNING, PROCESS_NEW_VISITOR)
@@ -381,7 +388,7 @@ export class Flagship {
       context: context || {},
       isAuthenticated: isAuthenticated ?? false,
       hasConsented: hasConsented ?? false,
-      configManager: this.getInstance().configManager,
+      configManager,
       initialCampaigns,
       initialFlagsData,
       onFlagsStatusChanged,
@@ -395,6 +402,10 @@ export class Flagship {
       },
       murmurHash: new MurmurHash()
     })
+
+    if (isBrowser() && configManager.sharedActionTracking) {
+      configManager.sharedActionTracking.initialize(visitorDelegate)
+    }
 
     const visitor = new Visitor(visitorDelegate)
     this.getInstance()._visitorInstance = saveInstance ? visitor : undefined
