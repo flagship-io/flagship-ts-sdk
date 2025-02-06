@@ -1,3 +1,5 @@
+import { IConfigManager } from './config/ConfigManager'
+import { ISharedActionTracking } from './sharedFeature/ISharedActionTracking'
 import { FlagDTO, VisitorProfile } from './types'
 
 export type VisitorExposedParam = {
@@ -44,4 +46,8 @@ export interface SharedActionPayload {
   };
   nonce: string; // Unique nonce for ensuring message authenticity
   timestamp: number;
+}
+
+export type SdkApiParam = {
+  sharedActionTracking?: ISharedActionTracking;
 }
