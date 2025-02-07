@@ -1,4 +1,4 @@
-import { IConfigManager } from './config/ConfigManager'
+import { IFlagshipConfig } from './config/IFlagshipConfig'
 import { ISharedActionTracking } from './sharedFeature/ISharedActionTracking'
 import { FlagDTO, VisitorProfile } from './types'
 
@@ -36,18 +36,31 @@ export enum SharedAction {
   ABT_WEB_SDK_TRACK_ACTION = 'ABT_WEB_SDK_TRACK_ACTION',
 }
 
+export type ActionTrackingData = {
+  ec: 'Action Tracking';
+  ea: string; // Event name
+  ev?: number; // event value
+  el?: string; // event label
+};
+
+export type LocalActionTracking = {
+  data: ActionTrackingData;
+  visitorId: string;
+  createdAt: number;
+  anonymousId?: string | null;
+}
+
 export interface SharedActionPayload {
   action: SharedAction;
-  data: {
-    ec: 'Action Tracking',
-    ea: string, // Event name
-    ev?: number, // event value
-    el?: string, // event label
-  };
+  data: ActionTrackingData[];
   nonce: string; // Unique nonce for ensuring message authenticity
   timestamp: number;
 }
 
 export type SdkApiParam = {
   sharedActionTracking?: ISharedActionTracking;
+}
+
+export type SharedActionTrackingParam = {
+  sdkConfig: IFlagshipConfig;
 }
