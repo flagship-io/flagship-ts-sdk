@@ -241,8 +241,15 @@ export class Flagship {
 
     this._sdkManager?.resetSdk()
 
+    let sharedActionTracking = this.configManager?.sharedActionTracking
+    if (!sharedActionTracking && isBrowser()) {
+      sharedActionTracking = new SharedActionTracking({ sdkConfig })
+      this.buildSdkApi(sharedActionTracking)
+    }
+
     const httpClient = new HttpClient()
-    const trackingManager = this.configManager?.trackingManager || new TrackingManager(httpClient, sdkConfig, this.instanceId)
+    const trackingManager = this.configManager?.trackingManager || new TrackingManager(httpClient, sdkConfig,
+      this.instanceId, sharedActionTracking)
 
     const { sdkManager, decisionManager } = this.createManagers(httpClient, sdkConfig, trackingManager)
 
@@ -250,12 +257,6 @@ export class Flagship {
 
     decisionManager.statusChangedCallback(this.setStatus.bind(this))
     decisionManager.flagshipInstanceId = this.instanceId
-
-    let sharedActionTracking = this.configManager?.sharedActionTracking
-    if (!sharedActionTracking && isBrowser()) {
-      sharedActionTracking = new SharedActionTracking()
-      this.buildSdkApi(sharedActionTracking)
-    }
 
     this.configManager = new ConfigManager(sdkConfig, decisionManager, trackingManager, sharedActionTracking)
 
