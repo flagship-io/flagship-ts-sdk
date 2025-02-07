@@ -332,3 +332,11 @@ export const DIRECT_HIT = 'HIT'
 export const GET_THIRD_PARTY_SEGMENT = 'GET_THIRD_PARTY_SEGMENT'
 
 export const CONSENT_NOT_SPECIFY_WARNING = 'Consent has not been specified. By default, consent is set to false, which may result in some features being deactivated.'
+
+export const ACTION_TRACKING = 'Action Tracking'
+export const ACTION_TRACKING_HIT_RECEIVED = 'Hit received: {0}'
+export const ACTION_TRACKING_INVALID_HIT = 'Invalid hit data: {0}'
+export const ACTION_TRACKING_INVALID_NONCE = 'Invalid nonce: {0}'
+export const ACTION_TRACKING_SENDING_HIT = 'Sending hit: {0}'
+export const ACTION_TRACKING_SENDING_HIT_ERROR = 'Failed to send hit: {0}'
+export const ACTION_TRACKING_DISPATCHED = 'action tracking hits have been dispatched {0}'
