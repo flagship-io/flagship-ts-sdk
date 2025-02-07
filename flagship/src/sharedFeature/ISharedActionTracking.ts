@@ -1,8 +1,8 @@
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
-import { Event as EventHit } from '../hit'
+import { LocalActionTracking } from '../type.local'
 
 export interface ISharedActionTracking {
     initialize(visitor:VisitorAbstract): void;
-    dispatchEventHit(hit: EventHit): void;
+    dispatchEventHits(hits: LocalActionTracking[]): void;
     generateNonce(): string;
 }
