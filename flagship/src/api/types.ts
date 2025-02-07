@@ -5,6 +5,7 @@ import { Activate } from '../hit/Activate'
 import { UsageHit } from '../hit/UsageHit'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { IHttpClient } from '../utils/HttpClient'
+import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking'
 
 export type BatchingCachingStrategyConstruct = {
     config: IFlagshipConfig,
@@ -15,6 +16,7 @@ export type BatchingCachingStrategyConstruct = {
     analyticHitQueue: Map<string, UsageHit>
     flagshipInstanceId?:string
     initTroubleshootingHit?: Troubleshooting
+    sharedActionTracking?: ISharedActionTracking
    }
 
 export type SendActivate = {

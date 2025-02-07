@@ -56,13 +56,13 @@ export type ExposedVariation = {
 };
 
 export type IHit =
-  | Omit<IPage, 'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'>
-  | Omit<IScreen, 'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'>
-  | Omit<IEvent, 'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'>
-  | Omit<IItem, 'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'>
+  | Omit<IPage, 'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'|'isActionTrackingHit'>
+  | Omit<IScreen, 'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'|'isActionTrackingHit'>
+  | Omit<IEvent, 'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'|'isActionTrackingHit'>
+  | Omit<IItem, 'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'|'isActionTrackingHit'>
   | Omit<
       ITransaction,
-      'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'
+      'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'|'isActionTrackingHit'
     >;
 
 export type FlagDTO = {

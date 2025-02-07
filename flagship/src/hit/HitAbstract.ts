@@ -27,7 +27,8 @@ export interface IHitAbstract{
   locale?: string
   sessionNumber?: string,
   createdAt:number,
-  qaMode?: boolean
+  qaMode?: boolean,
+  isActionTrackingHit?: boolean
 }
 
 export abstract class HitAbstract implements IHitAbstract {
@@ -43,6 +44,15 @@ export abstract class HitAbstract implements IHitAbstract {
   private _key! : string
   private _createdAt!: number
   private _qaMode? : boolean
+  private _isActionTrackingHit : boolean|undefined
+
+  public get isActionTrackingHit () : boolean|undefined {
+    return this._isActionTrackingHit
+  }
+
+  public set isActionTrackingHit (v : boolean|undefined) {
+    this._isActionTrackingHit = v
+  }
 
   public get key () : string {
     return this._key
@@ -137,7 +147,7 @@ export abstract class HitAbstract implements IHitAbstract {
   }
 
   protected constructor (hit: Omit<IHitAbstract, 'createdAt'|'traffic'>) {
-    const { type, userIp, screenResolution, locale, sessionNumber, visitorId, anonymousId, ds, qaMode } = hit
+    const { type, userIp, screenResolution, locale, sessionNumber, visitorId, anonymousId, ds, qaMode, isActionTrackingHit } = hit
     this._type = type
     if (userIp) {
       this.userIp = userIp
@@ -157,6 +167,7 @@ export abstract class HitAbstract implements IHitAbstract {
     this.createdAt = Date.now()
     this.ds = ds || SDK_APP
     this.qaMode = qaMode
+    this.isActionTrackingHit = isActionTrackingHit
   }
 
   /**
