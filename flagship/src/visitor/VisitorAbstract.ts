@@ -467,8 +467,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     return this.getStrategy().sendUsageHit(hit)
   }
 
-  public dispatchHit (hit: HitAbstract): Promise<void> {
-    return this.getStrategy().dispatchHit(hit)
+  public addInTrackingManager (hit: HitAbstract): Promise<void> {
+    return this.getStrategy().addInTrackingManager(hit)
   }
 
   abstract updateContext(key: string, value: primitive):void

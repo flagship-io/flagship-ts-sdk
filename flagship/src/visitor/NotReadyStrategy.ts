@@ -79,7 +79,7 @@ export class NotReadyStrategy extends DefaultStrategy {
     //
   }
 
-  public async dispatchHit (): Promise<void> {
+  public async addInTrackingManager (): Promise<void> {
     //
   }
 

@@ -95,7 +95,7 @@ export class PanicStrategy extends DefaultStrategy {
     //
   }
 
-  public async dispatchHit (): Promise<void> {
+  public async addInTrackingManager (): Promise<void> {
     //
   }
 
