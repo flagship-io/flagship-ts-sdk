@@ -5,13 +5,15 @@ import { Activate } from '../hit/Activate'
 import { UsageHit } from '../hit/UsageHit'
 import { Batch } from '../hit/Batch'
 import { Troubleshooting } from '../hit/Troubleshooting'
-import { HitAbstract, Event } from '../hit/index'
+import { HitAbstract, Event, EventCategory } from '../hit/index'
 import { HitCacheDTO, IExposedFlag, IExposedVisitor, TroubleshootingData, TroubleshootingLabel } from '../types'
 import { IHttpClient } from '../utils/HttpClient'
 import { errorFormat, isBrowser, logDebug, logDebugSprintf, logError, logErrorSprintf, sprintf, uuidV4 } from '../utils/utils'
 import { ITrackingManagerCommon } from './ITrackingManagerCommon'
 import type { BatchingCachingStrategyConstruct, SendActivate } from './types'
 import { sendFsHitToQA } from '../qaAssistant/messages/index'
+import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking'
+import { LocalActionTracking } from '../type.local'
 
 export abstract class BatchingCachingStrategyAbstract implements ITrackingManagerCommon {
   protected _config : IFlagshipConfig
@@ -28,6 +30,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   private _troubleshootingData? : TroubleshootingData
   private _initTroubleshootingHit?: Troubleshooting
   private _hasInitTroubleshootingHitSent: boolean
+  protected _sharedActionTracking?: ISharedActionTracking
 
   public get flagshipInstanceId (): string|undefined {
     return this._flagshipInstanceId
@@ -54,7 +57,10 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   }
 
   constructor (param: BatchingCachingStrategyConstruct) {
-    const { config, hitsPoolQueue, httpClient, activatePoolQueue, troubleshootingQueue, flagshipInstanceId, analyticHitQueue, initTroubleshootingHit: initTroubleshootingHi } = param
+    const {
+      config, hitsPoolQueue, httpClient, activatePoolQueue, troubleshootingQueue, flagshipInstanceId,
+      analyticHitQueue, initTroubleshootingHit: initTroubleshootingHi, sharedActionTracking
+    } = param
     this._HitsToFsQa = []
     this._hasInitTroubleshootingHitSent = false
     this._config = config
@@ -67,6 +73,36 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     this._isUsageHitQueueSending = false
     this._isTroubleshootingQueueSending = false
     this._initTroubleshootingHit = initTroubleshootingHi
+    this._sharedActionTracking = sharedActionTracking
+  }
+
+  protected dispatchHitsToTag (hits: HitAbstract[]): void {
+    if (!isBrowser()) {
+      return
+    }
+    const actionTrackingHits:LocalActionTracking[] = []
+
+    for (const hit of hits) {
+      if (hit.type === HitType.EVENT &&
+        (hit as Event).category === EventCategory.ACTION_TRACKING &&
+        !(hit as Event).isActionTrackingHit) {
+        const eventHit = hit as Event
+        actionTrackingHits.push({
+          visitorId: eventHit.visitorId,
+          createdAt: eventHit.createdAt,
+          anonymousId: eventHit.anonymousId,
+          data: {
+            ec: eventHit.category as EventCategory.ACTION_TRACKING,
+            ea: eventHit.action,
+            el: eventHit.label,
+            ev: eventHit.value
+          }
+        })
+      }
+    }
+    if (actionTrackingHits.length) {
+      this._sharedActionTracking?.dispatchEventHits(actionTrackingHits)
+    }
   }
 
   public sendHitsToFsQa (hits: HitAbstract[]) {
@@ -225,6 +261,8 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       await this.flushHits(hitKeysToRemove)
 
       this.sendHitsToFsQa(batch.hits)
+
+      this.dispatchHitsToTag(batch.hits)
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
