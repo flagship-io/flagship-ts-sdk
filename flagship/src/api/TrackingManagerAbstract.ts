@@ -15,6 +15,7 @@ import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 import { ITrackingManager } from './ITrackingManager'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { UsageHit } from '../hit/UsageHit'
+import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking'
 
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
@@ -32,6 +33,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   protected _isPooling = false
   private _flagshipInstanceId?: string
   private _initTroubleshootingHit? : Troubleshooting
+  private _sharedActionTracking?: ISharedActionTracking
 
   public get initTroubleshootingHit () : Troubleshooting|undefined {
     return this._initTroubleshootingHit
@@ -54,7 +56,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     this.strategy.troubleshootingData = v
   }
 
-  constructor (httpClient: IHttpClient, config: IFlagshipConfig, flagshipInstanceId?:string) {
+  constructor (httpClient: IHttpClient, config: IFlagshipConfig, flagshipInstanceId?:string, sharedActionTracking?: ISharedActionTracking) {
     this._flagshipInstanceId = flagshipInstanceId
     this._hitsPoolQueue = new Map<string, HitAbstract>()
     this._activatePoolQueue = new Map<string, Activate>()
@@ -62,6 +64,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     this._analyticHitQueue = new Map<string, UsageHit>()
     this._httpClient = httpClient
     this._config = config
+    this._sharedActionTracking = sharedActionTracking
     this.strategy = this.initStrategy()
     this.lookupHits()
   }
@@ -76,7 +79,8 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
       troubleshootingQueue: this._troubleshootingQueue,
       analyticHitQueue: this._analyticHitQueue,
       flagshipInstanceId: this.flagshipInstanceId,
-      initTroubleshootingHit: this.initTroubleshootingHit
+      initTroubleshootingHit: this.initTroubleshootingHit,
+      sharedActionTracking: this._sharedActionTracking
     }
     switch (this.config.trackingManagerConfig?.cacheStrategy) {
       case CacheStrategy.PERIODIC_CACHING:
