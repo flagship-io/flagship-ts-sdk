@@ -155,6 +155,8 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
 
       this.sendHitsToFsQa(batch.hits)
 
+      this.dispatchHitsToTag(batch.hits)
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       batch.hits.forEach((hit) => {
