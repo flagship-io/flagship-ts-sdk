@@ -66,7 +66,7 @@ export class SharedActionTracking implements ISharedActionTracking {
   }
 
   private handleMessage (event: MessageEvent<SharedActionPayload>): void {
-    if (!event || !event.data || !event.origin || event.origin !== window.location.origin || !this.visitor) {
+    if (!event?.data || event?.origin !== window.location.origin || !this.visitor) {
       return
     }
 
@@ -79,6 +79,8 @@ export class SharedActionTracking implements ISharedActionTracking {
     const { nonce } = payload
 
     if (this.trustedNonces[nonce] === undefined || this.trustedNonces[nonce]) {
+      console.log('Invalid nonce', nonce)
+
       logDebugSprintf(this.sdkConfig, ACTION_TRACKING, ACTION_TRACKING_INVALID_NONCE, nonce)
       return
     }
