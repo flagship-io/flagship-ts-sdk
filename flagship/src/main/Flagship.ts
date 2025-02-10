@@ -228,6 +228,9 @@ export class Flagship {
   }
 
   private buildSdkApi (sharedActionTracking: ISharedActionTracking):void {
+    if (typeof window === 'undefined') {
+      return
+    }
     window.ABTasty = {
       ...window.ABTasty,
       webSdk: {
