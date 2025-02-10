@@ -8,7 +8,7 @@ import { ISharedActionTracking } from './ISharedActionTracking'
 
 export class SharedActionTracking implements ISharedActionTracking {
   private visitor: VisitorAbstract | null = null
-  private static handleMessage: (event: MessageEvent<SharedActionPayload>) => void
+  private onMessageReceived?: (event: MessageEvent<SharedActionPayload>) => void
   protected trustedNonces: Record<string, boolean>
   protected initTimestamp?: number
   protected sdkConfig: IFlagshipConfig
@@ -35,13 +35,13 @@ export class SharedActionTracking implements ISharedActionTracking {
       return
     }
 
-    if (SharedActionTracking.handleMessage) {
-      window?.removeEventListener('message', SharedActionTracking.handleMessage)
+    if (this.onMessageReceived) {
+      window?.removeEventListener('message', this.onMessageReceived)
     }
-    SharedActionTracking.handleMessage = (event: MessageEvent<SharedActionPayload>) => {
+    this.onMessageReceived = (event: MessageEvent<SharedActionPayload>) => {
       this.handleMessage(event)
     }
-    window?.addEventListener('message', SharedActionTracking.handleMessage)
+    window?.addEventListener('message', this.onMessageReceived)
   }
 
   protected processHit (hit: ActionTrackingData): void {
@@ -72,7 +72,7 @@ export class SharedActionTracking implements ISharedActionTracking {
 
     const payload = event.data
 
-    if (payload.action !== SharedAction.ABT_WEB_SDK_TRACK_ACTION || !payload.nonce) {
+    if (payload.action !== SharedAction.ABT_TAG_TRACK_ACTION || !payload.nonce) {
       return
     }
 
@@ -118,7 +118,7 @@ export class SharedActionTracking implements ISharedActionTracking {
     const nonce = Date.now().toString() // Will be replaced by a real nonce generator from tag API
 
     const payload: SharedActionPayload = {
-      action: SharedAction.ABT_TAG_TRACK_ACTION,
+      action: SharedAction.ABT_WEB_SDK_TRACK_ACTION,
       data: hitsToDispatch,
       nonce,
       timestamp: Date.now()
