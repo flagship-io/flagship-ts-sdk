@@ -5,93 +5,87 @@ import { SharedActionTracking } from '../../src/sharedFeature/SharedActionTracki
 import * as utils from '../../src/utils/utils'
 import { DecisionApiConfig, EventCategory, LogLevel } from '../../src'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
-import { SharedAction } from '../../src/type.local'
+import { LocalActionTracking, SharedAction, SharedActionPayload } from '../../src/type.local'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
+import { jest, describe, it, expect } from '@jest/globals'
 
 describe('SharedActionTracking Tests', () => {
-  let addEventListenerSpy: jest.SpyInstance
-  let removeEventListenerSpy: jest.SpyInstance
   const isBrowserSpy = jest.spyOn(utils, 'isBrowser')
 
   const addEventListenerOriginal = window.addEventListener
   const removeEventListenerOriginal = window.removeEventListener
 
-  // describe('SharedActionTracking', () => {
-  //   const sdkConfig = new DecisionApiConfig({
-  //     apiKey: 'apiKey',
-  //     envId: 'envId',
-  //     logLevel: LogLevel.DEBUG
-  //   })
-  //   const sharedActionTracking = new SharedActionTracking({ sdkConfig })
+  const logDebugSpy = jest.fn()
 
-  //   const visitorMock = {
-  //     visitorId: 'visitor_123',
-  //     anonymousId: 'anon_456',
-  //     addInTrackingManager: jest.fn()
-  //   } as unknown as VisitorAbstract
-  //   beforeAll(() => {
-  //     addEventListenerSpy = jest.spyOn(window, 'addEventListener')
-  //     removeEventListenerSpy = jest.spyOn(window, 'removeEventListener')
-  //   })
+  const sdkConfig = new DecisionApiConfig({
+    apiKey: 'apiKey',
+    envId: 'envId',
+    logLevel: LogLevel.DEBUG,
+    logManager: {
+      debug: logDebugSpy
+    } as unknown as FlagshipLogManager
+  })
 
-  //   afterAll(() => {
-  //     jest.restoreAllMocks()
-  //     window.addEventListener = addEventListenerOriginal
-  //     window.removeEventListener = removeEventListenerOriginal
-  //   })
+  const sharedActionTracking = new SharedActionTracking({ sdkConfig })
 
-  //   test('generateNonce returns empty string when not in browser', () => {
-  //     isBrowserSpy.mockReturnValue(false)
-  //     const nonce = sharedActionTracking.generateNonce()
-  //     expect(nonce).toBe('')
-  //   })
-
-  //   test('generateNonce returns a nonce and registers it when in browser', () => {
-  //     isBrowserSpy.mockReturnValue(true)
-  //     const nonce = sharedActionTracking.generateNonce()
-  //     expect(nonce).toBeTruthy()
-  //     expect((sharedActionTracking as any).trustedNonces[nonce]).toBe(false)
-  //   })
-
-  //   it('initialize sets visitor when not in browser', () => {
-  //     isBrowserSpy.mockReturnValue(false)
-  //     sharedActionTracking.initialize(visitorMock)
-  //     expect(removeEventListenerSpy).toHaveBeenCalledTimes(0)
-  //     expect(addEventListenerSpy).toHaveBeenCalledTimes(0)
-  //   })
-
-  //   test('initialize sets visitor and initTimestamp and manages message listeners', () => {
-  //     isBrowserSpy.mockReturnValue(true)
-  //     sharedActionTracking.initialize(visitorMock)
-  //     expect(removeEventListenerSpy).toHaveBeenCalledTimes(0)
-  //     expect(addEventListenerSpy).toHaveBeenCalledTimes(1)
-  //     expect(addEventListenerSpy).toHaveBeenCalledWith('message', expect.any(Function))
-  //   })
-  // })
-
-  describe('processHit', () => {
-    const logManager = new FlagshipLogManager()
-    const sdkConfig = new DecisionApiConfig({
-      apiKey: 'apiKey',
-      envId: 'envId',
-      logLevel: LogLevel.INFO,
-      logManager
-    })
-
-    const sharedActionTracking = new SharedActionTracking({ sdkConfig })
+  describe('SharedActionTracking', () => {
+    let addEventListenerSpy: jest.SpiedFunction<typeof window.addEventListener>
+    let removeEventListenerSpy: jest.SpiedFunction<typeof window.removeEventListener>
 
     const visitorMock = {
       visitorId: 'visitor_123',
       anonymousId: 'anon_456',
       addInTrackingManager: jest.fn()
     } as unknown as VisitorAbstract
+    beforeAll(() => {
+      addEventListenerSpy = jest.spyOn(window, 'addEventListener')
+      removeEventListenerSpy = jest.spyOn(window, 'removeEventListener')
+    })
 
-    const logDebugSpy = jest.spyOn(logManager, 'debug')
+    afterAll(() => {
+      window.addEventListener = addEventListenerOriginal
+      window.removeEventListener = removeEventListenerOriginal
+    })
+
+    test('generateNonce returns empty string when not in browser', () => {
+      isBrowserSpy.mockReturnValue(false)
+      const nonce = sharedActionTracking.generateNonce()
+      expect(nonce).toBe('')
+    })
+
+    test('generateNonce returns a nonce and registers it when in browser', () => {
+      isBrowserSpy.mockReturnValue(true)
+      const nonce = sharedActionTracking.generateNonce()
+      expect(nonce).toBeTruthy()
+      expect((sharedActionTracking as any).trustedNonces[nonce]).toBe(false)
+    })
+
+    it('initialize sets visitor when not in browser', () => {
+      isBrowserSpy.mockReturnValue(false)
+      sharedActionTracking.initialize(visitorMock)
+      expect(removeEventListenerSpy).toHaveBeenCalledTimes(0)
+      expect(addEventListenerSpy).toHaveBeenCalledTimes(0)
+    })
+
+    test('initialize sets visitor and initTimestamp and manages message listeners', () => {
+      isBrowserSpy.mockReturnValue(true)
+      sharedActionTracking.initialize(visitorMock)
+      expect(removeEventListenerSpy).toHaveBeenCalledTimes(0)
+      expect(addEventListenerSpy).toHaveBeenCalledTimes(1)
+      expect(addEventListenerSpy).toHaveBeenCalledWith('message', expect.any(Function))
+    })
+  })
+
+  describe('processHit', () => {
+    const visitorMock = {
+      visitorId: 'visitor_123',
+      anonymousId: 'anon_456',
+      addInTrackingManager: jest.fn()
+    } as unknown as VisitorAbstract
 
     beforeAll(() => {
       window.addEventListener = addEventListenerOriginal
       window.removeEventListener = removeEventListenerOriginal
-      isBrowserSpy.mockReturnValue(true)
       sharedActionTracking.initialize(visitorMock)
     })
 
@@ -100,6 +94,218 @@ describe('SharedActionTracking Tests', () => {
 
       const hit = {
         ec: EventCategory.ACTION_TRACKING,
+        ea: 'click',
+        el: 'test label',
+        ev: 42
+      }
+
+      const hit2 = {
+        ec: EventCategory.ACTION_TRACKING,
+        ea: 'click2',
+        el: 'test label 2',
+        ev: 45
+      }
+
+      const payload = {
+        action: SharedAction.ABT_TAG_TRACK_ACTION,
+        nonce,
+        data: [hit, hit2],
+        timestamp: Date.now()
+      }
+
+      const messageEvent = new MessageEvent('message', {
+        data: payload,
+        origin: window.location.origin
+      })
+
+      window.dispatchEvent(messageEvent)
+
+      expect(visitorMock.addInTrackingManager).toBeCalledTimes(2)
+      expect(visitorMock.addInTrackingManager).toHaveBeenNthCalledWith(1, expect.objectContaining({
+        category: hit.ec,
+        action: hit.ea,
+        label: hit.el,
+        value: hit.ev,
+        visitorId: visitorMock.visitorId,
+        anonymousId: visitorMock.anonymousId
+      }))
+      expect(visitorMock.addInTrackingManager).toHaveBeenNthCalledWith(2, expect.objectContaining({
+        category: hit2.ec,
+        action: hit2.ea,
+        label: hit2.el,
+        value: hit2.ev,
+        visitorId: visitorMock.visitorId,
+        anonymousId: visitorMock.anonymousId
+      }))
+    })
+
+    it('should not call visitor.addInTrackingManager when a message event is dispatched with different origin or data is undefined', () => {
+      const nonce = sharedActionTracking.generateNonce()
+
+      const hit = {
+        ec: EventCategory.ACTION_TRACKING,
+        ea: 'click',
+        el: 'test label',
+        ev: 42
+      }
+
+      const payload = {
+        action: SharedAction.ABT_TAG_TRACK_ACTION,
+        nonce,
+        data: [hit],
+        timestamp: Date.now()
+      }
+
+      const messageEvent = new MessageEvent('message', {
+        data: payload,
+        origin: 'https://example.com'
+      })
+
+      window.dispatchEvent(messageEvent)
+
+      expect(visitorMock.addInTrackingManager).toBeCalledTimes(0)
+
+      const messageEvent2 = new MessageEvent('message', {
+        origin: 'https://example.com'
+      })
+
+      window.dispatchEvent(messageEvent2)
+
+      expect(visitorMock.addInTrackingManager).toBeCalledTimes(0)
+    })
+
+    it('should not call visitor.addInTrackingManager when a message event is dispatched with different action or nonce is undefined', () => {
+      const nonce = sharedActionTracking.generateNonce()
+
+      const hit = {
+        ec: EventCategory.ACTION_TRACKING,
+        ea: 'click',
+        el: 'test label',
+        ev: 42
+      }
+
+      const payload2 = {
+        action: SharedAction.ABT_TAG_TRACK_ACTION,
+        nonce: undefined,
+        data: [hit],
+        timestamp: Date.now()
+      }
+
+      const messageEvent2 = new MessageEvent('message', {
+        data: payload2,
+        origin: window.location.origin
+      })
+
+      window.dispatchEvent(messageEvent2)
+
+      expect(visitorMock.addInTrackingManager).toBeCalledTimes(0)
+
+      const payload3 = {
+        action: 'invalid_action' as SharedAction,
+        nonce,
+        data: [hit],
+        timestamp: Date.now()
+      }
+
+      const messageEvent3 = new MessageEvent('message', {
+        data: payload3,
+        origin: window.location.origin
+      })
+
+      window.dispatchEvent(messageEvent3)
+
+      expect(visitorMock.addInTrackingManager).toBeCalledTimes(0)
+    })
+
+    it('should not call visitor.addInTrackingManager when a message event is dispatched with invalid nonce', () => {
+      const hit = {
+        ec: EventCategory.ACTION_TRACKING,
+        ea: 'click',
+        el: 'test label',
+        ev: 42
+      }
+
+      const payload = {
+        action: SharedAction.ABT_TAG_TRACK_ACTION,
+        nonce: 'invalid_nonce',
+        data: [hit],
+        timestamp: Date.now()
+      }
+
+      const messageEvent = new MessageEvent('message', {
+        data: payload,
+        origin: window.location.origin
+      })
+
+      window.dispatchEvent(messageEvent)
+
+      expect(visitorMock.addInTrackingManager).toBeCalledTimes(0)
+      expect(logDebugSpy).toBeCalledTimes(1)
+
+      const nonce = sharedActionTracking.generateNonce()
+
+      const payload2 = {
+        action: SharedAction.ABT_TAG_TRACK_ACTION,
+        nonce,
+        data: [hit],
+        timestamp: Date.now()
+      }
+
+      const messageEvent2 = new MessageEvent('message', {
+        data: payload2,
+        origin: window.location.origin
+      })
+
+      window.dispatchEvent(messageEvent2)
+
+      expect(visitorMock.addInTrackingManager).toBeCalledTimes(1)
+      expect(logDebugSpy).toBeCalledTimes(2)
+
+      window.dispatchEvent(messageEvent2)
+
+      expect(visitorMock.addInTrackingManager).toBeCalledTimes(1)
+      expect(logDebugSpy).toBeCalledTimes(3)
+    })
+
+    it('should not call visitor.addInTrackingManager when a message event is dispatched without hit data', () => {
+      const nonce = sharedActionTracking.generateNonce()
+
+      const payload = {
+        action: SharedAction.ABT_TAG_TRACK_ACTION,
+        nonce,
+        data: undefined,
+        timestamp: Date.now()
+      }
+
+      const messageEvent = new MessageEvent('message', {
+        data: payload,
+        origin: window.location.origin
+      })
+
+      window.dispatchEvent(messageEvent)
+
+      expect(visitorMock.addInTrackingManager).toBeCalledTimes(0)
+
+      const payload2 = {
+        action: SharedAction.ABT_TAG_TRACK_ACTION,
+        nonce,
+        data: [],
+        timestamp: Date.now()
+      }
+
+      const messageEvent2 = new MessageEvent('message', {
+        data: payload2,
+        origin: window.location.origin
+      })
+
+      window.dispatchEvent(messageEvent2)
+    })
+
+    it('should not call visitor.addInTrackingManager when a message event is dispatched with invalid event category', () => {
+      const nonce = sharedActionTracking.generateNonce()
+
+      const hit = {
+        ec: 'invalid_ec' as EventCategory,
         ea: 'click',
         el: 'test label',
         ev: 42
@@ -119,164 +325,147 @@ describe('SharedActionTracking Tests', () => {
 
       window.dispatchEvent(messageEvent)
 
-      expect(visitorMock.addInTrackingManager).toBeCalledTimes(1)
-      expect(visitorMock.addInTrackingManager).toBeCalledWith(expect.objectContaining({
-        category: hit.ec,
-        action: hit.ea,
-        label: hit.el,
-        value: hit.ev,
-        visitorId: visitorMock.visitorId,
-        anonymousId: visitorMock.anonymousId
-      }))
+      expect(visitorMock.addInTrackingManager).toBeCalledTimes(0)
+      expect(logDebugSpy).toBeCalledTimes(1)
+
+      const hit2 = {
+        ec: EventCategory.ACTION_TRACKING,
+        el: 'test label',
+        ev: 42
+      }
+
+      const payload2 = {
+        action: SharedAction.ABT_TAG_TRACK_ACTION,
+        nonce,
+        data: [hit2],
+        timestamp: Date.now()
+      }
+
+      const messageEvent2 = new MessageEvent('message', {
+        data: payload2,
+        origin: window.location.origin
+      })
+
+      window.dispatchEvent(messageEvent2)
+
+      expect(visitorMock.addInTrackingManager).toBeCalledTimes(0)
+      expect(logDebugSpy).toBeCalledTimes(2)
+    })
+  })
+
+  describe('test dispatchEventHits', () => {
+    const visitorMock = {
+      visitorId: 'visitor_123',
+      anonymousId: 'anon_456',
+      addInTrackingManager: jest.fn()
+    } as unknown as VisitorAbstract
+
+    const postMessage = jest.fn()
+
+    beforeAll(() => {
+      window.postMessage = postMessage
+
+      sharedActionTracking.initialize(visitorMock)
     })
 
-    // it('should not call visitor.addInTrackingManager when a message event is dispatched with different origin or data is undefined', () => {
-    //   const nonce = sharedActionTracking.generateNonce()
+    it('should not send postMessage when no hits are provided or is not in browser', () => {
+      isBrowserSpy.mockReturnValue(true)
 
-    //   const hit = {
-    //     ec: EventCategory.ACTION_TRACKING,
-    //     ea: 'click',
-    //     el: 'test label',
-    //     ev: 42
-    //   }
+      sharedActionTracking.dispatchEventHits([])
+      expect(postMessage).toBeCalledTimes(0)
 
-    //   const payload = {
-    //     action: SharedAction.ABT_TAG_TRACK_ACTION,
-    //     nonce,
-    //     data: [hit],
-    //     timestamp: Date.now()
-    //   }
+      isBrowserSpy.mockReturnValue(false)
+      const localActionTracking: LocalActionTracking = {
+        data: {
+          ec: EventCategory.ACTION_TRACKING,
+          ea: 'click',
+          el: 'test label',
+          ev: 42
+        },
+        visitorId: visitorMock.visitorId,
+        createdAt: Date.now(),
+        anonymousId: visitorMock.anonymousId
+      }
 
-    //   const messageEvent = new MessageEvent('message', {
-    //     data: payload,
-    //     origin: 'https://example.com'
-    //   })
+      sharedActionTracking.dispatchEventHits([localActionTracking])
+      expect(postMessage).toBeCalledTimes(0)
+    })
 
-    //   window.dispatchEvent(messageEvent)
+    it('should not send postMessage when hits are not valid', () => {
+      isBrowserSpy.mockReturnValue(true)
 
-    //   expect(visitorMock.addInTrackingManager).toBeCalledTimes(0)
+      const localActionTracking1: LocalActionTracking = {
+        data: {
+          ec: 'invalid_ec' as EventCategory.ACTION_TRACKING,
+          ea: 'click',
+          el: 'test label',
+          ev: 42
+        },
+        visitorId: visitorMock.visitorId,
+        createdAt: Date.now(),
+        anonymousId: visitorMock.anonymousId
+      }
+      const localActionTracking2: LocalActionTracking = {
+        data: {
+          ec: EventCategory.ACTION_TRACKING,
+          ea: 'click',
+          el: 'test label',
+          ev: 42
+        },
+        visitorId: visitorMock.visitorId,
+        createdAt: new Date('2021-01-01').getTime(),
+        anonymousId: visitorMock.anonymousId
+      }
 
-    //   const messageEvent2 = new MessageEvent('message', {
-    //     origin: 'https://example.com'
-    //   })
+      const localActionTracking3: LocalActionTracking = {
+        data: {
+          ec: EventCategory.ACTION_TRACKING,
+          ea: 'click',
+          el: 'test label',
+          ev: 42
+        },
+        visitorId: 'different_visitor_id',
+        createdAt: Date.now(),
+        anonymousId: visitorMock.anonymousId
+      }
 
-    //   window.dispatchEvent(messageEvent2)
+      sharedActionTracking.dispatchEventHits([localActionTracking1, localActionTracking2, localActionTracking3])
+      expect(postMessage).toBeCalledTimes(0)
 
-    //   expect(visitorMock.addInTrackingManager).toBeCalledTimes(0)
-    // })
+      const localActionTracking4: LocalActionTracking = {
+        data: {
+          ec: EventCategory.ACTION_TRACKING,
+          ea: 'click',
+          el: 'test label',
+          ev: 42
+        },
+        visitorId: visitorMock.visitorId,
+        createdAt: Date.now(),
+        anonymousId: visitorMock.anonymousId
+      }
 
-    // it('should not call visitor.addInTrackingManager when a message event is dispatched with different action or nonce is undefined', () => {
-    //   const nonce = sharedActionTracking.generateNonce()
+      const localActionTracking5: LocalActionTracking = {
+        data: {
+          ec: EventCategory.ACTION_TRACKING,
+          ea: 'click',
+          el: 'test label',
+          ev: 42
+        },
+        visitorId: visitorMock.anonymousId as string,
+        createdAt: Date.now(),
+        anonymousId: null
+      }
 
-    //   const hit = {
-    //     ec: EventCategory.ACTION_TRACKING,
-    //     ea: 'click',
-    //     el: 'test label',
-    //     ev: 42
-    //   }
+      const payload: SharedActionPayload = {
+        action: SharedAction.ABT_WEB_SDK_TRACK_ACTION,
+        data: [localActionTracking4.data, localActionTracking5.data],
+        nonce: expect.any(String) as unknown as string,
+        timestamp: Date.now()
+      }
 
-    //   const payload2 = {
-    //     action: SharedAction.ABT_TAG_TRACK_ACTION,
-    //     nonce: undefined,
-    //     data: [hit],
-    //     timestamp: Date.now()
-    //   }
-
-    //   const messageEvent2 = new MessageEvent('message', {
-    //     data: payload2,
-    //     origin: window.location.origin
-    //   })
-
-    //   window.dispatchEvent(messageEvent2)
-
-    //   expect(visitorMock.addInTrackingManager).toBeCalledTimes(0)
-
-    //   const payload3 = {
-    //     action: 'invalid_action' as SharedAction,
-    //     nonce,
-    //     data: [hit],
-    //     timestamp: Date.now()
-    //   }
-
-    //   const messageEvent3 = new MessageEvent('message', {
-    //     data: payload3,
-    //     origin: window.location.origin
-    //   })
-
-    //   window.dispatchEvent(messageEvent3)
-
-    //   expect(visitorMock.addInTrackingManager).toBeCalledTimes(0)
-    // })
-
-    // it('should not call visitor.addInTrackingManager when a message event is dispatched with invalid nonce', () => {
-    //   sdkConfig.logLevel = LogLevel.DEBUG
-    //   const hit = {
-    //     ec: EventCategory.ACTION_TRACKING,
-    //     ea: 'click',
-    //     el: 'test label',
-    //     ev: 42
-    //   }
-
-    //   const payload = {
-    //     action: SharedAction.ABT_TAG_TRACK_ACTION,
-    //     nonce: 'invalid_nonce',
-    //     data: [hit],
-    //     timestamp: Date.now()
-    //   }
-
-    //   const messageEvent = new MessageEvent('message', {
-    //     data: payload,
-    //     origin: window.location.origin
-    //   })
-
-    //   window.dispatchEvent(messageEvent)
-
-    //   expect(visitorMock.addInTrackingManager).toBeCalledTimes(0)
-    //   expect(logDebugSpy).toBeCalledTimes(1)
-
-    //   // const nonce = sharedActionTracking.generateNonce()
-
-    //   // const payload2 = {
-    //   //   action: SharedAction.ABT_TAG_TRACK_ACTION,
-    //   //   nonce,
-    //   //   data: [hit],
-    //   //   timestamp: Date.now()
-    //   // }
-
-    //   // const messageEvent2 = new MessageEvent('message', {
-    //   //   data: payload2,
-    //   //   origin: window.location.origin
-    //   // })
-
-    //   // window.dispatchEvent(messageEvent2)
-
-    //   // expect(visitorMock.addInTrackingManager).toBeCalledTimes(1)
-    //   // expect(logDebugSpy).toBeCalledTimes(2)
-
-    //   // window.dispatchEvent(messageEvent2)
-
-    //   // expect(visitorMock.addInTrackingManager).toBeCalledTimes(1)
-    //   // expect(logDebugSpy).toBeCalledTimes(3)
-    // })
-
-    // it('should not call visitor.addInTrackingManager when a message event is dispatched without hit data', () => {
-    //   const nonce = sharedActionTracking.generateNonce()
-
-    //   const payload = {
-    //     action: SharedAction.ABT_TAG_TRACK_ACTION,
-    //     nonce,
-    //     data: undefined,
-    //     timestamp: Date.now()
-    //   }
-
-    //   const messageEvent = new MessageEvent('message', {
-    //     data: payload,
-    //     origin: window.location.origin
-    //   })
-
-    //   window.dispatchEvent(messageEvent)
-
-    //   expect(visitorMock.addInTrackingManager).toBeCalledTimes(0)
-    // })
+      sharedActionTracking.dispatchEventHits([localActionTracking1, localActionTracking2, localActionTracking3, localActionTracking4, localActionTracking5])
+      expect(postMessage).toBeCalledTimes(1)
+      expect(postMessage).toBeCalledWith(payload, window.location.origin)
+    })
   })
 })

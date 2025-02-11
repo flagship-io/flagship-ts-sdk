@@ -79,8 +79,6 @@ export class SharedActionTracking implements ISharedActionTracking {
     const { nonce } = payload
 
     if (this.trustedNonces[nonce] === undefined || this.trustedNonces[nonce]) {
-      console.log('Invalid nonce', nonce)
-
       logDebugSprintf(this.sdkConfig, ACTION_TRACKING, ACTION_TRACKING_INVALID_NONCE, nonce)
       return
     }
@@ -107,7 +105,7 @@ export class SharedActionTracking implements ISharedActionTracking {
 
     for (const hit of hits) {
       const isHitPostInit = this.initTimestamp && hit.createdAt >= this.initTimestamp
-      const isHitForVisitor = hit.visitorId === this.visitor?.visitorId
+      const isHitForVisitor = hit.visitorId === this.visitor?.visitorId || hit.visitorId === this.visitor?.anonymousId
       if (hit.data.ec === EventCategory.ACTION_TRACKING && isHitPostInit && isHitForVisitor) {
         hitsToDispatch.push(hit.data)
       }
