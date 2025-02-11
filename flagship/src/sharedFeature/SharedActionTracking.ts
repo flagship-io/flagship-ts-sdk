@@ -19,7 +19,7 @@ export class SharedActionTracking implements ISharedActionTracking {
   }
 
   public generateNonce (): string {
-    if (!isBrowser()) {
+    if (!isBrowser() || !this.visitor) {
       return ''
     }
     const nonce = Math.random().toString(36).substring(2) + Date.now().toString(36)
