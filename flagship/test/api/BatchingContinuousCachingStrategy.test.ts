@@ -18,6 +18,8 @@ import { Troubleshooting } from '../../src/hit/Troubleshooting'
 import * as utils from '../../src/utils/utils'
 import * as qaAssistant from '../../src/qaAssistant/messages'
 import { UsageHit } from '../../src/hit/UsageHit'
+import { ISharedActionTracking } from '../../src/sharedFeature/ISharedActionTracking'
+import { LocalActionTracking } from '../../src/type.local'
 
 describe('Test BatchingContinuousCachingStrategy', () => {
   const visitorId = 'visitorId'
@@ -597,7 +599,20 @@ describe('test sendBatch method', () => {
   const activatePoolQueue = new Map<string, Activate>()
   const troubleshootingQueue = new Map<string, Troubleshooting>()
   const analyticHitQueue = new Map<string, UsageHit>()
-  const batchingStrategy = new BatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
+
+  const sharedActionTracking = {
+    dispatchEventHits: jest.fn()
+  } as unknown as ISharedActionTracking
+
+  const batchingStrategy = new BatchingContinuousCachingStrategy({
+    config,
+    httpClient,
+    hitsPoolQueue,
+    activatePoolQueue,
+    troubleshootingQueue,
+    analyticHitQueue,
+    sharedActionTracking
+  })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cacheHitSpy = jest.spyOn(batchingStrategy as any, 'cacheHit')
@@ -676,6 +691,69 @@ describe('test sendBatch method', () => {
 
     expect(postAsync).toBeCalledTimes(2)
     expect(hitsPoolQueue.size).toBe(0)
+  })
+
+  it('test sendBatch method success and dispatch hits to tag', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const isBrowser = jest.spyOn(utils, 'isBrowser')
+
+    isBrowser.mockReturnValue(true)
+
+    postAsync.mockResolvedValue({ status: 200, body: null })
+
+    config.trackingManagerConfig.batchIntervals = 25
+    config.logLevel = LogLevel.NONE
+
+    const pageHit = new Page({
+      documentLocation: ('http://localhost'),
+      visitorId
+    })
+
+    const event1 = new Event({
+      visitorId,
+      label: 'label1',
+      action: 'action1',
+      category: EventCategory.USER_ENGAGEMENT
+    })
+
+    const event2 = new Event({
+      visitorId,
+      label: 'label2',
+      action: 'action2',
+      category: EventCategory.ACTION_TRACKING
+    })
+
+    await batchingStrategy.addHit(pageHit)
+    await batchingStrategy.addHit(event1)
+    await batchingStrategy.addHit(event2)
+
+    expect(hitsPoolQueue.size).toBe(3)
+
+    await batchingStrategy.sendBatch()
+
+    expect(hitsPoolQueue.size).toBe(0)
+
+    expect(sharedActionTracking.dispatchEventHits).toBeCalledTimes(1)
+
+    const actionTrackingHit:LocalActionTracking = {
+      visitorId: event2.visitorId,
+      createdAt: event2.createdAt,
+      anonymousId: event2.anonymousId,
+      data: {
+        ec: event2.category as EventCategory.ACTION_TRACKING,
+        ea: event2.action,
+        el: event2.label,
+        ev: event2.value
+      }
+    }
+
+    expect(sharedActionTracking.dispatchEventHits).toBeCalledWith([actionTrackingHit])
+
+    expect(postAsync).toBeCalledTimes(1)
+
+    expect(sendHitsToFsQaSpy).toBeCalledTimes(1)
+
+    expect(flushHitsSpy).toBeCalledTimes(1)
   })
 
   it('test sendBatch method hit expired', async () => {
