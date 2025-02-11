@@ -56,8 +56,8 @@ describe('SharedActionTracking Tests', () => {
     test('generateNonce returns a nonce and registers it when in browser', () => {
       isBrowserSpy.mockReturnValue(true)
       const nonce = sharedActionTracking.generateNonce()
-      expect(nonce).toBeTruthy()
-      expect((sharedActionTracking as any).trustedNonces[nonce]).toBe(false)
+      expect(nonce).toBe('')
+      expect((sharedActionTracking as any).trustedNonces[nonce]).toBeUndefined()
     })
 
     it('initialize sets visitor when not in browser', () => {
@@ -73,6 +73,8 @@ describe('SharedActionTracking Tests', () => {
       expect(removeEventListenerSpy).toHaveBeenCalledTimes(0)
       expect(addEventListenerSpy).toHaveBeenCalledTimes(1)
       expect(addEventListenerSpy).toHaveBeenCalledWith('message', expect.any(Function))
+      const nonce = sharedActionTracking.generateNonce()
+      expect(nonce).toEqual(expect.any(String))
     })
   })
 
