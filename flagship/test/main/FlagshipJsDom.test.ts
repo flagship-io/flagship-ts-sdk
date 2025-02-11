@@ -66,7 +66,7 @@ describe('test Flagship newVisitor', () => {
     //
   })
   beforeAll(() => {
-    isBrowserSpy.mockReturnValue(false)
+    isBrowserSpy.mockReturnValue(true)
   })
   it('should ', async () => {
     const logManager = new FlagshipLogManager()
@@ -76,13 +76,13 @@ describe('test Flagship newVisitor', () => {
       fetchNow: false
     })
 
-    const visitor3 = Flagship.newVisitor({ visitorId: 'visitor_4', hasConsented: true })
-    expect(Flagship.getVisitor()).toBeUndefined()
-
-    isBrowserSpy.mockReturnValue(true)
+    expect(window?.ABTasty?.webSdk?.v1?.getActionTrackingNonce).toBeDefined()
+    expect(window?.ABTasty?.webSdk?.v1?.getActionTrackingNonce()).toEqual('')
 
     const visitor4 = Flagship.newVisitor({ visitorId: 'visitor_4', hasConsented: true })
     expect(Flagship.getVisitor()).toBeDefined()
     expect(visitor4).toEqual(Flagship.getVisitor())
+
+    expect(window?.ABTasty?.webSdk?.v1?.getActionTrackingNonce()).toEqual(expect.any(String))
   })
 })
