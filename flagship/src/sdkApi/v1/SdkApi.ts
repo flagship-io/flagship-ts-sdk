@@ -4,8 +4,8 @@ import { ISdkApi } from './ISdkApi'
 
 export class SdkApi implements ISdkApi {
   private sharedActionTracking?: ISharedActionTracking
-  public constructor ({ sharedActionTracking: SharedActionTracking }:SdkApiParam) {
-    this.sharedActionTracking = SharedActionTracking
+  public constructor ({ sharedActionTracking }:SdkApiParam) {
+    this.sharedActionTracking = sharedActionTracking
   }
 
   getActionTrackingNonce (): string|undefined {
