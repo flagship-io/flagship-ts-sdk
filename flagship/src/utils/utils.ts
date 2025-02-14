@@ -228,3 +228,27 @@ export function deepEqual (obj1: any, obj2: any): boolean {
 
   return true
 }
+
+export function onDomReady (callback?: () => void): boolean {
+  if (!isBrowser()) {
+    return false
+  }
+
+  const isDomReady = document.readyState === 'interactive' || document.readyState === 'complete'
+
+  if (typeof callback !== 'function') {
+    return isDomReady
+  }
+
+  if (isDomReady) {
+    callback()
+  } else {
+    const domContentLoadedHandler = (): void => {
+      document.removeEventListener('DOMContentLoaded', domContentLoadedHandler)
+      callback()
+    }
+    document.addEventListener('DOMContentLoaded', domContentLoadedHandler)
+  }
+
+  return isDomReady
+}
