@@ -504,7 +504,7 @@ export class DefaultStrategy extends StrategyAbstract {
 
       await this.lookupVisitor()
 
-      await this.visitor.emotionAi.fetchEAIScore()
+      await this.visitor.emotionAi?.fetchEAIScore()
 
       this.visitor.getCampaignsPromise = this.decisionManager.getCampaignsAsync(this.visitor)
 
