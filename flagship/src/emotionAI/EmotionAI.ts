@@ -1,18 +1,9 @@
-import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { CLICK_PATH_DELAY_MS, MAX_CLICK_PATH_LENGTH, SCROLL_END_DELAY_MS } from '../enum/FlagshipConstant'
-import { EAIConfig } from '../type.local'
 import { TroubleshootingLabel } from '../types'
-import { IHttpClient } from '../utils/HttpClient'
 import { onDomReady } from '../utils/utils'
-import { CommonEmotionAI } from './CommonEmotionAI'
+import { CommonEmotionAI, ConstructorParam } from './CommonEmotionAI'
 import { PageView } from './hit/PageView'
 import { VisitorEvent } from './hit/VisitorEvent'
-
-type ConstructorParam = {
-  httpClient: IHttpClient;
-  sdkConfig: IFlagshipConfig;
-  eAIConfig: EAIConfig|undefined;
-}
 
 export class EmotionAI extends CommonEmotionAI {
   protected onScroll!: (event: Event) => void
