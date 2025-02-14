@@ -13,7 +13,7 @@ import { Troubleshooting } from '../hit/Troubleshooting'
 import { LogLevel } from '../enum/index'
 import { UsageHit } from '../hit/UsageHit'
 
-type ConstructorParam = {
+export type ConstructorParam = {
   httpClient: IHttpClient;
   sdkConfig: IFlagshipConfig;
   eAIConfig: EAIConfig|undefined;
