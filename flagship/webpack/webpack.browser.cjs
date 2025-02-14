@@ -18,7 +18,8 @@ module.exports = merge(common(), {
     library: {
       type: 'global'
     },
-    filename: 'index.browser.js'
+    filename: '[name].browser.js',
+    chunkFilename: '[name].browser.[id].[contenthash].js'
   },
   module: {
     rules: [
@@ -65,5 +66,18 @@ module.exports = merge(common(), {
         /@babel\/runtime/
       ]
     })
-  ]
+  ],
+  optimization: {
+    minimize: true,
+    splitChunks: {
+      chunks: 'all',
+      cacheGroups: {
+        vendors: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          chunks: 'all'
+        }
+      }
+    }
+  }
 })
