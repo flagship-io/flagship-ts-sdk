@@ -8,7 +8,7 @@ import { ConfigManager, IConfigManager } from '../config/ConfigManager'
 import { ApiManager } from '../decision/ApiManager'
 import { TrackingManager } from '../api/TrackingManager'
 import { FlagshipLogManager } from '../utils/FlagshipLogManager'
-import { isBrowser, logDebugSprintf, logError, logInfo, logInfoSprintf, logWarning, sprintf, uuidV4 } from '../utils/utils'
+import { isBrowser, logDebugSprintf, logError, logInfo, logInfoSprintf, logWarning, onDomReady, sprintf, uuidV4 } from '../utils/utils'
 import {
   INITIALIZATION_PARAM_ERROR,
   INITIALIZATION_STARTING,
@@ -419,9 +419,11 @@ export class Flagship {
       murmurHash: new MurmurHash()
     })
 
-    if (isBrowser() && configManager.sharedActionTracking) {
-      configManager.sharedActionTracking.initialize(visitorDelegate)
-    }
+    onDomReady(() => {
+      if (isBrowser() && configManager.sharedActionTracking) {
+        configManager.sharedActionTracking.initialize(visitorDelegate)
+      }
+    })
 
     const visitor = new Visitor(visitorDelegate)
     this.getInstance()._visitorInstance = saveInstance ? visitor : undefined
