@@ -3,7 +3,7 @@ import { IDecisionApiConfig } from '../config/IDecisionApiConfig'
 import { IEdgeConfig } from '../config/IEdgeConfig'
 import { Visitor } from '../visitor/Visitor'
 import { FSSdkStatus } from '../enum/FSSdkStatus'
-import { DecisionMode, FlagshipConfig, type IFlagshipConfig, BucketingConfig, DecisionApiConfig } from '../config/index'
+import { DecisionMode, FlagshipConfig, type IFlagshipConfig, DecisionApiConfig } from '../config/index'
 import { ConfigManager, IConfigManager } from '../config/ConfigManager'
 import { ApiManager } from '../decision/ApiManager'
 import { TrackingManager } from '../api/TrackingManager'
@@ -24,31 +24,20 @@ import {
 } from '../enum/index'
 import { VisitorDelegate } from '../visitor/VisitorDelegate'
 
-import { BucketingManager } from '../decision/BucketingManager'
 import { MurmurHash } from '../utils/MurmurHash'
 import { DecisionManager } from '../decision/DecisionManager'
 import { HttpClient } from '../utils/HttpClient'
 import { NewVisitor } from '../types'
-import { DefaultHitCache } from '../cache/DefaultHitCache'
-import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
-import { EdgeManager } from '../decision/EdgeManager'
-import { EdgeConfig } from '../config/EdgeConfig'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
-import { launchQaAssistant } from '../qaAssistant/index'
 import { ISdkManager } from './ISdkManager'
-import { BucketingSdkManager } from './BucketingSdkManager'
-import { EdgeSdkManager } from './EdgeSdkManager'
-import { ApiSdkManager } from './ApiSdkManager'
 import { ITrackingManager } from '../api/ITrackingManager'
-import { EmotionAI as EmotionAINode } from '../emotionAI/EmotionAI.node'
-import { EmotionAI as EmotionAIBrowser } from '../emotionAI/EmotionAI'
 import { IEmotionAI } from '../emotionAI/IEmotionAI'
 import { IVisitorProfileCache } from '../type.local'
-import { VisitorProfileCacheNode } from '../visitor/VisitorProfileCacheNode'
-import { VisitorProfileCacheBrowser } from '../visitor/VisitorProfileCacheBrowser'
-import { SharedActionTracking } from '../sharedFeature/SharedActionTracking'
-import { SdkApi } from '../sdkApi/v1/SdkApi'
+import { type VisitorProfileCacheNode } from '../visitor/VisitorProfileCacheNode'
+import { type VisitorProfileCacheBrowser } from '../visitor/VisitorProfileCacheBrowser'
 import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking'
+import { type EmotionAI as EmotionAIBrowser } from '../emotionAI/EmotionAI'
+import { type EmotionAI as EmotionAINode } from '../emotionAI/EmotionAI.node'
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
@@ -65,6 +54,8 @@ export class Flagship {
   private _sdkManager : ISdkManager|undefined
   private static visitorProfile:string|null
   private static onSaveVisitorProfile:(visitorProfile:string)=>void
+  protected EmotionAIClass?: typeof EmotionAIBrowser | typeof EmotionAINode
+  protected VisitorProfileCacheClass?: typeof VisitorProfileCacheBrowser | typeof VisitorProfileCacheNode
 
   private set configManager (value: IConfigManager) {
     this._configManager = value
@@ -174,30 +165,37 @@ export class Flagship {
     return this.getInstance().getVisitor()
   }
 
-  private buildConfig (config?: IDecisionApiConfig| IBucketingConfig |IEdgeConfig): FlagshipConfig {
+  private async buildConfig (config?: IDecisionApiConfig| IBucketingConfig |IEdgeConfig): Promise<FlagshipConfig> {
     let newConfig: FlagshipConfig
     switch (config?.decisionMode) {
-      case DecisionMode.BUCKETING:
+      case DecisionMode.BUCKETING:{
+        const { BucketingConfig } = await import('../config/BucketingConfig')
         newConfig = new BucketingConfig(config)
-        break
-      case DecisionMode.BUCKETING_EDGE:
+        break }
+      case DecisionMode.BUCKETING_EDGE:{
+        const { EdgeConfig } = await import('../config/EdgeConfig')
         newConfig = new EdgeConfig(config)
-        break
-      default:
+        break }
+      default:{
+        const { DecisionApiConfig } = await import('../config/DecisionApiConfig')
         newConfig = new DecisionApiConfig(config)
-        break
+        break }
     }
     return newConfig
   }
 
-  private createManagers (
+  private async createManagers (
     httpClient: HttpClient,
     sdkConfig: IFlagshipConfig,
     trackingManager: ITrackingManager
-  ): { sdkManager: ISdkManager; decisionManager: DecisionManager } {
+  ): Promise<{ sdkManager: ISdkManager; decisionManager: DecisionManager }> {
     let sdkManager: ISdkManager
     switch (sdkConfig.decisionMode) {
       case DecisionMode.BUCKETING:
+      {
+        const { BucketingSdkManager } = await import('./BucketingSdkManager')
+        const { BucketingManager } = await import('../decision/BucketingManager')
+        const { MurmurHash } = await import('../utils/MurmurHash')
         sdkManager = new BucketingSdkManager({ httpClient, sdkConfig, trackingManager, flagshipInstanceId: this.instanceId })
         return {
           sdkManager,
@@ -207,8 +205,11 @@ export class Flagship {
             murmurHash: new MurmurHash(),
             sdkManager
           })
-        }
-      case DecisionMode.BUCKETING_EDGE:
+        } }
+      case DecisionMode.BUCKETING_EDGE:{
+        const { EdgeSdkManager } = await import('./EdgeSdkManager')
+        const { EdgeManager } = await import('../decision/EdgeManager')
+        const { MurmurHash } = await import('../utils/MurmurHash')
         sdkManager = new EdgeSdkManager({ httpClient, sdkConfig, trackingManager, flagshipInstanceId: this.instanceId })
         return {
           sdkManager,
@@ -219,18 +220,23 @@ export class Flagship {
             sdkManager
           })
         }
-      default:
+      }
+      default:{
+        const { ApiSdkManager } = await import('./ApiSdkManager')
+        const { ApiManager } = await import('../decision/ApiManager')
         return {
           sdkManager: new ApiSdkManager({ httpClient, sdkConfig, trackingManager, flagshipInstanceId: this.instanceId }),
           decisionManager: new ApiManager(httpClient, sdkConfig)
         }
+      }
     }
   }
 
-  private buildSdkApi (sharedActionTracking: ISharedActionTracking):void {
+  private async buildSdkApi (sharedActionTracking: ISharedActionTracking):Promise<void> {
     if (typeof window === 'undefined') {
       return
     }
+    const { SdkApi } = await import('../sdkApi/v1/SdkApi')
     window.ABTasty = {
       ...window.ABTasty,
       webSdk: {
@@ -246,6 +252,7 @@ export class Flagship {
 
     let sharedActionTracking = this.configManager?.sharedActionTracking
     if (!sharedActionTracking && isBrowser()) {
+      const { SharedActionTracking } = await import('../sharedFeature/SharedActionTracking')
       sharedActionTracking = new SharedActionTracking({ sdkConfig })
       this.buildSdkApi(sharedActionTracking)
     }
@@ -254,7 +261,7 @@ export class Flagship {
     const trackingManager = this.configManager?.trackingManager || new TrackingManager(httpClient, sdkConfig,
       this.instanceId, sharedActionTracking)
 
-    const { sdkManager, decisionManager } = this.createManagers(httpClient, sdkConfig, trackingManager)
+    const { sdkManager, decisionManager } = await this.createManagers(httpClient, sdkConfig, trackingManager)
 
     this._sdkManager = sdkManager
 
@@ -281,7 +288,7 @@ export class Flagship {
   ): Promise<Flagship> {
     const flagship = this.getInstance()
 
-    const localConfig = flagship.buildConfig(config)
+    const localConfig = await flagship.buildConfig(config)
 
     localConfig.envId = envId
     localConfig.apiKey = apiKey
@@ -302,10 +309,12 @@ export class Flagship {
     logDebugSprintf(localConfig, PROCESS_INITIALIZATION, INITIALIZATION_STARTING, SDK_INFO.version, localConfig.decisionMode, localConfig)
 
     if (!localConfig.hitCacheImplementation && isBrowser()) {
+      const { DefaultHitCache } = await import('../cache/DefaultHitCache')
       localConfig.hitCacheImplementation = new DefaultHitCache()
     }
 
     if (!localConfig.visitorCacheImplementation && isBrowser()) {
+      const { DefaultVisitorCache } = await import('../cache/DefaultVisitorCache')
       localConfig.visitorCacheImplementation = new DefaultVisitorCache()
     }
 
@@ -317,7 +326,19 @@ export class Flagship {
       PROCESS_INITIALIZATION
     )
 
-    launchQaAssistant(localConfig)
+    if (isBrowser()) {
+      const { launchQaAssistant } = await import('../qaAssistant/index')
+      launchQaAssistant(localConfig)
+      const { EmotionAI } = await import('../emotionAI/EmotionAI')
+      flagship.EmotionAIClass = EmotionAI
+      const { VisitorProfileCacheBrowser } = await import('../visitor/VisitorProfileCacheBrowser')
+      flagship.VisitorProfileCacheClass = VisitorProfileCacheBrowser
+    } else {
+      const { EmotionAI: EmotionAINode } = await import('../emotionAI/EmotionAI.node')
+      flagship.EmotionAIClass = EmotionAINode
+      const { VisitorProfileCacheNode } = await import('../visitor/VisitorProfileCacheNode')
+      flagship.VisitorProfileCacheClass = VisitorProfileCacheNode
+    }
 
     flagship.lastInitializationTimestamp = new Date().toISOString()
 
@@ -380,23 +401,19 @@ export class Flagship {
       logWarning(sdkConfig, CONSENT_NOT_SPECIFY_WARNING, PROCESS_NEW_VISITOR)
     }
 
-    let emotionAi:IEmotionAI
-    let visitorProfileCache:IVisitorProfileCache
+    let emotionAi:IEmotionAI|undefined
+    let visitorProfileCache:IVisitorProfileCache|undefined
 
-    if (!isBrowser()) {
-      emotionAi = new EmotionAINode({
+    if (flagship.EmotionAIClass) {
+      emotionAi = new flagship.EmotionAIClass({
         sdkConfig,
         httpClient: new HttpClient(),
         eAIConfig: flagship._sdkManager?.getEAIConfig()
       })
-      visitorProfileCache = new VisitorProfileCacheNode(sdkConfig)
-    } else {
-      emotionAi = new EmotionAIBrowser({
-        sdkConfig,
-        httpClient: new HttpClient(),
-        eAIConfig: flagship._sdkManager?.getEAIConfig()
-      })
-      visitorProfileCache = new VisitorProfileCacheBrowser(sdkConfig)
+    }
+
+    if (flagship.VisitorProfileCacheClass) {
+      visitorProfileCache = new flagship.VisitorProfileCacheClass(sdkConfig)
     }
 
     const visitorDelegate = new VisitorDelegate({
