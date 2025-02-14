@@ -48,7 +48,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   private _onFetchFlagsStatusChanged? : ({ status, reason }: FlagsStatus) => void
   private _getCampaignsPromise? : Promise<CampaignDTO[]|null>
   private _hasContextBeenUpdated : boolean
-  private _emotionAi: IEmotionAI
+  private _emotionAi?: IEmotionAI
   private _analyticTraffic!: number
   private _murmurHash!: MurmurHash
   private _visitorProfileCache?: IVisitorProfileCache
@@ -125,7 +125,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._visitorCacheStatus = v
   }
 
-  public get emotionAi () : IEmotionAI {
+  public get emotionAi () : IEmotionAI |undefined {
     return this._emotionAi
   }
 
@@ -138,7 +138,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     configManager: IConfigManager
     context: Record<string, primitive>
     monitoringData?:sdkInitialData,
-    emotionAi: IEmotionAI,
+    emotionAi?: IEmotionAI,
     murmurHash?: MurmurHash,
     visitorProfileCache?: IVisitorProfileCache
   }) {
@@ -198,7 +198,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       reason: FSFetchReasons.FLAGS_NEVER_FETCHED
     }
 
-    this._emotionAi.init(this)
+    this._emotionAi?.init(this)
 
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
   }
