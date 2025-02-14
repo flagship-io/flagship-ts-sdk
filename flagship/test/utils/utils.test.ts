@@ -1,4 +1,4 @@
-import { deepEqual, errorFormat, hasSameType, hexToValue, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarning, logWarningSprintf, sprintf, uuidV4, valueToHex, visitorFlagSyncStatusMessage } from '../../src/utils/utils'
+import { deepEqual, errorFormat, hasSameType, hexToValue, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf, logWarning, logWarningSprintf, onDomReady, sprintf, uuidV4, valueToHex, visitorFlagSyncStatusMessage } from '../../src/utils/utils'
 import { jest, expect, it, describe } from '@jest/globals'
 import { DecisionApiConfig } from '../../src/config/index'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
@@ -265,5 +265,10 @@ describe('Test deepEqual function', () => {
     const arr1 = [1, [2, 3]]
     const arr2 = [1, [2]]
     expect(deepEqual(arr1, arr2)).toBe(false)
+  })
+
+  it('should return false when not in browser environment', () => {
+    const result = onDomReady()
+    expect(result).toBe(false)
   })
 })

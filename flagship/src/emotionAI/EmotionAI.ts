@@ -3,6 +3,7 @@ import { CLICK_PATH_DELAY_MS, MAX_CLICK_PATH_LENGTH, SCROLL_END_DELAY_MS } from 
 import { EAIConfig } from '../type.local'
 import { TroubleshootingLabel } from '../types'
 import { IHttpClient } from '../utils/HttpClient'
+import { onDomReady } from '../utils/utils'
 import { CommonEmotionAI } from './CommonEmotionAI'
 import { PageView } from './hit/PageView'
 import { VisitorEvent } from './hit/VisitorEvent'
@@ -130,31 +131,35 @@ export class EmotionAI extends CommonEmotionAI {
       this.processPageView(visitorId)
     }
 
-    window.history.pushState = (...args) => {
-      this._originalPushState.apply(window.history, args)
-      this.processPageView(visitorId)
-    }
+    onDomReady(() => {
+      window.history.pushState = (...args) => {
+        this._originalPushState.apply(window.history, args)
+        this.processPageView(visitorId)
+      }
 
-    window.history.replaceState = (...args) => {
-      this._originalReplaceState.apply(window.history, args)
-      this.processPageView(visitorId)
-    }
+      window.history.replaceState = (...args) => {
+        this._originalReplaceState.apply(window.history, args)
+        this.processPageView(visitorId)
+      }
 
-    window.addEventListener('scroll', this.onScroll)
-    document.addEventListener('mousemove', this.onMouseMove)
-    document.addEventListener('mousedown', this.onMouseDown)
-    document.addEventListener('mouseup', this.onMouseUp)
-    window.addEventListener('popstate', this.onPopState)
+      window.addEventListener('scroll', this.onScroll)
+      document.addEventListener('mousemove', this.onMouseMove)
+      document.addEventListener('mousedown', this.onMouseDown)
+      document.addEventListener('mouseup', this.onMouseUp)
+      window.addEventListener('popstate', this.onPopState)
+    })
   }
 
   protected removeListeners (): void {
-    window.removeEventListener('scroll', this.onScroll)
-    document.removeEventListener('mousemove', this.onMouseMove)
-    document.removeEventListener('mousedown', this.onMouseDown)
-    document.removeEventListener('mouseup', this.onMouseUp)
-    window.removeEventListener('popstate', this.onPopState)
-    window.history.pushState = this._originalPushState
-    window.history.replaceState = this._originalReplaceState
+    onDomReady(() => {
+      window.removeEventListener('scroll', this.onScroll)
+      document.removeEventListener('mousemove', this.onMouseMove)
+      document.removeEventListener('mousedown', this.onMouseDown)
+      document.removeEventListener('mouseup', this.onMouseUp)
+      window.removeEventListener('popstate', this.onPopState)
+      window.history.pushState = this._originalPushState
+      window.history.replaceState = this._originalReplaceState
+    })
     if (this.scrollTimeoutId !== null) {
       clearTimeout(this.scrollTimeoutId)
       this.scrollTimeoutId = null
