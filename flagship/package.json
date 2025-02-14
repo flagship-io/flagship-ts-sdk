@@ -51,7 +51,8 @@
     "build-prod": "NODE_ENV=production npm run build",
     "postbuild-prod": "node denoTrans.mjs",
     "analyze": "webpack --profile --json > stats.json && webpack-bundle-analyzer stats.json",
-    "analyze-prod": "NODE_ENV=production webpack --profile --json > stats.json && webpack-bundle-analyzer stats.json"
+    "analyze-prod": "NODE_ENV=production webpack --profile --json > stats.json && webpack-bundle-analyzer stats.json",
+    "analyze-2": "source-map-explorer dist/main.js"
   },
   "devDependencies": {
     "@babel/core": "^7.21.4",
@@ -90,7 +91,7 @@
     "tsconfig-paths-webpack-plugin": "^4.1.0",
     "typescript": "^5.0.4",
     "webpack": "^5.79.0",
-    "webpack-bundle-analyzer": "^4.8.0",
+    "webpack-bundle-analyzer": "^4.10.2",
     "webpack-cli": "^5.0.1",
     "webpack-merge": "^5.8.0",
     "webpack-node-externals": "^3.0.0"
