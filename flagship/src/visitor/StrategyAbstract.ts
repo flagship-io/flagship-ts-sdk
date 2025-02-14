@@ -54,24 +54,24 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     this._murmurHash = murmurHash
   }
 
-  collectEAIEventsAsync (currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> {
-    return this.visitor.emotionAi.collectEAIEventsAsync(currentPage)
+  async collectEAIEventsAsync (currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> {
+    await this.visitor.emotionAi?.collectEAIEventsAsync(currentPage)
   }
 
   reportEaiVisitorEvent (event: IVisitorEvent):void {
-    this.visitor.emotionAi.reportVisitorEvent(new VisitorEvent(event))
+    this.visitor.emotionAi?.reportVisitorEvent(new VisitorEvent(event))
   }
 
   reportEaiPageView (pageView: IPageView):void {
-    this.visitor.emotionAi.reportPageView(new PageView(pageView))
+    this.visitor.emotionAi?.reportPageView(new PageView(pageView))
   }
 
   onEAICollectStatusChange (callback: (status: boolean) => void):void {
-    this.visitor.emotionAi.onEAICollectStatusChange(callback)
+    this.visitor.emotionAi?.onEAICollectStatusChange(callback)
   }
 
   cleanup ():void {
-    this.visitor.emotionAi.cleanup()
+    this.visitor.emotionAi?.cleanup()
   }
 
   public updateCampaigns (campaigns:CampaignDTO[]):void {
