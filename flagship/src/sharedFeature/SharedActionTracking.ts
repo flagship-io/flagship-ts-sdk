@@ -101,6 +101,12 @@ export class SharedActionTracking implements ISharedActionTracking {
       return
     }
 
+    const nonce = window.ABTasty?.api?.v1?.generateTrackNonce?.()
+
+    if (!nonce) {
+      return
+    }
+
     const hitsToDispatch:ActionTrackingData[] = []
 
     for (const hit of hits) {
@@ -114,8 +120,6 @@ export class SharedActionTracking implements ISharedActionTracking {
     if (!hitsToDispatch.length) {
       return
     }
-
-    const nonce = Date.now().toString() // Will be replaced by a real nonce generator from tag API
 
     const payload: SharedActionPayload = {
       action: SharedAction.ABT_WEB_SDK_TRACK_ACTION,
