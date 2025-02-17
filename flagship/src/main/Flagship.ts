@@ -237,11 +237,8 @@ export class Flagship {
       return
     }
     const { SdkApi } = await import('../sdkApi/v1/SdkApi')
-    window.ABTasty = {
-      ...window.ABTasty,
-      webSdk: {
-        v1: new SdkApi({ sharedActionTracking })
-      }
+    window.webSdk = {
+      v1: new SdkApi({ sharedActionTracking })
     }
   }
 
