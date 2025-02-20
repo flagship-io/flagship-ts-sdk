@@ -264,6 +264,13 @@ describe('test DefaultStrategy ', () => {
     expect(currentDate).toBeInstanceOf(Date)
   })
 
+  it('test addInTrackingManager', () => {
+    const hit = new Event({ visitorId, category: EventCategory.ACTION_TRACKING, action: 'click' })
+    defaultStrategy.addInTrackingManager(hit)
+    expect(addHit).toBeCalledTimes(1)
+    expect(addHit).toBeCalledWith(hit)
+  })
+
   const campaignDtoId = 'c2nrh1hjg50l9stringgu8bg'
   const campaignDTO = [
     {
