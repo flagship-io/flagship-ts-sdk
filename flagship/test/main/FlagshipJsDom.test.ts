@@ -7,6 +7,7 @@ import { Flagship } from '../../src/main/Flagship'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import * as utils from '../../src/utils/utils'
 import * as qaAssistant from '../../src/qaAssistant'
+import { ABTastyWebSDKPostMessageType } from '../../src/types'
 
 const getCampaignsAsync = jest.fn().mockReturnValue(Promise.resolve([]))
 
@@ -60,6 +61,9 @@ describe('test Flagship newVisitor', () => {
   launchQaAssistantSpy.mockImplementation(() => {
     //
   })
+
+  const postmessageSpy = jest.spyOn(window, 'postMessage')
+
   beforeAll(() => {
     isBrowserSpy.mockReturnValue(true)
   })
@@ -79,5 +83,7 @@ describe('test Flagship newVisitor', () => {
     expect(visitor4).toEqual(Flagship.getVisitor())
 
     expect(window?.ABTastyWebSdk?.v1?.getActionTrackingNonce()).toEqual(expect.any(String))
+    expect(postmessageSpy).toBeCalledTimes(1)
+    expect(postmessageSpy).toBeCalledWith({ action: ABTastyWebSDKPostMessageType.AB_TASTY_WEB_SDK_INITIALIZED }, '*')
   })
 })

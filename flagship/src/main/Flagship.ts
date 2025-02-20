@@ -28,7 +28,7 @@ import { BucketingManager } from '../decision/BucketingManager'
 import { MurmurHash } from '../utils/MurmurHash'
 import { DecisionManager } from '../decision/DecisionManager'
 import { HttpClient } from '../utils/HttpClient'
-import { NewVisitor } from '../types'
+import { ABTastyWebSDKPostMessageType, NewVisitor } from '../types'
 import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 import { EdgeManager } from '../decision/EdgeManager'
@@ -265,6 +265,13 @@ export class Flagship {
     this.setStatus(FSSdkStatus.SDK_INITIALIZED)
   }
 
+  private sendInitializedPostMessage (): void {
+    if (typeof window === 'undefined') {
+      return
+    }
+    window.postMessage({ action: ABTastyWebSDKPostMessageType.AB_TASTY_WEB_SDK_INITIALIZED }, '*')
+  }
+
   /**
    * Start the flagship SDK, with a custom configuration implementation
    * @param {string} envId : Environment id provided by Flagship.
@@ -317,6 +324,10 @@ export class Flagship {
     launchQaAssistant(localConfig)
 
     flagship.lastInitializationTimestamp = new Date().toISOString()
+
+    if (isBrowser()) {
+      flagship.sendInitializedPostMessage()
+    }
 
     return flagship
   }
