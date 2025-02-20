@@ -4,5 +4,5 @@ import { LocalActionTracking } from '../type.local'
 export interface ISharedActionTracking {
     initialize(visitor:VisitorAbstract): void;
     dispatchEventHits(hits: LocalActionTracking[]): void;
-    generateNonce(): string;
+    generateNonce(): string|undefined;
 }
