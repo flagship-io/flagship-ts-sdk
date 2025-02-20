@@ -54,11 +54,6 @@ jest.mock('../../src/api/TrackingManager', () => {
   }
 })
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const getNull = (): any => {
-  return null
-}
-
 describe('test Flagship newVisitor', () => {
   const isBrowserSpy = jest.spyOn(utils, 'isBrowser')
   const launchQaAssistantSpy = jest.spyOn(qaAssistant, 'launchQaAssistant')
@@ -76,13 +71,13 @@ describe('test Flagship newVisitor', () => {
       fetchNow: false
     })
 
-    expect(window?.ABTasty?.webSdk?.v1?.getActionTrackingNonce).toBeDefined()
-    expect(window?.ABTasty?.webSdk?.v1?.getActionTrackingNonce()).toEqual('')
+    expect(window?.ABTastyWebSdk?.v1?.getActionTrackingNonce).toBeDefined()
+    expect(window?.ABTastyWebSdk?.v1?.getActionTrackingNonce()).toBeUndefined()
 
     const visitor4 = Flagship.newVisitor({ visitorId: 'visitor_4', hasConsented: true })
     expect(Flagship.getVisitor()).toBeDefined()
     expect(visitor4).toEqual(Flagship.getVisitor())
 
-    expect(window?.ABTasty?.webSdk?.v1?.getActionTrackingNonce()).toEqual(expect.any(String))
+    expect(window?.ABTastyWebSdk?.v1?.getActionTrackingNonce()).toEqual(expect.any(String))
   })
 })
