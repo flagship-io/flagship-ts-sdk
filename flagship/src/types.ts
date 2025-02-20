@@ -393,3 +393,7 @@ export type VisitorProfile={
   visitorId:string,
   anonymousId: string|null
 }
+
+export enum ABTastyWebSDKPostMessageType {
+  AB_TASTY_WEB_SDK_INITIALIZED = 'AB_TASTY_WEB_SDK_INITIALIZED',
+}
