@@ -58,8 +58,4 @@ export class ConfigManager implements IConfigManager {
   get sharedActionTracking (): ISharedActionTracking | undefined {
     return this._sharedActionTracking
   }
-
-  set sharedActionTracking (value: ISharedActionTracking| undefined) {
-    this._sharedActionTracking = value
-  }
 }
