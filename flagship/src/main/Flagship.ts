@@ -231,11 +231,8 @@ export class Flagship {
     if (typeof window === 'undefined') {
       return
     }
-    window.ABTasty = {
-      ...window.ABTasty,
-      webSdk: {
-        v1: new SdkApi({ sharedActionTracking })
-      }
+    window.ABTastyWebSdk = {
+      v1: new SdkApi({ sharedActionTracking }).getApiV1()
     }
   }
 
