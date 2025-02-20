@@ -31,7 +31,7 @@ export interface IVisitorProfileCache {
   loadVisitorProfile(): VisitorProfile | null;
 }
 
-export enum SharedAction {
+export enum SharedActionSource {
   ABT_TAG_TRACK_ACTION = 'ABT_TAG_TRACK_ACTION',
   ABT_WEB_SDK_TRACK_ACTION = 'ABT_WEB_SDK_TRACK_ACTION',
 }
@@ -51,7 +51,7 @@ export type LocalActionTracking = {
 }
 
 export interface SharedActionPayload {
-  action: SharedAction;
+  action: SharedActionSource;
   data: ActionTrackingData[];
   nonce: string; // Unique nonce for ensuring message authenticity
   timestamp: number;
