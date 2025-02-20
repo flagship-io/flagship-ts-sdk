@@ -1,4 +1,4 @@
-import { ISdkApi } from '../sdkApi/v1/ISdkApi'
+import { ISdkApiV1 } from '../sdkApi/v1/ISdkApiV1'
 import { FsVariationToForce, VisitorVariations } from '../types'
 
 declare global {
@@ -10,8 +10,8 @@ declare global {
       visitorVariations?: Record<string, VisitorVariations>;
       exposedVariations?: Record<string, VisitorVariations>;
     };
-    webSdk: {
-        v1: ISdkApi;
+    ABTastyWebSdk: {
+        v1: ISdkApiV1;
       };
     ABTasty: {
       api: {
@@ -20,7 +20,7 @@ declare global {
            * Generate a nonce for the action tracking.
            * @returns {string|undefined} The nonce or undefined if the consent is not given.
            */
-          generateTrackNonce(): string | undefined;
+          getActionTrackingNonce(): string | undefined;
         };
       };
     };
