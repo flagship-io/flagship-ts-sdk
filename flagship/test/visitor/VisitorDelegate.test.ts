@@ -18,6 +18,7 @@ import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 import { IPageView } from '../../src/emotionAI/hit/IPageView'
 import { IVisitorEvent } from '../../src/emotionAI/hit/IVisitorEvent'
 import { VisitorProfileCacheNode } from '../../src/visitor/VisitorProfileCacheNode'
+import { Event, EventCategory } from '../../src/hit'
 
 const updateContext = jest.fn()
 const clearContext = jest.fn()
@@ -44,6 +45,7 @@ const reportEaiVisitorEvent = jest.fn<(event: IVisitorEvent) => Promise<void>>()
 const reportEaiPageView = jest.fn<(pageView: IPageView) => Promise<void>>()
 const onEAICollectStatusChange = jest.fn<(callback: (status: boolean) => void) => void>()
 const cleanup = jest.fn<() => void>()
+const addInTrackingManager = jest.fn()
 
 jest.mock('../../src/visitor/DefaultStrategy', () => {
   return {
@@ -69,7 +71,8 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         reportEaiVisitorEvent,
         reportEaiPageView,
         onEAICollectStatusChange,
-        cleanup
+        cleanup,
+        addInTrackingManager
       }
     })
   }
@@ -303,6 +306,18 @@ describe('test VisitorDelegate methods', () => {
   it('test clear', () => {
     visitorDelegate.clearContext()
     expect(clearContext).toBeCalledTimes(1)
+  })
+
+  it('test addInTrackingManager', () => {
+    const eventHit = new Event({
+      visitorId: 'visitorId',
+      category: EventCategory.ACTION_TRACKING,
+      action: 'action',
+      label: 'label'
+    })
+    visitorDelegate.addInTrackingManager(eventHit)
+    expect(addInTrackingManager).toBeCalledTimes(1)
+    expect(addInTrackingManager).toBeCalledWith(eventHit)
   })
 
   it('test getFlag', () => {
