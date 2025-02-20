@@ -9,7 +9,7 @@ describe('SdkApi', () => {
     } as unknown as ISharedActionTracking
 
     const sdkApi = new SdkApi({ sharedActionTracking: mockSharedActionTracking })
-    const nonce = sdkApi.getActionTrackingNonce()
+    const nonce = sdkApi.getApiV1().getActionTrackingNonce()
 
     expect(nonce).toEqual(expectedNonce)
     expect(mockSharedActionTracking.generateNonce).toHaveBeenCalled()
@@ -17,7 +17,7 @@ describe('SdkApi', () => {
 
   it('should return undefined when sharedActionTracking is not provided', () => {
     const sdkApi = new SdkApi({ sharedActionTracking: undefined })
-    const nonce = sdkApi.getActionTrackingNonce()
+    const nonce = sdkApi.getApiV1().getActionTrackingNonce()
 
     expect(nonce).toBeUndefined()
   })
