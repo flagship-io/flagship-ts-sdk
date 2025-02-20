@@ -25,7 +25,7 @@ import {
 import { VisitorDelegate } from '../visitor/VisitorDelegate'
 
 import { MurmurHash } from '../utils/MurmurHash'
-import { DecisionManager } from '../decision/DecisionManager'
+import { type DecisionManager } from '../decision/DecisionManager'
 import { HttpClient } from '../utils/HttpClient'
 import { ABTastyWebSDKPostMessageType, NewVisitor } from '../types'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
@@ -195,7 +195,6 @@ export class Flagship {
       {
         const { BucketingSdkManager } = await import('./BucketingSdkManager')
         const { BucketingManager } = await import('../decision/BucketingManager')
-        const { MurmurHash } = await import('../utils/MurmurHash')
         sdkManager = new BucketingSdkManager({ httpClient, sdkConfig, trackingManager, flagshipInstanceId: this.instanceId })
         return {
           sdkManager,
@@ -209,7 +208,6 @@ export class Flagship {
       case DecisionMode.BUCKETING_EDGE:{
         const { EdgeSdkManager } = await import('./EdgeSdkManager')
         const { EdgeManager } = await import('../decision/EdgeManager')
-        const { MurmurHash } = await import('../utils/MurmurHash')
         sdkManager = new EdgeSdkManager({ httpClient, sdkConfig, trackingManager, flagshipInstanceId: this.instanceId })
         return {
           sdkManager,

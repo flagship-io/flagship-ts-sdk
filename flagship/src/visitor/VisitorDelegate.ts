@@ -1,4 +1,4 @@
-import { HitAbstract } from '../hit/index'
+import { type HitAbstract } from '../hit/index'
 import { primitive, IHit, IFSFlagMetadata } from '../types'
 import { VisitorAbstract } from './VisitorAbstract'
 import { FSFlag } from '../flag/FsFlags'

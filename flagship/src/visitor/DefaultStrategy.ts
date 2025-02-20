@@ -37,17 +37,12 @@ import {
   VISITOR_ALREADY_AUTHENTICATE
 } from '../enum/index'
 import {
-  HitAbstract,
+  type HitAbstract,
   IPage,
   IScreen,
   IEvent,
-  Event,
-  Screen,
   IItem,
-  ITransaction,
-  Item,
-  Page,
-  Transaction
+  ITransaction
 } from '../hit/index'
 import { primitive, IHit, FlagDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorVariations, CampaignDTO } from '../types'
 import { deepEqual, errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils'
@@ -264,24 +259,30 @@ export class DefaultStrategy extends StrategyAbstract {
     }
   }
 
-  private getHit (hit: IHit):HitAbstract|null {
+  private async getHit (hit: IHit): Promise<HitAbstract|null> {
     let newHit = null
     switch (hit.type.toUpperCase()) {
-      case HitType.EVENT:
+      case HitType.EVENT:{
+        const { Event } = await import('../hit/Event')
         newHit = new Event(hit as IEvent)
         break
-      case HitType.ITEM:
+      }
+      case HitType.ITEM:{
+        const { Item } = await import('../hit/Item')
         newHit = new Item(hit as IItem)
-        break
-      case HitType.PAGE_VIEW:
+        break }
+      case HitType.PAGE_VIEW:{
+        const { Page } = await import('../hit/Page')
         newHit = new Page(hit as IPage)
-        break
-      case HitType.SCREEN_VIEW:
+        break }
+      case HitType.SCREEN_VIEW:{
+        const { Screen } = await import('../hit/Screen')
         newHit = new Screen(hit as IScreen)
-        break
-      case HitType.TRANSACTION:
+        break }
+      case HitType.TRANSACTION:{
+        const { Transaction } = await import('../hit/Transaction')
         newHit = new Transaction(hit as ITransaction)
-        break
+        break }
     }
     return newHit
   }
@@ -294,10 +295,12 @@ export class DefaultStrategy extends StrategyAbstract {
       return
     }
 
+    const { HitAbstract } = await import('../hit/HitAbstract')
+
     if (hit instanceof HitAbstract) {
       hitInstance = hit
     } else {
-      const hitFromInt = this.getHit(hit)
+      const hitFromInt = await this.getHit(hit)
       if (!hitFromInt) {
         logError(this.config, TYPE_HIT_REQUIRED_ERROR, functionName)
         return

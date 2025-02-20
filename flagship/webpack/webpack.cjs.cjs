@@ -5,8 +5,8 @@ const { merge } = require('webpack-merge')
 const nodeExternals = require('webpack-node-externals')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const common = require('./webpack.common.cjs')
-
 // eslint-disable-next-line @typescript-eslint/no-var-requires
+const webpack = require('webpack')
 
 module.exports = merge(common(), {
   target: 'node',
@@ -66,6 +66,11 @@ module.exports = merge(common(), {
         /core-js\/modules\/web/,
         /@babel\/runtime/
       ]
+    })
+  ],
+  plugins: [
+    new webpack.DefinePlugin({
+      webpackIsBrowser: JSON.stringify(false)
     })
   ]
 })

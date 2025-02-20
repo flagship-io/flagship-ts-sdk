@@ -4,6 +4,8 @@ const { merge } = require('webpack-merge')
 const nodeExternals = require('webpack-node-externals')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const common = require('./webpack.common.cjs')
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const webpack = require('webpack')
 
 module.exports = merge(common(), {
   target: 'web',
@@ -18,8 +20,8 @@ module.exports = merge(common(), {
     library: {
       type: 'global'
     },
-    filename: 'index.browser.js'
-    // chunkFilename: '[name].browser.[id].[contenthash].js'
+    filename: '[name].browser.js',
+    chunkFilename: 'browser.[contenthash].js'
   },
   module: {
     rules: [
@@ -66,5 +68,23 @@ module.exports = merge(common(), {
         /@babel\/runtime/
       ]
     })
-  ]
+  ],
+  plugins: [
+    new webpack.DefinePlugin({
+      webpackIsBrowser: JSON.stringify(true)
+    })
+  ],
+  optimization: {
+    // minimize: true,
+    // splitChunks: {
+    //   chunks: 'all',
+    //   cacheGroups: {
+    //     vendors: {
+    //       test: /[\\/]node_modules[\\/]/,
+    //       name: 'vendors',
+    //       chunks: 'all'
+    //     }
+    //   }
+    // }
+  }
 })

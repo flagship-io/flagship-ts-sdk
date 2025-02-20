@@ -64,3 +64,8 @@ export type SdkApiParam = {
 export type SharedActionTrackingParam = {
   sdkConfig: IFlagshipConfig;
 }
+
+declare global {
+  let webpackIsBrowser: boolean
+  let webpackIsNode: boolean
+}

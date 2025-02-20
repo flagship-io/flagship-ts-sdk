@@ -1,7 +1,7 @@
 import { type IFlagshipConfig } from '../config/IFlagshipConfig'
 import { BATCH_LOOP_STARTED, BATCH_LOOP_STOPPED, DEFAULT_HIT_CACHE_TIME_MS, HitType, HIT_CACHE_ERROR, HIT_CACHE_LOADED, PROCESS_CACHE, PROCESS_LOOKUP_HIT, TRACKING_MANAGER } from '../enum/index'
 import { CacheStrategy } from '../enum/CacheStrategy'
-import { HitAbstract, IEvent, type ITransaction, Transaction, Event, Item, type IItem, Page, type IPage, type IScreen, Screen } from '../hit/index'
+import { type HitAbstract, IEvent, type ITransaction, Transaction, Event, Item, type IItem, Page, type IPage, type IScreen, Screen } from '../hit/index'
 import { type ISegment, Segment } from '../hit/Segment'
 import { type IHttpClient } from '../utils/HttpClient'
 import { logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf } from '../utils/utils'
@@ -175,9 +175,9 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
         }
         let hit:HitAbstract
         switch (item.data.type) {
-          case HitType.EVENT:
+          case HitType.EVENT:{
             hit = new Event(item.data.content as IEvent)
-            break
+            break }
           case HitType.ITEM:
             hit = new Item(item.data.content as IItem)
             break
