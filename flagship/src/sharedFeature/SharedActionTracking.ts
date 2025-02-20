@@ -1,7 +1,7 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { ACTION_TRACKING, ACTION_TRACKING_DISPATCHED, ACTION_TRACKING_HIT_RECEIVED, ACTION_TRACKING_INVALID_HIT, ACTION_TRACKING_INVALID_NONCE } from '../enum/FlagshipConstant'
 import { EventCategory, Event as EventHit } from '../hit'
-import { ActionTrackingData, LocalActionTracking, SharedAction, SharedActionPayload, SharedActionTrackingParam } from '../type.local'
+import { ActionTrackingData, LocalActionTracking, SharedActionSource, SharedActionPayload, SharedActionTrackingParam } from '../type.local'
 import { isBrowser, logDebugSprintf } from '../utils/utils'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { ISharedActionTracking } from './ISharedActionTracking'
@@ -18,9 +18,9 @@ export class SharedActionTracking implements ISharedActionTracking {
     this.sdkConfig = sdkConfig
   }
 
-  public generateNonce (): string {
-    if (!isBrowser() || !this.visitor) {
-      return ''
+  public generateNonce (): string|undefined {
+    if (!isBrowser() || !this.visitor || !this.visitor.hasConsented) {
+      return undefined
     }
     const nonce = Math.random().toString(36).substring(2) + Date.now().toString(36)
     this.trustedNonces[nonce] = false
@@ -45,7 +45,7 @@ export class SharedActionTracking implements ISharedActionTracking {
   }
 
   protected processHit (hit: ActionTrackingData): void {
-    if (!this.visitor || hit?.ec !== EventCategory.ACTION_TRACKING || !hit.ea) {
+    if (hit?.ec !== EventCategory.ACTION_TRACKING || !hit.ea) {
       logDebugSprintf(this.sdkConfig, ACTION_TRACKING, ACTION_TRACKING_INVALID_HIT, hit)
       return
     }
@@ -55,24 +55,24 @@ export class SharedActionTracking implements ISharedActionTracking {
       action: hit.ea,
       label: hit.el,
       value: hit.ev,
-      visitorId: this.visitor.visitorId,
-      anonymousId: this.visitor.anonymousId,
+      visitorId: this.visitor?.visitorId as string,
+      anonymousId: this.visitor?.anonymousId as string,
       isActionTrackingHit: true
     })
 
-    this.visitor.addInTrackingManager(eventHit)
+    this.visitor?.addInTrackingManager(eventHit)
 
     logDebugSprintf(this.sdkConfig, ACTION_TRACKING, ACTION_TRACKING_HIT_RECEIVED, hit)
   }
 
   private handleMessage (event: MessageEvent<SharedActionPayload>): void {
-    if (!event?.data || event?.origin !== window.location.origin || !this.visitor) {
+    if (!event?.data || event?.origin !== window.location.origin || !this.visitor?.hasConsented) {
       return
     }
 
     const payload = event.data
 
-    if (payload.action !== SharedAction.ABT_TAG_TRACK_ACTION || !payload.nonce) {
+    if (payload.action !== SharedActionSource.ABT_TAG_TRACK_ACTION || !payload.nonce) {
       return
     }
 
@@ -101,6 +101,12 @@ export class SharedActionTracking implements ISharedActionTracking {
       return
     }
 
+    const nonce = window.ABTasty?.api?.v1?.getActionTrackingNonce?.()
+
+    if (!nonce) {
+      return
+    }
+
     const hitsToDispatch:ActionTrackingData[] = []
 
     for (const hit of hits) {
@@ -115,10 +121,8 @@ export class SharedActionTracking implements ISharedActionTracking {
       return
     }
 
-    const nonce = Date.now().toString() // Will be replaced by a real nonce generator from tag API
-
     const payload: SharedActionPayload = {
-      action: SharedAction.ABT_WEB_SDK_TRACK_ACTION,
+      action: SharedActionSource.ABT_WEB_SDK_TRACK_ACTION,
       data: hitsToDispatch,
       nonce,
       timestamp: Date.now()
