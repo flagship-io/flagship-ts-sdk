@@ -27,7 +27,7 @@ import { VisitorDelegate } from '../visitor/VisitorDelegate'
 import { MurmurHash } from '../utils/MurmurHash'
 import { DecisionManager } from '../decision/DecisionManager'
 import { HttpClient } from '../utils/HttpClient'
-import { NewVisitor } from '../types'
+import { ABTastyWebSDKPostMessageType, NewVisitor } from '../types'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { ISdkManager } from './ISdkManager'
 import { ITrackingManager } from '../api/ITrackingManager'
@@ -237,8 +237,8 @@ export class Flagship {
       return
     }
     const { SdkApi } = await import('../sdkApi/v1/SdkApi')
-    window.webSdk = {
-      v1: new SdkApi({ sharedActionTracking })
+    window.ABTastyWebSdk = {
+      v1: new SdkApi({ sharedActionTracking }).getApiV1()
     }
   }
 
@@ -270,6 +270,13 @@ export class Flagship {
     await this._sdkManager?.initSdk()
 
     this.setStatus(FSSdkStatus.SDK_INITIALIZED)
+  }
+
+  private sendInitializedPostMessage (): void {
+    if (typeof window === 'undefined') {
+      return
+    }
+    window.postMessage({ action: ABTastyWebSDKPostMessageType.AB_TASTY_WEB_SDK_INITIALIZED }, '*')
   }
 
   /**
@@ -330,6 +337,7 @@ export class Flagship {
       flagship.EmotionAIClass = EmotionAI
       const { VisitorProfileCacheBrowser } = await import('../visitor/VisitorProfileCacheBrowser')
       flagship.VisitorProfileCacheClass = VisitorProfileCacheBrowser
+      flagship.sendInitializedPostMessage()
     } else {
       const { EmotionAI: EmotionAINode } = await import('../emotionAI/EmotionAI.node')
       flagship.EmotionAIClass = EmotionAINode
