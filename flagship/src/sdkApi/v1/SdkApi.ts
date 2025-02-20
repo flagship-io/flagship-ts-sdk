@@ -1,14 +1,16 @@
 import { ISharedActionTracking } from '../../sharedFeature/ISharedActionTracking'
 import { SdkApiParam } from '../../type.local'
-import { ISdkApi } from './ISdkApi'
+import { ISdkApiV1 } from './ISdkApiV1'
 
-export class SdkApi implements ISdkApi {
+export class SdkApi {
   private sharedActionTracking?: ISharedActionTracking
   public constructor ({ sharedActionTracking }:SdkApiParam) {
     this.sharedActionTracking = sharedActionTracking
   }
 
-  getActionTrackingNonce (): string|undefined {
-    return this.sharedActionTracking?.generateNonce()
+  public getApiV1 (): ISdkApiV1 {
+    return {
+      getActionTrackingNonce: () => this.sharedActionTracking?.generateNonce()
+    }
   }
 }
