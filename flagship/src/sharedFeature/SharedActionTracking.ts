@@ -1,6 +1,6 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { ACTION_TRACKING, ACTION_TRACKING_DISPATCHED, ACTION_TRACKING_HIT_RECEIVED, ACTION_TRACKING_INVALID_HIT, ACTION_TRACKING_INVALID_NONCE } from '../enum/FlagshipConstant'
-import { EventCategory, Event as EventHit } from '../hit'
+import { EventCategory, Event as EventHit } from '../hit/index'
 import { ActionTrackingData, LocalActionTracking, SharedActionSource, SharedActionPayload, SharedActionTrackingParam } from '../type.local'
 import { isBrowser, logDebugSprintf } from '../utils/utils'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'

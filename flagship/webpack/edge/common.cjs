@@ -17,10 +17,11 @@ module.exports = () =>
     },
     plugins: [
       new webpack.DefinePlugin({
-        webpackIsReactNative: JSON.stringify(false),
-        webpackIsBrowser: JSON.stringify(false),
-        webpackIsNode: JSON.stringify(false),
-        webpackIsEdgeWorker: JSON.stringify(true)
+        __fsWebpackIsReactNative__: JSON.stringify(false),
+        __fsWebpackIsBrowser__: JSON.stringify(false),
+        __fsWebpackIsNode__: JSON.stringify(false),
+        __fsWebpackIsEdgeWorker__: JSON.stringify(true),
+        __fsWebpackIsDeno__: JSON.stringify(false)
       })
     ]
   })

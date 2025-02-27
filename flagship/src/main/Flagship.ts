@@ -34,7 +34,6 @@ import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 import { EdgeManager } from '../decision/EdgeManager'
 import { EdgeConfig } from '../config/EdgeConfig'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
-import { launchQaAssistant } from '../qaAssistant/index'
 import { ISdkManager } from './ISdkManager'
 import { BucketingSdkManager } from './BucketingSdkManager'
 import { EdgeSdkManager } from './EdgeSdkManager'
@@ -321,7 +320,11 @@ export class Flagship {
       PROCESS_INITIALIZATION
     )
 
-    launchQaAssistant(localConfig)
+    if (__fsWebpackIsBrowser__) {
+      import(/* webpackMode: "eager" */'../qaAssistant/index').then(({ launchQaAssistant }) => {
+        launchQaAssistant(localConfig)
+      })
+    }
 
     flagship.lastInitializationTimestamp = new Date().toISOString()
 

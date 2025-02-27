@@ -66,6 +66,11 @@ export type SharedActionTrackingParam = {
 }
 
 declare global {
-  let webpackIsBrowser: boolean
-  let webpackIsNode: boolean
+  let __fsWebpackIsBrowser__: boolean
+  let __fsWebpackIsNode__: boolean
+  let __fsWebpackIsReactNative__: boolean
+  let __fsWebpackIsEdgeWorker__: boolean
+  let __fsWebpackIsDeno__: boolean
 }
+
+export {}
