@@ -28,9 +28,7 @@ import { BucketingManager } from '../decision/BucketingManager'
 import { MurmurHash } from '../utils/MurmurHash'
 import { DecisionManager } from '../decision/DecisionManager'
 import { HttpClient } from '../utils/HttpClient'
-import { ABTastyWebSDKPostMessageType, NewVisitor } from '../types'
-import { DefaultHitCache } from '../cache/DefaultHitCache'
-import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
+import { NewVisitor } from '../types'
 import { EdgeManager } from '../decision/EdgeManager'
 import { EdgeConfig } from '../config/EdgeConfig'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
@@ -264,13 +262,6 @@ export class Flagship {
     this.setStatus(FSSdkStatus.SDK_INITIALIZED)
   }
 
-  private sendInitializedPostMessage (): void {
-    if (typeof window === 'undefined') {
-      return
-    }
-    window.postMessage({ action: ABTastyWebSDKPostMessageType.AB_TASTY_WEB_SDK_INITIALIZED }, '*')
-  }
-
   /**
    * Start the flagship SDK, with a custom configuration implementation
    * @param {string} envId : Environment id provided by Flagship.
@@ -304,12 +295,16 @@ export class Flagship {
 
     logDebugSprintf(localConfig, PROCESS_INITIALIZATION, INITIALIZATION_STARTING, SDK_INFO.version, localConfig.decisionMode, localConfig)
 
-    if (!localConfig.hitCacheImplementation && isBrowser()) {
-      localConfig.hitCacheImplementation = new DefaultHitCache()
-    }
+    if (__fsWebpackIsBrowser__) {
+      if (!localConfig.hitCacheImplementation && isBrowser()) {
+        const { DefaultHitCache } = await import(/* webpackMode: "eager" */'../cache/DefaultHitCache')
+        localConfig.hitCacheImplementation = new DefaultHitCache()
+      }
 
-    if (!localConfig.visitorCacheImplementation && isBrowser()) {
-      localConfig.visitorCacheImplementation = new DefaultVisitorCache()
+      if (!localConfig.visitorCacheImplementation && isBrowser()) {
+        const { DefaultVisitorCache } = await import(/* webpackMode: "eager" */'../cache/DefaultVisitorCache')
+        localConfig.visitorCacheImplementation = new DefaultVisitorCache()
+      }
     }
 
     await flagship.initializeSdk(localConfig)
@@ -321,15 +316,18 @@ export class Flagship {
     )
 
     if (__fsWebpackIsBrowser__) {
-      import(/* webpackMode: "eager" */'../qaAssistant/index').then(({ launchQaAssistant }) => {
+      import(/* webpackMode: "lazy" */'../qaAssistant/index').then(({ launchQaAssistant }) => {
         launchQaAssistant(localConfig)
       })
     }
 
     flagship.lastInitializationTimestamp = new Date().toISOString()
 
-    if (isBrowser()) {
-      flagship.sendInitializedPostMessage()
+    if (__fsWebpackIsBrowser__) {
+      import(/* webpackMode: "lazy" */'./dynamicImport/sendInitializedPostMessage')
+        .then(({ sendInitializedPostMessage }) => {
+          sendInitializedPostMessage()
+        })
     }
 
     return flagship
