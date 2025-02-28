@@ -4,8 +4,6 @@ const { merge } = require('webpack-merge')
 const common = require('../webpack.common.cjs')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const webpack = require('webpack')
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const nodeExternals = require('webpack-node-externals')
 
 module.exports = () =>
   merge(common(), {
@@ -13,7 +11,8 @@ module.exports = () =>
     resolve: {
       alias: {
         '../emotionAI/EmotionAI': '../emotionAI/EmotionAI.node.native',
-        '../visitor/VisitorProfileCache.node': '../visitor/VisitorProfileCache.react-native',
+        '../visitor/VisitorProfileCache.node':
+          '../visitor/VisitorProfileCache.react-native',
         '../emotionAI/EmotionAI.node': '../emotionAI/EmotionAI.react-native'
       }
     },
@@ -26,7 +25,8 @@ module.exports = () =>
         __fsWebpackIsDeno__: JSON.stringify(false)
       })
     ],
-    externals: [
-      nodeExternals()
-    ]
+    optimization: {
+      splitChunks: false,
+      runtimeChunk: false
+    }
   })

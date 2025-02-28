@@ -1,7 +1,8 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { ACTION_TRACKING, ACTION_TRACKING_DISPATCHED, ACTION_TRACKING_HIT_RECEIVED, ACTION_TRACKING_INVALID_HIT, ACTION_TRACKING_INVALID_NONCE } from '../enum/FlagshipConstant'
-import { EventCategory, Event as EventHit } from '../hit/index'
-import { ActionTrackingData, LocalActionTracking, SharedActionSource, SharedActionPayload, SharedActionTrackingParam } from '../type.local'
+import { importHit } from '../hit/importHit'
+import { EventCategory } from '../hit/index'
+import { ActionTrackingData, LocalActionTracking, SharedActionSource, SharedActionPayload, SharedActionTrackingParam, ImportHitType } from '../type.local'
 import { isBrowser, logDebugSprintf } from '../utils/utils'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { ISharedActionTracking } from './ISharedActionTracking'
@@ -44,11 +45,13 @@ export class SharedActionTracking implements ISharedActionTracking {
     window?.addEventListener('message', this.onMessageReceived)
   }
 
-  protected processHit (hit: ActionTrackingData): void {
+  protected async processHit (hit: ActionTrackingData): Promise<void> {
     if (hit?.ec !== EventCategory.ACTION_TRACKING || !hit.ea) {
       logDebugSprintf(this.sdkConfig, ACTION_TRACKING, ACTION_TRACKING_INVALID_HIT, hit)
       return
     }
+
+    const { Event: EventHit } = await importHit(ImportHitType.Event)
 
     const eventHit = new EventHit({
       category: hit.ec as EventCategory,

@@ -2,10 +2,9 @@ import { FSSdkStatus, FLAG_VISITOR_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METAD
 import { CampaignDTO, FlagDTO, IFSFlagMetadata, IHit } from '../types'
 import { logInfoSprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
-import { HitAbstract } from '../hit/index'
+import { type HitAbstract } from '../hit/HitAbstract'
 import { BatchDTO } from '../hit/Batch'
 import { FSFlagMetadata } from '../flag/FSFlagMetadata'
-import { Troubleshooting } from '../hit/Troubleshooting'
 
 export class PanicStrategy extends DefaultStrategy {
   setConsent (hasConsented:boolean):void {
@@ -66,7 +65,7 @@ export class PanicStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async sendTroubleshootingHit (_hit: Troubleshooting): Promise<void> {
+  public async sendTroubleshootingHit (): Promise<void> {
     //
   }
 

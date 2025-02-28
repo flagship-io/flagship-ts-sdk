@@ -33,6 +33,7 @@ module.exports = merge(common(), {
       }
     ]
   },
+  externalsType: 'module',
   externals: [
     nodeExternals({
       importType: 'module'

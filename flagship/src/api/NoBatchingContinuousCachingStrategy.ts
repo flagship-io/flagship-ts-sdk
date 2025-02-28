@@ -1,13 +1,14 @@
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 import { HEADER_CONTENT_TYPE, HEADER_APPLICATION_JSON, HIT_EVENT_URL, HitType, HIT_SENT_SUCCESS, FS_CONSENT, SDK_INFO, BASE_API_URL, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, URL_ACTIVATE_MODIFICATION, LogLevel, ACTIVATE_HIT, DIRECT_HIT, TRACKING_MANAGER, TRACKING_MANAGER_ERROR, DEFAULT_HIT_CACHE_TIME_MS } from '../enum/index'
 import { type Activate } from '../hit/Activate'
-import { ActivateBatch } from '../hit/ActivateBatch'
-import { HitAbstract, Event } from '../hit/index'
-import { Troubleshooting } from '../hit/Troubleshooting'
+import { type HitAbstract } from '../hit/HitAbstract'
+import { type Event } from '../hit/Event'
 import { TroubleshootingLabel } from '../types'
 import { logDebugSprintf, logErrorSprintf, uuidV4 } from '../utils/utils'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
 import { BatchingCachingStrategyConstruct, SendActivate } from './types'
+import { ImportHitType } from '../type.local'
+import { importHit } from '../hit/importHit'
 
 export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategyAbstract {
   protected cacheHitKeys:Record<string, string>
@@ -87,24 +88,26 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.DirectHit]
       })
 
-      const monitoringHttpResponse = new Troubleshooting({
-        label: TroubleshootingLabel.SEND_HIT_ROUTE_ERROR,
-        logLevel: LogLevel.ERROR,
-        visitorId: `${this._flagshipInstanceId}`,
-        traffic: 0,
-        config: this.config,
-        httpRequestBody: requestBody,
-        httpRequestHeaders: headers,
-        httpRequestMethod: 'POST',
-        httpRequestUrl: HIT_EVENT_URL,
-        httpResponseBody: error?.message,
-        httpResponseHeaders: error?.headers,
-        httpResponseCode: error?.statusCode,
-        httpResponseTime: Date.now() - now,
-        batchTriggeredBy: BatchTriggeredBy.DirectHit
-      })
+      importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+        const monitoringHttpResponse = new Troubleshooting({
+          label: TroubleshootingLabel.SEND_HIT_ROUTE_ERROR,
+          logLevel: LogLevel.ERROR,
+          visitorId: `${this._flagshipInstanceId}`,
+          traffic: 0,
+          config: this.config,
+          httpRequestBody: requestBody,
+          httpRequestHeaders: headers,
+          httpRequestMethod: 'POST',
+          httpRequestUrl: HIT_EVENT_URL,
+          httpResponseBody: error?.message,
+          httpResponseHeaders: error?.headers,
+          httpResponseCode: error?.statusCode,
+          httpResponseTime: Date.now() - now,
+          batchTriggeredBy: BatchTriggeredBy.DirectHit
+        })
 
-      await this.sendTroubleshootingHit(monitoringHttpResponse)
+        this.sendTroubleshootingHit(monitoringHttpResponse)
+      })
     }
   }
 
@@ -153,6 +156,8 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       [HEADER_X_SDK_VERSION]: SDK_INFO.version,
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
+
+    const { ActivateBatch } = await importHit(ImportHitType.ActivateBatch)
 
     const activateBatch = new ActivateBatch(Array.from(activateHitsPool.filter(item => (Date.now() - item.createdAt) < DEFAULT_HIT_CACHE_TIME_MS)), this.config)
 
@@ -215,26 +220,28 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
 
-      const monitoringHttpResponse = new Troubleshooting({
-        label: TroubleshootingLabel.SEND_ACTIVATE_HIT_ROUTE_ERROR,
-        logLevel: LogLevel.ERROR,
-        visitorId: `${this._flagshipInstanceId}`,
-        traffic: 0,
-        config: this.config,
-        httpRequestBody: requestBody,
-        httpRequestHeaders: headers,
-        httpRequestMethod: 'POST',
-        httpRequestUrl: url,
-        httpResponseBody: error?.message,
-        httpResponseHeaders: error?.headers,
-        httpResponseMethod: 'POST',
-        httpResponseUrl: url,
-        httpResponseCode: error?.statusCode,
-        httpResponseTime: Date.now() - now,
-        batchTriggeredBy
-      })
+      importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+        const monitoringHttpResponse = new Troubleshooting({
+          label: TroubleshootingLabel.SEND_ACTIVATE_HIT_ROUTE_ERROR,
+          logLevel: LogLevel.ERROR,
+          visitorId: `${this._flagshipInstanceId}`,
+          traffic: 0,
+          config: this.config,
+          httpRequestBody: requestBody,
+          httpRequestHeaders: headers,
+          httpRequestMethod: 'POST',
+          httpRequestUrl: url,
+          httpResponseBody: error?.message,
+          httpResponseHeaders: error?.headers,
+          httpResponseMethod: 'POST',
+          httpResponseUrl: url,
+          httpResponseCode: error?.statusCode,
+          httpResponseTime: Date.now() - now,
+          batchTriggeredBy
+        })
 
-      await this.sendTroubleshootingHit(monitoringHttpResponse)
+        this.sendTroubleshootingHit(monitoringHttpResponse)
+      })
     }
   }
 }

@@ -1,5 +1,5 @@
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
-import { HitAbstract } from '../hit/index'
+import { type HitAbstract } from '../hit/HitAbstract'
 import { ActivateConstructorParam } from '../type.local'
 import { TrackingManagerAbstract } from './TrackingManagerAbstract'
 

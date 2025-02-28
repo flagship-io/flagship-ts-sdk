@@ -1,5 +1,5 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
-import { HitAbstract } from '../hit/HitAbstract'
+import { type HitAbstract } from '../hit/HitAbstract'
 import { TroubleshootingData } from '../types'
 import { ActivateConstructorParam } from '../type.local'
 

@@ -1,7 +1,6 @@
 import { ALLOCATION, BUCKETING_NEW_ALLOCATION, BUCKETING_VARIATION_CACHE, GET_THIRD_PARTY_SEGMENT, THIRD_PARTY_SEGMENT_URL } from '../enum/FlagshipConstant'
 import { IFlagshipConfig } from '../config/index'
 import { LogLevel } from '../enum/index'
-import { Segment } from '../hit/Segment'
 import { BucketingDTO, CampaignDTO, ThirdPartySegment, TroubleshootingLabel, VariationDTO, primitive } from '../types'
 import { IHttpClient } from '../utils/HttpClient'
 import { MurmurHash } from '../utils/MurmurHash'
@@ -9,8 +8,9 @@ import { errorFormat, logDebugSprintf, logError, sprintf } from '../utils/utils'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { Targetings, VariationGroupDTO } from './api/bucketingDTO'
 import { DecisionManager } from './DecisionManager'
-import { Troubleshooting } from '../hit/Troubleshooting'
 import { ISdkManager } from '../main/ISdkManager'
+import { importHit } from '../hit/importHit'
+import { ImportHitType } from '../type.local'
 
 type ConstructorParam = {
   httpClient: IHttpClient;
@@ -37,28 +37,33 @@ export class BucketingManager extends DecisionManager {
       if (Object.keys(visitor.context).length <= 3 || !visitor.hasConsented || !visitor.hasContextBeenUpdated) {
         return
       }
-      visitor.hasContextBeenUpdated = false
-      const SegmentHit = new Segment({
-        context: visitor.context,
-        visitorId: visitor.visitorId,
-        anonymousId: visitor.anonymousId as string
+
+      importHit(ImportHitType.Segment).then(({ Segment }) => {
+        visitor.hasContextBeenUpdated = false
+        const SegmentHit = new Segment({
+          context: visitor.context,
+          visitorId: visitor.visitorId,
+          anonymousId: visitor.anonymousId as string
+        })
+
+        visitor.sendHit(SegmentHit)
+
+        importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+          const hitTroubleshooting = new Troubleshooting({
+            label: TroubleshootingLabel.VISITOR_SEND_HIT,
+            logLevel: LogLevel.INFO,
+            traffic: visitor.traffic || 0,
+            visitorId: visitor.visitorId,
+            visitorSessionId: visitor.instanceId,
+            flagshipInstanceId: visitor.sdkInitialData?.instanceId,
+            anonymousId: visitor.anonymousId,
+            config: this.config,
+            hitContent: SegmentHit.toApiKeys()
+          })
+
+          visitor.segmentHitTroubleshooting = hitTroubleshooting
+        })
       })
-
-      await visitor.sendHit(SegmentHit)
-
-      const hitTroubleshooting = new Troubleshooting({
-        label: TroubleshootingLabel.VISITOR_SEND_HIT,
-        logLevel: LogLevel.INFO,
-        traffic: visitor.traffic || 0,
-        visitorId: visitor.visitorId,
-        visitorSessionId: visitor.instanceId,
-        flagshipInstanceId: visitor.sdkInitialData?.instanceId,
-        anonymousId: visitor.anonymousId,
-        config: this.config,
-        hitContent: SegmentHit.toApiKeys()
-      })
-
-      visitor.segmentHitTroubleshooting = hitTroubleshooting
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {

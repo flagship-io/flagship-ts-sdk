@@ -1,4 +1,4 @@
-import { Event, EventCategory, HitAbstract } from '../hit/index'
+import { EventCategory } from '../hit/index'
 import { primitive, IHit, VisitorCacheDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorCacheStatus, CampaignDTO, EAIScore } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
@@ -8,16 +8,16 @@ import { logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, sprintf } f
 import { VISITOR_CACHE_ERROR, CONSENT_CHANGED, FS_CONSENT, LOOKUP_VISITOR_JSON_OBJECT_ERROR, PROCESS_CACHE, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION, VISITOR_CACHE_FLUSHED, VISITOR_CACHE_LOADED, VISITOR_CACHE_SAVED, LogLevel, ANALYTIC_HIT_ALLOCATION } from '../enum/index'
 import { BatchDTO } from '../hit/Batch'
 import { ITrackingManager } from '../api/ITrackingManager'
-import { Troubleshooting } from '../hit/Troubleshooting'
+import { type Troubleshooting } from '../hit/Troubleshooting'
 import { MurmurHash } from '../utils/MurmurHash'
-import { UsageHit } from '../hit/UsageHit'
-import { DefaultHitCache } from '../cache/DefaultHitCache'
-import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
-import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
+import { type UsageHit } from '../hit/UsageHit'
+import { GetFlagMetadataParam, GetFlagValueParam, ImportHitType, VisitorExposedParam } from '../type.local'
 import { IVisitorEvent } from '../emotionAI/hit/IVisitorEvent'
 import { IPageView } from '../emotionAI/hit/IPageView'
 import { VisitorEvent } from '../emotionAI/hit/VisitorEvent'
 import { PageView } from '../emotionAI/hit/PageView'
+import { importHit } from '../hit/importHit'
+import { type HitAbstract } from '../hit/HitAbstract'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 
@@ -102,41 +102,45 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       return
     }
 
-    const consentHit = new Event({
-      visitorId: this.visitor.visitorId,
-      anonymousId: this.visitor.anonymousId,
-      label: `${SDK_INFO.name}:${this.visitor.hasConsented}`,
-      action: FS_CONSENT,
-      category: EventCategory.USER_ENGAGEMENT
+    importHit(ImportHitType.Event).then(({ Event }) => {
+      const consentHit = new Event({
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        label: `${SDK_INFO.name}:${this.visitor.hasConsented}`,
+        action: FS_CONSENT,
+        category: EventCategory.USER_ENGAGEMENT
+      })
+
+      consentHit.qaMode = this.config.isQAModeEnabled
+
+      consentHit.ds = SDK_APP
+      consentHit.config = this.config
+      this.trackingManager.addHit(consentHit)
+
+      importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+        const hitTroubleshooting = new Troubleshooting({
+
+          label: TroubleshootingLabel.VISITOR_SEND_HIT,
+          logLevel: LogLevel.INFO,
+          traffic: this.visitor.traffic || 0,
+          visitorId: this.visitor.visitorId,
+          visitorSessionId: this.visitor.instanceId,
+          flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+          anonymousId: this.visitor.anonymousId,
+          config: this.config,
+          hitContent: consentHit.toApiKeys()
+        })
+
+        if (this.decisionManager.troubleshooting) {
+          this.trackingManager.sendTroubleshootingHit(hitTroubleshooting)
+          return
+        }
+
+        this.visitor.consentHitTroubleshooting = hitTroubleshooting
+      })
     })
-
-    consentHit.qaMode = this.config.isQAModeEnabled
-
-    consentHit.ds = SDK_APP
-    consentHit.config = this.config
-
-    const hitTroubleshooting = new Troubleshooting({
-
-      label: TroubleshootingLabel.VISITOR_SEND_HIT,
-      logLevel: LogLevel.INFO,
-      traffic: this.visitor.traffic || 0,
-      visitorId: this.visitor.visitorId,
-      visitorSessionId: this.visitor.instanceId,
-      flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-      anonymousId: this.visitor.anonymousId,
-      config: this.config,
-      hitContent: consentHit.toApiKeys()
-    })
-    this.trackingManager.addHit(consentHit)
 
     logDebugSprintf(this.config, PROCESS_SET_CONSENT, CONSENT_CHANGED, this.visitor.visitorId, hasConsented)
-
-    if (this.decisionManager.troubleshooting) {
-      this.trackingManager.sendTroubleshootingHit(hitTroubleshooting)
-      return
-    }
-
-    this.visitor.consentHitTroubleshooting = hitTroubleshooting
   }
 
   protected checKLookupVisitorDataV1 (item:VisitorCacheDTO):boolean {
@@ -344,43 +348,52 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
 
       const hitCacheImplementation = this.config.hitCacheImplementation
       const visitorCacheImplementation = this.config.visitorCacheImplementation
-      const sdkConfigUsingCustomHitCache = hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
-      const sdkConfigUsingCustomVisitorCache = visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
+      let sdkConfigUsingCustomHitCache = false
+      let sdkConfigUsingCustomVisitorCache = false
 
-      const analyticData = new UsageHit({
-        label: TroubleshootingLabel.SDK_CONFIG,
-        logLevel: LogLevel.INFO,
-        visitorId: this.visitor.sdkInitialData?.instanceId as string,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        config: this.config,
-        sdkStatus: this.visitor.getSdkStatus(),
-        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
-        lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
-        sdkConfigMode: this.getSdkConfigDecisionMode(),
-        sdkConfigLogLevel: this.config.logLevel,
-        sdkConfigTimeout: this.config.timeout,
-        sdkConfigPollingInterval: this.config.pollingInterval,
-        sdkConfigTrackingManagerStrategy: this.config.trackingManagerConfig?.cacheStrategy,
-        sdkConfigTrackingManagerBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
-        sdkConfigTrackingManagerPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
-        sdkConfigFetchNow: this.config.fetchNow,
-        sdkConfigReuseVisitorIds: this.config.reuseVisitorIds,
-        sdkConfigInitialBucketing: this.config.initialBucketing,
-        sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
-        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
-        sdkConfigUsingOnVisitorExposed: !!this.config.onVisitorExposed,
-        sdkConfigUsingCustomHitCache: !!sdkConfigUsingCustomHitCache,
-        sdkConfigUsingCustomVisitorCache: !!sdkConfigUsingCustomVisitorCache,
-        sdkConfigFetchThirdPartyData: this.config.fetchThirdPartyData,
-        sdkConfigFetchFlagsBufferingTime: this.config.fetchFlagsBufferingTime,
-        sdkConfigDisableDeveloperUsageTracking: this.config.disableDeveloperUsageTracking,
-        sdkConfigNextFetchConfig: this.config.nextFetchConfig,
-        sdkConfigDisableCache: this.config.disableCache
+      if (__fsWebpackIsBrowser__) {
+        const { DefaultHitCache } = await import(/* webpackMode: "eager" */'../cache/DefaultHitCache')
+        const { DefaultVisitorCache } = await import(/* webpackMode: "eager" */'../cache/DefaultVisitorCache')
+        sdkConfigUsingCustomHitCache = !!hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
+        sdkConfigUsingCustomVisitorCache = !!visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
+      }
+
+      importHit(ImportHitType.UsageHit).then(({ UsageHit }) => {
+        const analyticData = new UsageHit({
+          label: TroubleshootingLabel.SDK_CONFIG,
+          logLevel: LogLevel.INFO,
+          visitorId: this.visitor.sdkInitialData?.instanceId as string,
+          flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+          config: this.config,
+          sdkStatus: this.visitor.getSdkStatus(),
+          lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+          lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
+          sdkConfigMode: this.getSdkConfigDecisionMode(),
+          sdkConfigLogLevel: this.config.logLevel,
+          sdkConfigTimeout: this.config.timeout,
+          sdkConfigPollingInterval: this.config.pollingInterval,
+          sdkConfigTrackingManagerStrategy: this.config.trackingManagerConfig?.cacheStrategy,
+          sdkConfigTrackingManagerBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
+          sdkConfigTrackingManagerPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
+          sdkConfigFetchNow: this.config.fetchNow,
+          sdkConfigReuseVisitorIds: this.config.reuseVisitorIds,
+          sdkConfigInitialBucketing: this.config.initialBucketing,
+          sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
+          sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
+          sdkConfigUsingOnVisitorExposed: !!this.config.onVisitorExposed,
+          sdkConfigUsingCustomHitCache: !!sdkConfigUsingCustomHitCache,
+          sdkConfigUsingCustomVisitorCache: !!sdkConfigUsingCustomVisitorCache,
+          sdkConfigFetchThirdPartyData: this.config.fetchThirdPartyData,
+          sdkConfigFetchFlagsBufferingTime: this.config.fetchFlagsBufferingTime,
+          sdkConfigDisableDeveloperUsageTracking: this.config.disableDeveloperUsageTracking,
+          sdkConfigNextFetchConfig: this.config.nextFetchConfig,
+          sdkConfigDisableCache: this.config.disableCache
+        })
+        this.sendUsageHit(analyticData)
       })
-      await this.sendUsageHit(analyticData)
     }
 
-    sendFetchFlagsTroubleshooting ({ isFromCache, campaigns, now }:{isFromCache: boolean, campaigns:CampaignDTO[], now: number }) {
+    async sendFetchFlagsTroubleshooting ({ isFromCache, campaigns, now }:{isFromCache: boolean, campaigns:CampaignDTO[], now: number }) {
       const assignmentHistory: Record<string, string> = {}
 
       this.visitor.flagsData.forEach(item => {
@@ -395,54 +408,62 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
 
       const hitCacheImplementation = this.config.hitCacheImplementation
       const visitorCacheImplementation = this.config.visitorCacheImplementation
-      const sdkConfigUsingCustomHitCache = hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
-      const sdkConfigUsingCustomVisitorCache = visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
+      let sdkConfigUsingCustomHitCache = false
+      let sdkConfigUsingCustomVisitorCache = false
 
-      const fetchFlagTroubleshooting = new Troubleshooting({
-        label: TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS,
-        logLevel: LogLevel.INFO,
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
-        visitorSessionId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        traffic,
-        config: this.config,
-        sdkStatus: this.visitor.getSdkStatus(),
-        visitorContext: this.visitor.context,
-        visitorCampaigns: campaigns,
-        visitorCampaignFromCache: isFromCache ? campaigns : undefined,
-        visitorConsent: this.visitor.hasConsented,
-        visitorIsAuthenticated: !!this.visitor.anonymousId,
-        visitorFlags: this.visitor.flagsData,
-        visitorAssignmentHistory: assignmentHistory,
-        visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
-        visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
-        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
-        lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
-        httpResponseTime: Date.now() - now,
-        sdkConfigLogLevel: this.config.logLevel,
-        sdkConfigMode: this.getSdkConfigDecisionMode(),
-        sdkConfigTimeout: this.config.timeout,
-        sdkConfigPollingInterval: this.config.pollingInterval,
-        sdkConfigTrackingManagerStrategy: this.config.trackingManagerConfig?.cacheStrategy,
-        sdkConfigTrackingManagerBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
-        sdkConfigTrackingManagerPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
-        sdkConfigFetchNow: this.config.fetchNow,
-        sdkConfigReuseVisitorIds: this.config.reuseVisitorIds,
-        sdkConfigInitialBucketing: this.config.initialBucketing,
-        sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
-        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
-        sdkConfigUsingOnVisitorExposed: !!this.config.onVisitorExposed,
-        sdkConfigUsingCustomHitCache: !!sdkConfigUsingCustomHitCache,
-        sdkConfigUsingCustomVisitorCache: !!sdkConfigUsingCustomVisitorCache,
-        sdkConfigFetchThirdPartyData: this.config.fetchThirdPartyData,
-        sdkConfigFetchFlagsBufferingTime: this.config.fetchFlagsBufferingTime,
-        sdkConfigDisableDeveloperUsageTracking: this.config.disableDeveloperUsageTracking,
-        sdkConfigNextFetchConfig: this.config.nextFetchConfig,
-        sdkConfigDisableCache: this.config.disableCache
+      if (__fsWebpackIsBrowser__) {
+        const { DefaultHitCache } = await import(/* webpackMode: "eager" */'../cache/DefaultHitCache')
+        const { DefaultVisitorCache } = await import(/* webpackMode: "eager" */'../cache/DefaultVisitorCache')
+        sdkConfigUsingCustomHitCache = !!hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
+        sdkConfigUsingCustomVisitorCache = !!visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
+      }
+      importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+        const fetchFlagTroubleshooting = new Troubleshooting({
+          label: TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS,
+          logLevel: LogLevel.INFO,
+          visitorId: this.visitor.visitorId,
+          anonymousId: this.visitor.anonymousId,
+          visitorSessionId: this.visitor.instanceId,
+          flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+          traffic,
+          config: this.config,
+          sdkStatus: this.visitor.getSdkStatus(),
+          visitorContext: this.visitor.context,
+          visitorCampaigns: campaigns,
+          visitorCampaignFromCache: isFromCache ? campaigns : undefined,
+          visitorConsent: this.visitor.hasConsented,
+          visitorIsAuthenticated: !!this.visitor.anonymousId,
+          visitorFlags: this.visitor.flagsData,
+          visitorAssignmentHistory: assignmentHistory,
+          visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
+          visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
+          lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+          lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
+          httpResponseTime: Date.now() - now,
+          sdkConfigLogLevel: this.config.logLevel,
+          sdkConfigMode: this.getSdkConfigDecisionMode(),
+          sdkConfigTimeout: this.config.timeout,
+          sdkConfigPollingInterval: this.config.pollingInterval,
+          sdkConfigTrackingManagerStrategy: this.config.trackingManagerConfig?.cacheStrategy,
+          sdkConfigTrackingManagerBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
+          sdkConfigTrackingManagerPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
+          sdkConfigFetchNow: this.config.fetchNow,
+          sdkConfigReuseVisitorIds: this.config.reuseVisitorIds,
+          sdkConfigInitialBucketing: this.config.initialBucketing,
+          sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
+          sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
+          sdkConfigUsingOnVisitorExposed: !!this.config.onVisitorExposed,
+          sdkConfigUsingCustomHitCache: !!sdkConfigUsingCustomHitCache,
+          sdkConfigUsingCustomVisitorCache: !!sdkConfigUsingCustomVisitorCache,
+          sdkConfigFetchThirdPartyData: this.config.fetchThirdPartyData,
+          sdkConfigFetchFlagsBufferingTime: this.config.fetchFlagsBufferingTime,
+          sdkConfigDisableDeveloperUsageTracking: this.config.disableDeveloperUsageTracking,
+          sdkConfigNextFetchConfig: this.config.nextFetchConfig,
+          sdkConfigDisableCache: this.config.disableCache
+        })
+
+        this.sendTroubleshootingHit(fetchFlagTroubleshooting)
       })
-
-      this.sendTroubleshootingHit(fetchFlagTroubleshooting)
     }
 
     sendConsentHitTroubleshooting () {

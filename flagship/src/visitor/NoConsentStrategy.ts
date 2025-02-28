@@ -1,10 +1,9 @@
 import { CampaignDTO, FlagDTO, IHit } from '../types'
 import { FLAG_VISITOR_EXPOSED, METHOD_DEACTIVATED_CONSENT_ERROR } from '../enum/index'
-import { HitAbstract } from '../hit/index'
+import { type HitAbstract } from '../hit/HitAbstract'
 import { logInfo, sprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
 import { BatchDTO } from '../hit/Batch'
-import { Troubleshooting } from '../hit/Troubleshooting'
 
 export class NoConsentStrategy extends DefaultStrategy {
   async lookupHits (): Promise<void> {
@@ -63,7 +62,7 @@ export class NoConsentStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async sendTroubleshootingHit (_hit: Troubleshooting): Promise<void> {
+  public async sendTroubleshootingHit (): Promise<void> {
     //
   }
 
