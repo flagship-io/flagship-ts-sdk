@@ -4,7 +4,7 @@ import { IVisitorProfileCache } from '../type.local'
 import { VisitorProfile } from '../types'
 import { logErrorSprintf } from '../utils/utils'
 
-export class VisitorProfileCacheNode implements IVisitorProfileCache {
+export class VisitorProfileCache implements IVisitorProfileCache {
   private _sdkConfig:IFlagshipConfig
   constructor (sdkConfig:IFlagshipConfig) {
     this._sdkConfig = sdkConfig
