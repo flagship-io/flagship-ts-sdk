@@ -37,15 +37,8 @@ import { BucketingSdkManager } from './BucketingSdkManager'
 import { EdgeSdkManager } from './EdgeSdkManager'
 import { ApiSdkManager } from './ApiSdkManager'
 import { ITrackingManager } from '../api/ITrackingManager'
-import { EmotionAI as EmotionAINode } from '../emotionAI/EmotionAI.node'
-import { EmotionAI as EmotionAIBrowser } from '../emotionAI/EmotionAI'
-import { IEmotionAI } from '../emotionAI/IEmotionAI'
-import { IVisitorProfileCache } from '../type.local'
-import { VisitorProfileCacheNode } from '../visitor/VisitorProfileCacheNode'
-import { VisitorProfileCacheBrowser } from '../visitor/VisitorProfileCacheBrowser'
-import { SharedActionTracking } from '../sharedFeature/SharedActionTracking'
-import { SdkApi } from '../sdkApi/v1/SdkApi'
-import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking'
+import { EmotionAI } from '../emotionAI/EmotionAI.node'
+import { VisitorProfileCache } from '../visitor/VisitorProfileCache.node'
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
@@ -224,24 +217,19 @@ export class Flagship {
     }
   }
 
-  private buildSdkApi (sharedActionTracking: ISharedActionTracking):void {
-    if (typeof window === 'undefined') {
-      return
-    }
-    window.ABTastyWebSdk = {
-      v1: new SdkApi({ sharedActionTracking }).getApiV1()
-    }
-  }
-
   private async initializeSdk (sdkConfig: IFlagshipConfig): Promise<void> {
     this.setStatus(FSSdkStatus.SDK_INITIALIZING)
 
     this._sdkManager?.resetSdk()
 
     let sharedActionTracking = this.configManager?.sharedActionTracking
-    if (!sharedActionTracking && isBrowser()) {
-      sharedActionTracking = new SharedActionTracking({ sdkConfig })
-      this.buildSdkApi(sharedActionTracking)
+    if (__fsWebpackIsBrowser__) {
+      if (!sharedActionTracking && isBrowser()) {
+        const { SharedActionTracking } = await import(/* webpackMode: "eager" */'../sharedFeature/SharedActionTracking')
+        sharedActionTracking = new SharedActionTracking({ sdkConfig })
+        const { buildSdkApi } = await import(/* webpackMode: "eager" */'./dynamicImport/buildSdkApi')
+        buildSdkApi(sharedActionTracking)
+      }
     }
 
     const httpClient = new HttpClient()
@@ -389,24 +377,12 @@ export class Flagship {
       logWarning(sdkConfig, CONSENT_NOT_SPECIFY_WARNING, PROCESS_NEW_VISITOR)
     }
 
-    let emotionAi:IEmotionAI
-    let visitorProfileCache:IVisitorProfileCache
-
-    if (!isBrowser()) {
-      emotionAi = new EmotionAINode({
-        sdkConfig,
-        httpClient: new HttpClient(),
-        eAIConfig: flagship._sdkManager?.getEAIConfig()
-      })
-      visitorProfileCache = new VisitorProfileCacheNode(sdkConfig)
-    } else {
-      emotionAi = new EmotionAIBrowser({
-        sdkConfig,
-        httpClient: new HttpClient(),
-        eAIConfig: flagship._sdkManager?.getEAIConfig()
-      })
-      visitorProfileCache = new VisitorProfileCacheBrowser(sdkConfig)
-    }
+    const emotionAi = new EmotionAI({
+      sdkConfig,
+      httpClient: new HttpClient(),
+      eAIConfig: flagship._sdkManager?.getEAIConfig()
+    })
+    const visitorProfileCache = new VisitorProfileCache(sdkConfig)
 
     const visitorDelegate = new VisitorDelegate({
       visitorId,
@@ -428,11 +404,13 @@ export class Flagship {
       murmurHash: new MurmurHash()
     })
 
-    onDomReady(() => {
-      if (isBrowser() && configManager.sharedActionTracking) {
-        configManager.sharedActionTracking.initialize(visitorDelegate)
-      }
-    })
+    if (__fsWebpackIsBrowser__) {
+      onDomReady(() => {
+        if (isBrowser() && configManager.sharedActionTracking) {
+          configManager.sharedActionTracking.initialize(visitorDelegate)
+        }
+      })
+    }
 
     const visitor = new Visitor(visitorDelegate)
     this.getInstance()._visitorInstance = saveInstance ? visitor : undefined
