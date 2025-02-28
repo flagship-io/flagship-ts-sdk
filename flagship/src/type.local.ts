@@ -1,6 +1,7 @@
 import { IFlagshipConfig } from './config/IFlagshipConfig'
 import { ISharedActionTracking } from './sharedFeature/ISharedActionTracking'
 import { FlagDTO, VisitorProfile } from './types'
+import { type IHttpClient } from './utils/HttpClient'
 
 export type VisitorExposedParam = {
     key: string;
@@ -73,4 +74,8 @@ declare global {
   let __fsWebpackIsDeno__: boolean
 }
 
-export {}
+export type ConstructorParam = {
+  httpClient: IHttpClient;
+  sdkConfig: IFlagshipConfig;
+  eAIConfig: EAIConfig|undefined;
+}
