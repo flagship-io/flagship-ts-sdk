@@ -12,7 +12,9 @@ module.exports = () =>
       alias: {
         http: false,
         https: false,
-        'node-fetch': false
+        'node-fetch': false,
+        '../visitor/VisitorProfileCache.node': '../visitor/VisitorProfileCache.browser',
+        '../emotionAI/EmotionAI.node': '../emotionAI/EmotionAI.browser'
       }
     },
     plugins: [

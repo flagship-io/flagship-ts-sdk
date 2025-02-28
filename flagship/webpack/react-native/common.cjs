@@ -12,7 +12,9 @@ module.exports = () =>
     target: 'node',
     resolve: {
       alias: {
-        '../emotionAI/EmotionAI': '../emotionAI/EmotionAI.node.native'
+        '../emotionAI/EmotionAI': '../emotionAI/EmotionAI.node.native',
+        '../visitor/VisitorProfileCache.node': '../visitor/VisitorProfileCache.react-native',
+        '../emotionAI/EmotionAI.node': '../emotionAI/EmotionAI.react-native'
       }
     },
     plugins: [
