@@ -1,11 +1,12 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
-import { HitAbstract } from '../hit/index'
+
 import { type Activate } from '../hit/Activate'
-import { UsageHit } from '../hit/UsageHit'
-import { Troubleshooting } from '../hit/Troubleshooting'
+import { type UsageHit } from '../hit/UsageHit'
+import { type Troubleshooting } from '../hit/Troubleshooting'
 import { IHttpClient } from '../utils/HttpClient'
 import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking'
+import { type HitAbstract } from '../hit/HitAbstract'
 
 export type BatchingCachingStrategyConstruct = {
     config: IFlagshipConfig,
