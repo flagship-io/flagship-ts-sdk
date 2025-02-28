@@ -1,7 +1,7 @@
 import { DecisionMode, IFlagshipConfig } from '../config/index'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 import { ACTIVATE_ADDED_IN_QUEUE, ADD_ACTIVATE, BATCH_MAX_SIZE, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HitType, HIT_ADDED_IN_QUEUE, HIT_CACHE_VERSION, HIT_DATA_FLUSHED, HIT_EVENT_URL, LogLevel, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_APP, SDK_INFO, SEND_BATCH, TROUBLESHOOTING_HIT_URL, TROUBLESHOOTING_HIT_ADDED_IN_QUEUE, ADD_TROUBLESHOOTING_HIT, TROUBLESHOOTING_SENT_SUCCESS, SEND_TROUBLESHOOTING, ALL_HITS_FLUSHED, HIT_CACHE_ERROR, HIT_CACHE_SAVED, PROCESS_CACHE, TRACKING_MANAGER, HIT_SENT_SUCCESS, BATCH_HIT, TRACKING_MANAGER_ERROR, USAGE_HIT_URL, ANALYTICS_HIT_SENT_SUCCESS as USAGE_HIT_SENT_SUCCESS, SEND_USAGE_HIT, ANALYTICS_HIT_ADDED_IN_QUEUE as USAGE_HIT_ADDED_IN_QUEUE, ADD_USAGE_HIT } from '../enum/index'
-import { Activate } from '../hit/Activate'
+import { type Activate } from '../hit/Activate'
 import { UsageHit } from '../hit/UsageHit'
 import { Batch } from '../hit/Batch'
 import { Troubleshooting } from '../hit/Troubleshooting'
@@ -13,7 +13,8 @@ import { ITrackingManagerCommon } from './ITrackingManagerCommon'
 import type { BatchingCachingStrategyConstruct, SendActivate } from './types'
 import { sendFsHitToQA } from '../qaAssistant/messages/index'
 import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking'
-import { LocalActionTracking } from '../type.local'
+import { ActivateConstructorParam, ImportHitType, LocalActionTracking } from '../type.local'
+import { importHit } from '../hit/importHit'
 
 export abstract class BatchingCachingStrategyAbstract implements ITrackingManagerCommon {
   protected _config : IFlagshipConfig
@@ -156,7 +157,11 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     }
   }
 
-  async activateFlag (hit: Activate):Promise<void> {
+  async activateFlag (paramHit: ActivateConstructorParam):Promise<void> {
+    const { Activate } = await importHit(ImportHitType.Activate)
+
+    const hit = new Activate(paramHit)
+    hit.config = this.config
     const hitKey = `${hit.visitorId}:${uuidV4()}`
     hit.key = hitKey
 

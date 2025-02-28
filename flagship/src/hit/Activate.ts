@@ -1,18 +1,9 @@
 import { ANONYMOUS_ID, CUSTOMER_ENV_ID_API_ACTIVATE, QA_MODE_API_ITEM, QT_API_ITEM, VARIATION_GROUP_ID_API_ITEM_ACTIVATE, VARIATION_ID_API_ITEM, VISITOR_ID_API_ITEM } from '../enum/index'
+import { ActivateConstructorParam, IActivate } from '../type.local'
 import { IFSFlagMetadata, primitive } from '../types'
-import { HitAbstract, IHitAbstract } from './HitAbstract'
+import { HitAbstract } from './HitAbstract'
 
 export const ERROR_MESSAGE = 'variationGroupId and variationId are required'
-
-export interface IActivate extends IHitAbstract{
-    variationGroupId: string
-    variationId: string
-    flagKey: string
-    flagValue: unknown
-    flagDefaultValue: unknown
-    flagMetadata: IFSFlagMetadata
-    visitorContext: Record<string, primitive>
-}
 
 export class Activate extends HitAbstract implements IActivate {
   private _variationGroupId! : string
@@ -23,7 +14,7 @@ export class Activate extends HitAbstract implements IActivate {
   private _flagMetadata! : IFSFlagMetadata
   private _visitorContext! : Record<string, primitive>
 
-  public constructor (param:Omit<IActivate, 'type'|'createdAt'|'traffic'>) {
+  public constructor (param:ActivateConstructorParam) {
     super({
       type: 'ACTIVATE',
       userIp: param.userIp,

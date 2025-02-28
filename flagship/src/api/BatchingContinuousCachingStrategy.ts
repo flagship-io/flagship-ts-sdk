@@ -1,7 +1,7 @@
 import { ACTIVATE_HIT, DEFAULT_HIT_CACHE_TIME_MS, HIT_SENT_SUCCESS, MAX_ACTIVATE_HIT_PER_BATCH, TRACKING_MANAGER, TRACKING_MANAGER_ERROR } from '../enum/FlagshipConstant'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy'
 import { BASE_API_URL, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, SDK_INFO, URL_ACTIVATE_MODIFICATION } from '../enum/index'
-import { Activate } from '../hit/Activate'
+import { type Activate } from '../hit/Activate'
 import { ActivateBatch } from '../hit/ActivateBatch'
 import { HitAbstract } from '../hit/index'
 import { Troubleshooting } from '../hit/Troubleshooting'

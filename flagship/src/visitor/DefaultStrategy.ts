@@ -37,17 +37,12 @@ import {
   VISITOR_ALREADY_AUTHENTICATE
 } from '../enum/index'
 import {
-  HitAbstract,
+  type HitAbstract,
   IPage,
   IScreen,
   IEvent,
-  Event,
-  Screen,
   IItem,
-  ITransaction,
-  Item,
-  Page,
-  Transaction
+  ITransaction
 } from '../hit/index'
 import { primitive, IHit, FlagDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorVariations, CampaignDTO } from '../types'
 import { deepEqual, errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils'
@@ -55,12 +50,12 @@ import { StrategyAbstract } from './StrategyAbstract'
 import { FLAGSHIP_CLIENT, FLAGSHIP_CONTEXT, FLAGSHIP_VERSION, FLAGSHIP_VISITOR } from '../enum/FlagshipContext'
 import { VisitorDelegate } from './index'
 import { FSFlagMetadata } from '../flag/FSFlagMetadata'
-import { Activate } from '../hit/Activate'
 import { Troubleshooting } from '../hit/Troubleshooting'
 import { FSFetchStatus } from '../enum/FSFetchStatus'
 import { FSFetchReasons } from '../enum/FSFetchReasons'
-import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
+import { ActivateConstructorParam, GetFlagMetadataParam, GetFlagValueParam, ImportHitType, VisitorExposedParam } from '../type.local'
 import { sendVisitorAllocatedVariations } from '../qaAssistant/messages/index'
+import { importHit } from '../hit/importHit'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
 export const HIT_NULL_ERROR = 'Hit must not be null'
@@ -189,7 +184,7 @@ export class DefaultStrategy extends StrategyAbstract {
   }
 
   protected async sendActivate (flagDto: FlagDTO, defaultValue?: unknown):Promise<void> {
-    const activateHit = new Activate({
+    const activateHit:ActivateConstructorParam = {
       variationGroupId: flagDto.variationGroupId,
       variationId: flagDto.variationId,
       visitorId: this.visitor.visitorId,
@@ -208,14 +203,11 @@ export class DefaultStrategy extends StrategyAbstract {
         variationName: flagDto.variationName,
         slug: flagDto.slug,
         isReference: flagDto.isReference as boolean
-      }
-    })
-    activateHit.config = this.config
-    activateHit.qaMode = this.config.isQAModeEnabled
+      },
+      qaMode: this.config.isQAModeEnabled
+    }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { createdAt, ...hitInstanceItem } = activateHit.toObject()
-    if (this.isDeDuplicated(JSON.stringify(hitInstanceItem), this.config.hitDeduplicationTime as number)) {
+    if (this.isDeDuplicated(JSON.stringify(activateHit), this.config.hitDeduplicationTime as number)) {
       const logData = {
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
@@ -238,7 +230,7 @@ export class DefaultStrategy extends StrategyAbstract {
       visitorSessionId: this.visitor.instanceId,
       anonymousId: activateHit.anonymousId,
       config: this.config,
-      hitContent: activateHit.toApiKeys()
+      hitContent: activateHit
     })
 
     this.sendTroubleshootingHit(activateTroubleshooting)
@@ -264,24 +256,34 @@ export class DefaultStrategy extends StrategyAbstract {
     }
   }
 
-  private getHit (hit: IHit):HitAbstract|null {
+  private async getHit (hit: IHit): Promise<HitAbstract|null> {
     let newHit = null
     switch (hit.type.toUpperCase()) {
-      case HitType.EVENT:
+      case HitType.EVENT:{
+        const { Event } = await importHit(ImportHitType.Event)
         newHit = new Event(hit as IEvent)
         break
-      case HitType.ITEM:
+      }
+      case HitType.ITEM:{
+        const { Item } = await importHit(ImportHitType.Item)
         newHit = new Item(hit as IItem)
         break
-      case HitType.PAGE_VIEW:
+      }
+      case HitType.PAGE_VIEW:{
+        const { Page } = await importHit(ImportHitType.Page)
         newHit = new Page(hit as IPage)
         break
-      case HitType.SCREEN_VIEW:
+      }
+      case HitType.SCREEN_VIEW:{
+        const { Screen } = await importHit(ImportHitType.Screen)
         newHit = new Screen(hit as IScreen)
         break
-      case HitType.TRANSACTION:
+      }
+      case HitType.TRANSACTION:{
+        const { Transaction } = await importHit(ImportHitType.Transaction)
         newHit = new Transaction(hit as ITransaction)
         break
+      }
     }
     return newHit
   }
@@ -294,10 +296,12 @@ export class DefaultStrategy extends StrategyAbstract {
       return
     }
 
+    const { HitAbstract } = await importHit(ImportHitType.HitAbstract)
+
     if (hit instanceof HitAbstract) {
       hitInstance = hit
     } else {
-      const hitFromInt = this.getHit(hit)
+      const hitFromInt = await this.getHit(hit)
       if (!hitFromInt) {
         logError(this.config, TYPE_HIT_REQUIRED_ERROR, functionName)
         return

@@ -1,7 +1,7 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { HitAbstract } from '../hit/HitAbstract'
-import { Activate } from '../hit/Activate'
 import { TroubleshootingData } from '../types'
+import { ActivateConstructorParam } from '../type.local'
 
 export interface ITrackingManagerCommon {
     config:IFlagshipConfig
@@ -10,6 +10,6 @@ export interface ITrackingManagerCommon {
 
     addHit(hit: HitAbstract): Promise<void>
 
-    activateFlag (hit: Activate): Promise<void>
+    activateFlag (hit: ActivateConstructorParam): Promise<void>
 
 }
