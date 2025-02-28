@@ -1,6 +1,6 @@
 import { IFlagshipConfig } from './config/IFlagshipConfig'
 import { ISharedActionTracking } from './sharedFeature/ISharedActionTracking'
-import { FlagDTO, VisitorProfile } from './types'
+import { FlagDTO, IFSFlagMetadata, InternalHitType, primitive, VisitorProfile } from './types'
 import { type IHttpClient } from './utils/HttpClient'
 
 export type VisitorExposedParam = {
@@ -79,3 +79,45 @@ export type ConstructorParam = {
   sdkConfig: IFlagshipConfig;
   eAIConfig: EAIConfig|undefined;
 }
+
+export interface IHitAbstract{
+  visitorId:string
+  anonymousId?: string|null
+  ds?: string
+  type: InternalHitType
+  userIp?: string
+  screenResolution?: string
+  locale?: string
+  sessionNumber?: string,
+  createdAt:number,
+  qaMode?: boolean,
+  isActionTrackingHit?: boolean
+}
+
+export interface IActivate extends IHitAbstract{
+    variationGroupId: string
+    variationId: string
+    flagKey: string
+    flagValue: unknown
+    flagDefaultValue: unknown
+    flagMetadata: IFSFlagMetadata
+    visitorContext: Record<string, primitive>
+}
+
+export enum ImportHitType {
+  Event = 'Event',
+  Item = 'Item',
+  Page = 'Page',
+  Screen = 'Screen',
+  Transaction = 'Transaction',
+  Segment = 'Segment',
+  Activate = 'Activate',
+  Troubleshooting = 'Troubleshooting',
+  UsageHit = 'UsageHit',
+  ActivateBatch = 'ActivateBatch',
+  Batch = 'Batch',
+  HitAbstract = 'HitAbstract',
+  Diagnostic = 'Diagnostic',
+}
+
+export type ActivateConstructorParam = Omit<IActivate, 'type'|'createdAt'|'traffic'>
