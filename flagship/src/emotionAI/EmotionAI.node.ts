@@ -1,7 +1,25 @@
+import { ConstructorParam } from '../type.local'
 import { EAIScore } from '../types'
-import { CommonEmotionAI } from './CommonEmotionAI'
+import { IEmotionAI } from './IEmotionAI'
 
-export class EmotionAI extends CommonEmotionAI {
+export class EmotionAI implements IEmotionAI {
+  // eslint-disable-next-line no-useless-constructor
+  public constructor (_params: ConstructorParam) {
+    //
+  }
+
+  init (): void {
+    //
+  }
+
+  async reportPageView (): Promise<void> {
+    //
+  }
+
+  onEAICollectStatusChange (): void {
+    //
+  }
+
   protected async startCollectingEAIData (): Promise<void> {
     //
   }
