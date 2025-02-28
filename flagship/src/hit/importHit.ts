@@ -24,5 +24,5 @@ type HitModuleMap = {
  * @returns {Promise<HitModuleMap[T]>} A promise that resolves to the imported module.
  */
 export function importHit<T extends ImportHitType> (hitType: T): Promise<HitModuleMap[T]> {
-  return import(/* webpackMode: "lazy" */`./${hitType}`) as Promise<HitModuleMap[T]>
+  return import(/* webpackMode: "lazy" */`./${hitType}.ts`) as Promise<HitModuleMap[T]>
 }
