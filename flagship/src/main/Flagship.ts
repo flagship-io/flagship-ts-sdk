@@ -312,7 +312,7 @@ export class Flagship {
     flagship.lastInitializationTimestamp = new Date().toISOString()
 
     if (__fsWebpackIsBrowser__) {
-      import(/* webpackMode: "lazy" */'./dynamicImport/sendInitializedPostMessage')
+      import(/* webpackMode: "eager" */'./dynamicImport/sendInitializedPostMessage')
         .then(({ sendInitializedPostMessage }) => {
           sendInitializedPostMessage()
         })
