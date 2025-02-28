@@ -143,16 +143,18 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   }
 
   protected initQaMode () {
-    if (!isBrowser()) {
-      return
-    }
-    try {
-      const isQAModeEnabled = sessionStorage.getItem(FS_IS_QA_MODE_ENABLED)
-      this.isQAModeEnabled = isQAModeEnabled ? JSON.parse(isQAModeEnabled) : undefined
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
-      logError(this, errorFormat(error.message || error), 'initQaMode')
-      this.isQAModeEnabled = false
+    if (__fsWebpackIsBrowser__) {
+      if (!isBrowser()) {
+        return
+      }
+      try {
+        const isQAModeEnabled = sessionStorage.getItem(FS_IS_QA_MODE_ENABLED)
+        this.isQAModeEnabled = isQAModeEnabled ? JSON.parse(isQAModeEnabled) : undefined
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error:any) {
+        logError(this, errorFormat(error.message || error), 'initQaMode')
+        this.isQAModeEnabled = false
+      }
     }
   }
 

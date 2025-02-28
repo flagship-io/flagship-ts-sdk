@@ -111,10 +111,6 @@ export function logDebug (config: IFlagshipConfig, message: string, tag: string)
   }
 }
 
-export function sleep (ms:number) :Promise<unknown> {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
-
 export function isBrowser ():boolean {
   return typeof window !== 'undefined' && typeof window.document !== 'undefined'
 }
@@ -230,25 +226,28 @@ export function deepEqual (obj1: any, obj2: any): boolean {
 }
 
 export function onDomReady (callback?: () => void): boolean {
-  if (!isBrowser()) {
-    return false
-  }
+  if (__fsWebpackIsBrowser__) {
+    if (!isBrowser()) {
+      return false
+    }
 
-  const isDomReady = document.readyState === 'interactive' || document.readyState === 'complete'
+    const isDomReady = document.readyState === 'interactive' || document.readyState === 'complete'
 
-  if (typeof callback !== 'function') {
+    if (typeof callback !== 'function') {
+      return isDomReady
+    }
+
+    if (isDomReady) {
+      callback()
+    } else {
+      const domContentLoadedHandler = (): void => {
+        document.removeEventListener('DOMContentLoaded', domContentLoadedHandler)
+        callback()
+      }
+      document.addEventListener('DOMContentLoaded', domContentLoadedHandler)
+    }
+
     return isDomReady
   }
-
-  if (isDomReady) {
-    callback()
-  } else {
-    const domContentLoadedHandler = (): void => {
-      document.removeEventListener('DOMContentLoaded', domContentLoadedHandler)
-      callback()
-    }
-    document.addEventListener('DOMContentLoaded', domContentLoadedHandler)
-  }
-
-  return isDomReady
+  return false
 }

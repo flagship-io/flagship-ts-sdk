@@ -10,7 +10,6 @@ import { IHttpClient } from '../utils/HttpClient'
 import { errorFormat, isBrowser, logDebug, logDebugSprintf, logError, logErrorSprintf, sprintf, uuidV4 } from '../utils/utils'
 import { ITrackingManagerCommon } from './ITrackingManagerCommon'
 import type { BatchingCachingStrategyConstruct, SendActivate } from './types'
-import { sendFsHitToQA } from '../qaAssistant/messages/index'
 import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking'
 import { ActivateConstructorParam, ImportHitType, LocalActionTracking } from '../type.local'
 import { importHit } from '../hit/importHit'
@@ -79,59 +78,65 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   }
 
   protected dispatchHitsToTag (hits: HitAbstract[]): void {
-    if (!isBrowser()) {
-      return
-    }
-    const actionTrackingHits:LocalActionTracking[] = []
+    if (__fsWebpackIsBrowser__) {
+      if (!isBrowser()) {
+        return
+      }
+      const actionTrackingHits:LocalActionTracking[] = []
 
-    for (const hit of hits) {
-      if (hit.type === HitType.EVENT &&
+      for (const hit of hits) {
+        if (hit.type === HitType.EVENT &&
         (hit as Event).category === EventCategory.ACTION_TRACKING &&
         !(hit as Event).isActionTrackingHit) {
-        const eventHit = hit as Event
-        actionTrackingHits.push({
-          visitorId: eventHit.visitorId,
-          createdAt: eventHit.createdAt,
-          anonymousId: eventHit.anonymousId,
-          data: {
-            ec: eventHit.category as EventCategory.ACTION_TRACKING,
-            ea: eventHit.action,
-            el: eventHit.label,
-            ev: eventHit.value
-          }
-        })
+          const eventHit = hit as Event
+          actionTrackingHits.push({
+            visitorId: eventHit.visitorId,
+            createdAt: eventHit.createdAt,
+            anonymousId: eventHit.anonymousId,
+            data: {
+              ec: eventHit.category as EventCategory.ACTION_TRACKING,
+              ea: eventHit.action,
+              el: eventHit.label,
+              ev: eventHit.value
+            }
+          })
+        }
       }
-    }
-    if (actionTrackingHits.length) {
-      this._sharedActionTracking?.dispatchEventHits(actionTrackingHits)
+      if (actionTrackingHits.length) {
+        this._sharedActionTracking?.dispatchEventHits(actionTrackingHits)
+      }
     }
   }
 
   public sendHitsToFsQa (hits: HitAbstract[]) {
-    if (!isBrowser() || !this.config.isQAModeEnabled) {
-      return
-    }
-    this._HitsToFsQa.push(...hits)
-    const BATCH_SIZE = 10
-    const DELAY = 3000
+    if (__fsWebpackIsBrowser__) {
+      if (!isBrowser() || !this.config.isQAModeEnabled) {
+        return
+      }
+      import(/* webpackMode: "lazy" */ '../qaAssistant/messages/index').then(({ sendFsHitToQA }) => {
+        this._HitsToFsQa.push(...hits)
+        const BATCH_SIZE = 10
+        const DELAY = 3000
 
-    if (this._HitsToFsQa.length >= BATCH_SIZE) {
-      sendFsHitToQA(this._HitsToFsQa.map(item => item.toApiKeys()))
-      this._HitsToFsQa = []
-    }
+        if (this._HitsToFsQa.length >= BATCH_SIZE) {
+          sendFsHitToQA(this._HitsToFsQa.map(item => item.toApiKeys()))
+          this._HitsToFsQa = []
+        }
 
-    if (this._sendFsHitToQATimeoutId) {
-      clearTimeout(this._sendFsHitToQATimeoutId)
-    }
+        if (this._sendFsHitToQATimeoutId) {
+          clearTimeout(this._sendFsHitToQATimeoutId)
+        }
 
-    if (!this._HitsToFsQa.length) {
-      return
-    }
+        if (!this._HitsToFsQa.length) {
+          return
+        }
 
-    this._sendFsHitToQATimeoutId = setTimeout(() => {
-      sendFsHitToQA(this._HitsToFsQa.map(item => item.toApiKeys()))
-      this._HitsToFsQa = []
-    }, DELAY)
+        this._sendFsHitToQATimeoutId = setTimeout(() => {
+          sendFsHitToQA(this._HitsToFsQa.map(item => item.toApiKeys()))
+          this._HitsToFsQa = []
+        }, DELAY)
+      })
+    }
   }
 
   public abstract addHitInPoolQueue (hit: HitAbstract):Promise<void>

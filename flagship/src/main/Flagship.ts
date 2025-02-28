@@ -28,7 +28,7 @@ import { BucketingManager } from '../decision/BucketingManager'
 import { MurmurHash } from '../utils/MurmurHash'
 import { DecisionManager } from '../decision/DecisionManager'
 import { HttpClient } from '../utils/HttpClient'
-import { NewVisitor } from '../types'
+import { ABTastyWebSDKPostMessageType, NewVisitor } from '../types'
 import { EdgeManager } from '../decision/EdgeManager'
 import { EdgeConfig } from '../config/EdgeConfig'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
@@ -39,6 +39,7 @@ import { ApiSdkManager } from './ApiSdkManager'
 import { ITrackingManager } from '../api/ITrackingManager'
 import { EmotionAI } from '../emotionAI/EmotionAI.node'
 import { VisitorProfileCache } from '../visitor/VisitorProfileCache.node'
+import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking'
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
@@ -217,6 +218,28 @@ export class Flagship {
     }
   }
 
+  private buildSdkApi (sharedActionTracking: ISharedActionTracking):void {
+    if (__fsWebpackIsBrowser__) {
+      if (typeof window === 'undefined') {
+        return
+      }
+      import(/* webpackMode: "eager" */'../sdkApi/v1/SdkApi').then(({ SdkApi }) => {
+        window.ABTastyWebSdk = {
+          v1: new SdkApi({ sharedActionTracking }).getApiV1()
+        }
+      })
+    }
+  }
+
+  private sendInitializedPostMessage (): void {
+    if (__fsWebpackIsBrowser__) {
+      if (typeof window === 'undefined') {
+        return
+      }
+      window.postMessage({ action: ABTastyWebSDKPostMessageType.AB_TASTY_WEB_SDK_INITIALIZED }, '*')
+    }
+  }
+
   private async initializeSdk (sdkConfig: IFlagshipConfig): Promise<void> {
     this.setStatus(FSSdkStatus.SDK_INITIALIZING)
 
@@ -227,8 +250,7 @@ export class Flagship {
       if (!sharedActionTracking && isBrowser()) {
         const { SharedActionTracking } = await import(/* webpackMode: "eager" */'../sharedFeature/SharedActionTracking')
         sharedActionTracking = new SharedActionTracking({ sdkConfig })
-        const { buildSdkApi } = await import(/* webpackMode: "eager" */'./dynamicImport/buildSdkApi')
-        buildSdkApi(sharedActionTracking)
+        this.buildSdkApi(sharedActionTracking)
       }
     }
 
@@ -311,12 +333,7 @@ export class Flagship {
 
     flagship.lastInitializationTimestamp = new Date().toISOString()
 
-    if (__fsWebpackIsBrowser__) {
-      import(/* webpackMode: "eager" */'./dynamicImport/sendInitializedPostMessage')
-        .then(({ sendInitializedPostMessage }) => {
-          sendInitializedPostMessage()
-        })
-    }
+    flagship.sendInitializedPostMessage()
 
     return flagship
   }

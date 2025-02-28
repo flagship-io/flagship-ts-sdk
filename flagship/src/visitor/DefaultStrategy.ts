@@ -52,7 +52,6 @@ import { FSFlagMetadata } from '../flag/FSFlagMetadata'
 import { FSFetchStatus } from '../enum/FSFetchStatus'
 import { FSFetchReasons } from '../enum/FSFetchReasons'
 import { ActivateConstructorParam, GetFlagMetadataParam, GetFlagValueParam, ImportHitType, VisitorExposedParam } from '../type.local'
-import { sendVisitorAllocatedVariations } from '../qaAssistant/messages/index'
 import { importHit } from '../hit/importHit'
 import { type HitAbstract } from '../hit/HitAbstract'
 
@@ -596,17 +595,20 @@ export class DefaultStrategy extends StrategyAbstract {
   }
 
   sendVisitorAllocatedVariations () {
-    const visitorAllocatedVariations: Record<string, VisitorVariations> = {}
+    if (__fsWebpackIsBrowser__) {
+      const visitorAllocatedVariations: Record<string, VisitorVariations> = {}
 
-    this.visitor.flagsData.forEach((item) => {
-      visitorAllocatedVariations[item.campaignId] = {
-        variationId: item.variationId,
-        variationGroupId: item.variationGroupId,
-        campaignId: item.campaignId
-      }
-    })
-
-    sendVisitorAllocatedVariations(visitorAllocatedVariations)
+      this.visitor.flagsData.forEach((item) => {
+        visitorAllocatedVariations[item.campaignId] = {
+          variationId: item.variationId,
+          variationGroupId: item.variationGroupId,
+          campaignId: item.campaignId
+        }
+      })
+      import(/* webpackMode: "lazy" */ '../qaAssistant/messages/index').then(({ sendVisitorAllocatedVariations }) => {
+        sendVisitorAllocatedVariations(visitorAllocatedVariations)
+      })
+    }
   }
 
   private extractFlags (campaigns: CampaignDTO[]): Map<string, FlagDTO> {

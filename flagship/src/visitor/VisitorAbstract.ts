@@ -19,7 +19,6 @@ import { FSFetchReasons } from '../enum/FSFetchReasons'
 import { IFSFlag } from '../flag/IFSFlag'
 import { GetFlagMetadataParam, GetFlagValueParam, IVisitorProfileCache, VisitorExposedParam } from '../type.local'
 import { IFSFlagCollection } from '../flag/IFSFlagCollection'
-import { sendVisitorExposedVariations } from '../qaAssistant/messages/index'
 import { IEmotionAI } from '../emotionAI/IEmotionAI'
 import { IVisitorEvent } from '../emotionAI/hit/IVisitorEvent'
 import { IPageView } from '../emotionAI/hit/IPageView'
@@ -376,45 +375,49 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     return strategy
   }
 
-  public sendExposedVariation (flag?:FlagDTO) {
-    if (!flag || !isBrowser()) {
-      return
-    }
-    this._exposedVariations[flag.campaignId] = {
-      campaignId: flag.campaignId,
-      variationGroupId: flag.variationGroupId,
-      variationId: flag.variationId
-    }
+  public async sendExposedVariation (flag?:FlagDTO) {
+    if (__fsWebpackIsBrowser__) {
+      if (!flag || !isBrowser()) {
+        return
+      }
+      this._exposedVariations[flag.campaignId] = {
+        campaignId: flag.campaignId,
+        variationGroupId: flag.variationGroupId,
+        variationId: flag.variationId
+      }
 
-    window.flagship = {
-      ...window.flagship,
-      exposedVariations: this._exposedVariations
+      window.flagship = {
+        ...window.flagship,
+        exposedVariations: this._exposedVariations
+      }
+
+      if (!this.config.isQAModeEnabled) {
+        return
+      }
+
+      const BATCH_SIZE = 10
+      const DELAY = 100
+
+      const { sendVisitorExposedVariations } = await import('../qaAssistant/messages/index')
+
+      if (Object.keys(this._exposedVariations).length >= BATCH_SIZE) {
+        sendVisitorExposedVariations(this._exposedVariations)
+        this._exposedVariations = {}
+      }
+
+      if (this._sendExposedVariationTimeoutId) {
+        clearTimeout(this._sendExposedVariationTimeoutId)
+      }
+
+      if (Object.keys(this._exposedVariations).length === 0) {
+        return
+      }
+
+      this._sendExposedVariationTimeoutId = setTimeout(() => {
+        sendVisitorExposedVariations(this._exposedVariations)
+        this._exposedVariations = {}
+      }, DELAY)
     }
-
-    if (!this.config.isQAModeEnabled) {
-      return
-    }
-
-    const BATCH_SIZE = 10
-    const DELAY = 100
-
-    if (Object.keys(this._exposedVariations).length >= BATCH_SIZE) {
-      sendVisitorExposedVariations(this._exposedVariations)
-      this._exposedVariations = {}
-    }
-
-    if (this._sendExposedVariationTimeoutId) {
-      clearTimeout(this._sendExposedVariationTimeoutId)
-    }
-
-    if (Object.keys(this._exposedVariations).length === 0) {
-      return
-    }
-
-    this._sendExposedVariationTimeoutId = setTimeout(() => {
-      sendVisitorExposedVariations(this._exposedVariations)
-      this._exposedVariations = {}
-    }, DELAY)
   }
 
   public collectEAIEventsAsync (currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> {

@@ -14,8 +14,6 @@ import { type UsageHit } from '../hit/UsageHit'
 import { GetFlagMetadataParam, GetFlagValueParam, ImportHitType, VisitorExposedParam } from '../type.local'
 import { IVisitorEvent } from '../emotionAI/hit/IVisitorEvent'
 import { IPageView } from '../emotionAI/hit/IPageView'
-import { VisitorEvent } from '../emotionAI/hit/VisitorEvent'
-import { PageView } from '../emotionAI/hit/PageView'
 import { importHit } from '../hit/importHit'
 import { type HitAbstract } from '../hit/HitAbstract'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
@@ -59,11 +57,19 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
   }
 
   reportEaiVisitorEvent (event: IVisitorEvent):void {
-    this.visitor.emotionAi.reportVisitorEvent(new VisitorEvent(event))
+    if (__fsWebpackIsBrowser__ || __fsWebpackIsReactNative__) {
+      import('../emotionAI/hit/VisitorEvent').then(({ VisitorEvent }) => {
+        this.visitor.emotionAi.reportVisitorEvent(new VisitorEvent(event))
+      })
+    }
   }
 
   reportEaiPageView (pageView: IPageView):void {
-    this.visitor.emotionAi.reportPageView(new PageView(pageView))
+    if (__fsWebpackIsBrowser__ || __fsWebpackIsReactNative__) {
+      import('../emotionAI/hit/PageView').then(({ PageView }) => {
+        this.visitor.emotionAi.reportPageView(new PageView(pageView))
+      })
+    }
   }
 
   onEAICollectStatusChange (callback: (status: boolean) => void):void {
