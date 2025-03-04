@@ -11,16 +11,16 @@ declare global {
       exposedVariations?: Record<string, VisitorVariations>;
     };
     ABTastyWebSdk: {
-        v1: ISdkApiV1;
+        internal: ISdkApiV1;
       };
     ABTasty: {
       api: {
-        v1: {
+        internal: {
           /**
            * Generate a nonce for the action tracking.
            * @returns {string|undefined} The nonce or undefined if the consent is not given.
            */
-          getActionTrackingNonce(): string | undefined;
+          _getActionTrackingNonce(): string | undefined;
         };
       };
     };

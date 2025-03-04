@@ -413,8 +413,8 @@ describe('SharedActionTracking Tests', () => {
       sharedActionTracking.initialize(visitorMock)
       window.ABTasty = {
         api: {
-          v1: {
-            getActionTrackingNonce
+          internal: {
+            _getActionTrackingNonce: getActionTrackingNonce
           }
         }
       }

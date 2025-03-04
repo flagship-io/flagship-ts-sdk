@@ -75,14 +75,14 @@ describe('test Flagship newVisitor', () => {
       fetchNow: false
     })
 
-    expect(window?.ABTastyWebSdk?.v1?.getActionTrackingNonce).toBeDefined()
-    expect(window?.ABTastyWebSdk?.v1?.getActionTrackingNonce()).toBeUndefined()
+    expect(window?.ABTastyWebSdk?.internal?._getActionTrackingNonce).toBeDefined()
+    expect(window?.ABTastyWebSdk?.internal?._getActionTrackingNonce()).toBeUndefined()
 
     const visitor4 = Flagship.newVisitor({ visitorId: 'visitor_4', hasConsented: true })
     expect(Flagship.getVisitor()).toBeDefined()
     expect(visitor4).toEqual(Flagship.getVisitor())
 
-    expect(window?.ABTastyWebSdk?.v1?.getActionTrackingNonce()).toEqual(expect.any(String))
+    expect(window?.ABTastyWebSdk?.internal?._getActionTrackingNonce()).toEqual(expect.any(String))
     expect(postmessageSpy).toBeCalledTimes(1)
     expect(postmessageSpy).toBeCalledWith({ action: ABTastyWebSDKPostMessageType.AB_TASTY_WEB_SDK_INITIALIZED }, '*')
   })

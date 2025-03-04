@@ -10,7 +10,7 @@ export class SdkApi {
 
   public getApiV1 (): ISdkApiV1 {
     return {
-      getActionTrackingNonce: () => this.sharedActionTracking?.generateNonce()
+      _getActionTrackingNonce: () => this.sharedActionTracking?.generateNonce()
     }
   }
 }

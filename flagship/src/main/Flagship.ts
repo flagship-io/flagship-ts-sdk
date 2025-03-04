@@ -225,7 +225,7 @@ export class Flagship {
       }
       import(/* webpackMode: "eager" */'../sdkApi/v1/SdkApi').then(({ SdkApi }) => {
         window.ABTastyWebSdk = {
-          v1: new SdkApi({ sharedActionTracking }).getApiV1()
+          internal: new SdkApi({ sharedActionTracking }).getApiV1()
         }
       })
     }

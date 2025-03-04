@@ -104,7 +104,7 @@ export class SharedActionTracking implements ISharedActionTracking {
       return
     }
 
-    const nonce = window.ABTasty?.api?.v1?.getActionTrackingNonce?.()
+    const nonce = window.ABTasty?.api?.internal?._getActionTrackingNonce?.()
 
     if (!nonce) {
       return
