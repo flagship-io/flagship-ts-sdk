@@ -14,6 +14,7 @@ import { version } from '../../src/sdkVersion'
 import { HitCacheDTO, VisitorCacheDTO } from '../../src/types'
 import { FlagshipLogManager, IFlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import * as utils from '../../src/utils/utils'
+import { mockGlobals, restoreGlobals } from '../helpers'
 describe('test DecisionApiConfig', () => {
   const config = new DecisionApiConfig()
   const nextFetchConfig = {
@@ -231,10 +232,18 @@ describe('Test SDK_LANGUAGE', () => {
 describe('test initQaMode', () => {
   beforeAll(() => {
     global.sessionStorage = storageMock
+    mockGlobals({
+      __fsWebpackIsReactNative__: false,
+      __fsWebpackIsBrowser__: true,
+      __fsWebpackIsNode__: false,
+      __fsWebpackIsEdgeWorker__: false,
+      __fsWebpackIsDeno__: false
+    })
   })
 
   afterAll(() => {
     isBrowserSpy.mockReturnValue(false)
+    restoreGlobals()
   })
 
   beforeEach(() => {
@@ -288,5 +297,16 @@ describe('test initQaMode', () => {
     const config = new DecisionApiConfig()
     expect(storageMock.getItem).toBeCalledTimes(1)
     expect(config.isQAModeEnabled).toBeFalsy()
+  })
+
+  it('test __fsWebpackIsBrowser__ is false', () => {
+    isBrowserSpy.mockReturnValue(true)
+    storageMock.getItem.mockReturnValue('true')
+    mockGlobals({
+      __fsWebpackIsBrowser__: false
+    })
+    const config = new DecisionApiConfig()
+    expect(config.isQAModeEnabled).toBeFalsy()
+    expect(storageMock.getItem).not.toBeCalled()
   })
 })
