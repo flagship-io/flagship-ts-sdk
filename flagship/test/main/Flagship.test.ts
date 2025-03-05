@@ -16,6 +16,7 @@ import { DefaultHitCache } from '../../src/cache/DefaultHitCache'
 import { EdgeConfig } from '../../src/config/EdgeConfig'
 import { NewVisitor } from '../../src'
 import * as qaAssistant from '../../src/qaAssistant'
+import { sleep } from '../helpers'
 
 const getCampaignsAsync = jest.fn().mockReturnValue(Promise.resolve([]))
 
@@ -85,12 +86,11 @@ describe('test Flagship class', () => {
     expect(Flagship.getStatus()).toBe(FSSdkStatus.SDK_INITIALIZED)
     expect(Flagship.getConfig().logManager).toBeInstanceOf(FlagshipLogManager)
     expect(Flagship.getConfig().decisionMode).toBe(DecisionMode.DECISION_API)
-    expect(Flagship.getConfig().visitorCacheImplementation).toBeInstanceOf(DefaultVisitorCache)
-    expect(Flagship.getConfig().hitCacheImplementation).toBeInstanceOf(DefaultHitCache)
+    expect(Flagship.getConfig().visitorCacheImplementation).toBeUndefined()
+    expect(Flagship.getConfig().hitCacheImplementation).toBeUndefined()
     expect(Flagship.getStatus()).toBe(FSSdkStatus.SDK_INITIALIZED)
     expect(startBatchingLoop).toBeCalledTimes(1)
-    expect(launchQaAssistantSpy).toBeCalledTimes(1)
-    expect(launchQaAssistantSpy).toBeCalledWith(Flagship.getConfig())
+    expect(launchQaAssistantSpy).not.toBeCalled()
 
     const extendedFlagship = Flagship as {
       setVisitorProfile?: (value: string|null) => void,
@@ -269,6 +269,8 @@ describe('test Flagship newVisitor', () => {
     expect(visitor?.visitorId).toBe(visitorId)
     expect(visitor?.context).toEqual({ ...context, ...predefinedContext })
     expect(Flagship.getVisitor()).toBeUndefined()
+
+    await sleep(10)
 
     expect(addHit).toBeCalledTimes(1)
 
