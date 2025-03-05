@@ -38,31 +38,31 @@ export class BucketingManager extends DecisionManager {
         return
       }
 
-      importHit(ImportHitType.Segment).then(({ Segment }) => {
-        visitor.hasContextBeenUpdated = false
-        const SegmentHit = new Segment({
-          context: visitor.context,
+      const { Segment } = await importHit(ImportHitType.Segment)
+
+      visitor.hasContextBeenUpdated = false
+      const SegmentHit = new Segment({
+        context: visitor.context,
+        visitorId: visitor.visitorId,
+        anonymousId: visitor.anonymousId as string
+      })
+
+      await visitor.sendHit(SegmentHit)
+
+      importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+        const hitTroubleshooting = new Troubleshooting({
+          label: TroubleshootingLabel.VISITOR_SEND_HIT,
+          logLevel: LogLevel.INFO,
+          traffic: visitor.traffic || 0,
           visitorId: visitor.visitorId,
-          anonymousId: visitor.anonymousId as string
+          visitorSessionId: visitor.instanceId,
+          flagshipInstanceId: visitor.sdkInitialData?.instanceId,
+          anonymousId: visitor.anonymousId,
+          config: this.config,
+          hitContent: SegmentHit.toApiKeys()
         })
 
-        visitor.sendHit(SegmentHit)
-
-        importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
-          const hitTroubleshooting = new Troubleshooting({
-            label: TroubleshootingLabel.VISITOR_SEND_HIT,
-            logLevel: LogLevel.INFO,
-            traffic: visitor.traffic || 0,
-            visitorId: visitor.visitorId,
-            visitorSessionId: visitor.instanceId,
-            flagshipInstanceId: visitor.sdkInitialData?.instanceId,
-            anonymousId: visitor.anonymousId,
-            config: this.config,
-            hitContent: SegmentHit.toApiKeys()
-          })
-
-          visitor.segmentHitTroubleshooting = hitTroubleshooting
-        })
+        visitor.segmentHitTroubleshooting = hitTroubleshooting
       })
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
