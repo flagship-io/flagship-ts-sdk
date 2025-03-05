@@ -61,8 +61,8 @@ describe('test hit type Monitoring', () => {
     }
 
     expect(troubleshooting.ds).toBe(SDK_APP)
-    expect(troubleshooting.logLevel).toBe(logLevel)
-    expect(troubleshooting.stackType).toBe(stackType)
+    expect(troubleshooting.data.logLevel).toBe(logLevel)
+    expect(troubleshooting.data.stackType).toBe(stackType)
     expect(troubleshooting.visitorId).toBe(visitorId)
     expect(troubleshooting.anonymousId).toBeNull()
     expect(troubleshooting.getErrorMessage()).toBe(ERROR_MESSAGE)

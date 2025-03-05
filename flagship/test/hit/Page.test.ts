@@ -16,8 +16,7 @@ import {
   USER_LANGUAGE,
   VISITOR_ID_API_ITEM
 } from '../../src/enum/index'
-import { Page } from '../../src/hit/index'
-import { ERROR_MESSAGE } from '../../src/hit/Page'
+import { ERROR_MESSAGE, Page } from '../../src/hit/Page'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { sprintf } from '../../src/utils/utils'
 

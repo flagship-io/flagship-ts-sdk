@@ -1,7 +1,8 @@
 import { expect, it, describe, beforeAll, afterAll, jest } from '@jest/globals'
 import { SDK_APP, DS_API_ITEM, CUSTOMER_ENV_ID_API_ITEM } from '../../src/enum'
-import { Page, Screen } from '../../src/hit'
 import { Batch, ERROR_MESSAGE } from '../../src/hit/Batch'
+import { Page } from '../../src/hit/Page'
+import { Screen } from '../../src/hit/Screen'
 
 describe('test hit Batch', () => {
   const methodNow = Date.now
