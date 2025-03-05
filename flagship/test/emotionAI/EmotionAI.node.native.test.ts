@@ -8,7 +8,7 @@ import { ApiManager } from '../../src/decision/ApiManager'
 import { EMOTION_AI_EVENT_URL, MAX_COLLECTING_TIME_MS, MAX_LAST_COLLECTING_TIME_MS, SCORING_INTERVAL, SCROLL_END_DELAY_MS } from '../../src/enum/FlagshipConstant'
 import { PageView } from '../../src/emotionAI/hit/PageView'
 import { VisitorEvent } from '../../src/emotionAI/hit/VisitorEvent'
-import { EmotionAI } from '../../src/emotionAI/EmotionAI.node.native'
+import { EmotionAI } from '../../src/emotionAI/EmotionAI.react-native'
 
 describe('EmotionAI', () => {
   const getAsyncSpy = jest.fn<(url: string, options?: IHttpOptions) => Promise<IHttpResponse>>()

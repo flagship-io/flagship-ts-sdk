@@ -2,7 +2,6 @@
  * @jest-environment jsdom
  */
 import { jest } from '@jest/globals'
-import { EmotionAI } from '../../src/emotionAI/EmotionAI'
 import { IHttpClient, IHttpOptions, IHttpResponse } from '../../src/utils/HttpClient'
 import { DecisionApiConfig, EAIScore, FSFetchReasons } from '../../src'
 import { EAIConfig } from '../../src/type.local'
@@ -11,10 +10,12 @@ import { ConfigManager } from '../../src/config'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ApiManager } from '../../src/decision/ApiManager'
 import { CLICK_PATH_DELAY_MS, EAI_SCORE_CONTEXT_KEY, EMOTION_AI_EVENT_URL, EMOTION_AI_UC_URL, MAX_COLLECTING_TIME_MS, MAX_LAST_COLLECTING_TIME_MS, MAX_SCORING_POLLING_TIME, SCORING_INTERVAL, SCROLL_END_DELAY_MS } from '../../src/enum/FlagshipConstant'
-import { sleep, sprintf } from '../../src/utils/utils'
+import { sprintf } from '../../src/utils/utils'
 import { PageView } from '../../src/emotionAI/hit/PageView'
 import { VisitorEvent } from '../../src/emotionAI/hit/VisitorEvent'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
+import { EmotionAI } from '../../src/emotionAI/EmotionAI.browser'
+import { mockGlobals, sleep } from '../helpers'
 
 describe('EmotionAI', () => {
   const getAsyncSpy = jest.fn<(url: string, options?: IHttpOptions) => Promise<IHttpResponse>>()
@@ -61,6 +62,9 @@ describe('EmotionAI', () => {
 
   afterEach(() => {
     postAsyncSpy.mockReset()
+    mockGlobals({
+      __fsWebpackIsBrowser__: true
+    })
   })
 
   describe('fetchEAIScore', () => {
@@ -186,6 +190,12 @@ describe('EmotionAI', () => {
       Object.defineProperty(navigator, 'userAgent', {
         value: 'SomeRandomUserAgent',
         writable: true
+      })
+    })
+
+    beforeEach(() => {
+      mockGlobals({
+        __fsWebpackIsBrowser__: true
       })
     })
 

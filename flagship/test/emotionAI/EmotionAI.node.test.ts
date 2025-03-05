@@ -1,11 +1,8 @@
 import { TrackingManager } from '../../src/api/TrackingManager'
-import { ConfigManager } from '../../src/config/ConfigManager'
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
-import { ApiManager } from '../../src/decision/ApiManager'
 import { EmotionAI } from '../../src/emotionAI/EmotionAI.node'
 import { IHttpClient, IHttpOptions, IHttpResponse } from '../../src/utils/HttpClient'
 import { jest } from '@jest/globals'
-import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 
 describe('EmotionAI', () => {
   const getAsyncSpy = jest.fn<(url: string, options?: IHttpOptions) => Promise<IHttpResponse>>()
@@ -27,29 +24,13 @@ describe('EmotionAI', () => {
 
   const trackingManager = new TrackingManager(httpClient, sdkConfig)
 
-  const apiManager = new ApiManager(httpClient, sdkConfig)
-
   const addHit = jest.spyOn(trackingManager, 'addHit')
   addHit.mockResolvedValue()
 
   const activateFlag = jest.spyOn(trackingManager, 'activateFlag')
   activateFlag.mockResolvedValue()
 
-  const configManager = new ConfigManager(sdkConfig, apiManager, trackingManager)
-
-  const visitorId = 'visitor-1'
-
-  const visitorDelegate = new VisitorDelegate({
-    visitorId,
-    context: {},
-    configManager,
-    hasConsented: true,
-    emotionAi: {
-      init: jest.fn()
-    } as unknown as EmotionAI
-  })
-
-  emotionAI.init(visitorDelegate)
+  emotionAI.init()
 
   it('should fetchEAIScore return a undefined', async () => {
     const result = await emotionAI.fetchEAIScore()
