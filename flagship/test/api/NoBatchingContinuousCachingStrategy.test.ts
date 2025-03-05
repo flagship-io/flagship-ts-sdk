@@ -11,7 +11,10 @@ import { HttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
 import { Troubleshooting } from '../../src/hit/Troubleshooting'
 import { UsageHit } from '../../src/hit/UsageHit'
-import { HitAbstract, Event, Page } from '../../src/hit'
+import { Event } from '../../src/hit/Event'
+import { Page } from '../../src/hit/Page'
+import { HitAbstract } from '../../src/hit/HitAbstract'
+import { mockGlobals, sleep } from '../helpers'
 
 describe('Test NoBatchingContinuousCachingStrategy', () => {
   const methodNow = Date.now
@@ -275,7 +278,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
 
     expect(sendTroubleshootingHitSpy).toBeCalledTimes(2)
     const label: TroubleshootingLabel = TroubleshootingLabel.SEND_HIT_ROUTE_ERROR
-    expect(sendTroubleshootingHitSpy).toBeCalledWith(expect.objectContaining({ label }))
+    expect(sendTroubleshootingHitSpy).toBeCalledWith(expect.objectContaining({ data: expect.objectContaining({ label }) }))
   })
 
   it('test activateFlag method', async () => {
@@ -374,7 +377,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
 
     expect(sendTroubleshootingHitSpy).toBeCalledTimes(1)
     const label: TroubleshootingLabel = TroubleshootingLabel.SEND_ACTIVATE_HIT_ROUTE_ERROR
-    expect(sendTroubleshootingHitSpy).toBeCalledWith(expect.objectContaining({ label }))
+    expect(sendTroubleshootingHitSpy).toBeCalledWith(expect.objectContaining({ data: expect.objectContaining({ label }) }))
   })
 })
 
@@ -386,6 +389,9 @@ describe('test sendBatch method', () => {
     mockNow.mockReturnValue(1)
     sendHitsToFsQaSpy.mockImplementation(() => {
       //
+    })
+    mockGlobals({
+      __fsWebpackIsBrowser__: true
     })
   })
   afterAll(() => {
@@ -572,9 +578,11 @@ describe('test sendBatch method', () => {
       batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.BatchLength]
     }), TRACKING_MANAGER)
 
+    await sleep(10)
+
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
     const label: TroubleshootingLabel = TroubleshootingLabel.SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR
-    expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
+    expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ data: expect.objectContaining({ label }) }))
   })
 
   it('test sendActivate on batch', async () => {
