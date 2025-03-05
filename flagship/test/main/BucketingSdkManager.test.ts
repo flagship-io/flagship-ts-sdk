@@ -2,13 +2,14 @@ import { jest, describe, it, expect } from '@jest/globals'
 import { BUCKETING_API_URL, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, SDK_INFO } from '../../src/enum'
 import { EAIConfig } from '../../src/type.local'
 import { HttpClient } from '../../src/utils/HttpClient'
-import { sleep, sprintf } from '../../src/utils/utils'
+import { sprintf } from '../../src/utils/utils'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { BucketingSdkManager } from '../../src/main/BucketingSdkManager'
 import { bucketing } from './bucketing'
 import { BucketingConfig } from '../../src/config'
 import { TroubleshootingLabel } from '../../src/types'
+import { sleep } from '../helpers'
 
 describe('BucketingSdkManager', () => {
   const httpClient = new HttpClient()
@@ -133,7 +134,7 @@ describe('test bucketing polling', () => {
 
     const label: TroubleshootingLabel = TroubleshootingLabel.SDK_BUCKETING_FILE
 
-    expect(trackingManager.initTroubleshootingHit).toEqual(expect.objectContaining({ label }))
+    expect(trackingManager.initTroubleshootingHit).toEqual(expect.objectContaining({ data: expect.objectContaining({ label }) }))
 
     sdkConfig.pollingInterval = 0
 
