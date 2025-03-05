@@ -152,6 +152,38 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     return false
   }
 
+  protected async extractHitData (key: string, item:HitCacheDTO):Promise<HitAbstract|undefined> {
+    let hit:HitAbstract|undefined
+    switch (item.data.type) {
+      case HitType.EVENT:{
+        const { Event } = await importHit(ImportHitType.Event)
+        hit = new Event(item.data.content as IEvent)
+        break }
+      case HitType.ITEM:{
+        const { Item } = await importHit(ImportHitType.Item)
+        hit = new Item(item.data.content as IItem)
+        break }
+      case HitType.PAGE:{
+        const { Page } = await importHit(ImportHitType.Page)
+        hit = new Page(item.data.content as IPage)
+        break }
+      case HitType.SCREEN:{
+        const { Screen } = await importHit(ImportHitType.Screen)
+        hit = new Screen(item.data.content as IScreen)
+        break }
+      case 'SEGMENT':{
+        const { Segment } = await importHit(ImportHitType.Segment)
+        hit = new Segment(item.data.content as ISegment)
+        break }
+      case HitType.TRANSACTION:{
+        const { Transaction } = await importHit(ImportHitType.Transaction)
+        hit = new Transaction(item.data.content as ITransaction)
+        break }
+      default:
+    }
+    return hit
+  }
+
   protected async processCachedHits (hitsCache:Record<string, HitCacheDTO>):Promise<void> {
     const checkHitTime = (time:number) => (((Date.now() - time)) <= DEFAULT_HIT_CACHE_TIME_MS)
 
@@ -161,44 +193,23 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     for (const [key, item] of entries) {
       if (!this.checkLookupHitData(item) || !checkHitTime(item.data.time)) {
         wrongHitKeys.push(key)
-        return
+        continue
       }
-      let hit:HitAbstract
-      switch (item.data.type) {
-        case HitType.EVENT:{
-          const { Event } = await importHit(ImportHitType.Event)
-          hit = new Event(item.data.content as IEvent)
-          break }
-        case HitType.ITEM:{
-          const { Item } = await importHit(ImportHitType.Item)
-          hit = new Item(item.data.content as IItem)
-          break }
-        case HitType.PAGE:{
-          const { Page } = await importHit(ImportHitType.Page)
-          hit = new Page(item.data.content as IPage)
-          break }
-        case HitType.SCREEN:{
-          const { Screen } = await importHit(ImportHitType.Screen)
-          hit = new Screen(item.data.content as IScreen)
-          break }
-        case 'SEGMENT':{
-          const { Segment } = await importHit(ImportHitType.Segment)
-          hit = new Segment(item.data.content as ISegment)
-          break }
-        case 'ACTIVATE':{
-          const { Activate } = await importHit(ImportHitType.Activate)
-          hit = new Activate(item.data.content as IActivate)
-          hit.key = key
-          hit.createdAt = item.data.content.createdAt
-          hit.config = this.config
-          this._activatePoolQueue.set(key, hit as Activate)
-          return }
-        case HitType.TRANSACTION:{
-          const { Transaction } = await importHit(ImportHitType.Transaction)
-          hit = new Transaction(item.data.content as ITransaction)
-          break }
-        default:
-          return
+
+      if (item.data.type === 'ACTIVATE') {
+        const { Activate } = await importHit(ImportHitType.Activate)
+        const hit = new Activate(item.data.content as IActivate)
+        hit.key = key
+        hit.createdAt = item.data.content.createdAt
+        hit.config = this.config
+        this._activatePoolQueue.set(key, hit as Activate)
+        continue
+      }
+
+      const hit = await this.extractHitData(key, item)
+      if (!hit) {
+        wrongHitKeys.push(key)
+        continue
       }
       hit.key = key
       hit.createdAt = item.data.content.createdAt
