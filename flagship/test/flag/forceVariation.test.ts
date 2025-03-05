@@ -2,6 +2,7 @@ import { expect, it, describe, jest, afterAll, beforeEach } from '@jest/globals'
 import { forceVariation } from '../../src/flag/forceVariation'
 import { DecisionApiConfig, FlagDTO, FsVariationToForce } from '../../src'
 import * as utils from '../../src/utils/utils'
+import { mockGlobals } from '../helpers'
 describe('Test forceVariation function', () => {
   beforeEach(() => {
     isBrowserSpy.mockReturnValue(true)
@@ -58,6 +59,9 @@ describe('Test forceVariation function', () => {
 describe('Test forceVariation function', () => {
   beforeEach(() => {
     isBrowserSpy.mockReturnValue(true)
+    mockGlobals({
+      __fsWebpackIsBrowser__: true
+    })
   })
   afterAll(() => {
     isBrowserSpy.mockReturnValue(false)
