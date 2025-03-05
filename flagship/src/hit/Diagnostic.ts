@@ -143,6 +143,7 @@ export abstract class Diagnostic extends HitAbstract {
       visitorId: param.visitorId,
       anonymousId: param.anonymousId
     })
+
     this.data = {
       ...param,
       version: param.version || '1',
@@ -153,8 +154,11 @@ export abstract class Diagnostic extends HitAbstract {
       logLevel: param.logLevel,
       timestamp: param.timestamp || new Date(Date.now()).toISOString(),
       timeZone: this.getTimezone(),
-      ds: SDK_APP
+      ds: SDK_APP,
+      envId: param.envId || param.config.envId
     }
+    this._traffic = param.traffic
+    this.config = param.config
   }
 
   /**
@@ -171,7 +175,7 @@ export abstract class Diagnostic extends HitAbstract {
     const apiKeys:Record<string, unknown> = {
       [VISITOR_ID_API_ITEM]: this.visitorId,
       [DS_API_ITEM]: this.data.ds,
-      [CUSTOMER_ENV_ID_API_ITEM]: `${this.config?.envId}`,
+      [CUSTOMER_ENV_ID_API_ITEM]: `${this.data.config?.envId}`,
       [T_API_ITEM]: this.type,
       cv: {}
     }
@@ -319,12 +323,12 @@ export abstract class Diagnostic extends HitAbstract {
       customVariable['http.response.time'] = `${this.data.httpResponseTime}`
     }
 
-    if (this.data.visitorId !== undefined) {
-      customVariable['visitor.visitorId'] = `${this.data.visitorId}`
+    if (this.visitorId !== undefined) {
+      customVariable['visitor.visitorId'] = `${this.visitorId}`
     }
 
-    if (this.data.anonymousId !== undefined) {
-      customVariable['visitor.anonymousId'] = `${this.data.anonymousId}`
+    if (this.anonymousId !== undefined) {
+      customVariable['visitor.anonymousId'] = `${this.anonymousId}`
     }
 
     if (this.data.visitorSessionId !== undefined) {
