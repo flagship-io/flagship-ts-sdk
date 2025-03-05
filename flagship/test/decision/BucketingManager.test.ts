@@ -13,6 +13,7 @@ import { Segment } from '../../src/hit/Segment'
 import { ISdkManager } from '../../src/main/ISdkManager'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
+import { sleep } from '../helpers'
 
 describe('test BucketingManager', () => {
   const config = new BucketingConfig({ pollingInterval: 0, envId: 'envID', apiKey: 'apiKey' })
@@ -233,23 +234,23 @@ describe('test sendContext', () => {
   })
 
   const sendHit = jest.spyOn(visitor, 'sendHit')
-  it('should send segment hit', () => {
+  it('should send segment hit', async () => {
     sendHit.mockResolvedValue()
     const SegmentHit = new Segment({ context: visitor.context, visitorId, anonymousId: visitor.anonymousId as string })
-    bucketingManager.sendContext(visitor).then(() => {
-      expect(sendHit).toBeCalledTimes(1)
-      expect(sendHit).toBeCalledWith(SegmentHit)
-    })
+    await bucketingManager.sendContext(visitor)
+    await sleep(10)
+    expect(sendHit).toBeCalledTimes(1)
+    expect(sendHit).toBeCalledWith(SegmentHit)
   })
 
-  it('should send segment hit once', () => {
+  it('should send segment hit once', async () => {
     sendHit.mockResolvedValue()
     const SegmentHit = new Segment({ context: visitor.context, visitorId, anonymousId: visitor.anonymousId as string })
     visitor.hasContextBeenUpdated = true
-    bucketingManager.sendContext(visitor).then(() => {
-      expect(sendHit).toBeCalledTimes(1)
-      expect(sendHit).toBeCalledWith(SegmentHit)
-    })
+    await bucketingManager.sendContext(visitor)
+    await sleep(10)
+    expect(sendHit).toBeCalledTimes(1)
+    expect(sendHit).toBeCalledWith(SegmentHit)
     bucketingManager.sendContext(visitor).then(() => {
       expect(sendHit).toBeCalledTimes(1)
       expect(sendHit).toBeCalledWith(SegmentHit)
