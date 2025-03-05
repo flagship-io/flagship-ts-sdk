@@ -12,9 +12,10 @@ import { Page } from '../../src/hit/Page'
 import { Event } from '../../src/hit/Event'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient } from '../../src/utils/HttpClient'
-import { sleep, sprintf } from '../../src/utils/utils'
+import { sprintf } from '../../src/utils/utils'
 import { Troubleshooting } from '../../src/hit/Troubleshooting'
 import { UsageHit } from '../../src/hit/UsageHit'
+import { sleep } from '../helpers'
 
 describe('Test BatchingPeriodicCachingStrategy', () => {
   const visitorId = 'visitorId'
@@ -364,7 +365,7 @@ describe('test sendBatch method', () => {
 
     expect(addTroubleshootingHit).toBeCalledTimes(1)
     const label = TroubleshootingLabel.SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR
-    expect(addTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
+    expect(addTroubleshootingHit).toBeCalledWith(expect.objectContaining({ data: expect.objectContaining({ label }) }))
   })
 
   it('test sendActivate on batch', async () => {
@@ -520,6 +521,7 @@ describe('test activateFlag method', () => {
     })
 
     expect(sendHitsToFsQaSpy).toBeCalledTimes(1)
+    activateHit.key = expect.stringContaining(visitorId) as unknown as string
     expect(sendHitsToFsQaSpy).toBeCalledWith([activateHit])
 
     expect(flushHitsSpy).toBeCalledTimes(0)
@@ -621,7 +623,10 @@ describe('test activateFlag method', () => {
     })
 
     expect(sendHitsToFsQaSpy).toBeCalledTimes(1)
-    expect(sendHitsToFsQaSpy).toBeCalledWith(activateBatch.hits)
+    expect(sendHitsToFsQaSpy).toBeCalledWith(activateBatch.hits.map(item => {
+      item.key = expect.stringContaining(visitorId) as unknown as string
+      return item
+    }))
 
     expect(cacheHitSpy).toBeCalledTimes(0)
     expect(flushHitsSpy).toBeCalledTimes(0)
@@ -732,6 +737,6 @@ describe('test activateFlag method', () => {
 
     expect(sendTroubleshootingHit).toBeCalledTimes(1)
     const label: TroubleshootingLabel = TroubleshootingLabel.SEND_ACTIVATE_HIT_ROUTE_ERROR
-    expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ label }))
+    expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ data: expect.objectContaining({ label }) }))
   })
 })
