@@ -4,6 +4,7 @@ import { DecisionApiConfig } from '../../src/config/index'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { LogLevel } from '../../src/enum/index'
 import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
+import { mockGlobals } from '../helpers'
 
 describe('test sprintf function', () => {
   it('should ', () => {
@@ -266,8 +267,21 @@ describe('Test deepEqual function', () => {
     const arr2 = [1, [2]]
     expect(deepEqual(arr1, arr2)).toBe(false)
   })
+})
+
+describe('test onDomReady function', () => {
+  it('should return false when not in browser environment', () => {
+    mockGlobals({
+      __fsWebpackIsBrowser__: true
+    })
+    const result = onDomReady()
+    expect(result).toBe(false)
+  })
 
   it('should return false when not in browser environment', () => {
+    mockGlobals({
+      __fsWebpackIsBrowser__: false
+    })
     const result = onDomReady()
     expect(result).toBe(false)
   })

@@ -8,6 +8,7 @@ import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 import { LocalActionTracking, SharedActionPayload, SharedActionSource } from '../../src/type.local'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { jest, describe, it, expect } from '@jest/globals'
+import { sleep } from '../helpers'
 
 describe('SharedActionTracking Tests', () => {
   const isBrowserSpy = jest.spyOn(utils, 'isBrowser')
@@ -94,7 +95,7 @@ describe('SharedActionTracking Tests', () => {
       sharedActionTracking.initialize(visitorMock)
     })
 
-    test('should call visitor.addInTrackingManager when a valid message event is dispatched', () => {
+    test('should call visitor.addInTrackingManager when a valid message event is dispatched', async () => {
       const nonce = sharedActionTracking.generateNonce()
 
       const hit = {
@@ -124,6 +125,8 @@ describe('SharedActionTracking Tests', () => {
       })
 
       window.dispatchEvent(messageEvent)
+
+      await sleep(10)
 
       expect(visitorMock.addInTrackingManager).toBeCalledTimes(2)
       expect(visitorMock.addInTrackingManager).toHaveBeenNthCalledWith(1, expect.objectContaining({
@@ -222,7 +225,7 @@ describe('SharedActionTracking Tests', () => {
       expect(visitorMock.addInTrackingManager).toBeCalledTimes(0)
     })
 
-    it('should not call visitor.addInTrackingManager when a message event is dispatched with invalid nonce', () => {
+    it('should not call visitor.addInTrackingManager when a message event is dispatched with invalid nonce', async () => {
       const hit = {
         ec: EventCategory.ACTION_TRACKING,
         ea: 'click',
@@ -262,6 +265,8 @@ describe('SharedActionTracking Tests', () => {
       })
 
       window.dispatchEvent(messageEvent2)
+
+      await sleep(10)
 
       expect(visitorMock.addInTrackingManager).toBeCalledTimes(1)
       expect(mockLogDebug).toBeCalledTimes(2)

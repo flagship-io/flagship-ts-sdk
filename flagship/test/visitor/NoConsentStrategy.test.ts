@@ -16,6 +16,7 @@ import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 import { IPageView } from '../../src/emotionAI/hit/IPageView'
 import { IVisitorEvent } from '../../src/emotionAI/hit/IVisitorEvent'
+import { sleep } from '../helpers'
 
 describe('test NoConsentStrategy', () => {
   const visitorId = 'visitorId'
@@ -199,14 +200,16 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
 
     await noConsentStrategy.fetchFlags()
 
+    await sleep(10)
+
     expect(sendUsageHitSpy).toBeCalledTimes(1)
 
     const label: TroubleshootingLabel = TroubleshootingLabel.SDK_CONFIG
-    expect(sendUsageHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ label }))
+    expect(sendUsageHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ data: expect.objectContaining({ label }) }))
   })
 
   it('test sendTroubleshootingHit', () => {
-    noConsentStrategy.sendTroubleshootingHit({} as Troubleshooting)
+    noConsentStrategy.sendTroubleshootingHit()
     expect(sendTroubleshootingHit).toBeCalledTimes(0)
   })
 })

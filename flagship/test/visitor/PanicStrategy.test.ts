@@ -10,7 +10,6 @@ import { sprintf } from '../../src/utils/utils'
 import { VisitorDelegate, PanicStrategy } from '../../src/visitor'
 import { campaigns } from '../decision/campaigns'
 import { MurmurHash } from '../../src/utils/MurmurHash'
-import { Troubleshooting } from '../../src/hit/Troubleshooting'
 import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 import { IPageView } from '../../src/emotionAI/hit/IPageView'
@@ -171,7 +170,7 @@ describe('test NotReadyStrategy', () => {
   })
 
   it('test sendTroubleshootingHit', () => {
-    panicStrategy.sendTroubleshootingHit({} as Troubleshooting)
+    panicStrategy.sendTroubleshootingHit()
     expect(sendTroubleshootingHit).toBeCalledTimes(0)
   })
 

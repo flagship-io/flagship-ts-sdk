@@ -13,6 +13,7 @@ import * as messages from '../../src/qaAssistant/messages'
 import { VisitorVariations } from '../../src/types'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
+import { mockGlobals, sleep } from '../helpers'
 
 describe('test sendExposedVariation', () => {
   beforeEach(() => {
@@ -20,6 +21,9 @@ describe('test sendExposedVariation', () => {
     isBrowserSpy.mockReturnValue(true)
     sendVisitorExposedVariationsSpy.mockImplementation(() => {
       //
+    })
+    mockGlobals({
+      __fsWebpackIsBrowser__: true
     })
   })
 
@@ -143,7 +147,7 @@ describe('test sendExposedVariation', () => {
 
     visitorDelegate.sendExposedVariation(flag)
     visitorDelegate.sendExposedVariation(flag)
-    await utils.sleep(150)
+    await sleep(150)
     expect(window.flagship?.exposedVariations).toEqual(exposedVariations)
     expect(sendVisitorExposedVariationsSpy).toBeCalledTimes(1)
     expect(sendVisitorExposedVariationsSpy).toBeCalledWith(exposedVariations)
@@ -196,7 +200,7 @@ describe('test sendExposedVariation', () => {
 
     visitorDelegate.sendExposedVariation(flag)
     visitorDelegate.sendExposedVariation(flag2)
-    await utils.sleep(150)
+    await sleep(150)
     expect(window.flagship?.exposedVariations).toEqual(exposedVariations)
     expect(sendVisitorExposedVariationsSpy).toBeCalledTimes(1)
     expect(sendVisitorExposedVariationsSpy).toBeCalledWith(exposedVariations)
@@ -232,7 +236,7 @@ describe('test sendExposedVariation', () => {
       }
       visitorDelegate.sendExposedVariation(flag)
     }
-    await utils.sleep(150)
+    await sleep(150)
     expect(window.flagship?.exposedVariations).toEqual(exposedVariations)
     expect(sendVisitorExposedVariationsSpy).toBeCalledTimes(1)
     expect(sendVisitorExposedVariationsSpy).toBeCalledWith(exposedVariations)

@@ -9,7 +9,6 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { VisitorDelegate, DefaultStrategy } from '../../src/visitor'
 import { MurmurHash } from '../../src/utils/MurmurHash'
-import { sleep } from '../../src/utils/utils'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 
@@ -146,13 +145,14 @@ describe('Clean cache', () => {
     await defaultStrategy.fetchFlags()
   })
   it('test clean cache ', async () => {
+    jest.useFakeTimers()
     const flagBoolean = returnFlag.get('keyBoolean')
     const flagKey = returnFlag.get('key')
     const flagArray = returnFlag.get('array')
     defaultStrategy.visitorExposed({ key: flagBoolean?.key as string, flag: flagBoolean, defaultValue: false, hasGetValueBeenCalled: true })
     defaultStrategy.visitorExposed({ key: flagKey?.key as string, flag: flagKey, defaultValue: 'default value', hasGetValueBeenCalled: true })
     defaultStrategy.visitorExposed({ key: flagArray?.key as string, flag: flagArray, defaultValue: [], hasGetValueBeenCalled: true })
-    await sleep(1200)
+    jest.advanceTimersByTime(1200)
     await defaultStrategy.visitorExposed({ key: flagBoolean?.key as string, flag: flagBoolean, defaultValue: false, hasGetValueBeenCalled: true })
     expect(activateFlag).toBeCalledTimes(4)
   })

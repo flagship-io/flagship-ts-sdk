@@ -17,8 +17,9 @@ import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 import { IPageView } from '../../src/emotionAI/hit/IPageView'
 import { IVisitorEvent } from '../../src/emotionAI/hit/IVisitorEvent'
-import { VisitorProfileCacheNode } from '../../src/visitor/VisitorProfileCacheNode'
-import { Event, EventCategory } from '../../src/hit'
+import { EventCategory } from '../../src/hit'
+import { Event } from '../../src/hit/Event'
+import { VisitorProfileCache } from '../../src/visitor/VisitorProfileCache.node'
 
 const updateContext = jest.fn()
 const clearContext = jest.fn()
@@ -546,7 +547,7 @@ describe('Initialization tests', () => {
   const visitorId = 'visitorId'
   const anonymousId = 'anonymousId'
 
-  const visitorProfileCache = new VisitorProfileCacheNode(config)
+  const visitorProfileCache = new VisitorProfileCache(config)
   const loadVisitorProfile = jest.spyOn(visitorProfileCache, 'loadVisitorProfile')
 
   const init = jest.fn<(visitor:VisitorAbstract) => void>()

@@ -1,9 +1,9 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { VisitorProfileCacheBrowser } from '../../src/visitor/VisitorProfileCacheBrowser'
 import { CLIENT_CACHE_KEY } from '../../src/enum/FlagshipConstant'
 import { DecisionApiConfig, VisitorProfile } from '../../src'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { IVisitorProfileCache } from '../../src/type.local'
+import { VisitorProfileCache } from '../../src/visitor/VisitorProfileCache.browser'
 
 describe('VisitorProfileCacheBrowser', () => {
   const logManager = new FlagshipLogManager()
@@ -29,7 +29,7 @@ describe('VisitorProfileCacheBrowser', () => {
   })
 
   beforeEach(() => {
-    cache = new VisitorProfileCacheBrowser(sdkConfig)
+    cache = new VisitorProfileCache(sdkConfig)
   })
 
   afterEach(() => {

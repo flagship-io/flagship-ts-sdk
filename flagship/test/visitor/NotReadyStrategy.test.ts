@@ -118,7 +118,7 @@ describe('test NotReadyStrategy', () => {
   })
 
   it('test sendTroubleshootingHit', () => {
-    notReadyStrategy.sendTroubleshootingHit({} as Troubleshooting)
+    notReadyStrategy.sendTroubleshootingHit()
     expect(sendTroubleshootingHit).toBeCalledTimes(0)
   })
 

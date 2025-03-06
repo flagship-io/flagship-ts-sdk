@@ -3,18 +3,10 @@ import { forceVariation } from '../../src/flag/forceVariation'
 import { DecisionApiConfig, FlagDTO, FsVariationToForce } from '../../src'
 import * as utils from '../../src/utils/utils'
 import { mockGlobals } from '../helpers'
-describe('Test forceVariation function', () => {
-  beforeEach(() => {
-    isBrowserSpy.mockReturnValue(true)
-    global.window = global.window ?? undefined
-  })
-  afterAll(() => {
-    isBrowserSpy.mockReturnValue(false)
-    global.window = global.window ?? undefined
-  })
 
+describe('forceVariation - No Forced Variation Conditions', () => {
   const isBrowserSpy = jest.spyOn(utils, 'isBrowser')
-  const flagDTO:FlagDTO = {
+  const flagDTO: FlagDTO = {
     key: 'key',
     campaignId: 'campaignId',
     campaignName: 'campaignName',
@@ -28,12 +20,26 @@ describe('Test forceVariation function', () => {
     value: { key: 'value' }
   }
 
-  it('test QA mode is disabled', () => {
+  beforeEach(() => {
+    isBrowserSpy.mockReturnValue(true)
+    global.window = global.window ?? undefined
+    mockGlobals({
+      __fsWebpackIsBrowser__: true
+    })
+  })
+
+  afterAll(() => {
+    isBrowserSpy.mockReturnValue(false)
+    global.window = global.window ?? undefined
+  })
+
+  it('should return undefined when QA mode is disabled', () => {
     const config = new DecisionApiConfig()
     const forcedVariation = forceVariation({ flagDTO, config })
     expect(forcedVariation).toBeUndefined()
   })
-  it('test environment is not browser', () => {
+
+  it('should return undefined when the environment is not a browser', () => {
     const config = new DecisionApiConfig()
     config.isQAModeEnabled = true
     isBrowserSpy.mockReturnValue(false)
@@ -41,14 +47,24 @@ describe('Test forceVariation function', () => {
     expect(forcedVariation).toBeUndefined()
   })
 
-  it('test flagDTO is undefined', () => {
+  it('should return undefined when __fsWebpackIsBrowser__ is false', () => {
+    mockGlobals({
+      __fsWebpackIsBrowser__: false
+    })
+    const config = new DecisionApiConfig()
+    config.isQAModeEnabled = true
+    const forcedVariation = forceVariation({ flagDTO, config })
+    expect(forcedVariation).toBeUndefined()
+  })
+
+  it('should return undefined when flagDTO is missing', () => {
     const config = new DecisionApiConfig()
     config.isQAModeEnabled = true
     const forcedVariation = forceVariation({ flagDTO: undefined, config })
     expect(forcedVariation).toBeUndefined()
   })
 
-  it('test window.flagship.forcedVariations is undefined', () => {
+  it('should return undefined when window.flagship.forcedVariations is undefined', () => {
     const config = new DecisionApiConfig()
     config.isQAModeEnabled = true
     const forcedVariation = forceVariation({ flagDTO, config })
@@ -56,19 +72,9 @@ describe('Test forceVariation function', () => {
   })
 })
 
-describe('Test forceVariation function', () => {
-  beforeEach(() => {
-    isBrowserSpy.mockReturnValue(true)
-    mockGlobals({
-      __fsWebpackIsBrowser__: true
-    })
-  })
-  afterAll(() => {
-    isBrowserSpy.mockReturnValue(false)
-  })
-
+describe('forceVariation - Forced Variation Scenario', () => {
   const isBrowserSpy = jest.spyOn(utils, 'isBrowser')
-  const flagDTO:FlagDTO = {
+  const flagDTO: FlagDTO = {
     key: 'key',
     campaignId: 'campaignId',
     campaignName: 'campaignName',
@@ -83,7 +89,7 @@ describe('Test forceVariation function', () => {
   }
 
   const forcedFlagValue = 'valueForced'
-  const forcedVariations:Record<string, FsVariationToForce> = {
+  const forcedVariations: Record<string, FsVariationToForce> = {
     campaignId: {
       campaignId: 'campaignId',
       campaignName: 'campaignName',
@@ -120,7 +126,18 @@ describe('Test forceVariation function', () => {
     }
   }
 
-  it('test campaign is not forced', () => {
+  beforeEach(() => {
+    isBrowserSpy.mockReturnValue(true)
+    mockGlobals({
+      __fsWebpackIsBrowser__: true
+    })
+  })
+
+  afterAll(() => {
+    isBrowserSpy.mockReturnValue(false)
+  })
+
+  it('should return undefined when the campaign is not forced', () => {
     global.window = global.window ?? {
       flagship: {
         forcedVariations
@@ -132,7 +149,7 @@ describe('Test forceVariation function', () => {
     expect(forcedVariation).toBeUndefined()
   })
 
-  it('test campaign is forced', () => {
+  it('should return the forced variation when the campaign is forced', () => {
     global.window = global.window ?? {
       flagship: {
         forcedVariations

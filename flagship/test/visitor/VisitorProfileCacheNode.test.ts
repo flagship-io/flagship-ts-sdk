@@ -1,6 +1,6 @@
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
 import { IVisitorProfileCache } from '../../src/type.local'
-import { VisitorProfileCacheNode } from '../../src/visitor/VisitorProfileCacheNode'
+import { VisitorProfileCache } from '../../src/visitor/VisitorProfileCache.node'
 
 describe('VisitorProfileCacheNode.native', () => {
   const sdkConfig = new DecisionApiConfig()
@@ -8,7 +8,7 @@ describe('VisitorProfileCacheNode.native', () => {
   let cache: IVisitorProfileCache
 
   beforeEach(() => {
-    cache = new VisitorProfileCacheNode(sdkConfig)
+    cache = new VisitorProfileCache(sdkConfig)
   })
 
   describe('saveVisitorProfile', () => {

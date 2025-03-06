@@ -1,10 +1,10 @@
 import { jest, expect, it, describe, beforeEach, afterEach } from '@jest/globals'
 import { Flagship } from '../../src/main/Flagship'
-import { VisitorProfileCacheNode } from '../../src/visitor/VisitorProfileCacheNode.native'
 import { VisitorProfile } from '../../src/types'
 import { DecisionApiConfig } from '../../src'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { IVisitorProfileCache } from '../../src/type.local'
+import { VisitorProfileCache } from '../../src/visitor/VisitorProfileCache.react-native'
 
 describe('VisitorProfileCacheNode.native', () => {
   const logManager = new FlagshipLogManager()
@@ -30,7 +30,7 @@ describe('VisitorProfileCacheNode.native', () => {
   const mockVisitorProfile: VisitorProfile = { visitorId: 'testId', anonymousId: 'testAnonymousId' }
 
   beforeEach(() => {
-    cache = new VisitorProfileCacheNode(sdkConfig)
+    cache = new VisitorProfileCache(sdkConfig)
   })
 
   afterEach(() => {
