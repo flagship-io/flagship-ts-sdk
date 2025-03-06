@@ -218,25 +218,20 @@ export class Flagship {
     }
   }
 
-  private buildSdkApi (sharedActionTracking: ISharedActionTracking):void {
+  private async buildSdkApi (sharedActionTracking: ISharedActionTracking) {
     if (__fsWebpackIsBrowser__) {
-      if (typeof window === 'undefined') {
-        return
+      const { SdkApi } = await import(/* webpackMode: "lazy" */'../sdkApi/v1/SdkApi')
+      window.ABTastyWebSdk = {
+        internal: new SdkApi({ sharedActionTracking }).getApiV1()
       }
-      import(/* webpackMode: "eager" */'../sdkApi/v1/SdkApi').then(({ SdkApi }) => {
-        window.ABTastyWebSdk = {
-          internal: new SdkApi({ sharedActionTracking }).getApiV1()
-        }
-      })
     }
   }
 
   private sendInitializedPostMessage (): void {
     if (__fsWebpackIsBrowser__) {
-      if (typeof window === 'undefined') {
-        return
-      }
-      window.postMessage({ action: ABTastyWebSDKPostMessageType.AB_TASTY_WEB_SDK_INITIALIZED }, '*')
+      onDomReady(() => {
+        window.postMessage({ action: ABTastyWebSDKPostMessageType.AB_TASTY_WEB_SDK_INITIALIZED }, '*')
+      })
     }
   }
 
@@ -248,9 +243,9 @@ export class Flagship {
     let sharedActionTracking = this.configManager?.sharedActionTracking
     if (__fsWebpackIsBrowser__) {
       if (!sharedActionTracking && isBrowser()) {
-        const { SharedActionTracking } = await import(/* webpackMode: "eager" */'../sharedFeature/SharedActionTracking')
+        const { SharedActionTracking } = await import(/* webpackMode: "lazy" */'../sharedFeature/SharedActionTracking')
         sharedActionTracking = new SharedActionTracking({ sdkConfig })
-        this.buildSdkApi(sharedActionTracking)
+        await this.buildSdkApi(sharedActionTracking)
       }
     }
 
