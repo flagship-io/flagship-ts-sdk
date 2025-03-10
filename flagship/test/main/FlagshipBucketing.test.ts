@@ -1,8 +1,5 @@
 import { jest, expect, it, describe } from '@jest/globals'
 import { Flagship, DecisionMode, Visitor, NewVisitor } from '../../src'
-import { IFlagshipConfig } from '../../src/config'
-import { MurmurHash } from '../../src/utils/MurmurHash'
-import { HttpClient } from '../../src/utils/HttpClient'
 import { EAIConfig } from '../../src/type.local'
 
 const initSdk = jest.fn<()=>Promise<void>>()

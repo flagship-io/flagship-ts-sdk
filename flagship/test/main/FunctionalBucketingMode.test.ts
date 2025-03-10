@@ -1,7 +1,6 @@
 import { expect, it, describe } from '@jest/globals'
 import { Flagship } from '../../src/main/Flagship'
 import { DecisionMode } from '../../src/config'
-import { sleep } from '../../src/utils/utils'
 import { FSSdkStatus } from '../../src/enum/FSSdkStatus'
 import { LogLevel } from '../../src/enum/LogLevel'
 
