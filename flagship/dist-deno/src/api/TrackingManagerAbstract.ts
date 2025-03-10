@@ -1,8 +1,8 @@
 import { type IFlagshipConfig } from '../config/IFlagshipConfig.ts'
 import { BATCH_LOOP_STARTED, BATCH_LOOP_STOPPED, DEFAULT_HIT_CACHE_TIME_MS, HitType, HIT_CACHE_ERROR, HIT_CACHE_LOADED, PROCESS_CACHE, PROCESS_LOOKUP_HIT, TRACKING_MANAGER } from '../enum/index.ts'
 import { CacheStrategy } from '../enum/CacheStrategy.ts'
-import { HitAbstract, IEvent, type ITransaction, Transaction, Event, Item, type IItem, Page, type IPage, type IScreen, Screen } from '../hit/index.ts'
-import { type ISegment, Segment } from '../hit/Segment.ts'
+import { IEvent, type ITransaction, type IItem, type IPage, type IScreen } from '../hit/index.ts'
+import { type ISegment } from '../hit/Segment.ts'
 import { type IHttpClient } from '../utils/HttpClient.ts'
 import { logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf } from '../utils/utils.ts'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract.ts'
@@ -10,11 +10,15 @@ import { BatchingContinuousCachingStrategy } from './BatchingContinuousCachingSt
 import { BatchingPeriodicCachingStrategy } from './BatchingPeriodicCachingStrategy.ts'
 import { HitCacheDTO, TroubleshootingData } from '../types.ts'
 import { NoBatchingContinuousCachingStrategy } from './NoBatchingContinuousCachingStrategy.ts'
-import { Activate, IActivate } from '../hit/Activate.ts'
+import { type Activate } from '../hit/Activate.ts'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy.ts'
 import { ITrackingManager } from './ITrackingManager.ts'
-import { Troubleshooting } from '../hit/Troubleshooting.ts'
-import { UsageHit } from '../hit/UsageHit.ts'
+import { type Troubleshooting } from '../hit/Troubleshooting.ts'
+import { type UsageHit } from '../hit/UsageHit.ts'
+import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking.ts'
+import { importHit } from '../hit/importHit.ts'
+import { ActivateConstructorParam, IActivate, ImportHitType } from '../type.local.ts'
+import { type HitAbstract } from '../hit/HitAbstract.ts'
 
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
@@ -32,6 +36,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   protected _isPooling = false
   private _flagshipInstanceId?: string
   private _initTroubleshootingHit? : Troubleshooting
+  private _sharedActionTracking?: ISharedActionTracking
 
   public get initTroubleshootingHit () : Troubleshooting|undefined {
     return this._initTroubleshootingHit
@@ -54,7 +59,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     this.strategy.troubleshootingData = v
   }
 
-  constructor (httpClient: IHttpClient, config: IFlagshipConfig, flagshipInstanceId?:string) {
+  constructor (httpClient: IHttpClient, config: IFlagshipConfig, flagshipInstanceId?:string, sharedActionTracking?: ISharedActionTracking) {
     this._flagshipInstanceId = flagshipInstanceId
     this._hitsPoolQueue = new Map<string, HitAbstract>()
     this._activatePoolQueue = new Map<string, Activate>()
@@ -62,6 +67,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     this._analyticHitQueue = new Map<string, UsageHit>()
     this._httpClient = httpClient
     this._config = config
+    this._sharedActionTracking = sharedActionTracking
     this.strategy = this.initStrategy()
     this.lookupHits()
   }
@@ -76,7 +82,8 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
       troubleshootingQueue: this._troubleshootingQueue,
       analyticHitQueue: this._analyticHitQueue,
       flagshipInstanceId: this.flagshipInstanceId,
-      initTroubleshootingHit: this.initTroubleshootingHit
+      initTroubleshootingHit: this.initTroubleshootingHit,
+      sharedActionTracking: this._sharedActionTracking
     }
     switch (this.config.trackingManagerConfig?.cacheStrategy) {
       case CacheStrategy.PERIODIC_CACHING:
@@ -102,7 +109,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
 
   public abstract addHit(hit: HitAbstract): Promise<void>
 
-  public abstract activateFlag (hit: Activate): Promise<void>
+  public abstract activateFlag (hit: ActivateConstructorParam): Promise<void>
 
   public abstract sendBatch(): Promise<void>
 
@@ -145,6 +152,76 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     return false
   }
 
+  protected async extractHitData (key: string, item:HitCacheDTO):Promise<HitAbstract|undefined> {
+    let hit:HitAbstract|undefined
+    switch (item.data.type) {
+      case HitType.EVENT:{
+        const { Event } = await importHit(ImportHitType.Event)
+        hit = new Event(item.data.content as IEvent)
+        break }
+      case HitType.ITEM:{
+        const { Item } = await importHit(ImportHitType.Item)
+        hit = new Item(item.data.content as IItem)
+        break }
+      case HitType.PAGE:{
+        const { Page } = await importHit(ImportHitType.Page)
+        hit = new Page(item.data.content as IPage)
+        break }
+      case HitType.SCREEN:{
+        const { Screen } = await importHit(ImportHitType.Screen)
+        hit = new Screen(item.data.content as IScreen)
+        break }
+      case 'SEGMENT':{
+        const { Segment } = await importHit(ImportHitType.Segment)
+        hit = new Segment(item.data.content as ISegment)
+        break }
+      case HitType.TRANSACTION:{
+        const { Transaction } = await importHit(ImportHitType.Transaction)
+        hit = new Transaction(item.data.content as ITransaction)
+        break }
+      default:
+    }
+    return hit
+  }
+
+  protected async processCachedHits (hitsCache:Record<string, HitCacheDTO>):Promise<void> {
+    const checkHitTime = (time:number) => (((Date.now() - time)) <= DEFAULT_HIT_CACHE_TIME_MS)
+
+    const wrongHitKeys:string[] = []
+    const entries = Object.entries(hitsCache)
+
+    for (const [key, item] of entries) {
+      if (!this.checkLookupHitData(item) || !checkHitTime(item.data.time)) {
+        wrongHitKeys.push(key)
+        continue
+      }
+
+      if (item.data.type === 'ACTIVATE') {
+        const { Activate } = await importHit(ImportHitType.Activate)
+        const hit = new Activate(item.data.content as IActivate)
+        hit.key = key
+        hit.createdAt = item.data.content.createdAt
+        hit.config = this.config
+        this._activatePoolQueue.set(key, hit as Activate)
+        continue
+      }
+
+      const hit = await this.extractHitData(key, item)
+      if (!hit) {
+        wrongHitKeys.push(key)
+        continue
+      }
+      hit.key = key
+      hit.createdAt = item.data.content.createdAt
+      hit.config = this.config
+      this._hitsPoolQueue.set(key, hit)
+    }
+
+    if (wrongHitKeys.length) {
+      await this.strategy.flushHits(wrongHitKeys)
+    }
+  }
+
   async lookupHits ():Promise<void> {
     try {
       const hitCacheImplementation = this.config.hitCacheImplementation
@@ -161,53 +238,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
         return
       }
 
-      const checkHitTime = (time:number) => (((Date.now() - time)) <= DEFAULT_HIT_CACHE_TIME_MS)
-
-      const wrongHitKeys:string[] = []
-      Object.entries(hitsCache).forEach(([key, item]) => {
-        if (!this.checkLookupHitData(item) || !checkHitTime(item.data.time)) {
-          wrongHitKeys.push(key)
-          return
-        }
-        let hit:HitAbstract
-        switch (item.data.type) {
-          case HitType.EVENT:
-            hit = new Event(item.data.content as IEvent)
-            break
-          case HitType.ITEM:
-            hit = new Item(item.data.content as IItem)
-            break
-          case HitType.PAGE:
-            hit = new Page(item.data.content as IPage)
-            break
-          case HitType.SCREEN:
-            hit = new Screen(item.data.content as IScreen)
-            break
-          case 'SEGMENT':
-            hit = new Segment(item.data.content as ISegment)
-            break
-          case 'ACTIVATE':
-            hit = new Activate(item.data.content as IActivate)
-            hit.key = key
-            hit.createdAt = item.data.content.createdAt
-            hit.config = this.config
-            this._activatePoolQueue.set(key, hit as Activate)
-            return
-          case HitType.TRANSACTION:
-            hit = new Transaction(item.data.content as ITransaction)
-            break
-          default:
-            return
-        }
-        hit.key = key
-        hit.createdAt = item.data.content.createdAt
-        hit.config = this.config
-        this._hitsPoolQueue.set(key, hit)
-      })
-
-      if (wrongHitKeys.length) {
-        await this.strategy.flushHits(wrongHitKeys)
-      }
+      await this.processCachedHits(hitsCache)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {

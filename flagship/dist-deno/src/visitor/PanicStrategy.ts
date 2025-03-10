@@ -2,10 +2,9 @@ import { FSSdkStatus, FLAG_VISITOR_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METAD
 import { CampaignDTO, FlagDTO, IFSFlagMetadata, IHit } from '../types.ts'
 import { logInfoSprintf } from '../utils/utils.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
-import { HitAbstract } from '../hit/index.ts'
+import { type HitAbstract } from '../hit/HitAbstract.ts'
 import { BatchDTO } from '../hit/Batch.ts'
 import { FSFlagMetadata } from '../flag/FSFlagMetadata.ts'
-import { Troubleshooting } from '../hit/Troubleshooting.ts'
 
 export class PanicStrategy extends DefaultStrategy {
   setConsent (hasConsented:boolean):void {
@@ -66,7 +65,7 @@ export class PanicStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async sendTroubleshootingHit (_hit: Troubleshooting): Promise<void> {
+  public async sendTroubleshootingHit (): Promise<void> {
     //
   }
 
@@ -92,6 +91,10 @@ export class PanicStrategy extends DefaultStrategy {
   }
 
   public onEAICollectStatusChange (): void {
+    //
+  }
+
+  public async addInTrackingManager (): Promise<void> {
     //
   }
 

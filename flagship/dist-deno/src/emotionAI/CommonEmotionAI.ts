@@ -1,6 +1,6 @@
 import { IHttpClient, IHttpResponse } from '../utils/HttpClient.ts'
 import { IEmotionAI } from './IEmotionAI.ts'
-import { EAIConfig } from '../type.local.ts'
+import { EAIConfig, ImportHitType } from '../type.local.ts'
 import { logDebugSprintf, logErrorSprintf, sprintf } from '../utils/utils.ts'
 import { EAI_SCORE_CONTEXT_KEY, EMOTION_AI_EVENT_URL, EMOTION_AI_UC_URL, FETCH_EAI_SCORE, FETCH_EAI_SCORE_ERROR, FETCH_EAI_SCORE_SUCCESS, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, MAX_COLLECTING_TIME_MS, MAX_LAST_COLLECTING_TIME_MS, MAX_SCORING_POLLING_TIME, SCORING_INTERVAL, SEND_EAI_EVENT, SEND_EAI_EVENT_ERROR, SEND_EAI_EVENT_SUCCESS } from '../enum/FlagshipConstant.ts'
 import { IVisitorEvent } from './hit/IVisitorEvent.ts'
@@ -9,9 +9,9 @@ import { IFlagshipConfig } from '../config/IFlagshipConfig.ts'
 import { EAIScore, TroubleshootingLabel } from '../types.ts'
 import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 import { VisitorEvent } from './hit/VisitorEvent.ts'
-import { Troubleshooting } from '../hit/Troubleshooting.ts'
 import { LogLevel } from '../enum/index.ts'
 import { UsageHit } from '../hit/UsageHit.ts'
+import { importHit } from '../hit/importHit.ts'
 
 type ConstructorParam = {
   httpClient: IHttpClient;
@@ -71,18 +71,20 @@ export abstract class CommonEmotionAI implements IEmotionAI {
   }
 
   protected sendEAIScoreTroubleshooting (eAIScore?: EAIScore, endpoint?:string): void {
-    const troubleshooting = new Troubleshooting({
-      flagshipInstanceId: this._visitor.sdkInitialData?.instanceId as string,
-      visitorId: this._visitor.visitorId,
-      label: TroubleshootingLabel.EMOTION_AI_SCORE_FROM_LOCAL_CACHE,
-      logLevel: LogLevel.DEBUG,
-      eAIScore,
-      isEAIScoreFromLocalCache: true,
-      config: this._sdkConfig,
-      httpRequestUrl: endpoint,
-      traffic: this._visitor.traffic
+    importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+      const troubleshooting = new Troubleshooting({
+        flagshipInstanceId: this._visitor.sdkInitialData?.instanceId as string,
+        visitorId: this._visitor.visitorId,
+        label: TroubleshootingLabel.EMOTION_AI_SCORE_FROM_LOCAL_CACHE,
+        logLevel: LogLevel.DEBUG,
+        eAIScore,
+        isEAIScoreFromLocalCache: true,
+        config: this._sdkConfig,
+        httpRequestUrl: endpoint,
+        traffic: this._visitor.traffic
+      })
+      this._visitor.sendTroubleshooting(troubleshooting)
     })
-    this._visitor.sendTroubleshooting(troubleshooting)
   }
 
   protected sendRequestTroubleshooting (response:IHttpResponse,
@@ -91,57 +93,63 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     method = 'GET',
     apiKeys?:Record<string, boolean | string | number>,
     eAIScore?:EAIScore): void {
-    const troubleshooting = new Troubleshooting({
-      flagshipInstanceId: this._visitor.sdkInitialData?.instanceId as string,
-      visitorId: this._visitor.visitorId,
-      label,
-      logLevel: LogLevel.DEBUG,
-      hitContent: apiKeys,
-      eAIScore,
-      httpResponseBody: response.body,
-      httpRequestMethod: method,
-      httpRequestUrl: endpoint,
-      httpResponseCode: response.status,
-      httpResponseHeaders: response.headers,
-      traffic: this._visitor.traffic,
-      config: this._sdkConfig
+    importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+      const troubleshooting = new Troubleshooting({
+        flagshipInstanceId: this._visitor.sdkInitialData?.instanceId as string,
+        visitorId: this._visitor.visitorId,
+        label,
+        logLevel: LogLevel.DEBUG,
+        hitContent: apiKeys,
+        eAIScore,
+        httpResponseBody: response.body,
+        httpRequestMethod: method,
+        httpRequestUrl: endpoint,
+        httpResponseCode: response.status,
+        httpResponseHeaders: response.headers,
+        traffic: this._visitor.traffic,
+        config: this._sdkConfig
+      })
+      this._visitor.sendTroubleshooting(troubleshooting)
     })
-    this._visitor.sendTroubleshooting(troubleshooting)
   }
 
   protected sendRequestTroubleshootingError (error: any,
     label: TroubleshootingLabel,
     endpoint?:string,
     apiKeys?:Record<string, boolean | string | number>): void {
-    const troubleshooting = new Troubleshooting({
-      flagshipInstanceId: this._visitor.sdkInitialData?.instanceId as string,
-      visitorId: this._visitor.visitorId,
-      label,
-      logLevel: LogLevel.ERROR,
-      httpRequestMethod: 'GET',
-      httpRequestUrl: endpoint,
-      hitContent: apiKeys,
-      traffic: this._visitor.traffic,
-      httpResponseBody: error?.message,
-      httpResponseHeaders: error?.headers,
-      httpResponseCode: error?.statusCode,
-      config: this._sdkConfig
+    importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+      const troubleshooting = new Troubleshooting({
+        flagshipInstanceId: this._visitor.sdkInitialData?.instanceId as string,
+        visitorId: this._visitor.visitorId,
+        label,
+        logLevel: LogLevel.ERROR,
+        httpRequestMethod: 'GET',
+        httpRequestUrl: endpoint,
+        hitContent: apiKeys,
+        traffic: this._visitor.traffic,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseCode: error?.statusCode,
+        config: this._sdkConfig
+      })
+      this._visitor.sendTroubleshooting(troubleshooting)
     })
-    this._visitor.sendTroubleshooting(troubleshooting)
   }
 
   protected sendCollectingTroubleshooting (timestamp:number, label:TroubleshootingLabel, score?: EAIScore): void {
-    const troubleshooting = new Troubleshooting({
-      flagshipInstanceId: this._visitor.sdkInitialData?.instanceId as string,
-      visitorId: this._visitor.visitorId,
-      label,
-      logLevel: LogLevel.DEBUG,
-      eAIDataTimestamp: new Date(timestamp).toISOString(),
-      config: this._sdkConfig,
-      eAIScore: score,
-      traffic: this._visitor.traffic
+    importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+      const troubleshooting = new Troubleshooting({
+        flagshipInstanceId: this._visitor.sdkInitialData?.instanceId as string,
+        visitorId: this._visitor.visitorId,
+        label,
+        logLevel: LogLevel.DEBUG,
+        eAIDataTimestamp: new Date(timestamp).toISOString(),
+        config: this._sdkConfig,
+        eAIScore: score,
+        traffic: this._visitor.traffic
+      })
+      this._visitor.sendTroubleshooting(troubleshooting)
     })
-    this._visitor.sendTroubleshooting(troubleshooting)
   }
 
   protected sendCollectingUsageHit (label:TroubleshootingLabel): void {

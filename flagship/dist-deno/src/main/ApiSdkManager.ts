@@ -1,4 +1,4 @@
-import { EAIConfig } from '../type.local.ts'
+import { EAIConfig, ImportHitType } from '../type.local.ts'
 import { AccountSettings, BucketingDTO, TroubleshootingLabel } from '../types.ts'
 import { ISdkManager } from './ISdkManager.ts'
 import { ITrackingManager } from '../api/ITrackingManager.ts'
@@ -6,8 +6,8 @@ import { IHttpClient, IHttpResponse } from '../utils/HttpClient.ts'
 import { IFlagshipConfig } from '../config/IFlagshipConfig.ts'
 import { CDN_ACCOUNT_SETTINGS_URL } from '../enum/FlagshipConstant.ts'
 import { logErrorSprintf, sprintf } from '../utils/utils.ts'
-import { Troubleshooting } from '../hit/Troubleshooting.ts'
 import { LogLevel } from '../enum/LogLevel.ts'
+import { importHit } from '../hit/importHit.ts'
 
 type constructorParam = {
   httpClient: IHttpClient;
@@ -42,22 +42,24 @@ export class ApiSdkManager implements ISdkManager {
     url: string,
     response: IHttpResponse | undefined,
     now: number) {
-    const troubleshooting = new Troubleshooting({
-      flagshipInstanceId: this._flagshipInstanceId,
-      label: TroubleshootingLabel.ACCOUNT_SETTINGS,
-      logLevel: LogLevel.DEBUG,
-      visitorId: this._flagshipInstanceId,
-      config: this._config,
-      accountSettings,
-      traffic: 0,
-      httpRequestMethod: 'POST',
-      httpRequestUrl: url,
-      httpResponseHeaders: response?.headers,
-      httpResponseCode: response?.status,
-      httpResponseTime: Date.now() - now
-    })
+    importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+      const troubleshooting = new Troubleshooting({
+        flagshipInstanceId: this._flagshipInstanceId,
+        label: TroubleshootingLabel.ACCOUNT_SETTINGS,
+        logLevel: LogLevel.DEBUG,
+        visitorId: this._flagshipInstanceId,
+        config: this._config,
+        accountSettings,
+        traffic: 0,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
+        httpResponseHeaders: response?.headers,
+        httpResponseCode: response?.status,
+        httpResponseTime: Date.now() - now
+      })
 
-    this._trackingManager.initTroubleshootingHit = troubleshooting
+      this._trackingManager.initTroubleshootingHit = troubleshooting
+    })
   }
 
   protected sendErrorTroubleshooting (
@@ -65,21 +67,23 @@ export class ApiSdkManager implements ISdkManager {
     error: { message: string, headers: Record<string, string>, status: number },
     now: number
   ) {
-    const troubleshootingHit = new Troubleshooting({
-      visitorId: this._flagshipInstanceId,
-      flagshipInstanceId: this._flagshipInstanceId,
-      label: TroubleshootingLabel.ACCOUNT_SETTINGS_ERROR,
-      traffic: 0,
-      logLevel: LogLevel.ERROR,
-      config: this._config,
-      httpRequestMethod: 'POST',
-      httpRequestUrl: url,
-      httpResponseBody: error?.message,
-      httpResponseHeaders: error?.headers,
-      httpResponseCode: error?.status,
-      httpResponseTime: Date.now() - now
+    importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+      const troubleshootingHit = new Troubleshooting({
+        visitorId: this._flagshipInstanceId,
+        flagshipInstanceId: this._flagshipInstanceId,
+        label: TroubleshootingLabel.ACCOUNT_SETTINGS_ERROR,
+        traffic: 0,
+        logLevel: LogLevel.ERROR,
+        config: this._config,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseCode: error?.status,
+        httpResponseTime: Date.now() - now
+      })
+      this._trackingManager.initTroubleshootingHit = troubleshootingHit
     })
-    this._trackingManager.initTroubleshootingHit = troubleshootingHit
   }
 
   async initSdk (): Promise<void> {

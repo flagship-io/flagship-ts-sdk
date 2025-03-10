@@ -1,11 +1,11 @@
 import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant.ts'
 import { IConfigManager, IFlagshipConfig } from '../config/index.ts'
-import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFSFlagMetadata, sdkInitialData, VisitorCacheStatus, FetchFlagsStatus, SerializedFlagMetadata, CampaignDTO, VisitorVariations, EAIScore } from '../types.ts'
+import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFSFlagMetadata, sdkInitialData, VisitorCacheStatus, FlagsStatus, SerializedFlagMetadata, CampaignDTO, VisitorVariations, EAIScore } from '../types.ts'
 
 import { IVisitor } from './IVisitor.ts'
 import { FSSdkStatus, SDK_INFO, VISITOR_ID_ERROR } from '../enum/index.ts'
 import { hexToValue, isBrowser, logDebugSprintf, logError, uuidV4 } from '../utils/utils.ts'
-import { HitAbstract } from '../hit/index.ts'
+import { type HitAbstract } from '../hit/HitAbstract.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
 import { StrategyAbstract } from './StrategyAbstract.ts'
 import { EventEmitter } from '../depsDeno.ts'
@@ -13,17 +13,16 @@ import { NotReadyStrategy } from './NotReadyStrategy.ts'
 import { PanicStrategy } from './PanicStrategy.ts'
 import { NoConsentStrategy } from './NoConsentStrategy.ts'
 import { MurmurHash } from '../utils/MurmurHash.ts'
-import { Troubleshooting } from '../hit/Troubleshooting.ts'
+import { type Troubleshooting } from '../hit/Troubleshooting.ts'
 import { FSFetchStatus } from '../enum/FSFetchStatus.ts'
 import { FSFetchReasons } from '../enum/FSFetchReasons.ts'
 import { IFSFlag } from '../flag/IFSFlag.ts'
 import { GetFlagMetadataParam, GetFlagValueParam, IVisitorProfileCache, VisitorExposedParam } from '../type.local.ts'
 import { IFSFlagCollection } from '../flag/IFSFlagCollection.ts'
-import { sendVisitorExposedVariations } from '../qaAssistant/messages/index.ts'
 import { IEmotionAI } from '../emotionAI/IEmotionAI.ts'
 import { IVisitorEvent } from '../emotionAI/hit/IVisitorEvent.ts'
 import { IPageView } from '../emotionAI/hit/IPageView.ts'
-import { UsageHit } from '../hit/UsageHit.ts'
+import { type UsageHit } from '../hit/UsageHit.ts'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string
@@ -44,8 +43,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _sdkInitialData?: sdkInitialData
   private _consentHitTroubleshooting? : Troubleshooting
   private _segmentHitTroubleshooting? : Troubleshooting
-  private _fetchStatus! : FetchFlagsStatus
-  private _onFetchFlagsStatusChanged? : ({ status, reason }: FetchFlagsStatus) => void
+  private _fetchStatus! : FlagsStatus
+  private _onFetchFlagsStatusChanged? : ({ status, reason }: FlagsStatus) => void
   private _getCampaignsPromise? : Promise<CampaignDTO[]|null>
   private _hasContextBeenUpdated : boolean
   private _emotionAi: IEmotionAI
@@ -69,19 +68,19 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._getCampaignsPromise = v
   }
 
-  public get onFetchFlagsStatusChanged () : (({ status, reason }: FetchFlagsStatus) => void)|undefined {
+  public get onFetchFlagsStatusChanged () : (({ status, reason }: FlagsStatus) => void)|undefined {
     return this._onFetchFlagsStatusChanged
   }
 
-  public set onFetchFlagsStatusChanged (v : (({ status, reason }: FetchFlagsStatus) => void)|undefined) {
+  public set onFetchFlagsStatusChanged (v : (({ status, reason }: FlagsStatus) => void)|undefined) {
     this._onFetchFlagsStatusChanged = v
   }
 
-  public get fetchStatus () : FetchFlagsStatus {
+  public get fetchStatus () : FlagsStatus {
     return this._fetchStatus
   }
 
-  public set fetchStatus (v : FetchFlagsStatus) {
+  public set fetchStatus (v : FlagsStatus) {
     this._fetchStatus = v
     if (this.onFetchFlagsStatusChanged) {
       this.onFetchFlagsStatusChanged(v)
@@ -143,7 +142,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     visitorProfileCache?: IVisitorProfileCache
   }) {
     const {
-      visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData, onFetchFlagsStatusChanged,
+      visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData, onFlagsStatusChanged: onFetchFlagsStatusChanged,
       emotionAi, visitorProfileCache
     } = param
     super()
@@ -195,7 +194,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     this.fetchStatus = {
       status: FSFetchStatus.FETCH_REQUIRED,
-      reason: FSFetchReasons.VISITOR_CREATED
+      reason: FSFetchReasons.FLAGS_NEVER_FETCHED
     }
 
     this._emotionAi.init(this)
@@ -376,45 +375,49 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     return strategy
   }
 
-  public sendExposedVariation (flag?:FlagDTO) {
-    if (!flag || !isBrowser()) {
-      return
-    }
-    this._exposedVariations[flag.campaignId] = {
-      campaignId: flag.campaignId,
-      variationGroupId: flag.variationGroupId,
-      variationId: flag.variationId
-    }
+  public async sendExposedVariation (flag?:FlagDTO) {
+    if (__fsWebpackIsBrowser__) {
+      if (!flag || !isBrowser()) {
+        return
+      }
+      this._exposedVariations[flag.campaignId] = {
+        campaignId: flag.campaignId,
+        variationGroupId: flag.variationGroupId,
+        variationId: flag.variationId
+      }
 
-    window.flagship = {
-      ...window.flagship,
-      exposedVariations: this._exposedVariations
+      window.flagship = {
+        ...window.flagship,
+        exposedVariations: this._exposedVariations
+      }
+
+      if (!this.config.isQAModeEnabled) {
+        return
+      }
+
+      const BATCH_SIZE = 10
+      const DELAY = 100
+
+      const { sendVisitorExposedVariations } = await import('../qaAssistant/messages/index')
+
+      if (Object.keys(this._exposedVariations).length >= BATCH_SIZE) {
+        sendVisitorExposedVariations(this._exposedVariations)
+        this._exposedVariations = {}
+      }
+
+      if (this._sendExposedVariationTimeoutId) {
+        clearTimeout(this._sendExposedVariationTimeoutId)
+      }
+
+      if (Object.keys(this._exposedVariations).length === 0) {
+        return
+      }
+
+      this._sendExposedVariationTimeoutId = setTimeout(() => {
+        sendVisitorExposedVariations(this._exposedVariations)
+        this._exposedVariations = {}
+      }, DELAY)
     }
-
-    if (!this.config.isQAModeEnabled) {
-      return
-    }
-
-    const BATCH_SIZE = 10
-    const DELAY = 100
-
-    if (Object.keys(this._exposedVariations).length >= BATCH_SIZE) {
-      sendVisitorExposedVariations(this._exposedVariations)
-      this._exposedVariations = {}
-    }
-
-    if (this._sendExposedVariationTimeoutId) {
-      clearTimeout(this._sendExposedVariationTimeoutId)
-    }
-
-    if (Object.keys(this._exposedVariations).length === 0) {
-      return
-    }
-
-    this._sendExposedVariationTimeoutId = setTimeout(() => {
-      sendVisitorExposedVariations(this._exposedVariations)
-      this._exposedVariations = {}
-    }, DELAY)
   }
 
   public collectEAIEventsAsync (currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> {
@@ -465,6 +468,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
   public sendUsageHit (hit: UsageHit): Promise<void> {
     return this.getStrategy().sendUsageHit(hit)
+  }
+
+  public addInTrackingManager (hit: HitAbstract): Promise<void> {
+    return this.getStrategy().addInTrackingManager(hit)
   }
 
   abstract updateContext(key: string, value: primitive):void

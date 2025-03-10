@@ -1,4 +1,4 @@
-import { HitAbstract } from '../hit/index.ts'
+import { type HitAbstract } from '../hit/HitAbstract.ts'
 import { primitive, IHit, IFSFlagMetadata } from '../types.ts'
 import { VisitorAbstract } from './VisitorAbstract.ts'
 import { FSFlag } from '../flag/FsFlags.ts'

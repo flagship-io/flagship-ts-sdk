@@ -8,7 +8,7 @@ import { ConfigManager, IConfigManager } from '../config/ConfigManager.ts'
 import { ApiManager } from '../decision/ApiManager.ts'
 import { TrackingManager } from '../api/TrackingManager.ts'
 import { FlagshipLogManager } from '../utils/FlagshipLogManager.ts'
-import { isBrowser, logDebugSprintf, logError, logInfo, logInfoSprintf, logWarning, sprintf, uuidV4 } from '../utils/utils.ts'
+import { isBrowser, logDebugSprintf, logError, logInfo, logInfoSprintf, logWarning, onDomReady, sprintf, uuidV4 } from '../utils/utils.ts'
 import {
   INITIALIZATION_PARAM_ERROR,
   INITIALIZATION_STARTING,
@@ -28,24 +28,18 @@ import { BucketingManager } from '../decision/BucketingManager.ts'
 import { MurmurHash } from '../utils/MurmurHash.ts'
 import { DecisionManager } from '../decision/DecisionManager.ts'
 import { HttpClient } from '../utils/HttpClient.ts'
-import { NewVisitor } from '../types.ts'
-import { DefaultHitCache } from '../cache/DefaultHitCache.ts'
-import { DefaultVisitorCache } from '../cache/DefaultVisitorCache.ts'
+import { ABTastyWebSDKPostMessageType, NewVisitor } from '../types.ts'
 import { EdgeManager } from '../decision/EdgeManager.ts'
 import { EdgeConfig } from '../config/EdgeConfig.ts'
 import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
-import { launchQaAssistant } from '../qaAssistant/index.ts'
 import { ISdkManager } from './ISdkManager.ts'
 import { BucketingSdkManager } from './BucketingSdkManager.ts'
 import { EdgeSdkManager } from './EdgeSdkManager.ts'
 import { ApiSdkManager } from './ApiSdkManager.ts'
 import { ITrackingManager } from '../api/ITrackingManager.ts'
-import { EmotionAI as EmotionAINode } from '../emotionAI/EmotionAI.node.ts'
-import { EmotionAI as EmotionAIBrowser } from '../emotionAI/EmotionAI.ts'
-import { IEmotionAI } from '../emotionAI/IEmotionAI.ts'
-import { IVisitorProfileCache } from '../type.local.ts'
-import { VisitorProfileCacheNode } from '../visitor/VisitorProfileCacheNode.ts'
-import { VisitorProfileCacheBrowser } from '../visitor/VisitorProfileCacheBrowser.ts'
+import { EmotionAI } from '../emotionAI/EmotionAI.node.ts'
+import { VisitorProfileCache } from '../visitor/VisitorProfileCache.node.ts'
+import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking.ts'
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
@@ -224,13 +218,40 @@ export class Flagship {
     }
   }
 
+  private async buildSdkApi (sharedActionTracking: ISharedActionTracking) {
+    if (__fsWebpackIsBrowser__) {
+      const { SdkApi } = await import(/* webpackMode: "lazy" */'../sdkApi/v1/SdkApi')
+      window.ABTastyWebSdk = {
+        internal: new SdkApi({ sharedActionTracking }).getApiV1()
+      }
+    }
+  }
+
+  private sendInitializedPostMessage (): void {
+    if (__fsWebpackIsBrowser__) {
+      onDomReady(() => {
+        window.postMessage({ action: ABTastyWebSDKPostMessageType.AB_TASTY_WEB_SDK_INITIALIZED }, '*')
+      })
+    }
+  }
+
   private async initializeSdk (sdkConfig: IFlagshipConfig): Promise<void> {
     this.setStatus(FSSdkStatus.SDK_INITIALIZING)
 
     this._sdkManager?.resetSdk()
 
+    let sharedActionTracking = this.configManager?.sharedActionTracking
+    if (__fsWebpackIsBrowser__) {
+      if (!sharedActionTracking && isBrowser()) {
+        const { SharedActionTracking } = await import(/* webpackMode: "lazy" */'../sharedFeature/SharedActionTracking')
+        sharedActionTracking = new SharedActionTracking({ sdkConfig })
+        await this.buildSdkApi(sharedActionTracking)
+      }
+    }
+
     const httpClient = new HttpClient()
-    const trackingManager = this.configManager?.trackingManager || new TrackingManager(httpClient, sdkConfig, this.instanceId)
+    const trackingManager = this.configManager?.trackingManager || new TrackingManager(httpClient, sdkConfig,
+      this.instanceId, sharedActionTracking)
 
     const { sdkManager, decisionManager } = this.createManagers(httpClient, sdkConfig, trackingManager)
 
@@ -239,7 +260,7 @@ export class Flagship {
     decisionManager.statusChangedCallback(this.setStatus.bind(this))
     decisionManager.flagshipInstanceId = this.instanceId
 
-    this.configManager = new ConfigManager(sdkConfig, decisionManager, trackingManager)
+    this.configManager = new ConfigManager(sdkConfig, decisionManager, trackingManager, sharedActionTracking)
 
     await this._sdkManager?.initSdk()
 
@@ -279,12 +300,16 @@ export class Flagship {
 
     logDebugSprintf(localConfig, PROCESS_INITIALIZATION, INITIALIZATION_STARTING, SDK_INFO.version, localConfig.decisionMode, localConfig)
 
-    if (!localConfig.hitCacheImplementation && isBrowser()) {
-      localConfig.hitCacheImplementation = new DefaultHitCache()
-    }
+    if (__fsWebpackIsBrowser__) {
+      if (!localConfig.hitCacheImplementation && isBrowser()) {
+        const { DefaultHitCache } = await import(/* webpackMode: "eager" */'../cache/DefaultHitCache')
+        localConfig.hitCacheImplementation = new DefaultHitCache()
+      }
 
-    if (!localConfig.visitorCacheImplementation && isBrowser()) {
-      localConfig.visitorCacheImplementation = new DefaultVisitorCache()
+      if (!localConfig.visitorCacheImplementation && isBrowser()) {
+        const { DefaultVisitorCache } = await import(/* webpackMode: "eager" */'../cache/DefaultVisitorCache')
+        localConfig.visitorCacheImplementation = new DefaultVisitorCache()
+      }
     }
 
     await flagship.initializeSdk(localConfig)
@@ -295,9 +320,15 @@ export class Flagship {
       PROCESS_INITIALIZATION
     )
 
-    launchQaAssistant(localConfig)
+    if (__fsWebpackIsBrowser__) {
+      import(/* webpackMode: "lazy" */'../qaAssistant/index').then(({ launchQaAssistant }) => {
+        launchQaAssistant(localConfig)
+      })
+    }
 
     flagship.lastInitializationTimestamp = new Date().toISOString()
+
+    flagship.sendInitializedPostMessage()
 
     return flagship
   }
@@ -342,7 +373,7 @@ export class Flagship {
    * @param params - The parameters for creating the new Visitor.
    * @returns A new Visitor instance.
    */
-  public static newVisitor ({ visitorId, context, isAuthenticated, hasConsented, initialCampaigns, initialFlagsData, shouldSaveInstance, onFetchFlagsStatusChanged }: NewVisitor) {
+  public static newVisitor ({ visitorId, context, isAuthenticated, hasConsented, initialCampaigns, initialFlagsData, shouldSaveInstance, onFlagsStatusChanged }: NewVisitor) {
     const saveInstance = shouldSaveInstance ?? isBrowser()
     const flagship = this.getInstance()
 
@@ -352,39 +383,28 @@ export class Flagship {
     }
 
     const sdkConfig = flagship.getConfig()
+    const configManager = flagship.configManager
 
     if (hasConsented === undefined) {
       logWarning(sdkConfig, CONSENT_NOT_SPECIFY_WARNING, PROCESS_NEW_VISITOR)
     }
 
-    let emotionAi:IEmotionAI
-    let visitorProfileCache:IVisitorProfileCache
-
-    if (!isBrowser()) {
-      emotionAi = new EmotionAINode({
-        sdkConfig,
-        httpClient: new HttpClient(),
-        eAIConfig: flagship._sdkManager?.getEAIConfig()
-      })
-      visitorProfileCache = new VisitorProfileCacheNode(sdkConfig)
-    } else {
-      emotionAi = new EmotionAIBrowser({
-        sdkConfig,
-        httpClient: new HttpClient(),
-        eAIConfig: flagship._sdkManager?.getEAIConfig()
-      })
-      visitorProfileCache = new VisitorProfileCacheBrowser(sdkConfig)
-    }
+    const emotionAi = new EmotionAI({
+      sdkConfig,
+      httpClient: new HttpClient(),
+      eAIConfig: flagship._sdkManager?.getEAIConfig()
+    })
+    const visitorProfileCache = new VisitorProfileCache(sdkConfig)
 
     const visitorDelegate = new VisitorDelegate({
       visitorId,
       context: context || {},
       isAuthenticated: isAuthenticated ?? false,
       hasConsented: hasConsented ?? false,
-      configManager: this.getInstance().configManager,
+      configManager,
       initialCampaigns,
       initialFlagsData,
-      onFetchFlagsStatusChanged,
+      onFlagsStatusChanged,
       emotionAi,
       visitorProfileCache,
       monitoringData: {
@@ -395,6 +415,14 @@ export class Flagship {
       },
       murmurHash: new MurmurHash()
     })
+
+    if (__fsWebpackIsBrowser__) {
+      onDomReady(() => {
+        if (isBrowser() && configManager.sharedActionTracking) {
+          configManager.sharedActionTracking.initialize(visitorDelegate)
+        }
+      })
+    }
 
     const visitor = new Visitor(visitorDelegate)
     this.getInstance()._visitorInstance = saveInstance ? visitor : undefined

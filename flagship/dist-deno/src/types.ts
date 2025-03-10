@@ -56,13 +56,13 @@ export type ExposedVariation = {
 };
 
 export type IHit =
-  | Omit<IPage, 'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'>
-  | Omit<IScreen, 'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'>
-  | Omit<IEvent, 'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'>
-  | Omit<IItem, 'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'>
+  | Omit<IPage, 'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'|'isActionTrackingHit'>
+  | Omit<IScreen, 'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'|'isActionTrackingHit'>
+  | Omit<IEvent, 'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'|'isActionTrackingHit'>
+  | Omit<IItem, 'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'|'isActionTrackingHit'>
   | Omit<
       ITransaction,
-      'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'
+      'createdAt' | 'visitorId' | 'anonymousId' | 'ds' | 'qaMode'|'isActionTrackingHit'
     >;
 
 export type FlagDTO = {
@@ -98,7 +98,7 @@ export type SerializedFlagMetadata = {
 /**
  * Represents the status of visitor fetch for flag data.
  */
-export type FetchFlagsStatus = {
+export type FlagsStatus = {
   /**
    * The new status of the flags fetch.
    */
@@ -109,9 +109,6 @@ export type FetchFlagsStatus = {
   reason: FSFetchReasons;
 };
 
-/**
- * Represents a new visitor.
- */
 /**
  * Represents a new visitor.
  */
@@ -166,7 +163,7 @@ export type NewVisitor = {
    * @param newStatus - The new status of the flags fetch.
    * @param reason - The reason for the status change.
    */
-  onFetchFlagsStatusChanged?: ({ status, reason }: FetchFlagsStatus) => void;
+  onFlagsStatusChanged?: ({ status, reason }: FlagsStatus) => void;
 };
 
 export type InternalHitType =
@@ -395,4 +392,8 @@ export interface BucketingDTO {
 export type VisitorProfile={
   visitorId:string,
   anonymousId: string|null
+}
+
+export enum ABTastyWebSDKPostMessageType {
+  AB_TASTY_WEB_SDK_INITIALIZED = 'AB_TASTY_WEB_SDK_INITIALIZED',
 }

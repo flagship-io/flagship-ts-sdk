@@ -30,7 +30,8 @@ export class Page extends HitAbstract implements IPage {
       sessionNumber: page.sessionNumber,
       visitorId: page.visitorId,
       anonymousId: page.anonymousId,
-      qaMode: page.qaMode
+      qaMode: page.qaMode,
+      isActionTrackingHit: page.isActionTrackingHit
     })
     this.documentLocation = page.documentLocation
   }
