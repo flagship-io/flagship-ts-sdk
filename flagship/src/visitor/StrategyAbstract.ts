@@ -16,6 +16,8 @@ import { IVisitorEvent } from '../emotionAI/hit/IVisitorEvent'
 import { IPageView } from '../emotionAI/hit/IPageView'
 import { importHit } from '../hit/importHit'
 import { type HitAbstract } from '../hit/HitAbstract'
+import { DefaultHitCache } from '../cache/DefaultHitCache'
+import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 
@@ -358,8 +360,6 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       let sdkConfigUsingCustomVisitorCache = false
 
       if (__fsWebpackIsBrowser__) {
-        const { DefaultHitCache } = await import(/* webpackMode: "eager" */'../cache/DefaultHitCache')
-        const { DefaultVisitorCache } = await import(/* webpackMode: "eager" */'../cache/DefaultVisitorCache')
         sdkConfigUsingCustomHitCache = !!hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
         sdkConfigUsingCustomVisitorCache = !!visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
       }
@@ -418,8 +418,6 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       let sdkConfigUsingCustomVisitorCache = false
 
       if (__fsWebpackIsBrowser__) {
-        const { DefaultHitCache } = await import(/* webpackMode: "eager" */'../cache/DefaultHitCache')
-        const { DefaultVisitorCache } = await import(/* webpackMode: "eager" */'../cache/DefaultVisitorCache')
         sdkConfigUsingCustomHitCache = !!hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
         sdkConfigUsingCustomVisitorCache = !!visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
       }

@@ -40,6 +40,8 @@ import { ITrackingManager } from '../api/ITrackingManager'
 import { EmotionAI } from '../emotionAI/EmotionAI.node'
 import { VisitorProfileCache } from '../visitor/VisitorProfileCache.node'
 import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking'
+import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
+import { DefaultHitCache } from '../cache/DefaultHitCache'
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
@@ -302,12 +304,10 @@ export class Flagship {
 
     if (__fsWebpackIsBrowser__) {
       if (!localConfig.hitCacheImplementation && isBrowser()) {
-        const { DefaultHitCache } = await import(/* webpackMode: "eager" */'../cache/DefaultHitCache')
         localConfig.hitCacheImplementation = new DefaultHitCache()
       }
 
       if (!localConfig.visitorCacheImplementation && isBrowser()) {
-        const { DefaultVisitorCache } = await import(/* webpackMode: "eager" */'../cache/DefaultVisitorCache')
         localConfig.visitorCacheImplementation = new DefaultVisitorCache()
       }
     }
