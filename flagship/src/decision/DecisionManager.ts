@@ -6,8 +6,6 @@ import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FSSdkStatus, HEA
 import { CampaignDTO, FlagDTO, TroubleshootingData, TroubleshootingLabel } from '../types'
 import { errorFormat, logDebug } from '../utils/utils'
 import { ITrackingManager } from '../api/ITrackingManager'
-import { importHit } from '../hit/importHit'
-import { ImportHitType } from '../type.local'
 
 export abstract class DecisionManager implements IDecisionManager {
   protected _config: IFlagshipConfig
@@ -157,7 +155,7 @@ export abstract class DecisionManager implements IDecisionManager {
       return campaigns
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+      import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
         const troubleshooting = new Troubleshooting({
           label: TroubleshootingLabel.GET_CAMPAIGNS_ROUTE_RESPONSE_ERROR,
           logLevel: LogLevel.ERROR,

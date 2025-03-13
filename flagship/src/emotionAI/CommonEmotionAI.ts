@@ -1,6 +1,6 @@
 import { IHttpClient, IHttpResponse } from '../utils/HttpClient'
 import { IEmotionAI } from './IEmotionAI'
-import { EAIConfig, ImportHitType } from '../type.local'
+import { EAIConfig } from '../type.local'
 import { logDebugSprintf, logErrorSprintf, sprintf } from '../utils/utils'
 import { EAI_SCORE_CONTEXT_KEY, EMOTION_AI_EVENT_URL, EMOTION_AI_UC_URL, FETCH_EAI_SCORE, FETCH_EAI_SCORE_ERROR, FETCH_EAI_SCORE_SUCCESS, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, MAX_COLLECTING_TIME_MS, MAX_LAST_COLLECTING_TIME_MS, MAX_SCORING_POLLING_TIME, SCORING_INTERVAL, SEND_EAI_EVENT, SEND_EAI_EVENT_ERROR, SEND_EAI_EVENT_SUCCESS } from '../enum/FlagshipConstant'
 import { IVisitorEvent } from './hit/IVisitorEvent'
@@ -11,7 +11,6 @@ import { VisitorAbstract } from '../visitor/VisitorAbstract'
 import { VisitorEvent } from './hit/VisitorEvent'
 import { LogLevel } from '../enum/index'
 import { UsageHit } from '../hit/UsageHit'
-import { importHit } from '../hit/importHit'
 
 type ConstructorParam = {
   httpClient: IHttpClient;
@@ -71,7 +70,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
   }
 
   protected sendEAIScoreTroubleshooting (eAIScore?: EAIScore, endpoint?:string): void {
-    importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+    import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const troubleshooting = new Troubleshooting({
         flagshipInstanceId: this._visitor.sdkInitialData?.instanceId as string,
         visitorId: this._visitor.visitorId,
@@ -93,7 +92,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     method = 'GET',
     apiKeys?:Record<string, boolean | string | number>,
     eAIScore?:EAIScore): void {
-    importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+    import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const troubleshooting = new Troubleshooting({
         flagshipInstanceId: this._visitor.sdkInitialData?.instanceId as string,
         visitorId: this._visitor.visitorId,
@@ -117,7 +116,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     label: TroubleshootingLabel,
     endpoint?:string,
     apiKeys?:Record<string, boolean | string | number>): void {
-    importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+    import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const troubleshooting = new Troubleshooting({
         flagshipInstanceId: this._visitor.sdkInitialData?.instanceId as string,
         visitorId: this._visitor.visitorId,
@@ -137,7 +136,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
   }
 
   protected sendCollectingTroubleshooting (timestamp:number, label:TroubleshootingLabel, score?: EAIScore): void {
-    importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+    import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const troubleshooting = new Troubleshooting({
         flagshipInstanceId: this._visitor.sdkInitialData?.instanceId as string,
         visitorId: this._visitor.visitorId,

@@ -11,10 +11,9 @@ import { ITrackingManager } from '../api/ITrackingManager'
 import { type Troubleshooting } from '../hit/Troubleshooting'
 import { MurmurHash } from '../utils/MurmurHash'
 import { type UsageHit } from '../hit/UsageHit'
-import { GetFlagMetadataParam, GetFlagValueParam, ImportHitType, VisitorExposedParam } from '../type.local'
+import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
 import { IVisitorEvent } from '../emotionAI/hit/IVisitorEvent'
 import { IPageView } from '../emotionAI/hit/IPageView'
-import { importHit } from '../hit/importHit'
 import { type HitAbstract } from '../hit/HitAbstract'
 import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
@@ -60,7 +59,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
 
   reportEaiVisitorEvent (event: IVisitorEvent):void {
     if (__fsWebpackIsBrowser__ || __fsWebpackIsReactNative__) {
-      import('../emotionAI/hit/VisitorEvent').then(({ VisitorEvent }) => {
+      import('../emotionAI/hit/VisitorEvent.ts').then(({ VisitorEvent }) => {
         this.visitor.emotionAi.reportVisitorEvent(new VisitorEvent(event))
       })
     }
@@ -68,7 +67,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
 
   reportEaiPageView (pageView: IPageView):void {
     if (__fsWebpackIsBrowser__ || __fsWebpackIsReactNative__) {
-      import('../emotionAI/hit/PageView').then(({ PageView }) => {
+      import('../emotionAI/hit/PageView.ts').then(({ PageView }) => {
         this.visitor.emotionAi.reportPageView(new PageView(pageView))
       })
     }
@@ -110,7 +109,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       return
     }
 
-    importHit(ImportHitType.Event).then(({ Event }) => {
+    import('../hit/Event.ts').then(({ Event }) => {
       const consentHit = new Event({
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
@@ -125,7 +124,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       consentHit.config = this.config
       this.trackingManager.addHit(consentHit)
 
-      importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+      import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
         const hitTroubleshooting = new Troubleshooting({
 
           label: TroubleshootingLabel.VISITOR_SEND_HIT,
@@ -364,7 +363,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         sdkConfigUsingCustomVisitorCache = !!visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
       }
 
-      importHit(ImportHitType.UsageHit).then(({ UsageHit }) => {
+      import('../hit/UsageHit.ts').then(({ UsageHit }) => {
         const analyticData = new UsageHit({
           label: TroubleshootingLabel.SDK_CONFIG,
           logLevel: LogLevel.INFO,
@@ -421,7 +420,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         sdkConfigUsingCustomHitCache = !!hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
         sdkConfigUsingCustomVisitorCache = !!visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
       }
-      const { Troubleshooting } = await importHit(ImportHitType.Troubleshooting)
+      const { Troubleshooting } = await import('../hit/Troubleshooting.ts')
 
       const fetchFlagTroubleshooting = new Troubleshooting({
         label: TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS,

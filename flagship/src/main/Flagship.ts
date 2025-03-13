@@ -222,7 +222,7 @@ export class Flagship {
 
   private async buildSdkApi (sharedActionTracking: ISharedActionTracking) {
     if (__fsWebpackIsBrowser__) {
-      const { SdkApi } = await import(/* webpackMode: "lazy" */'../sdkApi/v1/SdkApi')
+      const { SdkApi } = await import('../sdkApi/v1/SdkApi.ts')
       window.ABTastyWebSdk = {
         internal: new SdkApi({ sharedActionTracking }).getApiV1()
       }
@@ -245,7 +245,7 @@ export class Flagship {
     let sharedActionTracking = this.configManager?.sharedActionTracking
     if (__fsWebpackIsBrowser__) {
       if (!sharedActionTracking && isBrowser()) {
-        const { SharedActionTracking } = await import(/* webpackMode: "lazy" */'../sharedFeature/SharedActionTracking')
+        const { SharedActionTracking } = await import('../sharedFeature/SharedActionTracking.ts')
         sharedActionTracking = new SharedActionTracking({ sdkConfig })
         await this.buildSdkApi(sharedActionTracking)
       }
@@ -321,7 +321,7 @@ export class Flagship {
     )
 
     if (__fsWebpackIsBrowser__) {
-      import(/* webpackMode: "lazy" */'../qaAssistant/index').then(({ launchQaAssistant }) => {
+      import('../qaAssistant/index.ts').then(({ launchQaAssistant }) => {
         launchQaAssistant(localConfig)
       })
     }

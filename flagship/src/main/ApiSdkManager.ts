@@ -1,4 +1,4 @@
-import { EAIConfig, ImportHitType } from '../type.local'
+import { EAIConfig } from '../type.local'
 import { AccountSettings, BucketingDTO, TroubleshootingLabel } from '../types'
 import { ISdkManager } from './ISdkManager'
 import { ITrackingManager } from '../api/ITrackingManager'
@@ -7,7 +7,6 @@ import { IFlagshipConfig } from '../config/IFlagshipConfig'
 import { CDN_ACCOUNT_SETTINGS_URL } from '../enum/FlagshipConstant'
 import { logErrorSprintf, sprintf } from '../utils/utils'
 import { LogLevel } from '../enum/LogLevel'
-import { importHit } from '../hit/importHit'
 
 type constructorParam = {
   httpClient: IHttpClient;
@@ -42,7 +41,7 @@ export class ApiSdkManager implements ISdkManager {
     url: string,
     response: IHttpResponse | undefined,
     now: number) {
-    importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+    import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const troubleshooting = new Troubleshooting({
         flagshipInstanceId: this._flagshipInstanceId,
         label: TroubleshootingLabel.ACCOUNT_SETTINGS,
@@ -67,7 +66,7 @@ export class ApiSdkManager implements ISdkManager {
     error: { message: string, headers: Record<string, string>, status: number },
     now: number
   ) {
-    importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+    import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const troubleshootingHit = new Troubleshooting({
         visitorId: this._flagshipInstanceId,
         flagshipInstanceId: this._flagshipInstanceId,

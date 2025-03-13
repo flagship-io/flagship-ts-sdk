@@ -7,8 +7,6 @@ import { TroubleshootingLabel } from '../types'
 import { logDebugSprintf, logErrorSprintf, uuidV4 } from '../utils/utils'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract'
 import { BatchingCachingStrategyConstruct, SendActivate } from './types'
-import { ImportHitType } from '../type.local'
-import { importHit } from '../hit/importHit'
 
 export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategyAbstract {
   protected cacheHitKeys:Record<string, string>
@@ -88,7 +86,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.DirectHit]
       })
 
-      importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+      import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
         const monitoringHttpResponse = new Troubleshooting({
           label: TroubleshootingLabel.SEND_HIT_ROUTE_ERROR,
           logLevel: LogLevel.ERROR,
@@ -157,7 +155,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
 
-    const { ActivateBatch } = await importHit(ImportHitType.ActivateBatch)
+    const { ActivateBatch } = await import('../hit/ActivateBatch.ts')
 
     const activateBatch = new ActivateBatch(Array.from(activateHitsPool.filter(item => (Date.now() - item.createdAt) < DEFAULT_HIT_CACHE_TIME_MS)), this.config)
 
@@ -220,7 +218,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
 
-      importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+      import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
         const monitoringHttpResponse = new Troubleshooting({
           label: TroubleshootingLabel.SEND_ACTIVATE_HIT_ROUTE_ERROR,
           logLevel: LogLevel.ERROR,

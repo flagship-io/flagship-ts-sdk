@@ -1,4 +1,4 @@
-export { EventCategory } from './Event'
+export { EventCategory } from './EventCategory'
 export type { IEvent } from './Event'
 export type { IItem } from './Item'
 export type { IPage } from './Page'
