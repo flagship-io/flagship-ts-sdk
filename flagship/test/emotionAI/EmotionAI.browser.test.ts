@@ -204,7 +204,7 @@ describe('EmotionAI', () => {
     })
 
     afterAll(() => {
-      window.location = location
+      window.location = location as Location & string
     })
 
     const onEAICollectStatusChange = jest.fn<(status: boolean) => void>()
@@ -429,7 +429,7 @@ describe('EmotionAI', () => {
       })
 
       delete (window as any).location
-      window.location = { ...location, href: 'http://test.com' }
+      window.location = { ...location, href: 'http://test.com' } as Location & string
 
       window.dispatchEvent(new Event('popstate'))
 
@@ -915,7 +915,7 @@ describe('EmotionAI', () => {
     })
 
     afterAll(() => {
-      window.location = location
+      window.location = location as Location & string
     })
 
     emotionAI.init(visitorDelegate)
@@ -1064,7 +1064,7 @@ describe('EmotionAI', () => {
     })
 
     afterAll(() => {
-      window.location = location
+      window.location = location as Location & string
     })
 
     emotionAI.init(visitorDelegate)

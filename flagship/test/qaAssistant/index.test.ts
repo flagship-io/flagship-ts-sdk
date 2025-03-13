@@ -33,7 +33,7 @@ describe('Qa Assistant', () => {
   })
 
   afterAll(() => {
-    window.location = location
+    window.location = location as Location & string
   })
 
   it('test launchQaAssistant when environment is not a browser', () => {
@@ -71,7 +71,7 @@ describe('Qa Assistant', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (window as any).location
-    window.location = { ...location, search: `?${FS_QA_ASSISTANT}=true` }
+    window.location = { ...location, search: `?${FS_QA_ASSISTANT}=true` } as Location & string
 
     launchQaAssistant(config)
     expect(loadQaAssistantSpy).toBeCalledTimes(1)
@@ -85,7 +85,7 @@ describe('Qa Assistant', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (window as any).location
-    window.location = { ...location, search: `?${FS_QA_ASSISTANT_STAGING}=true` }
+    window.location = { ...location, search: `?${FS_QA_ASSISTANT_STAGING}=true` } as Location & string
 
     launchQaAssistant(config)
     expect(loadQaAssistantSpy).toBeCalledTimes(1)
@@ -99,7 +99,7 @@ describe('Qa Assistant', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (window as any).location
-    window.location = { ...location, search: `?${FS_QA_ASSISTANT_LOCAL}=true` }
+    window.location = { ...location, search: `?${FS_QA_ASSISTANT_LOCAL}=true` } as Location & string
 
     launchQaAssistant(config)
     expect(loadQaAssistantSpy).toBeCalledTimes(1)
@@ -117,7 +117,7 @@ describe('Qa Assistant', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (window as any).location
-    window.location = { ...location, search: `?${FS_QA_ASSISTANT}=true` }
+    window.location = { ...location, search: `?${FS_QA_ASSISTANT}=true` } as Location & string
 
     launchQaAssistant(config)
     expect(loadQaAssistantSpy).toBeCalledTimes(0)
