@@ -25,5 +25,23 @@ module.exports = () =>
         __fsWebpackIsEdgeWorker__: JSON.stringify(false),
         __fsWebpackIsDeno__: JSON.stringify(false)
       })
-    ]
+    ],
+    optimization: {
+      splitChunks: {
+        chunks: 'async',
+        minChunks: 1,
+        cacheGroups: {
+          vendors: {
+            test: /[\\/]node_modules[\\/]/,
+            priority: -10,
+            reuseExistingChunk: true
+          },
+          default: {
+            minChunks: 2,
+            priority: -20,
+            reuseExistingChunk: true
+          }
+        }
+      }
+    }
   })

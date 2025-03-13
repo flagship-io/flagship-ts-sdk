@@ -8,6 +8,7 @@ const common = require('./common.cjs')
 module.exports = merge(common(), {
   output: {
     filename: 'index.browser.lite.js',
+    chunkFilename: 'chunks/browser/lite/[name].[contenthash].js',
     library: {
       type: 'umd'
     }

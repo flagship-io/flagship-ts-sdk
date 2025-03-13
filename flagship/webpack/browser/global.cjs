@@ -10,7 +10,8 @@ module.exports = merge(common(), {
     library: {
       type: 'global'
     },
-    filename: 'index.browser.global.js'
+    filename: 'index.browser.global.js',
+    chunkFilename: 'chunks/browser/global/[name].[contenthash].js'
   },
   module: {
     rules: [

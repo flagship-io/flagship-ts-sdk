@@ -22,6 +22,9 @@ module.exports = () =>
         __fsWebpackIsNode__: JSON.stringify(false),
         __fsWebpackIsEdgeWorker__: JSON.stringify(true),
         __fsWebpackIsDeno__: JSON.stringify(false)
+      }),
+      new webpack.optimize.LimitChunkCountPlugin({
+        maxChunks: 1
       })
     ]
   })

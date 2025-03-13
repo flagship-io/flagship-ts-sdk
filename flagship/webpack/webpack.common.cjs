@@ -21,7 +21,11 @@ const config = {
   },
   optimization: {
     minimize: process.env.NODE_ENV === 'production',
-    usedExports: true
+    usedExports: true,
+    splitChunks: false,
+    runtimeChunk: false,
+    removeEmptyChunks: true,
+    mangleExports: false
   }
 }
 
@@ -30,9 +34,9 @@ module.exports = () => {
     config.mode = 'production'
   } else {
     config.mode = 'development'
-    config.plugins = [new BundleAnalyzerPlugin({
-      analyzerMode: 'static'
-    })]
+    // config.plugins = [new BundleAnalyzerPlugin({
+    //   analyzerMode: 'static'
+    // })]
   }
 
   return config

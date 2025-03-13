@@ -23,10 +23,9 @@ module.exports = () =>
         __fsWebpackIsNode__: JSON.stringify(false),
         __fsWebpackIsEdgeWorker__: JSON.stringify(false),
         __fsWebpackIsDeno__: JSON.stringify(false)
+      }),
+      new webpack.optimize.LimitChunkCountPlugin({
+        maxChunks: 1
       })
-    ],
-    optimization: {
-      splitChunks: false,
-      runtimeChunk: false
-    }
+    ]
   })

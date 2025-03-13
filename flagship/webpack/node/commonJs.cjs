@@ -34,14 +34,18 @@ module.exports = merge(common(), {
             presets: [
               ['@babel/preset-env', {
                 targets: { node: 6 },
-                modules: false,
+                modules: 'commonjs',
                 useBuiltIns: 'usage',
                 corejs: 3
               }],
               ['@babel/preset-typescript']
             ],
             plugins: [
-              ['@babel/plugin-transform-runtime']
+              ['@babel/plugin-transform-runtime', {
+                regenerator: true,
+                helpers: true,
+                useESModules: false
+              }]
             ]
           }
         }]

@@ -10,7 +10,8 @@ module.exports = merge(common(), {
     library: {
       type: 'umd'
     },
-    filename: 'index.browser.umd.js'
+    filename: 'index.browser.umd.js',
+    chunkFilename: 'chunks/browser/umd/[name].[contenthash].js'
   },
   module: {
     rules: [
