@@ -1,4 +1,4 @@
-export { EventCategory } from './Event.ts'
+export { EventCategory } from './EventCategory.ts'
 export type { IEvent } from './Event.ts'
 export type { IItem } from './Item.ts'
 export type { IPage } from './Page.ts'

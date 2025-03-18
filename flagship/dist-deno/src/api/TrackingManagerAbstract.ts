@@ -16,8 +16,7 @@ import { ITrackingManager } from './ITrackingManager.ts'
 import { type Troubleshooting } from '../hit/Troubleshooting.ts'
 import { type UsageHit } from '../hit/UsageHit.ts'
 import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking.ts'
-import { importHit } from '../hit/importHit.ts'
-import { ActivateConstructorParam, IActivate, ImportHitType } from '../type.local.ts'
+import { ActivateConstructorParam, IActivate } from '../type.local.ts'
 import { type HitAbstract } from '../hit/HitAbstract.ts'
 
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
@@ -156,27 +155,27 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     let hit:HitAbstract|undefined
     switch (item.data.type) {
       case HitType.EVENT:{
-        const { Event } = await importHit(ImportHitType.Event)
+        const { Event } = await import('../hit/Event.ts')
         hit = new Event(item.data.content as IEvent)
         break }
       case HitType.ITEM:{
-        const { Item } = await importHit(ImportHitType.Item)
+        const { Item } = await import('../hit/Item.ts')
         hit = new Item(item.data.content as IItem)
         break }
       case HitType.PAGE:{
-        const { Page } = await importHit(ImportHitType.Page)
+        const { Page } = await import('../hit/Page.ts')
         hit = new Page(item.data.content as IPage)
         break }
       case HitType.SCREEN:{
-        const { Screen } = await importHit(ImportHitType.Screen)
+        const { Screen } = await import('../hit/Screen.ts')
         hit = new Screen(item.data.content as IScreen)
         break }
       case 'SEGMENT':{
-        const { Segment } = await importHit(ImportHitType.Segment)
+        const { Segment } = await import('../hit/Segment.ts')
         hit = new Segment(item.data.content as ISegment)
         break }
       case HitType.TRANSACTION:{
-        const { Transaction } = await importHit(ImportHitType.Transaction)
+        const { Transaction } = await import('../hit/Transaction.ts')
         hit = new Transaction(item.data.content as ITransaction)
         break }
       default:
@@ -197,7 +196,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
       }
 
       if (item.data.type === 'ACTIVATE') {
-        const { Activate } = await importHit(ImportHitType.Activate)
+        const { Activate } = await import('../hit/Activate.ts')
         const hit = new Activate(item.data.content as IActivate)
         hit.key = key
         hit.createdAt = item.data.content.createdAt

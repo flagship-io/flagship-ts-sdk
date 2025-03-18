@@ -42,6 +42,8 @@ import { VisitorProfileCache } from '../visitor/VisitorProfileCache.node'
 import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 import { DefaultHitCache } from '../cache/DefaultHitCache'
+import { SharedActionTracking } from '../sharedFeature/SharedActionTracking.ts'
+import { SdkApi } from '../sdkApi/v1/SdkApi.ts'
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
@@ -220,9 +222,8 @@ export class Flagship {
     }
   }
 
-  private async buildSdkApi (sharedActionTracking: ISharedActionTracking) {
+  private buildSdkApi (sharedActionTracking: ISharedActionTracking) {
     if (__fsWebpackIsBrowser__) {
-      const { SdkApi } = await import('../sdkApi/v1/SdkApi.ts')
       window.ABTastyWebSdk = {
         internal: new SdkApi({ sharedActionTracking }).getApiV1()
       }
@@ -245,9 +246,8 @@ export class Flagship {
     let sharedActionTracking = this.configManager?.sharedActionTracking
     if (__fsWebpackIsBrowser__) {
       if (!sharedActionTracking && isBrowser()) {
-        const { SharedActionTracking } = await import('../sharedFeature/SharedActionTracking.ts')
         sharedActionTracking = new SharedActionTracking({ sdkConfig })
-        await this.buildSdkApi(sharedActionTracking)
+        this.buildSdkApi(sharedActionTracking)
       }
     }
 

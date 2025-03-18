@@ -11,11 +11,12 @@ import { ITrackingManager } from '../api/ITrackingManager.ts'
 import { type Troubleshooting } from '../hit/Troubleshooting.ts'
 import { MurmurHash } from '../utils/MurmurHash.ts'
 import { type UsageHit } from '../hit/UsageHit.ts'
-import { GetFlagMetadataParam, GetFlagValueParam, ImportHitType, VisitorExposedParam } from '../type.local.ts'
+import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local.ts'
 import { IVisitorEvent } from '../emotionAI/hit/IVisitorEvent.ts'
 import { IPageView } from '../emotionAI/hit/IPageView.ts'
-import { importHit } from '../hit/importHit.ts'
 import { type HitAbstract } from '../hit/HitAbstract.ts'
+import { DefaultHitCache } from '../cache/DefaultHitCache.ts'
+import { DefaultVisitorCache } from '../cache/DefaultVisitorCache.ts'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 
@@ -58,7 +59,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
 
   reportEaiVisitorEvent (event: IVisitorEvent):void {
     if (__fsWebpackIsBrowser__ || __fsWebpackIsReactNative__) {
-      import('../emotionAI/hit/VisitorEvent').then(({ VisitorEvent }) => {
+      import('../emotionAI/hit/VisitorEvent.ts').then(({ VisitorEvent }) => {
         this.visitor.emotionAi.reportVisitorEvent(new VisitorEvent(event))
       })
     }
@@ -66,7 +67,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
 
   reportEaiPageView (pageView: IPageView):void {
     if (__fsWebpackIsBrowser__ || __fsWebpackIsReactNative__) {
-      import('../emotionAI/hit/PageView').then(({ PageView }) => {
+      import('../emotionAI/hit/PageView.ts').then(({ PageView }) => {
         this.visitor.emotionAi.reportPageView(new PageView(pageView))
       })
     }
@@ -108,7 +109,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       return
     }
 
-    importHit(ImportHitType.Event).then(({ Event }) => {
+    import('../hit/Event.ts').then(({ Event }) => {
       const consentHit = new Event({
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
@@ -123,7 +124,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       consentHit.config = this.config
       this.trackingManager.addHit(consentHit)
 
-      importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+      import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
         const hitTroubleshooting = new Troubleshooting({
 
           label: TroubleshootingLabel.VISITOR_SEND_HIT,
@@ -358,13 +359,11 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       let sdkConfigUsingCustomVisitorCache = false
 
       if (__fsWebpackIsBrowser__) {
-        const { DefaultHitCache } = await import(/* webpackMode: "eager" */'../cache/DefaultHitCache')
-        const { DefaultVisitorCache } = await import(/* webpackMode: "eager" */'../cache/DefaultVisitorCache')
         sdkConfigUsingCustomHitCache = !!hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
         sdkConfigUsingCustomVisitorCache = !!visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
       }
 
-      importHit(ImportHitType.UsageHit).then(({ UsageHit }) => {
+      import('../hit/UsageHit.ts').then(({ UsageHit }) => {
         const analyticData = new UsageHit({
           label: TroubleshootingLabel.SDK_CONFIG,
           logLevel: LogLevel.INFO,
@@ -418,12 +417,10 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       let sdkConfigUsingCustomVisitorCache = false
 
       if (__fsWebpackIsBrowser__) {
-        const { DefaultHitCache } = await import(/* webpackMode: "eager" */'../cache/DefaultHitCache')
-        const { DefaultVisitorCache } = await import(/* webpackMode: "eager" */'../cache/DefaultVisitorCache')
         sdkConfigUsingCustomHitCache = !!hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
         sdkConfigUsingCustomVisitorCache = !!visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
       }
-      const { Troubleshooting } = await importHit(ImportHitType.Troubleshooting)
+      const { Troubleshooting } = await import('../hit/Troubleshooting.ts')
 
       const fetchFlagTroubleshooting = new Troubleshooting({
         label: TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS,

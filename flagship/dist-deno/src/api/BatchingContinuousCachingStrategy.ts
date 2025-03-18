@@ -8,8 +8,6 @@ import { logDebugSprintf, logErrorSprintf } from '../utils/utils.ts'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract.ts'
 import { SendActivate } from './types.ts'
 import { TroubleshootingLabel } from '../types.ts'
-import { ImportHitType } from '../type.local.ts'
-import { importHit } from '../hit/importHit.ts'
 
 export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAbstract {
   async addHitInPoolQueue (hit: HitAbstract) {
@@ -83,7 +81,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
 
-      importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+      import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
         const monitoringHttpResponse = new Troubleshooting({
           label: TroubleshootingLabel.SEND_ACTIVATE_HIT_ROUTE_ERROR,
           logLevel: LogLevel.ERROR,
@@ -109,7 +107,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
   protected async sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate) {
     const filteredItems = Array.from(activateHitsPool.filter(item => (Date.now() - item.createdAt) < DEFAULT_HIT_CACHE_TIME_MS))
 
-    const { ActivateBatch } = await importHit(ImportHitType.ActivateBatch)
+    const { ActivateBatch } = await import('../hit/ActivateBatch.ts')
     if (!filteredItems.length && currentActivate) {
       const batch = new ActivateBatch([], this.config)
       await this.sendActivateHitBatch(batch, batchTriggeredBy, currentActivate)

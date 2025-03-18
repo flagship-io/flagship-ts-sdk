@@ -11,8 +11,7 @@ import { errorFormat, isBrowser, logDebug, logDebugSprintf, logError, logErrorSp
 import { ITrackingManagerCommon } from './ITrackingManagerCommon.ts'
 import type { BatchingCachingStrategyConstruct, SendActivate } from './types'
 import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking.ts'
-import { ActivateConstructorParam, ImportHitType, LocalActionTracking } from '../type.local.ts'
-import { importHit } from '../hit/importHit.ts'
+import { ActivateConstructorParam, LocalActionTracking } from '../type.local.ts'
 import { type HitAbstract } from '../hit/HitAbstract.ts'
 import { type Event } from '../hit/Event.ts'
 
@@ -113,7 +112,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       if (!isBrowser() || !this.config.isQAModeEnabled) {
         return
       }
-      import(/* webpackMode: "lazy" */ '../qaAssistant/messages/index').then(({ sendFsHitToQA }) => {
+      import('../qaAssistant/messages/index.ts').then(({ sendFsHitToQA }) => {
         this._HitsToFsQa.push(...hits)
         const BATCH_SIZE = 10
         const DELAY = 3000
@@ -164,7 +163,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   }
 
   async activateFlag (paramHit: ActivateConstructorParam):Promise<void> {
-    const { Activate } = await importHit(ImportHitType.Activate)
+    const { Activate } = await import('../hit/Activate.ts')
 
     const hit = new Activate(paramHit)
     hit.config = this.config
@@ -219,7 +218,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       await this.sendActivate({ activateHitsPool: activateHits, batchTriggeredBy })
     }
 
-    const { Batch } = await importHit(ImportHitType.Batch)
+    const { Batch } = await import('../hit/Batch.ts')
 
     const batch = new Batch({ hits: [], ds: SDK_APP })
     batch.config = this.config
@@ -295,7 +294,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
 
-      importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+      import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
         const monitoringHttpResponse = new Troubleshooting({
           label: TroubleshootingLabel.SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR,
           logLevel: LogLevel.ERROR,

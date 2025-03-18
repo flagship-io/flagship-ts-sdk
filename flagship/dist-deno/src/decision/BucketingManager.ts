@@ -9,8 +9,6 @@ import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 import { Targetings, VariationGroupDTO } from './api/bucketingDTO.ts'
 import { DecisionManager } from './DecisionManager.ts'
 import { ISdkManager } from '../main/ISdkManager.ts'
-import { importHit } from '../hit/importHit.ts'
-import { ImportHitType } from '../type.local.ts'
 
 type ConstructorParam = {
   httpClient: IHttpClient;
@@ -38,7 +36,7 @@ export class BucketingManager extends DecisionManager {
         return
       }
 
-      const { Segment } = await importHit(ImportHitType.Segment)
+      const { Segment } = await import('../hit/Segment.ts')
 
       visitor.hasContextBeenUpdated = false
       const SegmentHit = new Segment({
@@ -49,7 +47,7 @@ export class BucketingManager extends DecisionManager {
 
       await visitor.sendHit(SegmentHit)
 
-      importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+      import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
         const hitTroubleshooting = new Troubleshooting({
           label: TroubleshootingLabel.VISITOR_SEND_HIT,
           logLevel: LogLevel.INFO,

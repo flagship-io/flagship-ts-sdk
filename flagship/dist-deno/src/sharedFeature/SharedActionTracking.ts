@@ -1,8 +1,7 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig.ts'
 import { ACTION_TRACKING, ACTION_TRACKING_DISPATCHED, ACTION_TRACKING_HIT_RECEIVED, ACTION_TRACKING_INVALID_HIT, ACTION_TRACKING_INVALID_NONCE } from '../enum/FlagshipConstant.ts'
-import { importHit } from '../hit/importHit.ts'
 import { EventCategory } from '../hit/index.ts'
-import { ActionTrackingData, LocalActionTracking, SharedActionSource, SharedActionPayload, SharedActionTrackingParam, ImportHitType } from '../type.local.ts'
+import { ActionTrackingData, LocalActionTracking, SharedActionSource, SharedActionPayload, SharedActionTrackingParam } from '../type.local.ts'
 import { isBrowser, logDebugSprintf } from '../utils/utils.ts'
 import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 import { ISharedActionTracking } from './ISharedActionTracking.ts'
@@ -51,7 +50,7 @@ export class SharedActionTracking implements ISharedActionTracking {
       return
     }
 
-    const { Event: EventHit } = await importHit(ImportHitType.Event)
+    const { Event: EventHit } = await import('../hit/Event.ts')
 
     const eventHit = new EventHit({
       category: hit.ec as EventCategory,

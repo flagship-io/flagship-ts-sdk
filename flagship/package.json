@@ -1,7 +1,7 @@
 {
   "name": "@flagship.io/js-sdk",
   "sideEffects": false,
-  "version": "5.0.0-alpha.0",
+  "version": "5.0.0",
   "author": "AB Tasty",
   "license": "Apache-2.0",
   "description": "Flagship JS SDK",

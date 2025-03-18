@@ -40,6 +40,10 @@ import { ITrackingManager } from '../api/ITrackingManager.ts'
 import { EmotionAI } from '../emotionAI/EmotionAI.node.ts'
 import { VisitorProfileCache } from '../visitor/VisitorProfileCache.node.ts'
 import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking.ts'
+import { DefaultVisitorCache } from '../cache/DefaultVisitorCache.ts'
+import { DefaultHitCache } from '../cache/DefaultHitCache.ts'
+import { SharedActionTracking } from '../sharedFeature/SharedActionTracking.ts.ts'
+import { SdkApi } from '../sdkApi/v1/SdkApi.ts.ts'
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
@@ -218,9 +222,8 @@ export class Flagship {
     }
   }
 
-  private async buildSdkApi (sharedActionTracking: ISharedActionTracking) {
+  private buildSdkApi (sharedActionTracking: ISharedActionTracking) {
     if (__fsWebpackIsBrowser__) {
-      const { SdkApi } = await import(/* webpackMode: "lazy" */'../sdkApi/v1/SdkApi')
       window.ABTastyWebSdk = {
         internal: new SdkApi({ sharedActionTracking }).getApiV1()
       }
@@ -243,9 +246,8 @@ export class Flagship {
     let sharedActionTracking = this.configManager?.sharedActionTracking
     if (__fsWebpackIsBrowser__) {
       if (!sharedActionTracking && isBrowser()) {
-        const { SharedActionTracking } = await import(/* webpackMode: "lazy" */'../sharedFeature/SharedActionTracking')
         sharedActionTracking = new SharedActionTracking({ sdkConfig })
-        await this.buildSdkApi(sharedActionTracking)
+        this.buildSdkApi(sharedActionTracking)
       }
     }
 
@@ -302,12 +304,10 @@ export class Flagship {
 
     if (__fsWebpackIsBrowser__) {
       if (!localConfig.hitCacheImplementation && isBrowser()) {
-        const { DefaultHitCache } = await import(/* webpackMode: "eager" */'../cache/DefaultHitCache')
         localConfig.hitCacheImplementation = new DefaultHitCache()
       }
 
       if (!localConfig.visitorCacheImplementation && isBrowser()) {
-        const { DefaultVisitorCache } = await import(/* webpackMode: "eager" */'../cache/DefaultVisitorCache')
         localConfig.visitorCacheImplementation = new DefaultVisitorCache()
       }
     }
@@ -321,7 +321,7 @@ export class Flagship {
     )
 
     if (__fsWebpackIsBrowser__) {
-      import(/* webpackMode: "lazy" */'../qaAssistant/index').then(({ launchQaAssistant }) => {
+      import('../qaAssistant/index.ts').then(({ launchQaAssistant }) => {
         launchQaAssistant(localConfig)
       })
     }

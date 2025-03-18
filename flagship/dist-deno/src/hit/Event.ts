@@ -6,16 +6,13 @@ import {
 } from '../enum/FlagshipConstant.ts'
 import { HitType } from '../enum/HitType.ts'
 import { logError } from '../utils/utils.ts'
+import { EventCategory } from './EventCategory.ts'
 import { HitAbstract, IHitAbstract } from './HitAbstract.ts'
 
 export const ERROR_MESSAGE = 'event category and event action are required'
 export const CATEGORY_ERROR =
   'The category value must be either EventCategory::ACTION_TRACKING or EventCategory::ACTION_TRACKING'
 export const VALUE_FIELD_ERROR = 'value must be an integer and be >= 0'
-export enum EventCategory {
-  ACTION_TRACKING = 'Action Tracking',
-  USER_ENGAGEMENT = 'User Engagement',
-}
 
 export interface IEvent extends IHitAbstract{
   category: EventCategory

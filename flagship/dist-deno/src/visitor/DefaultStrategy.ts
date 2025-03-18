@@ -51,8 +51,7 @@ import { VisitorDelegate } from './index.ts'
 import { FSFlagMetadata } from '../flag/FSFlagMetadata.ts'
 import { FSFetchStatus } from '../enum/FSFetchStatus.ts'
 import { FSFetchReasons } from '../enum/FSFetchReasons.ts'
-import { ActivateConstructorParam, GetFlagMetadataParam, GetFlagValueParam, ImportHitType, VisitorExposedParam } from '../type.local.ts'
-import { importHit } from '../hit/importHit.ts'
+import { ActivateConstructorParam, GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local.ts'
 import { type HitAbstract } from '../hit/HitAbstract.ts'
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
@@ -218,7 +217,7 @@ export class DefaultStrategy extends StrategyAbstract {
 
     await this.trackingManager.activateFlag(activateHit)
 
-    importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+    import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const activateTroubleshooting = new Troubleshooting({
 
         label: TroubleshootingLabel.VISITOR_SEND_ACTIVATE,
@@ -260,27 +259,27 @@ export class DefaultStrategy extends StrategyAbstract {
     let newHit = null
     switch (hit.type.toUpperCase()) {
       case HitType.EVENT:{
-        const { Event } = await importHit(ImportHitType.Event)
+        const { Event } = await import('../hit/Event.ts')
         newHit = new Event(hit as IEvent)
         break
       }
       case HitType.ITEM:{
-        const { Item } = await importHit(ImportHitType.Item)
+        const { Item } = await import('../hit/Item.ts')
         newHit = new Item(hit as IItem)
         break
       }
       case HitType.PAGE_VIEW:{
-        const { Page } = await importHit(ImportHitType.Page)
+        const { Page } = await import('../hit/Page.ts')
         newHit = new Page(hit as IPage)
         break
       }
       case HitType.SCREEN_VIEW:{
-        const { Screen } = await importHit(ImportHitType.Screen)
+        const { Screen } = await import('../hit/Screen.ts')
         newHit = new Screen(hit as IScreen)
         break
       }
       case HitType.TRANSACTION:{
-        const { Transaction } = await importHit(ImportHitType.Transaction)
+        const { Transaction } = await import('../hit/Transaction.ts')
         newHit = new Transaction(hit as ITransaction)
         break
       }
@@ -296,7 +295,7 @@ export class DefaultStrategy extends StrategyAbstract {
       return
     }
 
-    const { HitAbstract } = await importHit(ImportHitType.HitAbstract)
+    const { HitAbstract } = await import('../hit/HitAbstract.ts')
 
     if (hit instanceof HitAbstract) {
       hitInstance = hit
@@ -330,7 +329,7 @@ export class DefaultStrategy extends StrategyAbstract {
         return
       }
 
-      importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+      import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
         const sendHitTroubleshooting = new Troubleshooting({
 
           label: TroubleshootingLabel.VISITOR_SEND_HIT,
@@ -365,7 +364,7 @@ export class DefaultStrategy extends StrategyAbstract {
     this.visitor.anonymousId = this.visitor.visitorId
     this.visitor.visitorId = visitorId
 
-    importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+    import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const monitoring = new Troubleshooting({
 
         label: TroubleshootingLabel.VISITOR_AUTHENTICATE,
@@ -397,7 +396,7 @@ export class DefaultStrategy extends StrategyAbstract {
     this.visitor.visitorId = this.visitor.anonymousId
     this.visitor.anonymousId = null
 
-    importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+    import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const monitoring = new Troubleshooting({
 
         label: TroubleshootingLabel.VISITOR_UNAUTHENTICATE,
@@ -445,7 +444,7 @@ export class DefaultStrategy extends StrategyAbstract {
       reason: FSFetchReasons.FLAGS_FETCHING_ERROR
     }
 
-    importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+    import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const troubleshootingHit = new Troubleshooting({
 
         label: TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS_ERROR,
@@ -605,7 +604,7 @@ export class DefaultStrategy extends StrategyAbstract {
           campaignId: item.campaignId
         }
       })
-      import(/* webpackMode: "lazy" */ '../qaAssistant/messages/index').then(({ sendVisitorAllocatedVariations }) => {
+      import(/* webpackMode: "lazy" */ '../qaAssistant/messages/index.ts').then(({ sendVisitorAllocatedVariations }) => {
         sendVisitorAllocatedVariations(visitorAllocatedVariations)
       })
     }
@@ -744,7 +743,7 @@ export class DefaultStrategy extends StrategyAbstract {
   }
 
   private sendFlagTroubleshooting (label: TroubleshootingLabel, key: string, defaultValue: unknown, visitorExposed?: boolean) {
-    importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+    import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const troubleshooting = new Troubleshooting({
         label,
         logLevel: LogLevel.WARNING,
@@ -795,7 +794,7 @@ export class DefaultStrategy extends StrategyAbstract {
 
   private SendFlagMetadataTroubleshooting (key: string) {
     logWarningSprintf(this.config, FLAG_METADATA, NO_FLAG_METADATA, this.visitor.visitorId, key)
-    importHit(ImportHitType.Troubleshooting).then(({ Troubleshooting }) => {
+    import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const monitoring = new Troubleshooting({
         label: TroubleshootingLabel.GET_FLAG_METADATA_TYPE_WARNING,
         logLevel: LogLevel.WARNING,
