@@ -42,8 +42,8 @@ import { VisitorProfileCache } from '../visitor/VisitorProfileCache.node'
 import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
 import { DefaultHitCache } from '../cache/DefaultHitCache'
-import { SharedActionTracking } from '../sharedFeature/SharedActionTracking.ts'
-import { SdkApi } from '../sdkApi/v1/SdkApi.ts'
+import { SharedActionTracking } from '../sharedFeature/SharedActionTracking'
+import { SdkApi } from '../sdkApi/v1/SdkApi'
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
