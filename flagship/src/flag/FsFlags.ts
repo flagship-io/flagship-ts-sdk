@@ -84,13 +84,13 @@ export class FSFlag implements IFSFlag {
   }
 
   get status (): FSFlagStatus {
-    if (this._visitor?.fetchStatus?.status === FSFetchStatus.PANIC) {
+    if (this._visitor?.flagsStatus?.status === FSFetchStatus.PANIC) {
       return FSFlagStatus.PANIC
     }
     if (!this.exists()) {
       return FSFlagStatus.NOT_FOUND
     }
-    if (this._visitor?.fetchStatus?.status === FSFetchStatus.FETCH_REQUIRED || this._visitor?.fetchStatus?.status === FSFetchStatus.FETCHING) {
+    if (this._visitor?.flagsStatus?.status === FSFetchStatus.FETCH_REQUIRED || this._visitor?.flagsStatus?.status === FSFetchStatus.FETCHING) {
       return FSFlagStatus.FETCH_REQUIRED
     }
 

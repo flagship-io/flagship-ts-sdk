@@ -346,7 +346,7 @@ describe('test VisitorDelegate methods', () => {
       variationName: flagDTO.variationName
     })
 
-    visitorDelegate.fetchStatus = { status: FSFetchStatus.FETCHED, reason: FSFetchReasons.NONE }
+    visitorDelegate.flagsStatus = { status: FSFetchStatus.FETCHED, reason: FSFetchReasons.NONE }
 
     visitorDelegate.flagsData.set('newKey', flagDTO)
     let flag = visitorDelegate.getFlag('newKey')
@@ -364,7 +364,7 @@ describe('test VisitorDelegate methods', () => {
       variationName: flagDTO.variationName
     }))
 
-    visitorDelegate.fetchStatus = { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.AUTHENTICATE }
+    visitorDelegate.flagsStatus = { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.AUTHENTICATE }
     flag = visitorDelegate.getFlag('newKey')
     expect(logWarning).toBeCalledTimes(1)
   })

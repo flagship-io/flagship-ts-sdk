@@ -28,7 +28,7 @@ export interface IVisitor {
   /**
    * The fetch status of the flags.
    */
-  readonly fetchStatus: FlagsStatus
+  readonly flagsStatus: FlagsStatus
 
   /**
    * The Flagship configuration.

@@ -230,7 +230,7 @@ describe('test DefaultStrategy ', () => {
       ...newContext,
       ...predefinedContext
     })
-    expect(visitorDelegate.fetchStatus).toEqual({
+    expect(visitorDelegate.flagsStatus).toEqual({
       status: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.UPDATE_CONTEXT
     })
@@ -446,7 +446,7 @@ describe('test DefaultStrategy ', () => {
     await defaultStrategy.fetchFlags()
     expect(getCampaignsAsync).toBeCalledTimes(1)
     expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
-    expect(visitorDelegate.fetchStatus).toEqual({
+    expect(visitorDelegate.flagsStatus).toEqual({
       status: FSFetchStatus.FETCHED,
       reason: FSFetchReasons.NONE
     })
@@ -485,7 +485,7 @@ describe('test DefaultStrategy ', () => {
     await defaultStrategy.fetchFlags()
     expect(getCampaignsAsync).toBeCalledTimes(1)
     expect(getCampaignsAsync).toBeCalledWith(visitorDelegate)
-    expect(visitorDelegate.fetchStatus).toEqual({
+    expect(visitorDelegate.flagsStatus).toEqual({
       status: FSFetchStatus.FETCHED,
       reason: FSFetchReasons.NONE
     })
@@ -525,7 +525,7 @@ describe('test DefaultStrategy ', () => {
     isPanicFn.mockReturnValue(true)
 
     await defaultStrategy.fetchFlags()
-    expect(visitorDelegate.fetchStatus).toEqual({
+    expect(visitorDelegate.flagsStatus).toEqual({
       status: FSFetchStatus.PANIC,
       reason: FSFetchReasons.NONE
     })
@@ -1282,7 +1282,7 @@ describe('test DefaultStrategy ', () => {
       1,
       expect.objectContaining({ data: expect.objectContaining({ label }) })
     )
-    expect(visitorDelegate.fetchStatus).toEqual({
+    expect(visitorDelegate.flagsStatus).toEqual({
       status: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.AUTHENTICATE
     })
@@ -1311,7 +1311,7 @@ describe('test DefaultStrategy ', () => {
     defaultStrategy.unauthenticate()
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBeNull()
-    expect(visitorDelegate.fetchStatus).toEqual({
+    expect(visitorDelegate.flagsStatus).toEqual({
       status: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.UNAUTHENTICATE
     })

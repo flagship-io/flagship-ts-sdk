@@ -76,11 +76,11 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._onFetchFlagsStatusChanged = v
   }
 
-  public get fetchStatus () : FlagsStatus {
+  public get flagsStatus () : FlagsStatus {
     return this._fetchStatus
   }
 
-  public set fetchStatus (v : FlagsStatus) {
+  public set flagsStatus (v : FlagsStatus) {
     this._fetchStatus = v
     if (this.onFetchFlagsStatusChanged) {
       this.onFetchFlagsStatusChanged(v)
@@ -192,7 +192,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
     this.onFetchFlagsStatusChanged = onFetchFlagsStatusChanged
 
-    this.fetchStatus = {
+    this.flagsStatus = {
       status: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.FLAGS_NEVER_FETCHED
     }

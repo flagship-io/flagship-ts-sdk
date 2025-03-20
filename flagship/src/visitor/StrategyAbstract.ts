@@ -26,7 +26,7 @@ export type StrategyAbstractConstruct = {
   visitor:VisitorAbstract,
   murmurHash: MurmurHash
 }
-export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'anonymousId'| 'fetchStatus'|'flagsData'|'context'|'hasConsented'|'getFlagsDataArray'|'getFlag'|'getFlags'|'cleanup'> {
+export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'anonymousId'| 'flagsStatus'|'flagsData'|'context'|'hasConsented'|'getFlagsDataArray'|'getFlag'|'getFlags'|'cleanup'> {
   protected visitor:VisitorAbstract
 
   protected get configManager ():IConfigManager {

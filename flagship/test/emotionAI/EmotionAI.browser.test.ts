@@ -114,7 +114,7 @@ describe('EmotionAI', () => {
       expect(setCachedEAIScore).toBeCalledTimes(1)
 
       expect(visitorDelegate.context[EAI_SCORE_CONTEXT_KEY]).toEqual('straightforward')
-      expect(visitorDelegate.fetchStatus.reason).toEqual(FSFetchReasons.UPDATE_CONTEXT)
+      expect(visitorDelegate.flagsStatus.reason).toEqual(FSFetchReasons.UPDATE_CONTEXT)
     })
 
     it('should return score from cache if available', async () => {
@@ -136,7 +136,7 @@ describe('EmotionAI', () => {
       expect(getAsyncSpy).toHaveBeenCalledTimes(0)
       expect(response).toEqual(eAIScore)
       expect(visitorDelegate.context[EAI_SCORE_CONTEXT_KEY]).toEqual('straightforward-2')
-      expect(visitorDelegate.fetchStatus.reason).toEqual(FSFetchReasons.UPDATE_CONTEXT)
+      expect(visitorDelegate.flagsStatus.reason).toEqual(FSFetchReasons.UPDATE_CONTEXT)
     })
 
     it('should return null if status is not 200', async () => {
