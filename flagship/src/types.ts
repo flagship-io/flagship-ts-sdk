@@ -373,8 +373,8 @@ export type AccountSettings = {
     traffic: number;
     timezone: string;
   };
-  eaiCollectEnabled: boolean;
-  eaiActivationEnabled: boolean;
+  eaiCollectEnabled?: boolean;
+  eaiActivationEnabled?: boolean;
 }
 
 export interface BucketingDTO {
