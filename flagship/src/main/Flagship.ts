@@ -8,7 +8,7 @@ import { ConfigManager, IConfigManager } from '../config/ConfigManager'
 import { ApiManager } from '../decision/ApiManager'
 import { TrackingManager } from '../api/TrackingManager'
 import { FlagshipLogManager } from '../utils/FlagshipLogManager'
-import { isBrowser, logDebugSprintf, logError, logInfo, logInfoSprintf, logWarning, sprintf, uuidV4 } from '../utils/utils'
+import { isBrowser, logDebugSprintf, logError, logInfo, logInfoSprintf, logWarning, onDomReady, sprintf, uuidV4 } from '../utils/utils'
 import {
   INITIALIZATION_PARAM_ERROR,
   INITIALIZATION_STARTING,
@@ -28,13 +28,22 @@ import { BucketingManager } from '../decision/BucketingManager'
 import { MurmurHash } from '../utils/MurmurHash'
 import { DecisionManager } from '../decision/DecisionManager'
 import { HttpClient } from '../utils/HttpClient'
-import { NewVisitor } from '../types'
-import { DefaultHitCache } from '../cache/DefaultHitCache'
-import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
+import { ABTastyWebSDKPostMessageType, NewVisitor } from '../types'
 import { EdgeManager } from '../decision/EdgeManager'
 import { EdgeConfig } from '../config/EdgeConfig'
 import { VisitorAbstract } from '../visitor/VisitorAbstract'
-import { launchQaAssistant } from '../qaAssistant/index'
+import { ISdkManager } from './ISdkManager'
+import { BucketingSdkManager } from './BucketingSdkManager'
+import { EdgeSdkManager } from './EdgeSdkManager'
+import { ApiSdkManager } from './ApiSdkManager'
+import { ITrackingManager } from '../api/ITrackingManager'
+import { EmotionAI } from '../emotionAI/EmotionAI.node'
+import { VisitorProfileCache } from '../visitor/VisitorProfileCache.node'
+import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking'
+import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
+import { DefaultHitCache } from '../cache/DefaultHitCache'
+import { SharedActionTracking } from '../sharedFeature/SharedActionTracking'
+import { SdkApi } from '../sdkApi/v1/SdkApi'
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
@@ -48,6 +57,9 @@ export class Flagship {
   private _visitorInstance?: Visitor
   private instanceId:string
   private lastInitializationTimestamp!: string
+  private _sdkManager : ISdkManager|undefined
+  private static visitorProfile:string|null
+  private static onSaveVisitorProfile:(visitorProfile:string)=>void
 
   private set configManager (value: IConfigManager) {
     this._configManager = value
@@ -60,6 +72,26 @@ export class Flagship {
   private constructor () {
     this.instanceId = uuidV4()
     this._status = FSSdkStatus.SDK_NOT_INITIALIZED
+
+    const extendedFlagship = Flagship as {
+      setVisitorProfile?: (value: string|null) => void,
+      getVisitorProfile?: () => string|null,
+      setOnSaveVisitorProfile?: (value: (visitorProfile:string)=>void) => void,
+      getOnSaveVisitorProfile?: () => (visitorProfile:string)=>void
+    }
+
+    extendedFlagship.setVisitorProfile = function (value: string|null) {
+      Flagship.visitorProfile = value
+    }
+    extendedFlagship.getVisitorProfile = function () {
+      return Flagship.visitorProfile
+    }
+    extendedFlagship.setOnSaveVisitorProfile = function (value: (visitorProfile:string)=>void) {
+      Flagship.onSaveVisitorProfile = value
+    }
+    extendedFlagship.getOnSaveVisitorProfile = function () {
+      return Flagship.onSaveVisitorProfile
+    }
   }
 
   protected static getInstance (): Flagship {
@@ -153,32 +185,88 @@ export class Flagship {
     return newConfig
   }
 
-  private buildDecisionManager (flagship: Flagship, config: FlagshipConfig, httpClient: HttpClient): DecisionManager {
-    let decisionManager: DecisionManager
-    const setStatus = (status: FSSdkStatus) => {
-      flagship.setStatus(status)
-    }
-
-    switch (config.decisionMode) {
+  private createManagers (
+    httpClient: HttpClient,
+    sdkConfig: IFlagshipConfig,
+    trackingManager: ITrackingManager
+  ): { sdkManager: ISdkManager; decisionManager: DecisionManager } {
+    let sdkManager: ISdkManager
+    switch (sdkConfig.decisionMode) {
       case DecisionMode.BUCKETING:
-        decisionManager = new BucketingManager(httpClient, config, new MurmurHash())
-        decisionManager.statusChangedCallback(setStatus);
-        (decisionManager as BucketingManager).startPolling()
-        break
+        sdkManager = new BucketingSdkManager({ httpClient, sdkConfig, trackingManager, flagshipInstanceId: this.instanceId })
+        return {
+          sdkManager,
+          decisionManager: new BucketingManager({
+            httpClient,
+            config: sdkConfig,
+            murmurHash: new MurmurHash(),
+            sdkManager
+          })
+        }
       case DecisionMode.BUCKETING_EDGE:
-        decisionManager = new EdgeManager(httpClient, config, new MurmurHash())
-        decisionManager.statusChangedCallback(setStatus)
-        break
+        sdkManager = new EdgeSdkManager({ httpClient, sdkConfig, trackingManager, flagshipInstanceId: this.instanceId })
+        return {
+          sdkManager,
+          decisionManager: new EdgeManager({
+            httpClient,
+            config: sdkConfig,
+            murmurHash: new MurmurHash(),
+            sdkManager
+          })
+        }
       default:
-        decisionManager = new ApiManager(
-          httpClient,
-          config
-        )
-        decisionManager.statusChangedCallback(setStatus)
-        break
+        return {
+          sdkManager: new ApiSdkManager({ httpClient, sdkConfig, trackingManager, flagshipInstanceId: this.instanceId }),
+          decisionManager: new ApiManager(httpClient, sdkConfig)
+        }
+    }
+  }
+
+  private buildSdkApi (sharedActionTracking: ISharedActionTracking) {
+    if (__fsWebpackIsBrowser__) {
+      window.ABTastyWebSdk = {
+        internal: new SdkApi({ sharedActionTracking }).getApiV1()
+      }
+    }
+  }
+
+  private sendInitializedPostMessage (): void {
+    if (__fsWebpackIsBrowser__) {
+      onDomReady(() => {
+        window.postMessage({ action: ABTastyWebSDKPostMessageType.AB_TASTY_WEB_SDK_INITIALIZED }, '*')
+      })
+    }
+  }
+
+  private async initializeSdk (sdkConfig: IFlagshipConfig): Promise<void> {
+    this.setStatus(FSSdkStatus.SDK_INITIALIZING)
+
+    this._sdkManager?.resetSdk()
+
+    let sharedActionTracking = this.configManager?.sharedActionTracking
+    if (__fsWebpackIsBrowser__) {
+      if (!sharedActionTracking && isBrowser()) {
+        sharedActionTracking = new SharedActionTracking({ sdkConfig })
+        this.buildSdkApi(sharedActionTracking)
+      }
     }
 
-    return decisionManager
+    const httpClient = new HttpClient()
+    const trackingManager = this.configManager?.trackingManager || new TrackingManager(httpClient, sdkConfig,
+      this.instanceId, sharedActionTracking)
+
+    const { sdkManager, decisionManager } = this.createManagers(httpClient, sdkConfig, trackingManager)
+
+    this._sdkManager = sdkManager
+
+    decisionManager.statusChangedCallback(this.setStatus.bind(this))
+    decisionManager.flagshipInstanceId = this.instanceId
+
+    this.configManager = new ConfigManager(sdkConfig, decisionManager, trackingManager, sharedActionTracking)
+
+    await this._sdkManager?.initSdk()
+
+    this.setStatus(FSSdkStatus.SDK_INITIALIZED)
   }
 
   /**
@@ -187,11 +275,11 @@ export class Flagship {
    * @param {string} apiKey : Secure api key provided by Flagship.
    * @param {IFlagshipConfig} config : (optional) SDK configuration.
    */
-  public static start (
+  public static async start (
     envId: string,
     apiKey: string,
     config?: IDecisionApiConfig| IBucketingConfig |IEdgeConfig
-  ): Flagship {
+  ): Promise<Flagship> {
     const flagship = this.getInstance()
 
     const localConfig = flagship.buildConfig(config)
@@ -214,42 +302,17 @@ export class Flagship {
 
     logDebugSprintf(localConfig, PROCESS_INITIALIZATION, INITIALIZATION_STARTING, SDK_INFO.version, localConfig.decisionMode, localConfig)
 
-    if (!localConfig.hitCacheImplementation && isBrowser()) {
-      localConfig.hitCacheImplementation = new DefaultHitCache()
+    if (__fsWebpackIsBrowser__) {
+      if (!localConfig.hitCacheImplementation && isBrowser()) {
+        localConfig.hitCacheImplementation = new DefaultHitCache()
+      }
+
+      if (!localConfig.visitorCacheImplementation && isBrowser()) {
+        localConfig.visitorCacheImplementation = new DefaultVisitorCache()
+      }
     }
 
-    if (!localConfig.visitorCacheImplementation && isBrowser()) {
-      localConfig.visitorCacheImplementation = new DefaultVisitorCache()
-    }
-
-    const httpClient = new HttpClient()
-
-    const decisionManager = flagship.configManager?.decisionManager
-
-    if (decisionManager instanceof BucketingManager && localConfig.decisionMode !== DecisionMode.BUCKETING_EDGE) {
-      decisionManager.stopPolling()
-    }
-
-    let trackingManager = flagship.configManager?.trackingManager
-
-    if (!trackingManager) {
-      trackingManager = new TrackingManager(httpClient, localConfig, flagship.instanceId)
-    }
-
-    flagship.configManager = new ConfigManager(
-      localConfig,
-      decisionManager,
-      trackingManager
-    )
-
-    flagship.configManager.decisionManager = flagship.buildDecisionManager(flagship, localConfig as FlagshipConfig, httpClient)
-
-    flagship.configManager.decisionManager.trackingManager = trackingManager
-    flagship.configManager.decisionManager.flagshipInstanceId = flagship.instanceId
-
-    if (flagship._status !== FSSdkStatus.SDK_INITIALIZING) {
-      flagship.setStatus(FSSdkStatus.SDK_INITIALIZED)
-    }
+    await flagship.initializeSdk(localConfig)
 
     logInfo(
       localConfig,
@@ -257,9 +320,15 @@ export class Flagship {
       PROCESS_INITIALIZATION
     )
 
-    launchQaAssistant(localConfig)
+    if (__fsWebpackIsBrowser__) {
+      import('../qaAssistant/index.ts').then(({ launchQaAssistant }) => {
+        launchQaAssistant(localConfig)
+      })
+    }
 
     flagship.lastInitializationTimestamp = new Date().toISOString()
+
+    flagship.sendInitializedPostMessage()
 
     return flagship
   }
@@ -288,63 +357,81 @@ export class Flagship {
     return Flagship.newVisitor(params)
   }
 
+  private initializeConfigManager (): void {
+    const config = new DecisionApiConfig()
+    config.logManager = new FlagshipLogManager()
+    const httpClient = new HttpClient()
+    const trackingManager = new TrackingManager(httpClient, config)
+    const decisionManager = new ApiManager(httpClient, config)
+    this._config = config
+    this.configManager = new ConfigManager(config, decisionManager, trackingManager)
+  }
+
   /**
    * Creates a new Visitor instance.
    *
    * @param params - The parameters for creating the new Visitor.
    * @returns A new Visitor instance.
    */
-  public static newVisitor ({ visitorId, context, isAuthenticated, hasConsented, initialCampaigns, initialFlagsData, shouldSaveInstance, onFetchFlagsStatusChanged }: NewVisitor) {
+  public static newVisitor ({ visitorId, context, isAuthenticated, hasConsented, initialCampaigns, initialFlagsData, shouldSaveInstance, onFlagsStatusChanged }: NewVisitor) {
     const saveInstance = shouldSaveInstance ?? isBrowser()
+    const flagship = this.getInstance()
 
-    if (!this._instance?.configManager) {
-      const flagship = this.getInstance()
-      const config = new DecisionApiConfig()
-      config.logManager = new FlagshipLogManager()
-      flagship._config = config
-      const httpClient = new HttpClient()
-      const trackingManager = new TrackingManager(httpClient, config)
-      const decisionManager = new ApiManager(
-        httpClient,
-        config
-      )
-      flagship.configManager = new ConfigManager(
-        config,
-        decisionManager,
-        trackingManager
-      )
-      logError(this.getConfig(), NEW_VISITOR_NOT_READY, PROCESS_NEW_VISITOR)
+    if (!flagship.configManager) {
+      flagship.initializeConfigManager()
+      logError(flagship.getConfig(), NEW_VISITOR_NOT_READY, PROCESS_NEW_VISITOR)
     }
+
+    const sdkConfig = flagship.getConfig()
+    const configManager = flagship.configManager
 
     if (hasConsented === undefined) {
-      logWarning(this.getConfig(), CONSENT_NOT_SPECIFY_WARNING, PROCESS_NEW_VISITOR)
+      logWarning(sdkConfig, CONSENT_NOT_SPECIFY_WARNING, PROCESS_NEW_VISITOR)
     }
+
+    const emotionAi = new EmotionAI({
+      sdkConfig,
+      httpClient: new HttpClient(),
+      eAIConfig: flagship._sdkManager?.getEAIConfig()
+    })
+    const visitorProfileCache = new VisitorProfileCache(sdkConfig)
 
     const visitorDelegate = new VisitorDelegate({
       visitorId,
       context: context || {},
       isAuthenticated: isAuthenticated ?? false,
       hasConsented: hasConsented ?? false,
-      configManager: this.getInstance().configManager,
+      configManager,
       initialCampaigns,
       initialFlagsData,
-      onFetchFlagsStatusChanged,
+      onFlagsStatusChanged,
+      emotionAi,
+      visitorProfileCache,
       monitoringData: {
         instanceId: this.getInstance().instanceId,
         lastInitializationTimestamp: this.getInstance().lastInitializationTimestamp,
         initialCampaigns,
         initialFlagsData
-      }
+      },
+      murmurHash: new MurmurHash()
     })
 
-    const visitor = new Visitor(visitorDelegate)
-
-    this.getInstance()._visitorInstance = saveInstance ? visitor : undefined
-    if (saveInstance) {
-      logDebugSprintf(this.getConfig(), PROCESS_NEW_VISITOR, SAVE_VISITOR_INSTANCE, visitor.visitorId)
+    if (__fsWebpackIsBrowser__) {
+      onDomReady(() => {
+        if (isBrowser() && configManager.sharedActionTracking) {
+          configManager.sharedActionTracking.initialize(visitorDelegate)
+        }
+      })
     }
 
-    if (this.getConfig().fetchNow && this.getConfig().decisionMode !== DecisionMode.BUCKETING_EDGE) {
+    const visitor = new Visitor(visitorDelegate)
+    this.getInstance()._visitorInstance = saveInstance ? visitor : undefined
+
+    if (saveInstance) {
+      logDebugSprintf(sdkConfig, PROCESS_NEW_VISITOR, SAVE_VISITOR_INSTANCE, visitor.visitorId)
+    }
+
+    if (sdkConfig.fetchNow && sdkConfig.decisionMode !== DecisionMode.BUCKETING_EDGE) {
       visitor.fetchFlags()
     }
 

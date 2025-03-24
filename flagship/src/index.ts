@@ -1,4 +1,6 @@
 import { Flagship } from './main/Flagship'
+import { IPageView as FullIPageView } from './emotionAI/hit/IPageView'
+import { IVisitorEvent as FullIVisitorEvent } from './emotionAI/hit/IVisitorEvent'
 
 export { Flagship } from './main/Flagship'
 export { DecisionApiConfig, DecisionMode } from './config/index'
@@ -12,7 +14,9 @@ export { Visitor } from './visitor/index'
 export type { IVisitorCacheImplementation } from './cache/IVisitorCacheImplementation'
 export type { IHitCacheImplementation } from './cache/IHitCacheImplementation'
 export type { IFlagshipLogManager } from './utils/FlagshipLogManager'
-export type { BucketingDTO } from './decision/api/bucketingDTO'
+
+export type IPageView = Omit<FullIPageView, 'toApiKeys'>
+export type IVisitorEvent = Omit<FullIVisitorEvent, 'toApiKeys'>
 
 export * from './flag/index'
 

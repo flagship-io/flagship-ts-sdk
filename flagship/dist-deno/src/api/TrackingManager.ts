@@ -1,10 +1,10 @@
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy.ts'
-import { Activate } from '../hit/Activate.ts'
-import { HitAbstract } from '../hit/index.ts'
+import { type HitAbstract } from '../hit/HitAbstract.ts'
+import { ActivateConstructorParam } from '../type.local.ts'
 import { TrackingManagerAbstract } from './TrackingManagerAbstract.ts'
 
 export class TrackingManager extends TrackingManagerAbstract {
-  public async activateFlag (hit: Activate): Promise<void> {
+  public async activateFlag (hit: ActivateConstructorParam): Promise<void> {
     await this.strategy.activateFlag(hit)
   }
 

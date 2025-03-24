@@ -1,11 +1,10 @@
-import { BucketingDTO } from '../decision/api/bucketingDTO.ts'
 import { BASE_API_URL, DEFAULT_DEDUPLICATION_TIME, FS_IS_QA_MODE_ENABLED, FETCH_FLAG_BUFFERING_DEFAULT_TIME, LogLevel, REQUEST_TIME_OUT, SDK_INFO, TYPE_ERROR, FSSdkStatus } from '../enum/index.ts'
 import { IHitCacheImplementation } from '../cache/IHitCacheImplementation.ts'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager.ts'
 import { errorFormat, isBrowser, logError, sprintf } from '../utils/utils.ts'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation.ts'
 import { ITrackingManagerConfig, TrackingManagerConfig } from './TrackingManagerConfig.ts'
-import { OnVisitorExposed } from '../types.ts'
+import { BucketingDTO, OnVisitorExposed } from '../types.ts'
 import { version as SDK_VERSION } from '../sdkVersion.ts'
 import { IFlagshipConfig } from './IFlagshipConfig.ts'
 import { DecisionMode } from './DecisionMode.ts'
@@ -22,8 +21,6 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _logManager!: IFlagshipLogManager
   private _fetchNow!: boolean
   private _pollingInterval!: number
-  private _onBucketingFail?: (error: Error) => void
-  private _onBucketingSuccess?: (param: { status: number; payload?: BucketingDTO }) => void
   private _onBucketingUpdated?: (lastUpdate: Date) => void
   private _reuseVisitorIds!: boolean
   private _initialBucketing?: BucketingDTO
@@ -123,7 +120,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this.decisionApiUrl = decisionApiUrl || BASE_API_URL
     this._envId = envId
     this._apiKey = apiKey
-    this.logLevel = logLevel ?? LogLevel.ALL
+    this.logLevel = logLevel ?? LogLevel.INFO
     this.timeout = timeout || REQUEST_TIME_OUT
     this.fetchNow = typeof fetchNow === 'undefined' || fetchNow
     this.reuseVisitorIds = typeof reuseVisitorIds === 'undefined' || reuseVisitorIds
@@ -146,16 +143,18 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   }
 
   protected initQaMode () {
-    if (!isBrowser()) {
-      return
-    }
-    try {
-      const isQAModeEnabled = sessionStorage.getItem(FS_IS_QA_MODE_ENABLED)
-      this.isQAModeEnabled = isQAModeEnabled ? JSON.parse(isQAModeEnabled) : undefined
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
-      logError(this, errorFormat(error.message || error), 'initQaMode')
-      this.isQAModeEnabled = false
+    if (__fsWebpackIsBrowser__) {
+      if (!isBrowser()) {
+        return
+      }
+      try {
+        const isQAModeEnabled = sessionStorage.getItem(FS_IS_QA_MODE_ENABLED)
+        this.isQAModeEnabled = isQAModeEnabled ? JSON.parse(isQAModeEnabled) : undefined
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error:any) {
+        logError(this, errorFormat(error.message || error), 'initQaMode')
+        this.isQAModeEnabled = false
+      }
     }
   }
 
@@ -190,22 +189,6 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
 
   public set reuseVisitorIds (v: boolean) {
     this._reuseVisitorIds = v
-  }
-
-  public get onBucketingSuccess (): ((param: { status: number; payload?: BucketingDTO }) => void) | undefined {
-    return this._onBucketingSuccess
-  }
-
-  public set onBucketingSuccess (v: ((param: { status: number; payload?: BucketingDTO }) => void) | undefined) {
-    this._onBucketingSuccess = v
-  }
-
-  public get onBucketingFail (): ((error: Error) => void) | undefined {
-    return this._onBucketingFail
-  }
-
-  public set onBucketingFail (v: ((error: Error) => void) | undefined) {
-    this._onBucketingFail = v
   }
 
   public get onBucketingUpdated (): ((lastUpdate: Date) => void) | undefined {

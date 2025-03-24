@@ -9,12 +9,14 @@ import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { VisitorDelegate, DefaultStrategy, NoConsentStrategy, NotReadyStrategy, PanicStrategy } from '../../src/visitor'
 import { VISITOR_CACHE_VERSION } from '../../src/enum'
 import { campaigns } from '../decision/campaigns'
-import { FetchFlagsStatus, VisitorCacheDTO, VisitorCacheStatus } from '../../src/types'
+import { EAIScore, FlagsStatus, VisitorCacheDTO, VisitorCacheStatus } from '../../src/types'
 import { sprintf } from '../../src/utils/utils'
 import { MurmurHash } from '../../src/utils/MurmurHash'
 import { VISITOR_ID_MISMATCH_ERROR } from '../../src/visitor/StrategyAbstract'
 import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
 import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
+import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getUndefined = ():any => undefined
@@ -39,7 +41,7 @@ describe('test visitor cache', () => {
     flushVisitor
   }
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', visitorCacheImplementation })
+  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', visitorCacheImplementation, fetchFlagsBufferingTime: 0 })
   config.logManager = logManager
 
   const httpClient = new HttpClient()
@@ -56,9 +58,18 @@ describe('test visitor cache', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
+  const OnFlagStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>()
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged })
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>(),
+    fetchEAIScore
+  } as unknown as IEmotionAI
+
+  fetchEAIScore.mockResolvedValue(undefined)
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFlagsStatusChanged: OnFlagStatusChanged, emotionAi })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getStrategy = jest.spyOn(visitorDelegate, 'getStrategy' as any)
@@ -145,24 +156,24 @@ describe('test visitor cache', () => {
 
   it('test fetchVisitorCacheCampaigns defaultStrategy', async () => {
     getCampaignsAsync.mockResolvedValue(null)
-    const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFetchFlagsStatusChanged })
+    const OnFlagStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>()
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFlagsStatusChanged: OnFlagStatusChanged, emotionAi })
     const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
     visitorDelegate.visitorCache = data
     await defaultStrategy.fetchFlags()
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(onFetchFlagsStatusChanged)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(OnFlagStatusChanged)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(3)
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.VISITOR_CREATED })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.FLAGS_NEVER_FETCHED })
     expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(2, { status: FSFetchStatus.FETCHING, reason: FSFetchReasons.NONE })
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(3, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.READ_FROM_CACHE })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(3, { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.FLAGS_FETCHED_FROM_CACHE })
     expect(visitorDelegate.campaigns).toEqual(campaigns.campaigns)
   })
 
   it('test fetchVisitorCacheCampaigns noConsentStrategy', async () => {
     getCampaignsAsync.mockResolvedValue(null)
 
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
     const noConsentStrategy = new NoConsentStrategy({ visitor: visitorDelegate, murmurHash })
 
     visitorDelegate.visitorCache = data
@@ -173,18 +184,18 @@ describe('test visitor cache', () => {
   it('test fetchVisitorCacheCampaigns panicStrategy', async () => {
     getCampaignsAsync.mockResolvedValue(null)
 
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
-    const noConsentStrategy = new PanicStrategy({ visitor: visitorDelegate, murmurHash })
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
+    const panicStrategy = new PanicStrategy({ visitor: visitorDelegate, murmurHash })
 
     visitorDelegate.visitorCache = data
-    await noConsentStrategy.fetchFlags()
+    await panicStrategy.fetchFlags()
     expect(visitorDelegate.campaigns).toEqual([])
   })
 
   it('test fetchVisitorCacheCampaigns', async () => {
     getCampaignsAsync.mockResolvedValue(null)
 
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
     const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
     visitorDelegate.visitorCache = {
@@ -202,6 +213,7 @@ describe('test visitor cache', () => {
 
   it('test lookupVisitor defaultStrategy', async () => {
     getStrategy.mockReturnValue(defaultStrategy)
+    visitorDelegate.visitorCache = getUndefined()
     lookupVisitor.mockResolvedValue((data))
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(1)
@@ -270,7 +282,7 @@ describe('test visitor cache', () => {
   })
 
   it('test lookupVisitor', async () => {
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
     const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
     const data = {
       data: {
@@ -288,7 +300,7 @@ describe('test visitor cache', () => {
   })
 
   it('test lookupVisitor', async () => {
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
     const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
     const data = {
       version: VISITOR_CACHE_VERSION,
@@ -309,7 +321,7 @@ describe('test visitor cache', () => {
   })
 
   it('test lookupVisitor', async () => {
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
     const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
     lookupVisitor.mockReturnValue(getUndefined())
@@ -319,7 +331,7 @@ describe('test visitor cache', () => {
   })
 
   it('test lookupVisitor', async () => {
-    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+    const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
     const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
     const data = {
       version: VISITOR_CACHE_VERSION,
@@ -352,6 +364,7 @@ describe('test visitor cache', () => {
     lookupVisitor.mockImplementationOnce(() => {
       throw lookVisitorError
     })
+    visitorDelegate.visitorCache = getUndefined()
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(1)
     expect(logError).toBeCalledTimes(1)
@@ -417,7 +430,16 @@ describe('test visitor cache status', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>(),
+    fetchEAIScore
+  } as unknown as IEmotionAI
+
+  fetchEAIScore.mockResolvedValue(undefined)
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
 
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash: new MurmurHash() })
 
@@ -464,12 +486,13 @@ describe('test visitor cache status', () => {
   it('test visitorCacheStatus VISITOR_ID_CACHE ', async () => {
     lookupVisitor.mockResolvedValue(data)
     const anonymousId = 'anonymousId'
+    visitorDelegate.visitorCache = getUndefined()
     visitorDelegate.anonymousId = anonymousId
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(2)
     expect(lookupVisitor).toHaveBeenNthCalledWith(1, visitorId)
     expect(lookupVisitor).toHaveBeenNthCalledWith(2, anonymousId)
-    expect(visitorDelegate.visitorCacheStatus).toEqual('VISITOR_ID_CACHE')
+    expect(visitorDelegate.visitorCacheStatus).toEqual(VisitorCacheStatus.VISITOR_ID_CACHE_WITH_ANONYMOUS_ID_CACHE)
   })
 
   it('test visitorCacheStatus VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE ', async () => {
@@ -480,13 +503,13 @@ describe('test visitor cache status', () => {
       }
       return getUndefined()
     })
-
+    visitorDelegate.visitorCache = getUndefined()
     visitorDelegate.anonymousId = anonymousId
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(2)
     expect(lookupVisitor).toHaveBeenNthCalledWith(1, visitorId)
     expect(lookupVisitor).toHaveBeenNthCalledWith(2, anonymousId)
-    expect(visitorDelegate.visitorCacheStatus).toEqual('VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE')
+    expect(visitorDelegate.visitorCacheStatus).toEqual(VisitorCacheStatus.VISITOR_ID_CACHE)
   })
 
   it('test visitorCacheStatus ANONYMOUS_ID_CACHE ', async () => {
@@ -497,7 +520,7 @@ describe('test visitor cache status', () => {
       }
       return data
     })
-
+    visitorDelegate.visitorCache = getUndefined()
     visitorDelegate.anonymousId = anonymousId
     await defaultStrategy.lookupVisitor()
     expect(lookupVisitor).toBeCalledTimes(2)
@@ -518,12 +541,11 @@ describe('test visitor cache status', () => {
   it('test visitorCacheStatus VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE ', async () => {
     const anonymousId = 'anonymousId'
     lookupVisitor.mockResolvedValue(getUndefined())
-    visitorDelegate.visitorCacheStatus = VisitorCacheStatus.VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE
+    visitorDelegate.visitorCacheStatus = VisitorCacheStatus.VISITOR_ID_CACHE_WITH_ANONYMOUS_ID_CACHE
     visitorDelegate.anonymousId = anonymousId
     await defaultStrategy.cacheVisitor()
-    expect(cacheVisitor).toBeCalledTimes(2)
+    expect(cacheVisitor).toBeCalledTimes(1)
     expect(cacheVisitor).toHaveBeenNthCalledWith(1, visitorId, expect.anything())
-    expect(cacheVisitor).toHaveBeenNthCalledWith(2, anonymousId, expect.anything())
   })
 
   it('test visitorCacheStatus ANONYMOUS_ID_CACHE ', async () => {
@@ -542,8 +564,9 @@ describe('test visitor cache status', () => {
     visitorDelegate.visitorCacheStatus = VisitorCacheStatus.VISITOR_ID_CACHE
     visitorDelegate.anonymousId = anonymousId
     await defaultStrategy.cacheVisitor()
-    expect(cacheVisitor).toBeCalledTimes(1)
+    expect(cacheVisitor).toBeCalledTimes(2)
     expect(cacheVisitor).toHaveBeenNthCalledWith(1, visitorId, expect.anything())
+    expect(cacheVisitor).toHaveBeenNthCalledWith(2, anonymousId, expect.anything())
   })
 })
 
@@ -582,7 +605,16 @@ describe('test visitorCache with disabledCache', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>(),
+    fetchEAIScore
+  } as unknown as IEmotionAI
+
+  fetchEAIScore.mockResolvedValue(undefined)
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
 
   const murmurHash = new MurmurHash()
 

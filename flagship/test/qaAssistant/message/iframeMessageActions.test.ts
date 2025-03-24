@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { jest, describe, it, expect, beforeEach } from '@jest/globals'
+import { jest, describe, it, expect, beforeEach, afterAll } from '@jest/globals'
 import * as messages from '../../../src/qaAssistant/messages'
 import { onQaAssistantReady, render, onQaAssistantClose, onApplyForcedVariations, onResetForcedVariations } from '../../../src/qaAssistant/messages/iframeMessageActions'
 import { EventDataFromIframe } from '../../../src/qaAssistant/type'
@@ -10,7 +10,24 @@ import { DecisionApiConfig } from '../../../src/config/DecisionApiConfig'
 import { FsVariationToForce, VisitorVariations } from '../../../src/types'
 import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, FS_QA_ASSISTANT_SCRIPT_TAG_ID } from '../../../src/enum/FlagshipConstant'
 
-describe('Test iframeMessageActions', () => {
+describe('QA Assistant Message Actions', () => {
+  const reloadMock = jest.fn()
+  const originalLocation = window.location
+
+  beforeAll(() => {
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { reload: reloadMock }
+    })
+  })
+
+  afterAll(() => {
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: originalLocation
+    })
+  })
+
   beforeEach(() => {
     config.isQAModeEnabled = true
   })
@@ -32,16 +49,14 @@ describe('Test iframeMessageActions', () => {
   const setItemSpy = jest.spyOn(Object.getPrototypeOf(sessionStorage), 'setItem')
   const getItemSpy = jest.spyOn(Object.getPrototypeOf(sessionStorage), 'getItem')
   const removeEventListenerSpy = jest.spyOn(global.window, 'removeEventListener')
-  //   const reloadSpy = jest.spyOn(global.window.location, 'reload')
 
-  // const reloadSpy = jest.fn()
-
-  it('test onQaAssistantReady when VisitorVariations or VisitorVariations is null ', () => {
+  it('should not send variations when visitor variations are undefined', () => {
     onQaAssistantReady()
     expect(sendVisitorAllocatedVariationsSpy).toBeCalledTimes(0)
     expect(sendVisitorExposedVariationsSpy).toBeCalledTimes(0)
   })
-  it('test onQaAssistantReady', () => {
+
+  it('should send allocated and exposed variations when they exist', () => {
     const visitorVariations:Record<string, VisitorVariations> = {
       key: {} as VisitorVariations
     }
@@ -61,18 +76,17 @@ describe('Test iframeMessageActions', () => {
     expect(sendVisitorExposedVariationsSpy).toBeCalledWith(exposedVariations)
   })
 
-  it('test render', () => {
+  it('should dispatch event when rendering QA assistant', () => {
     dispatchEventSpy.mockImplementationOnce(() => {
       return true
     })
 
     render()
 
-    // expect(reloadSpy).toBeCalledTimes(1)
     expect(dispatchEventSpy).toBeCalledTimes(1)
   })
 
-  it('test onQaAssistantClose', () => {
+  it('should clean up DOM, storage and events when QA assistant is closed', () => {
     const fn = jest.fn<(event: MessageEvent<EventDataFromIframe>) => void>()
     const element = document.createElement('script')
     element.id = FS_QA_ASSISTANT_SCRIPT_TAG_ID
@@ -91,7 +105,7 @@ describe('Test iframeMessageActions', () => {
     expect(config.isQAModeEnabled).toBeFalsy()
   })
 
-  it('test onApplyForcedVariations', () => {
+  it('should store and apply forced variations', () => {
     const forcedVariations:Record<string, FsVariationToForce> = {
       campaignId: {
         campaignId: 'campaignId',
@@ -119,7 +133,7 @@ describe('Test iframeMessageActions', () => {
     expect(dispatchEventSpy).toBeCalledTimes(1)
   })
 
-  it('test onApplyForcedVariations with from session storage', () => {
+  it('should merge new forced variations with existing ones from session storage', () => {
     const forcedVariations:Record<string, FsVariationToForce> = {
       campaignId: {
         campaignId: 'campaignId',
@@ -168,7 +182,7 @@ describe('Test iframeMessageActions', () => {
     expect(dispatchEventSpy).toBeCalledTimes(1)
   })
 
-  it('test onApplyForcedVariations JSON parsing throw error', () => {
+  it('should handle JSON parsing errors when reading from session storage', () => {
     const forcedVariations:Record<string, FsVariationToForce> = {
       campaignId: {
         campaignId: 'campaignId',
@@ -198,7 +212,7 @@ describe('Test iframeMessageActions', () => {
     expect(dispatchEventSpy).toBeCalledTimes(1)
   })
 
-  it('test onApplyForcedVariations JSON parsing throw error', () => {
+  it('should reset forced variations and clean up storage', () => {
     onResetForcedVariations()
 
     expect(global?.window?.flagship?.forcedVariations).toEqual({})

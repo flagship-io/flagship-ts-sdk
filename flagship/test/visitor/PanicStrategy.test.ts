@@ -1,5 +1,5 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { DecisionApiConfig, IVisitorCacheImplementation, VisitorCacheDTO } from '../../src'
+import { DecisionApiConfig, EAIScore, IVisitorCacheImplementation, VisitorCacheDTO } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { ApiManager } from '../../src/decision/ApiManager'
@@ -10,7 +10,10 @@ import { sprintf } from '../../src/utils/utils'
 import { VisitorDelegate, PanicStrategy } from '../../src/visitor'
 import { campaigns } from '../decision/campaigns'
 import { MurmurHash } from '../../src/utils/MurmurHash'
-import { Troubleshooting } from '../../src/hit/Troubleshooting'
+import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
+import { IPageView } from '../../src/emotionAI/hit/IPageView'
+import { IVisitorEvent } from '../../src/emotionAI/hit/IVisitorEvent'
 
 describe('test NotReadyStrategy', () => {
   const visitorId = 'visitorId'
@@ -44,7 +47,29 @@ describe('test NotReadyStrategy', () => {
   const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+
+  const collectEAIData = jest.fn<(currentPage?: Omit<IPageView, 'toApiKeys'>) => void>()
+
+  const reportVisitorEvent = jest.fn<(event: IVisitorEvent)=> Promise<void>>()
+
+  const reportPageView = jest.fn<(pageView: IPageView) => Promise<void>>()
+
+  const onEAICollectStatusChange = jest.fn<(callback: (status: boolean) => void) => void>()
+
+  const cleanup = jest.fn<() => void>()
+
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>(),
+    fetchEAIScore,
+    collectEAIData,
+    reportVisitorEvent,
+    reportPageView,
+    onEAICollectStatusChange,
+    cleanup
+  } as unknown as IEmotionAI
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
   const murmurHash = new MurmurHash()
 
   const panicStrategy = new PanicStrategy({ visitor: visitorDelegate, murmurHash })
@@ -145,12 +170,35 @@ describe('test NotReadyStrategy', () => {
   })
 
   it('test sendTroubleshootingHit', () => {
-    panicStrategy.sendTroubleshootingHit({} as Troubleshooting)
+    panicStrategy.sendTroubleshootingHit()
     expect(sendTroubleshootingHit).toBeCalledTimes(0)
   })
 
   it('test sendAnalyticHit', () => {
     panicStrategy.sendSdkConfigAnalyticHit()
     expect(sendUsageHitSpy).toBeCalledTimes(0)
+  })
+
+  it('test collectEAIData', () => {
+    panicStrategy.collectEAIEventsAsync()
+    expect(logInfo).toBeCalledTimes(1)
+  })
+
+  it('test reportEaiPageView', () => {
+    panicStrategy.reportEaiPageView()
+    expect(logInfo).toBeCalledTimes(0)
+    expect(emotionAi.reportPageView).toBeCalledTimes(0)
+  })
+
+  it('test reportEaiVisitorEvent', () => {
+    panicStrategy.reportEaiVisitorEvent()
+    expect(logInfo).toBeCalledTimes(0)
+    expect(emotionAi.reportVisitorEvent).toBeCalledTimes(0)
+  })
+
+  it('test onEAICollectStatusChange', () => {
+    panicStrategy.onEAICollectStatusChange()
+    expect(logInfo).toBeCalledTimes(0)
+    expect(emotionAi.onEAICollectStatusChange).toBeCalledTimes(0)
   })
 })

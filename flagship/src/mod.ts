@@ -1,5 +1,11 @@
 import { Flagship } from './main/Flagship'
 
+(globalThis as any).__fsWebpackIsBrowser__ = false;
+(globalThis as any).__fsWebpackIsNode__ = false;
+(globalThis as any).__fsWebpackIsReactNative__ = false;
+(globalThis as any).__fsWebpackIsEdgeWorker__ = false;
+(globalThis as any).__fsWebpackIsDeno__ = true
+
 export { Flagship } from './main/Flagship'
 export { DecisionApiConfig, DecisionMode } from './config/index'
 export type { IFlagshipConfig } from './config/index'

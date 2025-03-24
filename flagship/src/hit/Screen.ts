@@ -30,7 +30,8 @@ export class Screen extends HitAbstract implements IScreen {
       sessionNumber: param.sessionNumber,
       visitorId: param.visitorId,
       anonymousId: param.anonymousId,
-      qaMode: param.qaMode
+      qaMode: param.qaMode,
+      isActionTrackingHit: param.isActionTrackingHit
     })
     this.documentLocation = param.documentLocation
   }

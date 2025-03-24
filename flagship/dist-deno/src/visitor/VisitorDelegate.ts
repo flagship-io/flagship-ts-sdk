@@ -1,4 +1,4 @@
-import { HitAbstract } from '../hit/index.ts'
+import { type HitAbstract } from '../hit/HitAbstract.ts'
 import { primitive, IHit, IFSFlagMetadata } from '../types.ts'
 import { VisitorAbstract } from './VisitorAbstract.ts'
 import { FSFlag } from '../flag/FsFlags.ts'
@@ -56,9 +56,7 @@ export class VisitorDelegate extends VisitorAbstract {
   }
 
   async fetchFlags ():Promise<void> {
-    await this.getStrategy().lookupVisitor()
     await this.getStrategy().fetchFlags()
-    await this.getStrategy().cacheVisitor()
   }
 
   visitorExposed (param:VisitorExposedParam): Promise<void> {

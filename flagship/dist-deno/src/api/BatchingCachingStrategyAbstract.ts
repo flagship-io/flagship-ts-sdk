@@ -1,17 +1,19 @@
 import { DecisionMode, IFlagshipConfig } from '../config/index.ts'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy.ts'
 import { ACTIVATE_ADDED_IN_QUEUE, ADD_ACTIVATE, BATCH_MAX_SIZE, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HitType, HIT_ADDED_IN_QUEUE, HIT_CACHE_VERSION, HIT_DATA_FLUSHED, HIT_EVENT_URL, LogLevel, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_APP, SDK_INFO, SEND_BATCH, TROUBLESHOOTING_HIT_URL, TROUBLESHOOTING_HIT_ADDED_IN_QUEUE, ADD_TROUBLESHOOTING_HIT, TROUBLESHOOTING_SENT_SUCCESS, SEND_TROUBLESHOOTING, ALL_HITS_FLUSHED, HIT_CACHE_ERROR, HIT_CACHE_SAVED, PROCESS_CACHE, TRACKING_MANAGER, HIT_SENT_SUCCESS, BATCH_HIT, TRACKING_MANAGER_ERROR, USAGE_HIT_URL, ANALYTICS_HIT_SENT_SUCCESS as USAGE_HIT_SENT_SUCCESS, SEND_USAGE_HIT, ANALYTICS_HIT_ADDED_IN_QUEUE as USAGE_HIT_ADDED_IN_QUEUE, ADD_USAGE_HIT } from '../enum/index.ts'
-import { Activate } from '../hit/Activate.ts'
-import { UsageHit } from '../hit/UsageHit.ts'
-import { Batch } from '../hit/Batch.ts'
-import { Troubleshooting } from '../hit/Troubleshooting.ts'
-import { HitAbstract, Event } from '../hit/index.ts'
+import { type Activate } from '../hit/Activate.ts'
+import { type UsageHit } from '../hit/UsageHit.ts'
+import { type Troubleshooting } from '../hit/Troubleshooting.ts'
+import { EventCategory } from '../hit/index.ts'
 import { HitCacheDTO, IExposedFlag, IExposedVisitor, TroubleshootingData, TroubleshootingLabel } from '../types.ts'
 import { IHttpClient } from '../utils/HttpClient.ts'
 import { errorFormat, isBrowser, logDebug, logDebugSprintf, logError, logErrorSprintf, sprintf, uuidV4 } from '../utils/utils.ts'
 import { ITrackingManagerCommon } from './ITrackingManagerCommon.ts'
 import type { BatchingCachingStrategyConstruct, SendActivate } from './types'
-import { sendFsHitToQA } from '../qaAssistant/messages/index.ts'
+import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking.ts'
+import { ActivateConstructorParam, LocalActionTracking } from '../type.local.ts'
+import { type HitAbstract } from '../hit/HitAbstract.ts'
+import { type Event } from '../hit/Event.ts'
 
 export abstract class BatchingCachingStrategyAbstract implements ITrackingManagerCommon {
   protected _config : IFlagshipConfig
@@ -26,6 +28,9 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   private _HitsToFsQa:HitAbstract[]
   private _sendFsHitToQATimeoutId?:NodeJS.Timeout
   private _troubleshootingData? : TroubleshootingData
+  private _initTroubleshootingHit?: Troubleshooting
+  private _hasInitTroubleshootingHitSent: boolean
+  protected _sharedActionTracking?: ISharedActionTracking
 
   public get flagshipInstanceId (): string|undefined {
     return this._flagshipInstanceId
@@ -43,9 +48,21 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     return this._config
   }
 
+  public get initTroubleshootingHit () : Troubleshooting|undefined {
+    return this._initTroubleshootingHit
+  }
+
+  public set initTroubleshootingHit (v : Troubleshooting|undefined) {
+    this._initTroubleshootingHit = v
+  }
+
   constructor (param: BatchingCachingStrategyConstruct) {
-    const { config, hitsPoolQueue, httpClient, activatePoolQueue, troubleshootingQueue, flagshipInstanceId, analyticHitQueue } = param
+    const {
+      config, hitsPoolQueue, httpClient, activatePoolQueue, troubleshootingQueue, flagshipInstanceId,
+      analyticHitQueue, initTroubleshootingHit: initTroubleshootingHi, sharedActionTracking
+    } = param
     this._HitsToFsQa = []
+    this._hasInitTroubleshootingHitSent = false
     this._config = config
     this._hitsPoolQueue = hitsPoolQueue
     this._httpClient = httpClient
@@ -55,33 +72,70 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     this._usageHitQueue = analyticHitQueue
     this._isUsageHitQueueSending = false
     this._isTroubleshootingQueueSending = false
+    this._initTroubleshootingHit = initTroubleshootingHi
+    this._sharedActionTracking = sharedActionTracking
+  }
+
+  protected dispatchHitsToTag (hits: HitAbstract[]): void {
+    if (__fsWebpackIsBrowser__) {
+      if (!isBrowser()) {
+        return
+      }
+      const actionTrackingHits:LocalActionTracking[] = []
+
+      for (const hit of hits) {
+        if (hit.type === HitType.EVENT &&
+        (hit as Event).category === EventCategory.ACTION_TRACKING &&
+        !(hit as Event).isActionTrackingHit) {
+          const eventHit = hit as Event
+          actionTrackingHits.push({
+            visitorId: eventHit.visitorId,
+            createdAt: eventHit.createdAt,
+            anonymousId: eventHit.anonymousId,
+            data: {
+              ec: eventHit.category as EventCategory.ACTION_TRACKING,
+              ea: eventHit.action,
+              el: eventHit.label,
+              ev: eventHit.value
+            }
+          })
+        }
+      }
+      if (actionTrackingHits.length) {
+        this._sharedActionTracking?.dispatchEventHits(actionTrackingHits)
+      }
+    }
   }
 
   public sendHitsToFsQa (hits: HitAbstract[]) {
-    if (!isBrowser() || !this.config.isQAModeEnabled) {
-      return
-    }
-    this._HitsToFsQa.push(...hits)
-    const BATCH_SIZE = 10
-    const DELAY = 3000
+    if (__fsWebpackIsBrowser__) {
+      if (!isBrowser() || !this.config.isQAModeEnabled) {
+        return
+      }
+      import('../qaAssistant/messages/index.ts').then(({ sendFsHitToQA }) => {
+        this._HitsToFsQa.push(...hits)
+        const BATCH_SIZE = 10
+        const DELAY = 3000
 
-    if (this._HitsToFsQa.length >= BATCH_SIZE) {
-      sendFsHitToQA(this._HitsToFsQa.map(item => item.toApiKeys()))
-      this._HitsToFsQa = []
-    }
+        if (this._HitsToFsQa.length >= BATCH_SIZE) {
+          sendFsHitToQA(this._HitsToFsQa.map(item => item.toApiKeys()))
+          this._HitsToFsQa = []
+        }
 
-    if (this._sendFsHitToQATimeoutId) {
-      clearTimeout(this._sendFsHitToQATimeoutId)
-    }
+        if (this._sendFsHitToQATimeoutId) {
+          clearTimeout(this._sendFsHitToQATimeoutId)
+        }
 
-    if (!this._HitsToFsQa.length) {
-      return
-    }
+        if (!this._HitsToFsQa.length) {
+          return
+        }
 
-    this._sendFsHitToQATimeoutId = setTimeout(() => {
-      sendFsHitToQA(this._HitsToFsQa.map(item => item.toApiKeys()))
-      this._HitsToFsQa = []
-    }, DELAY)
+        this._sendFsHitToQATimeoutId = setTimeout(() => {
+          sendFsHitToQA(this._HitsToFsQa.map(item => item.toApiKeys()))
+          this._HitsToFsQa = []
+        }, DELAY)
+      })
+    }
   }
 
   public abstract addHitInPoolQueue (hit: HitAbstract):Promise<void>
@@ -108,7 +162,11 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     }
   }
 
-  async activateFlag (hit: Activate):Promise<void> {
+  async activateFlag (paramHit: ActivateConstructorParam):Promise<void> {
+    const { Activate } = await import('../hit/Activate.ts')
+
+    const hit = new Activate(paramHit)
+    hit.config = this.config
     const hitKey = `${hit.visitorId}:${uuidV4()}`
     hit.key = hitKey
 
@@ -160,7 +218,9 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       await this.sendActivate({ activateHitsPool: activateHits, batchTriggeredBy })
     }
 
-    const batch:Batch = new Batch({ hits: [], ds: SDK_APP })
+    const { Batch } = await import('../hit/Batch.ts')
+
+    const batch = new Batch({ hits: [], ds: SDK_APP })
     batch.config = this.config
 
     const hitKeysToRemove:string[] = []
@@ -214,6 +274,8 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
       this.sendHitsToFsQa(batch.hits)
 
+      this.dispatchHitsToTag(batch.hits)
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       batch.hits.forEach((hit) => {
@@ -232,25 +294,27 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
 
-      const monitoringHttpResponse = new Troubleshooting({
-        label: TroubleshootingLabel.SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR,
-        logLevel: LogLevel.ERROR,
-        visitorId: `${this._flagshipInstanceId}`,
-        flagshipInstanceId: this._flagshipInstanceId,
-        traffic: 0,
-        config: this.config,
-        httpRequestBody: batch.hits,
-        httpRequestHeaders: headers,
-        httpResponseBody: error?.message,
-        httpResponseHeaders: error?.headers,
-        httpResponseMethod: 'POST',
-        httpResponseUrl: HIT_EVENT_URL,
-        httpResponseCode: error?.statusCode,
-        httpResponseTime: Date.now() - now,
-        batchTriggeredBy
-      })
+      import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
+        const monitoringHttpResponse = new Troubleshooting({
+          label: TroubleshootingLabel.SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR,
+          logLevel: LogLevel.ERROR,
+          visitorId: `${this._flagshipInstanceId}`,
+          flagshipInstanceId: this._flagshipInstanceId,
+          traffic: 0,
+          config: this.config,
+          httpRequestBody: batch.hits,
+          httpRequestHeaders: headers,
+          httpResponseBody: error?.message,
+          httpResponseHeaders: error?.headers,
+          httpResponseMethod: 'POST',
+          httpResponseUrl: HIT_EVENT_URL,
+          httpResponseCode: error?.statusCode,
+          httpResponseTime: Date.now() - now,
+          batchTriggeredBy
+        })
 
-      await this.sendTroubleshootingHit(monitoringHttpResponse)
+        this.sendTroubleshootingHit(monitoringHttpResponse)
+      })
     }
   }
 
@@ -359,6 +423,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
     const isFinished = now > this.troubleshootingData.endDate
     if (isFinished) {
+      this._hasInitTroubleshootingHitSent = false
       return false
     }
     return true
@@ -406,12 +471,24 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     }
   }
 
+  protected async sendInitTroubleshootingHit () {
+    if (!this.isTroubleshootingActivated() || !this._initTroubleshootingHit || this._hasInitTroubleshootingHitSent) {
+      return
+    }
+
+    await this.sendTroubleshootingHit(this._initTroubleshootingHit)
+    this._hasInitTroubleshootingHitSent = true
+  }
+
   public async sendTroubleshootingQueue () {
+    await this.sendInitTroubleshootingHit()
+
     if (!this.isTroubleshootingActivated() || this._isTroubleshootingQueueSending || this._troubleshootingQueue.size === 0) {
       return
     }
 
     this._isTroubleshootingQueueSending = true
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (const [_, item] of Array.from(this._troubleshootingQueue)) {
       await this.sendTroubleshootingHit(item)

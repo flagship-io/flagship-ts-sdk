@@ -1,10 +1,9 @@
-import { ACTIVATE_HIT, DEFAULT_HIT_CACHE_TIME_MS, HIT_SENT_SUCCESS, TRACKING_MANAGER, TRACKING_MANAGER_ERROR } from '../enum/FlagshipConstant.ts'
+import { ACTIVATE_HIT, DEFAULT_HIT_CACHE_TIME_MS, HIT_SENT_SUCCESS, MAX_ACTIVATE_HIT_PER_BATCH, TRACKING_MANAGER, TRACKING_MANAGER_ERROR } from '../enum/FlagshipConstant.ts'
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy.ts'
 import { BASE_API_URL, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_API_KEY, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, SDK_INFO, URL_ACTIVATE_MODIFICATION } from '../enum/index.ts'
-import { Activate } from '../hit/Activate.ts'
-import { ActivateBatch } from '../hit/ActivateBatch.ts'
-import { HitAbstract } from '../hit/index.ts'
-import { Troubleshooting } from '../hit/Troubleshooting.ts'
+import { type Activate } from '../hit/Activate.ts'
+import { type ActivateBatch } from '../hit/ActivateBatch.ts'
+import { type HitAbstract } from '../hit/HitAbstract.ts'
 import { logDebugSprintf, logErrorSprintf } from '../utils/utils.ts'
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract.ts'
 import { SendActivate } from './types.ts'
@@ -16,15 +15,13 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     await this.cacheHit(new Map<string, HitAbstract>([[hit.key, hit]]))
   }
 
-  protected async sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate) {
+  protected async sendActivateHitBatch (activateBatch: ActivateBatch, batchTriggeredBy: BatchTriggeredBy, currentActivate?:Activate) {
     const headers = {
       [HEADER_X_API_KEY]: this.config.apiKey as string,
       [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
       [HEADER_X_SDK_VERSION]: SDK_INFO.version,
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     }
-
-    const activateBatch = new ActivateBatch(Array.from(activateHitsPool.filter(item => (Date.now() - item.createdAt) < DEFAULT_HIT_CACHE_TIME_MS)), this.config)
 
     if (currentActivate) {
       activateBatch.hits.push(currentActivate)
@@ -50,7 +47,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
 
-      const hitKeysToRemove: string[] = activateHitsPool.map(item => item.key)
+      const hitKeysToRemove: string[] = activateBatch.hits.filter(item => item.key !== currentActivate?.key).map(item => item.key)
 
       activateBatch.hits.forEach(item => {
         this.onVisitorExposed(item)
@@ -84,24 +81,42 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       })
 
-      const monitoringHttpResponse = new Troubleshooting({
-        label: TroubleshootingLabel.SEND_ACTIVATE_HIT_ROUTE_ERROR,
-        logLevel: LogLevel.ERROR,
-        visitorId: `${this._flagshipInstanceId}`,
-        traffic: 0,
-        config: this.config,
-        httpRequestBody: requestBody,
-        httpRequestHeaders: headers,
-        httpRequestMethod: 'POST',
-        httpRequestUrl: url,
-        httpResponseBody: error?.message,
-        httpResponseHeaders: error?.headers,
-        httpResponseCode: error?.statusCode,
-        httpResponseTime: Date.now() - now,
-        batchTriggeredBy
-      })
+      import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
+        const monitoringHttpResponse = new Troubleshooting({
+          label: TroubleshootingLabel.SEND_ACTIVATE_HIT_ROUTE_ERROR,
+          logLevel: LogLevel.ERROR,
+          visitorId: `${this._flagshipInstanceId}`,
+          traffic: 0,
+          config: this.config,
+          httpRequestBody: requestBody,
+          httpRequestHeaders: headers,
+          httpRequestMethod: 'POST',
+          httpRequestUrl: url,
+          httpResponseBody: error?.message,
+          httpResponseHeaders: error?.headers,
+          httpResponseCode: error?.statusCode,
+          httpResponseTime: Date.now() - now,
+          batchTriggeredBy
+        })
 
-      await this.sendTroubleshootingHit(monitoringHttpResponse)
+        this.sendTroubleshootingHit(monitoringHttpResponse)
+      })
+    }
+  }
+
+  protected async sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate) {
+    const filteredItems = Array.from(activateHitsPool.filter(item => (Date.now() - item.createdAt) < DEFAULT_HIT_CACHE_TIME_MS))
+
+    const { ActivateBatch } = await import('../hit/ActivateBatch.ts')
+    if (!filteredItems.length && currentActivate) {
+      const batch = new ActivateBatch([], this.config)
+      await this.sendActivateHitBatch(batch, batchTriggeredBy, currentActivate)
+      return
+    }
+
+    for (let i = 0; i < filteredItems.length; i += MAX_ACTIVATE_HIT_PER_BATCH) {
+      const batch = new ActivateBatch(filteredItems.slice(i, i + MAX_ACTIVATE_HIT_PER_BATCH), this.config)
+      this.sendActivateHitBatch(batch, batchTriggeredBy, i === 0 ? currentActivate : undefined)
     }
   }
 }

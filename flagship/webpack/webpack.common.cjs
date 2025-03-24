@@ -1,5 +1,3 @@
-// Generated using webpack-cli https://github.com/webpack/webpack-cli
-
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require('path')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -16,6 +14,14 @@ const config = {
   resolve: {
     plugins: [new TsconfigPathsPlugin()],
     extensions: ['.ts', '.tsx', '.js']
+  },
+  optimization: {
+    minimize: process.env.NODE_ENV === 'production',
+    usedExports: true,
+    splitChunks: false,
+    runtimeChunk: false,
+    removeEmptyChunks: true,
+    mangleExports: false
   }
 }
 
@@ -24,6 +30,10 @@ module.exports = () => {
     config.mode = 'production'
   } else {
     config.mode = 'development'
+    // config.plugins = [new BundleAnalyzerPlugin({
+    //   analyzerMode: 'static'
+    // })]
   }
+
   return config
 }

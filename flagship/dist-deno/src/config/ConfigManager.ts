@@ -1,6 +1,7 @@
 import { type IFlagshipConfig } from './IFlagshipConfig.ts'
 import { type IDecisionManager } from '../decision/IDecisionManager.ts'
 import { type ITrackingManager } from '../api/ITrackingManager.ts'
+import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking.ts'
 
 export interface IConfigManager {
   config: IFlagshipConfig;
@@ -9,20 +10,25 @@ export interface IConfigManager {
 
   trackingManager: ITrackingManager;
 
+  sharedActionTracking?: ISharedActionTracking;
+
 }
 export class ConfigManager implements IConfigManager {
   private _config: IFlagshipConfig
   private _decisionManager: IDecisionManager
   private _trackingManager: ITrackingManager
+  private _sharedActionTracking?: ISharedActionTracking
 
   public constructor (
     config: IFlagshipConfig,
     decisionManager: IDecisionManager,
-    trackingManager: ITrackingManager
+    trackingManager: ITrackingManager,
+    sharedActionTracking?: ISharedActionTracking
   ) {
     this._config = config
     this._decisionManager = decisionManager
     this._trackingManager = trackingManager
+    this._sharedActionTracking = sharedActionTracking
   }
 
   get config (): IFlagshipConfig {
@@ -47,5 +53,9 @@ export class ConfigManager implements IConfigManager {
 
   set trackingManager (value: ITrackingManager) {
     this._trackingManager = value
+  }
+
+  get sharedActionTracking (): ISharedActionTracking | undefined {
+    return this._sharedActionTracking
   }
 }

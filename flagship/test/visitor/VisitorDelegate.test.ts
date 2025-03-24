@@ -1,4 +1,4 @@
-import { CampaignDTO, FetchFlagsStatus, SerializedFlagMetadata, primitive } from './../../src/types'
+import { CampaignDTO, EAIScore, FlagsStatus, SerializedFlagMetadata, primitive } from './../../src/types'
 import { jest, expect, it, describe } from '@jest/globals'
 import { FlagDTO } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
@@ -10,10 +10,16 @@ import { HttpClient } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { IFSFlagMetadata, IHit } from '../../src/types'
 import { DecisionManager } from '../../src/decision/DecisionManager'
-import { cacheVisitor } from '../../src/visitor/VisitorCache'
 import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
 import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
 import { FSFlagCollection } from '../../src/flag/FSFlagCollection'
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
+import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
+import { IPageView } from '../../src/emotionAI/hit/IPageView'
+import { IVisitorEvent } from '../../src/emotionAI/hit/IVisitorEvent'
+import { EventCategory } from '../../src/hit'
+import { Event } from '../../src/hit/Event'
+import { VisitorProfileCache } from '../../src/visitor/VisitorProfileCache.node'
 
 const updateContext = jest.fn()
 const clearContext = jest.fn()
@@ -35,6 +41,12 @@ const lookupHits = jest.fn()
 const cacheVisitorFn = jest.fn<()=>Promise<void>>()
 const visitorExposed = jest.fn<(param:{key:string, flag?:FlagDTO, defaultValue:unknown})=>Promise<void>>()
 const getFlagValue = jest.fn<(param:{ key:string, defaultValue: unknown, flag?:FlagDTO, userExposed?: boolean})=>unknown>()
+const collectEAIEventsAsync = jest.fn<(currentPage?: Omit<IPageView, 'toApiKeys'>) => Promise<void>>()
+const reportEaiVisitorEvent = jest.fn<(event: IVisitorEvent) => Promise<void>>()
+const reportEaiPageView = jest.fn<(pageView: IPageView) => Promise<void>>()
+const onEAICollectStatusChange = jest.fn<(callback: (status: boolean) => void) => void>()
+const cleanup = jest.fn<() => void>()
+const addInTrackingManager = jest.fn()
 
 jest.mock('../../src/visitor/DefaultStrategy', () => {
   return {
@@ -55,7 +67,13 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         getFlagMetadata,
         cacheVisitor: cacheVisitorFn,
         visitorExposed,
-        getFlagValue
+        getFlagValue,
+        collectEAIEventsAsync,
+        reportEaiVisitorEvent,
+        reportEaiPageView,
+        onEAICollectStatusChange,
+        cleanup,
+        addInTrackingManager
       }
     })
   }
@@ -97,14 +115,23 @@ describe('test VisitorDelegate', () => {
     }
   }]
 
-  const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
+  const OnFlagStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>()
+
+  const init = jest.fn<(visitor:VisitorAbstract) => void>()
+  const collectEAIData = jest.fn<() => Promise<EAIScore|undefined>>
+
+  const emotionAi = {
+    init,
+    collectEAIData
+  } as unknown as IEmotionAI
 
   const visitorDelegate = new VisitorDelegate({
     visitorId,
     context,
     configManager: configManager as ConfigManager,
     initialCampaigns: campaigns,
-    hasConsented: true
+    hasConsented: true,
+    emotionAi
   })
 
   expect(updateContext).toBeCalledTimes(1)
@@ -125,7 +152,7 @@ describe('test VisitorDelegate', () => {
   })
 
   it('should test empty visitorId', () => {
-    const visitorDelegate = new VisitorDelegate({ context, configManager, hasConsented: true })
+    const visitorDelegate = new VisitorDelegate({ context, configManager, hasConsented: true, emotionAi })
     expect(visitorDelegate.visitorId).toBeDefined()
     expect(visitorDelegate.visitorId).toHaveLength(36)
   })
@@ -188,11 +215,15 @@ describe('test VisitorDelegate', () => {
       configManager: configManager as ConfigManager,
       initialCampaigns: campaigns,
       hasConsented: true,
-      onFetchFlagsStatusChanged
+      onFlagsStatusChanged: OnFlagStatusChanged,
+      emotionAi
     })
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(onFetchFlagsStatusChanged)
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBe(OnFlagStatusChanged)
     expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(1)
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledWith({ status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.VISITOR_CREATED })
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledWith({
+      status: FSFetchStatus.FETCH_REQUIRED,
+      reason: FSFetchReasons.FLAGS_NEVER_FETCHED
+    })
   })
 
   it('test property', () => {
@@ -223,7 +254,8 @@ describe('test VisitorDelegate', () => {
       isAuthenticated: true,
       context,
       configManager: configManager as ConfigManager,
-      hasConsented: true
+      hasConsented: true,
+      emotionAi
     })
     expect(visitorDelegate.anonymousId).toBeDefined()
     expect(visitorDelegate.anonymousId).toHaveLength(36)
@@ -237,11 +269,18 @@ describe('test VisitorDelegate methods', () => {
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
   config.logManager = logManager
 
+  const init = jest.fn<(visitor:VisitorAbstract) => void>()
+
+  const emotionAi = {
+    init
+  } as unknown as IEmotionAI
+
   const visitorDelegate = new VisitorDelegate({
     visitorId: 'visitorId',
     context: {},
     configManager: { config, decisionManager: {} as DecisionManager, trackingManager: {} as TrackingManager },
-    hasConsented: true
+    hasConsented: true,
+    emotionAi
   })
 
   it('test setConsent', () => {
@@ -270,6 +309,18 @@ describe('test VisitorDelegate methods', () => {
     expect(clearContext).toBeCalledTimes(1)
   })
 
+  it('test addInTrackingManager', () => {
+    const eventHit = new Event({
+      visitorId: 'visitorId',
+      category: EventCategory.ACTION_TRACKING,
+      action: 'action',
+      label: 'label'
+    })
+    visitorDelegate.addInTrackingManager(eventHit)
+    expect(addInTrackingManager).toBeCalledTimes(1)
+    expect(addInTrackingManager).toBeCalledWith(eventHit)
+  })
+
   it('test getFlag', () => {
     const flagDTO = {
       key: 'newKey',
@@ -295,7 +346,7 @@ describe('test VisitorDelegate methods', () => {
       variationName: flagDTO.variationName
     })
 
-    visitorDelegate.fetchStatus = { status: FSFetchStatus.FETCHED, reason: FSFetchReasons.NONE }
+    visitorDelegate.flagsStatus = { status: FSFetchStatus.FETCHED, reason: FSFetchReasons.NONE }
 
     visitorDelegate.flagsData.set('newKey', flagDTO)
     let flag = visitorDelegate.getFlag('newKey')
@@ -313,7 +364,7 @@ describe('test VisitorDelegate methods', () => {
       variationName: flagDTO.variationName
     }))
 
-    visitorDelegate.fetchStatus = { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.AUTHENTICATE }
+    visitorDelegate.flagsStatus = { status: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.AUTHENTICATE }
     flag = visitorDelegate.getFlag('newKey')
     expect(logWarning).toBeCalledTimes(1)
   })
@@ -384,6 +435,109 @@ describe('test VisitorDelegate methods', () => {
     visitorDelegate.unauthenticate()
     expect(unauthenticate).toBeCalledTimes(1)
   })
+
+  it('test collectEAIData', async () => {
+    collectEAIEventsAsync.mockResolvedValue()
+    await visitorDelegate.collectEAIEventsAsync()
+    expect(collectEAIEventsAsync).toBeCalledTimes(1)
+    expect(collectEAIEventsAsync).toBeCalledWith(undefined)
+  })
+
+  it('test collectEAIData', async () => {
+    collectEAIEventsAsync.mockResolvedValue()
+    const currentPage = {} as IPageView
+    await visitorDelegate.collectEAIEventsAsync(currentPage)
+    expect(collectEAIEventsAsync).toBeCalledTimes(1)
+    expect(collectEAIEventsAsync).toBeCalledWith(currentPage)
+  })
+
+  it('test reportEaiVisitorEvent', () => {
+    reportEaiVisitorEvent.mockResolvedValue()
+    const event = {} as IVisitorEvent
+    visitorDelegate.sendEaiVisitorEvent(event)
+    expect(reportEaiVisitorEvent).toBeCalledTimes(1)
+    expect(reportEaiVisitorEvent).toBeCalledWith(event)
+  })
+
+  it('test reportEaiPageView', () => {
+    reportEaiPageView.mockResolvedValue()
+    const pageView = {} as IPageView
+    visitorDelegate.sendEaiPageView(pageView)
+    expect(reportEaiPageView).toBeCalledTimes(1)
+    expect(reportEaiPageView).toBeCalledWith(pageView)
+  })
+
+  it('test onEAICollectStatusChange', () => {
+    const callback = jest.fn()
+    onEAICollectStatusChange.mockReturnValue()
+    visitorDelegate.onEAICollectStatusChange(callback)
+    expect(onEAICollectStatusChange).toBeCalledTimes(1)
+    expect(onEAICollectStatusChange).toBeCalledWith(callback)
+  })
+
+  it('test cleanup', () => {
+    cleanup.mockReturnValue()
+    visitorDelegate.cleanup()
+    expect(cleanup).toBeCalledTimes(1)
+  })
+
+  it('test getCachedEAIScore', async () => {
+    const score = await visitorDelegate.getCachedEAIScore()
+    expect(score).toBeUndefined()
+    expect(lookupVisitor).toBeCalledTimes(1)
+  })
+
+  it('test getCachedEAIScore', async () => {
+    visitorDelegate.visitorCache = {
+      version: 1,
+      data: {
+        visitorId: 'visitorId',
+        anonymousId: 'anonymousId',
+        eAIScore: {
+          eai: {
+            eas: 'eas'
+          }
+        }
+      }
+    }
+    const score = await visitorDelegate.getCachedEAIScore()
+    expect(score).toEqual({ eai: { eas: 'eas' } })
+    expect(lookupVisitor).toBeCalledTimes(0)
+  })
+
+  it('test setCachedEAIScore', () => {
+    const score = { eai: { eas: 'eas' } }
+    visitorDelegate.setCachedEAIScore(score)
+    expect(cacheVisitorFn).toBeCalledTimes(1)
+    expect(cacheVisitorFn).toBeCalledWith(score)
+  })
+
+  it('test isEAIDataCollected', async () => {
+    visitorDelegate.visitorCache = undefined
+    const isEAIDataCollected = await visitorDelegate.isEAIDataCollected()
+    expect(isEAIDataCollected).toBeFalsy()
+    expect(lookupVisitor).toBeCalledTimes(1)
+  })
+
+  it('test isEAIDataCollected', async () => {
+    visitorDelegate.visitorCache = {
+      version: 1,
+      data: {
+        visitorId: 'visitorId',
+        anonymousId: 'anonymousId',
+        isEAIDataCollected: true
+      }
+    }
+    const isEAIDataCollected = await visitorDelegate.isEAIDataCollected()
+    expect(isEAIDataCollected).toBeTruthy()
+    expect(lookupVisitor).toBeCalledTimes(0)
+  })
+
+  it('test setIsEAIDataCollected', () => {
+    visitorDelegate.setIsEAIDataCollected(true)
+    expect(cacheVisitorFn).toBeCalledTimes(1)
+    expect(cacheVisitorFn).toBeCalledWith(undefined, true)
+  })
 })
 
 describe('Initialization tests', () => {
@@ -393,9 +547,16 @@ describe('Initialization tests', () => {
   const visitorId = 'visitorId'
   const anonymousId = 'anonymousId'
 
+  const visitorProfileCache = new VisitorProfileCache(config)
+  const loadVisitorProfile = jest.spyOn(visitorProfileCache, 'loadVisitorProfile')
+
+  const init = jest.fn<(visitor:VisitorAbstract) => void>()
+
+  const emotionAi = {
+    init
+  } as unknown as IEmotionAI
+
   it('should initialize visitorDelegate with anonymousId', () => {
-    const loadVisitorProfile = jest.fn<typeof cacheVisitor.loadVisitorProfile>()
-    cacheVisitor.loadVisitorProfile = loadVisitorProfile
     loadVisitorProfile.mockReturnValue({ visitorId, anonymousId })
     const visitorDelegate = new VisitorDelegate({
       context: {},
@@ -404,15 +565,15 @@ describe('Initialization tests', () => {
         decisionManager: {} as DecisionManager,
         trackingManager: {} as TrackingManager
       },
-      hasConsented: true
+      visitorProfileCache,
+      hasConsented: true,
+      emotionAi
     })
     expect(visitorDelegate.visitorId).toBe(anonymousId)
     expect(visitorDelegate.anonymousId).toBeNull()
   })
 
   it('should initialize visitorDelegate with authenticated visitorId and anonymousId', () => {
-    const loadVisitorProfile = jest.fn<typeof cacheVisitor.loadVisitorProfile>()
-    cacheVisitor.loadVisitorProfile = loadVisitorProfile
     loadVisitorProfile.mockReturnValue({ visitorId, anonymousId })
     const visitorDelegate = new VisitorDelegate({
       context: {},
@@ -422,14 +583,14 @@ describe('Initialization tests', () => {
         decisionManager: {} as DecisionManager,
         trackingManager: {} as TrackingManager
       },
-      hasConsented: true
+      visitorProfileCache,
+      hasConsented: true,
+      emotionAi
     })
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBe(anonymousId)
   })
   it('should initialize visitorDelegate with authenticated visitorId and generate anonymousId', () => {
-    const loadVisitorProfile = jest.fn<typeof cacheVisitor.loadVisitorProfile>()
-    cacheVisitor.loadVisitorProfile = loadVisitorProfile
     loadVisitorProfile.mockReturnValue({ visitorId, anonymousId: null })
     const visitorDelegate = new VisitorDelegate({
       context: {},
@@ -439,15 +600,15 @@ describe('Initialization tests', () => {
         decisionManager: {} as DecisionManager,
         trackingManager: {} as TrackingManager
       },
-      hasConsented: true
+      visitorProfileCache,
+      hasConsented: true,
+      emotionAi
     })
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBeDefined()
   })
 
   it('should initialize visitorDelegate with authenticated visitorId and null anonymousId', () => {
-    const loadVisitorProfile = jest.fn<typeof cacheVisitor.loadVisitorProfile>()
-    cacheVisitor.loadVisitorProfile = loadVisitorProfile
     loadVisitorProfile.mockReturnValue({ visitorId, anonymousId: null })
     const visitorDelegate = new VisitorDelegate({
       context: {},
@@ -456,7 +617,9 @@ describe('Initialization tests', () => {
         decisionManager: {} as DecisionManager,
         trackingManager: {} as TrackingManager
       },
-      hasConsented: true
+      visitorProfileCache,
+      hasConsented: true,
+      emotionAi
     })
     expect(visitorDelegate.visitorId).toBe(visitorId)
     expect(visitorDelegate.anonymousId).toBeNull()
@@ -482,6 +645,12 @@ describe('test initialFlagsData', () => {
   const trackingManager = new TrackingManager(httpClient, config)
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
+
+  const init = jest.fn<(visitor:VisitorAbstract) => void>()
+
+  const emotionAi = {
+    init
+  } as unknown as IEmotionAI
 
   const campaigns = [{
     id: 'c2nrh1hjg50l9thhu8bg',
@@ -532,7 +701,8 @@ describe('test initialFlagsData', () => {
       configManager: configManager as ConfigManager,
       initialCampaigns: campaigns,
       initialFlagsData,
-      hasConsented: true
+      hasConsented: true,
+      emotionAi
     })
 
     expect(visitorDelegate.flagsData).toEqual(flagsData)
@@ -545,7 +715,8 @@ describe('test initialFlagsData', () => {
       configManager: configManager as ConfigManager,
       initialCampaigns: campaigns,
       initialFlagsData: [] as [],
-      hasConsented: true
+      hasConsented: true,
+      emotionAi
     })
 
     expect(visitorDelegate.flagsData.size).toBe(0)

@@ -1,6 +1,6 @@
 import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
-import { CATEGORY_ERROR, ERROR_MESSAGE, VALUE_FIELD_ERROR } from '../../src/hit/Event'
-import { Event, EventCategory } from '../../src/hit/index'
+import { CATEGORY_ERROR, ERROR_MESSAGE, VALUE_FIELD_ERROR, Event } from '../../src/hit/Event'
+import { EventCategory } from '../../src/hit/index'
 import { DecisionApiConfig } from '../../src/config/index'
 import {
   CUSTOMER_ENV_ID_API_ITEM,

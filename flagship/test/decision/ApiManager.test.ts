@@ -17,10 +17,12 @@ import {
 import { IHttpResponse, HttpClient } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { campaigns } from './campaigns'
-import { CampaignDTO, FetchFlagsStatus } from '../../src'
+import { CampaignDTO, FlagsStatus } from '../../src'
 import { errorFormat } from '../../src/utils/utils'
 import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
 import { FSFetchStatus } from '../../src/enum/FSFetchStatus'
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
+import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 
 describe('test ApiManager', () => {
   const methodNow = Date.now
@@ -42,9 +44,21 @@ describe('test ApiManager', () => {
   const visitorId = 'visitorId'
   const context = { age: 20 }
 
-  const onFetchFlagsStatusChanged = jest.fn<({ status, reason }: FetchFlagsStatus) => void>()
+  const OnFlagStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>()
 
-  const visitor = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager: { config, decisionManager: apiManager, trackingManager }, onFetchFlagsStatusChanged })
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>()
+
+  } as unknown as IEmotionAI
+
+  const visitor = new VisitorDelegate({
+    hasConsented: true,
+    visitorId,
+    context,
+    configManager: { config, decisionManager: apiManager, trackingManager },
+    onFlagsStatusChanged: OnFlagStatusChanged,
+    emotionAi
+  })
 
   const campaignResponse = { status: 200, body: campaigns }
 
@@ -121,7 +135,7 @@ describe('test ApiManager', () => {
       await apiManager.getCampaignsAsync(visitor)
 
       expect(visitor.onFetchFlagsStatusChanged).toBeCalledTimes(1)
-      expect(visitor.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { newStatus: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.FETCH_ERROR })
+      expect(visitor.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { newStatus: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.FLAGS_FETCHING_ERROR })
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err:any) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

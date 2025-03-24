@@ -10,7 +10,8 @@ import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config/ConfigManager'
 import { FSSdkStatus } from '../../src/enum/FSSdkStatus'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
-import { FlagDTO } from '../../src'
+import { EAIScore, FlagDTO } from '../../src'
+import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 
 describe('FSFlagCollection', () => {
   const visitorId = 'visitorId'
@@ -38,7 +39,16 @@ describe('FSFlagCollection', () => {
 
   VisitorAbstract.SdkStatus = FSSdkStatus.SDK_INITIALIZED
 
-  const visitorDelegate = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager })
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>(),
+    fetchEAIScore
+  } as unknown as IEmotionAI
+
+  fetchEAIScore.mockResolvedValue(undefined)
+
+  const visitorDelegate = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager, emotionAi })
 
   const flag1 = new FSFlag({ key: 'flag1', visitor: visitorDelegate })
   const flag2 = new FSFlag({ key: 'flag2', visitor: visitorDelegate })

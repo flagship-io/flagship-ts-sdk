@@ -1,5 +1,5 @@
-import { UsageHit } from '../hit/UsageHit.ts'
-import { Troubleshooting } from '../hit/Troubleshooting.ts'
+import { type UsageHit } from '../hit/UsageHit.ts'
+import { type Troubleshooting } from '../hit/Troubleshooting.ts'
 import { ITrackingManagerCommon } from './ITrackingManagerCommon.ts'
 
 export interface ITrackingManager extends ITrackingManagerCommon {
@@ -16,4 +16,5 @@ export interface ITrackingManager extends ITrackingManagerCommon {
 
     sendUsageHit(hit: UsageHit): Promise<void>
 
+    initTroubleshootingHit?: Troubleshooting
   }

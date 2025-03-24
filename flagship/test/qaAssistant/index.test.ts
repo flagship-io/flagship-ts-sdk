@@ -11,8 +11,18 @@ import { DecisionApiConfig } from '../../src/config/DecisionApiConfig'
 import { FS_QA_ASSISTANT, FS_QA_ASSISTANT_LOCAL, FS_QA_ASSISTANT_STAGING, QA_ASSISTANT_LOCAL_URL, QA_ASSISTANT_PROD_URL, QA_ASSISTANT_STAGING_URL } from '../../src/enum/FlagshipConstant'
 describe('Qa Assistant', () => {
   const { location } = window
+  const isBrowserSpy = jest.spyOn(utils, 'isBrowser')
+  const loadQaAssistantSpy = jest.spyOn(loadQaAssistant, 'loadQaAssistant')
+  const listenForKeyboardQaAssistantSpy = jest.spyOn(listenForKeyboardQaAssistant, 'listenForKeyboardQaAssistant')
+  const onDomReadySpy = jest.spyOn(utils, 'onDomReady')
+
   beforeEach(() => {
     isBrowserSpy.mockReturnValue(true)
+
+    onDomReadySpy.mockImplementation((callback?: () => void): boolean => {
+      callback?.()
+      return true
+    })
 
     loadQaAssistantSpy.mockImplementation(() => {
       //
@@ -23,12 +33,8 @@ describe('Qa Assistant', () => {
   })
 
   afterAll(() => {
-    window.location = location
+    window.location = location as Location & string
   })
-
-  const isBrowserSpy = jest.spyOn(utils, 'isBrowser')
-  const loadQaAssistantSpy = jest.spyOn(loadQaAssistant, 'loadQaAssistant')
-  const listenForKeyboardQaAssistantSpy = jest.spyOn(listenForKeyboardQaAssistant, 'listenForKeyboardQaAssistant')
 
   it('test launchQaAssistant when environment is not a browser', () => {
     isBrowserSpy.mockReturnValue(false)
@@ -65,7 +71,7 @@ describe('Qa Assistant', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (window as any).location
-    window.location = { ...location, search: `?${FS_QA_ASSISTANT}=true` }
+    window.location = { ...location, search: `?${FS_QA_ASSISTANT}=true` } as Location & string
 
     launchQaAssistant(config)
     expect(loadQaAssistantSpy).toBeCalledTimes(1)
@@ -79,7 +85,7 @@ describe('Qa Assistant', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (window as any).location
-    window.location = { ...location, search: `?${FS_QA_ASSISTANT_STAGING}=true` }
+    window.location = { ...location, search: `?${FS_QA_ASSISTANT_STAGING}=true` } as Location & string
 
     launchQaAssistant(config)
     expect(loadQaAssistantSpy).toBeCalledTimes(1)
@@ -93,11 +99,28 @@ describe('Qa Assistant', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (window as any).location
-    window.location = { ...location, search: `?${FS_QA_ASSISTANT_LOCAL}=true` }
+    window.location = { ...location, search: `?${FS_QA_ASSISTANT_LOCAL}=true` } as Location & string
 
     launchQaAssistant(config)
     expect(loadQaAssistantSpy).toBeCalledTimes(1)
     expect(loadQaAssistantSpy).toBeCalledWith(config, QA_ASSISTANT_LOCAL_URL)
+    expect(listenForKeyboardQaAssistantSpy).toBeCalledTimes(0)
+  })
+
+  it('test launchQaAssistant when when fs_qa_assistant is true ', () => {
+    onDomReadySpy.mockImplementation((): boolean => {
+      return false
+    })
+
+    const config = new DecisionApiConfig()
+    config.isQAModeEnabled = false
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (window as any).location
+    window.location = { ...location, search: `?${FS_QA_ASSISTANT}=true` } as Location & string
+
+    launchQaAssistant(config)
+    expect(loadQaAssistantSpy).toBeCalledTimes(0)
     expect(listenForKeyboardQaAssistantSpy).toBeCalledTimes(0)
   })
 })

@@ -1,15 +1,16 @@
 {
   "name": "@flagship.io/js-sdk",
   "sideEffects": false,
-  "version": "4.0.4",
+  "version": "5.0.0",
+  "author": "AB Tasty",
   "license": "Apache-2.0",
   "description": "Flagship JS SDK",
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
+  "main": "./dist/index.node.commonjs.cjs",
+  "module": "./dist/index.node.esm.js",
   "browser": "dist/index.browser.lite.js",
-  "react-native": "dist/index.js",
-  "jsdelivr": "./dist/index.browser.js",
-  "unpkg": "./dist/index.browser.js",
+  "react-native": "/dist/index.react-native.esm.js",
+  "jsdelivr": "./dist/index.browser.umd.js",
+  "unpkg": "./dist/index.browser.umd.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist/*"
@@ -17,15 +18,41 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "react-native": "./dist/index.native.js",
-      "browser": "./dist/index.browser.lite.js"
+      "node": {
+        "import": "./dist/index.node.esm.js",
+        "require": "./dist/index.node.commonjs.cjs"
+      },
+      "browser": {
+        "import": "./dist/index.browser.esm.js",
+        "require": "./dist/index.browser.umd.js"
+      },
+      "react-native": {
+        "import": "./dist/index.react-native.esm.js",
+        "require": "./dist/index.react-native.commonjs.js"
+      },
+      "default": "./dist/index.node.commonjs.cjs"
     },
-    "./dist/index.browser.lite": "./dist/index.browser.lite.js",
-    "./dist/index.browser.lite.js": "./dist/index.browser.lite.js",
-    "./dist/index.browser.js": "./dist/index.browser.js",
-    "./dist/index.browser": "./dist/index.browser.js"
+    "./dist/edge.js": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.edge.esm.js",
+      "require": "./dist/index.edge.commonjs.js"
+    },
+    "./dist/index.browser.lite": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.browser.lite.js"
+    },
+    "./dist/index.browser.lite.js": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.browser.lite.js"
+    },
+    "./dist/index.browser.js": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.browser.umd.js"
+    },
+    "./dist/index.browser": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.browser.umd.js"
+    }
   },
   "engines": {
     "node": ">=6"
@@ -39,13 +66,14 @@
     "lint:fix": "eslint . --ext .ts --fix",
     "lint": "eslint . --ext .ts",
     "test": "yarn run test-functional-api-mode && yarn run test-functional-bucketing-mode && yarn run test-u",
-    "test-u":"jest --testPathIgnorePatterns='<rootDir>/test/main/FunctionalApiMode.test.ts' --testPathIgnorePatterns='<rootDir>/test/main/FunctionalBucketingMode.test.ts'",
+    "test-u": "jest --testPathIgnorePatterns='<rootDir>/test/main/FunctionalApiMode.test.ts' --testPathIgnorePatterns='<rootDir>/test/main/FunctionalBucketingMode.test.ts'",
     "test-functional-api-mode": "jest test/main/FunctionalApiMode.test.ts --forceExit",
     "test-functional-bucketing-mode": "jest test/main/FunctionalBucketingMode.test.ts --forceExit",
     "clean": "rm -rf flagship dist",
     "test:coverage": "jest --coverage",
-    "build": "webpack",
-    "postbuild": "node denoTrans.mjs && node generateDeclarationFile.mjs",
+    "rollup": "rollup -c",
+    "build": "webpack && npm run rollup",
+    "postbuild": "node denoTrans.mjs",
     "prebuild": "npm run clean && npm run generate:version && tsc ",
     "generate:version": "genversion --es6 src/sdkVersion.ts",
     "build-prod": "NODE_ENV=production npm run build",
@@ -54,15 +82,21 @@
     "analyze-prod": "NODE_ENV=production webpack --profile --json > stats.json && webpack-bundle-analyzer stats.json"
   },
   "devDependencies": {
-    "@babel/core": "^7.21.4",
+    "@babel/core": "^7.26.9",
     "@babel/plugin-transform-runtime": "^7.21.4",
     "@babel/preset-env": "^7.21.4",
     "@babel/preset-typescript": "^7.21.4",
     "@babel/runtime": "^7.21.0",
+    "@react-native-async-storage/async-storage": "^2.0.0",
+    "@rollup/plugin-alias": "^5.1.1",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-replace": "^6.0.2",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^12.1.2",
     "@testing-library/dom": "^9.3.3",
     "@testing-library/user-event": "^14.5.2",
     "@types/jest": "^29.5.0",
-    "@types/node": "^18.15.11",
+    "@types/node": "^22.13.10",
     "@types/node-fetch": "^2.6.3",
     "@typescript-eslint/eslint-plugin": "^5.58.0",
     "@typescript-eslint/parser": "^5.58.0",
@@ -81,14 +115,18 @@
     "genversion": "^3.1.1",
     "jest": "^29.5.0",
     "jest-environment-jsdom": "^29.7.0",
+    "metro-react-native-babel-preset": "^0.77.0",
     "prettier": "^2.8.7",
+    "react": "^18.3.1",
+    "rollup": "^4.35.0",
+    "source-map-explorer": "^2.5.3",
     "terser-webpack-plugin": "^5.3.7",
     "ts-jest": "^29.1.0",
     "ts-loader": "^9.4.2",
     "tsconfig-paths-webpack-plugin": "^4.1.0",
-    "typescript": "^5.0.4",
+    "typescript": "^5.8.2",
     "webpack": "^5.79.0",
-    "webpack-bundle-analyzer": "^4.8.0",
+    "webpack-bundle-analyzer": "^4.10.2",
     "webpack-cli": "^5.0.1",
     "webpack-merge": "^5.8.0",
     "webpack-node-externals": "^3.0.0"

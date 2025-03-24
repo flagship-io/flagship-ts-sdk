@@ -163,7 +163,8 @@ export class Transaction extends HitAbstract implements ITransaction {
       sessionNumber: param.sessionNumber,
       visitorId: param.visitorId,
       anonymousId: param.anonymousId,
-      qaMode: param.qaMode
+      qaMode: param.qaMode,
+      isActionTrackingHit: param.isActionTrackingHit
     })
     const {
       transactionId,

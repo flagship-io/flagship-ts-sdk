@@ -11,7 +11,8 @@
     "moduleResolution": "node",
     "declaration": true,
     "esModuleInterop": true,
+    "emitDeclarationOnly": true,
     "strict": true,
-    "baseUrl": ".",
+    "allowImportingTsExtensions": true,
   }
 }

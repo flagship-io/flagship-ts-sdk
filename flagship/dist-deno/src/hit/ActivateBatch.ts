@@ -1,6 +1,6 @@
 import { IFlagshipConfig } from '../config/index.ts'
 import { BATCH, CUSTOMER_ENV_ID_API_ITEM } from '../enum/index.ts'
-import { Activate } from './Activate.ts'
+import { type Activate } from './Activate.ts'
 
 export class ActivateBatch {
   private readonly _hits : Activate[]

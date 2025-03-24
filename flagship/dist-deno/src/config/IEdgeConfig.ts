@@ -1,4 +1,5 @@
-import { BucketingDTO } from '../decision/api/bucketingDTO.ts'
+
+import { BucketingDTO } from '../types.ts'
 import { DecisionMode } from './DecisionMode.ts'
 import { IFlagshipConfig } from './IFlagshipConfig.ts'
 

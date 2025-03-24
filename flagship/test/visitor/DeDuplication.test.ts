@@ -9,7 +9,8 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { VisitorDelegate, DefaultStrategy } from '../../src/visitor'
 import { MurmurHash } from '../../src/utils/MurmurHash'
-import { sleep } from '../../src/utils/utils'
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
+import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 
 describe('Visitor DeDuplication', () => {
   const visitorId = 'visitorId'
@@ -37,7 +38,11 @@ describe('Visitor DeDuplication', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>()
+  } as unknown as IEmotionAI
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
   const murmurHash = new MurmurHash()
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
@@ -116,7 +121,11 @@ describe('Clean cache', () => {
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)
 
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>()
+  } as unknown as IEmotionAI
+
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
   const murmurHash = new MurmurHash()
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })
 
@@ -136,13 +145,14 @@ describe('Clean cache', () => {
     await defaultStrategy.fetchFlags()
   })
   it('test clean cache ', async () => {
+    jest.useFakeTimers()
     const flagBoolean = returnFlag.get('keyBoolean')
     const flagKey = returnFlag.get('key')
     const flagArray = returnFlag.get('array')
     defaultStrategy.visitorExposed({ key: flagBoolean?.key as string, flag: flagBoolean, defaultValue: false, hasGetValueBeenCalled: true })
     defaultStrategy.visitorExposed({ key: flagKey?.key as string, flag: flagKey, defaultValue: 'default value', hasGetValueBeenCalled: true })
     defaultStrategy.visitorExposed({ key: flagArray?.key as string, flag: flagArray, defaultValue: [], hasGetValueBeenCalled: true })
-    await sleep(1200)
+    jest.advanceTimersByTime(1200)
     await defaultStrategy.visitorExposed({ key: flagBoolean?.key as string, flag: flagBoolean, defaultValue: false, hasGetValueBeenCalled: true })
     expect(activateFlag).toBeCalledTimes(4)
   })

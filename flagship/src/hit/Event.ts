@@ -6,16 +6,13 @@ import {
 } from '../enum/FlagshipConstant'
 import { HitType } from '../enum/HitType'
 import { logError } from '../utils/utils'
+import { EventCategory } from './EventCategory'
 import { HitAbstract, IHitAbstract } from './HitAbstract'
 
 export const ERROR_MESSAGE = 'event category and event action are required'
 export const CATEGORY_ERROR =
   'The category value must be either EventCategory::ACTION_TRACKING or EventCategory::ACTION_TRACKING'
 export const VALUE_FIELD_ERROR = 'value must be an integer and be >= 0'
-export enum EventCategory {
-  ACTION_TRACKING = 'Action Tracking',
-  USER_ENGAGEMENT = 'User Engagement',
-}
 
 export interface IEvent extends IHitAbstract{
   category: EventCategory
@@ -101,7 +98,8 @@ export class Event extends HitAbstract implements IEvent {
       sessionNumber: param.sessionNumber,
       visitorId: param.visitorId,
       anonymousId: param.anonymousId,
-      qaMode: param.qaMode
+      qaMode: param.qaMode,
+      isActionTrackingHit: param.isActionTrackingHit
     })
     const { category, action, label, value } = param
     this.category = category

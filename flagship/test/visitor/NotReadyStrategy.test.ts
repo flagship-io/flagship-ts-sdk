@@ -1,5 +1,5 @@
 import { jest, expect, it, describe } from '@jest/globals'
-import { DecisionApiConfig } from '../../src'
+import { DecisionApiConfig, EAIScore } from '../../src'
 import { TrackingManager } from '../../src/api/TrackingManager'
 import { ConfigManager } from '../../src/config'
 import { DecisionManager } from '../../src/decision/DecisionManager'
@@ -10,6 +10,10 @@ import { sprintf } from '../../src/utils/utils'
 import { VisitorDelegate, NotReadyStrategy } from '../../src/visitor'
 import { MurmurHash } from '../../src/utils/MurmurHash'
 import { Troubleshooting } from '../../src/hit/Troubleshooting'
+import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
+import { IPageView } from '../../src/emotionAI/hit/IPageView'
+import { IVisitorEvent } from '../../src/emotionAI/hit/IVisitorEvent'
 
 describe('test NotReadyStrategy', () => {
   const visitorId = 'visitorId'
@@ -29,8 +33,30 @@ describe('test NotReadyStrategy', () => {
   const sendUsageHitSpy = jest.spyOn(trackingManager, 'sendUsageHit')
   const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
 
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+
+  const collectEAIData = jest.fn<(currentPage?: Omit<IPageView, 'toApiKeys'>) => void>()
+
+  const reportVisitorEvent = jest.fn<(event: IVisitorEvent)=> Promise<void>>()
+
+  const reportPageView = jest.fn<(pageView: IPageView) => Promise<void>>()
+
+  const onEAICollectStatusChange = jest.fn<(callback: (status: boolean) => void) => void>()
+
+  const cleanup = jest.fn<() => void>()
+
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>(),
+    fetchEAIScore,
+    collectEAIData,
+    reportVisitorEvent,
+    reportPageView,
+    onEAICollectStatusChange,
+    cleanup
+  } as unknown as IEmotionAI
+
   const configManager = new ConfigManager(config, {} as DecisionManager, trackingManager)
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true })
+  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
   const murmurHash = new MurmurHash()
   const notReadyStrategy = new NotReadyStrategy({ visitor: visitorDelegate, murmurHash })
 
@@ -92,12 +118,31 @@ describe('test NotReadyStrategy', () => {
   })
 
   it('test sendTroubleshootingHit', () => {
-    notReadyStrategy.sendTroubleshootingHit({} as Troubleshooting)
+    notReadyStrategy.sendTroubleshootingHit()
     expect(sendTroubleshootingHit).toBeCalledTimes(0)
   })
 
   it('test sendAnalyticHit', () => {
     notReadyStrategy.sendSdkConfigAnalyticHit()
     expect(sendUsageHitSpy).toBeCalledTimes(0)
+  })
+
+  it('test collectEAIData', () => {
+    notReadyStrategy.collectEAIEventsAsync()
+  })
+
+  it('test reportEaiPageView', () => {
+    notReadyStrategy.reportEaiPageView()
+    expect(emotionAi.reportPageView).toBeCalledTimes(0)
+  })
+
+  it('test reportEaiVisitorEvent', () => {
+    notReadyStrategy.reportEaiVisitorEvent()
+    expect(emotionAi.reportVisitorEvent).toBeCalledTimes(0)
+  })
+
+  it('test onEAICollectStatusChange', () => {
+    notReadyStrategy.onEAICollectStatusChange()
+    expect(emotionAi.onEAICollectStatusChange).toBeCalledTimes(0)
   })
 })

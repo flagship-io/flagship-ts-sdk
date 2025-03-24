@@ -61,8 +61,8 @@ describe('test hit type Monitoring', () => {
     }
 
     expect(troubleshooting.ds).toBe(SDK_APP)
-    expect(troubleshooting.logLevel).toBe(logLevel)
-    expect(troubleshooting.stackType).toBe(stackType)
+    expect(troubleshooting.data.logLevel).toBe(logLevel)
+    expect(troubleshooting.data.stackType).toBe(stackType)
     expect(troubleshooting.visitorId).toBe(visitorId)
     expect(troubleshooting.anonymousId).toBeNull()
     expect(troubleshooting.getErrorMessage()).toBe(ERROR_MESSAGE)
@@ -98,6 +98,12 @@ describe('test hit type Monitoring', () => {
     }
 
     const hitContent = new Page({ documentLocation: 'localhost', visitorId })
+
+    const eAIScore = {
+      eai: {
+        eas: 'score'
+      }
+    }
 
     const params:TroubleshootingType = {
       logLevel,
@@ -178,7 +184,15 @@ describe('test hit type Monitoring', () => {
       contextKey: 'key',
       contextValue: 'value',
       hitContent: hitContent.toApiKeys(),
-      batchTriggeredBy: BatchTriggeredBy.ActivateLength
+      batchTriggeredBy: BatchTriggeredBy.ActivateLength,
+
+      accountSettings: {
+        eaiActivationEnabled: true,
+        eaiCollectEnabled: true
+      },
+      eAIScore,
+      isEAIScoreFromLocalCache: true,
+      eAIDataTimestamp: '2023/01/01'
     }
 
     const pageHit:Record<string, unknown> = {}
@@ -269,7 +283,12 @@ describe('test hit type Monitoring', () => {
         'visitor.sessionId': `${params.visitorSessionId}`,
         sdkBucketingFile: JSON.stringify(params.sdkBucketingFile),
         'visitor.visitorId': visitorId,
-        'visitor.anonymousId': 'null'
+        'visitor.anonymousId': 'null',
+        'accountSettings.eaiActivationEnabled': 'true',
+        'accountSettings.eaiCollectEnabled': 'true',
+        'eAIScore.eai.eas': eAIScore.eai.eas,
+        isEAIScoreFromLocalCache: `${params.isEAIScoreFromLocalCache}`,
+        eAIDataTimestamp: `${params.eAIDataTimestamp}`
       }
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

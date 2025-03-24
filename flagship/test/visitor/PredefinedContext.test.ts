@@ -10,6 +10,8 @@ import { sprintf } from '../../src/utils/utils'
 import { DefaultStrategy } from '../../src/visitor/DefaultStrategy'
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
 import { MurmurHash } from '../../src/utils/MurmurHash'
+import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 
 describe('test DefaultStrategy ', () => {
   const visitorId = 'visitorId'
@@ -26,6 +28,10 @@ describe('test DefaultStrategy ', () => {
 
   const trackingManager = new TrackingManager({} as HttpClient, config)
 
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>()
+  } as unknown as IEmotionAI
+
   const visitorDelegate = new VisitorDelegate({
     visitorId,
     context,
@@ -34,7 +40,8 @@ describe('test DefaultStrategy ', () => {
       config,
       decisionManager: {} as ApiManager,
       trackingManager
-    }
+    },
+    emotionAi
   })
   const murmurHash = new MurmurHash()
   const defaultStrategy = new DefaultStrategy({ visitor: visitorDelegate, murmurHash })

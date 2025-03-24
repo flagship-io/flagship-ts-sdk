@@ -22,17 +22,17 @@ export enum FSFetchReasons {
     /**
      * Indicates that fetching flags has failed.
      */
-    FETCH_ERROR = 'FETCH_ERROR',
+    FLAGS_FETCHING_ERROR = 'FLAGS_FETCHING_ERROR',
 
     /**
      * Indicates that flags have been fetched from the cache.
      */
-    READ_FROM_CACHE = 'READ_FROM_CACHE',
+    FLAGS_FETCHED_FROM_CACHE = 'FLAGS_FETCHED_FROM_CACHE',
 
     /**
      * Indicates that the visitor has been created.
      */
-    VISITOR_CREATED = 'VISITOR_CREATED',
+    FLAGS_NEVER_FETCHED = 'FLAGS_NEVER_FETCHED',
 
     /**
      * Indicates that there is no specific reason for fetching flags.

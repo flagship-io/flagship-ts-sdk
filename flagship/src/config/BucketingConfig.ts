@@ -8,8 +8,6 @@ export class BucketingConfig extends FlagshipConfig {
     super({ ...param, decisionMode: DecisionMode.BUCKETING })
 
     this.pollingInterval = param?.pollingInterval ?? DEFAULT_POLLING_INTERVAL
-    this.onBucketingFail = param?.onBucketingFail
-    this.onBucketingSuccess = param?.onBucketingSuccess
     this.onBucketingUpdated = param?.onBucketingUpdated
     this.fetchThirdPartyData = param?.fetchThirdPartyData
   }

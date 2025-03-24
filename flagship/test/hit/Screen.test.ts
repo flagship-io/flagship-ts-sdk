@@ -12,8 +12,7 @@ import {
   T_API_ITEM,
   VISITOR_ID_API_ITEM
 } from '../../src/enum/index'
-import { Screen } from '../../src/hit/index'
-import { ERROR_MESSAGE } from '../../src/hit/Screen'
+import { Screen, ERROR_MESSAGE } from '../../src/hit/Screen'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { sprintf } from '../../src/utils/utils'
 

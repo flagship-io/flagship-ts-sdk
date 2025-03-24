@@ -1,10 +1,9 @@
 import { CampaignDTO, FlagDTO, IHit } from '../types.ts'
 import { FLAG_VISITOR_EXPOSED, METHOD_DEACTIVATED_CONSENT_ERROR } from '../enum/index.ts'
-import { HitAbstract } from '../hit/index.ts'
+import { type HitAbstract } from '../hit/HitAbstract.ts'
 import { logInfo, sprintf } from '../utils/utils.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
 import { BatchDTO } from '../hit/Batch.ts'
-import { Troubleshooting } from '../hit/Troubleshooting.ts'
 
 export class NoConsentStrategy extends DefaultStrategy {
   async lookupHits (): Promise<void> {
@@ -23,7 +22,23 @@ export class NoConsentStrategy extends DefaultStrategy {
     //
   }
 
-  protected fetchVisitorCampaigns (): CampaignDTO[] {
+  public async collectEAIEventsAsync (): Promise<void> {
+    this.log('collectEAIData')
+  }
+
+  public reportEaiPageView (): void {
+    //
+  }
+
+  public reportEaiVisitorEvent (): void {
+    //
+  }
+
+  public onEAICollectStatusChange (): void {
+    //
+  }
+
+  protected fetchCampaignsFromCache (): CampaignDTO[] {
     return []
   }
 
@@ -47,7 +62,11 @@ export class NoConsentStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async sendTroubleshootingHit (_hit: Troubleshooting): Promise<void> {
+  public async sendTroubleshootingHit (): Promise<void> {
+    //
+  }
+
+  public async addInTrackingManager (): Promise<void> {
     //
   }
 

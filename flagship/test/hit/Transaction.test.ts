@@ -21,8 +21,7 @@ import {
   T_API_ITEM,
   VISITOR_ID_API_ITEM
 } from '../../src/enum/index'
-import { Transaction } from '../../src/hit/index'
-import { CURRENCY_ERROR, ERROR_MESSAGE } from '../../src/hit/Transaction'
+import { CURRENCY_ERROR, ERROR_MESSAGE, Transaction } from '../../src/hit/Transaction'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { sprintf } from '../../src/utils/utils'
 

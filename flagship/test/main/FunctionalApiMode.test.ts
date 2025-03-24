@@ -1,11 +1,23 @@
 import { expect, it, describe } from '@jest/globals'
 import { Flagship } from '../../src/main/Flagship'
+import { FSSdkStatus, LogLevel } from '../../src'
 
 describe('Functional test decision API mode', () => {
   const envId = process.env.FS_ENV_ID as string
   const apiKey = process.env.FS_API_KEY as string
-  Flagship.start(envId, apiKey)
+
+  async function startSDK () {
+    if (Flagship.getStatus() !== FSSdkStatus.SDK_NOT_INITIALIZED) {
+      return
+    }
+    await Flagship.start(envId, apiKey, {
+      logLevel: LogLevel.DEBUG,
+      fetchNow: false
+    })
+  }
+
   it('test decision API mode', async () => {
+    await startSDK()
     const visitor = Flagship.newVisitor({
       hasConsented: true,
       visitorId: 'visitor-1',
@@ -27,6 +39,7 @@ describe('Functional test decision API mode', () => {
   })
 
   it('test decision API mode 2', async () => {
+    await startSDK()
     const visitor = Flagship.newVisitor({
       hasConsented: true,
       visitorId: 'visitor-6',
@@ -48,6 +61,7 @@ describe('Functional test decision API mode', () => {
   })
 
   it('test decision API mode 3', async () => {
+    await startSDK()
     const visitor = Flagship.newVisitor({
       hasConsented: true,
       visitorId: 'visitor-6',

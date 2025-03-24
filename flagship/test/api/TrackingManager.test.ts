@@ -7,13 +7,18 @@ import { BatchingPeriodicCachingStrategy } from '../../src/api/BatchingPeriodicC
 import { CacheStrategy, EventCategory, HitCacheDTO, TroubleshootingLabel } from '../../src'
 import { FS_CONSENT, HIT_CACHE_VERSION, NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY, PROCESS_CACHE, HIT_CACHE_ERROR, SDK_INFO, LogLevel } from '../../src/enum'
 import { NoBatchingContinuousCachingStrategy } from '../../src/api/NoBatchingContinuousCachingStrategy'
-import { sleep, sprintf, uuidV4 } from '../../src/utils/utils'
+import { sprintf, uuidV4 } from '../../src/utils/utils'
 import { Segment } from '../../src/hit/Segment'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import { Activate } from '../../src/hit/Activate'
 import { BatchTriggeredBy } from '../../src/enum/BatchTriggeredBy'
 import { Troubleshooting } from '../../src/hit/Troubleshooting'
-import { Page, Event, Screen, Item, Transaction } from '../../src/hit'
+import { sleep } from '../helpers'
+import { Transaction } from '../../src/hit/Transaction'
+import { Event } from '../../src/hit/Event'
+import { Page } from '../../src/hit/Page'
+import { Item } from '../../src/hit/Item'
+import { Screen } from '../../src/hit/Screen'
 
 describe('test TrackingManager', () => {
   const httpClient = new HttpClient()
@@ -296,7 +301,7 @@ describe('test TrackingManager lookupHits', () => {
   }
   config.hitCacheImplementation = hitCacheImplementation
 
-  it('test lookupHits', async () => {
+  it('test lookupHits success', async () => {
     const campaignHit = new Activate({
       variationGroupId: 'variationGrID',
       variationId: 'campaignID',
@@ -405,7 +410,9 @@ describe('test TrackingManager lookupHits', () => {
       data[uuidV4()] = hitData
     })
 
-    data[uuidV4()] = {
+    const wrongKey1 = uuidV4()
+
+    data[wrongKey1] = {
       version: HIT_CACHE_VERSION,
       data: {
         visitorId,
@@ -418,9 +425,9 @@ describe('test TrackingManager lookupHits', () => {
       }
     }
 
-    const wrongKey = uuidV4()
+    const wrongKey2 = uuidV4()
 
-    data[wrongKey] = {
+    data[wrongKey2] = {
       version: HIT_CACHE_VERSION,
       data: {
         visitorId,
@@ -444,7 +451,7 @@ describe('test TrackingManager lookupHits', () => {
     expect(lookupHits).toBeCalledTimes(1)
 
     expect(flushHits).toBeCalledTimes(1)
-    expect(flushHits).toBeCalledWith([wrongKey])
+    expect(flushHits).toBeCalledWith([wrongKey1, wrongKey2])
   })
 
   it('test lookupHits error ', async () => {

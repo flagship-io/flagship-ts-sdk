@@ -4,26 +4,16 @@ const { merge } = require('webpack-merge')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const nodeExternals = require('webpack-node-externals')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const common = require('./webpack.common.cjs')
+const common = require('./common.cjs')
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 
 module.exports = merge(common(), {
-  target: 'node',
-  resolve: {
-    alias: {
-      '../depsNode.native': '../depsNode'
-    }
-  },
   output: {
-    filename: 'index.cjs',
+    filename: 'index.node.commonjs.cjs',
     library: {
       type: 'commonjs2'
     }
-  },
-  optimization: {
-    minimize: process.env.NODE_ENV === 'production',
-    usedExports: true
   },
   module: {
     rules: [
@@ -44,14 +34,18 @@ module.exports = merge(common(), {
             presets: [
               ['@babel/preset-env', {
                 targets: { node: 6 },
-                modules: false,
+                modules: 'commonjs',
                 useBuiltIns: 'usage',
                 corejs: 3
               }],
               ['@babel/preset-typescript']
             ],
             plugins: [
-              ['@babel/plugin-transform-runtime']
+              ['@babel/plugin-transform-runtime', {
+                regenerator: true,
+                helpers: true,
+                useESModules: false
+              }]
             ]
           }
         }]

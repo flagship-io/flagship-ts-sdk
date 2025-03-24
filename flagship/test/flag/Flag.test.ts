@@ -9,6 +9,7 @@ import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { VisitorDelegate } from '../../src/visitor'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 import * as forceVariation from '../../src/flag/forceVariation'
+import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 
 describe('test Flag', () => {
   beforeEach(() => {
@@ -44,7 +45,12 @@ describe('test Flag', () => {
 
   VisitorAbstract.SdkStatus = FSSdkStatus.SDK_INITIALIZED
 
-  const visitorDelegate = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager })
+  const emotionAi = {
+    init: jest.fn<(visitor:VisitorAbstract) => void>()
+
+  } as unknown as IEmotionAI
+
+  const visitorDelegate = new VisitorDelegate({ hasConsented: true, visitorId, context, configManager, emotionAi })
 
   const visitorExposed = jest.spyOn(visitorDelegate, 'visitorExposed')
   const getFlagValue = jest.spyOn(visitorDelegate, 'getFlagValue')
@@ -238,28 +244,28 @@ describe('test Flag', () => {
     it('should return FSFlagStatus.FETCH_REQUIRED if the fetch status is FETCH_REQUIRED', () => {
       const flag = new FSFlag({ key: flagDto.key, visitor: visitorDelegate })
       expect(flag.exists()).toBeTruthy()
-      visitorDelegate.fetchStatus.status = FSFetchStatus.FETCH_REQUIRED
+      visitorDelegate.flagsStatus.status = FSFetchStatus.FETCH_REQUIRED
       expect(flag.status).toBe(FSFlagStatus.FETCH_REQUIRED)
     })
 
     it('should return FSFlagStatus.FETCH_REQUIRED if the fetch status is FETCHING', () => {
       const flag = new FSFlag({ key: flagDto.key, visitor: visitorDelegate })
       expect(flag.exists()).toBeTruthy()
-      visitorDelegate.fetchStatus.status = FSFetchStatus.FETCHING
+      visitorDelegate.flagsStatus.status = FSFetchStatus.FETCHING
       expect(flag.status).toBe(FSFlagStatus.FETCH_REQUIRED)
     })
 
     it('should return FSFlagStatus.PANIC if the fetch status is PANIC', () => {
       const flag = new FSFlag({ key: flagDto.key, visitor: visitorDelegate })
       expect(flag.exists()).toBeTruthy()
-      visitorDelegate.fetchStatus.status = FSFetchStatus.PANIC
+      visitorDelegate.flagsStatus.status = FSFetchStatus.PANIC
       expect(flag.status).toBe(FSFlagStatus.PANIC)
     })
 
     it('should return FSFlagStatus.FETCHED if the fetch status is FETCHED', () => {
       const flag = new FSFlag({ key: flagDto.key, visitor: visitorDelegate })
       expect(flag.exists()).toBeTruthy()
-      visitorDelegate.fetchStatus.status = FSFetchStatus.FETCHED
+      visitorDelegate.flagsStatus.status = FSFetchStatus.FETCHED
       expect(flag.status).toBe(FSFlagStatus.FETCHED)
     })
   })

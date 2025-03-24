@@ -3,43 +3,32 @@ const { merge } = require('webpack-merge')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const nodeExternals = require('webpack-node-externals')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const common = require('./webpack.common.cjs')
+const common = require('./common.cjs')
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 
 module.exports = merge(common(), {
-  target: 'web',
-  resolve: {
-    alias: {
-      http: false,
-      https: false,
-      'node-fetch': false
-    }
-  },
   output: {
-    filename: 'index.browser.lite.js',
+    filename: 'index.react-native.commonjs.js',
     library: {
-      type: 'umd'
+      type: 'commonjs2'
     }
   },
   module: {
     rules: [
       {
-        test: /\.(js|ts)$/,
+        test: /\.(js|ts)x?$/,
         exclude: /node_modules/,
-        use: [{
-          loader: 'ts-loader',
+        use: {
+          loader: 'babel-loader',
           options: {
-            transpileOnly: true
+            presets: ['module:metro-react-native-babel-preset']
           }
-        }]
+        }
       }
     ]
   },
   externals: [
-    nodeExternals({
-      importType: 'umd',
-      allowlist: [
-        'events'
-      ]
-    })
+    nodeExternals()
   ]
 })

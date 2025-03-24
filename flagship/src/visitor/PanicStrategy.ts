@@ -1,12 +1,10 @@
-
 import { FSSdkStatus, FLAG_VISITOR_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_PANIC_MODE } from '../enum/index'
 import { CampaignDTO, FlagDTO, IFSFlagMetadata, IHit } from '../types'
 import { logInfoSprintf } from '../utils/utils'
 import { DefaultStrategy } from './DefaultStrategy'
-import { HitAbstract } from '../hit/index'
+import { type HitAbstract } from '../hit/HitAbstract'
 import { BatchDTO } from '../hit/Batch'
 import { FSFlagMetadata } from '../flag/FSFlagMetadata'
-import { Troubleshooting } from '../hit/Troubleshooting'
 
 export class PanicStrategy extends DefaultStrategy {
   setConsent (hasConsented:boolean):void {
@@ -37,7 +35,7 @@ export class PanicStrategy extends DefaultStrategy {
     //
   }
 
-  protected fetchVisitorCampaigns (): CampaignDTO[] {
+  protected fetchCampaignsFromCache (): CampaignDTO[] {
     return []
   }
 
@@ -67,7 +65,7 @@ export class PanicStrategy extends DefaultStrategy {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async sendTroubleshootingHit (_hit: Troubleshooting): Promise<void> {
+  public async sendTroubleshootingHit (): Promise<void> {
     //
   }
 
@@ -77,6 +75,26 @@ export class PanicStrategy extends DefaultStrategy {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async sendActivate (_flagDto: FlagDTO, _defaultValue?: unknown): Promise<void> {
+    //
+  }
+
+  public async collectEAIEventsAsync (): Promise<void> {
+    this.log('collectEAIData')
+  }
+
+  public reportEaiPageView (): void {
+    //
+  }
+
+  public reportEaiVisitorEvent (): void {
+    //
+  }
+
+  public onEAICollectStatusChange (): void {
+    //
+  }
+
+  public async addInTrackingManager (): Promise<void> {
     //
   }
 

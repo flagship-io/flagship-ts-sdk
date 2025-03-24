@@ -2,7 +2,7 @@ name: Test & coverage
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, q2]
 jobs:
   build:
     runs-on: ubuntu-latest

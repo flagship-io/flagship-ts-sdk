@@ -2,10 +2,9 @@ import { FSSdkStatus, FLAG_VISITOR_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METAD
 import { FlagDTO, IFSFlagMetadata, IHit } from '../types.ts'
 import { logErrorSprintf } from '../utils/utils.ts'
 import { DefaultStrategy } from './DefaultStrategy.ts'
-import { HitAbstract } from '../hit/index.ts'
+import { type HitAbstract } from '../hit/HitAbstract.ts'
 import { BatchDTO } from '../hit/Batch.ts'
 import { FSFlagMetadata } from '../flag/FSFlagMetadata.ts'
-import { Troubleshooting } from '../hit/Troubleshooting.ts'
 
 export class NotReadyStrategy extends DefaultStrategy {
   async lookupHits (): Promise<void> {
@@ -17,6 +16,22 @@ export class NotReadyStrategy extends DefaultStrategy {
   }
 
   public async cacheVisitor ():Promise<void> {
+    //
+  }
+
+  public async collectEAIEventsAsync (): Promise<void> {
+    this.log('collectEAIData')
+  }
+
+  public onEAICollectStatusChange (): void {
+    //
+  }
+
+  public reportEaiPageView (): void {
+    //
+  }
+
+  public reportEaiVisitorEvent (): void {
     //
   }
 
@@ -54,12 +69,15 @@ export class NotReadyStrategy extends DefaultStrategy {
     //
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async sendTroubleshootingHit (_hit: Troubleshooting): Promise<void> {
+  public async sendTroubleshootingHit (): Promise<void> {
     //
   }
 
   public async sendSdkConfigAnalyticHit () {
+    //
+  }
+
+  public async addInTrackingManager (): Promise<void> {
     //
   }
 

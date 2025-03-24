@@ -1,9 +1,8 @@
 import { IHitCacheImplementation } from '../cache/IHitCacheImplementation.ts'
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation.ts'
-import { BucketingDTO } from '../decision/api/bucketingDTO.ts'
 import { FSSdkStatus } from '../enum/index.ts'
 import { LogLevel } from '../enum/LogLevel.ts'
-import { OnVisitorExposed } from '../types.ts'
+import { BucketingDTO, OnVisitorExposed } from '../types.ts'
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager.ts'
 import { DecisionMode } from './DecisionMode.ts'
 import { ITrackingManagerConfig } from './TrackingManagerConfig.ts'
@@ -81,18 +80,6 @@ export interface IFlagshipConfig {
    * Default value is true.
    */
   reuseVisitorIds?: boolean;
-
-  /**
-   * A callback function to be called when the first bucketing polling succeeds.
-   * @param param - An object containing the status and payload of the bucketing response.
-   */
-  onBucketingSuccess?: (param: { status: number; payload?: BucketingDTO }) => void;
-
-  /**
-   * A callback function to be called when the first bucketing polling fails.
-   * @param error - The error object representing the failure.
-   */
-  onBucketingFail?: (error: Error) => void;
 
   /**
    * A callback function to be called each time bucketing data from Flagship has been updated.

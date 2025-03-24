@@ -1,8 +1,8 @@
 import { IFlagshipConfig } from '../config/index.ts'
 import { IFSFlag } from '../flag/IFSFlag.ts'
 import { IFSFlagCollection } from '../flag/IFSFlagCollection.ts'
-import { HitAbstract } from '../hit/index.ts'
-import { IHit, primitive, FetchFlagsStatus } from '../types.ts'
+import { type HitAbstract } from '../hit/HitAbstract.ts'
+import { IHit, primitive, FlagsStatus } from '../types.ts'
 
 /**
  * The `Visitor` class represents a unique user within your application. It aids in
@@ -28,7 +28,7 @@ export interface IVisitor {
   /**
    * The fetch status of the flags.
    */
-  readonly fetchStatus: FetchFlagsStatus
+  readonly fetchStatus: FlagsStatus
 
   /**
    * The Flagship configuration.
@@ -112,4 +112,13 @@ export interface IVisitor {
    */
   unauthenticate(): void;
 
+  /**
+   * Starts Collecting Emotion AI events for the visitor.
+   */
+  collectEAIEventsAsync(): Promise<void>;
+
+  /**
+   * Cleans up the visitor instance. This method should be called when the visitor is no longer needed.
+   */
+  cleanup(): void;
 }

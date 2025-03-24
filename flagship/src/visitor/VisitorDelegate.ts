@@ -1,4 +1,4 @@
-import { HitAbstract } from '../hit/index'
+import { type HitAbstract } from '../hit/HitAbstract'
 import { primitive, IHit, IFSFlagMetadata } from '../types'
 import { VisitorAbstract } from './VisitorAbstract'
 import { FSFlag } from '../flag/FsFlags'
@@ -23,8 +23,8 @@ export class VisitorDelegate extends VisitorAbstract {
   }
 
   getFlag (key:string):IFSFlag {
-    if (this.fetchStatus.status !== FSFetchStatus.FETCHED && this.fetchStatus.status !== FSFetchStatus.FETCHING) {
-      logWarningSprintf(this.config, GET_FLAG, visitorFlagSyncStatusMessage(this.fetchStatus.reason), this.visitorId, key)
+    if (this.flagsStatus.status !== FSFetchStatus.FETCHED && this.flagsStatus.status !== FSFetchStatus.FETCHING) {
+      logWarningSprintf(this.config, GET_FLAG, visitorFlagSyncStatusMessage(this.flagsStatus.reason), this.visitorId, key)
     }
     return new FSFlag({ key, visitor: this })
   }
@@ -56,9 +56,7 @@ export class VisitorDelegate extends VisitorAbstract {
   }
 
   async fetchFlags ():Promise<void> {
-    await this.getStrategy().lookupVisitor()
     await this.getStrategy().fetchFlags()
-    await this.getStrategy().cacheVisitor()
   }
 
   visitorExposed (param:VisitorExposedParam): Promise<void> {

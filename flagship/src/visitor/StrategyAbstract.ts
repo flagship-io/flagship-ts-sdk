@@ -1,5 +1,5 @@
-import { Event, EventCategory, HitAbstract } from '../hit/index'
-import { primitive, IHit, VisitorCacheDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorCacheStatus, CampaignDTO } from '../types'
+import { EventCategory } from '../hit/index'
+import { primitive, IHit, VisitorCacheDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorCacheStatus, CampaignDTO, EAIScore } from '../types'
 import { IVisitor } from './IVisitor'
 import { VisitorAbstract } from './VisitorAbstract'
 import { DecisionMode, IConfigManager, IFlagshipConfig } from '../config/index'
@@ -8,12 +8,15 @@ import { logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, sprintf } f
 import { VISITOR_CACHE_ERROR, CONSENT_CHANGED, FS_CONSENT, LOOKUP_VISITOR_JSON_OBJECT_ERROR, PROCESS_CACHE, PROCESS_SET_CONSENT, SDK_APP, SDK_INFO, TRACKER_MANAGER_MISSING_ERROR, VISITOR_CACHE_VERSION, VISITOR_CACHE_FLUSHED, VISITOR_CACHE_LOADED, VISITOR_CACHE_SAVED, LogLevel, ANALYTIC_HIT_ALLOCATION } from '../enum/index'
 import { BatchDTO } from '../hit/Batch'
 import { ITrackingManager } from '../api/ITrackingManager'
-import { Troubleshooting } from '../hit/Troubleshooting'
+import { type Troubleshooting } from '../hit/Troubleshooting'
 import { MurmurHash } from '../utils/MurmurHash'
-import { UsageHit } from '../hit/UsageHit'
+import { type UsageHit } from '../hit/UsageHit'
+import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
+import { IVisitorEvent } from '../emotionAI/hit/IVisitorEvent'
+import { IPageView } from '../emotionAI/hit/IPageView'
+import { type HitAbstract } from '../hit/HitAbstract'
 import { DefaultHitCache } from '../cache/DefaultHitCache'
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache'
-import { GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object'
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO'
 
@@ -23,7 +26,7 @@ export type StrategyAbstractConstruct = {
   visitor:VisitorAbstract,
   murmurHash: MurmurHash
 }
-export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'anonymousId'| 'fetchStatus'|'flagsData'|'context'|'hasConsented'|'getFlagsDataArray'|'getFlag'|'getFlags'> {
+export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'anonymousId'| 'flagsStatus'|'flagsData'|'context'|'hasConsented'|'getFlagsDataArray'|'getFlag'|'getFlags'|'cleanup'> {
   protected visitor:VisitorAbstract
 
   protected get configManager ():IConfigManager {
@@ -48,6 +51,34 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     const { visitor, murmurHash } = param
     this.visitor = visitor
     this._murmurHash = murmurHash
+  }
+
+  collectEAIEventsAsync (currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> {
+    return this.visitor.emotionAi.collectEAIEventsAsync(currentPage)
+  }
+
+  reportEaiVisitorEvent (event: IVisitorEvent):void {
+    if (__fsWebpackIsBrowser__ || __fsWebpackIsReactNative__) {
+      import('../emotionAI/hit/VisitorEvent.ts').then(({ VisitorEvent }) => {
+        this.visitor.emotionAi.reportVisitorEvent(new VisitorEvent(event))
+      })
+    }
+  }
+
+  reportEaiPageView (pageView: IPageView):void {
+    if (__fsWebpackIsBrowser__ || __fsWebpackIsReactNative__) {
+      import('../emotionAI/hit/PageView.ts').then(({ PageView }) => {
+        this.visitor.emotionAi.reportPageView(new PageView(pageView))
+      })
+    }
+  }
+
+  onEAICollectStatusChange (callback: (status: boolean) => void):void {
+    this.visitor.emotionAi.onEAICollectStatusChange(callback)
+  }
+
+  cleanup ():void {
+    this.visitor.emotionAi.cleanup()
   }
 
   public updateCampaigns (campaigns:CampaignDTO[]):void {
@@ -78,41 +109,45 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       return
     }
 
-    const consentHit = new Event({
-      visitorId: this.visitor.visitorId,
-      anonymousId: this.visitor.anonymousId,
-      label: `${SDK_INFO.name}:${this.visitor.hasConsented}`,
-      action: FS_CONSENT,
-      category: EventCategory.USER_ENGAGEMENT
+    import('../hit/Event.ts').then(({ Event }) => {
+      const consentHit = new Event({
+        visitorId: this.visitor.visitorId,
+        anonymousId: this.visitor.anonymousId,
+        label: `${SDK_INFO.name}:${this.visitor.hasConsented}`,
+        action: FS_CONSENT,
+        category: EventCategory.USER_ENGAGEMENT
+      })
+
+      consentHit.qaMode = this.config.isQAModeEnabled
+
+      consentHit.ds = SDK_APP
+      consentHit.config = this.config
+      this.trackingManager.addHit(consentHit)
+
+      import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
+        const hitTroubleshooting = new Troubleshooting({
+
+          label: TroubleshootingLabel.VISITOR_SEND_HIT,
+          logLevel: LogLevel.INFO,
+          traffic: this.visitor.traffic || 0,
+          visitorId: this.visitor.visitorId,
+          visitorSessionId: this.visitor.instanceId,
+          flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+          anonymousId: this.visitor.anonymousId,
+          config: this.config,
+          hitContent: consentHit.toApiKeys()
+        })
+
+        if (this.decisionManager.troubleshooting) {
+          this.trackingManager.sendTroubleshootingHit(hitTroubleshooting)
+          return
+        }
+
+        this.visitor.consentHitTroubleshooting = hitTroubleshooting
+      })
     })
-
-    consentHit.qaMode = this.config.isQAModeEnabled
-
-    consentHit.ds = SDK_APP
-    consentHit.config = this.config
-
-    const hitTroubleshooting = new Troubleshooting({
-
-      label: TroubleshootingLabel.VISITOR_SEND_HIT,
-      logLevel: LogLevel.INFO,
-      traffic: this.visitor.traffic || 0,
-      visitorId: this.visitor.visitorId,
-      visitorSessionId: this.visitor.instanceId,
-      flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-      anonymousId: this.visitor.anonymousId,
-      config: this.config,
-      hitContent: consentHit.toApiKeys()
-    })
-    this.trackingManager.addHit(consentHit)
 
     logDebugSprintf(this.config, PROCESS_SET_CONSENT, CONSENT_CHANGED, this.visitor.visitorId, hasConsented)
-
-    if (this.decisionManager.troubleshooting) {
-      this.trackingManager.sendTroubleshootingHit(hitTroubleshooting)
-      return
-    }
-
-    this.visitor.consentHitTroubleshooting = hitTroubleshooting
   }
 
   protected checKLookupVisitorDataV1 (item:VisitorCacheDTO):boolean {
@@ -126,7 +161,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     if (!Array.isArray(campaigns)) {
       return false
     }
-    if ((this.visitor.visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE || this.visitor.visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE) && item.data.visitorId !== this.visitor.visitorId) {
+    if ((this.visitor.visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE || this.visitor.visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE_WITH_ANONYMOUS_ID_CACHE) && item.data.visitorId !== this.visitor.visitorId) {
       logInfoSprintf(this.config, PROCESS_CACHE, VISITOR_ID_MISMATCH_ERROR, item.data.visitorId, this.visitor.visitorId)
       return false
     }
@@ -147,7 +182,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
   public async lookupVisitor ():Promise<void> {
     try {
       const visitorCacheInstance = this.config.visitorCacheImplementation
-      if (this.config.disableCache || !visitorCacheInstance || !visitorCacheInstance.lookupVisitor || typeof visitorCacheInstance.lookupVisitor !== 'function') {
+      if (this.config.disableCache || typeof visitorCacheInstance?.lookupVisitor !== 'function' || this.visitor.visitorCache) {
         return
       }
       this.visitor.visitorCacheStatus = VisitorCacheStatus.NONE
@@ -155,13 +190,11 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       if (visitorCache) {
         this.visitor.visitorCacheStatus = VisitorCacheStatus.VISITOR_ID_CACHE
       }
-      if (this.visitor.anonymousId) {
+      if (this.visitor.anonymousId && !visitorCache) {
         const anonymousVisitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.anonymousId)
-        if (anonymousVisitorCache && !visitorCache) {
+        if (anonymousVisitorCache) {
           visitorCache = anonymousVisitorCache
           this.visitor.visitorCacheStatus = VisitorCacheStatus.ANONYMOUS_ID_CACHE
-        } else if (!anonymousVisitorCache && visitorCache) {
-          this.visitor.visitorCacheStatus = VisitorCacheStatus.VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE
         }
       }
 
@@ -176,13 +209,20 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       }
 
       this.visitor.visitorCache = visitorCache
+
+      if (this.visitor.visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE && this.visitor.anonymousId) {
+        const anonymousVisitorCache = await visitorCacheInstance.lookupVisitor(this.visitor.anonymousId)
+        if (anonymousVisitorCache) {
+          this.visitor.visitorCacheStatus = VisitorCacheStatus.VISITOR_ID_CACHE_WITH_ANONYMOUS_ID_CACHE
+        }
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logErrorSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_ERROR, this.visitor.visitorId, 'lookupVisitor', error.message || error)
     }
   }
 
-  public async cacheVisitor ():Promise<void> {
+  public async cacheVisitor (eAIScore?: EAIScore, isEAIDataCollected?:boolean):Promise<void> {
     try {
       const visitorCacheInstance = this.config.visitorCacheImplementation
 
@@ -198,6 +238,8 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
           anonymousId: this.visitor.anonymousId,
           consent: this.visitor.hasConsented,
           context: this.visitor.context,
+          eAIScore: this.visitor.visitorCache?.data?.eAIScore || eAIScore,
+          isEAIDataCollected: this.visitor.visitorCache?.data?.isEAIDataCollected || isEAIDataCollected,
           campaigns: this.visitor.campaigns.map(campaign => {
             assignmentsHistory[campaign.variationGroupId] = campaign.variation.id
             return {
@@ -220,18 +262,16 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
 
       const visitorCacheStatus = this.visitor.visitorCacheStatus
 
-      if (!visitorCacheStatus || visitorCacheStatus === VisitorCacheStatus.NONE || visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE_NOT_ANONYMOUS_ID_CACHE) {
-        if (this.visitor.anonymousId) {
-          const anonymousVisitorCacheDTO:VisitorCacheDTO = {
-            ...visitorCacheDTO,
-            data: {
-              ...visitorCacheDTO.data,
-              visitorId: this.visitor.anonymousId,
-              anonymousId: null
-            }
+      if (this.visitor.anonymousId && (visitorCacheStatus === VisitorCacheStatus.NONE || visitorCacheStatus === VisitorCacheStatus.VISITOR_ID_CACHE)) {
+        const anonymousVisitorCacheDTO:VisitorCacheDTO = {
+          ...visitorCacheDTO,
+          data: {
+            ...visitorCacheDTO.data,
+            visitorId: this.visitor.anonymousId,
+            anonymousId: null
           }
-          await visitorCacheInstance.cacheVisitor(this.visitor.anonymousId, anonymousVisitorCacheDTO)
         }
+        await visitorCacheInstance.cacheVisitor(this.visitor.anonymousId, anonymousVisitorCacheDTO)
       }
 
       logDebugSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_SAVED, this.visitor.visitorId, visitorCacheDTO)
@@ -256,6 +296,10 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     } catch (error:any) {
       logErrorSprintf(this.config, PROCESS_CACHE, VISITOR_CACHE_ERROR, this.visitor.visitorId, 'flushVisitor', error.message || error)
     }
+  }
+
+  public addInTrackingManager (hit: HitAbstract): Promise<void> {
+    return this.trackingManager.addHit(hit)
   }
 
     abstract updateContext(key: string, value: primitive):void
@@ -283,6 +327,19 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       await this.trackingManager.sendTroubleshootingHit(hit)
     }
 
+    public async sendUsageHit (hit: UsageHit): Promise<void> {
+      if (this.config.disableDeveloperUsageTracking) {
+        return
+      }
+      const traffic = this.visitor.analyticTraffic
+
+      if (traffic > ANALYTIC_HIT_ALLOCATION) {
+        return
+      }
+
+      return this.trackingManager.sendUsageHit(hit)
+    }
+
     public getCurrentDateTime () {
       return new Date()
     }
@@ -295,52 +352,53 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       if (this.config.disableDeveloperUsageTracking) {
         return
       }
-      const uniqueId = this.visitor.visitorId + this.getCurrentDateTime().toDateString()
-      const hash = this._murmurHash.murmurHash3Int32(uniqueId)
-      const traffic = hash % 1000
 
-      if (traffic > ANALYTIC_HIT_ALLOCATION) {
-        return
-      }
       const hitCacheImplementation = this.config.hitCacheImplementation
       const visitorCacheImplementation = this.config.visitorCacheImplementation
-      const sdkConfigUsingCustomHitCache = hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
-      const sdkConfigUsingCustomVisitorCache = visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
+      let sdkConfigUsingCustomHitCache = false
+      let sdkConfigUsingCustomVisitorCache = false
 
-      const analyticData = new UsageHit({
-        label: TroubleshootingLabel.SDK_CONFIG,
-        logLevel: LogLevel.INFO,
-        visitorId: this.visitor.sdkInitialData?.instanceId as string,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        config: this.config,
-        sdkStatus: this.visitor.getSdkStatus(),
-        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
-        lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
-        sdkConfigMode: this.getSdkConfigDecisionMode(),
-        sdkConfigLogLevel: this.config.logLevel,
-        sdkConfigTimeout: this.config.timeout,
-        sdkConfigPollingInterval: this.config.pollingInterval,
-        sdkConfigTrackingManagerStrategy: this.config.trackingManagerConfig?.cacheStrategy,
-        sdkConfigTrackingManagerBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
-        sdkConfigTrackingManagerPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
-        sdkConfigFetchNow: this.config.fetchNow,
-        sdkConfigReuseVisitorIds: this.config.reuseVisitorIds,
-        sdkConfigInitialBucketing: this.config.initialBucketing,
-        sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
-        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
-        sdkConfigUsingOnVisitorExposed: !!this.config.onVisitorExposed,
-        sdkConfigUsingCustomHitCache: !!sdkConfigUsingCustomHitCache,
-        sdkConfigUsingCustomVisitorCache: !!sdkConfigUsingCustomVisitorCache,
-        sdkConfigFetchThirdPartyData: this.config.fetchThirdPartyData,
-        sdkConfigFetchFlagsBufferingTime: this.config.fetchFlagsBufferingTime,
-        sdkConfigDisableDeveloperUsageTracking: this.config.disableDeveloperUsageTracking,
-        sdkConfigNextFetchConfig: this.config.nextFetchConfig,
-        sdkConfigDisableCache: this.config.disableCache
+      if (__fsWebpackIsBrowser__) {
+        sdkConfigUsingCustomHitCache = !!hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
+        sdkConfigUsingCustomVisitorCache = !!visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
+      }
+
+      import('../hit/UsageHit.ts').then(({ UsageHit }) => {
+        const analyticData = new UsageHit({
+          label: TroubleshootingLabel.SDK_CONFIG,
+          logLevel: LogLevel.INFO,
+          visitorId: this.visitor.sdkInitialData?.instanceId as string,
+          flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+          config: this.config,
+          sdkStatus: this.visitor.getSdkStatus(),
+          lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+          lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
+          sdkConfigMode: this.getSdkConfigDecisionMode(),
+          sdkConfigLogLevel: this.config.logLevel,
+          sdkConfigTimeout: this.config.timeout,
+          sdkConfigPollingInterval: this.config.pollingInterval,
+          sdkConfigTrackingManagerStrategy: this.config.trackingManagerConfig?.cacheStrategy,
+          sdkConfigTrackingManagerBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
+          sdkConfigTrackingManagerPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
+          sdkConfigFetchNow: this.config.fetchNow,
+          sdkConfigReuseVisitorIds: this.config.reuseVisitorIds,
+          sdkConfigInitialBucketing: this.config.initialBucketing,
+          sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
+          sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime,
+          sdkConfigUsingOnVisitorExposed: !!this.config.onVisitorExposed,
+          sdkConfigUsingCustomHitCache: !!sdkConfigUsingCustomHitCache,
+          sdkConfigUsingCustomVisitorCache: !!sdkConfigUsingCustomVisitorCache,
+          sdkConfigFetchThirdPartyData: this.config.fetchThirdPartyData,
+          sdkConfigFetchFlagsBufferingTime: this.config.fetchFlagsBufferingTime,
+          sdkConfigDisableDeveloperUsageTracking: this.config.disableDeveloperUsageTracking,
+          sdkConfigNextFetchConfig: this.config.nextFetchConfig,
+          sdkConfigDisableCache: this.config.disableCache
+        })
+        this.sendUsageHit(analyticData)
       })
-      await this.trackingManager.sendUsageHit(analyticData)
     }
 
-    sendFetchFlagsTroubleshooting ({ isFromCache, campaigns, now }:{isFromCache: boolean, campaigns:CampaignDTO[], now: number }) {
+    async sendFetchFlagsTroubleshooting ({ isFromCache, campaigns, now }:{isFromCache: boolean, campaigns:CampaignDTO[], now: number }) {
       const assignmentHistory: Record<string, string> = {}
 
       this.visitor.flagsData.forEach(item => {
@@ -355,8 +413,14 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
 
       const hitCacheImplementation = this.config.hitCacheImplementation
       const visitorCacheImplementation = this.config.visitorCacheImplementation
-      const sdkConfigUsingCustomHitCache = hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
-      const sdkConfigUsingCustomVisitorCache = visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
+      let sdkConfigUsingCustomHitCache = false
+      let sdkConfigUsingCustomVisitorCache = false
+
+      if (__fsWebpackIsBrowser__) {
+        sdkConfigUsingCustomHitCache = !!hitCacheImplementation && !(hitCacheImplementation instanceof DefaultHitCache)
+        sdkConfigUsingCustomVisitorCache = !!visitorCacheImplementation && !(visitorCacheImplementation instanceof DefaultVisitorCache)
+      }
+      const { Troubleshooting } = await import('../hit/Troubleshooting.ts')
 
       const fetchFlagTroubleshooting = new Troubleshooting({
         label: TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS,
@@ -402,7 +466,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         sdkConfigDisableCache: this.config.disableCache
       })
 
-      this.sendTroubleshootingHit(fetchFlagTroubleshooting)
+      await this.sendTroubleshootingHit(fetchFlagTroubleshooting)
     }
 
     sendConsentHitTroubleshooting () {
