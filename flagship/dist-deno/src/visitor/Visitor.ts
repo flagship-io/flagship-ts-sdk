@@ -79,8 +79,8 @@ export class Visitor extends EventEmitter implements IVisitor {
   /**
    * @inheritdoc
    */
-  public get fetchStatus () {
-    return this.visitorDelegate.fetchStatus
+  public get flagsStatus () {
+    return this.visitorDelegate.flagsStatus
   }
 
   /**
