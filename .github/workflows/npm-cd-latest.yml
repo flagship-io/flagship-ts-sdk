@@ -1,8 +1,8 @@
-name: NPM CD
+name: NPM RELEASE
 on:
   push:
     tags: 
-      - 4.[0-9]+.[0-9]+
+      - 5.[0-9]+.[0-9]+
 jobs:
   build:
     runs-on: ubuntu-latest
