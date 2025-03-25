@@ -33,7 +33,16 @@ module.exports = merge(common(), {
                 [
                   '@babel/preset-env',
                   {
-                    targets: '>0.3%, last 2 versions, not dead',
+                    targets: {
+                      browsers: [
+                        '>0.3%',
+                        'last 2 versions',
+                        'ie >= 11',
+                        'safari >= 7',
+                        'edge >= 12'
+                      ],
+                      safari: '7'
+                    },
                     useBuiltIns: 'usage',
                     corejs: 3
                   }
