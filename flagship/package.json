@@ -24,7 +24,7 @@
       },
       "browser": {
         "import": "./dist/index.browser.esm.js",
-        "require": "./dist/index.browser.umd.js"
+        "require": "./dist/index.browser.commonjs.js"
       },
       "react-native": {
         "import": "./dist/index.react-native.esm.js",
