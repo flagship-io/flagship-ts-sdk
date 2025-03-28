@@ -1,8 +1,8 @@
- 
+
 const { merge } = require('webpack-merge')
- 
+
 const common = require('../webpack.common.cjs')
- 
+
 const webpack = require('webpack')
 
 module.exports = () =>
@@ -21,6 +21,9 @@ module.exports = () =>
         __fsWebpackIsNode__: JSON.stringify(true),
         __fsWebpackIsEdgeWorker__: JSON.stringify(false),
         __fsWebpackIsDeno__: JSON.stringify(false)
+      }),
+      new webpack.optimize.LimitChunkCountPlugin({
+        maxChunks: 1
       })
     ]
   })
