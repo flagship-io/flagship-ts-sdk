@@ -11,8 +11,6 @@ import { Flagship } from '../../src/main/Flagship'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 import * as utils from '../../src/utils/utils'
 import { Visitor } from '../../src/visitor/Visitor'
-import { DefaultVisitorCache } from '../../src/cache/DefaultVisitorCache'
-import { DefaultHitCache } from '../../src/cache/DefaultHitCache'
 import { EdgeConfig } from '../../src/config/EdgeConfig'
 import { NewVisitor } from '../../src'
 import * as qaAssistant from '../../src/qaAssistant'
@@ -234,7 +232,7 @@ describe('test Flagship with custom config (Bucketing Edge)', () => {
   })
 })
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const getNull = (): any => {
   return null
 }

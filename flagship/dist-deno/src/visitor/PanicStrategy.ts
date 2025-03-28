@@ -39,12 +39,12 @@ export class PanicStrategy extends DefaultStrategy {
     return []
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   async sendHit (_hit: HitAbstract | IHit| BatchDTO): Promise<void> {
     this.log('sendHit')
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   async sendHits (_hits: HitAbstract[] | IHit[]|BatchDTO[]): Promise<void> {
     this.log('sendHits')
   }
@@ -64,16 +64,16 @@ export class PanicStrategy extends DefaultStrategy {
     return emptyMetaData
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   public async sendTroubleshootingHit (): Promise<void> {
     //
   }
 
-  public async sendSdkConfigAnalyticHit () {
+  public async sendSdkConfigAnalyticHit (): Promise<void> {
     //
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   protected async sendActivate (_flagDto: FlagDTO, _defaultValue?: unknown): Promise<void> {
     //
   }
@@ -98,7 +98,7 @@ export class PanicStrategy extends DefaultStrategy {
     //
   }
 
-  private log (methodName:string) {
+  private log (methodName:string):void {
     logInfoSprintf(this.config, methodName, METHOD_DEACTIVATED_ERROR, this.visitor.visitorId, methodName, FSSdkStatus[FSSdkStatus.SDK_PANIC])
   }
 }

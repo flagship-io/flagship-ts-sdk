@@ -69,7 +69,7 @@ describe('Qa Assistant', () => {
     const config = new DecisionApiConfig()
     config.isQAModeEnabled = false
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     delete (window as any).location
     window.location = { ...location, search: `?${FS_QA_ASSISTANT}=true` } as Location & string
 
@@ -83,7 +83,7 @@ describe('Qa Assistant', () => {
     const config = new DecisionApiConfig()
     config.isQAModeEnabled = false
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     delete (window as any).location
     window.location = { ...location, search: `?${FS_QA_ASSISTANT_STAGING}=true` } as Location & string
 
@@ -97,7 +97,7 @@ describe('Qa Assistant', () => {
     const config = new DecisionApiConfig()
     config.isQAModeEnabled = false
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     delete (window as any).location
     window.location = { ...location, search: `?${FS_QA_ASSISTANT_LOCAL}=true` } as Location & string
 
@@ -115,7 +115,7 @@ describe('Qa Assistant', () => {
     const config = new DecisionApiConfig()
     config.isQAModeEnabled = false
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     delete (window as any).location
     window.location = { ...location, search: `?${FS_QA_ASSISTANT}=true` } as Location & string
 

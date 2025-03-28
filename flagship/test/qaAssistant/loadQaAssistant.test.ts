@@ -81,7 +81,7 @@ describe('Test loadQaAssistant', () => {
       //
     })
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     addEventListenerSpy.mockImplementation((type, listener:any) => {
       listener()
     })

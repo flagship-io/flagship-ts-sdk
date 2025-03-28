@@ -67,7 +67,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
   const analyticHitQueue = new Map<string, UsageHit>()
   const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const cacheHitSpy = jest.spyOn(batchingStrategy as any, 'cacheHit')
 
   const sendTroubleshootingHitSpy = jest.spyOn(batchingStrategy, 'sendTroubleshootingHit')
@@ -231,7 +231,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
 
     expect(cacheHitSpy).toBeCalledTimes(1)
     expect(flushHitsSpy).toBeCalledTimes(0)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     let cacheHitKeys = Object.keys((batchingStrategy as any).cacheHitKeys)
     expect(cacheHitKeys.length).toBe(1)
 
@@ -262,7 +262,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(flushHitsSpy).toBeCalledTimes(1)
 
     expect(flushHitsSpy).toHaveBeenCalledWith(expect.arrayContaining([expect.stringContaining(visitorId)]))
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     cacheHitKeys = Object.keys((batchingStrategy as any).cacheHitKeys)
 
     expect(cacheHitKeys.length).toBe(0)
@@ -369,7 +369,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
 
     expect(cacheHitSpy).toBeCalledTimes(1)
     expect(flushHitsSpy).toBeCalledTimes(0)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const cacheHitKeys = Object.keys((batchingStrategy as any).cacheHitKeys)
     expect(cacheHitKeys.length).toBe(1)
 
@@ -414,7 +414,7 @@ describe('test sendBatch method', () => {
   const analyticHitQueue = new Map<string, UsageHit>()
   const batchingStrategy = new NoBatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const cacheHitSpy = jest.spyOn(batchingStrategy as any, 'cacheHit')
 
   const flushHitsSpy = jest.spyOn(batchingStrategy, 'flushHits')
@@ -443,7 +443,7 @@ describe('test sendBatch method', () => {
 
   const urlActivate = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
   it('test sendBatch method success', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
 
     postAsync.mockResolvedValue({ status: 200, body: null })
 
@@ -494,7 +494,7 @@ describe('test sendBatch method', () => {
   })
 
   it('test sendBatch method hit expired', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
 
     postAsync.mockResolvedValue({ status: 200, body: null })
 
@@ -544,7 +544,7 @@ describe('test sendBatch method', () => {
     const error = 'message error'
     postAsync.mockRejectedValue(error)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const sendTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'sendTroubleshootingHit')
 
     config.logLevel = LogLevel.ALL

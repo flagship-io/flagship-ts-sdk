@@ -30,10 +30,10 @@ describe('Test BatchingPeriodicCachingStrategy', () => {
     const analyticHitQueue = new Map<string, UsageHit>()
     const batchingStrategy = new BatchingPeriodicCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const flushAllHits = jest.spyOn(batchingStrategy as any, 'flushAllHits')
 
     const pageHit1 = new Page({
@@ -167,7 +167,7 @@ describe('test sendBatch method', () => {
   const analyticHitQueue = new Map<string, UsageHit>()
   const batchingStrategy = new BatchingPeriodicCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const cacheHitSpy = jest.spyOn(batchingStrategy as any, 'cacheHit')
 
   const flushHitsSpy = jest.spyOn(batchingStrategy, 'flushHits')
@@ -246,7 +246,7 @@ describe('test sendBatch method', () => {
   })
 
   it('test sendBatch method hit expired', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
 
     postAsync.mockResolvedValue({ status: 200, body: null })
 
@@ -293,7 +293,7 @@ describe('test sendBatch method', () => {
   })
 
   it('test sendBatch with poolMaxSize', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
 
     postAsync.mockResolvedValue({ status: 200, body: null })
 
@@ -332,7 +332,7 @@ describe('test sendBatch method', () => {
     const error = 'message error'
     postAsync.mockRejectedValue(error)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const addTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'addTroubleshootingHit')
 
     const batch:Batch = new Batch({ hits: [globalPageHit] })
@@ -458,7 +458,7 @@ describe('test activateFlag method', () => {
   const analyticHitQueue = new Map<string, UsageHit>()
   const batchingStrategy = new BatchingPeriodicCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const cacheHitSpy = jest.spyOn(batchingStrategy as any, 'cacheHit')
 
   const flushHitsSpy = jest.spyOn(batchingStrategy, 'flushHits')
@@ -478,7 +478,7 @@ describe('test activateFlag method', () => {
   }
   const urlActivate = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
   it('test activate success', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
 
     postAsync.mockResolvedValue({ status: 200, body: null })
 
@@ -638,7 +638,7 @@ describe('test activateFlag method', () => {
     const error = 'message error'
     postAsync.mockRejectedValue(error)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const sendTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'sendTroubleshootingHit')
 
     const activateHit = new Activate({

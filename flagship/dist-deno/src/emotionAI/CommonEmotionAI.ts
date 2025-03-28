@@ -11,6 +11,7 @@ import { VisitorAbstract } from '../visitor/VisitorAbstract.ts'
 import { VisitorEvent } from './hit/VisitorEvent.ts'
 import { LogLevel } from '../enum/index.ts'
 import { UsageHit } from '../hit/UsageHit.ts'
+import { HttpError } from '../utils/HttpError.ts.ts'
 
 type ConstructorParam = {
   httpClient: IHttpClient;
@@ -86,6 +87,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     })
   }
 
+  // eslint-disable-next-line max-params
   protected sendRequestTroubleshooting (response:IHttpResponse,
     label: TroubleshootingLabel,
     endpoint?:string,
@@ -112,7 +114,7 @@ export abstract class CommonEmotionAI implements IEmotionAI {
     })
   }
 
-  protected sendRequestTroubleshootingError (error: any,
+  protected sendRequestTroubleshootingError (error: HttpError,
     label: TroubleshootingLabel,
     endpoint?:string,
     apiKeys?:Record<string, boolean | string | number>): void {

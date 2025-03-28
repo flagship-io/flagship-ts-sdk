@@ -4,7 +4,7 @@ import { FsVariationToForce } from '../../types.ts'
 import { EventDataFromIframe, INTERNAL_EVENTS } from '../type.ts'
 import { IFlagshipConfig } from '../../config/IFlagshipConfig.ts'
 
-export function onQaAssistantReady () {
+export function onQaAssistantReady ():void {
   if (window.flagship?.visitorVariations) {
     sendVisitorAllocatedVariations(window.flagship?.visitorVariations)
   }
@@ -13,7 +13,7 @@ export function onQaAssistantReady () {
   }
 }
 
-export function render (forcedReFetchFlags = false) {
+export function render (forcedReFetchFlags = false):void {
   if (SDK_INFO.name === 'TypeScript') {
     window.location.reload()
   }
@@ -25,7 +25,7 @@ export function render (forcedReFetchFlags = false) {
   window.dispatchEvent(triggerRenderEvent)
 }
 
-export function onQaAssistantClose ({ config, func }:{config:IFlagshipConfig, func?: (event: MessageEvent<EventDataFromIframe>) => void}) {
+export function onQaAssistantClose ({ config, func }:{config:IFlagshipConfig, func?: (event: MessageEvent<EventDataFromIframe>) => void}):void {
   config.isQAModeEnabled = false
   sessionStorage.removeItem(FS_IS_QA_MODE_ENABLED)
   if (func) {
@@ -40,7 +40,7 @@ export function onQaAssistantClose ({ config, func }:{config:IFlagshipConfig, fu
   render()
 }
 
-export function onApplyForcedVariations ({ value }:{ value:Record<string, FsVariationToForce>}) {
+export function onApplyForcedVariations ({ value }:{ value:Record<string, FsVariationToForce>}):void {
   const sessionForcedVariations = sessionStorage.getItem(FS_FORCED_VARIATIONS)
   let forcedVariations: Record<string, FsVariationToForce> = {}
   try {
@@ -59,7 +59,7 @@ export function onApplyForcedVariations ({ value }:{ value:Record<string, FsVari
   render()
 }
 
-export function onResetForcedVariations () {
+export function onResetForcedVariations ():void {
   sessionStorage.removeItem(FS_FORCED_VARIATIONS)
 
   window.flagship = {

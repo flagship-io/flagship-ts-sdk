@@ -42,17 +42,17 @@ export class NoConsentStrategy extends DefaultStrategy {
     return []
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   async sendHit (_hit: HitAbstract | IHit| BatchDTO): Promise<void> {
     this.log('sendHit')
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   async sendHits (_hits: HitAbstract[] | IHit[] |BatchDTO[]): Promise<void> {
     this.log('sendHits')
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   protected async sendActivate (_flagDto: FlagDTO, _defaultValue?: unknown): Promise<void> {
     //
   }
@@ -61,7 +61,7 @@ export class NoConsentStrategy extends DefaultStrategy {
     this.log(FLAG_VISITOR_EXPOSED)
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   public async sendTroubleshootingHit (): Promise<void> {
     //
   }
@@ -70,7 +70,7 @@ export class NoConsentStrategy extends DefaultStrategy {
     //
   }
 
-  private log (methodName:string) {
+  private log (methodName:string):void {
     logInfo(this.config, sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, this.visitor.visitorId), methodName)
   }
 }

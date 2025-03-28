@@ -7,11 +7,11 @@ import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstra
 import { SendActivate } from './types'
 
 export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbstract {
-  async addHitInPoolQueue (hit: HitAbstract) {
+  async addHitInPoolQueue (hit: HitAbstract): Promise<void> {
     this._hitsPoolQueue.set(hit.key, hit)
   }
 
-  async sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate) {
+  async sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate): Promise<void> {
     const headers = {
       [HEADER_X_API_KEY]: this.config.apiKey as string,
       [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
@@ -112,7 +112,7 @@ export class BatchingPeriodicCachingStrategy extends BatchingCachingStrategyAbst
 
     let batchSize = 0
     const hitKeysToRemove:string[] = []
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     for (const [key, item] of this._hitsPoolQueue) {
       if ((Date.now() - item.createdAt) >= DEFAULT_HIT_CACHE_TIME_MS) {
         hitKeysToRemove.push(key)

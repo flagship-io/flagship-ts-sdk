@@ -16,3 +16,4 @@ flagship/dist
 flagship/stats.json
 ariane.mock.json
 demo/**/*
+flagship/.yarn/install-state.gz

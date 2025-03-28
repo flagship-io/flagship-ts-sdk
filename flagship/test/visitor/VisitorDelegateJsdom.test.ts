@@ -30,7 +30,7 @@ describe('test sendExposedVariation', () => {
   const isBrowserSpy = jest.spyOn(utils, 'isBrowser')
   const sendVisitorExposedVariationsSpy = jest.spyOn(messages, 'sendVisitorExposedVariations')
   const visitorId = 'visitorId'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {
     isVip: true
   }

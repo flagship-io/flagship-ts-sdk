@@ -287,7 +287,7 @@ export class DefaultStrategy extends StrategyAbstract {
     return newHit
   }
 
-  private async prepareAndSendHit (hit: IHit | HitAbstract, functionName = PROCESS_SEND_HIT) {
+  private async prepareAndSendHit (hit: IHit | HitAbstract, functionName = PROCESS_SEND_HIT):Promise<void> {
     let hitInstance: HitAbstract
 
     if (!hit?.type) {
@@ -420,7 +420,7 @@ export class DefaultStrategy extends StrategyAbstract {
     logDebugSprintf(this.config, UNAUTHENTICATE, VISITOR_UNAUTHENTICATE, this.visitor.visitorId)
   }
 
-  handleFetchFlagsError (error: unknown, now: number, campaigns: CampaignDTO[] | null) {
+  handleFetchFlagsError (error: unknown, now: number, campaigns: CampaignDTO[] | null):void {
     this.visitor.emit(EMIT_READY, error)
 
     const message = error instanceof Error ? error.message : error as string
@@ -571,7 +571,7 @@ export class DefaultStrategy extends StrategyAbstract {
     })
   }
 
-  handleNoCampaigns (now:number) {
+  handleNoCampaigns (now:number) :CampaignDTO[] | null {
     const campaigns = this.fetchCampaignsFromCache(this.visitor)
     if (campaigns) {
       this.visitor.flagsStatus = {
@@ -593,7 +593,7 @@ export class DefaultStrategy extends StrategyAbstract {
     return campaigns
   }
 
-  sendVisitorAllocatedVariations () {
+  sendVisitorAllocatedVariations ():void {
     if (__fsWebpackIsBrowser__) {
       const visitorAllocatedVariations: Record<string, VisitorVariations> = {}
 
@@ -742,7 +742,7 @@ export class DefaultStrategy extends StrategyAbstract {
     await this.sendActivate(flag, defaultValue)
   }
 
-  private sendFlagTroubleshooting (label: TroubleshootingLabel, key: string, defaultValue: unknown, visitorExposed?: boolean) {
+  private sendFlagTroubleshooting (label: TroubleshootingLabel, key: string, defaultValue: unknown, visitorExposed?: boolean):void {
     import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const troubleshooting = new Troubleshooting({
         label,
@@ -792,7 +792,7 @@ export class DefaultStrategy extends StrategyAbstract {
     return flag.value as T extends null ? unknown : T
   }
 
-  private SendFlagMetadataTroubleshooting (key: string) {
+  private SendFlagMetadataTroubleshooting (key: string):void {
     logWarningSprintf(this.config, FLAG_METADATA, NO_FLAG_METADATA, this.visitor.visitorId, key)
     import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const monitoring = new Troubleshooting({

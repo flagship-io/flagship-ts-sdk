@@ -14,10 +14,14 @@
     "source.fixAll.eslint": "explicit"
   },
   "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "vscode.typescript-language-features"
   },
   "[typescript]": {
     "editor.defaultFormatter": null
   },
-  "deno.enable": false,
+  "deno.enable": true,
+  "deno.enablePaths": [
+    "flagship/src/depsDeno.ts",
+    "flagship/dist-deno",
+  ]
 }

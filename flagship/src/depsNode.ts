@@ -3,9 +3,11 @@ import fetch from 'node-fetch'
 function getHttpAgent ():Record<string, unknown> {
   const globalOption:Record<string, unknown> = {}
   if (typeof window === 'undefined') {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { Agent: HttpAgent } = require('http')
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { Agent: HttpAgents } = require('https')
     globalOption.agent = (parsedURL:URL) => {
       return parsedURL.protocol === 'http:' ? new HttpAgent({ keepAlive: true }) : new HttpAgents({ keepAlive: true })

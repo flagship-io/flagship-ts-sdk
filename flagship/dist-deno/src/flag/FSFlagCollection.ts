@@ -48,7 +48,9 @@ export class FSFlagCollection implements IFSFlagCollection {
   public get (key: string): IFSFlag {
     const flag = this._flags.get(key)
     if (!flag) {
-      this._visitor?.config && logWarningSprintf(this._visitor?.config, GET_FLAG, GET_FLAG_NOT_FOUND, this._visitor?.visitorId, key)
+      if (this._visitor?.config) {
+        logWarningSprintf(this._visitor.config, GET_FLAG, GET_FLAG_NOT_FOUND, this._visitor.visitorId, key)
+      }
       return new FSFlag({ key })
     }
     return flag

@@ -263,7 +263,7 @@ export class BucketingManager extends DecisionManager {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private testListOperatorLoop (operator: string, contextValue: primitive, value: any[], initialCheck: boolean) {
+  private testListOperatorLoop (operator: string, contextValue: primitive, value: any[], initialCheck: boolean):boolean {
     let check = initialCheck
     for (const v of value) {
       check = this.testOperator(operator, contextValue, v)
@@ -287,7 +287,7 @@ export class BucketingManager extends DecisionManager {
   private testOperator (operator: string, contextValue: primitive, value: any): boolean {
     let check: boolean
     if (Array.isArray(value)) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       return this.testListOperator(operator, contextValue, value)
     }
     switch (operator) {

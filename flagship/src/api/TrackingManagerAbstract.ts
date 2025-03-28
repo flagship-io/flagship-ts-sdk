@@ -184,7 +184,7 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   }
 
   protected async processCachedHits (hitsCache:Record<string, HitCacheDTO>):Promise<void> {
-    const checkHitTime = (time:number) => (((Date.now() - time)) <= DEFAULT_HIT_CACHE_TIME_MS)
+    const checkHitTime = (time:number):boolean => (((Date.now() - time)) <= DEFAULT_HIT_CACHE_TIME_MS)
 
     const wrongHitKeys:string[] = []
     const entries = Object.entries(hitsCache)

@@ -18,12 +18,12 @@ import { FSFetchReasons } from '../../src/enum/FSFetchReasons'
 import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const getUndefined = ():any => undefined
 
 describe('test visitor cache', () => {
   const visitorId = 'visitorId'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {
     isVip: true
   }
@@ -71,7 +71,7 @@ describe('test visitor cache', () => {
 
   const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, onFlagsStatusChanged: OnFlagStatusChanged, emotionAi })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const getStrategy = jest.spyOn(visitorDelegate, 'getStrategy' as any)
 
   const murmurHash = new MurmurHash()
@@ -399,7 +399,7 @@ describe('test visitor cache', () => {
 
 describe('test visitor cache status', () => {
   const visitorId = 'visitorId'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {
     isVip: true
   }
@@ -572,7 +572,7 @@ describe('test visitor cache status', () => {
 
 describe('test visitorCache with disabledCache', () => {
   const visitorId = 'visitorId'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {
     isVip: true
   }

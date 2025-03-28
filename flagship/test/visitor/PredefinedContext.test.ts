@@ -15,7 +15,7 @@ import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 
 describe('test DefaultStrategy ', () => {
   const visitorId = 'visitorId'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {
     isVip: true
   }

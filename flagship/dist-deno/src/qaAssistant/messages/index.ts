@@ -9,7 +9,7 @@ export function sendMessageToIframe (data: EventDataToIframe): void {
   window.frames.ABTastyQaAssistant.postMessage(data, '*')
 }
 
-export function sendVisitorAllocatedVariations (visitorVariations: Record<string, VisitorVariations>) {
+export function sendVisitorAllocatedVariations (visitorVariations: Record<string, VisitorVariations>):void {
   if (!isBrowser()) {
     return
   }
@@ -21,11 +21,11 @@ export function sendVisitorAllocatedVariations (visitorVariations: Record<string
   sendMessageToIframe({ name: MSG_NAME_TO_IFRAME.FsUpdateVisitorAllocatedVariation, value: visitorVariations })
 }
 
-export function sendVisitorExposedVariations (visitorVariations: Record<string, VisitorVariations>) {
+export function sendVisitorExposedVariations (visitorVariations: Record<string, VisitorVariations>):void {
   sendMessageToIframe({ name: MSG_NAME_TO_IFRAME.FsVisitorExposedVariation, value: visitorVariations })
 }
 
-export function sendFsHitToQA (hit: Record<string, unknown>[]) {
+export function sendFsHitToQA (hit: Record<string, unknown>[]):void {
   sendMessageToIframe({
     name: MSG_NAME_TO_IFRAME.FsHIT,
     value: hit.map(item => {

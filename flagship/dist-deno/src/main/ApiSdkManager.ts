@@ -40,7 +40,7 @@ export class ApiSdkManager implements ISdkManager {
   protected sendTroubleshooting (accountSettings:AccountSettings,
     url: string,
     response: IHttpResponse | undefined,
-    now: number) {
+    now: number):void {
     import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const troubleshooting = new Troubleshooting({
         flagshipInstanceId: this._flagshipInstanceId,
@@ -65,7 +65,7 @@ export class ApiSdkManager implements ISdkManager {
     url: string,
     error: { message: string, headers: Record<string, string>, status: number },
     now: number
-  ) {
+  ):void {
     import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const troubleshootingHit = new Troubleshooting({
         visitorId: this._flagshipInstanceId,
@@ -92,6 +92,7 @@ export class ApiSdkManager implements ISdkManager {
       const response = await this._httpClient.getAsync(url)
       this._EAIConfig = response.body.accountSettings
       this.sendTroubleshooting(response.body.accountSettings, url, response, now)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
       logErrorSprintf(this._config, 'Error while fetching EAI config: {0}', error?.message || error)
       this.sendErrorTroubleshooting(url, error, now)

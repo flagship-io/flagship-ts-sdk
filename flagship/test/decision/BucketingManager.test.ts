@@ -30,7 +30,7 @@ describe('test BucketingManager', () => {
 
   const bucketingManager = new BucketingManager({ httpClient, config, murmurHash, sdkManager })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const sendContext = jest.spyOn(bucketingManager as any, 'sendContext')
 
   const trackingManager = new TrackingManager(httpClient, config)
@@ -118,7 +118,7 @@ describe('test getCampaignsAsync campaign with thirdPartySegment', () => {
 
   const bucketingManager = new BucketingManager({ httpClient, config, murmurHash, sdkManager })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const sendContext = jest.spyOn(bucketingManager as any, 'sendContext')
 
   const trackingManager = new TrackingManager(httpClient, config)
@@ -206,7 +206,7 @@ describe('test sendContext', () => {
 
   const logError = jest.spyOn(logManager, 'error')
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const bucketingManager = new BucketingManager({ httpClient, config, murmurHash, sdkManager }) as any
 
   const visitorId = 'visitor_1'
@@ -299,7 +299,7 @@ describe('test bucketing method', () => {
   } as unknown as ISdkManager
 
   const bucketingManager = new BucketingManager({ httpClient, config, murmurHash, sdkManager })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const bucketingManagerAny = bucketingManager as any
 
   const visitorId = '123456'
@@ -384,7 +384,7 @@ describe('test bucketing method', () => {
     }
     const localVariation = variationGroups.variations.filter(x => x.id !== 'c20j8bk3fk9hdphqtd30')
     const response = bucketingManagerAny.getVariation({ ...variationGroups, variations: localVariation }, visitor)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     expect(response).toBeNull()
   })
 
@@ -956,7 +956,7 @@ describe('test getThirdPartySegment', () => {
     getBucketingContent
   } as unknown as ISdkManager
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const bucketingManager = new BucketingManager({ httpClient, config, murmurHash, sdkManager })
 
   const trackingManager = new TrackingManager(httpClient, config)

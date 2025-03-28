@@ -16,7 +16,7 @@ export function sprintf (format: string, ...value: any[]): string {
   return formatted
 }
 
-export function logErrorSprintf (config: IFlagshipConfig, tag: string, message: string, ...arg: unknown[]) {
+export function logErrorSprintf (config: IFlagshipConfig, tag: string, message: string, ...arg: unknown[]):void {
   if (!config || !config.logLevel || config.logLevel < LogLevel.ERROR) {
     return
   }
@@ -42,7 +42,7 @@ export function logError (
   }
 }
 
-export function logWarningSprintf (config: IFlagshipConfig, tag: string, message: string, ...arg: unknown[]) {
+export function logWarningSprintf (config: IFlagshipConfig, tag: string, message: string, ...arg: unknown[]):void {
   if (!config || !config.logLevel || config.logLevel < LogLevel.WARNING) {
     return
   }
@@ -68,7 +68,7 @@ export function logWarning (
   }
 }
 
-export function logInfoSprintf (config: IFlagshipConfig, tag: string, message: string, ...arg: unknown[]) {
+export function logInfoSprintf (config: IFlagshipConfig, tag: string, message: string, ...arg: unknown[]):void {
   if (!config || !config.logLevel || config.logLevel < LogLevel.INFO) {
     return
   }
@@ -142,7 +142,7 @@ export function errorFormat (message:string, errorData?:Record<string, unknown>)
   })
 }
 
-export function visitorFlagSyncStatusMessage (reason: FSFetchReasons) {
+export function visitorFlagSyncStatusMessage (reason: FSFetchReasons): string {
   let message = ''
   switch (reason) {
     case FSFetchReasons.FLAGS_NEVER_FETCHED:
@@ -204,6 +204,7 @@ export function hexToValue (hex: string, config: IFlagshipConfig): {v: unknown} 
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function deepEqual (obj1: any, obj2: any): boolean {
   if (obj1 === obj2) return true
 

@@ -23,7 +23,11 @@ export interface IHttpClient {
 }
 
 export class HttpClient implements IHttpClient {
-  private async getResponse (response:Response) {
+  private async getResponse (response:Response): Promise<{
+    status: number;
+    body: Record<string, unknown> | undefined;
+    headers: Record<string, string>;
+}> {
     const applicationType = response.headers.get('Content-Type')
     const checkJson = applicationType?.includes('application/json')
     let body:Record<string, unknown>|undefined

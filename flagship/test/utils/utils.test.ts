@@ -167,7 +167,7 @@ describe('Test hexToValue function', () => {
   config.logManager = logManager
 
   it('should return null for invalid hex string', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const result = hexToValue(true as any, config)
     expect(result).toBeNull()
     expect(errorMethod).toBeCalledTimes(1)

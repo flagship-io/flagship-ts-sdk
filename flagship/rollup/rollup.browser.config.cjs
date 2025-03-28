@@ -1,13 +1,13 @@
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+ 
 const typescript = require('@rollup/plugin-typescript')
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+ 
 const resolve = require('@rollup/plugin-node-resolve')
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+ 
 const replace = require('@rollup/plugin-replace')
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+ 
 const terser = require('@rollup/plugin-terser')
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+ 
 const alias = require('@rollup/plugin-alias')
 
 const isProduction = process.env.NODE_ENV === 'production'

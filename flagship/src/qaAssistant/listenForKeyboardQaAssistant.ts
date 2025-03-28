@@ -7,7 +7,7 @@ import { loadQaAssistant } from './loadQaAssistant'
  *
  * @param config
  */
-export function listenForKeyboardQaAssistant (config: IFlagshipConfig) {
+export function listenForKeyboardQaAssistant (config: IFlagshipConfig):void {
   logInfoSprintf(config, 'QA assistant', 'Listening for keyboard events to launch QA Assistant')
 
   const keysPressed: Record<string, boolean> = {}

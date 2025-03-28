@@ -1,6 +1,6 @@
 import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
-import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFSFlagMetadata, sdkInitialData, VisitorCacheStatus, FlagsStatus, SerializedFlagMetadata, CampaignDTO, VisitorVariations, EAIScore } from '../types'
+import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFSFlagMetadata, sdkInitialData, VisitorCacheStatus, FlagsStatus, SerializedFlagMetadata, CampaignDTO, VisitorVariations, EAIScore, VisitorProfile } from '../types'
 
 import { IVisitor } from './IVisitor'
 import { FSSdkStatus, SDK_INFO, VISITOR_ID_ERROR } from '../enum/index'
@@ -26,19 +26,19 @@ import { type UsageHit } from '../hit/UsageHit'
 
 export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _visitorId!: string
-  protected _context: Record<string, primitive>
+  protected _context!: Record<string, primitive>
   protected _flags!: Map<string, FlagDTO>
-  protected _configManager: IConfigManager
+  protected _configManager!: IConfigManager
   protected _campaigns!: CampaignDTO[]
   protected _hasConsented!: boolean
   protected _anonymousId!: string | null
-  public deDuplicationCache: Record<string, number>
-  protected _isCleaningDeDuplicationCache: boolean
+  public deDuplicationCache!: Record<string, number>
+  protected _isCleaningDeDuplicationCache!: boolean
   public visitorCache?: VisitorCacheDTO
-  protected _exposedVariations: Record<string, VisitorVariations>
+  protected _exposedVariations!: Record<string, VisitorVariations>
   protected _sendExposedVariationTimeoutId?:NodeJS.Timeout
 
-  private _instanceId : string
+  private _instanceId! : string
   private _traffic! : number
   protected _sdkInitialData?: sdkInitialData
   private _consentHitTroubleshooting? : Troubleshooting
@@ -46,8 +46,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   private _fetchStatus! : FlagsStatus
   private _onFetchFlagsStatusChanged? : ({ status, reason }: FlagsStatus) => void
   private _getCampaignsPromise? : Promise<CampaignDTO[]|null>
-  private _hasContextBeenUpdated : boolean
-  private _emotionAi: IEmotionAI
+  private _hasContextBeenUpdated! : boolean
+  private _emotionAi!: IEmotionAI
   private _analyticTraffic!: number
   private _murmurHash!: MurmurHash
   private _visitorProfileCache?: IVisitorProfileCache
@@ -132,20 +132,14 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     return this._analyticTraffic
   }
 
-  constructor (param: NewVisitor & {
-    visitorId?: string
-    configManager: IConfigManager
-    context: Record<string, primitive>
-    monitoringData?:sdkInitialData,
+  private initBaseProperties(param: {
+    configManager: IConfigManager,
     emotionAi: IEmotionAI,
     murmurHash?: MurmurHash,
+    monitoringData?: sdkInitialData,
     visitorProfileCache?: IVisitorProfileCache
-  }) {
-    const {
-      visitorId, configManager, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, monitoringData, onFlagsStatusChanged: onFetchFlagsStatusChanged,
-      emotionAi, visitorProfileCache
-    } = param
-    super()
+  }): void {
+    const { configManager, emotionAi, monitoringData, visitorProfileCache } = param
     this._murmurHash = param.murmurHash || new MurmurHash()
     this._emotionAi = emotionAi
     this._hasContextBeenUpdated = true
@@ -158,27 +152,45 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._configManager = configManager
     this.campaigns = []
     this._visitorProfileCache = visitorProfileCache
+  }
 
-    const visitorCache = this.config.reuseVisitorIds ? visitorProfileCache?.loadVisitorProfile() : null
-    if (visitorCache) {
-      logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_PROFILE_LOADED, visitorCache)
-    }
+  private initVisitorId(visitorId?: string, isAuthenticated?: boolean, visitorCache?: VisitorProfile|null): void {
     this.visitorId = visitorId || (!isAuthenticated && visitorCache?.anonymousId ? visitorCache?.anonymousId : visitorCache?.visitorId) || this.generateVisitorId()
-
-    this.campaigns = []
-
+    
     this._anonymousId = null
     if (isAuthenticated) {
       this._anonymousId = visitorCache?.anonymousId || uuidV4()
     }
+  }
+
+  constructor (param: NewVisitor & {
+    visitorId?: string
+    configManager: IConfigManager
+    context: Record<string, primitive>
+    monitoringData?:sdkInitialData,
+    emotionAi: IEmotionAI,
+    murmurHash?: MurmurHash,
+    visitorProfileCache?: IVisitorProfileCache
+  }) {
+    const {
+      visitorId, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, onFlagsStatusChanged: onFetchFlagsStatusChanged
+    } = param
+    super()
+    this.initBaseProperties(param)
+    const visitorCache = this.config.reuseVisitorIds ? this._visitorProfileCache?.loadVisitorProfile() : null
+    if (visitorCache) {
+      logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_PROFILE_LOADED, visitorCache)
+    }
+    
+
+
+    this.initVisitorId(visitorId, isAuthenticated, visitorCache)
 
     this.initAnalyticTraffic()
-
     this.setConsent(hasConsented || false)
-
     this.updateContext(context)
-
     this.loadPredefinedContext()
+    
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, PREDEFINED_CONTEXT_LOADED, {
       fs_client: SDK_INFO.name,
       fs_version: SDK_INFO.version,
@@ -186,19 +198,16 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     })
 
     this.updateCache()
-
     this.setInitialFlags(initialFlagsData)
     this.setInitializeCampaigns(initialCampaigns, !!initialFlagsData)
 
     this.onFetchFlagsStatusChanged = onFetchFlagsStatusChanged
-
     this.flagsStatus = {
       status: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.FLAGS_NEVER_FETCHED
     }
 
     this._emotionAi.init(this)
-
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
   }
 
@@ -222,7 +231,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     return this._instanceId
   }
 
-  public getCurrentDateTime () {
+  public getCurrentDateTime (): Date {
     return new Date()
   }
 
@@ -375,7 +384,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     return strategy
   }
 
-  public async sendExposedVariation (flag?:FlagDTO) {
+  public async sendExposedVariation (flag?:FlagDTO):Promise<void> {
     if (__fsWebpackIsBrowser__) {
       if (!flag || !isBrowser()) {
         return
@@ -428,7 +437,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.getStrategy().reportEaiVisitorEvent(event)
   }
 
-  sendEaiPageView (pageView: IPageView) {
+  sendEaiPageView (pageView: IPageView):void {
     this.getStrategy().reportEaiPageView(pageView)
   }
 
