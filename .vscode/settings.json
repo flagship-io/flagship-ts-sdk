@@ -21,7 +21,7 @@
   },
   "deno.enable": true,
   "deno.enablePaths": [
-    "/flagship/src/depsDeno.ts",
-    "/flagship/dist-deno",
+    "flagship/src/depsDeno.ts",
+    "flagship/dist-deno",
   ]
 }
