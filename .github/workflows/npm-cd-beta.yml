@@ -14,14 +14,14 @@ jobs:
         working-directory: ./flagship
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-          registry-url: 'https://registry.npmjs.org'
       - name: Enable Corepack
         run: corepack enable
       - name: Set Yarn Version
         run: corepack prepare yarn@4.7.0 --activate
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '23.x'
+          registry-url: 'https://registry.npmjs.org'
       - run: yarn install
       - run: yarn build-prod
       - run: yarn test --coverage
