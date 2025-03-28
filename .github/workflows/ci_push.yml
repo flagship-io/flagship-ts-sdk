@@ -24,6 +24,10 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "yarn"
           cache-dependency-path: ./flagship/yarn.lock 
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Set Yarn Version
+        run: corepack prepare yarn@4.7.0 --activate
       - run: yarn install
       - run: yarn lint
       - run: yarn test --coverage
