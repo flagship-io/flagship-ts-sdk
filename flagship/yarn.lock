@@ -1650,7 +1650,7 @@ __metadata:
     cross-env: "npm:^7.0.3"
     eslint: "npm:^9.23.0"
     events: "npm:^3.3.0"
-    follow-redirects: "npm:^1.15.2"
+    follow-redirects: "npm:^1.15.9"
     genversion: "npm:^3.1.1"
     globals: "npm:^16.0.0"
     jest: "npm:^29.5.0"
@@ -4397,7 +4397,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.15.2":
+"follow-redirects@npm:^1.15.9":
   version: 1.15.9
   resolution: "follow-redirects@npm:1.15.9"
   peerDependenciesMeta:
