@@ -51,7 +51,7 @@ export abstract class DecisionManager implements IDecisionManager {
     return this._config
   }
 
-  // eslint-disable-next-line accessor-pairs
+   
   protected set panic (v: boolean) {
     this.updateFlagshipStatus(v ? FSSdkStatus.SDK_PANIC : FSSdkStatus.SDK_INITIALIZED)
     this._panic = v

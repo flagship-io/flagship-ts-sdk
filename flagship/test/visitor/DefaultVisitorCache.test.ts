@@ -10,9 +10,9 @@ describe('Test DefaultVisitorCache', () => {
     getItem: jest.fn(),
     setItem: jest.fn(),
     removeItem: jest.fn()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   } as any
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   global.localStorage = storageMock as any
   const visitorId = 'visitorId'
   const visitorData: VisitorCacheDTO = {

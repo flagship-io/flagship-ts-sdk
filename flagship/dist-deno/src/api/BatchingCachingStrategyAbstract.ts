@@ -11,7 +11,7 @@ import { errorFormat, isBrowser, logDebug, logDebugSprintf, logError, logErrorSp
 import { ITrackingManagerCommon } from './ITrackingManagerCommon.ts'
 import type { BatchingCachingStrategyConstruct, SendActivate } from './types'
 import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking.ts'
-import { ActivateConstructorParam, LocalActionTracking } from '../type.local.ts'
+import { ActivateConstructorParam, IHitAbstract, LocalActionTracking } from '../type.local.ts'
 import { type HitAbstract } from '../hit/HitAbstract.ts'
 import { type Event } from '../hit/Event.ts'
 
@@ -107,7 +107,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     }
   }
 
-  public sendHitsToFsQa (hits: HitAbstract[]) {
+  public sendHitsToFsQa (hits: HitAbstract[]):void {
     if (__fsWebpackIsBrowser__) {
       if (!isBrowser() || !this.config.isQAModeEnabled) {
         return
@@ -190,7 +190,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     await this.cacheHit(new Map<string, HitAbstract>([[hit.key, hit]]))
   }
 
-  protected onVisitorExposed (activate: Activate) {
+  protected onVisitorExposed (activate: Activate):void {
     const onVisitorExposed = this.config.onVisitorExposed
     if (typeof onVisitorExposed !== 'function') {
       return
@@ -319,13 +319,12 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   }
 
   async notConsent (visitorId: string):Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const hitKeys = Array.from(this._hitsPoolQueue).filter(([_, item]) => {
+    const hitKeys = Array.from(this._hitsPoolQueue).filter(([, item]) => {
       return (item?.type !== HitType.EVENT || (item as Event)?.action !== FS_CONSENT) && (item.visitorId === visitorId || item.anonymousId === visitorId)
     })
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const activateKeys = Array.from(this._activatePoolQueue).filter(([_, item]) => {
+     
+    const activateKeys = Array.from(this._activatePoolQueue).filter(([, item]) => {
       return item.visitorId === visitorId || item.anonymousId === visitorId
     })
 
@@ -362,8 +361,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
             visitorId: item.visitorId,
             anonymousId: item.anonymousId,
             type: item.type,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            content: item.toObject() as any,
+            content: item.toObject() as unknown as IHitAbstract,
             time: Date.now()
           }
         }
@@ -409,7 +407,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
 
   // #region Troubleshooting
 
-  protected isTroubleshootingActivated () {
+  protected isTroubleshootingActivated ():boolean {
     if (!this.troubleshootingData) {
       return false
     }
@@ -471,7 +469,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     }
   }
 
-  protected async sendInitTroubleshootingHit () {
+  protected async sendInitTroubleshootingHit (): Promise<void> {
     if (!this.isTroubleshootingActivated() || !this._initTroubleshootingHit || this._hasInitTroubleshootingHitSent) {
       return
     }
@@ -480,7 +478,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     this._hasInitTroubleshootingHitSent = true
   }
 
-  public async sendTroubleshootingQueue () {
+  public async sendTroubleshootingQueue (): Promise<void> {
     await this.sendInitTroubleshootingHit()
 
     if (!this.isTroubleshootingActivated() || this._isTroubleshootingQueueSending || this._troubleshootingQueue.size === 0) {
@@ -536,14 +534,13 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     }
   }
 
-  public async sendUsageHitQueue () {
+  public async sendUsageHitQueue (): Promise<void> {
     if (this._isUsageHitQueueSending || this._usageHitQueue.size === 0) {
       return
     }
 
     this._isUsageHitQueueSending = true
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for (const [_, item] of Array.from(this._usageHitQueue)) {
+    for (const [, item] of Array.from(this._usageHitQueue)) {
       await this.sendUsageHit(item)
     }
     this._isUsageHitQueueSending = false

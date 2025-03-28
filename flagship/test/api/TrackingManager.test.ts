@@ -52,7 +52,7 @@ describe('test TrackingManager', () => {
 
     await trackingManager.addHit(screenHit)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const _hitsPoolQueue = (trackingManager as any)._hitsPoolQueue
 
     expect(_hitsPoolQueue.size).toBe(1)
@@ -86,7 +86,7 @@ describe('test TrackingManager', () => {
 
     await trackingManager.activateFlag(CampaignHit)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const _activatePoolQueue = (trackingManager as any)._activatePoolQueue
 
     expect(_activatePoolQueue.size).toBe(1)
@@ -109,7 +109,7 @@ describe('test TrackingManager', () => {
 
     await trackingManager.addHit(screenHit)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const _hitsPoolQueue = (trackingManager as any)._hitsPoolQueue
 
     expect(_hitsPoolQueue.size).toBe(1)
@@ -126,26 +126,26 @@ describe('test TrackingManager Strategy ', () => {
   const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey' })
 
   it('Test instance of BatchingContinuousCachingStrategy ', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     (config.trackingManagerConfig as any)._batchStrategy = CacheStrategy.CONTINUOUS_CACHING
     const trackingManager = new TrackingManager(httpClient, config)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     expect((trackingManager as any).strategy).toBeInstanceOf(BatchingContinuousCachingStrategy)
   })
 
   it('Test instance of BatchingContinuousCachingStrategy ', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     (config.trackingManagerConfig as any)._batchStrategy = CacheStrategy.PERIODIC_CACHING
     const trackingManager = new TrackingManager(httpClient, config)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     expect((trackingManager as any).strategy).toBeInstanceOf(BatchingPeriodicCachingStrategy)
   })
 
   it('Test instance of BatchingContinuousCachingStrategy ', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     (config.trackingManagerConfig as any)._batchStrategy = NO_BATCHING_WITH_CONTINUOUS_CACHING_STRATEGY
     const trackingManager = new TrackingManager(httpClient, config)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     expect((trackingManager as any).strategy).toBeInstanceOf(NoBatchingContinuousCachingStrategy)
   })
 })
@@ -165,7 +165,7 @@ describe('test TrackingManager Strategy ', () => {
     sendUsageHitQueue: jest.fn(),
     sendUsageHit: jest.fn()
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const trackManagerMock = (trackingManager as any)
 
   trackManagerMock.strategy = strategy
@@ -278,7 +278,7 @@ describe('test TrackingManager Strategy ', () => {
 })
 
 describe('test TrackingManager lookupHits', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const getNull:()=>any = () => null
   const httpClient = new HttpClient()
 
@@ -401,7 +401,7 @@ describe('test TrackingManager lookupHits', () => {
           visitorId,
           anonymousId,
           type: hit.type,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+           
           content: hit.toObject() as any,
           time: Date.now()
         }
@@ -417,9 +417,9 @@ describe('test TrackingManager lookupHits', () => {
       data: {
         visitorId,
         anonymousId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         type: 'any' as any,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         content: {} as any,
         time: Date.now()
       }
@@ -432,9 +432,9 @@ describe('test TrackingManager lookupHits', () => {
       data: {
         visitorId,
         anonymousId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         type: getNull() as any,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         content: getNull() as any,
         time: Date.now()
       }
@@ -443,7 +443,7 @@ describe('test TrackingManager lookupHits', () => {
     lookupHits.mockResolvedValue(data)
     await trackingManager.lookupHits()
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const _hitsPoolQueue = (trackingManager as any)._hitsPoolQueue
 
     expect(_hitsPoolQueue.size).toBe(7)
@@ -465,7 +465,7 @@ describe('test TrackingManager lookupHits', () => {
     config.hitCacheImplementation = hitCacheImplementation
     await trackingManager.lookupHits()
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const _hitsPoolQueue = (trackingManager as any)._hitsPoolQueue
 
     expect(_hitsPoolQueue.size).toBe(0)
@@ -485,7 +485,7 @@ describe('test TrackingManager lookupHits', () => {
     config.hitCacheImplementation = hitCacheImplementation
     await trackingManager.lookupHits()
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const _hitsPoolQueue = (trackingManager as any)._hitsPoolQueue
 
     expect(_hitsPoolQueue.size).toBe(0)

@@ -81,7 +81,7 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
 
 describe('test VisitorDelegate', () => {
   const visitorId = 'visitorId'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: Record<string, primitive> = {
     isVip: true
   }
@@ -628,7 +628,7 @@ describe('Initialization tests', () => {
 
 describe('test initialFlagsData', () => {
   const visitorId = 'visitorId'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {
     isVip: true
   }

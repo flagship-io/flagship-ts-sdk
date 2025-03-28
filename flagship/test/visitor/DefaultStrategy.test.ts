@@ -64,7 +64,7 @@ import { mockGlobals, sleep } from '../helpers'
 import { ActivateConstructorParam } from '../../src/type.local'
 import * as qaMessages from '../../src/qaAssistant/messages'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const getNull = (): any => {
   return null
 }
@@ -88,7 +88,7 @@ describe('test DefaultStrategy ', () => {
   })
 
   const visitorId = 'visitorId'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {
     isVip: true
   }
@@ -1023,7 +1023,7 @@ describe('test DefaultStrategy ', () => {
       await defaultStrategy.sendHit(hitScreen)
       expect(addHit).toBeCalledTimes(1)
       expect(addHit).toBeCalledWith(hitScreen)
-    } catch (error) {
+    } catch  {
       expect(logError).toBeCalled()
     }
   })
@@ -1040,7 +1040,7 @@ describe('test DefaultStrategy ', () => {
       expect(addHit).toBeCalledWith(
         expect.objectContaining({ ...hit, visitorId, ds: SDK_APP, config })
       )
-    } catch (error) {
+    } catch  {
       expect(logError).toBeCalled()
     }
   })
@@ -1058,7 +1058,7 @@ describe('test DefaultStrategy ', () => {
       expect(addHit).toBeCalledWith(
         expect.objectContaining({ ...hit, visitorId, ds: SDK_APP, config })
       )
-    } catch (error) {
+    } catch  {
       expect(logError).toBeCalled()
     }
   })
@@ -1070,7 +1070,7 @@ describe('test DefaultStrategy ', () => {
     }
     try {
       await defaultStrategy.sendHit(hit)
-    } catch (error) {
+    } catch  {
       expect(logError).toBeCalled()
     }
     expect(addHit).toBeCalledWith(
@@ -1087,7 +1087,7 @@ describe('test DefaultStrategy ', () => {
 
     try {
       await defaultStrategy.sendHit(hit)
-    } catch (error) {
+    } catch  {
       expect(logError).toBeCalled()
     }
     expect(addHit).toBeCalledWith(
@@ -1109,7 +1109,7 @@ describe('test DefaultStrategy ', () => {
     }
     try {
       await defaultStrategy.sendHit(hit)
-    } catch (error) {
+    } catch  {
       expect(logError).toBeCalled()
     }
     expect(addHit).toBeCalledWith(
@@ -1126,7 +1126,7 @@ describe('test DefaultStrategy ', () => {
 
     try {
       await defaultStrategy.sendHit(hit)
-    } catch (error) {
+    } catch {
       expect(logError).toBeCalled()
     }
     expect(addHit).toBeCalledWith(
@@ -1149,7 +1149,7 @@ describe('test DefaultStrategy ', () => {
     }
     try {
       await defaultStrategy.sendHit(hit)
-    } catch (error) {
+    } catch  {
       expect(logError).toBeCalled()
     }
     expect(addHit).toBeCalledWith(
@@ -1167,7 +1167,7 @@ describe('test DefaultStrategy ', () => {
     try {
       await defaultStrategy.sendHit(hit)
       expect(logError).toBeCalled()
-    } catch (error) {
+    } catch {
       expect(logError).toBeCalled()
     }
     expect(addHit).toBeCalledTimes(0)
@@ -1188,7 +1188,7 @@ describe('test DefaultStrategy ', () => {
     ]
     try {
       await defaultStrategy.sendHits(hits)
-    } catch (error) {
+    } catch {
       expect(logError).toBeCalled()
     }
     // await sleep(4000)
@@ -1410,7 +1410,7 @@ describe('test DefaultStrategy fetch flags buffering', () => {
     Date.now = methodNow
   })
   const visitorId = 'visitorId'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {
     isVip: true
   }
@@ -1549,7 +1549,7 @@ describe('test DefaultStrategy fetch flags buffering', () => {
 
 describe('test authenticate on bucketing mode', () => {
   const visitorId = 'visitorId'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {
     isVip: true
   }
@@ -1609,7 +1609,7 @@ describe('test authenticate on bucketing mode', () => {
 
 describe('test fetchFlags errors', () => {
   const visitorId = 'visitorId'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {}
 
   const logManager = new FlagshipLogManager()
@@ -1700,7 +1700,7 @@ describe('test fetchFlags errors 2', () => {
     Date.now = methodNow
   })
   const visitorId = 'visitorId'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {}
 
   const logManager = new FlagshipLogManager()
@@ -1790,7 +1790,7 @@ describe('test DefaultStrategy troubleshootingHit 1', () => {
     Date.now = methodNow
   })
   const visitorId = 'visitorId'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {
     isVip: true
   }
@@ -1820,7 +1820,7 @@ describe('test DefaultStrategy troubleshootingHit 1', () => {
   const addHit = jest.spyOn(trackingManager, 'addHit')
   addHit.mockResolvedValue()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const sendTroubleshootingHit = jest.spyOn(
     trackingManager,
     'sendTroubleshootingHit'
@@ -1937,7 +1937,7 @@ describe('test DefaultStrategy troubleshootingHit Bucketing mode', () => {
     Date.now = methodNow
   })
   const visitorId = 'visitorId'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {
     isVip: true
   }
@@ -2132,7 +2132,7 @@ describe('test DefaultStrategy troubleshootingHit send SEGMENT HIT', () => {
     Date.now = methodNow
   })
   const visitorId = 'visitorId'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {
     isVip: true
   }
@@ -2159,7 +2159,7 @@ describe('test DefaultStrategy troubleshootingHit send SEGMENT HIT', () => {
   const addHit = jest.spyOn(trackingManager, 'addHit')
   addHit.mockResolvedValue()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const sendTroubleshootingHit = jest.spyOn(
     trackingManager,
     'sendTroubleshootingHit'
@@ -2221,7 +2221,7 @@ describe('test DefaultStrategy troubleshootingHit', () => {
     Date.now = methodNow
   })
   const visitorId = 'visitorId'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {
     isVip: true
   }
@@ -2244,8 +2244,6 @@ describe('test DefaultStrategy troubleshootingHit', () => {
   const apiManager = new ApiManager(httpClient, config)
 
   const getCampaignsAsync = jest.spyOn(apiManager, 'getCampaignsAsync')
-
-  const getModifications = jest.spyOn(apiManager, 'getModifications')
 
   const trackingManager = new TrackingManager(httpClient, config)
 
@@ -2329,7 +2327,7 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
     Date.now = methodNow
   })
   const visitorId = 'ca0594f5-4a37-4a7d-91be-27c63f829380'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {
     isVip: true
   }
@@ -2476,7 +2474,7 @@ describe('test DefaultStrategy with QA mode', () => {
     Date.now = methodNow
   })
   const visitorId = 'ca0594f5-4a37-4a7d-91be-27c63f829380'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {
     isVip: true
   }

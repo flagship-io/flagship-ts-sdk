@@ -49,7 +49,7 @@ import { SdkApi } from '../sdkApi/v1/SdkApi.ts'
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
  */
 export class Flagship {
-  // eslint-disable-next-line no-use-before-define
+   
   private static _instance: Flagship
   private _configManager!: IConfigManager
   private _config!: IFlagshipConfig
@@ -80,16 +80,16 @@ export class Flagship {
       getOnSaveVisitorProfile?: () => (visitorProfile:string)=>void
     }
 
-    extendedFlagship.setVisitorProfile = function (value: string|null) {
+    extendedFlagship.setVisitorProfile = function (value: string|null):void {
       Flagship.visitorProfile = value
     }
-    extendedFlagship.getVisitorProfile = function () {
+    extendedFlagship.getVisitorProfile = function (): string | null {
       return Flagship.visitorProfile
     }
-    extendedFlagship.setOnSaveVisitorProfile = function (value: (visitorProfile:string)=>void) {
+    extendedFlagship.setOnSaveVisitorProfile = function (value: (visitorProfile:string)=>void):void {
       Flagship.onSaveVisitorProfile = value
     }
-    extendedFlagship.getOnSaveVisitorProfile = function () {
+    extendedFlagship.getOnSaveVisitorProfile = function (): (visitorProfile:string)=>void {
       return Flagship.onSaveVisitorProfile
     }
   }
@@ -222,7 +222,7 @@ export class Flagship {
     }
   }
 
-  private buildSdkApi (sharedActionTracking: ISharedActionTracking) {
+  private buildSdkApi (sharedActionTracking: ISharedActionTracking): void {
     if (__fsWebpackIsBrowser__) {
       window.ABTastyWebSdk = {
         internal: new SdkApi({ sharedActionTracking }).getApiV1()
@@ -336,14 +336,14 @@ export class Flagship {
   /**
    * When called, it will batch and send all hits that are in the pool before the application is closed
    */
-  public async close () {
+  public async close (): Promise<void> {
     await Flagship.close()
   }
 
   /**
    * When called, it will batch and send all hits that are in the pool before the application is closed
    */
-  public static async close () {
+  public static async close (): Promise<void> {
     await this._instance?.configManager?.trackingManager?.sendBatch()
   }
 
@@ -353,7 +353,7 @@ export class Flagship {
    * @param params - The parameters for creating the new Visitor.
    * @returns A new Visitor instance.
    */
-  public newVisitor (params: NewVisitor) {
+  public newVisitor (params: NewVisitor): Visitor {
     return Flagship.newVisitor(params)
   }
 
@@ -373,7 +373,7 @@ export class Flagship {
    * @param params - The parameters for creating the new Visitor.
    * @returns A new Visitor instance.
    */
-  public static newVisitor ({ visitorId, context, isAuthenticated, hasConsented, initialCampaigns, initialFlagsData, shouldSaveInstance, onFlagsStatusChanged }: NewVisitor) {
+  public static newVisitor ({ visitorId, context, isAuthenticated, hasConsented, initialCampaigns, initialFlagsData, shouldSaveInstance, onFlagsStatusChanged }: NewVisitor): Visitor {
     const saveInstance = shouldSaveInstance ?? isBrowser()
     const flagship = this.getInstance()
 

@@ -99,30 +99,42 @@ export class SharedActionTracking implements ISharedActionTracking {
   }
 
   dispatchEventHits (hits: LocalActionTracking[]): void {
-    if (!isBrowser() || !this.visitor || !hits || !hits.length) {
+    if (!this.shouldProcessHits(hits)) {
       return
     }
 
-    const nonce = window.ABTasty?.api?.internal?._getActionTrackingNonce?.()
-
+    const nonce = this.getNonce()
     if (!nonce) {
       return
     }
 
-    const hitsToDispatch:ActionTrackingData[] = []
-
-    for (const hit of hits) {
-      const isHitPostInit = this.initTimestamp && hit.createdAt >= this.initTimestamp
-      const isHitForVisitor = hit.visitorId === this.visitor?.visitorId || hit.visitorId === this.visitor?.anonymousId
-      if (hit.data.ec === EventCategory.ACTION_TRACKING && isHitPostInit && isHitForVisitor) {
-        hitsToDispatch.push(hit.data)
-      }
-    }
-
+    const hitsToDispatch = this.filterHitsToDispatch(hits)
     if (!hitsToDispatch.length) {
       return
     }
 
+    this.postHits(hitsToDispatch, nonce)
+  }
+
+  private shouldProcessHits(hits: LocalActionTracking[]): boolean {
+    return isBrowser() && !!this.visitor && !!hits && hits.length > 0
+  }
+
+  private getNonce(): string | undefined {
+    return window.ABTasty?.api?.internal?._getActionTrackingNonce?.()
+  }
+
+  private filterHitsToDispatch(hits: LocalActionTracking[]): ActionTrackingData[] {
+    return hits
+      .filter(hit => {
+        const isHitPostInit = this.initTimestamp && hit.createdAt >= this.initTimestamp
+        const isHitForVisitor = hit.visitorId === this.visitor?.visitorId || hit.visitorId === this.visitor?.anonymousId
+        return hit.data.ec === EventCategory.ACTION_TRACKING && isHitPostInit && isHitForVisitor
+      })
+      .map(hit => hit.data)
+  }
+
+  private postHits(hitsToDispatch: ActionTrackingData[], nonce: string): void {
     const payload: SharedActionPayload = {
       action: SharedActionSource.ABT_WEB_SDK_TRACK_ACTION,
       data: hitsToDispatch,
@@ -131,7 +143,6 @@ export class SharedActionTracking implements ISharedActionTracking {
     }
 
     window?.postMessage(payload, window.location.origin)
-
     logDebugSprintf(this.sdkConfig, ACTION_TRACKING, ACTION_TRACKING_DISPATCHED, hitsToDispatch)
   }
 }

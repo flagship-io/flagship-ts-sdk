@@ -18,7 +18,7 @@ import { IVisitorEvent } from '../../src/emotionAI/hit/IVisitorEvent'
 
 describe('test visitor', () => {
   const visitorId = 'visitorId'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {
     isVip: true
   }

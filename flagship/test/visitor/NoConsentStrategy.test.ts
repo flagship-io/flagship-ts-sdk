@@ -11,7 +11,6 @@ import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
 import { MurmurHash } from '../../src/utils/MurmurHash'
 import { EAIScore, FlagDTO, TroubleshootingLabel } from '../../src'
 import { ApiManager } from '../../src/decision/ApiManager'
-import { Troubleshooting } from '../../src/hit/Troubleshooting'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 import { IPageView } from '../../src/emotionAI/hit/IPageView'
@@ -20,7 +19,7 @@ import { sleep } from '../helpers'
 
 describe('test NoConsentStrategy', () => {
   const visitorId = 'visitorId'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {
     isVip: true
   }
@@ -118,7 +117,7 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
     Date.now = methodNow
   })
   const visitorId = 'ca0594f5-4a37-4a7d-91be-27c63f829380'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {
     isVip: true
   }
@@ -151,7 +150,7 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
   const addHit = jest.spyOn(trackingManager, 'addHit')
   addHit.mockResolvedValue()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const sendUsageHitSpy = jest.spyOn(trackingManager, 'sendUsageHit')
 
   const configManager = new ConfigManager(config, apiManager, trackingManager)

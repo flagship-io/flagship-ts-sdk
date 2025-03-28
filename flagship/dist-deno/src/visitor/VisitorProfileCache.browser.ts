@@ -13,6 +13,7 @@ export class VisitorProfileCache implements IVisitorProfileCache {
   saveVisitorProfile (visitorProfile: VisitorProfile): void {
     try {
       localStorage.setItem(CLIENT_CACHE_KEY, JSON.stringify(visitorProfile))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logErrorSprintf(this._sdkConfig, 'VisitorProfileCache.saveVisitorProfile', error?.message)
     }
@@ -22,6 +23,7 @@ export class VisitorProfileCache implements IVisitorProfileCache {
     try {
       const data = localStorage.getItem(CLIENT_CACHE_KEY)
       return data ? JSON.parse(data) : null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logErrorSprintf(this._sdkConfig, 'VisitorProfileCache.loadVisitorProfile', error?.message)
     }

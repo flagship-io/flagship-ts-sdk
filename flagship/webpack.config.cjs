@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
+ 
 'use strict'
 const browserGlobalConfig = require('./webpack/browser/global.cjs')
 const browserUmdConfig = require('./webpack/browser/umd.cjs')

@@ -3,7 +3,7 @@ import { EAIScore } from '../types'
 import { IEmotionAI } from './IEmotionAI'
 
 export class EmotionAI implements IEmotionAI {
-  // eslint-disable-next-line no-useless-constructor
+   
   public constructor (_params: ConstructorParam) {
     //
   }

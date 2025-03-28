@@ -34,7 +34,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
     await this.sendHit(hit)
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   addHitInPoolQueue (_hit: HitAbstract): Promise<void> {
     return Promise.resolve()
   }
@@ -110,18 +110,18 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
   }
 
   async notConsent (visitorId: string): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const cacheHitKeysEntries = Object.entries(this.cacheHitKeys).filter(([_, value]) => value === visitorId)
     const keys:string[] = []
     for (const [key] of cacheHitKeysEntries) {
       keys.push(key)
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const hitsKeys = Array.from(this._hitsPoolQueue).filter(([_, item]) => {
       return (item?.type !== HitType.EVENT || (item as Event)?.action !== FS_CONSENT) && (item.visitorId === visitorId || item.anonymousId === visitorId)
     })
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const activateKeys = Array.from(this._activatePoolQueue).filter(([_, item]) => {
       return item.visitorId === visitorId || item.anonymousId === visitorId
     })
@@ -147,7 +147,7 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
     this.cacheHitKeys = {}
   }
 
-  async sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate) {
+  async sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate): Promise<void> {
     const headers = {
       [HEADER_X_API_KEY]: this.config.apiKey as string,
       [HEADER_X_SDK_CLIENT]: SDK_INFO.name,

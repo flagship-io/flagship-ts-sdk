@@ -31,7 +31,7 @@ export function loadQaAssistant (config: IFlagshipConfig, bundleUrl:string|null 
     forcedVariations
   }
 
-  const eventListenerMessage = (event: MessageEvent<EventDataFromIframe>) => {
+  const eventListenerMessage = (event: MessageEvent<EventDataFromIframe>):void => {
     handleIframeMessage({ event, config, func: eventListenerMessage })
   }
   window.addEventListener('message', eventListenerMessage)

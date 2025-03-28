@@ -53,15 +53,15 @@ describe('test DecisionApiConfig', () => {
     }
 
     const visitorCacheImplementation: IVisitorCacheImplementation = {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+       
       cacheVisitor: function (_visitorId: string, _Data: VisitorCacheDTO):Promise<void> {
         throw new Error('Function not implemented.')
       },
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+       
       lookupVisitor: function (_visitorId: string): Promise<VisitorCacheDTO> {
         throw new Error('Function not implemented.')
       },
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+       
       flushVisitor: function (_visitorId: string): Promise<void> {
         throw new Error('Function not implemented.')
       }
@@ -220,7 +220,7 @@ describe('Test SDK_LANGUAGE', () => {
 
     globalThis.window = {
       Deno: expect.anything()
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
     } as any
     const config = new DecisionApiConfig({ language: 0 })
     expect(SDK_INFO.name).toBe('Deno')

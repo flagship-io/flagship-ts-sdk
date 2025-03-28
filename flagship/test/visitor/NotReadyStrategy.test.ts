@@ -9,7 +9,6 @@ import { HttpClient } from '../../src/utils/HttpClient'
 import { sprintf } from '../../src/utils/utils'
 import { VisitorDelegate, NotReadyStrategy } from '../../src/visitor'
 import { MurmurHash } from '../../src/utils/MurmurHash'
-import { Troubleshooting } from '../../src/hit/Troubleshooting'
 import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
 import { IPageView } from '../../src/emotionAI/hit/IPageView'
@@ -17,7 +16,7 @@ import { IVisitorEvent } from '../../src/emotionAI/hit/IVisitorEvent'
 
 describe('test NotReadyStrategy', () => {
   const visitorId = 'visitorId'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {
     isVip: true
   }

@@ -9,6 +9,7 @@ export enum HitType {
    * User has seen a URL
    *
    */
+     // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
      PAGE= 'PAGEVIEW',
 
   /**
@@ -20,6 +21,7 @@ export enum HitType {
    * User has seen a screen.
    *
    */
+  // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
   SCREEN = 'SCREENVIEW',
 
   /**

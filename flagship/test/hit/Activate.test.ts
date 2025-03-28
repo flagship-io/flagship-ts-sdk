@@ -71,7 +71,7 @@ describe('test hit type Activate', () => {
       expect(activate.isReady(false)).toBeTruthy()
     })
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const apiKeys: Record<string, unknown> = {
       [VISITOR_ID_API_ITEM]: visitorId,
       [VARIATION_ID_API_ITEM]: variationId,

@@ -13,7 +13,7 @@ import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
 
 describe('test getStrategy', () => {
   const visitorId = 'visitorId'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const context: any = {
     isVip: true
   }

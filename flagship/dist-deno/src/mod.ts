@@ -1,10 +1,18 @@
 import { Flagship } from './main/Flagship.ts'
 
-(globalThis as any).__fsWebpackIsBrowser__ = false;
-(globalThis as any).__fsWebpackIsNode__ = false;
-(globalThis as any).__fsWebpackIsReactNative__ = false;
-(globalThis as any).__fsWebpackIsEdgeWorker__ = false;
-(globalThis as any).__fsWebpackIsDeno__ = true
+declare const globalThis: {
+  __fsWebpackIsBrowser__: boolean;
+  __fsWebpackIsNode__: boolean;
+  __fsWebpackIsReactNative__: boolean;
+  __fsWebpackIsEdgeWorker__: boolean;
+  __fsWebpackIsDeno__: boolean;
+};
+
+globalThis.__fsWebpackIsBrowser__ = false;
+globalThis.__fsWebpackIsNode__ = false;
+globalThis.__fsWebpackIsReactNative__ = false;
+globalThis.__fsWebpackIsEdgeWorker__ = false;
+globalThis.__fsWebpackIsDeno__ = true
 
 export { Flagship } from './main/Flagship.ts'
 export { DecisionApiConfig, DecisionMode } from './config/index.ts'

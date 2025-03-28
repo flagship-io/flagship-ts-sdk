@@ -204,7 +204,7 @@ export abstract class HitAbstract implements IHitAbstract {
    * Return an object with Api parameters as keys
    */
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   public toApiKeys (): Record<string, unknown> {
     const apiKeys:Record<string, primitive|null> = {
       [VISITOR_ID_API_ITEM]: this.visitorId,
@@ -257,7 +257,7 @@ export abstract class HitAbstract implements IHitAbstract {
   /**
    * Return true if all required attributes are given, otherwise return false
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   public isReady (_checkParent = true): boolean {
     return !!(
       this.visitorId &&

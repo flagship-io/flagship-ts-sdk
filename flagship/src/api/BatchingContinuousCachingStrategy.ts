@@ -10,12 +10,12 @@ import { SendActivate } from './types'
 import { TroubleshootingLabel } from '../types'
 
 export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAbstract {
-  async addHitInPoolQueue (hit: HitAbstract) {
+  async addHitInPoolQueue (hit: HitAbstract): Promise<void> {
     this._hitsPoolQueue.set(hit.key, hit)
     await this.cacheHit(new Map<string, HitAbstract>([[hit.key, hit]]))
   }
 
-  protected async sendActivateHitBatch (activateBatch: ActivateBatch, batchTriggeredBy: BatchTriggeredBy, currentActivate?:Activate) {
+  protected async sendActivateHitBatch (activateBatch: ActivateBatch, batchTriggeredBy: BatchTriggeredBy, currentActivate?:Activate): Promise<void> {
     const headers = {
       [HEADER_X_API_KEY]: this.config.apiKey as string,
       [HEADER_X_SDK_CLIENT]: SDK_INFO.name,
@@ -104,7 +104,7 @@ export class BatchingContinuousCachingStrategy extends BatchingCachingStrategyAb
     }
   }
 
-  protected async sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate) {
+  protected async sendActivate ({ activateHitsPool, currentActivate, batchTriggeredBy }:SendActivate): Promise<void> {
     const filteredItems = Array.from(activateHitsPool.filter(item => (Date.now() - item.createdAt) < DEFAULT_HIT_CACHE_TIME_MS))
 
     const { ActivateBatch } = await import('../hit/ActivateBatch.ts')

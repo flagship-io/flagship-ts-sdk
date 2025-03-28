@@ -17,6 +17,7 @@ export class VisitorProfileCache implements IVisitorProfileCache {
       }
       const onSaveVisitorProfile = extendedFlagship.getOnSaveVisitorProfile()
       onSaveVisitorProfile?.(JSON.stringify(visitorProfile))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logErrorSprintf(this._sdkConfig, 'VisitorProfileCache.saveVisitorProfile', error?.message)
     }
@@ -29,6 +30,7 @@ export class VisitorProfileCache implements IVisitorProfileCache {
       }
       const data = extendedFlagship.getVisitorProfile()
       return data ? JSON.parse(data) : null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logErrorSprintf(this._sdkConfig, 'VisitorProfileCache.loadVisitorProfile', error?.message)
     }

@@ -72,7 +72,7 @@ export class BucketingSdkManager implements ISdkManager {
     url: string,
     response: IHttpResponse | undefined,
     now: number
-  ) {
+  ):void {
     import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const troubleshootingHit = new Troubleshooting({
         visitorId: this._flagshipInstanceId,
@@ -98,7 +98,7 @@ export class BucketingSdkManager implements ISdkManager {
     url: string,
     error: { message: string, headers: Record<string, string>, statusCode: number },
     now: number
-  ) {
+  ):void {
     import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const troubleshootingHit = new Troubleshooting({
         visitorId: this._flagshipInstanceId,
@@ -119,7 +119,7 @@ export class BucketingSdkManager implements ISdkManager {
     })
   }
 
-  protected handlePollingResponse (params: {response: IHttpResponse, headers: Record<string, string>, url: string, now: number}) {
+  protected handlePollingResponse (params: {response: IHttpResponse, headers: Record<string, string>, url: string, now: number}):void {
     const { response } = params
     if (response.status === 200) {
       logDebugSprintf(this._config, PROCESS_BUCKETING, POLLING_EVENT_200, response.body)
@@ -146,7 +146,7 @@ export class BucketingSdkManager implements ISdkManager {
     this._isPooling = false
   }
 
-  protected async fetchBucketingFile () {
+  protected async fetchBucketingFile (): Promise<void> {
     if (this._isPooling) {
       return
     }

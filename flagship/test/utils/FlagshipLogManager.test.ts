@@ -2,7 +2,7 @@ import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { FLAGSHIP_SDK, LogLevel } from '../../src/enum/index'
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const getTwoDigit = (value: any) => {
   return value.toString().length === 1 ? `0${value}` : value
 }

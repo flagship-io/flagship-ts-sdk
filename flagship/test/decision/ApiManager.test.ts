@@ -136,9 +136,9 @@ describe('test ApiManager', () => {
 
       expect(visitor.onFetchFlagsStatusChanged).toBeCalledTimes(1)
       expect(visitor.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(1, { newStatus: FSFetchStatus.FETCH_REQUIRED, reason: FSFetchReasons.FLAGS_FETCHING_ERROR })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     } catch (err:any) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       expect(err.message).toEqual(errorFormat(responseError as any, {
         url,
         headers,

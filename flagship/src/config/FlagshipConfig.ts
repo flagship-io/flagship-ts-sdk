@@ -142,7 +142,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._onVisitorExposed = onVisitorExposed
   }
 
-  protected initQaMode () {
+  protected initQaMode ():void {
     if (__fsWebpackIsBrowser__) {
       if (!isBrowser()) {
         return
@@ -158,7 +158,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     }
   }
 
-  protected initSDKInfo (language?:number, sdkVersion?:string) {
+  protected initSDKInfo (language?:number, sdkVersion?:string):void {
     switch (language) {
       case 1:
         SDK_INFO.name = 'ReactJS'

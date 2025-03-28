@@ -38,9 +38,9 @@ describe('Test BatchingContinuousCachingStrategy', () => {
     const analyticHitQueue = new Map<string, UsageHit>()
     const batchingStrategy = new BatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
 
     const pageHit1 = new Page({
@@ -207,7 +207,7 @@ describe('test activateFlag method', () => {
   const analyticHitQueue = new Map<string, UsageHit>()
   const batchingStrategy = new BatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const cacheHitSpy = jest.spyOn(batchingStrategy as any, 'cacheHit')
 
   const flushHitsSpy = jest.spyOn(batchingStrategy, 'flushHits')
@@ -229,7 +229,7 @@ describe('test activateFlag method', () => {
 
   const urlActivate = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
   it('test activate success', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
 
     postAsync.mockResolvedValue({ status: 200, body: null })
 
@@ -424,7 +424,7 @@ describe('test activateFlag method', () => {
     const error = 'message error'
     postAsync.mockRejectedValue(error)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const sendTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'sendTroubleshootingHit')
 
     const activateHit = new Activate({
@@ -529,7 +529,7 @@ describe('test activateFlag method', () => {
   })
 
   it('test activate on BUCKETING_EDGE', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
 
     postAsync.mockResolvedValue({ status: 200, body: null })
 
@@ -537,9 +537,9 @@ describe('test activateFlag method', () => {
 
     const batchingStrategy = new BatchingContinuousCachingStrategy({ config, httpClient, hitsPoolQueue, activatePoolQueue, troubleshootingQueue, analyticHitQueue })
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits')
 
     const activateHit = new Activate({
@@ -628,7 +628,7 @@ describe('test sendBatch method', () => {
     sharedActionTracking
   })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const cacheHitSpy = jest.spyOn(batchingStrategy as any, 'cacheHit')
 
   const flushHitsSpy = jest.spyOn(batchingStrategy, 'flushHits')
@@ -659,7 +659,7 @@ describe('test sendBatch method', () => {
 
   const urlActivate = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`
   it('test sendBatch method success', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
 
     postAsync.mockResolvedValue({ status: 200, body: null })
 
@@ -708,7 +708,7 @@ describe('test sendBatch method', () => {
   })
 
   it('test sendBatch method success and dispatch hits to tag', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const isBrowser = jest.spyOn(utils, 'isBrowser')
     mockGlobals({
       __fsWebpackIsBrowser__: true
@@ -774,7 +774,7 @@ describe('test sendBatch method', () => {
   })
 
   it('test sendBatch method hit expired', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
 
     postAsync.mockResolvedValue({ status: 200, body: null })
 
@@ -819,7 +819,7 @@ describe('test sendBatch method', () => {
   })
 
   it('test sendBatch with poolMaxSize', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
 
     postAsync.mockResolvedValue({ status: 200, body: null })
 
@@ -856,7 +856,7 @@ describe('test sendBatch method', () => {
   it('test sendBatch method throw exception ', async () => {
     const error = 'message error'
     postAsync.mockRejectedValue(error)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const sendTroubleshootingHit = jest.spyOn((batchingStrategy as any), 'sendTroubleshootingHit')
 
     config.logLevel = LogLevel.ALL
@@ -994,7 +994,7 @@ describe('test cacheHit and flushHits methods', () => {
     pageHit.visitorId = visitorId
     pageHit.key = 'key'
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     await (batchingStrategy as any).cacheHit(new Map().set(pageHit.key, pageHit))
 
     const cacheData = {
@@ -1003,7 +1003,7 @@ describe('test cacheHit and flushHits methods', () => {
         visitorId: pageHit.visitorId,
         anonymousId: pageHit.anonymousId,
         type: pageHit.type,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         content: pageHit.toObject() as any,
         time: Date.now()
       }
@@ -1024,7 +1024,7 @@ describe('test cacheHit and flushHits methods', () => {
     pageHit.visitorId = visitorId
     pageHit.key = 'key'
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     await (batchingStrategy as any).cacheHit(new Map().set(pageHit.key, pageHit))
 
     expect(cacheHit).toBeCalledTimes(1)

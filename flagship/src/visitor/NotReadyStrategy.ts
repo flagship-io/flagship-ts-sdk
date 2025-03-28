@@ -35,12 +35,12 @@ export class NotReadyStrategy extends DefaultStrategy {
     //
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   async sendHit (_hit: HitAbstract | IHit | BatchDTO): Promise<void> {
     this.log('sendHit')
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   async sendHits (_hits: HitAbstract[] | IHit[] |BatchDTO[]): Promise<void> {
     this.log('sendHits')
   }
@@ -64,7 +64,7 @@ export class NotReadyStrategy extends DefaultStrategy {
     return emptyMetaData
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   protected async sendActivate (_flagDto: FlagDTO, _defaultValue?: unknown): Promise<void> {
     //
   }
@@ -73,7 +73,7 @@ export class NotReadyStrategy extends DefaultStrategy {
     //
   }
 
-  public async sendSdkConfigAnalyticHit () {
+  public async sendSdkConfigAnalyticHit (): Promise<void> {
     //
   }
 
@@ -81,7 +81,7 @@ export class NotReadyStrategy extends DefaultStrategy {
     //
   }
 
-  private log (methodName:string) {
+  private log (methodName:string):void {
     logErrorSprintf(this.config, methodName, METHOD_DEACTIVATED_ERROR, this.visitor.visitorId, methodName, FSSdkStatus[FSSdkStatus.SDK_NOT_INITIALIZED])
   }
 }

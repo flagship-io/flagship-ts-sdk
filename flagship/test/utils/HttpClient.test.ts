@@ -3,7 +3,7 @@ import { HttpClient, IHttpOptions } from '../../src/utils/HttpClient'
 import { Response } from 'node-fetch'
 import * as nodeDeps from '../../src/depsNode.native'
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 
 // globalThis.AbortController = require('node-abort-controller')
 
@@ -65,7 +65,7 @@ describe('Post method tests for NOdeHttpClient', () => {
       options.timeout = 0.01
       await nodeHttpClient.postAsync(url, options)
       expect(fetch).toBeCalledTimes(1)
-    } catch (err) {
+    } catch  {
       expect(error).toEqual(error)
     }
   }
@@ -102,7 +102,7 @@ describe('Get method tests for NOdeHttpClient', () => {
       await nodeHttpClient.getAsync(url, options)
       expect(fetch).toBeCalledTimes(1)
     } catch (err) {
-      expect(error).toEqual(error)
+      expect(error).toEqual(err)
     }
   })
 
@@ -115,7 +115,7 @@ describe('Get method tests for NOdeHttpClient', () => {
       await nodeHttpClient.getAsync(url, options)
       expect(fetch).toBeCalledTimes(1)
     } catch (err) {
-      expect(error).toEqual(error)
+      expect(error).toEqual(err)
     }
   })
 
@@ -128,7 +128,7 @@ describe('Get method tests for NOdeHttpClient', () => {
       await nodeHttpClient.getAsync(url, options)
       expect(fetch).toBeCalledTimes(1)
     } catch (err) {
-      expect(error).toEqual(error)
+      expect(error).toEqual(err)
     }
   })
 
@@ -144,7 +144,7 @@ describe('Get method tests for NOdeHttpClient', () => {
       await nodeHttpClient.getAsync(url, options)
       expect(fetch).toBeCalledTimes(1)
     } catch (err) {
-      expect(error).toEqual(error)
+      expect(error).toEqual(err)
     }
   }
   )

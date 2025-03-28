@@ -1,4 +1,4 @@
-import { IHit, primitive } from '../types'
+import { FlagsStatus, IHit, primitive } from '../types'
 import { EventEmitter } from '../depsNode.native'
 import { IVisitor } from './IVisitor'
 import { IFlagshipConfig } from '../config/index'
@@ -17,16 +17,18 @@ import { IPageView } from '../emotionAI/hit/IPageView'
  */
 export class Visitor extends EventEmitter implements IVisitor {
   private visitorDelegate:VisitorAbstract
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _onReady:((err:any)=>void)
   public constructor (visitorDelegate: VisitorAbstract) {
     super()
     this.visitorDelegate = visitorDelegate
-    this._onReady = (err:any) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this._onReady = (err:any):void => {
       this.emit(EMIT_READY, err)
     }
     this.visitorDelegate.on(EMIT_READY, this._onReady)
 
-    const instance = this as any
+    const instance = this as unknown as VisitorAbstract
 
     instance.sendEaiVisitorEvent = (event: IVisitorEvent) => {
       this.visitorDelegate.sendEaiVisitorEvent(event)
@@ -79,7 +81,7 @@ export class Visitor extends EventEmitter implements IVisitor {
   /**
    * @inheritdoc
    */
-  public get flagsStatus () {
+  public get flagsStatus (): FlagsStatus  {
     return this.visitorDelegate.flagsStatus
   }
 

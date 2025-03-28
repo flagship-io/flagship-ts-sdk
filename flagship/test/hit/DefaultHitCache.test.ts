@@ -20,9 +20,9 @@ describe('Test DefaultHitCache', () => {
     getItem: jest.fn(),
     setItem: jest.fn(),
     removeItem: jest.fn<(items: string[])=>void>()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   global.localStorage = storageMock as any
   const visitorId = 'visitorId'
 
@@ -33,7 +33,7 @@ describe('Test DefaultHitCache', () => {
       visitorId,
       anonymousId: null,
       type: HitType.SCREEN,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       content: pageHit.toObject() as any,
       time: Date.now()
     }

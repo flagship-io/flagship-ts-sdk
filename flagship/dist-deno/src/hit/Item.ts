@@ -158,7 +158,7 @@ export class Item extends HitAbstract implements IItem {
     )
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   public toApiKeys ():Record<string, unknown> {
     const apiKeys = super.toApiKeys()
     apiKeys[TID_API_ITEM] = this.transactionId

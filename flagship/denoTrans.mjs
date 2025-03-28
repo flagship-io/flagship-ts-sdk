@@ -27,6 +27,7 @@ function transformFromDir (dirPath, packageResolves = null) {
 function transformFile (filePath, dirPath, packageResolves = null) {
   readFile(filePath, (err, contentBuffer) => {
     if (err) {
+      // eslint-disable-next-line no-console
       console.log('err: ', err)
       return
     }
@@ -68,6 +69,7 @@ function transformFile (filePath, dirPath, packageResolves = null) {
     mkdirSync(`${DIST_DENO}/${dirPath}`, { recursive: true })
     writeFile(path.resolve(`${DIST_DENO}/${filePath}`), content, (writeErr) => {
       if (writeErr) {
+        // eslint-disable-next-line no-console
         console.log('err', writeErr)
       }
     })

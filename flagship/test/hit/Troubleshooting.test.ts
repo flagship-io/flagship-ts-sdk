@@ -201,7 +201,7 @@ describe('test hit type Monitoring', () => {
       pageHit[`hit.${key}`] = typeof element === 'string' ? element : JSON.stringify(element)
     }
 
-    // eslint-disable-next-line complexity
+     
     const getCustomVariable = () => {
       return {
         version: `${logVersion}`,
@@ -291,7 +291,7 @@ describe('test hit type Monitoring', () => {
         eAIDataTimestamp: `${params.eAIDataTimestamp}`
       }
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const apiKeys: Record<string, unknown> = {
       [VISITOR_ID_API_ITEM]: visitorId,
       [DS_API_ITEM]: SDK_APP,
