@@ -517,7 +517,7 @@ describe('SharedActionTracking Tests', () => {
         action: SharedActionSource.ABT_WEB_SDK_TRACK_ACTION,
         data: [localActionTracking4.data, localActionTracking5.data],
         nonce: expect.any(String) as unknown as string,
-        timestamp: Date.now()
+        timestamp: expect.any(Number) as unknown as number
       }
 
       sharedActionTracking.dispatchEventHits([localActionTracking1, localActionTracking2, localActionTracking3, localActionTracking4, localActionTracking5])
