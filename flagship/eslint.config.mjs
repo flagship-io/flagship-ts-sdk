@@ -28,6 +28,7 @@ export default defineConfig([
       "no-alert": "error",
 
       // Best Practices
+      "quotes": ["error", "single", { "avoidEscape": true }],
       "complexity": ["error", 15],
       "max-depth": ["error", 3],
       "max-params": ["error", 4],
