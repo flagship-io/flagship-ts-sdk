@@ -1,6 +1,6 @@
-import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
+import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_FROM_AB_TASTY_TAG, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant'
 import { IConfigManager, IFlagshipConfig } from '../config/index'
-import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFSFlagMetadata, sdkInitialData, VisitorCacheStatus, FlagsStatus, SerializedFlagMetadata, CampaignDTO, VisitorVariations, EAIScore, VisitorProfile } from '../types'
+import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFSFlagMetadata, sdkInitialData, VisitorCacheStatus, FlagsStatus, SerializedFlagMetadata, CampaignDTO, VisitorVariations, EAIScore } from '../types'
 
 import { IVisitor } from './IVisitor'
 import { FSSdkStatus, SDK_INFO, VISITOR_ID_ERROR } from '../enum/index'
@@ -36,99 +36,99 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   protected _isCleaningDeDuplicationCache!: boolean
   public visitorCache?: VisitorCacheDTO
   protected _exposedVariations!: Record<string, VisitorVariations>
-  protected _sendExposedVariationTimeoutId?:NodeJS.Timeout
+  protected _sendExposedVariationTimeoutId?: NodeJS.Timeout
 
-  private _instanceId! : string
-  private _traffic! : number
+  private _instanceId!: string
+  private _traffic!: number
   protected _sdkInitialData?: sdkInitialData
-  private _consentHitTroubleshooting? : Troubleshooting
-  private _segmentHitTroubleshooting? : Troubleshooting
-  private _fetchStatus! : FlagsStatus
-  private _onFetchFlagsStatusChanged? : ({ status, reason }: FlagsStatus) => void
-  private _getCampaignsPromise? : Promise<CampaignDTO[]|null>
-  private _hasContextBeenUpdated! : boolean
+  private _consentHitTroubleshooting?: Troubleshooting
+  private _segmentHitTroubleshooting?: Troubleshooting
+  private _fetchStatus!: FlagsStatus
+  private _onFetchFlagsStatusChanged?: ({ status, reason }: FlagsStatus) => void
+  private _getCampaignsPromise?: Promise<CampaignDTO[] | null>
+  private _hasContextBeenUpdated!: boolean
   private _emotionAi!: IEmotionAI
   private _analyticTraffic!: number
   private _murmurHash!: MurmurHash
   private _visitorProfileCache?: IVisitorProfileCache
 
-  public get hasContextBeenUpdated () : boolean {
+  public get hasContextBeenUpdated(): boolean {
     return this._hasContextBeenUpdated
   }
 
-  public set hasContextBeenUpdated (v : boolean) {
+  public set hasContextBeenUpdated(v: boolean) {
     this._hasContextBeenUpdated = v
   }
 
-  public get getCampaignsPromise () : Promise<CampaignDTO[]|null>|undefined {
+  public get getCampaignsPromise(): Promise<CampaignDTO[] | null> | undefined {
     return this._getCampaignsPromise
   }
 
-  public set getCampaignsPromise (v : Promise<CampaignDTO[]|null>|undefined) {
+  public set getCampaignsPromise(v: Promise<CampaignDTO[] | null> | undefined) {
     this._getCampaignsPromise = v
   }
 
-  public get onFetchFlagsStatusChanged () : (({ status, reason }: FlagsStatus) => void)|undefined {
+  public get onFetchFlagsStatusChanged(): (({ status, reason }: FlagsStatus) => void) | undefined {
     return this._onFetchFlagsStatusChanged
   }
 
-  public set onFetchFlagsStatusChanged (v : (({ status, reason }: FlagsStatus) => void)|undefined) {
+  public set onFetchFlagsStatusChanged(v: (({ status, reason }: FlagsStatus) => void) | undefined) {
     this._onFetchFlagsStatusChanged = v
   }
 
-  public get flagsStatus () : FlagsStatus {
+  public get flagsStatus(): FlagsStatus {
     return this._fetchStatus
   }
 
-  public set flagsStatus (v : FlagsStatus) {
+  public set flagsStatus(v: FlagsStatus) {
     this._fetchStatus = v
     if (this.onFetchFlagsStatusChanged) {
       this.onFetchFlagsStatusChanged(v)
     }
   }
 
-  public get segmentHitTroubleshooting () : Troubleshooting|undefined {
+  public get segmentHitTroubleshooting(): Troubleshooting | undefined {
     return this._segmentHitTroubleshooting
   }
 
-  public set segmentHitTroubleshooting (v : Troubleshooting|undefined) {
+  public set segmentHitTroubleshooting(v: Troubleshooting | undefined) {
     this._segmentHitTroubleshooting = v
   }
 
-  public get consentHitTroubleshooting () : Troubleshooting|undefined {
+  public get consentHitTroubleshooting(): Troubleshooting | undefined {
     return this._consentHitTroubleshooting
   }
 
-  public set consentHitTroubleshooting (v : Troubleshooting|undefined) {
+  public set consentHitTroubleshooting(v: Troubleshooting | undefined) {
     this._consentHitTroubleshooting = v
   }
 
-  public get sdkInitialData ():sdkInitialData|undefined {
+  public get sdkInitialData(): sdkInitialData | undefined {
     return this._sdkInitialData
   }
 
   public static SdkStatus?: FSSdkStatus
 
-  public getSdkStatus () : FSSdkStatus|undefined {
+  public getSdkStatus(): FSSdkStatus | undefined {
     return VisitorAbstract.SdkStatus
   }
 
   public lastFetchFlagsTimestamp = 0
-  private _visitorCacheStatus? : VisitorCacheStatus
+  private _visitorCacheStatus?: VisitorCacheStatus
 
-  public get visitorCacheStatus () : VisitorCacheStatus|undefined {
+  public get visitorCacheStatus(): VisitorCacheStatus | undefined {
     return this._visitorCacheStatus
   }
 
-  public set visitorCacheStatus (v : VisitorCacheStatus|undefined) {
+  public set visitorCacheStatus(v: VisitorCacheStatus | undefined) {
     this._visitorCacheStatus = v
   }
 
-  public get emotionAi () : IEmotionAI {
+  public get emotionAi(): IEmotionAI {
     return this._emotionAi
   }
 
-  public get analyticTraffic () : number {
+  public get analyticTraffic(): number {
     return this._analyticTraffic
   }
 
@@ -154,20 +154,56 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._visitorProfileCache = visitorProfileCache
   }
 
-  private initVisitorId(visitorId?: string, isAuthenticated?: boolean, visitorCache?: VisitorProfile|null): void {
-    this.visitorId = visitorId || (!isAuthenticated && visitorCache?.anonymousId ? visitorCache?.anonymousId : visitorCache?.visitorId) || this.generateVisitorId()
-    
-    this._anonymousId = null
+  /**
+   * Attempts to retrieve a visitor ID from the ABTasty tag in browser environments
+   * @returns The ABTasty visitor ID if available, otherwise undefined
+   */
+  private getVisitorIdFromTag(): string | undefined {
+    if (__fsWebpackIsBrowser__) {
+      const visitorId = window.ABTasty?.api?.internal?._getVisitorId();
+
+      if (visitorId) {
+        logDebugSprintf(
+          this.config,
+          PROCESS_NEW_VISITOR,
+          VISITOR_ID_FROM_AB_TASTY_TAG,
+           visitorId
+        );
+      } return visitorId;
+    }
+    return undefined;
+  }
+
+  private initVisitorId(visitorId?: string, isAuthenticated?: boolean, hasConsented?: boolean): void {
+
+    const shouldUseCache = this.config.reuseVisitorIds && hasConsented === true;
+    const visitorCache = shouldUseCache ? this._visitorProfileCache?.loadVisitorProfile() : null;
+
+    if (visitorCache) {
+      logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_PROFILE_LOADED, visitorCache);
+    }
+
+    if (visitorId) {
+      this.visitorId = visitorId;
+    } else if (!isAuthenticated && visitorCache?.anonymousId) {
+      this.visitorId = visitorCache.anonymousId;
+    } else if (visitorCache?.visitorId) {
+      this.visitorId = visitorCache.visitorId;
+    } else {
+      this.visitorId = this.getVisitorIdFromTag() || this.generateVisitorId();
+    }
+
+    this._anonymousId = null;
     if (isAuthenticated) {
-      this._anonymousId = visitorCache?.anonymousId || uuidV4()
+      this._anonymousId = visitorCache?.anonymousId || uuidV4();
     }
   }
 
-  constructor (param: NewVisitor & {
+  constructor(param: NewVisitor & {
     visitorId?: string
     configManager: IConfigManager
     context: Record<string, primitive>
-    monitoringData?:sdkInitialData,
+    monitoringData?: sdkInitialData,
     emotionAi: IEmotionAI,
     murmurHash?: MurmurHash,
     visitorProfileCache?: IVisitorProfileCache
@@ -177,20 +213,15 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     } = param
     super()
     this.initBaseProperties(param)
-    const visitorCache = this.config.reuseVisitorIds ? this._visitorProfileCache?.loadVisitorProfile() : null
-    if (visitorCache) {
-      logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_PROFILE_LOADED, visitorCache)
-    }
-    
 
 
-    this.initVisitorId(visitorId, isAuthenticated, visitorCache)
+    this.initVisitorId(visitorId, isAuthenticated, hasConsented)
 
     this.initAnalyticTraffic()
     this.setConsent(hasConsented || false)
     this.updateContext(context)
     this.loadPredefinedContext()
-    
+
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, PREDEFINED_CONTEXT_LOADED, {
       fs_client: SDK_INFO.name,
       fs_version: SDK_INFO.version,
@@ -211,43 +242,43 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented)
   }
 
-  protected updateCache (): void {
-    const visitorProfile = {
+  protected updateCache(): void {
+    const visitorProfile = this.hasConsented ? {
       visitorId: this.visitorId,
       anonymousId: this.anonymousId
-    }
+    } : undefined
     this._visitorProfileCache?.saveVisitorProfile(visitorProfile)
   }
 
-  public get traffic () : number {
+  public get traffic(): number {
     return this._traffic
   }
 
-  public set traffic (v:number) {
+  public set traffic(v: number) {
     this._traffic = v
   }
 
-  public get instanceId () : string {
+  public get instanceId(): string {
     return this._instanceId
   }
 
-  public getCurrentDateTime (): Date {
+  public getCurrentDateTime(): Date {
     return new Date()
   }
 
-  protected initAnalyticTraffic () : void {
+  protected initAnalyticTraffic(): void {
     const uniqueId = this.visitorId + this.getCurrentDateTime().toDateString()
     const hash = this._murmurHash.murmurHash3Int32(uniqueId)
     this._analyticTraffic = hash % 1000
   }
 
-  protected generateVisitorId ():string {
+  protected generateVisitorId(): string {
     const visitorId = uuidV4()
     logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_ID_GENERATED, visitorId)
     return visitorId
   }
 
-  public clearDeDuplicationCache (deDuplicationTime: number): void {
+  public clearDeDuplicationCache(deDuplicationTime: number): void {
     if (this._isCleaningDeDuplicationCache) {
       return
     }
@@ -262,7 +293,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._isCleaningDeDuplicationCache = false
   }
 
-  protected setInitialFlags (flags?: SerializedFlagMetadata[]): void {
+  protected setInitialFlags(flags?: SerializedFlagMetadata[]): void {
     this._flags = new Map<string, FlagDTO>()
     if (!Array.isArray(flags)) {
       return
@@ -284,23 +315,23 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     })
   }
 
-  protected setInitializeCampaigns (campaigns?: CampaignDTO[], hasInitialFlags?: boolean): void {
+  protected setInitializeCampaigns(campaigns?: CampaignDTO[], hasInitialFlags?: boolean): void {
     if (campaigns && Array.isArray(campaigns) && !hasInitialFlags) {
       this.getStrategy().updateCampaigns(campaigns)
     }
   }
 
-  public loadPredefinedContext (): void {
+  public loadPredefinedContext(): void {
     this.context.fs_client = SDK_INFO.name
     this.context.fs_version = SDK_INFO.version
     this.context.fs_users = this.visitorId
   }
 
-  public get visitorId (): string {
+  public get visitorId(): string {
     return this._visitorId
   }
 
-  public set visitorId (v: string) {
+  public set visitorId(v: string) {
     if (!v || typeof v !== 'string') {
       logError(this.config, VISITOR_ID_ERROR, 'VISITOR ID')
       return
@@ -310,61 +341,61 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.visitorCache = undefined
   }
 
-  public get hasConsented (): boolean {
+  public get hasConsented(): boolean {
     return this._hasConsented
   }
 
-  public set hasConsented (v: boolean) {
+  public set hasConsented(v: boolean) {
     this._hasConsented = v
   }
 
-  public setConsent (hasConsented: boolean): void {
+  public setConsent(hasConsented: boolean): void {
     this.hasConsented = hasConsented
     this.getStrategy().setConsent(hasConsented)
   }
 
-  public get context (): Record<string, primitive> {
+  public get context(): Record<string, primitive> {
     return this._context
   }
 
-  public set context (v: Record<string, primitive>) {
+  public set context(v: Record<string, primitive>) {
     this._context = {}
     this.updateContext(v)
   }
 
-  public get flagsData (): Map<string, FlagDTO> {
+  public get flagsData(): Map<string, FlagDTO> {
     return this._flags
   }
 
-  public set flagsData (v: Map<string, FlagDTO>) {
+  public set flagsData(v: Map<string, FlagDTO>) {
     this._flags = v
   }
 
-  get configManager (): IConfigManager {
+  get configManager(): IConfigManager {
     return this._configManager
   }
 
-  public get config (): IFlagshipConfig {
+  public get config(): IFlagshipConfig {
     return this.configManager.config
   }
 
-  public get campaigns (): CampaignDTO[] {
+  public get campaigns(): CampaignDTO[] {
     return this._campaigns
   }
 
-  public set campaigns (v: CampaignDTO[]) {
+  public set campaigns(v: CampaignDTO[]) {
     this._campaigns = v
   }
 
-  public get anonymousId (): string | null {
+  public get anonymousId(): string | null {
     return this._anonymousId
   }
 
-  public set anonymousId (v: string | null) {
+  public set anonymousId(v: string | null) {
     this._anonymousId = v
   }
 
-  protected getStrategy (): StrategyAbstract {
+  protected getStrategy(): StrategyAbstract {
     let strategy: StrategyAbstract
     const params = {
       visitor: this,
@@ -384,7 +415,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     return strategy
   }
 
-  public async sendExposedVariation (flag?:FlagDTO):Promise<void> {
+  public async sendExposedVariation(flag?: FlagDTO): Promise<void> {
     if (__fsWebpackIsBrowser__) {
       if (!flag || !isBrowser()) {
         return
@@ -429,63 +460,63 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     }
   }
 
-  public collectEAIEventsAsync (currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> {
+  public collectEAIEventsAsync(currentPage?: Omit<IPageView, 'toApiKeys'>): Promise<void> {
     return this.getStrategy().collectEAIEventsAsync(currentPage)
   }
 
-  sendEaiVisitorEvent (event: IVisitorEvent):void {
+  sendEaiVisitorEvent(event: IVisitorEvent): void {
     this.getStrategy().reportEaiVisitorEvent(event)
   }
 
-  sendEaiPageView (pageView: IPageView):void {
+  sendEaiPageView(pageView: IPageView): void {
     this.getStrategy().reportEaiPageView(pageView)
   }
 
-  public onEAICollectStatusChange (callback: (status: boolean) => void): void {
+  public onEAICollectStatusChange(callback: (status: boolean) => void): void {
     this.getStrategy().onEAICollectStatusChange(callback)
   }
 
-  public cleanup (): void {
+  public cleanup(): void {
     this.getStrategy().cleanup()
   }
 
-  public async getCachedEAIScore (): Promise<EAIScore|undefined> {
+  public async getCachedEAIScore(): Promise<EAIScore | undefined> {
     if (!this.visitorCache) {
       await this.getStrategy().lookupVisitor()
     }
     return this.visitorCache?.data?.eAIScore
   }
 
-  public async isEAIDataCollected (): Promise<boolean> {
+  public async isEAIDataCollected(): Promise<boolean> {
     if (!this.visitorCache) {
       await this.getStrategy().lookupVisitor()
     }
     return this.visitorCache?.data?.isEAIDataCollected || false
   }
 
-  public async setCachedEAIScore (eAIScore: EAIScore): Promise<void> {
+  public async setCachedEAIScore(eAIScore: EAIScore): Promise<void> {
     this.getStrategy().cacheVisitor(eAIScore)
   }
 
-  public async setIsEAIDataCollected (isEAIDataCollected: boolean): Promise<void> {
+  public async setIsEAIDataCollected(isEAIDataCollected: boolean): Promise<void> {
     this.getStrategy().cacheVisitor(undefined, isEAIDataCollected)
   }
 
-  public sendTroubleshooting (hit: Troubleshooting): Promise<void> {
+  public sendTroubleshooting(hit: Troubleshooting): Promise<void> {
     return this.getStrategy().sendTroubleshootingHit(hit)
   }
 
-  public sendUsageHit (hit: UsageHit): Promise<void> {
+  public sendUsageHit(hit: UsageHit): Promise<void> {
     return this.getStrategy().sendUsageHit(hit)
   }
 
-  public addInTrackingManager (hit: HitAbstract): Promise<void> {
+  public addInTrackingManager(hit: HitAbstract): Promise<void> {
     return this.getStrategy().addInTrackingManager(hit)
   }
 
-  abstract updateContext(key: string, value: primitive):void
+  abstract updateContext(key: string, value: primitive): void
   abstract updateContext(context: Record<string, primitive>): void
-  abstract updateContext (context: Record<string, primitive> | string, value?:primitive): void
+  abstract updateContext(context: Record<string, primitive> | string, value?: primitive): void
   abstract clearContext(): void
 
   abstract getFlag(key: string): IFSFlag
@@ -502,8 +533,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   abstract authenticate(visitorId: string): void
   abstract unauthenticate(): void
 
-  abstract visitorExposed (param:VisitorExposedParam): Promise<void>
-  abstract getFlagValue<T>(param:GetFlagValueParam<T>):T extends null ? unknown : T
+  abstract visitorExposed(param: VisitorExposedParam): Promise<void>
+  abstract getFlagValue<T>(param: GetFlagValueParam<T>): T extends null ? unknown : T
   abstract fetchFlags(): Promise<void>
-  abstract getFlagMetadata(param:GetFlagMetadataParam):IFSFlagMetadata
+  abstract getFlagMetadata(param: GetFlagMetadataParam): IFSFlagMetadata
 }

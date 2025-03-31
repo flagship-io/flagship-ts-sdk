@@ -361,7 +361,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       return new Date()
     }
 
-    protected getSdkConfigDecisionMode ():DecisionMode.BUCKETING | DecisionMode.BUCKETING_EDGE | "DECISION_API" | undefined{
+    protected getSdkConfigDecisionMode ():DecisionMode.BUCKETING | DecisionMode.BUCKETING_EDGE | 'DECISION_API' | undefined{
       return this.config.decisionMode === DecisionMode.DECISION_API ? 'DECISION_API' : this.config.decisionMode
     }
 
