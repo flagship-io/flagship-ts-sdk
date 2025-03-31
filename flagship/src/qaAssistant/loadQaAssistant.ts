@@ -1,5 +1,5 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig';
-import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, QA_ASSISTANT_PROD_URL } from '../enum/FlagshipConstant';
+import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, QA_ASSISTANT_PROD_URL, TRUSTED_QA_ORIGINS } from '../enum/FlagshipConstant';
 import { VisitorVariationState } from '../type.local';
 import { FsVariationToForce } from '../types';
 import { logInfoSprintf } from '../utils/utils';
@@ -35,6 +35,9 @@ export function loadQaAssistant(config: IFlagshipConfig, bundleUrl:string|null =
   }
 
   const eventListenerMessage = (event: MessageEvent<EventDataFromIframe>):void => {
+    if (!TRUSTED_QA_ORIGINS.includes(event?.origin)) {
+      return;
+    }
     handleIframeMessage({
       visitorVariationState,
       event,

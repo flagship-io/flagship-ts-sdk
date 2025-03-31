@@ -341,3 +341,13 @@ export const ACTION_TRACKING_INVALID_NONCE = 'Invalid nonce: {0}';
 export const ACTION_TRACKING_SENDING_HIT = 'Sending hit: {0}';
 export const ACTION_TRACKING_SENDING_HIT_ERROR = 'Failed to send hit: {0}';
 export const ACTION_TRACKING_DISPATCHED = 'action tracking hits have been dispatched {0}';
+
+
+export const TRUSTED_QA_ORIGINS = [
+  'https://local-qa-assistant.abtasty.com:5000',
+  'https://staging-qa-assistant.abtasty.com',
+  'https://qa-assistant.abtasty.com',
+  'https://qa-assistant.flagship.io',
+  'https://local-qa-assistant.flagship.io:5000',
+  'https://staging-qa-assistant.flagship.io'
+];

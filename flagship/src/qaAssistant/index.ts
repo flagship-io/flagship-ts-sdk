@@ -6,7 +6,8 @@ import { FS_QA_ASSISTANT,
   QA_ASSISTANT_STAGING_URL,
   TAG_QA_ASSISTANT,
   TAG_QA_ASSISTANT_LOCAL,
-  TAG_QA_ASSISTANT_STAGING } from '../enum/FlagshipConstant';
+  TAG_QA_ASSISTANT_STAGING,
+  TRUSTED_QA_ORIGINS } from '../enum/FlagshipConstant';
 import { IFlagshipConfig } from '../config/IFlagshipConfig';
 import { isBrowser, onDomReady } from '../utils/utils';
 import { listenForKeyboardQaAssistant } from './listenForKeyboardQaAssistant';
@@ -48,6 +49,11 @@ export function launchQaAssistant(
     function onPlatformChoiceLoaded(
       event: MessageEvent<EventDataFromIframe>
     ): void {
+
+      if (!TRUSTED_QA_ORIGINS.includes(event.origin)) {
+        return;
+      }
+
       if (
         event.data.name === MSG_NAME_FROM_IFRAME.QaAssistantPlatformChoiceLoaded
       ) {

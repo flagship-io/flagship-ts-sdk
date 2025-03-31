@@ -10,7 +10,7 @@ import * as listenForKeyboardQaAssistant from '../../src/qaAssistant/listenForKe
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig';
 import { VisitorVariationState } from '../../src/type.local';
 import { MSG_NAME_FROM_IFRAME } from '../../src/qaAssistant/type';
-import { FS_QA_ASSISTANT, FS_QA_ASSISTANT_LOCAL, FS_QA_ASSISTANT_STAGING, QA_ASSISTANT_LOCAL_URL, QA_ASSISTANT_PROD_URL, QA_ASSISTANT_STAGING_URL } from '../../src/enum/FlagshipConstant';
+import { FS_QA_ASSISTANT, FS_QA_ASSISTANT_LOCAL, FS_QA_ASSISTANT_STAGING, QA_ASSISTANT_LOCAL_URL, QA_ASSISTANT_PROD_URL, QA_ASSISTANT_STAGING_URL, TRUSTED_QA_ORIGINS } from '../../src/enum/FlagshipConstant';
 describe('Qa Assistant', () => {
   const { location } = window;
   const isBrowserSpy = jest.spyOn(utils, 'isBrowser');
@@ -165,9 +165,13 @@ describe('Qa Assistant', () => {
     window.location = {
       ...location,
       search: ''
+
     } as Location & string;
 
-    const event = new MessageEvent('message', { data: { name: MSG_NAME_FROM_IFRAME.QaAssistantPlatformChoiceLoaded } });
+    const event = new MessageEvent('message', {
+      origin: TRUSTED_QA_ORIGINS[0],
+      data: { name: MSG_NAME_FROM_IFRAME.QaAssistantPlatformChoiceLoaded }
+    });
 
     launchQaAssistant(config, visitorVariationState);
 
@@ -181,5 +185,26 @@ describe('Qa Assistant', () => {
       null,
       visitorVariationState
     );
+  });
+
+  it('should call NOT loadQaAssistant when receiving QA_ASSISTANT_PLATFORM_CHOICE_LOADED message', () => {
+    const config = new DecisionApiConfig();
+    config.isQAModeEnabled = false;
+
+    delete (window as any).location;
+    window.location = {
+      ...location,
+      search: ''
+    } as Location & string;
+
+    const event = new MessageEvent('message', { data: { name: MSG_NAME_FROM_IFRAME.QaAssistantPlatformChoiceLoaded } });
+
+    launchQaAssistant(config, visitorVariationState);
+
+    config.isQAModeEnabled = false;
+
+    window.dispatchEvent(event);
+
+    expect(loadQaAssistantSpy).toBeCalledTimes(0);
   });
 });

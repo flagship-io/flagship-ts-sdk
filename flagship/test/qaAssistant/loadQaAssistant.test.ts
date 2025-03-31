@@ -83,9 +83,26 @@ describe('Test loadQaAssistant', () => {
     addEventListenerSpy.mockImplementation((type, listener:any) => {
       listener();
     });
+
     loadQaAssistant(config, null, visitorVariationState);
 
-    expect(handleIframeMessageSpy).toBeCalledTimes(1);
+    expect(addEventListenerSpy).toBeCalledTimes(1);
+  });
+
+  it('test loadQaAssistant handleIframeMessageSpy', () => {
+    sessionStorageGetItemSpy.mockReturnValue('error');
+    handleIframeMessageSpy.mockImplementation(() => {
+      //
+    });
+
+    addEventListenerSpy.mockImplementation((type, listener:any) => {
+      listener();
+    });
+
+    loadQaAssistant(config, null, visitorVariationState);
+
+    expect(addEventListenerSpy).toBeCalledTimes(1);
+
   });
 
   it('test loadQaAssistant when QA has already launched', () => {
