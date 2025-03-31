@@ -419,7 +419,8 @@ describe('SharedActionTracking Tests', () => {
       window.ABTasty = {
         api: {
           internal: {
-            _getActionTrackingNonce: getActionTrackingNonce
+            _getActionTrackingNonce: getActionTrackingNonce,
+            _getVisitorId: jest.fn(() => visitorMock.visitorId)
           }
         }
       }
