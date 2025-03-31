@@ -1,34 +1,42 @@
-import { IFlagshipConfig } from './config/IFlagshipConfig'
-import { ISharedActionTracking } from './sharedFeature/ISharedActionTracking'
-import { FlagDTO, IFSFlagMetadata, InternalHitType, primitive, VisitorProfile } from './types'
-import { type IHttpClient } from './utils/HttpClient'
+import { IFlagshipConfig } from './config/IFlagshipConfig';
+import { EventDataFromIframe } from './qaAssistant/type';
+import { ISdkApiV1 } from './sdkApi/v1/ISdkApiV1';
+import { ISharedActionTracking } from './sharedFeature/ISharedActionTracking';
+import { FlagDTO,
+  FsVariationToForce,
+  IFSFlagMetadata,
+  InternalHitType,
+  primitive,
+  VisitorProfile,
+  VisitorVariations } from './types';
+import { type IHttpClient } from './utils/HttpClient';
 
 export type VisitorExposedParam = {
-    key: string;
-    flag?: FlagDTO;
-    defaultValue: unknown;
-    hasGetValueBeenCalled: boolean;
-  };
+  key: string;
+  flag?: FlagDTO;
+  defaultValue: unknown;
+  hasGetValueBeenCalled: boolean;
+};
 
 export type GetFlagValueParam<T> = {
-    key: string;
-    defaultValue: T;
-    flag?: FlagDTO;
-    visitorExposed?: boolean;
-  };
+  key: string;
+  defaultValue: T;
+  flag?: FlagDTO;
+  visitorExposed?: boolean;
+};
 
 export type GetFlagMetadataParam = {
-    key: string;
-    flag?: FlagDTO;
-  };
+  key: string;
+  flag?: FlagDTO;
+};
 
 export type EAIConfig = {
   eaiActivationEnabled: boolean;
   eaiCollectEnabled: boolean;
-}
+};
 
 export interface IVisitorProfileCache {
-  saveVisitorProfile(visitorProfile: VisitorProfile): void;
+  saveVisitorProfile(visitorProfile?: VisitorProfile): void;
   loadVisitorProfile(): VisitorProfile | null;
 }
 
@@ -49,7 +57,7 @@ export type LocalActionTracking = {
   visitorId: string;
   createdAt: number;
   anonymousId?: string | null;
-}
+};
 
 export interface SharedActionPayload {
   action: SharedActionSource;
@@ -60,50 +68,40 @@ export interface SharedActionPayload {
 
 export type SdkApiParam = {
   sharedActionTracking?: ISharedActionTracking;
-}
+};
 
 export type SharedActionTrackingParam = {
   sdkConfig: IFlagshipConfig;
-}
-
-declare global {
-  let __fsWebpackIsBrowser__: boolean
-  let __fsWebpackIsNode__: boolean
-  let __fsWebpackIsReactNative__: boolean
-  let __fsWebpackIsEdgeWorker__: boolean
-  let __fsWebpackIsDeno__: boolean
-}
-
-
+};
 
 export type ConstructorParam = {
   httpClient: IHttpClient;
   sdkConfig: IFlagshipConfig;
-  eAIConfig: EAIConfig|undefined;
+  eAIConfig: EAIConfig | undefined;
+};
+
+export interface IHitAbstract {
+  visitorId: string;
+  anonymousId?: string | null;
+  ds?: string;
+  type: InternalHitType;
+  userIp?: string;
+  screenResolution?: string;
+  locale?: string;
+  sessionNumber?: string;
+  createdAt: number;
+  qaMode?: boolean;
+  isActionTrackingHit?: boolean;
 }
 
-export interface IHitAbstract{
-  visitorId:string
-  anonymousId?: string|null
-  ds?: string
-  type: InternalHitType
-  userIp?: string
-  screenResolution?: string
-  locale?: string
-  sessionNumber?: string,
-  createdAt:number,
-  qaMode?: boolean,
-  isActionTrackingHit?: boolean
-}
-
-export interface IActivate extends IHitAbstract{
-    variationGroupId: string
-    variationId: string
-    flagKey: string
-    flagValue: unknown
-    flagDefaultValue: unknown
-    flagMetadata: IFSFlagMetadata
-    visitorContext: Record<string, primitive>
+export interface IActivate extends IHitAbstract {
+  variationGroupId: string;
+  variationId: string;
+  flagKey: string;
+  flagValue: unknown;
+  flagDefaultValue: unknown;
+  flagMetadata: IFSFlagMetadata;
+  visitorContext: Record<string, primitive>;
 }
 
 export enum ImportHitType {
@@ -122,4 +120,52 @@ export enum ImportHitType {
   Diagnostic = 'Diagnostic',
 }
 
-export type ActivateConstructorParam = Omit<IActivate, 'type'|'createdAt'|'traffic'>
+export type ActivateConstructorParam = Omit<
+  IActivate,
+  'type' | 'createdAt' | 'traffic'
+>;
+
+declare global {
+  let __fsWebpackIsBrowser__: boolean;
+  let __fsWebpackIsNode__: boolean;
+  let __fsWebpackIsReactNative__: boolean;
+  let __fsWebpackIsEdgeWorker__: boolean;
+  let __fsWebpackIsDeno__: boolean;
+  interface Window {
+    ABTastyQaAssistant?: Window;
+    ABTastyWebSdk?: {
+      envId?: string;
+      internal?: ISdkApiV1;
+    };
+    ABTasty: {
+      api: {
+        internal: {
+          /**
+           * Generate a nonce for the action tracking.
+           * @returns {string|undefined} The nonce or undefined if the consent is not given.
+           */
+          _getActionTrackingNonce(): string | undefined;
+
+          _isByoidConfigured(): boolean | undefined;
+        };
+        v1: {
+          getValue(key: string): string | undefined;
+        };
+      };
+    };
+    __flagshipSdkOnPlatformChoiceLoaded?: (event: MessageEvent<EventDataFromIframe>) => void;
+    __flagshipSdkOnKeyCombinationDown?: (event: KeyboardEvent) => void;
+    __flagshipSdkOnKeyCombinationUp?: (event: KeyboardEvent) => void;
+    __flagshipSdkOriginalPushState?: History['pushState'];
+    __flagshipSdkOriginalReplaceState?: History['replaceState'];
+    __flagshipSdkPopStateHandler?: (event: PopStateEvent) => void;
+    __flagshipSdkQaAssistantMessageHandler?: (event: MessageEvent<EventDataFromIframe>) => void;
+  }
+}
+
+export type VisitorVariationState = {
+  forcedVariations?: Record<string, FsVariationToForce>;
+  visitorVariations?: Record<string, VisitorVariations>;
+  exposedVariations?: Record<string, VisitorVariations>;
+  navigationDetected?: boolean;
+};

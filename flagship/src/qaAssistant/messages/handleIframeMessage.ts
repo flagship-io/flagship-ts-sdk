@@ -1,29 +1,39 @@
 
-import { IFlagshipConfig } from '../../config/IFlagshipConfig'
-import { isBrowser } from '../../utils/utils'
-import { EventDataFromIframe, MSG_NAME_FROM_IFRAME } from '../type'
-import { onApplyForcedVariations, onQaAssistantClose, onQaAssistantReady, onResetForcedVariations, render } from './iframeMessageActions'
+import { IFlagshipConfig } from '../../config/IFlagshipConfig';
+import { VisitorVariationState } from '../../type.local';
+import { isBrowser } from '../../utils/utils';
+import { EventDataFromIframe, MSG_NAME_FROM_IFRAME } from '../type';
+import { onApplyForcedVariations, onQaAssistantClose, onQaAssistantReady, onResetForcedVariations, render } from './iframeMessageActions';
 
-export function handleIframeMessage ({ event, config, func }: { event: MessageEvent<EventDataFromIframe>, config: IFlagshipConfig, func?: (event: MessageEvent<EventDataFromIframe>) => void }):void {
+export function handleIframeMessage({ event, config, func, visitorVariationState }:
+  { event: MessageEvent<EventDataFromIframe>, config: IFlagshipConfig, func?: (event: MessageEvent<EventDataFromIframe>) => void,
+  visitorVariationState: VisitorVariationState }):void {
   if (!config.isQAModeEnabled || !isBrowser()) {
-    return
+    return;
   }
   switch (event.data.name) {
     case MSG_NAME_FROM_IFRAME.FsQaAssistantReady:
-      onQaAssistantReady()
-      break
+      onQaAssistantReady(visitorVariationState);
+      break;
     case MSG_NAME_FROM_IFRAME.MinimizeQaAssistantClose:
     case MSG_NAME_FROM_IFRAME.QaAssistantClose:
-      onQaAssistantClose({ config, func })
-      break
+      onQaAssistantClose({
+        config,
+        func,
+        visitorVariationState
+      });
+      break;
     case MSG_NAME_FROM_IFRAME.FsApplyForcedVariations:
-      onApplyForcedVariations({ value: event.data.value })
-      break
+      onApplyForcedVariations({
+        value: event.data.value,
+        visitorVariationState
+      });
+      break;
     case MSG_NAME_FROM_IFRAME.FsResetForcedVariations:
-      onResetForcedVariations()
-      break
+      onResetForcedVariations(visitorVariationState);
+      break;
     case MSG_NAME_FROM_IFRAME.FsTriggerRender:
-      render(true)
-      break
+      render(true);
+      break;
   }
 }

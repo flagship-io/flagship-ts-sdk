@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-  ICN_API_ITEM,
+import { ICN_API_ITEM,
   PM_API_ITEM,
   SM_API_ITEM,
   TA_API_ITEM,
@@ -9,14 +8,13 @@ import {
   TID_API_ITEM,
   TR_API_ITEM,
   TS_API_ITEM,
-  TT_API_ITEM
-} from '../enum/FlagshipConstant'
-import { HitType } from '../enum/HitType'
-import { logError, sprintf } from '../utils/utils'
-import { HitAbstract, IHitAbstract } from './HitAbstract'
+  TT_API_ITEM } from '../enum/FlagshipConstant';
+import { HitType } from '../enum/HitType';
+import { logError, sprintf } from '../utils/utils';
+import { HitAbstract, IHitAbstract } from './HitAbstract';
 
-export const CURRENCY_ERROR = '{0} must be a string and have exactly 3 letters'
-export const ERROR_MESSAGE = 'Transaction Id and Transaction affiliation are required'
+export const CURRENCY_ERROR = '{0} must be a string and have exactly 3 letters';
+export const ERROR_MESSAGE = 'Transaction Id and Transaction affiliation are required';
 
 export interface ITransaction extends IHitAbstract{
   transactionId: string
@@ -32,129 +30,129 @@ export interface ITransaction extends IHitAbstract{
 }
 
 export class Transaction extends HitAbstract implements ITransaction {
-  private _transactionId!: string
-  private _affiliation!: string
-  private _taxes!: number
-  private _currency!: string
-  private _couponCode!: string
-  private _itemCount!: number
-  private _shippingMethod!: string
-  private _paymentMethod!: string
-  private _totalRevenue!: number
-  private _shippingCosts!: number
+  private _transactionId!: string;
+  private _affiliation!: string;
+  private _taxes!: number;
+  private _currency!: string;
+  private _couponCode!: string;
+  private _itemCount!: number;
+  private _shippingMethod!: string;
+  private _paymentMethod!: string;
+  private _totalRevenue!: number;
+  private _shippingCosts!: number;
 
-  public get transactionId (): string {
-    return this._transactionId
+  public get transactionId(): string {
+    return this._transactionId;
   }
 
-  public set transactionId (v: string) {
+  public set transactionId(v: string) {
     if (!this.isNotEmptyString(v, 'transactionId')) {
-      return
+      return;
     }
-    this._transactionId = v
+    this._transactionId = v;
   }
 
-  public get affiliation (): string {
-    return this._affiliation
+  public get affiliation(): string {
+    return this._affiliation;
   }
 
-  public set affiliation (v: string) {
+  public set affiliation(v: string) {
     if (!this.isNotEmptyString(v, 'affiliation')) {
-      return
+      return;
     }
-    this._affiliation = v
+    this._affiliation = v;
   }
 
-  public get taxes (): number {
-    return this._taxes
+  public get taxes(): number {
+    return this._taxes;
   }
 
-  public set taxes (v: number) {
+  public set taxes(v: number) {
     if (!this.isNumeric(v, 'taxes')) {
-      return
+      return;
     }
-    this._taxes = v
+    this._taxes = v;
   }
 
-  public get currency (): string {
-    return this._currency
+  public get currency(): string {
+    return this._currency;
   }
 
-  public set currency (v: string) {
+  public set currency(v: string) {
     if (!v || typeof v !== 'string' || v.length !== 3) {
-      logError(this.config, sprintf(CURRENCY_ERROR, 'currency'), 'currency')
-      return
+      logError(this.config, sprintf(CURRENCY_ERROR, 'currency'), 'currency');
+      return;
     }
-    this._currency = v
+    this._currency = v;
   }
 
-  public get couponCode (): string {
-    return this._couponCode
+  public get couponCode(): string {
+    return this._couponCode;
   }
 
-  public set couponCode (v: string) {
+  public set couponCode(v: string) {
     if (!this.isNotEmptyString(v, 'couponCode')) {
-      return
+      return;
     }
-    this._couponCode = v
+    this._couponCode = v;
   }
 
-  public get itemCount (): number {
-    return this._itemCount
+  public get itemCount(): number {
+    return this._itemCount;
   }
 
-  public set itemCount (v: number) {
+  public set itemCount(v: number) {
     if (!this.isInteger(v, 'itemCount')) {
-      return
+      return;
     }
-    this._itemCount = Math.trunc(v)
+    this._itemCount = Math.trunc(v);
   }
 
-  public get shippingMethod (): string {
-    return this._shippingMethod
+  public get shippingMethod(): string {
+    return this._shippingMethod;
   }
 
-  public set shippingMethod (v: string) {
+  public set shippingMethod(v: string) {
     if (!this.isNotEmptyString(v, 'shippingMethod')) {
-      return
+      return;
     }
-    this._shippingMethod = v
+    this._shippingMethod = v;
   }
 
-  public get paymentMethod (): string {
-    return this._paymentMethod
+  public get paymentMethod(): string {
+    return this._paymentMethod;
   }
 
-  public set paymentMethod (v: string) {
+  public set paymentMethod(v: string) {
     if (!this.isNotEmptyString(v, 'paymentMethod')) {
-      return
+      return;
     }
-    this._paymentMethod = v
+    this._paymentMethod = v;
   }
 
-  public get totalRevenue (): number {
-    return this._totalRevenue
+  public get totalRevenue(): number {
+    return this._totalRevenue;
   }
 
-  public set totalRevenue (v: number) {
+  public set totalRevenue(v: number) {
     if (!this.isNumeric(v, 'totalRevenue')) {
-      return
+      return;
     }
-    this._totalRevenue = v
+    this._totalRevenue = v;
   }
 
-  public get shippingCosts (): number {
-    return this._shippingCosts
+  public get shippingCosts(): number {
+    return this._shippingCosts;
   }
 
-  public set shippingCosts (v: number) {
+  public set shippingCosts(v: number) {
     if (!this.isNumeric(v, 'shippingCosts')) {
-      return
+      return;
     }
-    this._shippingCosts = v
+    this._shippingCosts = v;
   }
 
-  public constructor (param: Omit<ITransaction, 'type'|'createdAt'|'visitorInstanceId'|'traffic'>) {
+  public constructor(param: Omit<ITransaction, 'type'|'createdAt'|'visitorInstanceId'|'traffic'>) {
     super({
       type: HitType.TRANSACTION,
       userIp: param.userIp,
@@ -165,7 +163,7 @@ export class Transaction extends HitAbstract implements ITransaction {
       anonymousId: param.anonymousId,
       qaMode: param.qaMode,
       isActionTrackingHit: param.isActionTrackingHit
-    })
+    });
     const {
       transactionId,
       affiliation, taxes,
@@ -173,79 +171,79 @@ export class Transaction extends HitAbstract implements ITransaction {
       itemCount, shippingMethod,
       paymentMethod,
       totalRevenue, shippingCosts
-    } = param
-    this.transactionId = transactionId
-    this.affiliation = affiliation
+    } = param;
+    this.transactionId = transactionId;
+    this.affiliation = affiliation;
     if (taxes) {
-      this.taxes = taxes
+      this.taxes = taxes;
     }
     if (currency) {
-      this.currency = currency
+      this.currency = currency;
     }
     if (couponCode) {
-      this.couponCode = couponCode
+      this.couponCode = couponCode;
     }
     if (itemCount) {
-      this.itemCount = itemCount
+      this.itemCount = itemCount;
     }
     if (shippingMethod) {
-      this.shippingMethod = shippingMethod
+      this.shippingMethod = shippingMethod;
     }
     if (paymentMethod) {
-      this.paymentMethod = paymentMethod
+      this.paymentMethod = paymentMethod;
     }
     if (totalRevenue) {
-      this.totalRevenue = totalRevenue
+      this.totalRevenue = totalRevenue;
     }
     if (shippingCosts) {
-      this.shippingCosts = shippingCosts
+      this.shippingCosts = shippingCosts;
     }
   }
 
-  public isReady (checkParent = true):boolean {
-    return !!((!checkParent || super.isReady()) && this.transactionId && this.affiliation)
+  public isReady(checkParent = true):boolean {
+    return !!((!checkParent || super.isReady()) && this.transactionId && this.affiliation);
   }
 
-  public toApiKeys ():any {
-    const apiKeys = super.toApiKeys()
-    apiKeys[TID_API_ITEM] = this.transactionId
-    apiKeys[TA_API_ITEM] = this.affiliation
+  public toApiKeys():any {
+    const apiKeys = super.toApiKeys();
+    apiKeys[TID_API_ITEM] = this.transactionId;
+    apiKeys[TA_API_ITEM] = this.affiliation;
 
     if (this.taxes) {
-      apiKeys[TT_API_ITEM] = this.taxes
+      apiKeys[TT_API_ITEM] = this.taxes;
     }
 
     if (this.currency) {
-      apiKeys[TC_API_ITEM] = this.currency
+      apiKeys[TC_API_ITEM] = this.currency;
     }
 
     if (this.couponCode) {
-      apiKeys[TCC_API_ITEM] = this.couponCode
+      apiKeys[TCC_API_ITEM] = this.couponCode;
     }
 
     if (this.itemCount) {
-      apiKeys[ICN_API_ITEM] = this.itemCount
+      apiKeys[ICN_API_ITEM] = this.itemCount;
     }
 
     if (this.shippingMethod) {
-      apiKeys[SM_API_ITEM] = this.shippingMethod
+      apiKeys[SM_API_ITEM] = this.shippingMethod;
     }
 
     if (this.paymentMethod) {
-      apiKeys[PM_API_ITEM] = this.paymentMethod
+      apiKeys[PM_API_ITEM] = this.paymentMethod;
     }
 
     if (this.totalRevenue) {
-      apiKeys[TR_API_ITEM] = this.totalRevenue
+      apiKeys[TR_API_ITEM] = this.totalRevenue;
     }
 
     if (this.shippingCosts) {
-      apiKeys[TS_API_ITEM] = this.shippingCosts
+      apiKeys[TS_API_ITEM] = this.shippingCosts;
     }
-    return apiKeys
+    return apiKeys;
   }
 
-  public toObject ():Record<string, unknown> {
+  public toObject():Record<string, unknown> {
     return {
       ...super.toObject(),
       transactionId: this.transactionId,
@@ -258,10 +256,10 @@ export class Transaction extends HitAbstract implements ITransaction {
       paymentMethod: this.paymentMethod,
       totalRevenue: this.totalRevenue,
       shippingCosts: this.shippingCosts
-    }
+    };
   }
 
-  public getErrorMessage (): string {
-    return ERROR_MESSAGE
+  public getErrorMessage(): string {
+    return ERROR_MESSAGE;
   }
 }

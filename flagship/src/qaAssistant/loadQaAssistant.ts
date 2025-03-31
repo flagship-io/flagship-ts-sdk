@@ -1,45 +1,55 @@
-import { IFlagshipConfig } from '../config/IFlagshipConfig'
-import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, QA_ASSISTANT_PROD_URL } from '../enum/FlagshipConstant'
-import { FsVariationToForce } from '../types'
-import { logInfoSprintf } from '../utils/utils'
-import { appendScript } from './appendScript'
-import { handleIframeMessage } from './messages/handleIframeMessage'
-import { EventDataFromIframe } from './type'
+import { IFlagshipConfig } from '../config/IFlagshipConfig';
+import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, QA_ASSISTANT_PROD_URL, TRUSTED_QA_ORIGINS } from '../enum/FlagshipConstant';
+import { VisitorVariationState } from '../type.local';
+import { FsVariationToForce } from '../types';
+import { logInfoSprintf } from '../utils/utils';
+import { appendScript } from './appendScript';
+import { handleIframeMessage } from './messages/handleIframeMessage';
+import { EventDataFromIframe } from './type';
 
 /**
  *
  * @param config
  * @returns
  */
-export function loadQaAssistant (config: IFlagshipConfig, bundleUrl:string|null = null): void {
-  if (window?.frames?.ABTastyQaAssistant) {
-    return
+export function loadQaAssistant(config: IFlagshipConfig, bundleUrl:string|null = null, visitorVariationState: VisitorVariationState): void {
+  if (!window?.frames?.ABTastyQaAssistant) {
+    logInfoSprintf(config, 'QA assistant', 'Loading QA Assistant');
+
+    appendScript(bundleUrl || QA_ASSISTANT_PROD_URL);
   }
 
-  let forcedVariations: Record<string, FsVariationToForce> = {}
-  const sessionForcedVariations = sessionStorage.getItem(FS_FORCED_VARIATIONS)
+  let forcedVariations: Record<string, FsVariationToForce> = {};
+  const sessionForcedVariations = sessionStorage.getItem(FS_FORCED_VARIATIONS);
   try {
-    forcedVariations = JSON.parse(sessionForcedVariations || '{}')
+    forcedVariations = JSON.parse(sessionForcedVariations || '{}');
   } catch (error) {
     // eslint-disable-next-line no-console
-    console.error('Error parsing sessionForcedVariations', error)
+    console.error('Error parsing sessionForcedVariations', error);
   }
 
-  window.flagship = {
-    ...window.flagship,
-    envId: config.envId as string,
-    forcedVariations
+  visitorVariationState.forcedVariations = forcedVariations;
+
+  if (window.__flagshipSdkQaAssistantMessageHandler) {
+    window.removeEventListener('message', window.__flagshipSdkQaAssistantMessageHandler);
   }
 
   const eventListenerMessage = (event: MessageEvent<EventDataFromIframe>):void => {
-    handleIframeMessage({ event, config, func: eventListenerMessage })
-  }
-  window.addEventListener('message', eventListenerMessage)
+    if (!TRUSTED_QA_ORIGINS.includes(event?.origin)) {
+      return;
+    }
+    handleIframeMessage({
+      visitorVariationState,
+      event,
+      config,
+      func: eventListenerMessage
+    });
+  };
 
-  logInfoSprintf(config, 'QA assistant', 'Loading QA Assistant')
+  window.__flagshipSdkQaAssistantMessageHandler = eventListenerMessage;
 
-  appendScript(bundleUrl || QA_ASSISTANT_PROD_URL)
+  window.addEventListener('message', window.__flagshipSdkQaAssistantMessageHandler);
 
-  config.isQAModeEnabled = true
-  sessionStorage.setItem(FS_IS_QA_MODE_ENABLED, 'true')
+  config.isQAModeEnabled = true;
+  sessionStorage.setItem(FS_IS_QA_MODE_ENABLED, 'true');
 }

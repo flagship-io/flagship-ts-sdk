@@ -1,16 +1,23 @@
 import { ISharedActionTracking } from '../../sharedFeature/ISharedActionTracking.ts'
 import { SdkApiParam } from '../../type.local.ts'
+import { VisitorAbstract } from '../../visitor/VisitorAbstract.ts'
 import { ISdkApiV1 } from './ISdkApiV1.ts'
 
 export class SdkApi {
   private sharedActionTracking?: ISharedActionTracking
-  public constructor ({ sharedActionTracking }:SdkApiParam) {
+  private visitor?: VisitorAbstract
+  public constructor({ sharedActionTracking }: SdkApiParam) {
     this.sharedActionTracking = sharedActionTracking
   }
 
-  public getApiV1 (): ISdkApiV1 {
+  public setVisitor(visitor: VisitorAbstract): void {
+    this.visitor = visitor
+  }
+
+  public getApiV1(): ISdkApiV1 {
     return {
-      _getActionTrackingNonce: () => this.sharedActionTracking?.generateNonce()
+      _getActionTrackingNonce: () => this.sharedActionTracking?.generateNonce(),
+      _getVisitorId: () => this.visitor?.visitorId,
     }
   }
 }

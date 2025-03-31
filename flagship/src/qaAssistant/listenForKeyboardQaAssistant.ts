@@ -1,30 +1,44 @@
-import { IFlagshipConfig } from '../config/IFlagshipConfig'
-import { FS_FORCED_VARIATIONS } from '../enum/FlagshipConstant'
-import { logInfoSprintf } from '../utils/utils'
-import { loadQaAssistant } from './loadQaAssistant'
+import { IFlagshipConfig } from '../config/IFlagshipConfig';
+import { FS_FORCED_VARIATIONS } from '../enum/FlagshipConstant';
+import { VisitorVariationState } from '../type.local';
+import { logInfoSprintf } from '../utils/utils';
+import { loadQaAssistant } from './loadQaAssistant';
 
 /**
  *
  * @param config
  */
-export function listenForKeyboardQaAssistant (config: IFlagshipConfig):void {
-  logInfoSprintf(config, 'QA assistant', 'Listening for keyboard events to launch QA Assistant')
+export function listenForKeyboardQaAssistant(config: IFlagshipConfig, visitorVariationState: VisitorVariationState):void {
+  logInfoSprintf(config, 'QA assistant', 'Listening for keyboard events to launch QA Assistant');
 
-  const keysPressed: Record<string, boolean> = {}
-
-  const keyCombinationPressed = (): boolean => {
-    return (keysPressed.Control || keysPressed.Alt) && keysPressed.q && keysPressed.a
+  if (window.__flagshipSdkOnKeyCombinationDown) {
+    document.removeEventListener('keydown', window.__flagshipSdkOnKeyCombinationDown);
   }
 
-  document.addEventListener('keydown', (event: KeyboardEvent) => {
-    keysPressed[event.key] = true
-    sessionStorage.removeItem(FS_FORCED_VARIATIONS)
-    if (keyCombinationPressed()) {
-      loadQaAssistant(config)
-    }
-  })
+  if (window.__flagshipSdkOnKeyCombinationUp) {
+    document.removeEventListener('keyup', window.__flagshipSdkOnKeyCombinationUp);
+  }
 
-  document.addEventListener('keyup', (event: KeyboardEvent) => {
-    delete keysPressed[event.key]
-  })
+  const keysPressed: Record<string, boolean> = {};
+
+  const keyCombinationPressed = (): boolean => {
+    return (keysPressed.Control || keysPressed.Alt) && keysPressed.q && keysPressed.a;
+  };
+
+  window.__flagshipSdkOnKeyCombinationDown = (event: KeyboardEvent):void => {
+    keysPressed[event.key] = true;
+    sessionStorage.removeItem(FS_FORCED_VARIATIONS);
+    if (keyCombinationPressed()) {
+      loadQaAssistant(config,null, visitorVariationState);
+    }
+  };
+
+  window.__flagshipSdkOnKeyCombinationUp = (event: KeyboardEvent):void => {
+    delete keysPressed[event.key];
+  }
+  ;
+
+  document.addEventListener('keydown', window.__flagshipSdkOnKeyCombinationDown);
+  document.addEventListener('keyup', window.__flagshipSdkOnKeyCombinationUp);
+
 }

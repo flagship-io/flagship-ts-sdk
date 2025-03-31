@@ -1,6 +1,6 @@
-import { type UsageHit } from '../hit/UsageHit'
-import { type Troubleshooting } from '../hit/Troubleshooting'
-import { ITrackingManagerCommon } from './ITrackingManagerCommon'
+import { type UsageHit } from '../hit/UsageHit';
+import { type Troubleshooting } from '../hit/Troubleshooting';
+import { ITrackingManagerCommon } from './ITrackingManagerCommon';
 
 export interface ITrackingManager extends ITrackingManagerCommon {
 

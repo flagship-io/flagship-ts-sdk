@@ -1,6 +1,5 @@
-import { type IFlagshipConfig } from '../config/IFlagshipConfig'
-import {
-  CUSTOMER_ENV_ID_API_ITEM,
+import { type IFlagshipConfig } from '../config/IFlagshipConfig';
+import { CUSTOMER_ENV_ID_API_ITEM,
   DS_API_ITEM,
   T_API_ITEM,
   TYPE_ERROR,
@@ -12,10 +11,9 @@ import {
   USER_LANGUAGE,
   QT_API_ITEM,
   SDK_APP,
-  QA_MODE_API_ITEM
-} from '../enum/FlagshipConstant'
-import { InternalHitType, primitive } from '../types'
-import { logError, sprintf } from '../utils/utils'
+  QA_MODE_API_ITEM } from '../enum/FlagshipConstant';
+import { InternalHitType, primitive } from '../types';
+import { logError, sprintf } from '../utils/utils';
 
 export interface IHitAbstract{
   visitorId:string
@@ -32,142 +30,142 @@ export interface IHitAbstract{
 }
 
 export abstract class HitAbstract implements IHitAbstract {
-  private _visitorId!: string
-  private _config!: IFlagshipConfig
-  protected _type!: InternalHitType
-  private _ds!: string
-  private _anonymousId? : string|null
-  private _userIp! : string
-  private _screenResolution! : string
-  private _locale! : string
-  private _sessionNumber! : string
-  private _key! : string
-  private _createdAt!: number
-  private _qaMode? : boolean
-  private _isActionTrackingHit : boolean|undefined
+  private _visitorId!: string;
+  private _config!: IFlagshipConfig;
+  protected _type!: InternalHitType;
+  private _ds!: string;
+  private _anonymousId? : string|null;
+  private _userIp! : string;
+  private _screenResolution! : string;
+  private _locale! : string;
+  private _sessionNumber! : string;
+  private _key! : string;
+  private _createdAt!: number;
+  private _qaMode? : boolean;
+  private _isActionTrackingHit : boolean|undefined;
 
-  public get isActionTrackingHit () : boolean|undefined {
-    return this._isActionTrackingHit
+  public get isActionTrackingHit() : boolean|undefined {
+    return this._isActionTrackingHit;
   }
 
-  public set isActionTrackingHit (v : boolean|undefined) {
-    this._isActionTrackingHit = v
+  public set isActionTrackingHit(v : boolean|undefined) {
+    this._isActionTrackingHit = v;
   }
 
-  public get key () : string {
-    return this._key
+  public get key() : string {
+    return this._key;
   }
 
-  public set key (v : string) {
-    this._key = v
+  public set key(v : string) {
+    this._key = v;
   }
 
-  public get sessionNumber () : string {
-    return this._sessionNumber
+  public get sessionNumber() : string {
+    return this._sessionNumber;
   }
 
-  public set sessionNumber (v : string) {
-    this._sessionNumber = v
+  public set sessionNumber(v : string) {
+    this._sessionNumber = v;
   }
 
-  public get locale () : string {
-    return this._locale
+  public get locale() : string {
+    return this._locale;
   }
 
-  public set locale (v : string) {
-    this._locale = v
+  public set locale(v : string) {
+    this._locale = v;
   }
 
-  public get screenResolution () : string {
-    return this._screenResolution
+  public get screenResolution() : string {
+    return this._screenResolution;
   }
 
-  public set screenResolution (v : string) {
-    this._screenResolution = v
+  public set screenResolution(v : string) {
+    this._screenResolution = v;
   }
 
-  public get userIp () : string {
-    return this._userIp
+  public get userIp() : string {
+    return this._userIp;
   }
 
-  public set userIp (v : string) {
-    this._userIp = v
+  public set userIp(v : string) {
+    this._userIp = v;
   }
 
-  public get anonymousId () : string|undefined|null {
-    return this._anonymousId
+  public get anonymousId() : string|undefined|null {
+    return this._anonymousId;
   }
 
-  public set anonymousId (v : string|undefined|null) {
-    this._anonymousId = v
+  public set anonymousId(v : string|undefined|null) {
+    this._anonymousId = v;
   }
 
-  public get visitorId (): string {
-    return this._visitorId
+  public get visitorId(): string {
+    return this._visitorId;
   }
 
-  public set visitorId (v: string) {
-    this._visitorId = v
+  public set visitorId(v: string) {
+    this._visitorId = v;
   }
 
-  public get ds (): string {
-    return this._ds
+  public get ds(): string {
+    return this._ds;
   }
 
-  public set ds (v: string) {
-    this._ds = v
+  public set ds(v: string) {
+    this._ds = v;
   }
 
-  public get type (): InternalHitType {
-    return this._type
+  public get type(): InternalHitType {
+    return this._type;
   }
 
-  public get config (): IFlagshipConfig {
-    return this._config
+  public get config(): IFlagshipConfig {
+    return this._config;
   }
 
-  public set config (v: IFlagshipConfig) {
-    this._config = v
+  public set config(v: IFlagshipConfig) {
+    this._config = v;
   }
 
-  public get createdAt () : number {
-    return this._createdAt
+  public get createdAt() : number {
+    return this._createdAt;
   }
 
-  public set createdAt (v : number) {
-    this._createdAt = v
+  public set createdAt(v : number) {
+    this._createdAt = v;
   }
 
-  public get qaMode () : boolean|undefined {
-    return this._qaMode
+  public get qaMode() : boolean|undefined {
+    return this._qaMode;
   }
 
-  public set qaMode (v : boolean|undefined) {
-    this._qaMode = v
+  public set qaMode(v : boolean|undefined) {
+    this._qaMode = v;
   }
 
-  protected constructor (hit: Omit<IHitAbstract, 'createdAt'|'traffic'>) {
-    const { type, userIp, screenResolution, locale, sessionNumber, visitorId, anonymousId, ds, qaMode, isActionTrackingHit } = hit
-    this._type = type
+  protected constructor(hit: Omit<IHitAbstract, 'createdAt'|'traffic'>) {
+    const { type, userIp, screenResolution, locale, sessionNumber, visitorId, anonymousId, ds, qaMode, isActionTrackingHit } = hit;
+    this._type = type;
     if (userIp) {
-      this.userIp = userIp
+      this.userIp = userIp;
     }
     if (screenResolution) {
-      this.screenResolution = screenResolution
+      this.screenResolution = screenResolution;
     }
     if (locale) {
-      this.locale = locale
+      this.locale = locale;
     }
     if (sessionNumber) {
-      this.sessionNumber = sessionNumber
+      this.sessionNumber = sessionNumber;
     }
 
-    this.visitorId = visitorId
-    this._anonymousId = anonymousId || null
-    this.createdAt = Date.now()
-    this.ds = ds || SDK_APP
-    this.qaMode = qaMode
-    this.isActionTrackingHit = isActionTrackingHit
+    this.visitorId = visitorId;
+    this._anonymousId = anonymousId || null;
+    this.createdAt = Date.now();
+    this.ds = ds || SDK_APP;
+    this.qaMode = qaMode;
+    this.isActionTrackingHit = isActionTrackingHit;
   }
 
   /**
@@ -176,36 +174,36 @@ export abstract class HitAbstract implements IHitAbstract {
    * @param itemName
    * @returns
    */
-  protected isNotEmptyString (value: unknown, itemName: string): boolean {
+  protected isNotEmptyString(value: unknown, itemName: string): boolean {
     if (!value || typeof value !== 'string') {
-      logError(this.config, sprintf(TYPE_ERROR, itemName, 'string'), itemName)
-      return false
+      logError(this.config, sprintf(TYPE_ERROR, itemName, 'string'), itemName);
+      return false;
     }
-    return true
+    return true;
   }
 
-  protected isNumeric (value: unknown, itemName: string): boolean {
+  protected isNumeric(value: unknown, itemName: string): boolean {
     if (!value || typeof value !== 'number') {
-      logError(this.config, sprintf(TYPE_ERROR, itemName, 'number'), itemName)
-      return false
+      logError(this.config, sprintf(TYPE_ERROR, itemName, 'number'), itemName);
+      return false;
     }
-    return true
+    return true;
   }
 
-  protected isInteger (value: unknown, itemName: string): boolean {
+  protected isInteger(value: unknown, itemName: string): boolean {
     if (!Number.isInteger(value)) {
-      logError(this.config, sprintf(TYPE_ERROR, itemName, 'integer'), itemName)
-      return false
+      logError(this.config, sprintf(TYPE_ERROR, itemName, 'integer'), itemName);
+      return false;
     }
-    return true
+    return true;
   }
 
   /**
    * Return an object with Api parameters as keys
    */
 
-   
-  public toApiKeys (): Record<string, unknown> {
+
+  public toApiKeys(): Record<string, unknown> {
     const apiKeys:Record<string, primitive|null> = {
       [VISITOR_ID_API_ITEM]: this.visitorId,
       [DS_API_ITEM]: this.ds,
@@ -213,32 +211,32 @@ export abstract class HitAbstract implements IHitAbstract {
       [T_API_ITEM]: this.type,
       [CUSTOMER_UID]: null,
       [QT_API_ITEM]: Date.now() - this._createdAt
-    }
+    };
 
     if (this.qaMode) {
-      apiKeys[QA_MODE_API_ITEM] = true
+      apiKeys[QA_MODE_API_ITEM] = true;
     }
 
     if (this.userIp) {
-      apiKeys[USER_IP_API_ITEM] = this.userIp
+      apiKeys[USER_IP_API_ITEM] = this.userIp;
     }
     if (this.screenResolution) {
-      apiKeys[SCREEN_RESOLUTION_API_ITEM] = this.screenResolution
+      apiKeys[SCREEN_RESOLUTION_API_ITEM] = this.screenResolution;
     }
     if (this.locale) {
-      apiKeys[USER_LANGUAGE] = this.locale
+      apiKeys[USER_LANGUAGE] = this.locale;
     }
     if (this.sessionNumber) {
-      apiKeys[SESSION_NUMBER] = this.sessionNumber
+      apiKeys[SESSION_NUMBER] = this.sessionNumber;
     }
     if (this.visitorId && this.anonymousId) {
-      apiKeys[VISITOR_ID_API_ITEM] = this.anonymousId
-      apiKeys[CUSTOMER_UID] = this.visitorId
+      apiKeys[VISITOR_ID_API_ITEM] = this.anonymousId;
+      apiKeys[CUSTOMER_UID] = this.visitorId;
     }
-    return apiKeys
+    return apiKeys;
   }
 
-  toObject ():Record<string, unknown> {
+  toObject():Record<string, unknown> {
     return {
       key: this.key,
       visitorId: this.visitorId,
@@ -251,21 +249,21 @@ export abstract class HitAbstract implements IHitAbstract {
       anonymousId: this.anonymousId,
       createdAt: this.createdAt,
       qaMode: this.qaMode
-    }
+    };
   }
 
   /**
    * Return true if all required attributes are given, otherwise return false
    */
-   
-  public isReady (_checkParent = true): boolean {
+
+  public isReady(_checkParent = true): boolean {
     return !!(
       this.visitorId &&
       this.ds &&
       this.config &&
       this.config.envId &&
       this.type
-    )
+    );
   }
 
   /**

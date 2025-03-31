@@ -1,9 +1,8 @@
-import { Page } from './../../src/hit/Page'
-import { jest, expect, it, describe, afterAll } from '@jest/globals'
-import { ERROR_MESSAGE } from '../../src/hit/Event'
-import { BucketingConfig } from '../../src/config/index'
-import {
-  CUSTOMER_ENV_ID_API_ITEM,
+import { Page } from './../../src/hit/Page';
+import { jest, expect, it, describe, afterAll } from '@jest/globals';
+import { ERROR_MESSAGE } from '../../src/hit/Event';
+import { BucketingConfig } from '../../src/config/index';
+import { CUSTOMER_ENV_ID_API_ITEM,
   CacheStrategy,
   DS_API_ITEM,
   FSSdkStatus,
@@ -11,34 +10,43 @@ import {
   SDK_APP,
   SDK_INFO,
   T_API_ITEM,
-  VISITOR_ID_API_ITEM
-} from '../../src/enum/index'
-import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { version } from '../../src/sdkVersion'
-import { Troubleshooting, TroubleshootingType } from '../../src/hit/Troubleshooting'
-import { BatchTriggeredBy } from '../../src/enum/BatchTriggeredBy'
-import { FlagDTO, TroubleshootingLabel } from '../../src/types'
+  VISITOR_ID_API_ITEM } from '../../src/enum/index';
+import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager';
+import { version } from '../../src/sdkVersion';
+import { Troubleshooting, TroubleshootingType } from '../../src/hit/Troubleshooting';
+import { BatchTriggeredBy } from '../../src/enum/BatchTriggeredBy';
+import { FlagDTO, TroubleshootingLabel } from '../../src/types';
 
 describe('test hit type Monitoring', () => {
-  const methodNow = Date.now
-  const mockNow = jest.fn<typeof Date.now>()
-  const visitorId = 'visitorId'
-  Date.now = mockNow
-  mockNow.mockReturnValue(1657899294744)
+  const methodNow = Date.now;
+  const mockNow = jest.fn<typeof Date.now>();
+  const visitorId = 'visitorId';
+  Date.now = mockNow;
+  mockNow.mockReturnValue(1657899294744);
   afterAll(() => {
-    Date.now = methodNow
-  })
+    Date.now = methodNow;
+  });
 
   // .mockImplementation(() => OriginalDate as any)
-  const logManager = new FlagshipLogManager()
-  const config = new BucketingConfig({ envId: 'envId', apiKey: 'apiKey', pollingInterval: 2, initialBucketing: {} })
-  config.logManager = logManager
-  const logLevel = LogLevel.INFO
-  const logVersion = '1'
-  const label = TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS
-  const stackType = 'SDK'
-  const troubleshooting = new Troubleshooting({ visitorId, logLevel, config, label })
-  const timestamp = new Date(1657899294744)
+  const logManager = new FlagshipLogManager();
+  const config = new BucketingConfig({
+    envId: 'envId',
+    apiKey: 'apiKey',
+    pollingInterval: 2,
+    initialBucketing: {}
+  });
+  config.logManager = logManager;
+  const logLevel = LogLevel.INFO;
+  const logVersion = '1';
+  const label = TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS;
+  const stackType = 'SDK';
+  const troubleshooting = new Troubleshooting({
+    visitorId,
+    logLevel,
+    config,
+    label
+  });
+  const timestamp = new Date(1657899294744);
   it('should ', () => {
     const apiKeys: Record<string, unknown> = {
       [VISITOR_ID_API_ITEM]: visitorId,
@@ -58,23 +66,23 @@ describe('test hit type Monitoring', () => {
         'visitor.visitorId': visitorId,
         'visitor.anonymousId': 'null'
       }
-    }
+    };
 
-    expect(troubleshooting.ds).toBe(SDK_APP)
-    expect(troubleshooting.data.logLevel).toBe(logLevel)
-    expect(troubleshooting.data.stackType).toBe(stackType)
-    expect(troubleshooting.visitorId).toBe(visitorId)
-    expect(troubleshooting.anonymousId).toBeNull()
-    expect(troubleshooting.getErrorMessage()).toBe(ERROR_MESSAGE)
-    expect(troubleshooting.userIp).toBeUndefined()
-    expect(troubleshooting.screenResolution).toBeUndefined()
-    expect(troubleshooting.locale).toBeUndefined()
-    expect(troubleshooting.sessionNumber).toBeUndefined()
-    expect(troubleshooting.toApiKeys()).toEqual(apiKeys)
-  })
+    expect(troubleshooting.ds).toBe(SDK_APP);
+    expect(troubleshooting.data.logLevel).toBe(logLevel);
+    expect(troubleshooting.data.stackType).toBe(stackType);
+    expect(troubleshooting.visitorId).toBe(visitorId);
+    expect(troubleshooting.anonymousId).toBeNull();
+    expect(troubleshooting.getErrorMessage()).toBe(ERROR_MESSAGE);
+    expect(troubleshooting.userIp).toBeUndefined();
+    expect(troubleshooting.screenResolution).toBeUndefined();
+    expect(troubleshooting.locale).toBeUndefined();
+    expect(troubleshooting.sessionNumber).toBeUndefined();
+    expect(troubleshooting.toApiKeys()).toEqual(apiKeys);
+  });
 
   it('test constructor', () => {
-    const flagKey = 'key'
+    const flagKey = 'key';
     const flagDTO = {
       key: flagKey,
       campaignId: 'campaignId',
@@ -87,23 +95,22 @@ describe('test hit type Monitoring', () => {
       campaignType: 'ab',
       slug: 'slug',
       value: 'value'
-    }
-    const visitorFlags:Record<string, unknown> = {}
+    };
+    const visitorFlags:Record<string, unknown> = {};
 
     for (const key in flagDTO) {
-      const itemValue = flagDTO[key as keyof typeof flagDTO]
-      const hasMetadataKey = key === 'value' || key === 'key'
-      const value = typeof itemValue === 'object' ? JSON.stringify(itemValue) : `${itemValue}`
-      visitorFlags[`visitor.flags.[${flagKey}]${hasMetadataKey ? '' : '.metadata'}.${key}`] = value
+      const itemValue = flagDTO[key as keyof typeof flagDTO];
+      const hasMetadataKey = key === 'value' || key === 'key';
+      const value = typeof itemValue === 'object' ? JSON.stringify(itemValue) : `${itemValue}`;
+      visitorFlags[`visitor.flags.[${flagKey}]${hasMetadataKey ? '' : '.metadata'}.${key}`] = value;
     }
 
-    const hitContent = new Page({ documentLocation: 'localhost', visitorId })
+    const hitContent = new Page({
+      documentLocation: 'localhost',
+      visitorId
+    });
 
-    const eAIScore = {
-      eai: {
-        eas: 'score'
-      }
-    }
+    const eAIScore = { eai: { eas: 'score' } };
 
     const params:TroubleshootingType = {
       logLevel,
@@ -193,15 +200,15 @@ describe('test hit type Monitoring', () => {
       eAIScore,
       isEAIScoreFromLocalCache: true,
       eAIDataTimestamp: '2023/01/01'
-    }
+    };
 
-    const pageHit:Record<string, unknown> = {}
+    const pageHit:Record<string, unknown> = {};
     for (const key in params.hitContent) {
-      const element = params.hitContent[key]
-      pageHit[`hit.${key}`] = typeof element === 'string' ? element : JSON.stringify(element)
+      const element = params.hitContent[key];
+      pageHit[`hit.${key}`] = typeof element === 'string' ? element : JSON.stringify(element);
     }
 
-     
+
     const getCustomVariable = () => {
       return {
         version: `${logVersion}`,
@@ -289,46 +296,45 @@ describe('test hit type Monitoring', () => {
         'eAIScore.eai.eas': eAIScore.eai.eas,
         isEAIScoreFromLocalCache: `${params.isEAIScoreFromLocalCache}`,
         eAIDataTimestamp: `${params.eAIDataTimestamp}`
-      }
-    }
-     
+      };
+    };
+
     const apiKeys: Record<string, unknown> = {
       [VISITOR_ID_API_ITEM]: visitorId,
       [DS_API_ITEM]: SDK_APP,
       [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
       [T_API_ITEM]: 'TROUBLESHOOTING',
       cv: getCustomVariable()
-    }
+    };
 
-    const monitoring = new Troubleshooting(params)
-    expect(monitoring.userIp).toBe(params.userIp)
-    expect(monitoring.screenResolution).toBe(params.screenResolution)
-    expect(monitoring.locale).toBe(params.locale)
-    expect(monitoring.sessionNumber).toBe(params.sessionNumber)
-    expect(monitoring.toApiKeys()).toEqual(apiKeys)
-  })
+    const monitoring = new Troubleshooting(params);
+    expect(monitoring.userIp).toBe(params.userIp);
+    expect(monitoring.screenResolution).toBe(params.screenResolution);
+    expect(monitoring.locale).toBe(params.locale);
+    expect(monitoring.sessionNumber).toBe(params.sessionNumber);
+    expect(monitoring.toApiKeys()).toEqual(apiKeys);
+  });
 
   it('test isReady method ', () => {
-    expect(troubleshooting.isReady()).toBeTruthy()
-  })
+    expect(troubleshooting.isReady()).toBeTruthy();
+  });
 
   it('test isReady method', () => {
-    expect(troubleshooting.isReady()).toBeTruthy()
-    expect(troubleshooting.isReady(false)).toBeTruthy()
-  })
+    expect(troubleshooting.isReady()).toBeTruthy();
+    expect(troubleshooting.isReady(false)).toBeTruthy();
+  });
 
   it('test toObject', () => {
-    const userIp = '127.0.0.1'
-    const screenResolution = '800X600'
-    const locale = 'fr'
-    const sessionNumber = '12345'
-    const hitKey = 'key'
-    troubleshooting.userIp = userIp
-    troubleshooting.screenResolution = screenResolution
-    troubleshooting.locale = locale
-    troubleshooting.sessionNumber = sessionNumber
-    troubleshooting.key = hitKey
-    expect(troubleshooting.toObject()).toEqual(expect.objectContaining({
-    }))
-  })
-})
+    const userIp = '127.0.0.1';
+    const screenResolution = '800X600';
+    const locale = 'fr';
+    const sessionNumber = '12345';
+    const hitKey = 'key';
+    troubleshooting.userIp = userIp;
+    troubleshooting.screenResolution = screenResolution;
+    troubleshooting.locale = locale;
+    troubleshooting.sessionNumber = sessionNumber;
+    troubleshooting.key = hitKey;
+    expect(troubleshooting.toObject()).toEqual(expect.objectContaining({}));
+  });
+});

@@ -1,7 +1,7 @@
 
-import { BucketingDTO } from '../types'
-import { DecisionMode } from './DecisionMode'
-import { IFlagshipConfig } from './IFlagshipConfig'
+import { BucketingDTO } from '../types';
+import { DecisionMode } from './DecisionMode';
+import { IFlagshipConfig } from './IFlagshipConfig';
 
 export interface IEdgeConfig extends IFlagshipConfig{
     decisionMode: DecisionMode.BUCKETING_EDGE,

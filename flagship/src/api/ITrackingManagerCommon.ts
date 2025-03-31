@@ -1,7 +1,7 @@
-import { IFlagshipConfig } from '../config/IFlagshipConfig'
-import { type HitAbstract } from '../hit/HitAbstract'
-import { TroubleshootingData } from '../types'
-import { ActivateConstructorParam } from '../type.local'
+import { IFlagshipConfig } from '../config/IFlagshipConfig';
+import { type HitAbstract } from '../hit/HitAbstract';
+import { TroubleshootingData } from '../types';
+import { ActivateConstructorParam } from '../type.local';
 
 export interface ITrackingManagerCommon {
     config:IFlagshipConfig
