@@ -10,14 +10,15 @@
     "targetings",
     "unauthenticate"
   ],
+  "eslint.format.enable": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
   "[javascript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
+    "editor.defaultFormatter": null
   },
   "[typescript]": {
-    "editor.defaultFormatter": null
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
   },
   "deno.enable": true,
   "deno.enablePaths": [
