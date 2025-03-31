@@ -1,31 +1,4 @@
-import { ISdkApiV1 } from '../sdkApi/v1/ISdkApiV1'
 import { FsVariationToForce, VisitorVariations } from '../types'
-
-declare global {
-  interface Window {
-    ABTastyQaAssistant?: Window;
-    flagship?: {
-      envId?: string;
-      forcedVariations?: Record<string, FsVariationToForce>;
-      visitorVariations?: Record<string, VisitorVariations>;
-      exposedVariations?: Record<string, VisitorVariations>;
-    };
-    ABTastyWebSdk: {
-        internal: ISdkApiV1;
-      };
-    ABTasty: {
-      api: {
-        internal: {
-          /**
-           * Generate a nonce for the action tracking.
-           * @returns {string|undefined} The nonce or undefined if the consent is not given.
-           */
-          _getActionTrackingNonce(): string | undefined;
-        };
-      };
-    };
-  }
-}
 
 /**
  * All events posted from iframe
