@@ -146,7 +146,7 @@ declare global {
            */
           _getActionTrackingNonce(): string | undefined;
 
-          _isByoidConfigured(): boolean | undefined;
+          _isByoidConfigured?:()=> boolean | undefined;
         };
         v1: {
           getValue(key: string): string | undefined;

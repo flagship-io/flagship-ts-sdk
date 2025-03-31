@@ -15,6 +15,9 @@ export class SdkApi {
   }
 
   public getApiV1(): ISdkApiV1 {
-    return { _getActionTrackingNonce: () => this.sharedActionTracking?.generateNonce() };
+    return {
+      _getActionTrackingNonce: () => this.sharedActionTracking?.generateNonce(),
+      _getVisitorId: () => this.visitor?.isClientSuppliedID !== true ? this.visitor?.visitorId : undefined
+    };
   }
 }

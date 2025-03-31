@@ -1,4 +1,4 @@
-import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant';
+import { PREDEFINED_CONTEXT_LOADED, PROCESS_NEW_VISITOR, VISITOR_CREATED, VISITOR_ID_FROM_AB_TASTY_TAG, VISITOR_ID_GENERATED, VISITOR_PROFILE_LOADED } from './../enum/FlagshipConstant';
 import { IConfigManager, IFlagshipConfig } from '../config/index';
 import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFSFlagMetadata, sdkInitialData, VisitorCacheStatus, FlagsStatus, SerializedFlagMetadata, CampaignDTO, VisitorVariations, EAIScore, VisitorProfile } from '../types';
 
@@ -164,6 +164,30 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._visitorProfileCache = visitorProfileCache;
   }
 
+  /**
+   * Attempts to retrieve a visitor ID from the ABTasty tag in browser environments
+   * @returns The ABTasty visitor ID if available, otherwise undefined
+   */
+  private getVisitorIdFromTag(): string | undefined {
+    if (__fsWebpackIsBrowser__) {
+      const isClientSuppliedID = window.ABTasty?.api?.internal?._isByoidConfigured?.();
+      if (isClientSuppliedID) {
+        return undefined;
+      }
+      const visitorId = window.ABTasty?.api?.v1?.getValue('visitorId');
+
+      if (visitorId) {
+        logDebugSprintf(
+          this.config,
+          PROCESS_NEW_VISITOR,
+          VISITOR_ID_FROM_AB_TASTY_TAG,
+          visitorId
+        );
+      } return visitorId;
+    }
+    return undefined;
+  }
+
   private hasVisitorProfileClientSuppliedId(visitorProfileCache:VisitorProfile): boolean {
     return visitorProfileCache.isClientSuppliedId === undefined ? true : visitorProfileCache.isClientSuppliedId;
   }
@@ -189,7 +213,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       this.visitorId = visitorCache.visitorId;
       this._isClientSuppliedID = this.hasVisitorProfileClientSuppliedId(visitorCache);
     } else {
-      this.visitorId =  this.generateVisitorId();
+      this.visitorId =  this.getVisitorIdFromTag() || this.generateVisitorId();
     }
 
     this._anonymousId = null;
