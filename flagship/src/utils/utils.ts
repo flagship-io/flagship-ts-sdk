@@ -1,254 +1,297 @@
-import { type IFlagshipConfig } from '../config/IFlagshipConfig'
-import { FSFetchReasons } from '../enum/FSFetchReasons'
-import { LogLevel, VISITOR_SYNC_FLAGS_MESSAGE } from '../enum/index'
+import { type IFlagshipConfig } from '../config/IFlagshipConfig';
+import { FSFetchReasons } from '../enum/FSFetchReasons';
+import { FLAGSHIP_SDK, LogLevel, VISITOR_SYNC_FLAGS_MESSAGE } from '../enum/index';
 
 /**
  * Return a formatted string
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function sprintf (format: string, ...value: any[]): string {
-  let formatted = format
+export function sprintf(format: string, ...value: any[]): string {
+  let formatted = format;
   for (let i = 0; i < value.length; i++) {
-    const item = value[i]
-    const element = typeof item === 'string' ? item : JSON.stringify(item instanceof Map ? Array.from(item.values()) : item)
-    formatted = formatted.replace(new RegExp(`\\{${i}\\}`, 'g'), element)
+    const item = value[i];
+    const element = typeof item === 'string' ? item : JSON.stringify(item instanceof Map ? Array.from(item.values()) : item);
+    formatted = formatted.replace(new RegExp(`\\{${i}\\}`, 'g'), element);
   }
-  return formatted
+  return formatted;
 }
 
-export function logErrorSprintf (config: IFlagshipConfig, tag: string, message: string, ...arg: unknown[]):void {
+export function logErrorSprintf(config: IFlagshipConfig, tag: string, message: string, ...arg: unknown[]):void {
   if (!config || !config.logLevel || config.logLevel < LogLevel.ERROR) {
-    return
+    return;
   }
-  const customMessage = sprintf(message, ...arg)
-  logError(config, customMessage, tag)
+  const customMessage = sprintf(message, ...arg);
+  logError(config, customMessage, tag);
 }
 
-export function logError (
+export function logError(
   config: IFlagshipConfig,
   message: string,
   tag: string
 ):void {
   if (!config || !config.logLevel || config.logLevel < LogLevel.ERROR) {
-    return
+    return;
   }
 
   if (typeof config.onLog === 'function') {
-    config.onLog(LogLevel.ERROR, tag, message)
+    config.onLog(LogLevel.ERROR, tag, message);
   }
 
   if (config.logManager && typeof config.logManager.error === 'function') {
-    config.logManager.error(message, tag)
+    config.logManager.error(message, tag);
   }
 }
 
-export function logWarningSprintf (config: IFlagshipConfig, tag: string, message: string, ...arg: unknown[]):void {
+export function logWarningSprintf(config: IFlagshipConfig, tag: string, message: string, ...arg: unknown[]):void {
   if (!config || !config.logLevel || config.logLevel < LogLevel.WARNING) {
-    return
+    return;
   }
-  const customMessage = sprintf(message, ...arg)
-  logWarning(config, customMessage, tag)
+  const customMessage = sprintf(message, ...arg);
+  logWarning(config, customMessage, tag);
 }
 
-export function logWarning (
+export function logWarning(
   config: IFlagshipConfig,
   message: string,
   tag: string
 ):void {
   if (!config || !config.logLevel || config.logLevel < LogLevel.WARNING) {
-    return
+    return;
   }
 
   if (typeof config.onLog === 'function') {
-    config.onLog(LogLevel.WARNING, tag, message)
+    config.onLog(LogLevel.WARNING, tag, message);
   }
 
   if (config.logManager && typeof config.logManager.warning === 'function') {
-    config.logManager.warning(message, tag)
+    config.logManager.warning(message, tag);
   }
 }
 
-export function logInfoSprintf (config: IFlagshipConfig, tag: string, message: string, ...arg: unknown[]):void {
+export function logInfoSprintf(config: IFlagshipConfig, tag: string, message: string, ...arg: unknown[]):void {
   if (!config || !config.logLevel || config.logLevel < LogLevel.INFO) {
-    return
+    return;
   }
-  const customMessage = sprintf(message, ...arg)
-  logInfo(config, customMessage, tag)
+  const customMessage = sprintf(message, ...arg);
+  logInfo(config, customMessage, tag);
 }
-export function logInfo (config: IFlagshipConfig, message: string, tag: string):void {
+export function logInfo(config: IFlagshipConfig, message: string, tag: string):void {
   if (!config || !config.logLevel || config.logLevel < LogLevel.INFO) {
-    return
+    return;
   }
 
   if (typeof config.onLog === 'function') {
-    config.onLog(LogLevel.INFO, tag, message)
+    config.onLog(LogLevel.INFO, tag, message);
   }
 
   if (config.logManager && typeof config.logManager.info === 'function') {
-    config.logManager.info(message, tag)
+    config.logManager.info(message, tag);
   }
 }
 
-export function logDebugSprintf (config: IFlagshipConfig, tag: string, message: string, ...arg: unknown[]):void {
+export function logDebugSprintf(config: IFlagshipConfig, tag: string, message: string, ...arg: unknown[]):void {
   if (!config || !config.logLevel || config.logLevel < LogLevel.DEBUG) {
-    return
+    return;
   }
-  const customMessage = sprintf(message, ...arg)
-  logDebug(config, customMessage, tag)
+  const customMessage = sprintf(message, ...arg);
+  logDebug(config, customMessage, tag);
 }
 
-export function logDebug (config: IFlagshipConfig, message: string, tag: string):void {
+export function logDebug(config: IFlagshipConfig, message: string, tag: string):void {
   if (!config || !config.logLevel || config.logLevel < LogLevel.DEBUG) {
-    return
+    return;
   }
 
   if (typeof config.onLog === 'function') {
-    config.onLog(LogLevel.DEBUG, tag, message)
+    config.onLog(LogLevel.DEBUG, tag, message);
   }
 
   if (config.logManager && typeof config.logManager.debug === 'function') {
-    config.logManager.debug(message, tag)
+    config.logManager.debug(message, tag);
   }
 }
 
-export function isBrowser ():boolean {
-  return typeof window !== 'undefined' && typeof window.document !== 'undefined'
+export function isBrowser():boolean {
+  return typeof window !== 'undefined' && typeof window.document !== 'undefined';
 }
 
-export function hasSameType (flagValue:unknown, defaultValue:unknown):boolean {
+export function hasSameType(flagValue:unknown, defaultValue:unknown):boolean {
   if (typeof flagValue !== typeof defaultValue) {
-    return false
+    return false;
   }
   if (typeof flagValue === 'object' && typeof defaultValue === 'object' &&
   Array.isArray(flagValue) !== Array.isArray(defaultValue)
   ) {
-    return false
+    return false;
   }
-  return true
+  return true;
 }
 
-export function uuidV4 (): string {
+export function uuidV4(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (char) {
-    const rand = Math.random() * 16 | 0
-    const value = char === 'x' ? rand : (rand & 0x3 | 0x8)
-    return value.toString(16)
-  })
+    const rand = Math.random() * 16 | 0;
+    const value = char === 'x' ? rand : (rand & 0x3 | 0x8);
+    return value.toString(16);
+  });
 }
 
-export function errorFormat (message:string, errorData?:Record<string, unknown>):string {
+export function errorFormat(message:string, errorData?:Record<string, unknown>):string {
   return JSON.stringify({
     message,
     data: errorData
-  })
+  });
 }
 
-export function visitorFlagSyncStatusMessage (reason: FSFetchReasons): string {
-  let message = ''
+export function visitorFlagSyncStatusMessage(reason: FSFetchReasons): string {
+  let message = '';
   switch (reason) {
     case FSFetchReasons.FLAGS_NEVER_FETCHED:
-      message = `Visitor \`{0}\` has been created ${VISITOR_SYNC_FLAGS_MESSAGE}`
-      break
+      message = `Visitor \`{0}\` has been created ${VISITOR_SYNC_FLAGS_MESSAGE}`;
+      break;
     case FSFetchReasons.UPDATE_CONTEXT:
-      message = `Visitor context for visitor \`{0}\` has been updated ${VISITOR_SYNC_FLAGS_MESSAGE}`
-      break
+      message = `Visitor context for visitor \`{0}\` has been updated ${VISITOR_SYNC_FLAGS_MESSAGE}`;
+      break;
     case FSFetchReasons.AUTHENTICATE:
-      message = `Visitor \`{0}\` has been authenticated ${VISITOR_SYNC_FLAGS_MESSAGE}`
-      break
+      message = `Visitor \`{0}\` has been authenticated ${VISITOR_SYNC_FLAGS_MESSAGE}`;
+      break;
     case FSFetchReasons.UNAUTHENTICATE :
-      message = `Visitor \`{0}\` has been unauthenticated ${VISITOR_SYNC_FLAGS_MESSAGE}`
-      break
+      message = `Visitor \`{0}\` has been unauthenticated ${VISITOR_SYNC_FLAGS_MESSAGE}`;
+      break;
     case FSFetchReasons.FLAGS_FETCHING_ERROR:
-      message = 'There was an error while fetching flags for visitor `{0}`. So the value of the flag `{1}` may be outdated"'
-      break
+      message = 'There was an error while fetching flags for visitor `{0}`. So the value of the flag `{1}` may be outdated"';
+      break;
     case FSFetchReasons.FLAGS_FETCHED_FROM_CACHE:
-      message = 'Flags for visitor `{0}` have been fetched from cache'
-      break
+      message = 'Flags for visitor `{0}` have been fetched from cache';
+      break;
     default:
-      break
+      break;
   }
-  return message
+  return message;
 }
 
-export function valueToHex (value: { v: unknown }): string {
-  const jsonString = JSON.stringify(value)
-  const hex = Array.from(jsonString, char => char.charCodeAt(0).toString(16)).join('')
-  return hex
+export function valueToHex(value: { v: unknown }): string {
+  const jsonString = JSON.stringify(value);
+  const hex = Array.from(jsonString, char => char.charCodeAt(0).toString(16)).join('');
+  return hex;
 }
 
-export function hexToValue (hex: string, config: IFlagshipConfig): {v: unknown} | null {
+export function hexToValue(hex: string, config: IFlagshipConfig): {v: unknown} | null {
   if (typeof hex !== 'string') {
-    logErrorSprintf(config, 'hexToValue', 'Invalid hex string: {0}', hex)
-    return null
+    logErrorSprintf(config, 'hexToValue', 'Invalid hex string: {0}', hex);
+    return null;
   }
 
-  let jsonString = ''
+  let jsonString = '';
 
   for (let i = 0; i < hex.length; i += 2) {
-    const hexChar = hex.slice(i, i + 2)
-    const charCode = parseInt(hexChar, 16)
+    const hexChar = hex.slice(i, i + 2);
+    const charCode = parseInt(hexChar, 16);
 
     if (isNaN(charCode)) {
-      logErrorSprintf(config, 'hexToValue', 'Invalid hex character: {0}', hexChar)
-      return null
+      logErrorSprintf(config, 'hexToValue', 'Invalid hex character: {0}', hexChar);
+      return null;
     }
 
-    jsonString += String.fromCharCode(charCode)
+    jsonString += String.fromCharCode(charCode);
   }
 
   try {
-    const value: {v: unknown} = JSON.parse(jsonString)
-    return value
+    const value: {v: unknown} = JSON.parse(jsonString);
+    return value;
   } catch (error) {
-    logErrorSprintf(config, 'hexToValue', 'Error while parsing JSON: {0}', error)
-    return null
+    logErrorSprintf(config, 'hexToValue', 'Error while parsing JSON: {0}', error);
+    return null;
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function deepEqual (obj1: any, obj2: any): boolean {
-  if (obj1 === obj2) return true
+export function deepEqual(obj1: any, obj2: any): boolean {
+  if (obj1 === obj2) return true;
 
   if (typeof obj1 !== 'object' || typeof obj2 !== 'object' || obj1 == null || obj2 == null) {
-    return false
+    return false;
   }
 
-  const keys1 = Object.keys(obj1)
-  const keys2 = Object.keys(obj2)
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
 
-  if (keys1.length !== keys2.length) return false
+  if (keys1.length !== keys2.length) return false;
 
   for (const key of keys1) {
     if (!keys2.includes(key) || !deepEqual(obj1[key], obj2[key])) {
-      return false
+      return false;
     }
   }
 
-  return true
+  return true;
 }
 
-export function onDomReady (callback?: () => void): boolean {
+export function onDomReady(callback?: () => void): boolean {
   if (__fsWebpackIsBrowser__) {
     if (!isBrowser()) {
-      return false
+      return false;
     }
 
-    const isDomReady = document.readyState === 'interactive' || document.readyState === 'complete'
+    const isDomReady = document.readyState === 'interactive' || document.readyState === 'complete';
 
     if (typeof callback !== 'function') {
-      return isDomReady
+      return isDomReady;
     }
 
     if (isDomReady) {
-      callback()
+      callback();
     } else {
       const domContentLoadedHandler = (): void => {
-        document.removeEventListener('DOMContentLoaded', domContentLoadedHandler)
-        callback()
-      }
-      document.addEventListener('DOMContentLoaded', domContentLoadedHandler)
+        document.removeEventListener('DOMContentLoaded', domContentLoadedHandler);
+        callback();
+      };
+      document.addEventListener('DOMContentLoaded', domContentLoadedHandler);
     }
 
-    return isDomReady
+    return isDomReady;
   }
-  return false
+  return false;
+}
+
+
+export function formatLogOutput(level: LogLevel, message: string, tag: string): string {
+  const now = new Date();
+
+  const formatTwoDigits = (value: number): string => {
+    return value.toString().padStart(2, '0');
+  };
+
+  const formatMilliseconds = (value: number): string => {
+    return value.toString().padStart(3, '0');
+  };
+
+  const colorCodes: Record<LogLevel, string> = {
+    [LogLevel.EMERGENCY]: '\x1b[1;37;41m',
+    [LogLevel.ALERT]: '\x1b[1;37;45m',
+    [LogLevel.CRITICAL]: '\x1b[1;37;41m',
+    [LogLevel.ERROR]: '\x1b[1;37;41m',
+    [LogLevel.WARNING]: '\x1b[33;1m',
+    [LogLevel.NOTICE]: '\x1b[36;1m',
+    [LogLevel.INFO]: '\x1b[32;1m',
+    [LogLevel.DEBUG]: '\x1b[90;1m',
+    [LogLevel.NONE]: '',
+    [LogLevel.ALL]: '\x1b[90;1m'
+  };
+
+  const resetColor = '\x1b[0m';
+  const colorCode = colorCodes[level] || '';
+
+  const year = now.getFullYear();
+  const month = formatTwoDigits(now.getMonth() + 1);
+  const day = formatTwoDigits(now.getDate());
+  const hours = formatTwoDigits(now.getHours());
+  const minutes = formatTwoDigits(now.getMinutes());
+  const seconds = formatTwoDigits(now.getSeconds());
+  const milliseconds = formatMilliseconds(now.getMilliseconds());
+
+  const timestamp = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
+
+  const levelName = LogLevel[level].padEnd(2);
+
+  return `${colorCode}[${timestamp}] [${FLAGSHIP_SDK}] [${levelName}] [${tag}] ${message}${resetColor}`;
 }
