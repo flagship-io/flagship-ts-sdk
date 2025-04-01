@@ -1,27 +1,27 @@
-import { DL_API_ITEM } from '../enum/FlagshipConstant'
-import { HitType } from '../enum/HitType'
-import { HitAbstract, IHitAbstract } from './HitAbstract'
+import { DL_API_ITEM } from '../enum/FlagshipConstant';
+import { HitType } from '../enum/HitType';
+import { HitAbstract, IHitAbstract } from './HitAbstract';
 
-export const ERROR_MESSAGE = 'documentLocation url is required'
+export const ERROR_MESSAGE = 'documentLocation url is required';
 
 export interface IPage extends IHitAbstract{
    documentLocation:string
 }
 
 export class Page extends HitAbstract implements IPage {
-  private _documentLocation!: string
-  public get documentLocation (): string {
-    return this._documentLocation
+  private _documentLocation!: string;
+  public get documentLocation(): string {
+    return this._documentLocation;
   }
 
-  public set documentLocation (v: string) {
+  public set documentLocation(v: string) {
     if (!this.isNotEmptyString(v, 'documentLocation')) {
-      return
+      return;
     }
-    this._documentLocation = v
+    this._documentLocation = v;
   }
 
-  public constructor (page:Omit<IPage, 'type'|'createdAt'|'visitorInstanceId'|'traffic'>) {
+  public constructor(page:Omit<IPage, 'type'|'createdAt'|'visitorInstanceId'|'traffic'>) {
     super({
       type: HitType.PAGE_VIEW,
       userIp: page.userIp,
@@ -32,28 +32,28 @@ export class Page extends HitAbstract implements IPage {
       anonymousId: page.anonymousId,
       qaMode: page.qaMode,
       isActionTrackingHit: page.isActionTrackingHit
-    })
-    this.documentLocation = page.documentLocation
+    });
+    this.documentLocation = page.documentLocation;
   }
 
-  public isReady (checkParent = true):boolean {
-    return !!((!checkParent || super.isReady()) && this.documentLocation)
+  public isReady(checkParent = true):boolean {
+    return !!((!checkParent || super.isReady()) && this.documentLocation);
   }
 
-  public toApiKeys ():Record<string, unknown> {
-    const apiKeys = super.toApiKeys()
-    apiKeys[DL_API_ITEM] = this.documentLocation
-    return apiKeys
+  public toApiKeys():Record<string, unknown> {
+    const apiKeys = super.toApiKeys();
+    apiKeys[DL_API_ITEM] = this.documentLocation;
+    return apiKeys;
   }
 
-  public toObject ():Record<string, unknown> {
+  public toObject():Record<string, unknown> {
     return {
       ...super.toObject(),
       documentLocation: this.documentLocation
-    }
+    };
   }
 
-  public getErrorMessage (): string {
-    return ERROR_MESSAGE
+  public getErrorMessage(): string {
+    return ERROR_MESSAGE;
   }
 }

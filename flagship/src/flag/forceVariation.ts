@@ -1,20 +1,20 @@
-import { IFlagshipConfig } from '../config/IFlagshipConfig'
-import { FlagDTO } from '../types'
-import { isBrowser } from '../utils/utils'
+import { IFlagshipConfig } from '../config/IFlagshipConfig';
+import { FlagDTO } from '../types';
+import { isBrowser } from '../utils/utils';
 
-export function forceVariation ({ flagDTO, config }:{flagDTO?:FlagDTO, config:IFlagshipConfig}):FlagDTO|undefined {
+export function forceVariation({ flagDTO, config }:{flagDTO?:FlagDTO, config:IFlagshipConfig}):FlagDTO|undefined {
   if (__fsWebpackIsBrowser__) {
     if (!config.isQAModeEnabled || !isBrowser() || !flagDTO || !window?.flagship?.forcedVariations) {
-      return undefined
+      return undefined;
     }
 
-    const forcedVariation = window.flagship.forcedVariations[flagDTO.campaignId]
+    const forcedVariation = window.flagship.forcedVariations[flagDTO.campaignId];
     if (!forcedVariation) {
-      return undefined
+      return undefined;
     }
 
-    const { campaignId, campaignName, variationGroupId, variationGroupName, campaignType, CampaignSlug, variation } = forcedVariation
-    const value = variation.modifications.value[flagDTO.key]
+    const { campaignId, campaignName, variationGroupId, variationGroupName, campaignType, CampaignSlug, variation } = forcedVariation;
+    const value = variation.modifications.value[flagDTO.key];
 
     return {
       key: flagDTO.key,
@@ -28,8 +28,8 @@ export function forceVariation ({ flagDTO, config }:{flagDTO?:FlagDTO, config:IF
       campaignType,
       slug: CampaignSlug,
       value
-    }
+    };
   }
 
-  return undefined
+  return undefined;
 }

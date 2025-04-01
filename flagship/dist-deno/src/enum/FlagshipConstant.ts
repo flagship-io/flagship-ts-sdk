@@ -5,7 +5,7 @@ import { SdkInfoType } from '../types.ts'
  * SDK language
  */
 
-export const SDK_INFO:SdkInfoType = {
+export const SDK_INFO: SdkInfoType = {
   name: 'TypeScript',
   version
 }
@@ -259,6 +259,7 @@ export const SDK_STATUS_CHANGED = 'SDK status has changed:  {0}'
 export const SAVE_VISITOR_INSTANCE = 'Visitor {0} has been saved in SDK instance'
 export const VISITOR_CREATED = 'Visitor {0} has been created with context {1}, isAuthenticated:{2} and hasConsented {3}'
 export const VISITOR_PROFILE_LOADED = 'Visitor profile has been loaded {0}'
+export const VISITOR_ID_FROM_AB_TASTY_TAG = "The visitor ID '{0}' has been retrieved from ABTasty tag"
 export const VISITOR_ID_GENERATED = 'Visitor identifier is empty. A UUID {0} has been generated.'
 export const PREDEFINED_CONTEXT_LOADED = 'Predefined Context have been loaded {0}'
 export const CONTEXT_KEY_ERROR = `Visitor {0}, the key '{1}' must be a non null String.

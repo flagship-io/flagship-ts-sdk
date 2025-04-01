@@ -1,50 +1,52 @@
-import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals'
-import { TrackingManager } from '../../src/api/TrackingManager'
-import { ConfigManager, DecisionApiConfig } from '../../src/config/index'
-import { DecisionManager } from '../../src/decision/DecisionManager'
-import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager'
-import { VisitorDelegate } from '../../src/visitor/VisitorDelegate'
-import { NoConsentStrategy } from '../../src/visitor/index'
-import { FLAG_VISITOR_EXPOSED, HitType, LogLevel, METHOD_DEACTIVATED_CONSENT_ERROR } from '../../src/enum/index'
-import { sprintf } from '../../src/utils/utils'
-import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient'
-import { MurmurHash } from '../../src/utils/MurmurHash'
-import { EAIScore, FlagDTO, TroubleshootingLabel } from '../../src'
-import { ApiManager } from '../../src/decision/ApiManager'
-import { VisitorAbstract } from '../../src/visitor/VisitorAbstract'
-import { IEmotionAI } from '../../src/emotionAI/IEmotionAI'
-import { IPageView } from '../../src/emotionAI/hit/IPageView'
-import { IVisitorEvent } from '../../src/emotionAI/hit/IVisitorEvent'
-import { sleep } from '../helpers'
+import { jest, expect, it, describe, beforeAll, afterAll } from '@jest/globals';
+import { TrackingManager } from '../../src/api/TrackingManager';
+import { ConfigManager, DecisionApiConfig } from '../../src/config/index';
+import { DecisionManager } from '../../src/decision/DecisionManager';
+import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager';
+import { VisitorDelegate } from '../../src/visitor/VisitorDelegate';
+import { NoConsentStrategy } from '../../src/visitor/index';
+import { FLAG_VISITOR_EXPOSED, HitType, LogLevel, METHOD_DEACTIVATED_CONSENT_ERROR } from '../../src/enum/index';
+import { sprintf } from '../../src/utils/utils';
+import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient';
+import { MurmurHash } from '../../src/utils/MurmurHash';
+import { EAIScore, FlagDTO, TroubleshootingLabel } from '../../src';
+import { ApiManager } from '../../src/decision/ApiManager';
+import { VisitorAbstract } from '../../src/visitor/VisitorAbstract';
+import { IEmotionAI } from '../../src/emotionAI/IEmotionAI';
+import { IPageView } from '../../src/emotionAI/hit/IPageView';
+import { IVisitorEvent } from '../../src/emotionAI/hit/IVisitorEvent';
+import { sleep } from '../helpers';
 
 describe('test NoConsentStrategy', () => {
-  const visitorId = 'visitorId'
-   
-  const context: any = {
-    isVip: true
-  }
+  const visitorId = 'visitorId';
 
-  const logManager = new FlagshipLogManager()
-  const logInfo = jest.spyOn(logManager, 'info')
+  const context: any = { isVip: true };
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', logLevel: LogLevel.INFO })
-  config.logManager = logManager
+  const logManager = new FlagshipLogManager();
+  const logInfo = jest.spyOn(logManager, 'info');
 
-  const trackingManager = new TrackingManager({} as HttpClient, config)
+  const config = new DecisionApiConfig({
+    envId: 'envId',
+    apiKey: 'apiKey',
+    logLevel: LogLevel.INFO
+  });
+  config.logManager = logManager;
 
-  const configManager = new ConfigManager(config, {} as DecisionManager, trackingManager)
+  const trackingManager = new TrackingManager({} as HttpClient, config);
 
-  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>()
+  const configManager = new ConfigManager(config, {} as DecisionManager, trackingManager);
 
-  const collectEAIData = jest.fn<(currentPage?: Omit<IPageView, 'toApiKeys'>) => void>()
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>();
 
-  const reportVisitorEvent = jest.fn<(event: IVisitorEvent)=> Promise<void>>()
+  const collectEAIData = jest.fn<(currentPage?: Omit<IPageView, 'toApiKeys'>) => void>();
 
-  const reportPageView = jest.fn<(pageView: IPageView) => Promise<void>>()
+  const reportVisitorEvent = jest.fn<(event: IVisitorEvent)=> Promise<void>>();
 
-  const onEAICollectStatusChange = jest.fn<(callback: (status: boolean) => void) => void>()
+  const reportPageView = jest.fn<(pageView: IPageView) => Promise<void>>();
 
-  const cleanup = jest.fn<() => void>()
+  const onEAICollectStatusChange = jest.fn<(callback: (status: boolean) => void) => void>();
+
+  const cleanup = jest.fn<() => void>();
 
   const emotionAi = {
     init: jest.fn<(visitor:VisitorAbstract) => void>(),
@@ -54,117 +56,132 @@ describe('test NoConsentStrategy', () => {
     reportPageView,
     onEAICollectStatusChange,
     cleanup
-  } as unknown as IEmotionAI
-  const visitorDelegate = new VisitorDelegate({ visitorId, context, configManager, hasConsented: true, emotionAi })
-  const murmurHash = new MurmurHash()
-  const noConsentStrategy = new NoConsentStrategy({ visitor: visitorDelegate, murmurHash })
+  } as unknown as IEmotionAI;
+  const visitorDelegate = new VisitorDelegate({
+    visitorId,
+    context,
+    configManager,
+    hasConsented: true,
+    emotionAi
+  });
+  const murmurHash = new MurmurHash();
+  const noConsentStrategy = new NoConsentStrategy({
+    visitor: visitorDelegate,
+    murmurHash
+  });
 
   it('test sendHit', () => {
-    noConsentStrategy.sendHit({ type: HitType.PAGE, documentLocation: 'home' }).then(() => {
-      const methodName = 'sendHit'
-      expect(logInfo).toBeCalledTimes(1)
-      expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
-    })
-  })
+    noConsentStrategy.sendHit({
+      type: HitType.PAGE,
+      documentLocation: 'home'
+    }).then(() => {
+      const methodName = 'sendHit';
+      expect(logInfo).toBeCalledTimes(1);
+      expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName);
+    });
+  });
 
   it('test sendHits', () => {
-    noConsentStrategy.sendHits([{ type: HitType.PAGE, documentLocation: 'home' }]).then(() => {
-      const methodName = 'sendHits'
-      expect(logInfo).toBeCalledTimes(1)
-      expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName)
-    })
-  })
+    noConsentStrategy.sendHits([{
+      type: HitType.PAGE,
+      documentLocation: 'home'
+    }]).then(() => {
+      const methodName = 'sendHits';
+      expect(logInfo).toBeCalledTimes(1);
+      expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, visitorDelegate.visitorId), methodName);
+    });
+  });
 
   it('test userExposed', () => {
     noConsentStrategy.visitorExposed().then(() => {
-      expect(logInfo).toBeCalledTimes(1)
-      expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, FLAG_VISITOR_EXPOSED, visitorDelegate.visitorId), FLAG_VISITOR_EXPOSED)
-    })
-  })
+      expect(logInfo).toBeCalledTimes(1);
+      expect(logInfo).toBeCalledWith(sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, FLAG_VISITOR_EXPOSED, visitorDelegate.visitorId), FLAG_VISITOR_EXPOSED);
+    });
+  });
 
   it('test collectEAIData', () => {
-    noConsentStrategy.collectEAIEventsAsync()
-    expect(logInfo).toBeCalledTimes(1)
-  })
+    noConsentStrategy.collectEAIEventsAsync();
+    expect(logInfo).toBeCalledTimes(1);
+  });
 
   it('test reportEaiPageView', () => {
-    noConsentStrategy.reportEaiPageView()
-    expect(logInfo).toBeCalledTimes(0)
-    expect(emotionAi.reportPageView).toBeCalledTimes(0)
-  })
+    noConsentStrategy.reportEaiPageView();
+    expect(logInfo).toBeCalledTimes(0);
+    expect(emotionAi.reportPageView).toBeCalledTimes(0);
+  });
 
   it('test reportEaiVisitorEvent', () => {
-    noConsentStrategy.reportEaiVisitorEvent()
-    expect(logInfo).toBeCalledTimes(0)
-    expect(emotionAi.reportVisitorEvent).toBeCalledTimes(0)
-  })
+    noConsentStrategy.reportEaiVisitorEvent();
+    expect(logInfo).toBeCalledTimes(0);
+    expect(emotionAi.reportVisitorEvent).toBeCalledTimes(0);
+  });
 
   it('test onEAICollectStatusChange', () => {
-    noConsentStrategy.onEAICollectStatusChange()
-    expect(logInfo).toBeCalledTimes(0)
-    expect(emotionAi.onEAICollectStatusChange).toBeCalledTimes(0)
-  })
-})
+    noConsentStrategy.onEAICollectStatusChange();
+    expect(logInfo).toBeCalledTimes(0);
+    expect(emotionAi.onEAICollectStatusChange).toBeCalledTimes(0);
+  });
+});
 
 describe('test DefaultStrategy sendAnalyticHit', () => {
-  const methodNow = Date.now
-  const mockNow = jest.fn<typeof Date.now>()
+  const methodNow = Date.now;
+  const mockNow = jest.fn<typeof Date.now>();
   beforeAll(() => {
-    Date.now = mockNow
-    mockNow.mockReturnValue(1)
-  })
+    Date.now = mockNow;
+    mockNow.mockReturnValue(1);
+  });
   afterAll(() => {
-    Date.now = methodNow
-  })
-  const visitorId = 'ca0594f5-4a37-4a7d-91be-27c63f829380'
-   
-  const context: any = {
-    isVip: true
-  }
+    Date.now = methodNow;
+  });
+  const visitorId = 'ca0594f5-4a37-4a7d-91be-27c63f829380';
 
-  const logManager = new FlagshipLogManager()
+  const context: any = { isVip: true };
 
-  const config = new DecisionApiConfig({ envId: 'envId', apiKey: 'apiKey', hitDeduplicationTime: 0 })
-  config.logManager = logManager
+  const logManager = new FlagshipLogManager();
 
-  const httpClient = new HttpClient()
+  const config = new DecisionApiConfig({
+    envId: 'envId',
+    apiKey: 'apiKey',
+    hitDeduplicationTime: 0
+  });
+  config.logManager = logManager;
 
-  const post = jest.fn<typeof httpClient.postAsync>()
-  httpClient.postAsync = post
-  post.mockResolvedValue({} as IHttpResponse)
+  const httpClient = new HttpClient();
 
-  const apiManager = new ApiManager(httpClient, config)
+  const post = jest.fn<typeof httpClient.postAsync>();
+  httpClient.postAsync = post;
+  post.mockResolvedValue({} as IHttpResponse);
+
+  const apiManager = new ApiManager(httpClient, config);
 
   const getCampaignsAsync = jest.spyOn(
     apiManager,
     'getCampaignsAsync'
-  )
+  );
 
   const getModifications = jest.spyOn(
     apiManager,
     'getModifications'
-  )
+  );
 
-  const trackingManager = new TrackingManager(httpClient, config)
+  const trackingManager = new TrackingManager(httpClient, config);
 
-  const addHit = jest.spyOn(trackingManager, 'addHit')
-  addHit.mockResolvedValue()
+  const addHit = jest.spyOn(trackingManager, 'addHit');
+  addHit.mockResolvedValue();
 
-   
-  const sendUsageHitSpy = jest.spyOn(trackingManager, 'sendUsageHit')
 
-  const configManager = new ConfigManager(config, apiManager, trackingManager)
+  const sendUsageHitSpy = jest.spyOn(trackingManager, 'sendUsageHit');
 
-  const FsInstanceId = 'FsInstanceId'
+  const configManager = new ConfigManager(config, apiManager, trackingManager);
 
-  const emotionAi = {
-    init: jest.fn<(visitor:VisitorAbstract) => void>()
-  } as unknown as IEmotionAI
+  const FsInstanceId = 'FsInstanceId';
 
-  const murmurHash = new MurmurHash()
+  const emotionAi = { init: jest.fn<(visitor:VisitorAbstract) => void>() } as unknown as IEmotionAI;
 
-  const murmurHash3Int32Spy = jest.spyOn(murmurHash, 'murmurHash3Int32')
-  murmurHash3Int32Spy.mockReturnValue(1000)
+  const murmurHash = new MurmurHash();
+
+  const murmurHash3Int32Spy = jest.spyOn(murmurHash, 'murmurHash3Int32');
+  murmurHash3Int32Spy.mockReturnValue(1000);
 
   const visitorDelegate = new VisitorDelegate({
     visitorId,
@@ -177,10 +194,13 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
     hasConsented: true,
     emotionAi,
     murmurHash
-  })
+  });
 
-  const noConsentStrategy = new NoConsentStrategy({ visitor: visitorDelegate, murmurHash })
-  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit')
+  const noConsentStrategy = new NoConsentStrategy({
+    visitor: visitorDelegate,
+    murmurHash
+  });
+  const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit');
   it('test fetchFlags', async () => {
     const flagDTO: FlagDTO = {
       key: 'key',
@@ -191,24 +211,24 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
       variationId: 'variationId',
       variationName: 'variationName',
       value: 'value'
-    }
+    };
 
-    const flags = new Map<string, FlagDTO>().set(flagDTO.key, flagDTO)
-    getCampaignsAsync.mockResolvedValue([])
-    getModifications.mockReturnValueOnce(flags)
+    const flags = new Map<string, FlagDTO>().set(flagDTO.key, flagDTO);
+    getCampaignsAsync.mockResolvedValue([]);
+    getModifications.mockReturnValueOnce(flags);
 
-    await noConsentStrategy.fetchFlags()
+    await noConsentStrategy.fetchFlags();
 
-    await sleep(10)
+    await sleep(10);
 
-    expect(sendUsageHitSpy).toBeCalledTimes(1)
+    expect(sendUsageHitSpy).toBeCalledTimes(1);
 
-    const label: TroubleshootingLabel = TroubleshootingLabel.SDK_CONFIG
-    expect(sendUsageHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ data: expect.objectContaining({ label }) }))
-  })
+    const label: TroubleshootingLabel = TroubleshootingLabel.SDK_CONFIG;
+    expect(sendUsageHitSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ data: expect.objectContaining({ label }) }));
+  });
 
   it('test sendTroubleshootingHit', () => {
-    noConsentStrategy.sendTroubleshootingHit()
-    expect(sendTroubleshootingHit).toBeCalledTimes(0)
-  })
-})
+    noConsentStrategy.sendTroubleshootingHit();
+    expect(sendTroubleshootingHit).toBeCalledTimes(0);
+  });
+});

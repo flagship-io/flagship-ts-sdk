@@ -2,108 +2,107 @@
  * @jest-environment jsdom
  */
 
-import { jest, describe, it, expect, beforeEach, afterAll } from '@jest/globals'
-import * as messages from '../../../src/qaAssistant/messages'
-import { onQaAssistantReady, render, onQaAssistantClose, onApplyForcedVariations, onResetForcedVariations } from '../../../src/qaAssistant/messages/iframeMessageActions'
-import { EventDataFromIframe } from '../../../src/qaAssistant/type'
-import { DecisionApiConfig } from '../../../src/config/DecisionApiConfig'
-import { FsVariationToForce, VisitorVariations } from '../../../src/types'
-import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, FS_QA_ASSISTANT_SCRIPT_TAG_ID } from '../../../src/enum/FlagshipConstant'
+import { jest, describe, it, expect, beforeEach, afterAll } from '@jest/globals';
+import * as messages from '../../../src/qaAssistant/messages';
+import { onQaAssistantReady, render, onQaAssistantClose, onApplyForcedVariations, onResetForcedVariations } from '../../../src/qaAssistant/messages/iframeMessageActions';
+import { EventDataFromIframe } from '../../../src/qaAssistant/type';
+import { DecisionApiConfig } from '../../../src/config/DecisionApiConfig';
+import { FsVariationToForce, VisitorVariations } from '../../../src/types';
+import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, FS_QA_ASSISTANT_SCRIPT_TAG_ID } from '../../../src/enum/FlagshipConstant';
 
 describe('QA Assistant Message Actions', () => {
-  const reloadMock = jest.fn()
-  const originalLocation = window.location
+  const reloadMock = jest.fn();
+  const originalLocation = window.location;
 
   beforeAll(() => {
     Object.defineProperty(window, 'location', {
       configurable: true,
       value: { reload: reloadMock }
-    })
-  })
+    });
+  });
 
   afterAll(() => {
     Object.defineProperty(window, 'location', {
       configurable: true,
       value: originalLocation
-    })
-  })
+    });
+  });
 
   beforeEach(() => {
-    config.isQAModeEnabled = true
-  })
-  const config = new DecisionApiConfig()
-  config.envId = 'envId'
+    config.isQAModeEnabled = true;
+  });
+  const config = new DecisionApiConfig();
+  config.envId = 'envId';
 
-  const sendVisitorAllocatedVariationsSpy = jest.spyOn(messages, 'sendVisitorAllocatedVariations')
+  const sendVisitorAllocatedVariationsSpy = jest.spyOn(messages, 'sendVisitorAllocatedVariations');
   sendVisitorAllocatedVariationsSpy.mockImplementation(() => {
     //
-  })
-  const sendVisitorExposedVariationsSpy = jest.spyOn(messages, 'sendVisitorExposedVariations')
+  });
+  const sendVisitorExposedVariationsSpy = jest.spyOn(messages, 'sendVisitorExposedVariations');
   sendVisitorExposedVariationsSpy.mockImplementation(() => {
     //
-  })
+  });
 
-  const dispatchEventSpy = jest.spyOn(global.window, 'dispatchEvent')
+  const dispatchEventSpy = jest.spyOn(global.window, 'dispatchEvent');
 
-  const removeItemSpy = jest.spyOn(Object.getPrototypeOf(sessionStorage), 'removeItem')
-  const setItemSpy = jest.spyOn(Object.getPrototypeOf(sessionStorage), 'setItem')
-  const getItemSpy = jest.spyOn(Object.getPrototypeOf(sessionStorage), 'getItem')
-  const removeEventListenerSpy = jest.spyOn(global.window, 'removeEventListener')
+  const removeItemSpy = jest.spyOn(Object.getPrototypeOf(sessionStorage), 'removeItem');
+  const setItemSpy = jest.spyOn(Object.getPrototypeOf(sessionStorage), 'setItem');
+  const getItemSpy = jest.spyOn(Object.getPrototypeOf(sessionStorage), 'getItem');
+  const removeEventListenerSpy = jest.spyOn(global.window, 'removeEventListener');
 
   it('should not send variations when visitor variations are undefined', () => {
-    onQaAssistantReady()
-    expect(sendVisitorAllocatedVariationsSpy).toBeCalledTimes(0)
-    expect(sendVisitorExposedVariationsSpy).toBeCalledTimes(0)
-  })
+    onQaAssistantReady();
+    expect(sendVisitorAllocatedVariationsSpy).toBeCalledTimes(0);
+    expect(sendVisitorExposedVariationsSpy).toBeCalledTimes(0);
+  });
 
   it('should send allocated and exposed variations when they exist', () => {
-    const visitorVariations:Record<string, VisitorVariations> = {
-      key: {} as VisitorVariations
-    }
-    const exposedVariations:Record<string, VisitorVariations> = {
-      key: {} as VisitorVariations
-    }
+    const visitorVariations:Record<string, VisitorVariations> = { key: {} as VisitorVariations };
+    const exposedVariations:Record<string, VisitorVariations> = { key: {} as VisitorVariations };
     global.window.flagship = {
       visitorVariations,
       exposedVariations
-    }
+    };
 
-    onQaAssistantReady()
+    onQaAssistantReady();
 
-    expect(sendVisitorAllocatedVariationsSpy).toBeCalledTimes(1)
-    expect(sendVisitorExposedVariationsSpy).toBeCalledTimes(1)
-    expect(sendVisitorAllocatedVariationsSpy).toBeCalledWith(visitorVariations)
-    expect(sendVisitorExposedVariationsSpy).toBeCalledWith(exposedVariations)
-  })
+    expect(sendVisitorAllocatedVariationsSpy).toBeCalledTimes(1);
+    expect(sendVisitorExposedVariationsSpy).toBeCalledTimes(1);
+    expect(sendVisitorAllocatedVariationsSpy).toBeCalledWith(visitorVariations);
+    expect(sendVisitorExposedVariationsSpy).toBeCalledWith(exposedVariations);
+  });
 
   it('should dispatch event when rendering QA assistant', () => {
     dispatchEventSpy.mockImplementationOnce(() => {
-      return true
-    })
+      return true;
+    });
 
-    render()
+    render();
 
-    expect(dispatchEventSpy).toBeCalledTimes(1)
-  })
+    expect(dispatchEventSpy).toBeCalledTimes(1);
+  });
 
   it('should clean up DOM, storage and events when QA assistant is closed', () => {
-    const fn = jest.fn<(event: MessageEvent<EventDataFromIframe>) => void>()
-    const element = document.createElement('script')
-    element.id = FS_QA_ASSISTANT_SCRIPT_TAG_ID
-    document.body.append(element)
-    expect(document.getElementById(FS_QA_ASSISTANT_SCRIPT_TAG_ID)).toBeDefined()
+    const fn = jest.fn<(event: MessageEvent<EventDataFromIframe>) => void>();
+    const element = document.createElement('script');
+    element.id = FS_QA_ASSISTANT_SCRIPT_TAG_ID;
+    document.body.append(element);
+    expect(document.getElementById(FS_QA_ASSISTANT_SCRIPT_TAG_ID)).toBeDefined();
 
-    onQaAssistantClose({ config, func: fn })
+    onQaAssistantClose({
+      config,
+      func: fn
+    });
 
-    expect(removeItemSpy).toBeCalledTimes(1)
-    expect(removeItemSpy).toBeCalledWith(FS_IS_QA_MODE_ENABLED)
-    expect(removeEventListenerSpy).toBeCalledTimes(1)
-    expect(removeEventListenerSpy).toBeCalledWith('message', fn)
-    expect(document.getElementById(FS_QA_ASSISTANT_SCRIPT_TAG_ID)).toBeNull()
-    expect(global?.window?.flagship?.forcedVariations).toEqual({})
-    expect(dispatchEventSpy).toBeCalledTimes(1)
-    expect(config.isQAModeEnabled).toBeFalsy()
-  })
+    expect(removeItemSpy).toBeCalledTimes(1);
+    expect(removeItemSpy).toBeCalledWith(FS_IS_QA_MODE_ENABLED);
+    expect(removeEventListenerSpy).toBeCalledTimes(1);
+    expect(removeEventListenerSpy).toBeCalledWith('message', fn);
+    expect(document.getElementById(FS_QA_ASSISTANT_SCRIPT_TAG_ID)).toBeNull();
+    expect(global?.window?.flagship?.forcedVariations).toEqual({});
+    expect(dispatchEventSpy).toBeCalledTimes(1);
+    expect(config.isQAModeEnabled).toBeFalsy();
+  });
 
   it('should store and apply forced variations', () => {
     const forcedVariations:Record<string, FsVariationToForce> = {
@@ -118,20 +117,18 @@ describe('QA Assistant Message Actions', () => {
           id: 'variationId',
           modifications: {
             type: 'flag',
-            value: {
-              key: 'value'
-            }
+            value: { key: 'value' }
           }
         }
       }
-    }
-    onApplyForcedVariations({ value: forcedVariations })
+    };
+    onApplyForcedVariations({ value: forcedVariations });
 
-    expect(setItemSpy).toBeCalledTimes(1)
-    expect(setItemSpy).toBeCalledWith(FS_FORCED_VARIATIONS, JSON.stringify(forcedVariations))
-    expect(global?.window?.flagship?.forcedVariations).toEqual(forcedVariations)
-    expect(dispatchEventSpy).toBeCalledTimes(1)
-  })
+    expect(setItemSpy).toBeCalledTimes(1);
+    expect(setItemSpy).toBeCalledWith(FS_FORCED_VARIATIONS, JSON.stringify(forcedVariations));
+    expect(global?.window?.flagship?.forcedVariations).toEqual(forcedVariations);
+    expect(dispatchEventSpy).toBeCalledTimes(1);
+  });
 
   it('should merge new forced variations with existing ones from session storage', () => {
     const forcedVariations:Record<string, FsVariationToForce> = {
@@ -146,13 +143,11 @@ describe('QA Assistant Message Actions', () => {
           id: 'variationId',
           modifications: {
             type: 'flag',
-            value: {
-              key: 'value'
-            }
+            value: { key: 'value' }
           }
         }
       }
-    }
+    };
     const storedForcedVariations:Record<string, FsVariationToForce> = {
       campaignId2: {
         campaignId: 'campaignId2',
@@ -165,22 +160,23 @@ describe('QA Assistant Message Actions', () => {
           id: 'variationId2',
           modifications: {
             type: 'flag2',
-            value: {
-              key: 'value2'
-            }
+            value: { key: 'value2' }
           }
         }
       }
-    }
-    getItemSpy.mockReturnValue(JSON.stringify(storedForcedVariations))
-    onApplyForcedVariations({ value: forcedVariations })
+    };
+    getItemSpy.mockReturnValue(JSON.stringify(storedForcedVariations));
+    onApplyForcedVariations({ value: forcedVariations });
 
-    const newForcesVariations = { ...storedForcedVariations, ...forcedVariations }
-    expect(setItemSpy).toBeCalledTimes(1)
-    expect(setItemSpy).toBeCalledWith(FS_FORCED_VARIATIONS, JSON.stringify(newForcesVariations))
-    expect(global?.window?.flagship?.forcedVariations).toEqual(newForcesVariations)
-    expect(dispatchEventSpy).toBeCalledTimes(1)
-  })
+    const newForcesVariations = {
+      ...storedForcedVariations,
+      ...forcedVariations
+    };
+    expect(setItemSpy).toBeCalledTimes(1);
+    expect(setItemSpy).toBeCalledWith(FS_FORCED_VARIATIONS, JSON.stringify(newForcesVariations));
+    expect(global?.window?.flagship?.forcedVariations).toEqual(newForcesVariations);
+    expect(dispatchEventSpy).toBeCalledTimes(1);
+  });
 
   it('should handle JSON parsing errors when reading from session storage', () => {
     const forcedVariations:Record<string, FsVariationToForce> = {
@@ -195,28 +191,26 @@ describe('QA Assistant Message Actions', () => {
           id: 'variationId',
           modifications: {
             type: 'flag',
-            value: {
-              key: 'value'
-            }
+            value: { key: 'value' }
           }
         }
       }
-    }
+    };
 
-    getItemSpy.mockReturnValue('error')
-    onApplyForcedVariations({ value: forcedVariations })
+    getItemSpy.mockReturnValue('error');
+    onApplyForcedVariations({ value: forcedVariations });
 
-    expect(setItemSpy).toBeCalledTimes(1)
-    expect(setItemSpy).toBeCalledWith(FS_FORCED_VARIATIONS, JSON.stringify(forcedVariations))
-    expect(global?.window?.flagship?.forcedVariations).toEqual(forcedVariations)
-    expect(dispatchEventSpy).toBeCalledTimes(1)
-  })
+    expect(setItemSpy).toBeCalledTimes(1);
+    expect(setItemSpy).toBeCalledWith(FS_FORCED_VARIATIONS, JSON.stringify(forcedVariations));
+    expect(global?.window?.flagship?.forcedVariations).toEqual(forcedVariations);
+    expect(dispatchEventSpy).toBeCalledTimes(1);
+  });
 
   it('should reset forced variations and clean up storage', () => {
-    onResetForcedVariations()
+    onResetForcedVariations();
 
-    expect(global?.window?.flagship?.forcedVariations).toEqual({})
-    expect(removeItemSpy).toBeCalledWith(FS_FORCED_VARIATIONS)
-    expect(dispatchEventSpy).toBeCalledTimes(1)
-  })
-})
+    expect(global?.window?.flagship?.forcedVariations).toEqual({});
+    expect(removeItemSpy).toBeCalledWith(FS_FORCED_VARIATIONS);
+    expect(dispatchEventSpy).toBeCalledTimes(1);
+  });
+});

@@ -1,4 +1,4 @@
-import { FsVariationToForce, VisitorVariations } from '../types'
+import { FsVariationToForce, VisitorVariations } from '../types';
 
 /**
  * All events posted from iframe

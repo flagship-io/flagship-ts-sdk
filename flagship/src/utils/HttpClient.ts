@@ -1,6 +1,6 @@
-import { HttpError } from './HttpError'
-import { REQUEST_TIME_OUT } from '../enum/index'
-import { myFetch, LocalAbortController } from '../depsNode.native'
+import { HttpError } from './HttpError';
+import { REQUEST_TIME_OUT } from '../enum/index';
+import { myFetch, LocalAbortController } from '../depsNode.native';
 
 export interface IHttpOptions {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -23,38 +23,38 @@ export interface IHttpClient {
 }
 
 export class HttpClient implements IHttpClient {
-  private async getResponse (response:Response): Promise<{
+  private async getResponse(response:Response): Promise<{
     status: number;
     body: Record<string, unknown> | undefined;
     headers: Record<string, string>;
 }> {
-    const applicationType = response.headers.get('Content-Type')
-    const checkJson = applicationType?.includes('application/json')
-    let body:Record<string, unknown>|undefined
-    const headers:Record<string, string> = {}
+    const applicationType = response.headers.get('Content-Type');
+    const checkJson = applicationType?.includes('application/json');
+    let body:Record<string, unknown>|undefined;
+    const headers:Record<string, string> = {};
     response.headers.forEach((value:string, key:string) => {
-      headers[key] = value
-    })
+      headers[key] = value;
+    });
 
     if (checkJson && response.ok && response.status !== 204) {
-      body = await response.json()
+      body = await response.json();
     }
 
     if (response.status >= 400) {
-      const bodyString = await response.text()
-      throw new HttpError(response.status, bodyString || response.statusText, headers)
+      const bodyString = await response.text();
+      throw new HttpError(response.status, bodyString || response.statusText, headers);
     }
 
     return {
       status: response.status,
       body,
       headers
-    }
+    };
   }
 
-  async getAsync (url: string, options?: IHttpOptions): Promise<IHttpResponse> {
-    const c = new LocalAbortController()
-    const id = setTimeout(() => c.abort(), (options?.timeout ? options.timeout : REQUEST_TIME_OUT) * 1000)
+  async getAsync(url: string, options?: IHttpOptions): Promise<IHttpResponse> {
+    const c = new LocalAbortController();
+    const id = setTimeout(() => c.abort(), (options?.timeout ? options.timeout : REQUEST_TIME_OUT) * 1000);
     try {
       const response = await myFetch(url, {
         method: 'GET',
@@ -62,16 +62,16 @@ export class HttpClient implements IHttpClient {
         signal: c.signal as AbortSignal,
         keepalive: true,
         next: options?.nextFetchConfig
-      } as Record<string, unknown>)
-      return this.getResponse(response)
+      } as Record<string, unknown>);
+      return this.getResponse(response);
     } finally {
-      clearTimeout(id)
+      clearTimeout(id);
     }
   }
 
-  public async postAsync (url: string, options: IHttpOptions): Promise<IHttpResponse> {
-    const c = new LocalAbortController()
-    const id = setTimeout(() => c.abort(), options.timeout ? options.timeout * 1000 : REQUEST_TIME_OUT * 1000)
+  public async postAsync(url: string, options: IHttpOptions): Promise<IHttpResponse> {
+    const c = new LocalAbortController();
+    const id = setTimeout(() => c.abort(), options.timeout ? options.timeout * 1000 : REQUEST_TIME_OUT * 1000);
     try {
       const response = await myFetch(url, {
         method: 'POST',
@@ -80,10 +80,10 @@ export class HttpClient implements IHttpClient {
         signal: c.signal as AbortSignal,
         keepalive: true,
         next: options?.nextFetchConfig
-      }as Record<string, unknown>)
-      return this.getResponse(response)
+      }as Record<string, unknown>);
+      return this.getResponse(response);
     } finally {
-      clearTimeout(id)
+      clearTimeout(id);
     }
   }
 }

@@ -9,9 +9,7 @@ export const campaigns = {
         id: 'c2nrh1hjg50l9thhu8dg',
         modifications: {
           type: 'JSON',
-          value: {
-            key: 'value'
-          }
+          value: { key: 'value' }
         },
         reference: false
       }
@@ -28,14 +26,10 @@ export const campaigns = {
             array: [1, 1, 1],
             complex: {
               carray: [
-                {
-                  cobject: 0
-                }
+                { cobject: 0 }
               ]
             },
-            object: {
-              value: 123456
-            }
+            object: { value: 123456 }
           }
         },
         reference: false
@@ -55,4 +49,4 @@ export const campaigns = {
       }
     }
   }
-}
+};

@@ -1,4 +1,4 @@
-import { PageView } from '../../../src/emotionAI/hit/PageView'
+import { PageView } from '../../../src/emotionAI/hit/PageView';
 
 describe('PageView', () => {
   const sampleData = {
@@ -25,42 +25,42 @@ describe('PageView', () => {
     customerUserId: '12345',
     timezoneOffset: 240,
     eventCategory: 'click tunnel auto'
-  }
+  };
 
-  let pageView: PageView
+  let pageView: PageView;
 
   beforeEach(() => {
-    pageView = new PageView(sampleData)
-  })
+    pageView = new PageView(sampleData);
+  });
 
   test('should initialize all properties correctly', () => {
-    expect(pageView.customerAccountId).toBe(sampleData.customerAccountId)
-    expect(pageView.visitorId).toBe(sampleData.visitorId)
-    expect(pageView.hasAdBlocker).toBe(sampleData.hasAdBlocker)
-    expect(pageView.screenDepth).toBe(sampleData.screenDepth)
-    expect(pageView.screenSize).toBe(sampleData.screenSize)
-    expect(pageView.doNotTrack).toBe(sampleData.doNotTrack)
-    expect(pageView.fonts).toBe(sampleData.fonts)
-    expect(pageView.hasFakeBrowserInfos).toBe(sampleData.hasFakeBrowserInfos)
-    expect(pageView.hasFakeLanguageInfos).toBe(sampleData.hasFakeLanguageInfos)
-    expect(pageView.hasFakeOsInfos).toBe(sampleData.hasFakeOsInfos)
-    expect(pageView.hasFakeResolutionInfos).toBe(sampleData.hasFakeResolutionInfos)
-    expect(pageView.userLanguage).toBe(sampleData.userLanguage)
-    expect(pageView.deviceCategory).toBe(sampleData.deviceCategory)
-    expect(pageView.pixelRatio).toBe(sampleData.pixelRatio)
-    expect(pageView.plugins).toBe(sampleData.plugins)
-    expect(pageView.documentReferer).toBe(sampleData.documentReferer)
-    expect(pageView.viewportSize).toBe(sampleData.viewportSize)
-    expect(pageView.touchSupport).toBe(sampleData.touchSupport)
-    expect(pageView.currentUrl).toBe(sampleData.currentUrl)
-    expect(pageView.userAgent).toBe(sampleData.userAgent)
-    expect(pageView.customerUserId).toBe(sampleData.customerUserId)
-    expect(pageView.timezoneOffset).toBe(sampleData.timezoneOffset)
-    expect(pageView.eventCategory).toBe(sampleData.eventCategory)
-  })
+    expect(pageView.customerAccountId).toBe(sampleData.customerAccountId);
+    expect(pageView.visitorId).toBe(sampleData.visitorId);
+    expect(pageView.hasAdBlocker).toBe(sampleData.hasAdBlocker);
+    expect(pageView.screenDepth).toBe(sampleData.screenDepth);
+    expect(pageView.screenSize).toBe(sampleData.screenSize);
+    expect(pageView.doNotTrack).toBe(sampleData.doNotTrack);
+    expect(pageView.fonts).toBe(sampleData.fonts);
+    expect(pageView.hasFakeBrowserInfos).toBe(sampleData.hasFakeBrowserInfos);
+    expect(pageView.hasFakeLanguageInfos).toBe(sampleData.hasFakeLanguageInfos);
+    expect(pageView.hasFakeOsInfos).toBe(sampleData.hasFakeOsInfos);
+    expect(pageView.hasFakeResolutionInfos).toBe(sampleData.hasFakeResolutionInfos);
+    expect(pageView.userLanguage).toBe(sampleData.userLanguage);
+    expect(pageView.deviceCategory).toBe(sampleData.deviceCategory);
+    expect(pageView.pixelRatio).toBe(sampleData.pixelRatio);
+    expect(pageView.plugins).toBe(sampleData.plugins);
+    expect(pageView.documentReferer).toBe(sampleData.documentReferer);
+    expect(pageView.viewportSize).toBe(sampleData.viewportSize);
+    expect(pageView.touchSupport).toBe(sampleData.touchSupport);
+    expect(pageView.currentUrl).toBe(sampleData.currentUrl);
+    expect(pageView.userAgent).toBe(sampleData.userAgent);
+    expect(pageView.customerUserId).toBe(sampleData.customerUserId);
+    expect(pageView.timezoneOffset).toBe(sampleData.timezoneOffset);
+    expect(pageView.eventCategory).toBe(sampleData.eventCategory);
+  });
 
   test('toApiKeys should return correct mapping with all fields', () => {
-    const apiKeys = pageView.toApiKeys()
+    const apiKeys = pageView.toApiKeys();
     expect(apiKeys).toEqual({
       cid: sampleData.customerAccountId,
       vid: sampleData.visitorId,
@@ -86,13 +86,17 @@ describe('PageView', () => {
       t: 'PAGEVIEW',
       plu: sampleData.plugins,
       cuid: sampleData.customerUserId
-    })
-  })
+    });
+  });
 
   test('toApiKeys should exclude optional fields when undefined', () => {
-    const dataWithoutOptional = { ...sampleData, plugins: undefined, customerUserId: undefined }
-    const pageViewWithoutOptional = new PageView(dataWithoutOptional)
-    const apiKeys = pageViewWithoutOptional.toApiKeys()
+    const dataWithoutOptional = {
+      ...sampleData,
+      plugins: undefined,
+      customerUserId: undefined
+    };
+    const pageViewWithoutOptional = new PageView(dataWithoutOptional);
+    const apiKeys = pageViewWithoutOptional.toApiKeys();
     expect(apiKeys).toEqual({
       cid: dataWithoutOptional.customerAccountId,
       vid: dataWithoutOptional.visitorId,
@@ -116,6 +120,6 @@ describe('PageView', () => {
       ua: dataWithoutOptional.userAgent,
       ec: dataWithoutOptional.eventCategory,
       t: 'PAGEVIEW'
-    })
-  })
-})
+    });
+  });
+});

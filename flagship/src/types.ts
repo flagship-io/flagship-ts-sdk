@@ -1,14 +1,12 @@
-import { FSFetchReasons } from './enum/FSFetchReasons'
-import { FSFetchStatus } from './enum/FSFetchStatus'
-import { HitType } from './enum/index'
-import {
-  IEvent,
+import { FSFetchReasons } from './enum/FSFetchReasons';
+import { FSFetchStatus } from './enum/FSFetchStatus';
+import { HitType } from './enum/index';
+import { IEvent,
   IItem,
   IPage,
   IScreen,
   ITransaction,
-  IHitAbstract
-} from './hit/index'
+  IHitAbstract } from './hit/index';
 
 export type modificationsRequested<T> = {
   key: string;

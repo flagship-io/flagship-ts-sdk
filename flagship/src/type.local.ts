@@ -1,8 +1,8 @@
-import { IFlagshipConfig } from './config/IFlagshipConfig'
+import { IFlagshipConfig } from './config/IFlagshipConfig';
 import { ISdkApiV1 } from './sdkApi/v1/ISdkApiV1';
-import { ISharedActionTracking } from './sharedFeature/ISharedActionTracking'
-import { FlagDTO, FsVariationToForce, IFSFlagMetadata, InternalHitType, primitive, VisitorProfile, VisitorVariations } from './types'
-import { type IHttpClient } from './utils/HttpClient'
+import { ISharedActionTracking } from './sharedFeature/ISharedActionTracking';
+import { FlagDTO, FsVariationToForce, IFSFlagMetadata, InternalHitType, primitive, VisitorProfile, VisitorVariations } from './types';
+import { type IHttpClient } from './utils/HttpClient';
 
 export type VisitorExposedParam = {
     key: string;
@@ -116,11 +116,11 @@ export enum ImportHitType {
 export type ActivateConstructorParam = Omit<IActivate, 'type'|'createdAt'|'traffic'>
 
 declare global {
-  let __fsWebpackIsBrowser__: boolean
-  let __fsWebpackIsNode__: boolean
-  let __fsWebpackIsReactNative__: boolean
-  let __fsWebpackIsEdgeWorker__: boolean
-  let __fsWebpackIsDeno__: boolean
+  let __fsWebpackIsBrowser__: boolean;
+  let __fsWebpackIsNode__: boolean;
+  let __fsWebpackIsReactNative__: boolean;
+  let __fsWebpackIsEdgeWorker__: boolean;
+  let __fsWebpackIsDeno__: boolean;
   interface Window {
     ABTastyQaAssistant?: Window;
     flagship?: {

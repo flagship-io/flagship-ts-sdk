@@ -1,4 +1,4 @@
-import { FlagDTO } from '../../src/types'
+import { FlagDTO } from '../../src/types';
 
 export const returnFlag = new Map<string, FlagDTO>([
   [
@@ -123,4 +123,4 @@ export const returnFlag = new Map<string, FlagDTO>([
       variationName: 'variationName-2'
     }
   ]
-])
+]);
