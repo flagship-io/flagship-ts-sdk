@@ -33,14 +33,16 @@ import { AUTHENTICATE,
   VISITOR_AUTHENTICATE_VISITOR_ID_ERROR,
   VISITOR_EXPOSED_VALUE_NOT_CALLED,
   VISITOR_UNAUTHENTICATE,
-  VISITOR_ALREADY_AUTHENTICATE } from '../enum/index';
+  VISITOR_ALREADY_AUTHENTICATE,
+  FS_ACTIVATE_CACHE,
+  PROCESS_ACTIVATE_DEDUPLICATION } from '../enum/index';
 import { IPage,
   IScreen,
   IEvent,
   IItem,
   ITransaction } from '../hit/index';
 import { primitive, IHit, FlagDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorVariations, CampaignDTO } from '../types';
-import { deepEqual, errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils';
+import { deepEqual, errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, logWarningSprintf, sprintf, valueToHex } from '../utils/utils';
 import { StrategyAbstract } from './StrategyAbstract';
 import { FLAGSHIP_CLIENT, FLAGSHIP_CONTEXT, FLAGSHIP_VERSION, FLAGSHIP_VISITOR } from '../enum/FlagshipContext';
 import { VisitorDelegate } from './index';
@@ -49,6 +51,7 @@ import { FSFetchStatus } from '../enum/FSFetchStatus';
 import { FSFetchReasons } from '../enum/FSFetchReasons';
 import { ActivateConstructorParam, GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local';
 import { type HitAbstract } from '../hit/HitAbstract';
+import { localStorageWrapper } from '../utils/localStorageWrapper.ts';
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must ';
 export const HIT_NULL_ERROR = 'Hit must not be null';
@@ -176,6 +179,68 @@ export class DefaultStrategy extends StrategyAbstract {
     return false;
   }
 
+  private async purgeDeDuplicatedCache():Promise<void> {
+    const now = Date.now();
+    const cache = localStorageWrapper.getItem(FS_ACTIVATE_CACHE);
+    const cacheData: Record<string, number> = cache ? JSON.parse(cache) : {};
+    const cacheKeys = Object.keys(cacheData);
+    const THIRTY_MINUTES_MS = 30 * 60 * 1000;
+    cacheKeys.forEach((key) => {
+      const timestamp = cacheData[key];
+      if (now - timestamp > THIRTY_MINUTES_MS) {
+        delete cacheData[key];
+      }
+    }
+    );
+    localStorageWrapper.setItem(FS_ACTIVATE_CACHE, JSON.stringify(cacheData));
+  }
+
+  private isActivateDeduplicated(variationGroupId: string): boolean {
+    try {
+      const THIRTY_MINUTES_MS = 30 * 60 * 1000;
+      const now = Date.now();
+      const visitorIdCacheKey = valueToHex(`${this.visitor.visitorId}:${variationGroupId}`);
+
+      const cache = localStorageWrapper.getItem(FS_ACTIVATE_CACHE);
+      const cacheData: Record<string, number> = cache ? JSON.parse(cache) : {};
+
+      const visitorIdTimestamp = cacheData[visitorIdCacheKey];
+      if (visitorIdTimestamp && (now - visitorIdTimestamp) <= THIRTY_MINUTES_MS) {
+        this.purgeDeDuplicatedCache();
+        return true;
+      }
+
+      if (this.visitor.anonymousId) {
+        const anonymousIdCacheKey = valueToHex(`${this.visitor.anonymousId}:${variationGroupId}`);
+        const anonymousIdTimestamp = cacheData[anonymousIdCacheKey];
+
+        if (anonymousIdTimestamp && (now - anonymousIdTimestamp) <= THIRTY_MINUTES_MS) {
+          this.purgeDeDuplicatedCache();
+          return true;
+        }
+
+        cacheData[visitorIdCacheKey] = now;
+        cacheData[anonymousIdCacheKey] = now;
+        localStorageWrapper.setItem(FS_ACTIVATE_CACHE, JSON.stringify(cacheData));
+        this.purgeDeDuplicatedCache();
+        return false;
+      }
+
+      cacheData[visitorIdCacheKey] = now;
+      localStorageWrapper.setItem(FS_ACTIVATE_CACHE, JSON.stringify(cacheData));
+      this.purgeDeDuplicatedCache();
+      return false;
+    } catch (error: unknown) {
+      logError(
+        this.config,
+        error instanceof Error ? error.message : String(error),
+        PROCESS_ACTIVATE_DEDUPLICATION
+      );
+      this.purgeDeDuplicatedCache();
+      return false;
+    }
+  }
+
   protected async sendActivate(flagDto: FlagDTO, defaultValue?: unknown):Promise<void> {
     const activateHit:ActivateConstructorParam = {
       variationGroupId: flagDto.variationGroupId,
@@ -200,15 +265,23 @@ export class DefaultStrategy extends StrategyAbstract {
       qaMode: this.config.isQAModeEnabled
     };
 
-    if (this.isDeDuplicated(JSON.stringify(activateHit), this.config.hitDeduplicationTime as number)) {
-      const logData = {
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
-        flag: flagDto,
-        delay: 0
-      };
-      logDebug(this.config, sprintf('Activate {0} is deduplicated', JSON.stringify(logData)), PROCESS_SEND_HIT);
-      return;
+    if (__fsWebpackIsBrowser__) {
+      const isDeduplicated = this.isActivateDeduplicated(activateHit.variationGroupId);
+      if (isDeduplicated) {
+        logDebug(this.config, sprintf('Activate {0} is deduplicated', JSON.stringify(activateHit)), PROCESS_ACTIVATE_DEDUPLICATION);
+        return;
+      }
+    }else {
+      if (this.isDeDuplicated(JSON.stringify(activateHit), this.config.hitDeduplicationTime as number)) {
+        const logData = {
+          visitorId: this.visitor.visitorId,
+          anonymousId: this.visitor.anonymousId,
+          flag: flagDto,
+          delay: 0
+        };
+        logDebug(this.config, sprintf('Activate {0} is deduplicated', JSON.stringify(logData)), PROCESS_SEND_HIT);
+        return;
+      }
     }
 
     await this.trackingManager.activateFlag(activateHit);
