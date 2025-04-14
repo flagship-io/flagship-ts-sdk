@@ -72,9 +72,9 @@
     "clean": "rm -rf dist dist-deno",
     "test:coverage": "jest --coverage",
     "rollup": "rollup -c",
-    "build": "yarn run clean && yarn run generate:version && webpack && npm run rollup && node denoTrans.mjs",
+    "build": "yarn run clean && yarn run generate:version && webpack && yarn run rollup && node denoTrans.mjs",
     "generate:version": "genversion --es6 src/sdkVersion.ts",
-    "build-prod": "NODE_ENV=production npm run build",
+    "build-prod": "NODE_ENV=production yarn run build",
     "analyze": "webpack --profile --json > stats.json && webpack-bundle-analyzer stats.json",
     "analyze-prod": "NODE_ENV=production webpack --profile --json > stats.json && webpack-bundle-analyzer stats.json"
   },
