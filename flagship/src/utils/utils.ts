@@ -169,8 +169,10 @@ export function visitorFlagSyncStatusMessage(reason: FSFetchReasons): string {
   return message;
 }
 
-export function valueToHex(value: { v: unknown }): string {
-  const jsonString = JSON.stringify(value);
+export function valueToHex(value: { v: unknown }): string
+export function valueToHex(value: string): string
+export function valueToHex(value: { v: unknown }| string): string {
+  const jsonString = typeof value === 'string' ? value : JSON.stringify(value);
   const hex = Array.from(jsonString, char => char.charCodeAt(0).toString(16)).join('');
   return hex;
 }
