@@ -140,12 +140,12 @@ declare global {
            * @returns {string|undefined} The nonce or undefined if the consent is not given.
            */
           _getActionTrackingNonce(): string | undefined;
-          /**
-           * Get the current visitor ID.
-           * @returns {string} The visitor ID.
-           */
-          _getVisitorId(): string | undefined;
+
+          _isByoidConfigured(): boolean|undefined;
         };
+        v1:{
+          getValue(key: string): string | undefined;
+        }
       };
     };
   }
