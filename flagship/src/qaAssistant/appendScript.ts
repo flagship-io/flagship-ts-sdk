@@ -13,5 +13,6 @@ export function appendScript(bundleFileUrl: string): void {
   const script = document.createElement('script');
   script.src = bundleFileUrl;
   script.id = FS_QA_ASSISTANT_SCRIPT_TAG_ID;
+  script.crossOrigin = 'anonymous';
   document.body.append(script);
 }
