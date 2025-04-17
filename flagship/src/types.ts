@@ -390,6 +390,7 @@ export interface BucketingDTO {
 export type VisitorProfile={
   visitorId:string,
   anonymousId: string|null
+  isClientSuppliedId?: boolean,
 }
 
 export enum ABTastyWebSDKPostMessageType {
