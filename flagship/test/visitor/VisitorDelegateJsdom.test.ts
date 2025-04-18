@@ -246,16 +246,20 @@ describe('Initialization tests', () => {
 
   beforeEach(()=>{
     mockGlobals({ __fsWebpackIsBrowser__: true });
+    _isByoidConfigured.mockReturnValue(false);
   });
 
   const getAbTastyVisitorId = jest.fn<() => string | undefined>();
+  const _isByoidConfigured = jest.fn(() => false);
+
   beforeAll(() => {
     window.ABTasty = {
       api: {
         internal: {
           _getActionTrackingNonce: jest.fn(() => 'nonce'),
-          _getVisitorId: getAbTastyVisitorId
-        }
+          _isByoidConfigured
+        },
+        v1: { getValue: getAbTastyVisitorId }
       }
     };
   });
@@ -313,7 +317,8 @@ describe('Initialization tests', () => {
       expect(saveVisitorProfile).toHaveBeenCalledTimes(1);
       expect(saveVisitorProfile).toHaveBeenCalledWith({
         visitorId: clientVisitorId,
-        anonymousId: null
+        anonymousId: null,
+        isClientSuppliedId: visitorDelegate.isClientSuppliedID
       });
     });
 
@@ -330,7 +335,8 @@ describe('Initialization tests', () => {
       expect(saveVisitorProfile).toHaveBeenCalledTimes(1);
       expect(saveVisitorProfile).toHaveBeenCalledWith({
         visitorId: clientVisitorId,
-        anonymousId: null
+        anonymousId: null,
+        isClientSuppliedId: visitorDelegate.isClientSuppliedID
       });
     });
 
@@ -360,7 +366,8 @@ describe('Initialization tests', () => {
       expect(saveVisitorProfile).toHaveBeenCalledTimes(1);
       expect(saveVisitorProfile).toHaveBeenCalledWith({
         visitorId: anonymousId,
-        anonymousId: null
+        anonymousId: null,
+        isClientSuppliedId: visitorDelegate.isClientSuppliedID
       });
     });
 
@@ -376,7 +383,8 @@ describe('Initialization tests', () => {
       expect(saveVisitorProfile).toHaveBeenCalledTimes(1);
       expect(saveVisitorProfile).toHaveBeenCalledWith({
         visitorId,
-        anonymousId: null
+        anonymousId: null,
+        isClientSuppliedId: visitorDelegate.isClientSuppliedID
       });
     });
 
@@ -389,8 +397,30 @@ describe('Initialization tests', () => {
       expect(saveVisitorProfile).toHaveBeenCalledTimes(1);
       expect(saveVisitorProfile).toHaveBeenCalledWith({
         visitorId: abTastyVisitorId,
-        anonymousId: null
+        anonymousId: null,
+        isClientSuppliedId: visitorDelegate.isClientSuppliedID
       });
+    });
+
+    it('should generate a visitorId when no client-provided visitorId or profile is available and AB Tasty ID is BYOID', () => {
+      loadVisitorProfile.mockReturnValue(null);
+      _isByoidConfigured.mockReturnValue(true);
+      getAbTastyVisitorId.mockReturnValue(abTastyVisitorId);
+      const visitorDelegate = createVisitorDelegate();
+      expect(visitorDelegate.visitorId).not.toBe(abTastyVisitorId);
+      expect(visitorDelegate.visitorId).not.toBe(visitorId);
+      expect(visitorDelegate.visitorId).not.toBe(anonymousId);
+      expect(visitorDelegate.visitorId).toBeDefined();
+      expect(visitorDelegate.visitorId).toHaveLength(36);
+      expect(visitorDelegate.anonymousId).toBeNull();
+      expect(loadVisitorProfile).toHaveBeenCalledTimes(1);
+      expect(saveVisitorProfile).toHaveBeenCalledTimes(1);
+      expect(saveVisitorProfile).toHaveBeenCalledWith({
+        visitorId: visitorDelegate.visitorId,
+        anonymousId: null,
+        isClientSuppliedId: visitorDelegate.isClientSuppliedID
+      });
+      expect(getAbTastyVisitorId).not.toHaveBeenCalled();
     });
 
     it('should generate a visitorId when no client-provided visitorId, profile, or AB Tasty ID is available', () => {
@@ -407,7 +437,8 @@ describe('Initialization tests', () => {
       expect(saveVisitorProfile).toHaveBeenCalledTimes(1);
       expect(saveVisitorProfile).toHaveBeenCalledWith({
         visitorId: visitorDelegate.visitorId,
-        anonymousId: null
+        anonymousId: null,
+        isClientSuppliedId: visitorDelegate.isClientSuppliedID
       });
     });
 
@@ -426,7 +457,8 @@ describe('Initialization tests', () => {
       expect(saveVisitorProfile).toHaveBeenCalledTimes(1);
       expect(saveVisitorProfile).toHaveBeenCalledWith({
         visitorId: visitorDelegate.visitorId,
-        anonymousId: null
+        anonymousId: null,
+        isClientSuppliedId: visitorDelegate.isClientSuppliedID
       });
     });
   });
@@ -449,7 +481,8 @@ describe('Initialization tests', () => {
       expect(saveVisitorProfile).toHaveBeenCalledTimes(1);
       expect(saveVisitorProfile).toHaveBeenCalledWith({
         visitorId: clientVisitorId,
-        anonymousId: visitorDelegate.anonymousId
+        anonymousId: visitorDelegate.anonymousId,
+        isClientSuppliedId: visitorDelegate.isClientSuppliedID
       });
     });
 
@@ -466,7 +499,8 @@ describe('Initialization tests', () => {
       expect(saveVisitorProfile).toHaveBeenCalledTimes(1);
       expect(saveVisitorProfile).toHaveBeenCalledWith({
         visitorId: clientVisitorId,
-        anonymousId
+        anonymousId,
+        isClientSuppliedId: visitorDelegate.isClientSuppliedID
       });
     });
 
@@ -497,7 +531,8 @@ describe('Initialization tests', () => {
       expect(saveVisitorProfile).toHaveBeenCalledTimes(1);
       expect(saveVisitorProfile).toHaveBeenCalledWith({
         visitorId,
-        anonymousId
+        anonymousId,
+        isClientSuppliedId: visitorDelegate.isClientSuppliedID
       });
     });
 
@@ -514,7 +549,8 @@ describe('Initialization tests', () => {
       expect(saveVisitorProfile).toHaveBeenCalledTimes(1);
       expect(saveVisitorProfile).toHaveBeenCalledWith({
         visitorId,
-        anonymousId: visitorDelegate.anonymousId
+        anonymousId: visitorDelegate.anonymousId,
+        isClientSuppliedId: visitorDelegate.isClientSuppliedID
       });
     });
 
@@ -528,7 +564,8 @@ describe('Initialization tests', () => {
       expect(saveVisitorProfile).toHaveBeenCalledTimes(1);
       expect(saveVisitorProfile).toHaveBeenCalledWith({
         visitorId: abTastyVisitorId,
-        anonymousId: visitorDelegate.anonymousId
+        anonymousId: visitorDelegate.anonymousId,
+        isClientSuppliedId: visitorDelegate.isClientSuppliedID
       });
     });
 
@@ -547,7 +584,8 @@ describe('Initialization tests', () => {
       expect(saveVisitorProfile).toHaveBeenCalledTimes(1);
       expect(saveVisitorProfile).toHaveBeenCalledWith({
         visitorId: visitorDelegate.visitorId,
-        anonymousId: visitorDelegate.anonymousId
+        anonymousId: visitorDelegate.anonymousId,
+        isClientSuppliedId: visitorDelegate.isClientSuppliedID
       });
     });
   });
