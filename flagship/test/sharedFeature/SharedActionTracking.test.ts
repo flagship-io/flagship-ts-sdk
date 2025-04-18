@@ -416,8 +416,9 @@ describe('SharedActionTracking Tests', () => {
         api: {
           internal: {
             _getActionTrackingNonce: getActionTrackingNonce,
-            _getVisitorId: jest.fn(() => visitorMock.visitorId)
-          }
+            _isByoidConfigured: jest.fn(() => false)
+          },
+          v1: { getValue: jest.fn(() => visitorMock.visitorId) }
         }
       };
     });
