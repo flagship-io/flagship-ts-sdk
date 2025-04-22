@@ -37,11 +37,18 @@ export enum MSG_NAME_TO_IFRAME {
   FsHIT = 'FS_HIT',
 }
 
+export enum VisitorVariationUpdateParam {
+  NewNavigation = 'newNavigation',
+}
+
+
 export type VisitorAllocatedVariations = {
   name:
     | MSG_NAME_TO_IFRAME.FsUpdateVisitorAllocatedVariation
     | MSG_NAME_TO_IFRAME.FsVisitorExposedVariation;
   value: Record<string, VisitorVariations>;
+  param?: VisitorVariationUpdateParam
+
 };
 
 export type FsSendHit = {

@@ -128,6 +128,7 @@ declare global {
       forcedVariations?: Record<string, FsVariationToForce>;
       visitorVariations?: Record<string, VisitorVariations>;
       exposedVariations?: Record<string, VisitorVariations>;
+      navigationDetected?: boolean
     };
     ABTastyWebSdk: {
         internal: ISdkApiV1;
