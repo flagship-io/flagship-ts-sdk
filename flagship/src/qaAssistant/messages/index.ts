@@ -1,6 +1,6 @@
 import { VisitorVariations } from '../../types';
 import { isBrowser } from '../../utils/utils';
-import { EventDataToIframe, MSG_NAME_TO_IFRAME } from '../type';
+import { EventDataToIframe, MSG_NAME_TO_IFRAME, VisitorVariationUpdateParam } from '../type';
 
 export function sendMessageToIframe(data: EventDataToIframe): void {
   if (!window?.frames?.ABTastyQaAssistant || !isBrowser()) {
@@ -25,9 +25,20 @@ export function sendVisitorAllocatedVariations(visitorVariations: Record<string,
 }
 
 export function sendVisitorExposedVariations(visitorVariations: Record<string, VisitorVariations>):void {
+
+  const navigationDetected = window.flagship?.navigationDetected;
+
+  if (navigationDetected) {
+    window.flagship = {
+      ...window.flagship,
+      navigationDetected: false
+    };
+  }
+
   sendMessageToIframe({
     name: MSG_NAME_TO_IFRAME.FsVisitorExposedVariation,
-    value: visitorVariations
+    value: visitorVariations,
+    param: navigationDetected ? VisitorVariationUpdateParam.NewNavigation : undefined
   });
 }
 

@@ -3,6 +3,7 @@ import { IFlagshipConfig } from '../config/IFlagshipConfig';
 import { isBrowser, onDomReady } from '../utils/utils';
 import { listenForKeyboardQaAssistant } from './listenForKeyboardQaAssistant';
 import { loadQaAssistant } from './loadQaAssistant';
+import { detectNavigationChanges } from './detectNavigationChanges';
 
 /**
  *
@@ -25,6 +26,8 @@ export function launchQaAssistant(config: IFlagshipConfig): void {
     };
     const queryParam = new URLSearchParams(window.location.search);
     const urlKey = Object.keys(urlMap).find(key => queryParam.get(key) === 'true') || '';
+
+    detectNavigationChanges(config);
 
     if (config.isQAModeEnabled || urlKey) {
       loadQaAssistant(config, urlMap[urlKey as keyof typeof urlMap]);
