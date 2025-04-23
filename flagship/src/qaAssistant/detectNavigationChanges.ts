@@ -1,16 +1,14 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig';
+import { VisitorVariationState } from '../type.local';
 
 
-export function detectNavigationChanges(config: IFlagshipConfig, callback?: () => void): void {
+export function detectNavigationChanges(config: IFlagshipConfig, visitorVariationState: VisitorVariationState, callback?: () => void): void {
   const originalPushState = window.history.pushState;
   const originalReplaceState = window.history.replaceState;
 
   function triggerCallback(): void {
     if (config.isQAModeEnabled) {
-      window.flagship = {
-        ...window.flagship,
-        navigationDetected: true
-      };
+      visitorVariationState.navigationDetected = true;
       callback?.();
     }
   }

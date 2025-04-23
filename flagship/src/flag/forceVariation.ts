@@ -1,14 +1,20 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig';
+import { VisitorVariationState } from '../type.local';
 import { FlagDTO } from '../types';
 import { isBrowser } from '../utils/utils';
 
-export function forceVariation({ flagDTO, config }:{flagDTO?:FlagDTO, config:IFlagshipConfig}):FlagDTO|undefined {
+export function forceVariation({ flagDTO, config, visitorVariationState }:{
+  flagDTO?:FlagDTO,
+  config:IFlagshipConfig,
+  visitorVariationState: VisitorVariationState
+}):FlagDTO|undefined {
   if (__fsWebpackIsBrowser__) {
-    if (!config.isQAModeEnabled || !isBrowser() || !flagDTO || !window?.flagship?.forcedVariations) {
+
+    if (!config.isQAModeEnabled || !isBrowser() || !flagDTO || !visitorVariationState.forcedVariations) {
       return undefined;
     }
 
-    const forcedVariation = window.flagship.forcedVariations[flagDTO.campaignId];
+    const forcedVariation = visitorVariationState.forcedVariations[flagDTO.campaignId];
     if (!forcedVariation) {
       return undefined;
     }

@@ -123,16 +123,10 @@ declare global {
   let __fsWebpackIsDeno__: boolean;
   interface Window {
     ABTastyQaAssistant?: Window;
-    flagship?: {
+    ABTastyWebSdk?: {
       envId?: string;
-      forcedVariations?: Record<string, FsVariationToForce>;
-      visitorVariations?: Record<string, VisitorVariations>;
-      exposedVariations?: Record<string, VisitorVariations>;
-      navigationDetected?: boolean
+      internal?: ISdkApiV1;
     };
-    ABTastyWebSdk: {
-        internal: ISdkApiV1;
-      };
     ABTasty: {
       api: {
         internal: {
@@ -150,4 +144,12 @@ declare global {
       };
     };
   }
+}
+
+
+export type VisitorVariationState = {
+  forcedVariations?: Record<string, FsVariationToForce>;
+  visitorVariations?: Record<string, VisitorVariations>;
+  exposedVariations?: Record<string, VisitorVariations>;
+  navigationDetected?: boolean
 }

@@ -42,6 +42,7 @@ import { DefaultVisitorCache } from '../cache/DefaultVisitorCache';
 import { DefaultHitCache } from '../cache/DefaultHitCache';
 import { SharedActionTracking } from '../sharedFeature/SharedActionTracking';
 import { SdkApi } from '../sdkApi/v1/SdkApi';
+import { VisitorVariationState } from '../type.local.ts';
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
@@ -59,6 +60,7 @@ export class Flagship {
   private static visitorProfile: string | null;
   private static onSaveVisitorProfile: (visitorProfile: string) => void;
   private _sdkApi?: SdkApi;
+  private _visitorVariationState: VisitorVariationState;
 
   private set configManager(value: IConfigManager) {
     this._configManager = value;
@@ -91,6 +93,7 @@ export class Flagship {
     extendedFlagship.getOnSaveVisitorProfile = function (): (visitorProfile: string) => void {
       return Flagship.onSaveVisitorProfile;
     };
+    this._visitorVariationState = {};
   }
 
   protected static getInstance(): Flagship {
@@ -236,10 +239,13 @@ export class Flagship {
     }
   }
 
-  private buildSdkApi(sharedActionTracking: ISharedActionTracking): void {
+  private buildSdkApi(sharedActionTracking: ISharedActionTracking, sdkConfig: IFlagshipConfig): void {
     if (__fsWebpackIsBrowser__) {
       this._sdkApi = new SdkApi({ sharedActionTracking });
-      window.ABTastyWebSdk = { internal: this._sdkApi.getApiV1() };
+      window.ABTastyWebSdk = {
+        envId: sdkConfig.envId,
+        internal: this._sdkApi.getApiV1()
+      };
     }
   }
 
@@ -260,7 +266,7 @@ export class Flagship {
     if (__fsWebpackIsBrowser__) {
       if (!sharedActionTracking && isBrowser()) {
         sharedActionTracking = new SharedActionTracking({ sdkConfig });
-        this.buildSdkApi(sharedActionTracking);
+        this.buildSdkApi(sharedActionTracking, sdkConfig);
       }
     }
 
@@ -335,7 +341,7 @@ export class Flagship {
 
     if (__fsWebpackIsBrowser__) {
       import('../qaAssistant/index.ts').then(({ launchQaAssistant }) => {
-        launchQaAssistant(localConfig);
+        launchQaAssistant(localConfig, flagship._visitorVariationState);
       });
     }
 
@@ -426,7 +432,8 @@ export class Flagship {
         initialCampaigns,
         initialFlagsData
       },
-      murmurHash: new MurmurHash()
+      murmurHash: new MurmurHash(),
+      visitorVariationState: flagship._visitorVariationState
     });
 
     if (__fsWebpackIsBrowser__) {

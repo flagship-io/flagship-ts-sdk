@@ -17,7 +17,7 @@ import { type Troubleshooting } from '../hit/Troubleshooting';
 import { FSFetchStatus } from '../enum/FSFetchStatus';
 import { FSFetchReasons } from '../enum/FSFetchReasons';
 import { IFSFlag } from '../flag/IFSFlag';
-import { GetFlagMetadataParam, GetFlagValueParam, IVisitorProfileCache, VisitorExposedParam } from '../type.local';
+import { GetFlagMetadataParam, GetFlagValueParam, IVisitorProfileCache, VisitorExposedParam, VisitorVariationState } from '../type.local';
 import { IFSFlagCollection } from '../flag/IFSFlagCollection';
 import { IEmotionAI } from '../emotionAI/IEmotionAI';
 import { IVisitorEvent } from '../emotionAI/hit/IVisitorEvent';
@@ -52,6 +52,15 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   private _murmurHash!: MurmurHash;
   private _visitorProfileCache?: IVisitorProfileCache;
   private _isClientSuppliedID! : boolean;
+  private _visitorVariationState : VisitorVariationState;
+
+  public get visitorVariationState() : VisitorVariationState {
+    return this._visitorVariationState;
+  }
+  public set visitorVariationState(v : VisitorVariationState) {
+    this._visitorVariationState = v;
+  }
+
 
   public get isClientSuppliedID() : boolean {
     return this._isClientSuppliedID;
@@ -144,7 +153,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     emotionAi: IEmotionAI,
     murmurHash?: MurmurHash,
     monitoringData?: sdkInitialData,
-    visitorProfileCache?: IVisitorProfileCache
+    visitorProfileCache?: IVisitorProfileCache,
   }): void {
     const { configManager, emotionAi, monitoringData, visitorProfileCache } = param;
     this._murmurHash = param.murmurHash || new MurmurHash();
@@ -226,10 +235,12 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     monitoringData?: sdkInitialData,
     emotionAi: IEmotionAI,
     murmurHash?: MurmurHash,
-    visitorProfileCache?: IVisitorProfileCache
+    visitorProfileCache?: IVisitorProfileCache,
+    visitorVariationState?: VisitorVariationState
   }) {
     const { visitorId, context, isAuthenticated, hasConsented, initialFlagsData, initialCampaigns, onFlagsStatusChanged: onFetchFlagsStatusChanged } = param;
     super();
+    this._visitorVariationState = param.visitorVariationState || {};
     this.initBaseProperties(param);
 
 
@@ -445,10 +456,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
         variationId: flag.variationId
       };
 
-      window.flagship = {
-        ...window.flagship,
-        exposedVariations: this._exposedVariations
-      };
+      this._visitorVariationState.exposedVariations = this._exposedVariations;
 
       if (!this.config.isQAModeEnabled) {
         return;
@@ -460,7 +468,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       const { sendVisitorExposedVariations } = await import('../qaAssistant/messages/index.ts');
 
       if (Object.keys(this._exposedVariations).length >= BATCH_SIZE) {
-        sendVisitorExposedVariations(this._exposedVariations);
+        sendVisitorExposedVariations(this._visitorVariationState);
         this._exposedVariations = {};
       }
 
@@ -473,7 +481,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       }
 
       this._sendExposedVariationTimeoutId = setTimeout(() => {
-        sendVisitorExposedVariations(this._exposedVariations);
+        sendVisitorExposedVariations(this._visitorVariationState);
         this._exposedVariations = {};
       }, DELAY);
     }

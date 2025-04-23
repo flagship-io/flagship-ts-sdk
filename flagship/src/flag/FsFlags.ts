@@ -25,7 +25,8 @@ export class FSFlag implements IFSFlag {
     const flagDTO = this._visitor?.flagsData.get(this._key);
     const forcedFlagDTO = forceVariation({
       flagDTO,
-      config: this._visitor.config
+      config: this._visitor.config,
+      visitorVariationState: this._visitor.visitorVariationState
     });
 
     const flag = forcedFlagDTO || flagDTO;
@@ -41,7 +42,8 @@ export class FSFlag implements IFSFlag {
     const flagDTO = this._visitor.flagsData.get(this._key);
     const forcedFlagDTO = forceVariation({
       flagDTO,
-      config: this._visitor.config
+      config: this._visitor.config,
+      visitorVariationState: this._visitor.visitorVariationState
     });
 
     return this._visitor.getFlagMetadata({
@@ -58,7 +60,8 @@ export class FSFlag implements IFSFlag {
     const flagDTO = this._visitor.flagsData.get(this._key);
     const forcedFlagDTO = forceVariation({
       flagDTO,
-      config: this._visitor.config
+      config: this._visitor.config,
+      visitorVariationState: this._visitor.visitorVariationState
     });
 
     return this._visitor.visitorExposed({
@@ -80,7 +83,8 @@ export class FSFlag implements IFSFlag {
     const flagDTO = this._visitor.flagsData.get(this._key);
     const forcedFlagDTO = forceVariation({
       flagDTO,
-      config: this._visitor.config
+      config: this._visitor.config,
+      visitorVariationState: this._visitor.visitorVariationState
     });
 
     const flag = forcedFlagDTO || flagDTO;

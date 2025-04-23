@@ -3,13 +3,15 @@ import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, FS_QA_ASSISTANT_SCRIPT_TAG
 import { FsVariationToForce } from '../../types';
 import { EventDataFromIframe, INTERNAL_EVENTS } from '../type';
 import { IFlagshipConfig } from '../../config/IFlagshipConfig';
+import { VisitorVariationState } from '../../type.local';
 
-export function onQaAssistantReady():void {
-  if (window.flagship?.visitorVariations) {
-    sendVisitorAllocatedVariations(window.flagship?.visitorVariations);
+export function onQaAssistantReady(visitorVariationState: VisitorVariationState):void {
+
+  if (visitorVariationState.visitorVariations) {
+    sendVisitorAllocatedVariations(visitorVariationState);
   }
-  if (window.flagship?.exposedVariations) {
-    sendVisitorExposedVariations(window.flagship?.exposedVariations);
+  if (visitorVariationState.exposedVariations) {
+    sendVisitorExposedVariations(visitorVariationState);
   }
 }
 
@@ -21,22 +23,26 @@ export function render(forcedReFetchFlags = false):void {
   window.dispatchEvent(triggerRenderEvent);
 }
 
-export function onQaAssistantClose({ config, func }:{config:IFlagshipConfig, func?: (event: MessageEvent<EventDataFromIframe>) => void}):void {
+export function onQaAssistantClose({ config, func, visitorVariationState }:{
+  config:IFlagshipConfig,
+  func?: (event: MessageEvent<EventDataFromIframe>) => void,
+  visitorVariationState: VisitorVariationState
+
+}):void {
   config.isQAModeEnabled = false;
   sessionStorage.removeItem(FS_IS_QA_MODE_ENABLED);
   if (func) {
     window.removeEventListener('message', func);
   }
   document.getElementById(FS_QA_ASSISTANT_SCRIPT_TAG_ID)?.remove();
-
-  window.flagship = {
-    ...window.flagship,
-    forcedVariations: {}
-  };
+  visitorVariationState.forcedVariations = {};
   render();
 }
 
-export function onApplyForcedVariations({ value }:{ value:Record<string, FsVariationToForce>}):void {
+export function onApplyForcedVariations({ value,visitorVariationState }:{
+  value:Record<string, FsVariationToForce>,
+  visitorVariationState: VisitorVariationState
+}):void {
   const sessionForcedVariations = sessionStorage.getItem(FS_FORCED_VARIATIONS);
   let forcedVariations: Record<string, FsVariationToForce> = {};
   try {
@@ -50,21 +56,12 @@ export function onApplyForcedVariations({ value }:{ value:Record<string, FsVaria
     ...value
   };
   sessionStorage.setItem(FS_FORCED_VARIATIONS, JSON.stringify(forcedVariations));
-
-  window.flagship = {
-    ...window.flagship,
-    forcedVariations
-  };
+  visitorVariationState.forcedVariations = forcedVariations;
   render();
 }
 
-export function onResetForcedVariations():void {
+export function onResetForcedVariations(visitorVariationState: VisitorVariationState):void {
   sessionStorage.removeItem(FS_FORCED_VARIATIONS);
-
-  window.flagship = {
-    ...window.flagship,
-    forcedVariations: {}
-  };
-
+  visitorVariationState.forcedVariations = {};
   render();
 }

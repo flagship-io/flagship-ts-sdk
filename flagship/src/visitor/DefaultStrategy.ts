@@ -609,8 +609,13 @@ export class DefaultStrategy extends StrategyAbstract {
           campaignId: item.campaignId
         };
       });
+
+      this.visitor.visitorVariationState.visitorVariations = visitorAllocatedVariations;
+      if (!this.config.isQAModeEnabled) {
+        return;
+      }
       import(/* webpackMode: "lazy" */ '../qaAssistant/messages/index.ts').then(({ sendVisitorAllocatedVariations }) => {
-        sendVisitorAllocatedVariations(visitorAllocatedVariations);
+        sendVisitorAllocatedVariations(this.visitor.visitorVariationState);
       });
     }
   }
