@@ -4,13 +4,18 @@ import { isBrowser, onDomReady } from '../utils/utils';
 import { listenForKeyboardQaAssistant } from './listenForKeyboardQaAssistant';
 import { loadQaAssistant } from './loadQaAssistant';
 import { detectNavigationChanges } from './detectNavigationChanges';
+import { VisitorVariationState } from '../type.local';
+import { EventDataFromIframe, MSG_NAME_FROM_IFRAME } from './type';
+
+
+
 
 /**
  *
  * @param config
  * @returns
  */
-export function launchQaAssistant(config: IFlagshipConfig): void {
+export function launchQaAssistant(config: IFlagshipConfig, visitorVariationState: VisitorVariationState): void {
   if (!isBrowser()) {
     return;
   }
@@ -27,12 +32,24 @@ export function launchQaAssistant(config: IFlagshipConfig): void {
     const queryParam = new URLSearchParams(window.location.search);
     const urlKey = Object.keys(urlMap).find(key => queryParam.get(key) === 'true') || '';
 
-    detectNavigationChanges(config);
+    function onPlatformChoiceLoaded(event: MessageEvent<EventDataFromIframe>): void {
+      if (event.data.name === MSG_NAME_FROM_IFRAME.QaAssistantPlatformChoiceLoaded) {
+        if (!config.isQAModeEnabled) {
+          loadQaAssistant(config, null, visitorVariationState);
+        }
+        window.removeEventListener('message', onPlatformChoiceLoaded);
+      }
+    }
+
+    window.addEventListener('message', onPlatformChoiceLoaded);
+
+
+    detectNavigationChanges(config, visitorVariationState);
 
     if (config.isQAModeEnabled || urlKey) {
-      loadQaAssistant(config, urlMap[urlKey as keyof typeof urlMap]);
+      loadQaAssistant(config, urlMap[urlKey as keyof typeof urlMap], visitorVariationState);
       return;
     }
-    listenForKeyboardQaAssistant(config);
+    listenForKeyboardQaAssistant(config, visitorVariationState);
   });
 }
