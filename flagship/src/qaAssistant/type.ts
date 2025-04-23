@@ -10,6 +10,7 @@ export enum MSG_NAME_FROM_IFRAME {
   FsQaAssistantReady = 'FS_QA_ASSISTANT_READY',
   MinimizeQaAssistantClose = 'ABTASTY_QA_MINIMIZE_QA_ASSISTANT_CLOSE',
   FsTriggerRender = 'FS_TRIGGER_RENDER',
+  QaAssistantPlatformChoiceLoaded = 'ABTASTY_QA_ASSISTANT_PLATFORM_CHOICE_LOADED'
 }
 
 export type FsApplyForcedVariations = {
@@ -24,7 +25,8 @@ export type EventDataFromIframe =
         | MSG_NAME_FROM_IFRAME.FsResetForcedVariations
         | MSG_NAME_FROM_IFRAME.FsQaAssistantReady
         | MSG_NAME_FROM_IFRAME.MinimizeQaAssistantClose
-        | MSG_NAME_FROM_IFRAME.FsTriggerRender;
+        | MSG_NAME_FROM_IFRAME.FsTriggerRender
+        | MSG_NAME_FROM_IFRAME.QaAssistantPlatformChoiceLoaded;
     }
   | FsApplyForcedVariations;
 

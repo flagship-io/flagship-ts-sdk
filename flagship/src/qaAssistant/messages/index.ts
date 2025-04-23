@@ -1,4 +1,4 @@
-import { VisitorVariations } from '../../types';
+import { VisitorVariationState } from '../../type.local';
 import { isBrowser } from '../../utils/utils';
 import { EventDataToIframe, MSG_NAME_TO_IFRAME, VisitorVariationUpdateParam } from '../type';
 
@@ -9,35 +9,32 @@ export function sendMessageToIframe(data: EventDataToIframe): void {
   window.frames.ABTastyQaAssistant.postMessage(data, '*');
 }
 
-export function sendVisitorAllocatedVariations(visitorVariations: Record<string, VisitorVariations>):void {
-  if (!isBrowser()) {
+export function sendVisitorAllocatedVariations(visitorVariationState: VisitorVariationState):void {
+
+  if (!visitorVariationState?.visitorVariations) {
     return;
   }
-  window.flagship = {
-    ...window.flagship,
-    visitorVariations
-  };
 
   sendMessageToIframe({
     name: MSG_NAME_TO_IFRAME.FsUpdateVisitorAllocatedVariation,
-    value: visitorVariations
+    value: visitorVariationState.visitorVariations
   });
 }
 
-export function sendVisitorExposedVariations(visitorVariations: Record<string, VisitorVariations>):void {
+export function sendVisitorExposedVariations(visitorVariationState: VisitorVariationState):void {
+  if (!visitorVariationState?.exposedVariations) {
+    return;
+  }
 
-  const navigationDetected = window.flagship?.navigationDetected;
+  const navigationDetected = visitorVariationState.navigationDetected;
 
-  if (navigationDetected) {
-    window.flagship = {
-      ...window.flagship,
-      navigationDetected: false
-    };
+  if (visitorVariationState.navigationDetected) {
+    visitorVariationState.navigationDetected = false;
   }
 
   sendMessageToIframe({
     name: MSG_NAME_TO_IFRAME.FsVisitorExposedVariation,
-    value: visitorVariations,
+    value: visitorVariationState.exposedVariations,
     param: navigationDetected ? VisitorVariationUpdateParam.NewNavigation : undefined
   });
 }
