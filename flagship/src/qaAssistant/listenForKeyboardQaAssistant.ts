@@ -1,5 +1,6 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig';
 import { FS_FORCED_VARIATIONS } from '../enum/FlagshipConstant';
+import { VisitorVariationState } from '../type.local';
 import { logInfoSprintf } from '../utils/utils';
 import { loadQaAssistant } from './loadQaAssistant';
 
@@ -7,7 +8,7 @@ import { loadQaAssistant } from './loadQaAssistant';
  *
  * @param config
  */
-export function listenForKeyboardQaAssistant(config: IFlagshipConfig):void {
+export function listenForKeyboardQaAssistant(config: IFlagshipConfig, visitorVariationState: VisitorVariationState):void {
   logInfoSprintf(config, 'QA assistant', 'Listening for keyboard events to launch QA Assistant');
 
   const keysPressed: Record<string, boolean> = {};
@@ -20,7 +21,7 @@ export function listenForKeyboardQaAssistant(config: IFlagshipConfig):void {
     keysPressed[event.key] = true;
     sessionStorage.removeItem(FS_FORCED_VARIATIONS);
     if (keyCombinationPressed()) {
-      loadQaAssistant(config);
+      loadQaAssistant(config,null, visitorVariationState);
     }
   });
 
