@@ -1,5 +1,6 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig';
 import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, QA_ASSISTANT_PROD_URL } from '../enum/FlagshipConstant';
+import { VisitorVariationState } from '../type.local';
 import { FsVariationToForce } from '../types';
 import { logInfoSprintf } from '../utils/utils';
 import { appendScript } from './appendScript';
@@ -11,9 +12,11 @@ import { EventDataFromIframe } from './type';
  * @param config
  * @returns
  */
-export function loadQaAssistant(config: IFlagshipConfig, bundleUrl:string|null = null): void {
-  if (window?.frames?.ABTastyQaAssistant) {
-    return;
+export function loadQaAssistant(config: IFlagshipConfig, bundleUrl:string|null = null, visitorVariationState: VisitorVariationState): void {
+  if (!window?.frames?.ABTastyQaAssistant) {
+    logInfoSprintf(config, 'QA assistant', 'Loading QA Assistant');
+
+    appendScript(bundleUrl || QA_ASSISTANT_PROD_URL);
   }
 
   let forcedVariations: Record<string, FsVariationToForce> = {};
@@ -25,24 +28,17 @@ export function loadQaAssistant(config: IFlagshipConfig, bundleUrl:string|null =
     console.error('Error parsing sessionForcedVariations', error);
   }
 
-  window.flagship = {
-    ...window.flagship,
-    envId: config.envId as string,
-    forcedVariations
-  };
+  visitorVariationState.forcedVariations = forcedVariations;
 
   const eventListenerMessage = (event: MessageEvent<EventDataFromIframe>):void => {
     handleIframeMessage({
+      visitorVariationState,
       event,
       config,
       func: eventListenerMessage
     });
   };
   window.addEventListener('message', eventListenerMessage);
-
-  logInfoSprintf(config, 'QA assistant', 'Loading QA Assistant');
-
-  appendScript(bundleUrl || QA_ASSISTANT_PROD_URL);
 
   config.isQAModeEnabled = true;
   sessionStorage.setItem(FS_IS_QA_MODE_ENABLED, 'true');
