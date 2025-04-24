@@ -1,4 +1,4 @@
-import { FS_QA_ASSISTANT_SCRIPT_TAG_ID, FS_QA_URL, TAG_QA_URL } from '../enum/FlagshipConstant';
+import { FS_QA_ASSISTANT_SCRIPT_TAG_ID, FS_QA_URL, QA_ASSISTANT_LOCAL_URL, TAG_QA_URL } from '../enum/FlagshipConstant';
 
 const getScriptElement = (src: string): HTMLScriptElement | null =>
   document.querySelector<HTMLScriptElement>(`script[src*="${src}"]`);
@@ -13,6 +13,8 @@ export function appendScript(bundleFileUrl: string): void {
   const script = document.createElement('script');
   script.src = bundleFileUrl;
   script.id = FS_QA_ASSISTANT_SCRIPT_TAG_ID;
-  script.crossOrigin = 'anonymous';
+  if (bundleFileUrl === QA_ASSISTANT_LOCAL_URL) {
+    script.crossOrigin = 'anonymous';
+  }
   document.body.append(script);
 }
