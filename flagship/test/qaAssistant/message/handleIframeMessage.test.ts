@@ -9,6 +9,7 @@ import { EventDataFromIframe, MSG_NAME_FROM_IFRAME } from '../../../src/qaAssist
 import { DecisionApiConfig } from '../../../src/config/DecisionApiConfig';
 import * as utils from '../../../src/utils/utils';
 import { FsVariationToForce } from '../../../src/types';
+import { VisitorVariationState } from '../../../src/type.local';
 
 describe('Test handleIframeMessage', () => {
   beforeEach(() => {
@@ -40,11 +41,22 @@ describe('Test handleIframeMessage', () => {
 
   const isBrowserSpy = jest.spyOn(utils, 'isBrowser');
 
+  const visitorVariationState: VisitorVariationState = {
+    exposedVariations: {
+      campaignId: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGroupId',
+        variationId: 'variationId'
+      }
+    }
+  };
+
   it('test on QA assistant ready', () => {
     const event = new MessageEvent<EventDataFromIframe>('message', { data: { name: MSG_NAME_FROM_IFRAME.FsQaAssistantReady } });
     handleIframeMessage({
       event,
-      config
+      config,
+      visitorVariationState
     });
     expect(onQaAssistantReadySpy).toBeCalledTimes(1);
   });
@@ -53,7 +65,8 @@ describe('Test handleIframeMessage', () => {
     const event = new MessageEvent<EventDataFromIframe>('message', { data: { name: MSG_NAME_FROM_IFRAME.QaAssistantClose } });
     handleIframeMessage({
       event,
-      config
+      config,
+      visitorVariationState
     });
     expect(onQaAssistantCloseSpy).toBeCalledTimes(1);
     expect(onQaAssistantCloseSpy).toBeCalledWith(expect.objectContaining({ config }));
@@ -63,7 +76,8 @@ describe('Test handleIframeMessage', () => {
     const event = new MessageEvent<EventDataFromIframe>('message', { data: { name: MSG_NAME_FROM_IFRAME.MinimizeQaAssistantClose } });
     handleIframeMessage({
       event,
-      config
+      config,
+      visitorVariationState
     });
     expect(onQaAssistantCloseSpy).toBeCalledTimes(1);
     expect(onQaAssistantCloseSpy).toBeCalledWith(expect.objectContaining({ config }));
@@ -96,27 +110,33 @@ describe('Test handleIframeMessage', () => {
     });
     handleIframeMessage({
       event,
-      config
+      config,
+      visitorVariationState
     });
     expect(onApplyForcedVariationsSpy).toBeCalledTimes(1);
-    expect(onApplyForcedVariationsSpy).toBeCalledWith({ value: forcedVariations });
+    expect(onApplyForcedVariationsSpy).toBeCalledWith({
+      value: forcedVariations,
+      visitorVariationState
+    });
   });
 
   it('test on reset forced variations', () => {
     const event = new MessageEvent<EventDataFromIframe>('message', { data: { name: MSG_NAME_FROM_IFRAME.FsResetForcedVariations } });
     handleIframeMessage({
       event,
-      config
+      config,
+      visitorVariationState
     });
     expect(onResetForcedVariationsSpy).toBeCalledTimes(1);
-    expect(onResetForcedVariationsSpy).toBeCalledWith();
+    expect(onResetForcedVariationsSpy).toBeCalledWith(visitorVariationState);
   });
 
   it('test on trigger render', () => {
     const event = new MessageEvent<EventDataFromIframe>('message', { data: { name: MSG_NAME_FROM_IFRAME.FsTriggerRender } });
     handleIframeMessage({
       event,
-      config
+      config,
+      visitorVariationState
     });
     expect(render).toBeCalledTimes(1);
   });
@@ -126,7 +146,8 @@ describe('Test handleIframeMessage', () => {
     const event = new MessageEvent<EventDataFromIframe>('message', { data: { name: MSG_NAME_FROM_IFRAME.FsResetForcedVariations } });
     handleIframeMessage({
       event,
-      config
+      config,
+      visitorVariationState
     });
     expect(onResetForcedVariationsSpy).toBeCalledTimes(0);
   });
@@ -136,7 +157,8 @@ describe('Test handleIframeMessage', () => {
     const event = new MessageEvent<EventDataFromIframe>('message', { data: { name: MSG_NAME_FROM_IFRAME.FsResetForcedVariations } });
     handleIframeMessage({
       event,
-      config
+      config,
+      visitorVariationState
     });
     expect(onResetForcedVariationsSpy).toBeCalledTimes(0);
   });

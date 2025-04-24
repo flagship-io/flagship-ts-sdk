@@ -9,6 +9,7 @@ import { EventDataFromIframe } from '../../../src/qaAssistant/type';
 import { DecisionApiConfig } from '../../../src/config/DecisionApiConfig';
 import { FsVariationToForce, VisitorVariations } from '../../../src/types';
 import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, FS_QA_ASSISTANT_SCRIPT_TAG_ID } from '../../../src/enum/FlagshipConstant';
+import { VisitorVariationState } from '../../../src/type.local';
 
 describe('QA Assistant Message Actions', () => {
   const reloadMock = jest.fn();
@@ -49,9 +50,10 @@ describe('QA Assistant Message Actions', () => {
   const setItemSpy = jest.spyOn(Object.getPrototypeOf(sessionStorage), 'setItem');
   const getItemSpy = jest.spyOn(Object.getPrototypeOf(sessionStorage), 'getItem');
   const removeEventListenerSpy = jest.spyOn(global.window, 'removeEventListener');
+  const visitorVariationState: VisitorVariationState = {};
 
   it('should not send variations when visitor variations are undefined', () => {
-    onQaAssistantReady();
+    onQaAssistantReady(visitorVariationState);
     expect(sendVisitorAllocatedVariationsSpy).toBeCalledTimes(0);
     expect(sendVisitorExposedVariationsSpy).toBeCalledTimes(0);
   });
@@ -59,17 +61,16 @@ describe('QA Assistant Message Actions', () => {
   it('should send allocated and exposed variations when they exist', () => {
     const visitorVariations:Record<string, VisitorVariations> = { key: {} as VisitorVariations };
     const exposedVariations:Record<string, VisitorVariations> = { key: {} as VisitorVariations };
-    global.window.flagship = {
-      visitorVariations,
-      exposedVariations
-    };
 
-    onQaAssistantReady();
+    visitorVariationState.exposedVariations = exposedVariations;
+    visitorVariationState.visitorVariations = visitorVariations;
+
+    onQaAssistantReady(visitorVariationState);
 
     expect(sendVisitorAllocatedVariationsSpy).toBeCalledTimes(1);
     expect(sendVisitorExposedVariationsSpy).toBeCalledTimes(1);
-    expect(sendVisitorAllocatedVariationsSpy).toBeCalledWith(visitorVariations);
-    expect(sendVisitorExposedVariationsSpy).toBeCalledWith(exposedVariations);
+    expect(sendVisitorAllocatedVariationsSpy).toBeCalledWith(visitorVariationState);
+    expect(sendVisitorExposedVariationsSpy).toBeCalledWith(visitorVariationState);
   });
 
   it('should dispatch event when rendering QA assistant', () => {
@@ -91,7 +92,8 @@ describe('QA Assistant Message Actions', () => {
 
     onQaAssistantClose({
       config,
-      func: fn
+      func: fn,
+      visitorVariationState
     });
 
     expect(removeItemSpy).toBeCalledTimes(1);
@@ -99,7 +101,7 @@ describe('QA Assistant Message Actions', () => {
     expect(removeEventListenerSpy).toBeCalledTimes(1);
     expect(removeEventListenerSpy).toBeCalledWith('message', fn);
     expect(document.getElementById(FS_QA_ASSISTANT_SCRIPT_TAG_ID)).toBeNull();
-    expect(global?.window?.flagship?.forcedVariations).toEqual({});
+    expect(visitorVariationState?.forcedVariations).toEqual({});
     expect(dispatchEventSpy).toBeCalledTimes(1);
     expect(config.isQAModeEnabled).toBeFalsy();
   });
@@ -122,11 +124,14 @@ describe('QA Assistant Message Actions', () => {
         }
       }
     };
-    onApplyForcedVariations({ value: forcedVariations });
+    onApplyForcedVariations({
+      value: forcedVariations,
+      visitorVariationState
+    });
 
     expect(setItemSpy).toBeCalledTimes(1);
     expect(setItemSpy).toBeCalledWith(FS_FORCED_VARIATIONS, JSON.stringify(forcedVariations));
-    expect(global?.window?.flagship?.forcedVariations).toEqual(forcedVariations);
+    expect(visitorVariationState.forcedVariations).toEqual(forcedVariations);
     expect(dispatchEventSpy).toBeCalledTimes(1);
   });
 
@@ -166,7 +171,10 @@ describe('QA Assistant Message Actions', () => {
       }
     };
     getItemSpy.mockReturnValue(JSON.stringify(storedForcedVariations));
-    onApplyForcedVariations({ value: forcedVariations });
+    onApplyForcedVariations({
+      value: forcedVariations,
+      visitorVariationState
+    });
 
     const newForcesVariations = {
       ...storedForcedVariations,
@@ -174,7 +182,7 @@ describe('QA Assistant Message Actions', () => {
     };
     expect(setItemSpy).toBeCalledTimes(1);
     expect(setItemSpy).toBeCalledWith(FS_FORCED_VARIATIONS, JSON.stringify(newForcesVariations));
-    expect(global?.window?.flagship?.forcedVariations).toEqual(newForcesVariations);
+    expect(visitorVariationState?.forcedVariations).toEqual(newForcesVariations);
     expect(dispatchEventSpy).toBeCalledTimes(1);
   });
 
@@ -198,18 +206,21 @@ describe('QA Assistant Message Actions', () => {
     };
 
     getItemSpy.mockReturnValue('error');
-    onApplyForcedVariations({ value: forcedVariations });
+    onApplyForcedVariations({
+      value: forcedVariations,
+      visitorVariationState
+    });
 
     expect(setItemSpy).toBeCalledTimes(1);
     expect(setItemSpy).toBeCalledWith(FS_FORCED_VARIATIONS, JSON.stringify(forcedVariations));
-    expect(global?.window?.flagship?.forcedVariations).toEqual(forcedVariations);
+    expect(visitorVariationState?.forcedVariations).toEqual(forcedVariations);
     expect(dispatchEventSpy).toBeCalledTimes(1);
   });
 
   it('should reset forced variations and clean up storage', () => {
-    onResetForcedVariations();
+    onResetForcedVariations(visitorVariationState);
 
-    expect(global?.window?.flagship?.forcedVariations).toEqual({});
+    expect(visitorVariationState?.forcedVariations).toEqual({});
     expect(removeItemSpy).toBeCalledWith(FS_FORCED_VARIATIONS);
     expect(dispatchEventSpy).toBeCalledTimes(1);
   });
