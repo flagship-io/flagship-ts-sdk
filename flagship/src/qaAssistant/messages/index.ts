@@ -1,9 +1,8 @@
 import { VisitorVariationState } from '../../type.local';
-import { isBrowser } from '../../utils/utils';
 import { EventDataToIframe, MSG_NAME_TO_IFRAME, VisitorVariationUpdateParam } from '../type';
 
 export function sendMessageToIframe(data: EventDataToIframe): void {
-  if (!window?.frames?.ABTastyQaAssistant || !isBrowser()) {
+  if (!window?.frames?.ABTastyQaAssistant) {
     return;
   }
   window.frames.ABTastyQaAssistant.postMessage(data, '*');
