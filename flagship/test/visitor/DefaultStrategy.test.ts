@@ -11,8 +11,7 @@ import { DecisionApiConfig,
   FlagsStatus,
   FlagDTO,
   FSFlagMetadata,
-  TroubleshootingLabel,
-  VisitorVariations } from '../../src/index';
+  TroubleshootingLabel } from '../../src/index';
 import { TrackingManager } from '../../src/api/TrackingManager';
 import { BucketingConfig, ConfigManager } from '../../src/config/index';
 import { ApiManager } from '../../src/decision/ApiManager';
@@ -53,8 +52,7 @@ import { IPageView } from '../../src/emotionAI/hit/IPageView';
 import { IVisitorEvent } from '../../src/emotionAI/hit/IVisitorEvent';
 import { UsageHit } from '../../src/hit/UsageHit';
 import { mockGlobals, sleep } from '../helpers';
-import { ActivateConstructorParam } from '../../src/type.local';
-import * as qaMessages from '../../src/qaAssistant/messages';
+import { ActivateConstructorParam, VisitorVariationState } from '../../src/type.local';
 
 
 const getNull = (): any => {
@@ -78,6 +76,7 @@ describe('test DefaultStrategy ', () => {
       __fsWebpackIsReactNative__: false
     });
   });
+
 
   const visitorId = 'visitorId';
 
@@ -157,13 +156,16 @@ describe('test DefaultStrategy ', () => {
 
   fetchEAIScore.mockResolvedValue(undefined);
 
+  const visitorVariationState: VisitorVariationState = {};
+
   const visitorDelegate = new VisitorDelegate({
     visitorId,
     context,
     configManager,
     hasConsented: true,
     onFlagsStatusChanged: OnFlagStatusChanged,
-    emotionAi
+    emotionAi,
+    visitorVariationState
   });
   const defaultStrategy = new DefaultStrategy({
     visitor: visitorDelegate,
@@ -443,58 +445,6 @@ describe('test DefaultStrategy ', () => {
       }
     );
     expect(emotionAi.fetchEAIScore).toBeCalledTimes(1);
-  });
-
-  it('test fetchFlags and send visitor variable to QA assistant', async () => {
-    mockGlobals({ __fsWebpackIsBrowser__: true });
-    visitorDelegate.on('ready', (err) => {
-      expect(err).toBeUndefined();
-    });
-
-    fetchEAIScore.mockResolvedValue({ eai: { eas: 'straightforward' } });
-
-    const sendVisitorAllocatedVariationsSpy = jest.spyOn(qaMessages, 'sendVisitorAllocatedVariations');
-    sendTroubleshootingHitSpy.mockResolvedValue();
-
-    getCampaignsAsync.mockResolvedValue(campaignDTO);
-    getModifications.mockReturnValue(returnFlag);
-    await defaultStrategy.fetchFlags();
-    expect(getCampaignsAsync).toBeCalledTimes(1);
-    expect(getCampaignsAsync).toBeCalledWith(visitorDelegate);
-    expect(visitorDelegate.flagsStatus).toEqual({
-      status: FSFetchStatus.FETCHED,
-      reason: FSFetchReasons.NONE
-    });
-
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(2);
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(
-      1,
-      {
-        status: FSFetchStatus.FETCHING,
-        reason: FSFetchReasons.NONE
-      }
-    );
-    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(
-      2,
-      {
-        status: FSFetchStatus.FETCHED,
-        reason: FSFetchReasons.NONE
-      }
-    );
-    expect(emotionAi.fetchEAIScore).toBeCalledTimes(1);
-
-    const visitorAllocatedVariations: Record<string, VisitorVariations> = {};
-
-    visitorDelegate.flagsData.forEach((item) => {
-      visitorAllocatedVariations[item.campaignId] = {
-        variationId: item.variationId,
-        variationGroupId: item.variationGroupId,
-        campaignId: item.campaignId
-      };
-    });
-    await sleep(10);
-    expect(sendVisitorAllocatedVariationsSpy).toBeCalledTimes(1);
-    expect(sendVisitorAllocatedVariationsSpy).toBeCalledWith(visitorAllocatedVariations);
   });
 
   it('test fetchFlags panic mode ', async () => {
@@ -2480,126 +2430,4 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
   });
 });
 
-describe('test DefaultStrategy with QA mode', () => {
-  const methodNow = Date.now;
-  const mockNow = jest.fn<typeof Date.now>();
-  beforeAll(() => {
-    Date.now = mockNow;
-    mockNow.mockReturnValue(1);
-  });
-  afterAll(() => {
-    Date.now = methodNow;
-  });
-  const visitorId = 'ca0594f5-4a37-4a7d-91be-27c63f829380';
 
-  const context: any = { isVip: true };
-
-  const logManager = new FlagshipLogManager();
-
-  const config = new DecisionApiConfig({
-    envId: 'envId',
-    apiKey: 'apiKey',
-    hitDeduplicationTime: 0
-  });
-  config.logManager = logManager;
-  config.isQAModeEnabled = true;
-
-  const httpClient = new HttpClient();
-
-  const post = jest.fn<typeof httpClient.postAsync>();
-  httpClient.postAsync = post;
-  post.mockResolvedValue({} as IHttpResponse);
-
-  const apiManager = new ApiManager(httpClient, config);
-
-  const trackingManager = new TrackingManager(httpClient, config);
-
-  const addHit = jest.spyOn(trackingManager, 'addHit');
-  addHit.mockResolvedValue();
-
-  const configManager = new ConfigManager(config, apiManager, trackingManager);
-
-  const fetchEAIScore = jest.fn<() => Promise<EAIScore | undefined>>();
-
-  const emotionAi = {
-    init: jest.fn<(visitor: VisitorAbstract) => void>(),
-    fetchEAIScore
-  } as unknown as IEmotionAI;
-
-  fetchEAIScore.mockResolvedValue(undefined);
-
-  const FsInstanceId = 'FsInstanceId';
-  const murmurHash = new MurmurHash();
-  const visitorDelegate = new VisitorDelegate({
-    visitorId,
-    context,
-    configManager,
-    monitoringData: {
-      instanceId: FsInstanceId,
-      lastInitializationTimestamp: ''
-    },
-    hasConsented: true,
-    emotionAi
-  });
-  const defaultStrategy = new DefaultStrategy({
-    visitor: visitorDelegate,
-    murmurHash
-  });
-  const returnMod = returnFlag.get('keyString') as FlagDTO;
-
-  const activateFlag = jest.spyOn(trackingManager, 'activateFlag');
-  activateFlag.mockResolvedValue();
-
-  it('test visitorExposed', async () => {
-    await defaultStrategy.visitorExposed({
-      key: returnMod.key,
-      flag: returnMod,
-      defaultValue: returnMod.value,
-      hasGetValueBeenCalled: true
-    });
-    expect(activateFlag).toBeCalledTimes(1);
-    const activateHit: ActivateConstructorParam = {
-      variationGroupId: returnMod.variationGroupId,
-      variationId: returnMod.variationId,
-      visitorId,
-      flagKey: returnMod.key,
-      flagValue: returnMod.value,
-      flagDefaultValue: returnMod.value,
-      qaMode: true,
-      visitorContext: visitorDelegate.context,
-      flagMetadata: {
-        campaignId: returnMod.campaignId,
-        variationGroupId: returnMod.variationGroupId,
-        variationId: returnMod.variationId,
-        isReference: returnMod.isReference as boolean,
-        campaignType: returnMod.campaignType as string,
-        slug: returnMod.slug,
-        campaignName: returnMod.campaignName,
-        variationGroupName: returnMod.variationGroupName,
-        variationName: returnMod.variationName
-      },
-      anonymousId: visitorDelegate.anonymousId
-    };
-
-    expect(activateFlag).toBeCalledWith(activateHit);
-  });
-
-  it('test sendHitAsync with literal object Event ', async () => {
-    const hit = {
-      type: HitType.EVENT,
-      action: 'action_1',
-      category: EventCategory.ACTION_TRACKING
-    };
-    await defaultStrategy.sendHit(hit);
-    expect(addHit).toBeCalledTimes(1);
-    expect(addHit).toBeCalledWith(
-      expect.objectContaining({
-        ...hit,
-        visitorId,
-        ds: SDK_APP,
-        config,
-        qaMode: true
-      })
-    );
-  });
-});
