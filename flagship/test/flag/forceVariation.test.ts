@@ -3,6 +3,7 @@ import { forceVariation } from '../../src/flag/forceVariation';
 import { DecisionApiConfig, FlagDTO, FsVariationToForce } from '../../src';
 import * as utils from '../../src/utils/utils';
 import { mockGlobals } from '../helpers';
+import { VisitorVariationState } from '../../src/type.local';
 
 describe('forceVariation - No Forced Variation Conditions', () => {
   const isBrowserSpy = jest.spyOn(utils, 'isBrowser');
@@ -31,11 +32,16 @@ describe('forceVariation - No Forced Variation Conditions', () => {
     global.window = global.window ?? undefined;
   });
 
+  const visitorVariationState: VisitorVariationState = {};
+
+
+
   it('should return undefined when QA mode is disabled', () => {
     const config = new DecisionApiConfig();
     const forcedVariation = forceVariation({
       flagDTO,
-      config
+      config,
+      visitorVariationState
     });
     expect(forcedVariation).toBeUndefined();
   });
@@ -46,7 +52,8 @@ describe('forceVariation - No Forced Variation Conditions', () => {
     isBrowserSpy.mockReturnValue(false);
     const forcedVariation = forceVariation({
       flagDTO,
-      config
+      config,
+      visitorVariationState
     });
     expect(forcedVariation).toBeUndefined();
   });
@@ -57,7 +64,8 @@ describe('forceVariation - No Forced Variation Conditions', () => {
     config.isQAModeEnabled = true;
     const forcedVariation = forceVariation({
       flagDTO,
-      config
+      config,
+      visitorVariationState
     });
     expect(forcedVariation).toBeUndefined();
   });
@@ -67,7 +75,8 @@ describe('forceVariation - No Forced Variation Conditions', () => {
     config.isQAModeEnabled = true;
     const forcedVariation = forceVariation({
       flagDTO: undefined,
-      config
+      config,
+      visitorVariationState
     });
     expect(forcedVariation).toBeUndefined();
   });
@@ -77,7 +86,8 @@ describe('forceVariation - No Forced Variation Conditions', () => {
     config.isQAModeEnabled = true;
     const forcedVariation = forceVariation({
       flagDTO,
-      config
+      config,
+      visitorVariationState
     });
     expect(forcedVariation).toBeUndefined();
   });
@@ -146,8 +156,11 @@ describe('forceVariation - Forced Variation Scenario', () => {
     isBrowserSpy.mockReturnValue(false);
   });
 
+  const visitorVariationState: VisitorVariationState = {};
+
   it('should return undefined when the campaign is not forced', () => {
-    global.window = global.window ?? { flagship: { forcedVariations } };
+
+    visitorVariationState.forcedVariations = forcedVariations;
     const config = new DecisionApiConfig();
     config.isQAModeEnabled = true;
     const forcedVariation = forceVariation({
@@ -155,18 +168,20 @@ describe('forceVariation - Forced Variation Scenario', () => {
         ...flagDTO,
         campaignId: 'campaignId3'
       },
-      config
+      config,
+      visitorVariationState
     });
     expect(forcedVariation).toBeUndefined();
   });
 
   it('should return the forced variation when the campaign is forced', () => {
-    global.window = global.window ?? { flagship: { forcedVariations } };
+    visitorVariationState.forcedVariations = forcedVariations;
     const config = new DecisionApiConfig();
     config.isQAModeEnabled = true;
     const valueForced = forceVariation({
       flagDTO,
-      config
+      config,
+      visitorVariationState
     });
     const forcedVariation = forcedVariations[flagDTO.campaignId];
     const { campaignId, campaignName, variationGroupId, variationGroupName, variation, campaignType, CampaignSlug } = forcedVariation;
