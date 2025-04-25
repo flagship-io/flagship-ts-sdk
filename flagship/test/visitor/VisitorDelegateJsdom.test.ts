@@ -16,6 +16,7 @@ import { IEmotionAI } from '../../src/emotionAI/IEmotionAI';
 import { mockGlobals, sleep } from '../helpers';
 import { DecisionManager } from '../../src/decision/DecisionManager';
 import { VisitorProfileCache } from '../../src/visitor/VisitorProfileCache.browser';
+import { VisitorVariationState } from '../../src/type.local';
 
 describe('test sendExposedVariation', () => {
   beforeEach(() => {
@@ -27,6 +28,7 @@ describe('test sendExposedVariation', () => {
     mockGlobals({ __fsWebpackIsBrowser__: true });
   });
 
+  const visitorVariationState: VisitorVariationState = {};
   const isBrowserSpy = jest.spyOn(utils, 'isBrowser');
   const sendVisitorExposedVariationsSpy = jest.spyOn(messages, 'sendVisitorExposedVariations');
   const visitorId = 'visitorId';
@@ -59,11 +61,12 @@ describe('test sendExposedVariation', () => {
       hasConsented: true,
       context,
       configManager: configManager as ConfigManager,
-      emotionAi
+      emotionAi,
+      visitorVariationState
     });
 
     visitorDelegate.sendExposedVariation(undefined);
-    expect(window.flagship?.exposedVariations).toBeUndefined();
+    expect(visitorVariationState.exposedVariations).toBeUndefined();
   });
 
   it('Test sendExposedVariation flag is undefined ', () => {
@@ -73,11 +76,12 @@ describe('test sendExposedVariation', () => {
       hasConsented: true,
       context,
       configManager: configManager as ConfigManager,
-      emotionAi
+      emotionAi,
+      visitorVariationState
     });
 
     visitorDelegate.sendExposedVariation(undefined);
-    expect(window.flagship?.exposedVariations).toBeUndefined();
+    expect(visitorVariationState.exposedVariations).toBeUndefined();
   });
 
   it('Test sendExposedVariation QA mode is disabled ', () => {
@@ -87,7 +91,8 @@ describe('test sendExposedVariation', () => {
       hasConsented: true,
       context,
       configManager: configManager as ConfigManager,
-      emotionAi
+      emotionAi,
+      visitorVariationState
     });
 
     const flag = {
@@ -111,7 +116,7 @@ describe('test sendExposedVariation', () => {
     };
 
     visitorDelegate.sendExposedVariation(flag);
-    expect(window.flagship?.exposedVariations).toEqual(exposedVariations);
+    expect(visitorVariationState.exposedVariations).toEqual(exposedVariations);
     expect(sendVisitorExposedVariationsSpy).toBeCalledTimes(0);
   });
 
@@ -121,7 +126,8 @@ describe('test sendExposedVariation', () => {
       hasConsented: true,
       context,
       configManager: configManager as ConfigManager,
-      emotionAi
+      emotionAi,
+      visitorVariationState
     });
 
     const flag = {
@@ -147,9 +153,9 @@ describe('test sendExposedVariation', () => {
     visitorDelegate.sendExposedVariation(flag);
     visitorDelegate.sendExposedVariation(flag);
     await sleep(150);
-    expect(window.flagship?.exposedVariations).toEqual(exposedVariations);
-    expect(sendVisitorExposedVariationsSpy).toBeCalledTimes(1);
-    expect(sendVisitorExposedVariationsSpy).toBeCalledWith(exposedVariations);
+    expect(visitorVariationState.exposedVariations).toEqual(exposedVariations);
+    expect(sendVisitorExposedVariationsSpy).toHaveBeenCalledTimes(1);
+    expect(sendVisitorExposedVariationsSpy).toHaveBeenCalledWith(visitorVariationState);
   });
 
   it('Test sendExposedVariation', async () => {
@@ -158,7 +164,8 @@ describe('test sendExposedVariation', () => {
       hasConsented: true,
       context,
       configManager: configManager as ConfigManager,
-      emotionAi
+      emotionAi,
+      visitorVariationState
     });
 
     const flag = {
@@ -200,9 +207,9 @@ describe('test sendExposedVariation', () => {
     visitorDelegate.sendExposedVariation(flag);
     visitorDelegate.sendExposedVariation(flag2);
     await sleep(150);
-    expect(window.flagship?.exposedVariations).toEqual(exposedVariations);
-    expect(sendVisitorExposedVariationsSpy).toBeCalledTimes(1);
-    expect(sendVisitorExposedVariationsSpy).toBeCalledWith(exposedVariations);
+    expect(visitorVariationState.exposedVariations).toEqual(exposedVariations);
+    expect(sendVisitorExposedVariationsSpy).toHaveBeenCalledTimes(1);
+    expect(sendVisitorExposedVariationsSpy).toHaveBeenCalledWith(visitorVariationState);
   });
 
   it('Test sendExposedVariation', async () => {
@@ -211,7 +218,8 @@ describe('test sendExposedVariation', () => {
       hasConsented: true,
       context,
       configManager: configManager as ConfigManager,
-      emotionAi
+      emotionAi,
+      visitorVariationState
     });
 
     const exposedVariations:Record<string, VisitorVariations> = {};
@@ -236,9 +244,9 @@ describe('test sendExposedVariation', () => {
       visitorDelegate.sendExposedVariation(flag);
     }
     await sleep(150);
-    expect(window.flagship?.exposedVariations).toEqual(exposedVariations);
-    expect(sendVisitorExposedVariationsSpy).toBeCalledTimes(1);
-    expect(sendVisitorExposedVariationsSpy).toBeCalledWith(exposedVariations);
+    expect(visitorVariationState.exposedVariations).toEqual(exposedVariations);
+    expect(sendVisitorExposedVariationsSpy).toHaveBeenCalledTimes(1);
+    expect(sendVisitorExposedVariationsSpy).toHaveBeenCalledWith(visitorVariationState);
   });
 });
 
