@@ -90,7 +90,7 @@ describe('test Flagship newVisitor', () => {
     await sleep(10);
     expect(startBatchingLoop).toBeCalledTimes(1);
     expect(launchQaAssistantSpy).toBeCalledTimes(1);
-    expect(launchQaAssistantSpy).toBeCalledWith(Flagship.getConfig());
+    expect(launchQaAssistantSpy).toBeCalledWith(Flagship.getConfig(), {});
 
     const extendedFlagship = Flagship as {
         setVisitorProfile?: (value: string|null) => void,
