@@ -41,8 +41,8 @@ export function launchQaAssistant(
     const urlKey =
       Object.keys(urlMap).find((key) => queryParam.get(key) === 'true') || '';
 
-    if (window.onPlatformChoiceLoaded) {
-      window.removeEventListener('message', window.onPlatformChoiceLoaded);
+    if (window.__flagshipSdkOnPlatformChoiceLoaded) {
+      window.removeEventListener('message', window.__flagshipSdkOnPlatformChoiceLoaded);
     }
 
     function onPlatformChoiceLoaded(
@@ -58,9 +58,9 @@ export function launchQaAssistant(
       }
     }
 
-    window.onPlatformChoiceLoaded = onPlatformChoiceLoaded;
+    window.__flagshipSdkOnPlatformChoiceLoaded = onPlatformChoiceLoaded;
 
-    window.addEventListener('message', window.onPlatformChoiceLoaded);
+    window.addEventListener('message', window.__flagshipSdkOnPlatformChoiceLoaded);
 
     detectNavigationChanges(config, visitorVariationState);
 

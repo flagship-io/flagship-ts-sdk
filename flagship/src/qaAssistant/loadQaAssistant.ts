@@ -30,6 +30,10 @@ export function loadQaAssistant(config: IFlagshipConfig, bundleUrl:string|null =
 
   visitorVariationState.forcedVariations = forcedVariations;
 
+  if (window.__flagshipSdkQaAssistantMessageHandler) {
+    window.removeEventListener('message', window.__flagshipSdkQaAssistantMessageHandler);
+  }
+
   const eventListenerMessage = (event: MessageEvent<EventDataFromIframe>):void => {
     handleIframeMessage({
       visitorVariationState,
@@ -38,7 +42,10 @@ export function loadQaAssistant(config: IFlagshipConfig, bundleUrl:string|null =
       func: eventListenerMessage
     });
   };
-  window.addEventListener('message', eventListenerMessage);
+
+  window.__flagshipSdkQaAssistantMessageHandler = eventListenerMessage;
+
+  window.addEventListener('message', window.__flagshipSdkQaAssistantMessageHandler);
 
   config.isQAModeEnabled = true;
   sessionStorage.setItem(FS_IS_QA_MODE_ENABLED, 'true');

@@ -153,7 +153,13 @@ declare global {
         };
       };
     };
-    onPlatformChoiceLoaded?: (event: MessageEvent<EventDataFromIframe>) => void;
+    __flagshipSdkOnPlatformChoiceLoaded?: (event: MessageEvent<EventDataFromIframe>) => void;
+    __flagshipSdkOnKeyCombinationDown?: (event: KeyboardEvent) => void;
+    __flagshipSdkOnKeyCombinationUp?: (event: KeyboardEvent) => void;
+    __flagshipSdkOriginalPushState?: History['pushState'];
+    __flagshipSdkOriginalReplaceState?: History['replaceState'];
+    __flagshipSdkPopStateHandler?: (event: PopStateEvent) => void;
+    __flagshipSdkQaAssistantMessageHandler?: (event: MessageEvent<EventDataFromIframe>) => void;
   }
 }
 
