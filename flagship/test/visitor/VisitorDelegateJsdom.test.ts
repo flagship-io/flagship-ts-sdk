@@ -254,6 +254,22 @@ describe('Initialization tests', () => {
 
   beforeEach(()=>{
     mockGlobals({ __fsWebpackIsBrowser__: true });
+    _isByoidConfigured.mockReturnValue(false);
+  });
+
+  const getAbTastyVisitorId = jest.fn<() => string | undefined>();
+  const _isByoidConfigured = jest.fn(() => false);
+
+  beforeAll(() => {
+    window.ABTasty = {
+      api: {
+        internal: {
+          _getActionTrackingNonce: jest.fn(() => 'nonce'),
+          _isByoidConfigured
+        },
+        v1: { getValue: getAbTastyVisitorId }
+      }
+    };
   });
 
   const config = new DecisionApiConfig();
@@ -295,6 +311,10 @@ describe('Initialization tests', () => {
   describe('VisitorDelegate when authenticated is false', () => {
     const clientVisitorId = 'clientVisitorId';
     const abTastyVisitorId = 'ABTastyVisitorId';
+
+    beforeEach(() => {
+      getAbTastyVisitorId.mockReturnValue(abTastyVisitorId);
+    });
 
     it('should use client-provided visitorId when no profile is loaded', () => {
       loadVisitorProfile.mockReturnValue(null);
@@ -376,9 +396,44 @@ describe('Initialization tests', () => {
       });
     });
 
-
-    it('should generate a visitorId when no client-provided visitorId, profile, is available', () => {
+    it('should use AB Tasty visitorId when no client-provided visitorId or profile is available', () => {
       loadVisitorProfile.mockReturnValue(null);
+      const visitorDelegate = createVisitorDelegate();
+      expect(visitorDelegate.visitorId).toBe(abTastyVisitorId);
+      expect(visitorDelegate.anonymousId).toBeNull();
+      expect(loadVisitorProfile).toHaveBeenCalledTimes(1);
+      expect(saveVisitorProfile).toHaveBeenCalledTimes(1);
+      expect(saveVisitorProfile).toHaveBeenCalledWith({
+        visitorId: abTastyVisitorId,
+        anonymousId: null,
+        isClientSuppliedId: visitorDelegate.isClientSuppliedID
+      });
+    });
+
+    it('should generate a visitorId when no client-provided visitorId or profile is available and AB Tasty ID is BYOID', () => {
+      loadVisitorProfile.mockReturnValue(null);
+      _isByoidConfigured.mockReturnValue(true);
+      getAbTastyVisitorId.mockReturnValue(abTastyVisitorId);
+      const visitorDelegate = createVisitorDelegate();
+      expect(visitorDelegate.visitorId).not.toBe(abTastyVisitorId);
+      expect(visitorDelegate.visitorId).not.toBe(visitorId);
+      expect(visitorDelegate.visitorId).not.toBe(anonymousId);
+      expect(visitorDelegate.visitorId).toBeDefined();
+      expect(visitorDelegate.visitorId).toHaveLength(36);
+      expect(visitorDelegate.anonymousId).toBeNull();
+      expect(loadVisitorProfile).toHaveBeenCalledTimes(1);
+      expect(saveVisitorProfile).toHaveBeenCalledTimes(1);
+      expect(saveVisitorProfile).toHaveBeenCalledWith({
+        visitorId: visitorDelegate.visitorId,
+        anonymousId: null,
+        isClientSuppliedId: visitorDelegate.isClientSuppliedID
+      });
+      expect(getAbTastyVisitorId).not.toHaveBeenCalled();
+    });
+
+    it('should generate a visitorId when no client-provided visitorId, profile, or AB Tasty ID is available', () => {
+      loadVisitorProfile.mockReturnValue(null);
+      getAbTastyVisitorId.mockReturnValue(undefined);
       const visitorDelegate = createVisitorDelegate();
       expect(visitorDelegate.visitorId).not.toBe(abTastyVisitorId);
       expect(visitorDelegate.visitorId).not.toBe(visitorId);
@@ -397,6 +452,7 @@ describe('Initialization tests', () => {
 
     it('should generate a visitorId when no client-provided visitorId, profile, or browser environment', () => {
       loadVisitorProfile.mockReturnValue(null);
+      getAbTastyVisitorId.mockReturnValue(undefined);
       mockGlobals({ __fsWebpackIsBrowser__: false });
       const visitorDelegate = createVisitorDelegate();
       expect(visitorDelegate.visitorId).not.toBe(abTastyVisitorId);
@@ -417,6 +473,11 @@ describe('Initialization tests', () => {
 
   describe('VisitorDelegate when authenticated is true', () => {
     const clientVisitorId = 'clientVisitorId';
+    const abTastyVisitorId = 'ABTastyVisitorId';
+
+    beforeEach(() => {
+      getAbTastyVisitorId.mockReturnValue(abTastyVisitorId);
+    });
 
     it('should use client-provided visitorId and generate anonymousId when no profile is loaded', () => {
       loadVisitorProfile.mockReturnValue(null);
@@ -501,12 +562,26 @@ describe('Initialization tests', () => {
       });
     });
 
-
-
-    it('should generate visitorId and anonymousId when no client-provided visitorId, profile is available', () => {
+    it('should use AB Tasty visitorId and generate anonymousId when no client-provided visitorId or profile is available', () => {
       loadVisitorProfile.mockReturnValue(null);
-
       const visitorDelegate = createVisitorDelegate(undefined, true);
+      expect(visitorDelegate.visitorId).toBe(abTastyVisitorId);
+      expect(visitorDelegate.anonymousId).toBeDefined();
+      expect(visitorDelegate.anonymousId).toHaveLength(36);
+      expect(loadVisitorProfile).toHaveBeenCalledTimes(1);
+      expect(saveVisitorProfile).toHaveBeenCalledTimes(1);
+      expect(saveVisitorProfile).toHaveBeenCalledWith({
+        visitorId: abTastyVisitorId,
+        anonymousId: visitorDelegate.anonymousId,
+        isClientSuppliedId: visitorDelegate.isClientSuppliedID
+      });
+    });
+
+    it('should generate visitorId and anonymousId when no client-provided visitorId, profile, or AB Tasty ID is available', () => {
+      loadVisitorProfile.mockReturnValue(null);
+      getAbTastyVisitorId.mockReturnValue(undefined);
+      const visitorDelegate = createVisitorDelegate(undefined, true);
+      expect(visitorDelegate.visitorId).not.toBe(abTastyVisitorId);
       expect(visitorDelegate.visitorId).not.toBe(visitorId);
       expect(visitorDelegate.visitorId).not.toBe(anonymousId);
       expect(visitorDelegate.visitorId).toBeDefined();
