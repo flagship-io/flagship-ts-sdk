@@ -9,6 +9,7 @@ import { DecisionApiConfig } from '../../src/config/DecisionApiConfig';
 import * as appendScript from '../../src/qaAssistant/appendScript';
 import { FsVariationToForce } from '../../src';
 import * as handleIframeMessage from '../../src/qaAssistant/messages/handleIframeMessage';
+import { VisitorVariationState } from '../../src/type.local';
 
 describe('Test loadQaAssistant', () => {
   beforeEach(() => {
@@ -16,13 +17,16 @@ describe('Test loadQaAssistant', () => {
   });
   const config = new DecisionApiConfig();
   config.envId = 'envId';
+  const visitorVariationState: VisitorVariationState = {};
   const sessionStorageGetItemSpy = jest.spyOn(Object.getPrototypeOf(sessionStorage), 'getItem');
   const sessionStorageSetItemSpy = jest.spyOn(Object.getPrototypeOf(sessionStorage), 'setItem');
   const addEventListenerSpy = jest.spyOn(global.window, 'addEventListener');
+  const removeEventListenerSpy = jest.spyOn(global.window, 'removeEventListener');
   const appendScriptSpy = jest.spyOn(appendScript, 'appendScript');
   const handleIframeMessageSpy = jest.spyOn(handleIframeMessage, 'handleIframeMessage');
+
   it('test loadQaAssistant work correctly', () => {
-    loadQaAssistant(config);
+    loadQaAssistant(config, null, visitorVariationState);
     expect(sessionStorageGetItemSpy).toBeCalledTimes(1);
     expect(sessionStorageGetItemSpy).toBeCalledWith(FS_FORCED_VARIATIONS);
     expect(addEventListenerSpy).toBeCalledTimes(1);
@@ -32,9 +36,7 @@ describe('Test loadQaAssistant', () => {
     expect(appendScriptSpy).toBeCalledTimes(1);
     expect(appendScriptSpy).toBeCalledWith(QA_ASSISTANT_PROD_URL);
     expect(config.isQAModeEnabled).toBeTruthy();
-    expect(window.flagship).toBeDefined();
-    expect(window.flagship?.envId).toBe(config.envId);
-    expect(window.flagship?.forcedVariations).toEqual({});
+    expect(visitorVariationState?.forcedVariations).toEqual({});
   });
 
   it('test loadQaAssistant session storage return forced variations', () => {
@@ -58,21 +60,17 @@ describe('Test loadQaAssistant', () => {
 
     sessionStorageGetItemSpy.mockReturnValue(JSON.stringify(forcedVariations));
 
-    loadQaAssistant(config);
+    loadQaAssistant(config, null, visitorVariationState);
 
-    expect(window.flagship).toBeDefined();
-    expect(window.flagship?.envId).toBe(config.envId);
-    expect(window.flagship?.forcedVariations).toEqual(forcedVariations);
+    expect(visitorVariationState.forcedVariations).toEqual(forcedVariations);
   });
 
   it('test loadQaAssistant JSON parsing throws an error', () => {
     sessionStorageGetItemSpy.mockReturnValue('error');
 
-    loadQaAssistant(config);
+    loadQaAssistant(config, null, visitorVariationState);
 
-    expect(window.flagship).toBeDefined();
-    expect(window.flagship?.envId).toBe(config.envId);
-    expect(window.flagship?.forcedVariations).toEqual({});
+    expect(visitorVariationState.forcedVariations).toEqual({});
   });
 
   it('test loadQaAssistant addEventListener', () => {
@@ -85,7 +83,7 @@ describe('Test loadQaAssistant', () => {
     addEventListenerSpy.mockImplementation((type, listener:any) => {
       listener();
     });
-    loadQaAssistant(config);
+    loadQaAssistant(config, null, visitorVariationState);
 
     expect(handleIframeMessageSpy).toBeCalledTimes(1);
   });
@@ -93,11 +91,12 @@ describe('Test loadQaAssistant', () => {
   it('test loadQaAssistant when QA has already launched', () => {
     sessionStorageGetItemSpy.mockReturnValue('error');
     window.frames.ABTastyQaAssistant = global.window || {};
-    loadQaAssistant(config);
+    loadQaAssistant(config, null, visitorVariationState);
 
-    expect(sessionStorageGetItemSpy).toBeCalledTimes(0);
-    expect(addEventListenerSpy).toBeCalledTimes(0);
-    expect(sessionStorageSetItemSpy).toBeCalledTimes(0);
+    expect(sessionStorageGetItemSpy).toBeCalledTimes(1);
+    expect(addEventListenerSpy).toBeCalledTimes(1);
+    expect(removeEventListenerSpy).toBeCalledTimes(1);
+    expect(sessionStorageSetItemSpy).toBeCalledTimes(1);
     expect(appendScriptSpy).toBeCalledTimes(0);
   });
 });
