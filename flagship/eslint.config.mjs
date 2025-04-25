@@ -3,12 +3,18 @@ import globals from "globals";
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 
+import eslintPluginFormatting from 'eslint-plugin-format';
+
+
 export default defineConfig([
   // Global ignores
   globalIgnores(['**/dist', '**/dist-deno', '**/coverage', '**/node_modules', '**/src/depsDeno.ts']),
 
   js.configs.recommended,
   ...tseslint.configs.recommended,
+
+  { plugins: { format: eslintPluginFormatting } },
+  
   // TypeScript files (*.ts) - Custom rules
   {
     files: ["**/*.ts"],
