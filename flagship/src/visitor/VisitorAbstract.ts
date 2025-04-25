@@ -57,16 +57,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   public get visitorVariationState() : VisitorVariationState {
     return this._visitorVariationState;
   }
-  public set visitorVariationState(v : VisitorVariationState) {
-    this._visitorVariationState = v;
-  }
-
 
   public get isClientSuppliedID() : boolean {
     return this._isClientSuppliedID;
   }
-
-
 
   public get hasContextBeenUpdated(): boolean {
     return this._hasContextBeenUpdated;
