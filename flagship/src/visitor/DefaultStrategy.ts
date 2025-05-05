@@ -57,6 +57,9 @@ export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must ';
 export const HIT_NULL_ERROR = 'Hit must not be null';
 
 export class DefaultStrategy extends StrategyAbstract {
+
+
+
   private checkPredefinedContext(
     key: string,
     value: primitive
@@ -265,24 +268,32 @@ export class DefaultStrategy extends StrategyAbstract {
       qaMode: this.config.isQAModeEnabled
     };
 
-    if (__fsWebpackIsBrowser__) {
-      const isDeduplicated = this.isActivateDeduplicated(activateHit.variationGroupId);
-      if (isDeduplicated) {
-        logDebug(this.config, sprintf('Activate {0} is deduplicated', JSON.stringify(activateHit)), PROCESS_ACTIVATE_DEDUPLICATION);
-        return;
-      }
-    }else {
-      if (this.isDeDuplicated(JSON.stringify(activateHit), this.config.hitDeduplicationTime as number)) {
-        const logData = {
-          visitorId: this.visitor.visitorId,
-          anonymousId: this.visitor.anonymousId,
-          flag: flagDto,
-          delay: 0
-        };
-        logDebug(this.config, sprintf('Activate {0} is deduplicated', JSON.stringify(logData)), PROCESS_SEND_HIT);
-        return;
-      }
+
+    const isDeDuplicated = await this.config.hitDeduplicator?.isDuplicateAsync(this.visitor.visitorId, activateHit.variationGroupId);
+
+    if (isDeDuplicated) {
+      logDebug(this.config, sprintf('Activate {0} is deduplicated', JSON.stringify(activateHit)), PROCESS_ACTIVATE_DEDUPLICATION);
+      return;
     }
+
+    // if (__fsWebpackIsBrowser__) {
+    //   const isDeduplicated = this.isActivateDeduplicated(activateHit.variationGroupId);
+    //   if (isDeduplicated) {
+    //     logDebug(this.config, sprintf('Activate {0} is deduplicated', JSON.stringify(activateHit)), PROCESS_ACTIVATE_DEDUPLICATION);
+    //     return;
+    //   }
+    // }else {
+    //   if (this.isDeDuplicated(JSON.stringify(activateHit), this.config.hitDeduplicationTime as number)) {
+    //     const logData = {
+    //       visitorId: this.visitor.visitorId,
+    //       anonymousId: this.visitor.anonymousId,
+    //       flag: flagDto,
+    //       delay: 0
+    //     };
+    //     logDebug(this.config, sprintf('Activate {0} is deduplicated', JSON.stringify(logData)), PROCESS_SEND_HIT);
+    //     return;
+    //   }
+    // }
 
     await this.trackingManager.activateFlag(activateHit);
 
@@ -596,6 +607,10 @@ export class DefaultStrategy extends StrategyAbstract {
       this.visitor.getCampaignsPromise = this.decisionManager.getCampaignsAsync(this.visitor);
 
       campaigns = await this.visitor.getCampaignsPromise;
+
+      if (campaigns) {
+        this.getHitDeduplicator()?.reportActivityAsync(this.visitor.visitorId);
+      }
 
       this.visitor.lastFetchFlagsTimestamp = Date.now();
 

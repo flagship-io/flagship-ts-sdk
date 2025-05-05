@@ -18,6 +18,7 @@ import { type HitAbstract } from '../hit/HitAbstract';
 import { DefaultHitCache } from '../cache/DefaultHitCache';
 import { DefaultVisitorCache } from '../cache/DefaultVisitorCache';
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation';
+import { IFSHitDeduplicator } from '../interface/IFSHitDeduplicator.ts';
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object';
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO';
 
@@ -507,5 +508,9 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       segmentHitTroubleshooting.traffic = this.visitor.traffic;
       this.trackingManager.sendTroubleshootingHit(segmentHitTroubleshooting);
       this.visitor.segmentHitTroubleshooting = undefined;
+    }
+
+    protected getHitDeduplicator():IFSHitDeduplicator | undefined {
+      return this.config.hitDeduplicator;
     }
 }

@@ -8,6 +8,7 @@ import { BucketingDTO, OnVisitorExposed } from '../types';
 import { version as SDK_VERSION } from '../sdkVersion';
 import { IFlagshipConfig } from './IFlagshipConfig';
 import { DecisionMode } from './DecisionMode';
+import { IFSHitDeduplicator } from '../interface/IFSHitDeduplicator';
 
 export const statusChangeError = 'statusChangedCallback must be a function';
 
@@ -37,6 +38,12 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _disableDeveloperUsageTracking? : boolean;
   private _onLog? : (level: LogLevel, tag: string, message: string)=>void;
   private _isQAModeEnabled? : boolean;
+
+  private _hitDeduplicator?: IFSHitDeduplicator;
+
+  public get hitDeduplicator(): IFSHitDeduplicator|undefined {
+    return this._hitDeduplicator;
+  }
 
   public get isQAModeEnabled() : boolean|undefined {
     return this._isQAModeEnabled;
@@ -102,7 +109,8 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       fetchNow, decisionMode, reuseVisitorIds, initialBucketing, decisionApiUrl,
       hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
       disableCache, language, sdkVersion, trackingManagerConfig, onLog,
-      onVisitorExposed, nextFetchConfig, fetchFlagsBufferingTime, disableDeveloperUsageTracking
+      onVisitorExposed, nextFetchConfig, fetchFlagsBufferingTime, disableDeveloperUsageTracking,
+      hitDeduplicator
     } = param;
 
     this.initQaMode();
@@ -113,6 +121,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       this.logManager = logManager;
     }
 
+    this._hitDeduplicator = hitDeduplicator;
     this.fetchFlagsBufferingTime = fetchFlagsBufferingTime ?? FETCH_FLAG_BUFFERING_DEFAULT_TIME;
     this.nextFetchConfig = nextFetchConfig || { revalidate: 20 };
     this._trackingManagerConfig = new TrackingManagerConfig(trackingManagerConfig || {});

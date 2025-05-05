@@ -254,6 +254,8 @@ export class Flagship {
   private async initializeSdk(sdkConfig: IFlagshipConfig): Promise<void> {
     this.setStatus(FSSdkStatus.SDK_INITIALIZING);
 
+
+
     this._sdkManager?.resetSdk();
 
     let sharedActionTracking = this.configManager?.sharedActionTracking;
@@ -278,6 +280,7 @@ export class Flagship {
     this.configManager = new ConfigManager(sdkConfig, decisionManager, trackingManager, sharedActionTracking);
 
     await this._sdkManager?.initSdk();
+    await sdkConfig.hitDeduplicator?.initializeAsync();
 
     this.setStatus(FSSdkStatus.SDK_INITIALIZED);
   }

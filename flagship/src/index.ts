@@ -19,6 +19,11 @@ export type { IVisitorCacheImplementation } from './cache/IVisitorCacheImplement
 export type { IHitCacheImplementation } from './cache/IHitCacheImplementation';
 export type { IFlagshipLogManager } from './utils/FlagshipLogManager';
 
+export type { IFSHitDeduplicator } from './interface/IFSHitDeduplicator';
+export  { type FSInMemoryHitDeduplicatorOptions, FSInMemoryHitDeduplicator } from './deduplication/InMemoryHitDeduplicator';
+export { FSLocalStorageHitDeduplicator, type FSLocalStorageHitDeduplicatorOptions } from './deduplication/FSLocalStorageHitDeduplicator';
+
+
 export type IPageView = Omit<FullIPageView, 'toApiKeys'>
 export type IVisitorEvent = Omit<FullIVisitorEvent, 'toApiKeys'>
 

@@ -2,6 +2,7 @@ import { IHitCacheImplementation } from '../cache/IHitCacheImplementation';
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation';
 import { FSSdkStatus } from '../enum/index';
 import { LogLevel } from '../enum/LogLevel';
+import { IFSHitDeduplicator } from '../interface/IFSHitDeduplicator';
 import { BucketingDTO, OnVisitorExposed } from '../types';
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager';
 import { DecisionMode } from './DecisionMode';
@@ -155,9 +156,11 @@ export interface IFlagshipConfig {
    */
   fetchFlagsBufferingTime?: number;
 
-    isQAModeEnabled?: boolean
+  isQAModeEnabled?: boolean
     /*
      * Disable the collect of analytics data
      */
-    disableDeveloperUsageTracking?: boolean
+  disableDeveloperUsageTracking?: boolean
+
+  hitDeduplicator?: IFSHitDeduplicator
   }
