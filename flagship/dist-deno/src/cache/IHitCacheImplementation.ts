@@ -1,4 +1,4 @@
-import { HitCacheDTO } from '../types.ts'
+import { HitCacheDTO } from '../types.ts';
 
 export interface IHitCacheImplementation {
     /**

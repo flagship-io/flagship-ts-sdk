@@ -1,4 +1,4 @@
-import { FsVariationToForce, VisitorVariations } from '../types.ts'
+import { FsVariationToForce, VisitorVariations } from '../types.ts';
 
 /**
  * All events posted from iframe
@@ -10,6 +10,7 @@ export enum MSG_NAME_FROM_IFRAME {
   FsQaAssistantReady = 'FS_QA_ASSISTANT_READY',
   MinimizeQaAssistantClose = 'ABTASTY_QA_MINIMIZE_QA_ASSISTANT_CLOSE',
   FsTriggerRender = 'FS_TRIGGER_RENDER',
+  QaAssistantPlatformChoiceLoaded = 'ABTASTY_QA_ASSISTANT_PLATFORM_CHOICE_LOADED'
 }
 
 export type FsApplyForcedVariations = {
@@ -24,7 +25,8 @@ export type EventDataFromIframe =
         | MSG_NAME_FROM_IFRAME.FsResetForcedVariations
         | MSG_NAME_FROM_IFRAME.FsQaAssistantReady
         | MSG_NAME_FROM_IFRAME.MinimizeQaAssistantClose
-        | MSG_NAME_FROM_IFRAME.FsTriggerRender;
+        | MSG_NAME_FROM_IFRAME.FsTriggerRender
+        | MSG_NAME_FROM_IFRAME.QaAssistantPlatformChoiceLoaded;
     }
   | FsApplyForcedVariations;
 
@@ -37,11 +39,18 @@ export enum MSG_NAME_TO_IFRAME {
   FsHIT = 'FS_HIT',
 }
 
+export enum VisitorVariationUpdateParam {
+  NewNavigation = 'newNavigation',
+}
+
+
 export type VisitorAllocatedVariations = {
   name:
     | MSG_NAME_TO_IFRAME.FsUpdateVisitorAllocatedVariation
     | MSG_NAME_TO_IFRAME.FsVisitorExposedVariation;
   value: Record<string, VisitorVariations>;
+  param?: VisitorVariationUpdateParam
+
 };
 
 export type FsSendHit = {

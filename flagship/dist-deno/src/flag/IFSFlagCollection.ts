@@ -1,5 +1,5 @@
-import { IFSFlagMetadata, SerializedFlagMetadata } from '../types.ts'
-import { IFSFlag } from './IFSFlag.ts'
+import { IFSFlagMetadata, SerializedFlagMetadata } from '../types.ts';
+import { IFSFlag } from './IFSFlag.ts';
 
 /**
  * Represents a collection of flags.

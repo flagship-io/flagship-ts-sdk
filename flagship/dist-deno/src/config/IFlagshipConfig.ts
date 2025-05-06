@@ -1,11 +1,11 @@
-import { IHitCacheImplementation } from '../cache/IHitCacheImplementation.ts'
-import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation.ts'
-import { FSSdkStatus } from '../enum/index.ts'
-import { LogLevel } from '../enum/LogLevel.ts'
-import { BucketingDTO, OnVisitorExposed } from '../types.ts'
-import { IFlagshipLogManager } from '../utils/FlagshipLogManager.ts'
-import { DecisionMode } from './DecisionMode.ts'
-import { ITrackingManagerConfig } from './TrackingManagerConfig.ts'
+import { IHitCacheImplementation } from '../cache/IHitCacheImplementation.ts';
+import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation.ts';
+import { FSSdkStatus } from '../enum/index.ts';
+import { LogLevel } from '../enum/LogLevel.ts';
+import { BucketingDTO, OnVisitorExposed } from '../types.ts';
+import { IFlagshipLogManager } from '../utils/FlagshipLogManager.ts';
+import { DecisionMode } from './DecisionMode.ts';
+import { ITrackingManagerConfig } from './TrackingManagerConfig.ts';
 
 /**
  * Represents the configuration options for the Flagship SDK.

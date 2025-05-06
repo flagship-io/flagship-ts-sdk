@@ -1,20 +1,20 @@
-import { ANONYMOUS_ID, CUSTOMER_ENV_ID_API_ACTIVATE, QA_MODE_API_ITEM, QT_API_ITEM, VARIATION_GROUP_ID_API_ITEM_ACTIVATE, VARIATION_ID_API_ITEM, VISITOR_ID_API_ITEM } from '../enum/index.ts'
-import { ActivateConstructorParam, IActivate } from '../type.local.ts'
-import { IFSFlagMetadata, primitive } from '../types.ts'
-import { HitAbstract } from './HitAbstract.ts'
+import { ANONYMOUS_ID, CUSTOMER_ENV_ID_API_ACTIVATE, QA_MODE_API_ITEM, QT_API_ITEM, VARIATION_GROUP_ID_API_ITEM_ACTIVATE, VARIATION_ID_API_ITEM, VISITOR_ID_API_ITEM } from '../enum/index.ts';
+import { ActivateConstructorParam, IActivate } from '../type.local.ts';
+import { IFSFlagMetadata, primitive } from '../types.ts';
+import { HitAbstract } from './HitAbstract.ts';
 
-export const ERROR_MESSAGE = 'variationGroupId and variationId are required'
+export const ERROR_MESSAGE = 'variationGroupId and variationId are required';
 
 export class Activate extends HitAbstract implements IActivate {
-  private _variationGroupId! : string
-  private _variationId! : string
-  private _flagKey! : string
-  private _flagValue! : unknown
-  private _flagDefaultValue! : unknown
-  private _flagMetadata! : IFSFlagMetadata
-  private _visitorContext! : Record<string, primitive>
+  private _variationGroupId! : string;
+  private _variationId! : string;
+  private _flagKey! : string;
+  private _flagValue! : unknown;
+  private _flagDefaultValue! : unknown;
+  private _flagMetadata! : IFSFlagMetadata;
+  private _visitorContext! : Record<string, primitive>;
 
-  public constructor (param:ActivateConstructorParam) {
+  public constructor(param:ActivateConstructorParam) {
     super({
       type: 'ACTIVATE',
       userIp: param.userIp,
@@ -24,81 +24,81 @@ export class Activate extends HitAbstract implements IActivate {
       visitorId: param.visitorId,
       anonymousId: param.anonymousId,
       qaMode: param.qaMode
-    })
+    });
     const {
       variationGroupId, variationId, flagKey, flagValue,
       flagDefaultValue, flagMetadata, visitorContext
-    } = param
-    this.variationGroupId = variationGroupId
-    this.variationId = variationId
-    this.flagKey = flagKey
-    this.flagValue = flagValue
-    this.flagDefaultValue = flagDefaultValue
-    this.flagMetadata = flagMetadata
-    this.visitorContext = visitorContext
+    } = param;
+    this.variationGroupId = variationGroupId;
+    this.variationId = variationId;
+    this.flagKey = flagKey;
+    this.flagValue = flagValue;
+    this.flagDefaultValue = flagDefaultValue;
+    this.flagMetadata = flagMetadata;
+    this.visitorContext = visitorContext;
   }
 
-  public get variationGroupId () : string {
-    return this._variationGroupId
+  public get variationGroupId() : string {
+    return this._variationGroupId;
   }
 
-  public set variationGroupId (v : string) {
-    this._variationGroupId = v
+  public set variationGroupId(v : string) {
+    this._variationGroupId = v;
   }
 
-  public get variationId () : string {
-    return this._variationId
+  public get variationId() : string {
+    return this._variationId;
   }
 
-  public set variationId (v : string) {
-    this._variationId = v
+  public set variationId(v : string) {
+    this._variationId = v;
   }
 
-  public get flagKey () : string {
-    return this._flagKey
+  public get flagKey() : string {
+    return this._flagKey;
   }
 
-  public set flagKey (v : string) {
-    this._flagKey = v
+  public set flagKey(v : string) {
+    this._flagKey = v;
   }
 
-  public get flagValue () : unknown {
-    return this._flagValue
+  public get flagValue() : unknown {
+    return this._flagValue;
   }
 
-  public set flagValue (v : unknown) {
-    this._flagValue = v
+  public set flagValue(v : unknown) {
+    this._flagValue = v;
   }
 
-  public get flagDefaultValue () : unknown {
-    return this._flagDefaultValue
+  public get flagDefaultValue() : unknown {
+    return this._flagDefaultValue;
   }
 
-  public set flagDefaultValue (v : unknown) {
-    this._flagDefaultValue = v
+  public set flagDefaultValue(v : unknown) {
+    this._flagDefaultValue = v;
   }
 
-  public get flagMetadata () : IFSFlagMetadata {
-    return this._flagMetadata
+  public get flagMetadata() : IFSFlagMetadata {
+    return this._flagMetadata;
   }
 
-  public set flagMetadata (v : IFSFlagMetadata) {
-    this._flagMetadata = v
+  public set flagMetadata(v : IFSFlagMetadata) {
+    this._flagMetadata = v;
   }
 
-  public get visitorContext () : Record<string, primitive> {
-    return this._visitorContext
+  public get visitorContext() : Record<string, primitive> {
+    return this._visitorContext;
   }
 
-  public set visitorContext (v : Record<string, primitive>) {
-    this._visitorContext = v
+  public set visitorContext(v : Record<string, primitive>) {
+    this._visitorContext = v;
   }
 
-  public isReady (checkParent = true):boolean {
-    return !!((!checkParent || super.isReady()) && this.variationGroupId && this.variationId)
+  public isReady(checkParent = true):boolean {
+    return !!((!checkParent || super.isReady()) && this.variationGroupId && this.variationId);
   }
 
-  public toApiKeys ():Record<string, unknown> {
+  public toApiKeys():Record<string, unknown> {
     const apiKeys:Record<string, unknown> = {
       [VISITOR_ID_API_ITEM]: this.anonymousId || this.visitorId,
       [VARIATION_ID_API_ITEM]: this.variationId,
@@ -106,29 +106,29 @@ export class Activate extends HitAbstract implements IActivate {
       [CUSTOMER_ENV_ID_API_ACTIVATE]: this.config.envId,
       [ANONYMOUS_ID]: null,
       [QT_API_ITEM]: Date.now() - this.createdAt
-    }
+    };
 
     if (this.visitorId && this.anonymousId) {
-      apiKeys[VISITOR_ID_API_ITEM] = this.visitorId
-      apiKeys[ANONYMOUS_ID] = this.anonymousId
+      apiKeys[VISITOR_ID_API_ITEM] = this.visitorId;
+      apiKeys[ANONYMOUS_ID] = this.anonymousId;
     }
 
     if (this.qaMode) {
-      apiKeys[QA_MODE_API_ITEM] = this.qaMode
+      apiKeys[QA_MODE_API_ITEM] = this.qaMode;
     }
 
-    return apiKeys
+    return apiKeys;
   }
 
-  public toObject ():Record<string, unknown> {
+  public toObject():Record<string, unknown> {
     return {
       ...super.toObject(),
       variationGroupId: this.variationGroupId,
       variationId: this.variationId
-    }
+    };
   }
 
-  public getErrorMessage (): string {
-    return ERROR_MESSAGE
+  public getErrorMessage(): string {
+    return ERROR_MESSAGE;
   }
 }
