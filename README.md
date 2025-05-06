@@ -1,4 +1,4 @@
-[![CI](https://github.com/flagship-io/flagship-deno-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/flagship-io/flagship-deno-sdk/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/flagship-io/flagship-ts-sdk/branch/main/graph/badge.svg?token=IW0NWPTPSH)](https://codecov.io/gh/flagship-io/flagship-ts-sdk) [![npm version](https://badge.fury.io/js/@flagship.io%2Fjs-sdk.svg)](https://badge.fury.io/js/@flagship.io%2Fjs-sdk)
+[![Test](https://github.com/flagship-io/flagship-ts-sdk/actions/workflows/ci_push.yml/badge.svg)](https://github.com/flagship-io/flagship-ts-sdk/actions/workflows/ci_push.yml) [![codecov](https://codecov.io/gh/flagship-io/flagship-ts-sdk/branch/main/graph/badge.svg?token=IW0NWPTPSH)](https://codecov.io/gh/flagship-io/flagship-ts-sdk) [![npm version](https://badge.fury.io/js/@flagship.io%2Fjs-sdk.svg)](https://badge.fury.io/js/@flagship.io%2Fjs-sdk)
 
 ## About Flagship
 
