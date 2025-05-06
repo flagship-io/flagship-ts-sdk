@@ -1,15 +1,13 @@
-import {
-  IC_API_ITEM,
+import { IC_API_ITEM,
   IN_API_ITEM,
   IP_API_ITEM,
   IQ_API_ITEM,
   IV_API_ITEM,
-  TID_API_ITEM
-} from '../enum/FlagshipConstant.ts'
-import { HitType } from '../enum/HitType.ts'
-import { HitAbstract, IHitAbstract } from './HitAbstract.ts'
+  TID_API_ITEM } from '../enum/FlagshipConstant';
+import { HitType } from '../enum/HitType.ts';
+import { HitAbstract, IHitAbstract } from './HitAbstract.ts';
 
-export const ERROR_MESSAGE = 'Transaction Id, Item name and item code are required'
+export const ERROR_MESSAGE = 'Transaction Id, Item name and item code are required';
 
 export interface IItem extends IHitAbstract{
    transactionId: string
@@ -21,95 +19,95 @@ export interface IItem extends IHitAbstract{
 }
 
 export class Item extends HitAbstract implements IItem {
-  private _transactionId!: string
-  private _productName!: string
-  private _productSku!: string
-  private _itemPrice!: number
-  private _itemQuantity!: number
-  private _itemCategory!: string
+  private _transactionId!: string;
+  private _productName!: string;
+  private _productSku!: string;
+  private _itemPrice!: number;
+  private _itemQuantity!: number;
+  private _itemCategory!: string;
 
-  public get transactionId (): string {
-    return this._transactionId
+  public get transactionId(): string {
+    return this._transactionId;
   }
 
   /**
    * Specify transaction unique identifier.
    */
-  public set transactionId (v: string) {
+  public set transactionId(v: string) {
     if (!this.isNotEmptyString(v, 'transactionId')) {
-      return
+      return;
     }
-    this._transactionId = v
+    this._transactionId = v;
   }
 
-  public get productName (): string {
-    return this._productName
+  public get productName(): string {
+    return this._productName;
   }
 
   /**
    * Specify name of the item product.
    */
-  public set productName (v: string) {
+  public set productName(v: string) {
     if (!this.isNotEmptyString(v, 'productName')) {
-      return
+      return;
     }
-    this._productName = v
+    this._productName = v;
   }
 
-  public get productSku (): string {
-    return this._productSku
+  public get productSku(): string {
+    return this._productSku;
   }
 
   /**
    * Specify the SKU or item code.
    */
-  public set productSku (v: string) {
+  public set productSku(v: string) {
     if (!this.isNotEmptyString(v, 'productSku')) {
-      return
+      return;
     }
-    this._productSku = v
+    this._productSku = v;
   }
 
-  public get itemPrice (): number {
-    return this._itemPrice
+  public get itemPrice(): number {
+    return this._itemPrice;
   }
 
   /**
    * Specify the price for a single item
    */
-  public set itemPrice (v: number) {
+  public set itemPrice(v: number) {
     if (!this.isNumeric(v, 'itemPrice')) {
-      return
+      return;
     }
-    this._itemPrice = v
+    this._itemPrice = v;
   }
 
-  public get itemQuantity (): number {
-    return this._itemQuantity
+  public get itemQuantity(): number {
+    return this._itemQuantity;
   }
 
   /**
    * Specify the number of items purchased.
    */
-  public set itemQuantity (v: number) {
+  public set itemQuantity(v: number) {
     if (!this.isInteger(v, 'itemQuantity')) {
-      return
+      return;
     }
-    this._itemQuantity = Math.trunc(v)
+    this._itemQuantity = Math.trunc(v);
   }
 
-  public get itemCategory (): string {
-    return this._itemCategory
+  public get itemCategory(): string {
+    return this._itemCategory;
   }
 
   /**
    * Specify the category that the item belongs to
    */
-  public set itemCategory (v: string) {
+  public set itemCategory(v: string) {
     if (!this.isNotEmptyString(v, 'itemCategory')) {
-      return
+      return;
     }
-    this._itemCategory = v
+    this._itemCategory = v;
   }
 
   /**
@@ -118,7 +116,7 @@ export class Item extends HitAbstract implements IItem {
    * @param productName : Name of the item product.
    * @param productSku : The SKU or item code.
    */
-  public constructor (param:Omit<IItem, 'type'|'createdAt'|'visitorInstanceId'|'traffic'>) {
+  public constructor(param:Omit<IItem, 'type'|'createdAt'|'visitorInstanceId'|'traffic'>) {
     super({
       type: HitType.ITEM,
       userIp: param.userIp,
@@ -129,55 +127,55 @@ export class Item extends HitAbstract implements IItem {
       anonymousId: param.anonymousId,
       qaMode: param.qaMode,
       isActionTrackingHit: param.isActionTrackingHit
-    })
+    });
     const {
       transactionId, productName, productSku,
       itemCategory, itemPrice, itemQuantity
-    } = param
-    this.transactionId = transactionId
-    this.productName = productName
-    this.productSku = productSku
+    } = param;
+    this.transactionId = transactionId;
+    this.productName = productName;
+    this.productSku = productSku;
 
     if (itemCategory) {
-      this.itemCategory = itemCategory
+      this.itemCategory = itemCategory;
     }
     if (itemPrice) {
-      this.itemPrice = itemPrice
+      this.itemPrice = itemPrice;
     }
     if (itemQuantity) {
-      this.itemQuantity = itemQuantity
+      this.itemQuantity = itemQuantity;
     }
   }
 
-  public isReady (checkParent = true): boolean {
+  public isReady(checkParent = true): boolean {
     return !!(
       (!checkParent || super.isReady()) &&
       this.transactionId &&
       this.productName &&
       this.productSku
-    )
+    );
   }
 
-   
-  public toApiKeys ():Record<string, unknown> {
-    const apiKeys = super.toApiKeys()
-    apiKeys[TID_API_ITEM] = this.transactionId
-    apiKeys[IN_API_ITEM] = this.productName
-    apiKeys[IC_API_ITEM] = this.productSku
+
+  public toApiKeys():Record<string, unknown> {
+    const apiKeys = super.toApiKeys();
+    apiKeys[TID_API_ITEM] = this.transactionId;
+    apiKeys[IN_API_ITEM] = this.productName;
+    apiKeys[IC_API_ITEM] = this.productSku;
 
     if (this.itemPrice) {
-      apiKeys[IP_API_ITEM] = this.itemPrice
+      apiKeys[IP_API_ITEM] = this.itemPrice;
     }
     if (this.itemQuantity) {
-      apiKeys[IQ_API_ITEM] = this.itemQuantity
+      apiKeys[IQ_API_ITEM] = this.itemQuantity;
     }
     if (this.itemCategory) {
-      apiKeys[IV_API_ITEM] = this.itemCategory
+      apiKeys[IV_API_ITEM] = this.itemCategory;
     }
-    return apiKeys
+    return apiKeys;
   }
 
-  public toObject ():Record<string, unknown> {
+  public toObject():Record<string, unknown> {
     return {
       ...super.toObject(),
       transactionId: this.transactionId,
@@ -186,10 +184,10 @@ export class Item extends HitAbstract implements IItem {
       itemPrice: this.itemPrice,
       itemQuantity: this.itemQuantity,
       itemCategory: this.itemCategory
-    }
+    };
   }
 
-  public getErrorMessage (): string {
-    return ERROR_MESSAGE
+  public getErrorMessage(): string {
+    return ERROR_MESSAGE;
   }
 }

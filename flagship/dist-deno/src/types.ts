@@ -1,14 +1,12 @@
-import { FSFetchReasons } from './enum/FSFetchReasons.ts'
-import { FSFetchStatus } from './enum/FSFetchStatus.ts'
-import { HitType } from './enum/index.ts'
-import {
-  IEvent,
+import { FSFetchReasons } from './enum/FSFetchReasons.ts';
+import { FSFetchStatus } from './enum/FSFetchStatus.ts';
+import { HitType } from './enum/index.ts';
+import { IEvent,
   IItem,
   IPage,
   IScreen,
   ITransaction,
-  IHitAbstract
-} from './hit/index.ts'
+  IHitAbstract } from './hit/index';
 
 export type modificationsRequested<T> = {
   key: string;
@@ -392,6 +390,7 @@ export interface BucketingDTO {
 export type VisitorProfile={
   visitorId:string,
   anonymousId: string|null
+  isClientSuppliedId?: boolean,
 }
 
 export enum ABTastyWebSDKPostMessageType {

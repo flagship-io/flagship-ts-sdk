@@ -1,104 +1,104 @@
-import { FSSdkStatus, FLAG_VISITOR_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_PANIC_MODE } from '../enum/index.ts'
-import { CampaignDTO, FlagDTO, IFSFlagMetadata, IHit } from '../types.ts'
-import { logInfoSprintf } from '../utils/utils.ts'
-import { DefaultStrategy } from './DefaultStrategy.ts'
-import { type HitAbstract } from '../hit/HitAbstract.ts'
-import { BatchDTO } from '../hit/Batch.ts'
-import { FSFlagMetadata } from '../flag/FSFlagMetadata.ts'
+import { FSSdkStatus, FLAG_VISITOR_EXPOSED, METHOD_DEACTIVATED_ERROR, FLAG_METADATA, METADATA_PANIC_MODE } from '../enum/index.ts';
+import { CampaignDTO, FlagDTO, IFSFlagMetadata, IHit } from '../types.ts';
+import { logInfoSprintf } from '../utils/utils.ts';
+import { DefaultStrategy } from './DefaultStrategy.ts';
+import { type HitAbstract } from '../hit/HitAbstract.ts';
+import { BatchDTO } from '../hit/Batch.ts';
+import { FSFlagMetadata } from '../flag/FSFlagMetadata.ts';
 
 export class PanicStrategy extends DefaultStrategy {
-  setConsent (hasConsented:boolean):void {
-    this.visitor.hasConsented = hasConsented
+  setConsent(hasConsented:boolean):void {
+    this.visitor.hasConsented = hasConsented;
   }
 
-  updateContext (): void {
-    this.log('updateContext')
+  updateContext(): void {
+    this.log('updateContext');
   }
 
-  clearContext (): void {
-    this.log('clearContext')
+  clearContext(): void {
+    this.log('clearContext');
   }
 
-  async lookupHits (): Promise<void> {
+  async lookupHits(): Promise<void> {
     //
   }
 
-  async lookupVisitor (): Promise<void> {
+  async lookupVisitor(): Promise<void> {
     //
   }
 
-  public async cacheVisitor ():Promise<void> {
+  public async cacheVisitor():Promise<void> {
     //
   }
 
-  protected async cacheHit (): Promise<void> {
+  protected async cacheHit(): Promise<void> {
     //
   }
 
-  protected fetchCampaignsFromCache (): CampaignDTO[] {
-    return []
+  protected fetchCampaignsFromCache(): CampaignDTO[] {
+    return [];
   }
 
-   
-  async sendHit (_hit: HitAbstract | IHit| BatchDTO): Promise<void> {
-    this.log('sendHit')
+
+  async sendHit(_hit: HitAbstract | IHit| BatchDTO): Promise<void> {
+    this.log('sendHit');
   }
 
-   
-  async sendHits (_hits: HitAbstract[] | IHit[]|BatchDTO[]): Promise<void> {
-    this.log('sendHits')
+
+  async sendHits(_hits: HitAbstract[] | IHit[]|BatchDTO[]): Promise<void> {
+    this.log('sendHits');
   }
 
-  getFlagValue<T> (param:{ key:string, defaultValue: T, flag?:FlagDTO, visitorExposed?: boolean}): T extends null ? unknown : T {
-    this.log('Flag.value')
-    return param.defaultValue as T extends null ? unknown : T
+  getFlagValue<T>(param:{ key:string, defaultValue: T, flag?:FlagDTO, visitorExposed?: boolean}): T extends null ? unknown : T {
+    this.log('Flag.value');
+    return param.defaultValue as T extends null ? unknown : T;
   }
 
-  async visitorExposed (): Promise<void> {
-    this.log(FLAG_VISITOR_EXPOSED)
+  async visitorExposed(): Promise<void> {
+    this.log(FLAG_VISITOR_EXPOSED);
   }
 
-  getFlagMetadata (param:{ key:string, flag?:FlagDTO}):IFSFlagMetadata {
-    const emptyMetaData = FSFlagMetadata.Empty()
-    logInfoSprintf(this.config, FLAG_METADATA, METADATA_PANIC_MODE, this.visitor.visitorId, param.key, emptyMetaData)
-    return emptyMetaData
+  getFlagMetadata(param:{ key:string, flag?:FlagDTO}):IFSFlagMetadata {
+    const emptyMetaData = FSFlagMetadata.Empty();
+    logInfoSprintf(this.config, FLAG_METADATA, METADATA_PANIC_MODE, this.visitor.visitorId, param.key, emptyMetaData);
+    return emptyMetaData;
   }
 
-   
-  public async sendTroubleshootingHit (): Promise<void> {
+
+  public async sendTroubleshootingHit(): Promise<void> {
     //
   }
 
-  public async sendSdkConfigAnalyticHit (): Promise<void> {
+  public async sendSdkConfigAnalyticHit(): Promise<void> {
     //
   }
 
-   
-  protected async sendActivate (_flagDto: FlagDTO, _defaultValue?: unknown): Promise<void> {
+
+  protected async sendActivate(_flagDto: FlagDTO, _defaultValue?: unknown): Promise<void> {
     //
   }
 
-  public async collectEAIEventsAsync (): Promise<void> {
-    this.log('collectEAIData')
+  public async collectEAIEventsAsync(): Promise<void> {
+    this.log('collectEAIData');
   }
 
-  public reportEaiPageView (): void {
+  public reportEaiPageView(): void {
     //
   }
 
-  public reportEaiVisitorEvent (): void {
+  public reportEaiVisitorEvent(): void {
     //
   }
 
-  public onEAICollectStatusChange (): void {
+  public onEAICollectStatusChange(): void {
     //
   }
 
-  public async addInTrackingManager (): Promise<void> {
+  public async addInTrackingManager(): Promise<void> {
     //
   }
 
-  private log (methodName:string):void {
-    logInfoSprintf(this.config, methodName, METHOD_DEACTIVATED_ERROR, this.visitor.visitorId, methodName, FSSdkStatus[FSSdkStatus.SDK_PANIC])
+  private log(methodName:string):void {
+    logInfoSprintf(this.config, methodName, METHOD_DEACTIVATED_ERROR, this.visitor.visitorId, methodName, FSSdkStatus[FSSdkStatus.SDK_PANIC]);
   }
 }

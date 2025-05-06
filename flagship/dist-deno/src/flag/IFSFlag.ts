@@ -1,5 +1,5 @@
-import { FSFlagStatus } from '../enum/FSFlagStatus.ts'
-import { IFSFlagMetadata } from '../types.ts'
+import { FSFlagStatus } from '../enum/FSFlagStatus.ts';
+import { IFSFlagMetadata } from '../types.ts';
 
 /**
  * This class represents a flag in the `Flagship SDK`. It helps you retrieve the flag value, access flag metadata,

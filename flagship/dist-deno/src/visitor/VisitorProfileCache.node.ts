@@ -1,19 +1,19 @@
-import { IFlagshipConfig } from '../config/IFlagshipConfig.ts'
-import { IVisitorProfileCache } from '../type.local.ts'
-import { VisitorProfile } from '../types.ts'
+import { IFlagshipConfig } from '../config/IFlagshipConfig.ts';
+import { IVisitorProfileCache } from '../type.local.ts';
+import { VisitorProfile } from '../types.ts';
 
 export class VisitorProfileCache implements IVisitorProfileCache {
-  private _sdkConfig:IFlagshipConfig
-  constructor (sdkConfig:IFlagshipConfig) {
-    this._sdkConfig = sdkConfig
+  private _sdkConfig:IFlagshipConfig;
+  constructor(sdkConfig:IFlagshipConfig) {
+    this._sdkConfig = sdkConfig;
   }
 
-  saveVisitorProfile (): void {
+  saveVisitorProfile(): void {
     //
   }
 
-  loadVisitorProfile (): VisitorProfile | null {
+  loadVisitorProfile(): VisitorProfile | null {
     //
-    return null
+    return null;
   }
 }

@@ -1,46 +1,46 @@
-import { ConstructorParam } from '../type.local.ts'
-import { EAIScore } from '../types.ts'
-import { IEmotionAI } from './IEmotionAI.ts'
+import { ConstructorParam } from '../type.local.ts';
+import { EAIScore } from '../types.ts';
+import { IEmotionAI } from './IEmotionAI.ts';
 
 export class EmotionAI implements IEmotionAI {
-   
-  public constructor (_params: ConstructorParam) {
+
+  public constructor(_params: ConstructorParam) {
     //
   }
 
-  init (): void {
+  init(): void {
     //
   }
 
-  async reportPageView (): Promise<void> {
+  async reportPageView(): Promise<void> {
     //
   }
 
-  onEAICollectStatusChange (): void {
+  onEAICollectStatusChange(): void {
     //
   }
 
-  protected async startCollectingEAIData (): Promise<void> {
+  protected async startCollectingEAIData(): Promise<void> {
     //
   }
 
-  public async reportVisitorEvent (): Promise<void> {
+  public async reportVisitorEvent(): Promise<void> {
     //
   }
 
-  public cleanup (): void {
+  public cleanup(): void {
     //
   }
 
-  protected removeListeners (): void {
+  protected removeListeners(): void {
     //
   }
 
-  public async fetchEAIScore (): Promise<EAIScore | undefined> {
-    return undefined
+  public async fetchEAIScore(): Promise<EAIScore | undefined> {
+    return undefined;
   }
 
-  public async collectEAIEventsAsync (): Promise<void> {
+  public async collectEAIEventsAsync(): Promise<void> {
     //
   }
 }

@@ -1,7 +1,7 @@
-import { type IFlagshipConfig } from './IFlagshipConfig.ts'
-import { type IDecisionManager } from '../decision/IDecisionManager.ts'
-import { type ITrackingManager } from '../api/ITrackingManager.ts'
-import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking.ts'
+import { type IFlagshipConfig } from './IFlagshipConfig.ts';
+import { type IDecisionManager } from '../decision/IDecisionManager.ts';
+import { type ITrackingManager } from '../api/ITrackingManager.ts';
+import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking.ts';
 
 export interface IConfigManager {
   config: IFlagshipConfig;
@@ -14,48 +14,48 @@ export interface IConfigManager {
 
 }
 export class ConfigManager implements IConfigManager {
-  private _config: IFlagshipConfig
-  private _decisionManager: IDecisionManager
-  private _trackingManager: ITrackingManager
-  private _sharedActionTracking?: ISharedActionTracking
+  private _config: IFlagshipConfig;
+  private _decisionManager: IDecisionManager;
+  private _trackingManager: ITrackingManager;
+  private _sharedActionTracking?: ISharedActionTracking;
 
-  public constructor (
+  public constructor(
     config: IFlagshipConfig,
     decisionManager: IDecisionManager,
     trackingManager: ITrackingManager,
     sharedActionTracking?: ISharedActionTracking
   ) {
-    this._config = config
-    this._decisionManager = decisionManager
-    this._trackingManager = trackingManager
-    this._sharedActionTracking = sharedActionTracking
+    this._config = config;
+    this._decisionManager = decisionManager;
+    this._trackingManager = trackingManager;
+    this._sharedActionTracking = sharedActionTracking;
   }
 
-  get config (): IFlagshipConfig {
-    return this._config
+  get config(): IFlagshipConfig {
+    return this._config;
   }
 
-  set config (value: IFlagshipConfig) {
-    this._config = value
+  set config(value: IFlagshipConfig) {
+    this._config = value;
   }
 
-  get decisionManager (): IDecisionManager {
-    return this._decisionManager
+  get decisionManager(): IDecisionManager {
+    return this._decisionManager;
   }
 
-  set decisionManager (value: IDecisionManager) {
-    this._decisionManager = value
+  set decisionManager(value: IDecisionManager) {
+    this._decisionManager = value;
   }
 
-  get trackingManager (): ITrackingManager {
-    return this._trackingManager
+  get trackingManager(): ITrackingManager {
+    return this._trackingManager;
   }
 
-  set trackingManager (value: ITrackingManager) {
-    this._trackingManager = value
+  set trackingManager(value: ITrackingManager) {
+    this._trackingManager = value;
   }
 
-  get sharedActionTracking (): ISharedActionTracking | undefined {
-    return this._sharedActionTracking
+  get sharedActionTracking(): ISharedActionTracking | undefined {
+    return this._sharedActionTracking;
   }
 }
