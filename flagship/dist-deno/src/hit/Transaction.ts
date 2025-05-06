@@ -8,7 +8,7 @@ import { ICN_API_ITEM,
   TID_API_ITEM,
   TR_API_ITEM,
   TS_API_ITEM,
-  TT_API_ITEM } from '../enum/FlagshipConstant';
+  TT_API_ITEM } from '../enum/FlagshipConstant.ts';
 import { HitType } from '../enum/HitType.ts';
 import { logError, sprintf } from '../utils/utils.ts';
 import { HitAbstract, IHitAbstract } from './HitAbstract.ts';

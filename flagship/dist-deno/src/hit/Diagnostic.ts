@@ -5,7 +5,7 @@ import { CUSTOMER_ENV_ID_API_ITEM,
   SDK_APP,
   SDK_INFO,
   T_API_ITEM,
-  VISITOR_ID_API_ITEM } from '../enum/FlagshipConstant';
+  VISITOR_ID_API_ITEM } from '../enum/FlagshipConstant.ts';
 import { HitAbstract, IHitAbstract } from './HitAbstract.ts';
 import { BucketingDTO } from '../decision/api/bucketingDTO.ts';
 import { AccountSettings, EAIScore, FlagDTO, SerializedFlagMetadata, TroubleshootingLabel, primitive } from '../types.ts';

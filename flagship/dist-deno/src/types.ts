@@ -6,7 +6,7 @@ import { IEvent,
   IPage,
   IScreen,
   ITransaction,
-  IHitAbstract } from './hit/index';
+  IHitAbstract } from './hit/index.ts';
 
 export type modificationsRequested<T> = {
   key: string;

@@ -33,12 +33,12 @@ import { AUTHENTICATE,
   VISITOR_AUTHENTICATE_VISITOR_ID_ERROR,
   VISITOR_EXPOSED_VALUE_NOT_CALLED,
   VISITOR_UNAUTHENTICATE,
-  VISITOR_ALREADY_AUTHENTICATE } from '../enum/index';
+  VISITOR_ALREADY_AUTHENTICATE } from '../enum/index.ts';
 import { IPage,
   IScreen,
   IEvent,
   IItem,
-  ITransaction } from '../hit/index';
+  ITransaction } from '../hit/index.ts';
 import { primitive, IHit, FlagDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorVariations, CampaignDTO } from '../types.ts';
 import { deepEqual, errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils.ts';
 import { StrategyAbstract } from './StrategyAbstract.ts';

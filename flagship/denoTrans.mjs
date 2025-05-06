@@ -38,12 +38,11 @@ function transformFile (filePath, dirPath, packageResolves = null) {
       const lastChar = item.substring(item.length - 1)
       content = content.replace(item, item.replace(/'$/gm, '.ts' + lastChar))
     }
-    const regex1 = /^import {.+} from ['"].+['"]/gm
-    const regex2 = /^import {[\n\r](.*[\n\r])+} from ['"].+['"]/gm
-    const regex3 = /^export .* from ['"].*['"]/gm
-    const regex4 = /^export {[\n\r](.*[\n\r])*} from ['"].*['"]/gm;
+    const regex1 = /^export .* from ['"].*['"]/gm
+    const regex2 = /export\s*.*\s*\{[a-zA-z,0-9\n\r\s]*\}\s*from\s*['"].*[^.ts]['"]/gm;
+    const regex3 = /import\s*\{[a-zA-z,0-9\n\r\s]*\}\s*from\s*['"](?!.*\.ts).*['"]/gm;
 
-    [regex1, regex2, regex3, regex4].forEach(regex => {
+    [regex1, regex2,regex3].forEach(regex => {
       const match = content.match(regex)
       match?.forEach(replaceRegex)
     })
