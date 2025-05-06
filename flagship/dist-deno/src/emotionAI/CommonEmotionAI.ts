@@ -11,7 +11,7 @@ import { VisitorAbstract } from '../visitor/VisitorAbstract.ts';
 import { VisitorEvent } from './hit/VisitorEvent.ts';
 import { LogLevel } from '../enum/index.ts';
 import { UsageHit } from '../hit/UsageHit.ts';
-import { HttpError } from '../utils/HttpError.ts.ts';
+import { HttpError } from '../utils/HttpError.ts';
 
 type ConstructorParam = {
   httpClient: IHttpClient;

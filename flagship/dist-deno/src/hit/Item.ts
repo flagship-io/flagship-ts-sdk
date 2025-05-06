@@ -3,7 +3,7 @@ import { IC_API_ITEM,
   IP_API_ITEM,
   IQ_API_ITEM,
   IV_API_ITEM,
-  TID_API_ITEM } from '../enum/FlagshipConstant';
+  TID_API_ITEM } from '../enum/FlagshipConstant.ts';
 import { HitType } from '../enum/HitType.ts';
 import { HitAbstract, IHitAbstract } from './HitAbstract.ts';
 

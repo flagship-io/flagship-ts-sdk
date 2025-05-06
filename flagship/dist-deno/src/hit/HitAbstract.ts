@@ -11,7 +11,7 @@ import { CUSTOMER_ENV_ID_API_ITEM,
   USER_LANGUAGE,
   QT_API_ITEM,
   SDK_APP,
-  QA_MODE_API_ITEM } from '../enum/FlagshipConstant';
+  QA_MODE_API_ITEM } from '../enum/FlagshipConstant.ts';
 import { InternalHitType, primitive } from '../types.ts';
 import { logError, sprintf } from '../utils/utils.ts';
 

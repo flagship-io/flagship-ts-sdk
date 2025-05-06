@@ -8,7 +8,7 @@ import { FlagDTO,
   InternalHitType,
   primitive,
   VisitorProfile,
-  VisitorVariations } from './types';
+  VisitorVariations } from './types.ts';
 import { type IHttpClient } from './utils/HttpClient.ts';
 
 export type VisitorExposedParam = {

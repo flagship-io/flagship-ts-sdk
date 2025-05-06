@@ -19,7 +19,7 @@ export { DecisionApiConfig, DecisionMode } from './config/index.ts';
 export type { IFlagshipConfig } from './config/index.ts';
 export type {
   IEvent, IItem, IPage, IScreen, ITransaction
-} from './hit/index';
+} from './hit/index.ts';
 export { EventCategory } from './hit/index.ts';
 export {
   FSSdkStatus, LogLevel, HitType, CacheStrategy, FSFetchReasons, FSFetchStatus, FSFlagStatus

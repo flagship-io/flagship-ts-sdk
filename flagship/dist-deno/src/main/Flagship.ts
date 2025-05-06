@@ -19,7 +19,7 @@ import { INITIALIZATION_PARAM_ERROR,
   PROCESS_SDK_STATUS,
   SDK_STATUS_CHANGED,
   SAVE_VISITOR_INSTANCE,
-  CONSENT_NOT_SPECIFY_WARNING } from '../enum/index';
+  CONSENT_NOT_SPECIFY_WARNING } from '../enum/index.ts';
 import { VisitorDelegate } from '../visitor/VisitorDelegate.ts';
 
 import { BucketingManager } from '../decision/BucketingManager.ts';
@@ -42,7 +42,7 @@ import { DefaultVisitorCache } from '../cache/DefaultVisitorCache.ts';
 import { DefaultHitCache } from '../cache/DefaultHitCache.ts';
 import { SharedActionTracking } from '../sharedFeature/SharedActionTracking.ts';
 import { SdkApi } from '../sdkApi/v1/SdkApi.ts';
-import { VisitorVariationState } from '../type.local.ts.ts';
+import { VisitorVariationState } from '../type.local.ts';
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.

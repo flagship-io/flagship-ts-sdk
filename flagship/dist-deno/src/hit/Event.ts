@@ -1,7 +1,7 @@
 import { EVENT_ACTION_API_ITEM,
   EVENT_CATEGORY_API_ITEM,
   EVENT_LABEL_API_ITEM,
-  EVENT_VALUE_API_ITEM } from '../enum/FlagshipConstant';
+  EVENT_VALUE_API_ITEM } from '../enum/FlagshipConstant.ts';
 import { HitType } from '../enum/HitType.ts';
 import { logError } from '../utils/utils.ts';
 import { EventCategory } from './EventCategory.ts';

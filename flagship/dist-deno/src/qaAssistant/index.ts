@@ -7,7 +7,7 @@ import { FS_QA_ASSISTANT,
   TAG_QA_ASSISTANT,
   TAG_QA_ASSISTANT_LOCAL,
   TAG_QA_ASSISTANT_STAGING,
-  TRUSTED_QA_ORIGINS } from '../enum/FlagshipConstant';
+  TRUSTED_QA_ORIGINS } from '../enum/FlagshipConstant.ts';
 import { IFlagshipConfig } from '../config/IFlagshipConfig.ts';
 import { isBrowser, onDomReady } from '../utils/utils.ts';
 import { listenForKeyboardQaAssistant } from './listenForKeyboardQaAssistant.ts';
