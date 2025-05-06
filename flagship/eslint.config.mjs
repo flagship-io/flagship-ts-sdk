@@ -8,7 +8,7 @@ import eslintPluginFormatting from 'eslint-plugin-format';
 
 export default defineConfig([
   // Global ignores
-  globalIgnores(['**/dist', '**/dist-deno', '**/coverage', '**/node_modules', '**/src/depsDeno.ts']),
+  globalIgnores(['**/dist', '**/dist-deno', '**/coverage', '**/node_modules', '**/src/depsDeno.ts', '**/src/sdkVersion.ts']),
 
   js.configs.recommended,
   ...tseslint.configs.recommended,
