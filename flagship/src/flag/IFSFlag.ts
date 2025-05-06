@@ -1,5 +1,5 @@
-import { FSFlagStatus } from '../enum/FSFlagStatus'
-import { IFSFlagMetadata } from '../types'
+import { FSFlagStatus } from '../enum/FSFlagStatus';
+import { IFSFlagMetadata } from '../types';
 
 /**
  * This class represents a flag in the `Flagship SDK`. It helps you retrieve the flag value, access flag metadata,

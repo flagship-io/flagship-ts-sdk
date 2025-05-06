@@ -1,7 +1,7 @@
-import { EAIScore } from '../types'
-import { VisitorAbstract } from '../visitor/VisitorAbstract'
-import { IPageView } from './hit/IPageView'
-import { IVisitorEvent } from './hit/IVisitorEvent'
+import { EAIScore } from '../types';
+import { VisitorAbstract } from '../visitor/VisitorAbstract';
+import { IPageView } from './hit/IPageView';
+import { IVisitorEvent } from './hit/IVisitorEvent';
 
 export interface IEmotionAI {
 

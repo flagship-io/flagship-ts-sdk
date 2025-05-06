@@ -103,9 +103,7 @@ export const bucketing = {
               id: 'c20j8bk3fk9hdphqtd30',
               modifications: {
                 type: 'HTML',
-                value: {
-                  my_html: '\u003cdiv\u003e\n  \u003cp\u003eOriginal\u003c/p\u003e\n\u003c/div\u003e'
-                }
+                value: { my_html: '\u003cdiv\u003e\n  \u003cp\u003eOriginal\u003c/p\u003e\n\u003c/div\u003e' }
               },
               allocation: 34,
               reference: true
@@ -114,9 +112,7 @@ export const bucketing = {
               id: 'c20j8bk3fk9hdphqtd3g',
               modifications: {
                 type: 'HTML',
-                value: {
-                  my_html: '\u003cdiv\u003e\n  \u003cp\u003evariation 1\u003c/p\u003e\n\u003c/div\u003e'
-                }
+                value: { my_html: '\u003cdiv\u003e\n  \u003cp\u003evariation 1\u003c/p\u003e\n\u003c/div\u003e' }
               },
               allocation: 33
             },
@@ -124,9 +120,7 @@ export const bucketing = {
               id: 'c20j9lgbcahhf2mvhbf0',
               modifications: {
                 type: 'HTML',
-                value: {
-                  my_html: '\u003cdiv\u003e\n  \u003cp\u003evariation 2\u003c/p\u003e\n\u003c/div\u003e'
-                }
+                value: { my_html: '\u003cdiv\u003e\n  \u003cp\u003evariation 2\u003c/p\u003e\n\u003c/div\u003e' }
               },
               allocation: 33
             }
@@ -206,9 +200,7 @@ export const bucketing = {
               id: 'c2nrh1hjg50l9thhu8d0',
               modifications: {
                 type: 'JSON',
-                value: {
-                  key: null
-                }
+                value: { key: null }
               },
               allocation: 30,
               reference: true
@@ -217,9 +209,7 @@ export const bucketing = {
               id: 'c2nrh1hjg50l9thhu8dg',
               modifications: {
                 type: 'JSON',
-                value: {
-                  key: 'value'
-                }
+                value: { key: 'value' }
               },
               allocation: 70
             }
@@ -245,9 +235,7 @@ export const bucketing = {
               id: 'c2nrhnpjg50la1ht9ti0',
               modifications: {
                 type: 'JSON',
-                value: {
-                  key2: null
-                }
+                value: { key2: null }
               },
               allocation: 5,
               reference: true
@@ -256,9 +244,7 @@ export const bucketing = {
               id: 'c2nrhnpjg50la1ht9tig',
               modifications: {
                 type: 'JSON',
-                value: {
-                  key2: 'value2'
-                }
+                value: { key2: 'value2' }
               },
               allocation: 95
             }
@@ -296,9 +282,7 @@ export const bucketing = {
               id: 'c2nrhnpjg50la1ht9trd0',
               modifications: {
                 type: 'JSON',
-                value: {
-                  thirdIntegration: 'value1'
-                }
+                value: { thirdIntegration: 'value1' }
               },
               allocation: 5,
               reference: true
@@ -307,9 +291,7 @@ export const bucketing = {
               id: 'c2nrhnpjg50la1ht9tgig',
               modifications: {
                 type: 'JSON',
-                value: {
-                  thirdIntegration: 'value2'
-                }
+                value: { thirdIntegration: 'value2' }
               },
               allocation: 95
             }
@@ -328,4 +310,4 @@ export const bucketing = {
     eaiCollectEnabled: false,
     eaiActivationEnabled: false
   }
-}
+};

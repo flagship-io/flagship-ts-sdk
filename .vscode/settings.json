@@ -10,18 +10,19 @@
     "targetings",
     "unauthenticate"
   ],
+  "editor.formatOnSave": true,
+  "eslint.useESLintClass": true, 
+  "eslint.useFlatConfig": true,
+  "eslint.format.enable": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
   "[javascript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
   },
   "[typescript]": {
-    "editor.defaultFormatter": null
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
   },
   "deno.enable": true,
-  "deno.enablePaths": [
-    "flagship/src/depsDeno.ts",
-    "flagship/dist-deno",
-  ]
+  "deno.enablePaths": ["flagship/src/depsDeno.ts", "flagship/dist-deno"]
 }

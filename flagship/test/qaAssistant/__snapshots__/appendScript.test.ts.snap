@@ -1,6 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Test appendScript test Script is appended to document 1`] = `
+exports[`Test appendScript should append local script to the document with anonymous cross-origin 1`] = `
+<script
+  crossorigin="anonymous"
+  id="FS_QA_ASSISTANT_SCRIPT_TAG_ID"
+  src="https://local-qa-assistant.flagship.io:5000/bundle.js"
+/>
+`;
+
+exports[`Test appendScript should append production script to the document 1`] = `
 <script
   id="FS_QA_ASSISTANT_SCRIPT_TAG_ID"
   src="https://qa-assistant.flagship.io/bundle.js"

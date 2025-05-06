@@ -1,5 +1,5 @@
-import { IFSFlagMetadata, SerializedFlagMetadata } from '../types'
-import { IFSFlag } from './IFSFlag'
+import { IFSFlagMetadata, SerializedFlagMetadata } from '../types';
+import { IFSFlag } from './IFSFlag';
 
 /**
  * Represents a collection of flags.

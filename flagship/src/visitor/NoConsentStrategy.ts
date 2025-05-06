@@ -1,76 +1,76 @@
-import { CampaignDTO, FlagDTO, IHit } from '../types'
-import { FLAG_VISITOR_EXPOSED, METHOD_DEACTIVATED_CONSENT_ERROR } from '../enum/index'
-import { type HitAbstract } from '../hit/HitAbstract'
-import { logInfo, sprintf } from '../utils/utils'
-import { DefaultStrategy } from './DefaultStrategy'
-import { BatchDTO } from '../hit/Batch'
+import { CampaignDTO, FlagDTO, IHit } from '../types';
+import { FLAG_VISITOR_EXPOSED, METHOD_DEACTIVATED_CONSENT_ERROR } from '../enum/index';
+import { type HitAbstract } from '../hit/HitAbstract';
+import { logInfo, sprintf } from '../utils/utils';
+import { DefaultStrategy } from './DefaultStrategy';
+import { BatchDTO } from '../hit/Batch';
 
 export class NoConsentStrategy extends DefaultStrategy {
-  async lookupHits (): Promise<void> {
+  async lookupHits(): Promise<void> {
     //
   }
 
-  async lookupVisitor (): Promise<void> {
+  async lookupVisitor(): Promise<void> {
     //
   }
 
-  public async cacheVisitor ():Promise<void> {
+  public async cacheVisitor():Promise<void> {
     //
   }
 
-  protected async cacheHit ():Promise<void> {
+  protected async cacheHit():Promise<void> {
     //
   }
 
-  public async collectEAIEventsAsync (): Promise<void> {
-    this.log('collectEAIData')
+  public async collectEAIEventsAsync(): Promise<void> {
+    this.log('collectEAIData');
   }
 
-  public reportEaiPageView (): void {
+  public reportEaiPageView(): void {
     //
   }
 
-  public reportEaiVisitorEvent (): void {
+  public reportEaiVisitorEvent(): void {
     //
   }
 
-  public onEAICollectStatusChange (): void {
+  public onEAICollectStatusChange(): void {
     //
   }
 
-  protected fetchCampaignsFromCache (): CampaignDTO[] {
-    return []
+  protected fetchCampaignsFromCache(): CampaignDTO[] {
+    return [];
   }
 
-   
-  async sendHit (_hit: HitAbstract | IHit| BatchDTO): Promise<void> {
-    this.log('sendHit')
+
+  async sendHit(_hit: HitAbstract | IHit| BatchDTO): Promise<void> {
+    this.log('sendHit');
   }
 
-   
-  async sendHits (_hits: HitAbstract[] | IHit[] |BatchDTO[]): Promise<void> {
-    this.log('sendHits')
+
+  async sendHits(_hits: HitAbstract[] | IHit[] |BatchDTO[]): Promise<void> {
+    this.log('sendHits');
   }
 
-   
-  protected async sendActivate (_flagDto: FlagDTO, _defaultValue?: unknown): Promise<void> {
+
+  protected async sendActivate(_flagDto: FlagDTO, _defaultValue?: unknown): Promise<void> {
     //
   }
 
-  async visitorExposed (): Promise<void> {
-    this.log(FLAG_VISITOR_EXPOSED)
+  async visitorExposed(): Promise<void> {
+    this.log(FLAG_VISITOR_EXPOSED);
   }
 
-   
-  public async sendTroubleshootingHit (): Promise<void> {
+
+  public async sendTroubleshootingHit(): Promise<void> {
     //
   }
 
-  public async addInTrackingManager (): Promise<void> {
+  public async addInTrackingManager(): Promise<void> {
     //
   }
 
-  private log (methodName:string):void {
-    logInfo(this.config, sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, this.visitor.visitorId), methodName)
+  private log(methodName:string):void {
+    logInfo(this.config, sprintf(METHOD_DEACTIVATED_CONSENT_ERROR, methodName, this.visitor.visitorId), methodName);
   }
 }

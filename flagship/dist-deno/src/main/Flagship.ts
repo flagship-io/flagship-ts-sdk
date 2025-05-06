@@ -49,59 +49,60 @@ import { SdkApi } from '../sdkApi/v1/SdkApi.ts'
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
  */
 export class Flagship {
-   
+
   private static _instance: Flagship
   private _configManager!: IConfigManager
   private _config!: IFlagshipConfig
   private _status!: FSSdkStatus
   private _visitorInstance?: Visitor
-  private instanceId:string
+  private instanceId: string
   private lastInitializationTimestamp!: string
-  private _sdkManager : ISdkManager|undefined
-  private static visitorProfile:string|null
-  private static onSaveVisitorProfile:(visitorProfile:string)=>void
+  private _sdkManager: ISdkManager | undefined
+  private static visitorProfile: string | null
+  private static onSaveVisitorProfile: (visitorProfile: string) => void
+  private _sdkApi?: SdkApi
 
-  private set configManager (value: IConfigManager) {
+  private set configManager(value: IConfigManager) {
     this._configManager = value
   }
 
-  private get configManager (): IConfigManager {
+  private get configManager(): IConfigManager {
     return this._configManager
   }
 
-  private constructor () {
+  private constructor() {
     this.instanceId = uuidV4()
     this._status = FSSdkStatus.SDK_NOT_INITIALIZED
 
     const extendedFlagship = Flagship as {
-      setVisitorProfile?: (value: string|null) => void,
-      getVisitorProfile?: () => string|null,
-      setOnSaveVisitorProfile?: (value: (visitorProfile:string)=>void) => void,
-      getOnSaveVisitorProfile?: () => (visitorProfile:string)=>void
+      setVisitorProfile?: (value: string | null) => void,
+      getVisitorProfile?: () => string | null,
+      setOnSaveVisitorProfile?: (value: (visitorProfile: string) => void) => void,
+      getOnSaveVisitorProfile?: () => (visitorProfile: string) => void
     }
 
-    extendedFlagship.setVisitorProfile = function (value: string|null):void {
+    extendedFlagship.setVisitorProfile = function (value: string | null): void {
       Flagship.visitorProfile = value
     }
     extendedFlagship.getVisitorProfile = function (): string | null {
       return Flagship.visitorProfile
     }
-    extendedFlagship.setOnSaveVisitorProfile = function (value: (visitorProfile:string)=>void):void {
+    extendedFlagship.setOnSaveVisitorProfile = function (value: (visitorProfile: string) => void): void {
       Flagship.onSaveVisitorProfile = value
     }
-    extendedFlagship.getOnSaveVisitorProfile = function (): (visitorProfile:string)=>void {
+    extendedFlagship.getOnSaveVisitorProfile = function (): (visitorProfile: string) => void {
       return Flagship.onSaveVisitorProfile
     }
   }
 
-  protected static getInstance (): Flagship {
+  protected static getInstance(): Flagship {
     if (!this._instance) {
       this._instance = new this()
     }
     return this._instance
   }
 
-  protected setStatus (status: FSSdkStatus): void {
+  protected setStatus(status: FSSdkStatus): void {
     if (this._status === status) {
       return
     }
@@ -130,46 +131,46 @@ export class Flagship {
   /**
    * Return current status of Flagship SDK.
    */
-  public static getStatus (): FSSdkStatus {
+  public static getStatus(): FSSdkStatus {
     return this.getInstance()._status
   }
 
   /**
    * Return current status of Flagship SDK.
    */
-  public getStatus (): FSSdkStatus {
+  public getStatus(): FSSdkStatus {
     return this._status
   }
 
   /**
    * Return the current config set by the customer and used by the SDK.
    */
-  public static getConfig (): IFlagshipConfig {
+  public static getConfig(): IFlagshipConfig {
     return this.getInstance()._config
   }
 
   /**
    * Return the current config set by the customer and used by the SDK.
    */
-  public getConfig (): IFlagshipConfig {
+  public getConfig(): IFlagshipConfig {
     return this._config
   }
 
   /**
    * Return the last visitor created if isNewInstance key is false. Return undefined otherwise.
    */
-  public getVisitor (): Visitor | undefined {
+  public getVisitor(): Visitor | undefined {
     return this._visitorInstance
   }
 
   /**
    * Return the last visitor created if isNewInstance key is false. Return undefined otherwise.
    */
-  public static getVisitor (): Visitor | undefined {
+  public static getVisitor(): Visitor | undefined {
     return this.getInstance().getVisitor()
   }
 
-  private buildConfig (config?: IDecisionApiConfig| IBucketingConfig |IEdgeConfig): FlagshipConfig {
+  private buildConfig(config?: IDecisionApiConfig | IBucketingConfig | IEdgeConfig): FlagshipConfig {
     let newConfig: FlagshipConfig
     switch (config?.decisionMode) {
       case DecisionMode.BUCKETING:
@@ -185,7 +186,7 @@ export class Flagship {
     return newConfig
   }
 
-  private createManagers (
+  private createManagers(
     httpClient: HttpClient,
     sdkConfig: IFlagshipConfig,
     trackingManager: ITrackingManager
@@ -222,15 +223,16 @@ export class Flagship {
     }
   }
 
-  private buildSdkApi (sharedActionTracking: ISharedActionTracking): void {
+  private buildSdkApi(sharedActionTracking: ISharedActionTracking): void {
     if (__fsWebpackIsBrowser__) {
+      this._sdkApi = new SdkApi({ sharedActionTracking })
       window.ABTastyWebSdk = {
-        internal: new SdkApi({ sharedActionTracking }).getApiV1()
+        internal: this._sdkApi.getApiV1()
       }
     }
   }
 
-  private sendInitializedPostMessage (): void {
+  private sendInitializedPostMessage(): void {
     if (__fsWebpackIsBrowser__) {
       onDomReady(() => {
         window.postMessage({ action: ABTastyWebSDKPostMessageType.AB_TASTY_WEB_SDK_INITIALIZED }, '*')
@@ -238,7 +240,7 @@ export class Flagship {
     }
   }
 
-  private async initializeSdk (sdkConfig: IFlagshipConfig): Promise<void> {
+  private async initializeSdk(sdkConfig: IFlagshipConfig): Promise<void> {
     this.setStatus(FSSdkStatus.SDK_INITIALIZING)
 
     this._sdkManager?.resetSdk()
@@ -275,10 +277,10 @@ export class Flagship {
    * @param {string} apiKey : Secure api key provided by Flagship.
    * @param {IFlagshipConfig} config : (optional) SDK configuration.
    */
-  public static async start (
+  public static async start(
     envId: string,
     apiKey: string,
-    config?: IDecisionApiConfig| IBucketingConfig |IEdgeConfig
+    config?: IDecisionApiConfig | IBucketingConfig | IEdgeConfig
   ): Promise<Flagship> {
     const flagship = this.getInstance()
 
@@ -336,14 +338,14 @@ export class Flagship {
   /**
    * When called, it will batch and send all hits that are in the pool before the application is closed
    */
-  public async close (): Promise<void> {
+  public async close(): Promise<void> {
     await Flagship.close()
   }
 
   /**
    * When called, it will batch and send all hits that are in the pool before the application is closed
    */
-  public static async close (): Promise<void> {
+  public static async close(): Promise<void> {
     await this._instance?.configManager?.trackingManager?.sendBatch()
   }
 
@@ -353,11 +355,11 @@ export class Flagship {
    * @param params - The parameters for creating the new Visitor.
    * @returns A new Visitor instance.
    */
-  public newVisitor (params: NewVisitor): Visitor {
+  public newVisitor(params: NewVisitor): Visitor {
     return Flagship.newVisitor(params)
   }
 
-  private initializeConfigManager (): void {
+  private initializeConfigManager(): void {
     const config = new DecisionApiConfig()
     config.logManager = new FlagshipLogManager()
     const httpClient = new HttpClient()
@@ -373,7 +375,7 @@ export class Flagship {
    * @param params - The parameters for creating the new Visitor.
    * @returns A new Visitor instance.
    */
-  public static newVisitor ({ visitorId, context, isAuthenticated, hasConsented, initialCampaigns, initialFlagsData, shouldSaveInstance, onFlagsStatusChanged }: NewVisitor): Visitor {
+  public static newVisitor({ visitorId, context, isAuthenticated, hasConsented, initialCampaigns, initialFlagsData, shouldSaveInstance, onFlagsStatusChanged }: NewVisitor): Visitor {
     const saveInstance = shouldSaveInstance ?? isBrowser()
     const flagship = this.getInstance()
 
@@ -418,8 +420,11 @@ export class Flagship {
 
     if (__fsWebpackIsBrowser__) {
       onDomReady(() => {
-        if (isBrowser() && configManager.sharedActionTracking) {
-          configManager.sharedActionTracking.initialize(visitorDelegate)
+        if (isBrowser()) {
+          flagship._sdkApi?.setVisitor(visitorDelegate)
+          if (configManager.sharedActionTracking) {
+            configManager.sharedActionTracking.initialize(visitorDelegate)
+          }
         }
       })
     }

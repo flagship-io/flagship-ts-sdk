@@ -1,14 +1,14 @@
 
-export function sleep (ms: number) {
+export function sleep(ms: number) {
   return new Promise((resolve) => {
-    setTimeout(resolve, ms)
-  })
+    setTimeout(resolve, ms);
+  });
 }
 interface GlobalOverrides {
     [key: string]: unknown;
   }
 
-const originalGlobals = new Map<string, unknown>()
+const originalGlobals = new Map<string, unknown>();
 
 /**
    * Overrides specified properties on the global object.
@@ -16,9 +16,9 @@ const originalGlobals = new Map<string, unknown>()
    *
    * @param overrideProps An object containing property/value pairs to mock on the global object.
    */
-export function mockGlobals (overrideProps: GlobalOverrides): void {
+export function mockGlobals(overrideProps: GlobalOverrides): void {
   for (const [key, value] of Object.entries(overrideProps)) {
-    (global as any)[key] = value
+    (global as any)[key] = value;
   }
 }
 
@@ -26,9 +26,9 @@ export function mockGlobals (overrideProps: GlobalOverrides): void {
    * Restores any globals that were previously overridden via mockGlobals.
    * Useful for test cleanup.
    */
-export function restoreGlobals (): void {
+export function restoreGlobals(): void {
   for (const [key, value] of originalGlobals.entries()) {
-    (global as any)[key] = value
+    (global as any)[key] = value;
   }
-  originalGlobals.clear()
+  originalGlobals.clear();
 }

@@ -1,5 +1,5 @@
-import { EAIConfig } from '../type.local'
-import { BucketingDTO } from '../types'
+import { EAIConfig } from '../type.local';
+import { BucketingDTO } from '../types';
 
 export interface ISdkManager {
     getBucketingContent(): BucketingDTO | undefined

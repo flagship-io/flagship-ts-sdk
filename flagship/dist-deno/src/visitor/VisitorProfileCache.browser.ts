@@ -10,8 +10,12 @@ export class VisitorProfileCache implements IVisitorProfileCache {
     this._sdkConfig = sdkConfig
   }
 
-  saveVisitorProfile (visitorProfile: VisitorProfile): void {
+  saveVisitorProfile (visitorProfile?: VisitorProfile): void {
     try {
+      if (!visitorProfile) {
+        localStorage.removeItem(CLIENT_CACHE_KEY)
+        return
+      }
       localStorage.setItem(CLIENT_CACHE_KEY, JSON.stringify(visitorProfile))
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {

@@ -1,4 +1,4 @@
-import { HitCacheDTO } from '../types'
+import { HitCacheDTO } from '../types';
 
 export interface IHitCacheImplementation {
     /**

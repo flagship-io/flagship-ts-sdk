@@ -1,5 +1,4 @@
-import {
-  AUTHENTICATE,
+import { AUTHENTICATE,
   CLEAR_CONTEXT,
   CONTEXT_KEY_ERROR,
   CONTEXT_KEY_VALUE_UPDATE,
@@ -34,153 +33,150 @@ import {
   VISITOR_AUTHENTICATE_VISITOR_ID_ERROR,
   VISITOR_EXPOSED_VALUE_NOT_CALLED,
   VISITOR_UNAUTHENTICATE,
-  VISITOR_ALREADY_AUTHENTICATE
-} from '../enum/index'
-import {
-  IPage,
+  VISITOR_ALREADY_AUTHENTICATE } from '../enum/index';
+import { IPage,
   IScreen,
   IEvent,
   IItem,
-  ITransaction
-} from '../hit/index'
-import { primitive, IHit, FlagDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorVariations, CampaignDTO } from '../types'
-import { deepEqual, errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils'
-import { StrategyAbstract } from './StrategyAbstract'
-import { FLAGSHIP_CLIENT, FLAGSHIP_CONTEXT, FLAGSHIP_VERSION, FLAGSHIP_VISITOR } from '../enum/FlagshipContext'
-import { VisitorDelegate } from './index'
-import { FSFlagMetadata } from '../flag/FSFlagMetadata'
-import { FSFetchStatus } from '../enum/FSFetchStatus'
-import { FSFetchReasons } from '../enum/FSFetchReasons'
-import { ActivateConstructorParam, GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local'
-import { type HitAbstract } from '../hit/HitAbstract'
+  ITransaction } from '../hit/index';
+import { primitive, IHit, FlagDTO, IFSFlagMetadata, TroubleshootingLabel, VisitorVariations, CampaignDTO } from '../types';
+import { deepEqual, errorFormat, hasSameType, logDebug, logDebugSprintf, logError, logErrorSprintf, logInfoSprintf, logWarningSprintf, sprintf } from '../utils/utils';
+import { StrategyAbstract } from './StrategyAbstract';
+import { FLAGSHIP_CLIENT, FLAGSHIP_CONTEXT, FLAGSHIP_VERSION, FLAGSHIP_VISITOR } from '../enum/FlagshipContext';
+import { VisitorDelegate } from './index';
+import { FSFlagMetadata } from '../flag/FSFlagMetadata';
+import { FSFetchStatus } from '../enum/FSFetchStatus';
+import { FSFetchReasons } from '../enum/FSFetchReasons';
+import { ActivateConstructorParam, GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local';
+import { type HitAbstract } from '../hit/HitAbstract';
 
-export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must '
-export const HIT_NULL_ERROR = 'Hit must not be null'
+export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must ';
+export const HIT_NULL_ERROR = 'Hit must not be null';
 
 export class DefaultStrategy extends StrategyAbstract {
-  private checkPredefinedContext (
+  private checkPredefinedContext(
     key: string,
     value: primitive
   ): boolean | null {
-    const type = FLAGSHIP_CONTEXT[key]
+    const type = FLAGSHIP_CONTEXT[key];
     if (!type) {
-      return null
+      return null;
     }
 
-    let check = false
+    let check = false;
 
     if (type === 'string') {
-      check = typeof value === 'string'
+      check = typeof value === 'string';
     } else if (type === 'number') {
-      check = typeof value === 'number'
+      check = typeof value === 'number';
     }
 
     if (!check) {
-      logErrorSprintf(this.config, PROCESS_UPDATE_CONTEXT, PREDEFINED_CONTEXT_TYPE_ERROR, this.visitor.visitorId, key, type)
+      logErrorSprintf(this.config, PROCESS_UPDATE_CONTEXT, PREDEFINED_CONTEXT_TYPE_ERROR, this.visitor.visitorId, key, type);
     }
-    return check
+    return check;
   }
 
-  private updateContextKeyValue (key: string, value: primitive): void {
-    const valueType = typeof value
+  private updateContextKeyValue(key: string, value: primitive): void {
+    const valueType = typeof value;
 
     if (typeof key !== 'string' || key === '') {
-      logErrorSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_KEY_ERROR, this.visitor.visitorId, key)
-      return
+      logErrorSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_KEY_ERROR, this.visitor.visitorId, key);
+      return;
     }
 
     if (valueType !== 'string' && valueType !== 'number' && valueType !== 'boolean') {
-      logErrorSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_VALUE_ERROR, this.visitor.visitorId, key)
-      return
+      logErrorSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_VALUE_ERROR, this.visitor.visitorId, key);
+      return;
     }
 
     if (key === FLAGSHIP_CLIENT || key === FLAGSHIP_VERSION || key === FLAGSHIP_VISITOR) {
-      return
+      return;
     }
 
-    const predefinedContext = this.checkPredefinedContext(key, value)
+    const predefinedContext = this.checkPredefinedContext(key, value);
     if (typeof predefinedContext === 'boolean' && !predefinedContext) {
-      return
+      return;
     }
 
-    this.visitor.context[key] = value
+    this.visitor.context[key] = value;
   }
 
-  private checkAndUpdateContext (oldContext: Record<string, primitive>, newContext: Record<string, primitive>, value: unknown): void {
+  private checkAndUpdateContext(oldContext: Record<string, primitive>, newContext: Record<string, primitive>, value: unknown): void {
     if (deepEqual(oldContext, newContext)) {
-      return
+      return;
     }
 
-    this.visitor.hasContextBeenUpdated = true
+    this.visitor.hasContextBeenUpdated = true;
 
     this.visitor.flagsStatus = {
       status: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.UPDATE_CONTEXT
-    }
-    logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_KEY_VALUE_UPDATE, this.visitor.visitorId, newContext, value, this.visitor.context)
+    };
+    logDebugSprintf(this.config, PROCESS_UPDATE_CONTEXT, CONTEXT_KEY_VALUE_UPDATE, this.visitor.visitorId, newContext, value, this.visitor.context);
   }
 
   updateContext(key: string, value: primitive):void
   updateContext (context: Record<string, primitive>): void
-  updateContext (context: Record<string, primitive> | string, value?:primitive): void {
-    const oldContext = { ...this.visitor.context }
+  updateContext(context: Record<string, primitive> | string, value?:primitive): void {
+    const oldContext = { ...this.visitor.context };
     if (typeof context === 'string') {
-      this.updateContextKeyValue(context, value as primitive)
+      this.updateContextKeyValue(context, value as primitive);
 
-      const newContext = this.visitor.context
+      const newContext = this.visitor.context;
 
-      this.checkAndUpdateContext(oldContext, newContext, value)
-      return
+      this.checkAndUpdateContext(oldContext, newContext, value);
+      return;
     }
 
     if (!context) {
-      logError(this.visitor.config, CONTEXT_NULL_ERROR, PROCESS_UPDATE_CONTEXT)
-      return
+      logError(this.visitor.config, CONTEXT_NULL_ERROR, PROCESS_UPDATE_CONTEXT);
+      return;
     }
 
     for (const key in context) {
-      const value = context[key]
-      this.updateContextKeyValue(key, value)
+      const value = context[key];
+      this.updateContextKeyValue(key, value);
     }
-    const newContext = this.visitor.context
+    const newContext = this.visitor.context;
 
-    this.checkAndUpdateContext(oldContext, newContext, context)
+    this.checkAndUpdateContext(oldContext, newContext, context);
   }
 
-  clearContext (): void {
-    const oldContext = { ...this.visitor.context }
-    this.visitor.context = {}
-    this.visitor.loadPredefinedContext()
-    const newContext = this.visitor.context
+  clearContext(): void {
+    const oldContext = { ...this.visitor.context };
+    this.visitor.context = {};
+    this.visitor.loadPredefinedContext();
+    const newContext = this.visitor.context;
     if (deepEqual(oldContext, newContext)) {
-      return
+      return;
     }
 
-    this.visitor.hasContextBeenUpdated = true
+    this.visitor.hasContextBeenUpdated = true;
     this.visitor.flagsStatus = {
       status: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.UPDATE_CONTEXT
-    }
-    logDebugSprintf(this.config, PROCESS_CLEAR_CONTEXT, CLEAR_CONTEXT, this.visitor.visitorId, this.visitor.context)
+    };
+    logDebugSprintf(this.config, PROCESS_CLEAR_CONTEXT, CLEAR_CONTEXT, this.visitor.visitorId, this.visitor.context);
   }
 
-  private isDeDuplicated (key:string, deDuplicationTime:number):boolean {
+  private isDeDuplicated(key:string, deDuplicationTime:number):boolean {
     if (deDuplicationTime === 0) {
-      return false
+      return false;
     }
 
-    const deDuplicationCache = this.visitor.deDuplicationCache[key]
+    const deDuplicationCache = this.visitor.deDuplicationCache[key];
 
     if (deDuplicationCache && (Date.now() - deDuplicationCache) <= (deDuplicationTime * 1000)) {
-      return true
+      return true;
     }
-    this.visitor.deDuplicationCache[key] = Date.now()
+    this.visitor.deDuplicationCache[key] = Date.now();
 
-    this.visitor.clearDeDuplicationCache(deDuplicationTime)
-    return false
+    this.visitor.clearDeDuplicationCache(deDuplicationTime);
+    return false;
   }
 
-  protected async sendActivate (flagDto: FlagDTO, defaultValue?: unknown):Promise<void> {
+  protected async sendActivate(flagDto: FlagDTO, defaultValue?: unknown):Promise<void> {
     const activateHit:ActivateConstructorParam = {
       variationGroupId: flagDto.variationGroupId,
       variationId: flagDto.variationId,
@@ -202,7 +198,7 @@ export class DefaultStrategy extends StrategyAbstract {
         isReference: flagDto.isReference as boolean
       },
       qaMode: this.config.isQAModeEnabled
-    }
+    };
 
     if (this.isDeDuplicated(JSON.stringify(activateHit), this.config.hitDeduplicationTime as number)) {
       const logData = {
@@ -210,12 +206,12 @@ export class DefaultStrategy extends StrategyAbstract {
         anonymousId: this.visitor.anonymousId,
         flag: flagDto,
         delay: 0
-      }
-      logDebug(this.config, sprintf('Activate {0} is deduplicated', JSON.stringify(logData)), PROCESS_SEND_HIT)
-      return
+      };
+      logDebug(this.config, sprintf('Activate {0} is deduplicated', JSON.stringify(logData)), PROCESS_SEND_HIT);
+      return;
     }
 
-    await this.trackingManager.activateFlag(activateHit)
+    await this.trackingManager.activateFlag(activateHit);
 
     import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const activateTroubleshooting = new Troubleshooting({
@@ -229,104 +225,104 @@ export class DefaultStrategy extends StrategyAbstract {
         anonymousId: activateHit.anonymousId,
         config: this.config,
         hitContent: activateHit
-      })
+      });
 
-      this.sendTroubleshootingHit(activateTroubleshooting)
-    })
+      this.sendTroubleshootingHit(activateTroubleshooting);
+    });
   }
 
   sendHit(hit: HitAbstract): Promise<void>
   sendHit(hit: IHit): Promise<void>
-  async sendHit (hit: IHit | HitAbstract): Promise<void> {
+  async sendHit(hit: IHit | HitAbstract): Promise<void> {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
-      return
+      return;
     }
-    await this.prepareAndSendHit(hit)
+    await this.prepareAndSendHit(hit);
   }
 
   sendHits(hits: HitAbstract[]): Promise<void>
   sendHits(hits: IHit[]): Promise<void>
-  async sendHits (hits: HitAbstract[] | IHit[]): Promise<void> {
+  async sendHits(hits: HitAbstract[] | IHit[]): Promise<void> {
     if (!this.hasTrackingManager(PROCESS_SEND_HIT)) {
-      return
+      return;
     }
     for (const hit of hits) {
-      await this.prepareAndSendHit(hit)
+      await this.prepareAndSendHit(hit);
     }
   }
 
-  private async getHit (hit: IHit): Promise<HitAbstract|null> {
-    let newHit = null
+  private async getHit(hit: IHit): Promise<HitAbstract|null> {
+    let newHit = null;
     switch (hit.type.toUpperCase()) {
       case HitType.EVENT:{
-        const { Event } = await import('../hit/Event.ts')
-        newHit = new Event(hit as IEvent)
-        break
+        const { Event } = await import('../hit/Event.ts');
+        newHit = new Event(hit as IEvent);
+        break;
       }
       case HitType.ITEM:{
-        const { Item } = await import('../hit/Item.ts')
-        newHit = new Item(hit as IItem)
-        break
+        const { Item } = await import('../hit/Item.ts');
+        newHit = new Item(hit as IItem);
+        break;
       }
       case HitType.PAGE_VIEW:{
-        const { Page } = await import('../hit/Page.ts')
-        newHit = new Page(hit as IPage)
-        break
+        const { Page } = await import('../hit/Page.ts');
+        newHit = new Page(hit as IPage);
+        break;
       }
       case HitType.SCREEN_VIEW:{
-        const { Screen } = await import('../hit/Screen.ts')
-        newHit = new Screen(hit as IScreen)
-        break
+        const { Screen } = await import('../hit/Screen.ts');
+        newHit = new Screen(hit as IScreen);
+        break;
       }
       case HitType.TRANSACTION:{
-        const { Transaction } = await import('../hit/Transaction.ts')
-        newHit = new Transaction(hit as ITransaction)
-        break
+        const { Transaction } = await import('../hit/Transaction.ts');
+        newHit = new Transaction(hit as ITransaction);
+        break;
       }
     }
-    return newHit
+    return newHit;
   }
 
-  private async prepareAndSendHit (hit: IHit | HitAbstract, functionName = PROCESS_SEND_HIT):Promise<void> {
-    let hitInstance: HitAbstract
+  private async prepareAndSendHit(hit: IHit | HitAbstract, functionName = PROCESS_SEND_HIT):Promise<void> {
+    let hitInstance: HitAbstract;
 
     if (!hit?.type) {
-      logError(this.config, HIT_NULL_ERROR, functionName)
-      return
+      logError(this.config, HIT_NULL_ERROR, functionName);
+      return;
     }
 
-    const { HitAbstract } = await import('../hit/HitAbstract.ts')
+    const { HitAbstract } = await import('../hit/HitAbstract.ts');
 
     if (hit instanceof HitAbstract) {
-      hitInstance = hit
+      hitInstance = hit;
     } else {
-      const hitFromInt = await this.getHit(hit)
+      const hitFromInt = await this.getHit(hit);
       if (!hitFromInt) {
-        logError(this.config, TYPE_HIT_REQUIRED_ERROR, functionName)
-        return
+        logError(this.config, TYPE_HIT_REQUIRED_ERROR, functionName);
+        return;
       }
-      hitInstance = hitFromInt
+      hitInstance = hitFromInt;
     }
-    hitInstance.visitorId = this.visitor.visitorId
-    hitInstance.ds = SDK_APP
-    hitInstance.config = this.config
-    hitInstance.anonymousId = this.visitor.anonymousId as string
-    hitInstance.qaMode = this.config.isQAModeEnabled
+    hitInstance.visitorId = this.visitor.visitorId;
+    hitInstance.ds = SDK_APP;
+    hitInstance.config = this.config;
+    hitInstance.anonymousId = this.visitor.anonymousId as string;
+    hitInstance.qaMode = this.config.isQAModeEnabled;
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { createdAt, ...hitInstanceItem } = hitInstance.toObject()
+    const { createdAt, ...hitInstanceItem } = hitInstance.toObject();
     if (this.isDeDuplicated(JSON.stringify(hitInstanceItem), this.config.hitDeduplicationTime as number)) {
-      return
+      return;
     }
     if (!hitInstance.isReady()) {
-      logError(this.config, hitInstance.getErrorMessage(), functionName)
-      return
+      logError(this.config, hitInstance.getErrorMessage(), functionName);
+      return;
     }
     try {
-      await this.trackingManager.addHit(hitInstance)
+      await this.trackingManager.addHit(hitInstance);
 
       if (hitInstance.type === 'SEGMENT') {
-        return
+        return;
       }
 
       import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
@@ -341,28 +337,28 @@ export class DefaultStrategy extends StrategyAbstract {
           anonymousId: hitInstance.anonymousId,
           config: this.config,
           hitContent: hitInstance.toApiKeys()
-        })
-        this.sendTroubleshootingHit(sendHitTroubleshooting)
-      })
+        });
+        this.sendTroubleshootingHit(sendHitTroubleshooting);
+      });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      logError(this.config, error.message || error, functionName)
+      logError(this.config, error.message || error, functionName);
     }
   }
 
-  authenticate (visitorId: string): void {
+  authenticate(visitorId: string): void {
     if (!visitorId) {
-      logErrorSprintf(this.config, AUTHENTICATE, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, this.visitor.visitorId)
-      return
+      logErrorSprintf(this.config, AUTHENTICATE, VISITOR_AUTHENTICATE_VISITOR_ID_ERROR, this.visitor.visitorId);
+      return;
     }
 
     if (this.visitor.anonymousId) {
-      logWarningSprintf(this.config, AUTHENTICATE, VISITOR_ALREADY_AUTHENTICATE, this.visitor.visitorId, this.visitor.anonymousId)
-      return
+      logWarningSprintf(this.config, AUTHENTICATE, VISITOR_ALREADY_AUTHENTICATE, this.visitor.visitorId, this.visitor.anonymousId);
+      return;
     }
 
-    this.visitor.anonymousId = this.visitor.visitorId
-    this.visitor.visitorId = visitorId
+    this.visitor.anonymousId = this.visitor.visitorId;
+    this.visitor.visitorId = visitorId;
 
     import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const monitoring = new Troubleshooting({
@@ -375,26 +371,26 @@ export class DefaultStrategy extends StrategyAbstract {
         visitorContext: this.visitor.context,
         traffic: this.visitor.traffic,
         config: this.config
-      })
+      });
 
-      this.sendTroubleshootingHit(monitoring)
-    })
+      this.sendTroubleshootingHit(monitoring);
+    });
 
     this.visitor.flagsStatus = {
       status: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.AUTHENTICATE
-    }
+    };
 
-    logDebugSprintf(this.config, AUTHENTICATE, VISITOR_AUTHENTICATE, this.visitor.visitorId, this.visitor.anonymousId)
+    logDebugSprintf(this.config, AUTHENTICATE, VISITOR_AUTHENTICATE, this.visitor.visitorId, this.visitor.anonymousId);
   }
 
-  unauthenticate (): void {
+  unauthenticate(): void {
     if (!this.visitor.anonymousId) {
-      logErrorSprintf(this.config, UNAUTHENTICATE, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, this.visitor.visitorId)
-      return
+      logErrorSprintf(this.config, UNAUTHENTICATE, FLAGSHIP_VISITOR_NOT_AUTHENTICATE, this.visitor.visitorId);
+      return;
     }
-    this.visitor.visitorId = this.visitor.anonymousId
-    this.visitor.anonymousId = null
+    this.visitor.visitorId = this.visitor.anonymousId;
+    this.visitor.anonymousId = null;
 
     import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const monitoring = new Troubleshooting({
@@ -407,23 +403,23 @@ export class DefaultStrategy extends StrategyAbstract {
         visitorContext: this.visitor.context,
         traffic: this.visitor.traffic,
         config: this.config
-      })
+      });
 
-      this.sendTroubleshootingHit(monitoring)
-    })
+      this.sendTroubleshootingHit(monitoring);
+    });
 
     this.visitor.flagsStatus = {
       status: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.UNAUTHENTICATE
-    }
+    };
 
-    logDebugSprintf(this.config, UNAUTHENTICATE, VISITOR_UNAUTHENTICATE, this.visitor.visitorId)
+    logDebugSprintf(this.config, UNAUTHENTICATE, VISITOR_UNAUTHENTICATE, this.visitor.visitorId);
   }
 
-  handleFetchFlagsError (error: unknown, now: number, campaigns: CampaignDTO[] | null):void {
-    this.visitor.emit(EMIT_READY, error)
+  handleFetchFlagsError(error: unknown, now: number, campaigns: CampaignDTO[] | null):void {
+    this.visitor.emit(EMIT_READY, error);
 
-    const message = error instanceof Error ? error.message : error as string
+    const message = error instanceof Error ? error.message : error as string;
 
     const errorMessage = errorFormat(message, {
       visitorId: this.visitor.visitorId,
@@ -431,18 +427,18 @@ export class DefaultStrategy extends StrategyAbstract {
       context: this.visitor.context,
       statusReason: this.visitor.flagsStatus.reason,
       duration: Date.now() - now
-    })
+    });
 
     logError(
       this.config,
       errorMessage,
       PROCESS_FETCHING_FLAGS
-    )
+    );
 
     this.visitor.flagsStatus = {
       status: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.FLAGS_FETCHING_ERROR
-    }
+    };
 
     import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const troubleshootingHit = new Troubleshooting({
@@ -477,81 +473,90 @@ export class DefaultStrategy extends StrategyAbstract {
         sdkConfigInitialBucketing: this.config.initialBucketing,
         sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
         sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
-      })
+      });
 
-      this.trackingManager.addTroubleshootingHit(troubleshootingHit)
-    })
+      this.trackingManager.addTroubleshootingHit(troubleshootingHit);
+    });
   }
 
-  async getCampaigns (now: number): Promise<{
+  async getCampaigns(now: number): Promise<{
     campaigns: CampaignDTO[] | null;
     error?: string;
     isFetching?: boolean;
     isBuffered?: boolean;
   }> {
-    let campaigns: CampaignDTO[] | null = null
-    const functionName = PROCESS_FETCHING_FLAGS
+    let campaigns: CampaignDTO[] | null = null;
+    const functionName = PROCESS_FETCHING_FLAGS;
     try {
-      const time = Date.now() - this.visitor.lastFetchFlagsTimestamp
-      const fetchStatus = this.visitor.flagsStatus.status
+      const time = Date.now() - this.visitor.lastFetchFlagsTimestamp;
+      const fetchStatus = this.visitor.flagsStatus.status;
 
       if (fetchStatus === FSFetchStatus.FETCHING) {
-        await this.visitor.getCampaignsPromise
-        return { campaigns, isFetching: true }
+        await this.visitor.getCampaignsPromise;
+        return {
+          campaigns,
+          isFetching: true
+        };
       }
 
-      const fetchFlagBufferingTime = (this.config.fetchFlagsBufferingTime as number * 1000)
+      const fetchFlagBufferingTime = (this.config.fetchFlagsBufferingTime as number * 1000);
 
       if (fetchStatus === FSFetchStatus.FETCHED && time < fetchFlagBufferingTime) {
-        logInfoSprintf(this.config, functionName, FETCH_FLAGS_BUFFERING_MESSAGE, this.visitor.visitorId, fetchFlagBufferingTime - time)
-        return { campaigns, isBuffered: true }
+        logInfoSprintf(this.config, functionName, FETCH_FLAGS_BUFFERING_MESSAGE, this.visitor.visitorId, fetchFlagBufferingTime - time);
+        return {
+          campaigns,
+          isBuffered: true
+        };
       }
 
-      logDebugSprintf(this.config, functionName, FETCH_FLAGS_STARTED, this.visitor.visitorId)
+      logDebugSprintf(this.config, functionName, FETCH_FLAGS_STARTED, this.visitor.visitorId);
 
       this.visitor.flagsStatus = {
         status: FSFetchStatus.FETCHING,
         reason: FSFetchReasons.NONE
-      }
+      };
 
-      await this.lookupVisitor()
+      await this.lookupVisitor();
 
-      await this.visitor.emotionAi.fetchEAIScore()
+      await this.visitor.emotionAi.fetchEAIScore();
 
-      this.visitor.getCampaignsPromise = this.decisionManager.getCampaignsAsync(this.visitor)
+      this.visitor.getCampaignsPromise = this.decisionManager.getCampaignsAsync(this.visitor);
 
-      campaigns = await this.visitor.getCampaignsPromise
+      campaigns = await this.visitor.getCampaignsPromise;
 
-      this.visitor.lastFetchFlagsTimestamp = Date.now()
+      this.visitor.lastFetchFlagsTimestamp = Date.now();
 
       if (this.decisionManager.isPanic()) {
         this.visitor.flagsStatus = {
           status: FSFetchStatus.PANIC,
           reason: FSFetchReasons.NONE
-        }
+        };
       }
 
-      this.configManager.trackingManager.troubleshootingData = this.decisionManager.troubleshooting
+      this.configManager.trackingManager.troubleshootingData = this.decisionManager.troubleshooting;
 
       logDebugSprintf(this.config, functionName, FETCH_CAMPAIGNS_SUCCESS,
         this.visitor.visitorId, this.visitor.anonymousId, this.visitor.context, campaigns, (Date.now() - now)
-      )
-      return { campaigns }
+      );
+      return { campaigns };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      logError(this.config, error.message, PROCESS_FETCHING_FLAGS)
+      logError(this.config, error.message, PROCESS_FETCHING_FLAGS);
 
       this.visitor.flagsStatus = {
         status: FSFetchStatus.FETCH_REQUIRED,
         reason: FSFetchReasons.FLAGS_FETCHING_ERROR
-      }
-      return { error: error as string, campaigns }
+      };
+      return {
+        error: error as string,
+        campaigns
+      };
     }
   }
 
-  protected fetchCampaignsFromCache (visitor: VisitorDelegate) :CampaignDTO[]|null {
+  protected fetchCampaignsFromCache(visitor: VisitorDelegate) :CampaignDTO[]|null {
     if (!Array.isArray(visitor?.visitorCache?.data.campaigns)) {
-      return null
+      return null;
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (visitor.visitorCache as any).data.campaigns.map((campaign:any) => {
@@ -567,17 +572,17 @@ export class DefaultStrategy extends StrategyAbstract {
             value: campaign.flags
           }
         }
-      }
-    })
+      };
+    });
   }
 
-  handleNoCampaigns (now:number) :CampaignDTO[] | null {
-    const campaigns = this.fetchCampaignsFromCache(this.visitor)
+  handleNoCampaigns(now:number) :CampaignDTO[] | null {
+    const campaigns = this.fetchCampaignsFromCache(this.visitor);
     if (campaigns) {
       this.visitor.flagsStatus = {
         status: FSFetchStatus.FETCH_REQUIRED,
         reason: FSFetchReasons.FLAGS_FETCHED_FROM_CACHE
-      }
+      };
 
       logDebugSprintf(
         this.config,
@@ -588,34 +593,39 @@ export class DefaultStrategy extends StrategyAbstract {
         this.visitor.context,
         campaigns,
         Date.now() - now
-      )
+      );
     }
-    return campaigns
+    return campaigns;
   }
 
-  sendVisitorAllocatedVariations ():void {
+  sendVisitorAllocatedVariations():void {
     if (__fsWebpackIsBrowser__) {
-      const visitorAllocatedVariations: Record<string, VisitorVariations> = {}
+      const visitorAllocatedVariations: Record<string, VisitorVariations> = {};
 
       this.visitor.flagsData.forEach((item) => {
         visitorAllocatedVariations[item.campaignId] = {
           variationId: item.variationId,
           variationGroupId: item.variationGroupId,
           campaignId: item.campaignId
-        }
-      })
+        };
+      });
+
+      this.visitor.visitorVariationState.visitorVariations = visitorAllocatedVariations;
+      if (!this.config.isQAModeEnabled) {
+        return;
+      }
       import(/* webpackMode: "lazy" */ '../qaAssistant/messages/index.ts').then(({ sendVisitorAllocatedVariations }) => {
-        sendVisitorAllocatedVariations(visitorAllocatedVariations)
-      })
+        sendVisitorAllocatedVariations(this.visitor.visitorVariationState);
+      });
     }
   }
 
-  private extractFlags (campaigns: CampaignDTO[]): Map<string, FlagDTO> {
-    const flags = new Map<string, FlagDTO>()
+  private extractFlags(campaigns: CampaignDTO[]): Map<string, FlagDTO> {
+    const flags = new Map<string, FlagDTO>();
     campaigns.forEach((campaign) => {
-      const object = campaign.variation.modifications.value
+      const object = campaign.variation.modifications.value;
       for (const key in object) {
-        const value = object[key]
+        const value = object[key];
         flags.set(
           key,
           {
@@ -631,53 +641,53 @@ export class DefaultStrategy extends StrategyAbstract {
             slug: campaign.slug,
             value
           }
-        )
+        );
       }
-    })
-    return flags
+    });
+    return flags;
   }
 
-  async fetchFlags (): Promise<void> {
-    const now = Date.now()
+  async fetchFlags(): Promise<void> {
+    const now = Date.now();
 
-    let campaigns: CampaignDTO[] | null = null
+    let campaigns: CampaignDTO[] | null = null;
 
     const {
       campaigns: fetchedCampaigns,
       error: fetchCampaignError,
       isFetching, isBuffered
-    } = await this.getCampaigns(now)
+    } = await this.getCampaigns(now);
 
     if (isFetching || isBuffered) {
-      return
+      return;
     }
 
-    campaigns = fetchedCampaigns
+    campaigns = fetchedCampaigns;
 
     try {
       if (!campaigns) {
-        campaigns = this.handleNoCampaigns(now)
+        campaigns = this.handleNoCampaigns(now);
       }
 
-      campaigns = campaigns || []
+      campaigns = campaigns || [];
 
-      this.visitor.campaigns = campaigns
+      this.visitor.campaigns = campaigns;
       this.visitor.flagsData = this.extractFlags(
         this.visitor.campaigns
-      )
+      );
 
-      this.cacheVisitor()
+      this.cacheVisitor();
 
-      this.visitor.emit(EMIT_READY, fetchCampaignError)
+      this.visitor.emit(EMIT_READY, fetchCampaignError);
 
       if (this.visitor.flagsStatus.status === FSFetchStatus.FETCHING) {
         this.visitor.flagsStatus = {
           status: FSFetchStatus.FETCHED,
           reason: FSFetchReasons.NONE
-        }
+        };
       }
 
-      this.sendVisitorAllocatedVariations()
+      this.sendVisitorAllocatedVariations();
 
       logDebugSprintf(
         this.config,
@@ -687,35 +697,35 @@ export class DefaultStrategy extends StrategyAbstract {
         this.visitor.anonymousId,
         this.visitor.context,
         this.visitor.flagsData
-      )
+      );
 
       if (this.decisionManager.troubleshooting) {
         this.sendFetchFlagsTroubleshooting({
           campaigns,
           now,
           isFromCache: this.visitor.flagsStatus.reason === FSFetchReasons.FLAGS_FETCHED_FROM_CACHE
-        })
-        this.sendConsentHitTroubleshooting()
-        this.sendSegmentHitTroubleshooting()
+        });
+        this.sendConsentHitTroubleshooting();
+        this.sendSegmentHitTroubleshooting();
       }
 
-      this.sendSdkConfigAnalyticHit()
+      this.sendSdkConfigAnalyticHit();
     } catch (error: unknown) {
-      this.handleFetchFlagsError(error, now, campaigns)
+      this.handleFetchFlagsError(error, now, campaigns);
     }
   }
 
-  async visitorExposed (param:VisitorExposedParam): Promise<void> {
-    const { key, flag, defaultValue, hasGetValueBeenCalled } = param
+  async visitorExposed(param:VisitorExposedParam): Promise<void> {
+    const { key, flag, defaultValue, hasGetValueBeenCalled } = param;
 
     if (!flag) {
       logWarningSprintf(
         this.visitor.config,
         FLAG_VISITOR_EXPOSED,
         USER_EXPOSED_FLAG_ERROR, this.visitor.visitorId, key
-      )
-      this.sendFlagTroubleshooting(TroubleshootingLabel.VISITOR_EXPOSED_FLAG_NOT_FOUND, key, defaultValue)
-      return
+      );
+      this.sendFlagTroubleshooting(TroubleshootingLabel.VISITOR_EXPOSED_FLAG_NOT_FOUND, key, defaultValue);
+      return;
     }
 
     if (!hasGetValueBeenCalled) {
@@ -723,9 +733,9 @@ export class DefaultStrategy extends StrategyAbstract {
         this.visitor.config,
         FLAG_VISITOR_EXPOSED,
         VISITOR_EXPOSED_VALUE_NOT_CALLED, this.visitor.visitorId, key
-      )
-      this.sendFlagTroubleshooting(TroubleshootingLabel.FLAG_VALUE_NOT_CALLED, key, defaultValue, true)
-      return
+      );
+      this.sendFlagTroubleshooting(TroubleshootingLabel.FLAG_VALUE_NOT_CALLED, key, defaultValue, true);
+      return;
     }
 
     if (defaultValue !== null && defaultValue !== undefined && flag.value !== null && !hasSameType(flag.value, defaultValue)) {
@@ -733,16 +743,16 @@ export class DefaultStrategy extends StrategyAbstract {
         this.visitor.config,
         FLAG_VISITOR_EXPOSED,
         USER_EXPOSED_CAST_ERROR, this.visitor.visitorId, key
-      )
+      );
 
-      this.sendFlagTroubleshooting(TroubleshootingLabel.VISITOR_EXPOSED_TYPE_WARNING, key, defaultValue)
-      return
+      this.sendFlagTroubleshooting(TroubleshootingLabel.VISITOR_EXPOSED_TYPE_WARNING, key, defaultValue);
+      return;
     }
 
-    await this.sendActivate(flag, defaultValue)
+    await this.sendActivate(flag, defaultValue);
   }
 
-  private sendFlagTroubleshooting (label: TroubleshootingLabel, key: string, defaultValue: unknown, visitorExposed?: boolean):void {
+  private sendFlagTroubleshooting(label: TroubleshootingLabel, key: string, defaultValue: unknown, visitorExposed?: boolean):void {
     import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const troubleshooting = new Troubleshooting({
         label,
@@ -757,43 +767,43 @@ export class DefaultStrategy extends StrategyAbstract {
         flagKey: key,
         flagDefault: defaultValue,
         visitorExposed
-      })
+      });
 
-      this.sendTroubleshootingHit(troubleshooting)
-    })
+      this.sendTroubleshootingHit(troubleshooting);
+    });
   }
 
-  getFlagValue<T> (param:GetFlagValueParam<T>): T extends null ? unknown : T {
-    const { key, defaultValue, flag, visitorExposed } = param
+  getFlagValue<T>(param:GetFlagValueParam<T>): T extends null ? unknown : T {
+    const { key, defaultValue, flag, visitorExposed } = param;
 
     if (!flag) {
-      logWarningSprintf(this.config, FLAG_VALUE, GET_FLAG_MISSING_ERROR, this.visitor.visitorId, key, defaultValue)
-      this.sendFlagTroubleshooting(TroubleshootingLabel.GET_FLAG_VALUE_FLAG_NOT_FOUND, key, defaultValue, visitorExposed)
+      logWarningSprintf(this.config, FLAG_VALUE, GET_FLAG_MISSING_ERROR, this.visitor.visitorId, key, defaultValue);
+      this.sendFlagTroubleshooting(TroubleshootingLabel.GET_FLAG_VALUE_FLAG_NOT_FOUND, key, defaultValue, visitorExposed);
 
-      return defaultValue as T extends null ? unknown : T
+      return defaultValue as T extends null ? unknown : T;
     }
 
     if (visitorExposed) {
-      this.sendActivate(flag, defaultValue)
+      this.sendActivate(flag, defaultValue);
     }
 
     if (flag.value === null) {
-      return defaultValue as T extends null ? unknown : T
+      return defaultValue as T extends null ? unknown : T;
     }
 
     if (defaultValue !== null && defaultValue !== undefined && !hasSameType(flag.value, defaultValue)) {
-      logWarningSprintf(this.config, FLAG_VALUE, GET_FLAG_CAST_ERROR, this.visitor.visitorId, key, defaultValue)
-      this.sendFlagTroubleshooting(TroubleshootingLabel.GET_FLAG_VALUE_TYPE_WARNING, key, defaultValue, visitorExposed)
-      return defaultValue as T extends null ? unknown : T
+      logWarningSprintf(this.config, FLAG_VALUE, GET_FLAG_CAST_ERROR, this.visitor.visitorId, key, defaultValue);
+      this.sendFlagTroubleshooting(TroubleshootingLabel.GET_FLAG_VALUE_TYPE_WARNING, key, defaultValue, visitorExposed);
+      return defaultValue as T extends null ? unknown : T;
     }
 
-    logDebugSprintf(this.config, FLAG_VALUE, GET_FLAG_VALUE, this.visitor.visitorId, key, flag.value)
+    logDebugSprintf(this.config, FLAG_VALUE, GET_FLAG_VALUE, this.visitor.visitorId, key, flag.value);
 
-    return flag.value as T extends null ? unknown : T
+    return flag.value as T extends null ? unknown : T;
   }
 
-  private SendFlagMetadataTroubleshooting (key: string):void {
-    logWarningSprintf(this.config, FLAG_METADATA, NO_FLAG_METADATA, this.visitor.visitorId, key)
+  private SendFlagMetadataTroubleshooting(key: string):void {
+    logWarningSprintf(this.config, FLAG_METADATA, NO_FLAG_METADATA, this.visitor.visitorId, key);
     import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
       const monitoring = new Troubleshooting({
         label: TroubleshootingLabel.GET_FLAG_METADATA_TYPE_WARNING,
@@ -806,19 +816,19 @@ export class DefaultStrategy extends StrategyAbstract {
         config: this.config,
         visitorContext: this.visitor.context,
         flagKey: key
-      })
+      });
 
-      this.sendTroubleshootingHit(monitoring)
-    })
+      this.sendTroubleshootingHit(monitoring);
+    });
   }
 
-  getFlagMetadata (param:GetFlagMetadataParam):IFSFlagMetadata {
-    const { key, flag } = param
+  getFlagMetadata(param:GetFlagMetadataParam):IFSFlagMetadata {
+    const { key, flag } = param;
 
     if (!flag) {
-      logWarningSprintf(this.config, FLAG_METADATA, NO_FLAG_METADATA, this.visitor.visitorId, key)
-      this.SendFlagMetadataTroubleshooting(key)
-      return FSFlagMetadata.Empty()
+      logWarningSprintf(this.config, FLAG_METADATA, NO_FLAG_METADATA, this.visitor.visitorId, key);
+      this.SendFlagMetadataTroubleshooting(key);
+      return FSFlagMetadata.Empty();
     }
 
     const metadata = new FSFlagMetadata({
@@ -831,8 +841,8 @@ export class DefaultStrategy extends StrategyAbstract {
       isReference: !!flag.isReference,
       campaignType: flag.campaignType as string,
       slug: flag.slug
-    })
+    });
 
-    return metadata
+    return metadata;
   }
 }

@@ -1,6 +1,7 @@
 import { IFlagshipConfig } from './config/IFlagshipConfig.ts'
+import { ISdkApiV1 } from './sdkApi/v1/ISdkApiV1.ts';
 import { ISharedActionTracking } from './sharedFeature/ISharedActionTracking.ts'
-import { FlagDTO, IFSFlagMetadata, InternalHitType, primitive, VisitorProfile } from './types.ts'
+import { FlagDTO, FsVariationToForce, IFSFlagMetadata, InternalHitType, primitive, VisitorProfile, VisitorVariations } from './types.ts'
 import { type IHttpClient } from './utils/HttpClient.ts'
 
 export type VisitorExposedParam = {
@@ -28,7 +29,7 @@ export type EAIConfig = {
 }
 
 export interface IVisitorProfileCache {
-  saveVisitorProfile(visitorProfile: VisitorProfile): void;
+  saveVisitorProfile(visitorProfile?: VisitorProfile): void;
   loadVisitorProfile(): VisitorProfile | null;
 }
 
@@ -65,16 +66,6 @@ export type SdkApiParam = {
 export type SharedActionTrackingParam = {
   sdkConfig: IFlagshipConfig;
 }
-
-declare global {
-  let __fsWebpackIsBrowser__: boolean
-  let __fsWebpackIsNode__: boolean
-  let __fsWebpackIsReactNative__: boolean
-  let __fsWebpackIsEdgeWorker__: boolean
-  let __fsWebpackIsDeno__: boolean
-}
-
-
 
 export type ConstructorParam = {
   httpClient: IHttpClient;
@@ -123,3 +114,39 @@ export enum ImportHitType {
 }
 
 export type ActivateConstructorParam = Omit<IActivate, 'type'|'createdAt'|'traffic'>
+
+declare global {
+  let __fsWebpackIsBrowser__: boolean
+  let __fsWebpackIsNode__: boolean
+  let __fsWebpackIsReactNative__: boolean
+  let __fsWebpackIsEdgeWorker__: boolean
+  let __fsWebpackIsDeno__: boolean
+  interface Window {
+    ABTastyQaAssistant?: Window;
+    flagship?: {
+      envId?: string;
+      forcedVariations?: Record<string, FsVariationToForce>;
+      visitorVariations?: Record<string, VisitorVariations>;
+      exposedVariations?: Record<string, VisitorVariations>;
+    };
+    ABTastyWebSdk: {
+        internal: ISdkApiV1;
+      };
+    ABTasty: {
+      api: {
+        internal: {
+          /**
+           * Generate a nonce for the action tracking.
+           * @returns {string|undefined} The nonce or undefined if the consent is not given.
+           */
+          _getActionTrackingNonce(): string | undefined;
+          /**
+           * Get the current visitor ID.
+           * @returns {string} The visitor ID.
+           */
+          _getVisitorId(): string | undefined;
+        };
+      };
+    };
+  }
+}

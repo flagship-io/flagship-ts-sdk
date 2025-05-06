@@ -1,8 +1,8 @@
-import { IFlagshipConfig } from '../config/index'
-import { IFSFlag } from '../flag/IFSFlag'
-import { IFSFlagCollection } from '../flag/IFSFlagCollection'
-import { type HitAbstract } from '../hit/HitAbstract'
-import { IHit, primitive, FlagsStatus } from '../types'
+import { IFlagshipConfig } from '../config/index';
+import { IFSFlag } from '../flag/IFSFlag';
+import { IFSFlagCollection } from '../flag/IFSFlagCollection';
+import { type HitAbstract } from '../hit/HitAbstract';
+import { IHit, primitive, FlagsStatus } from '../types';
 
 /**
  * The `Visitor` class represents a unique user within your application. It aids in

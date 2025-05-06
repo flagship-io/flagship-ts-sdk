@@ -1,4 +1,4 @@
-import { VisitorCacheDTO } from '../types'
+import { VisitorCacheDTO } from '../types';
 
 export interface IVisitorCacheImplementation {
     /**

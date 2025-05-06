@@ -1,35 +1,51 @@
-import { VisitorVariations } from '../../types'
-import { isBrowser } from '../../utils/utils'
-import { EventDataToIframe, MSG_NAME_TO_IFRAME } from '../type'
+import { VisitorVariationState } from '../../type.local';
+import { EventDataToIframe, MSG_NAME_TO_IFRAME, VisitorVariationUpdateParam } from '../type';
 
-export function sendMessageToIframe (data: EventDataToIframe): void {
-  if (!window?.frames?.ABTastyQaAssistant || !isBrowser()) {
-    return
+export function sendMessageToIframe(data: EventDataToIframe): void {
+  if (!window?.frames?.ABTastyQaAssistant) {
+    return;
   }
-  window.frames.ABTastyQaAssistant.postMessage(data, '*')
+  window.frames.ABTastyQaAssistant.postMessage(data, '*');
 }
 
-export function sendVisitorAllocatedVariations (visitorVariations: Record<string, VisitorVariations>):void {
-  if (!isBrowser()) {
-    return
-  }
-  window.flagship = {
-    ...window.flagship,
-    visitorVariations
+export function sendVisitorAllocatedVariations(visitorVariationState: VisitorVariationState):void {
+
+  if (!visitorVariationState?.visitorVariations) {
+    return;
   }
 
-  sendMessageToIframe({ name: MSG_NAME_TO_IFRAME.FsUpdateVisitorAllocatedVariation, value: visitorVariations })
+  sendMessageToIframe({
+    name: MSG_NAME_TO_IFRAME.FsUpdateVisitorAllocatedVariation,
+    value: visitorVariationState.visitorVariations
+  });
 }
 
-export function sendVisitorExposedVariations (visitorVariations: Record<string, VisitorVariations>):void {
-  sendMessageToIframe({ name: MSG_NAME_TO_IFRAME.FsVisitorExposedVariation, value: visitorVariations })
+export function sendVisitorExposedVariations(visitorVariationState: VisitorVariationState):void {
+  if (!visitorVariationState?.exposedVariations) {
+    return;
+  }
+
+  const navigationDetected = visitorVariationState.navigationDetected;
+
+  if (visitorVariationState.navigationDetected) {
+    visitorVariationState.navigationDetected = false;
+  }
+
+  sendMessageToIframe({
+    name: MSG_NAME_TO_IFRAME.FsVisitorExposedVariation,
+    value: visitorVariationState.exposedVariations,
+    param: navigationDetected ? VisitorVariationUpdateParam.NewNavigation : undefined
+  });
 }
 
-export function sendFsHitToQA (hit: Record<string, unknown>[]):void {
+export function sendFsHitToQA(hit: Record<string, unknown>[]):void {
   sendMessageToIframe({
     name: MSG_NAME_TO_IFRAME.FsHIT,
     value: hit.map(item => {
-      return { ...item, timestamp: Date.now() - (item.qt as number) }
+      return {
+        ...item,
+        timestamp: Date.now() - (item.qt as number)
+      };
     })
-  })
+  });
 }
