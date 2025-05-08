@@ -22,6 +22,12 @@ export interface FSLocalStorageHitDeduplicatorOptions {
    * Default: 'fs_dedup_'
    */
   storageKeyPrefix?: string;
+
+  /**
+   * Percentage of entries to evict when exceeding maxCacheSize
+   * Default: 25%
+   */
+  evictionPercentage?: number;
 }
 
 interface DeduplicatorMeta {
@@ -43,6 +49,7 @@ export class FSLocalStorageHitDeduplicator implements IFSHitDeduplicator {
   private hitsPrefix: string;
   private activitiesKey: string;
   private metaKey: string;
+  private evictionPercentage: number;
 
   // In-memory cache of visitor activities to reduce localStorage reads
   private visitorActivitiesCache: Record<string, number> | null = null;
@@ -71,9 +78,17 @@ export class FSLocalStorageHitDeduplicator implements IFSHitDeduplicator {
     this.hitsPrefix = `${this.keyPrefix}hits_`;
     this.activitiesKey = `${this.keyPrefix}activities`;
     this.metaKey = `${this.keyPrefix}meta`;
+    this.evictionPercentage = options.evictionPercentage ?? 0.25; // Default: 25% of excess entries
 
     // Check if localStorage is available
     this.checkLocalStorageAvailable();
+  }
+
+  getMaxCacheSize(): number {
+    return this.maxCacheSize;
+  }
+  getEvictionPercentage(): number {
+    return this.evictionPercentage;
   }
 
   /**
