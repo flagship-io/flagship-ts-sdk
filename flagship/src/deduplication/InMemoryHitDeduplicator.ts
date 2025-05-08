@@ -16,6 +16,8 @@ export interface FSInMemoryHitDeduplicatorOptions {
    * Default: 5 minutes (300000ms)
    */
   cleanupIntervalMs?: number;
+
+  evictionPercentage?: number;
 }
 
 
@@ -31,6 +33,7 @@ export class FSInMemoryHitDeduplicator implements IFSHitDeduplicator {
 
   private sessionTimeoutMs: number;
   private maxCacheSize: number;
+  private evictionPercentage: number;
   private cleanupIntervalId?: NodeJS.Timeout;
   private totalEntries: number;
   private initialized: boolean = false;
@@ -54,6 +57,15 @@ export class FSInMemoryHitDeduplicator implements IFSHitDeduplicator {
 
     // Default: 5 minutes
     this.cleanupInterval = options.cleanupIntervalMs ?? 300000;
+
+    // Default: 25% of excess entries
+    this.evictionPercentage = options.evictionPercentage ?? 0.25;
+  }
+  getMaxCacheSize(): number {
+    return this.maxCacheSize;
+  }
+  getEvictionPercentage(): number {
+    return this.evictionPercentage;
   }
   setConfig(config: IFlagshipConfig): void {
     this._config = config;
@@ -149,7 +161,7 @@ export class FSInMemoryHitDeduplicator implements IFSHitDeduplicator {
 
     // Calculate how many entries to remove (25% of excess or at least 1)
     const excessEntries = this.totalEntries - this.maxCacheSize;
-    const entriesToRemove = Math.max(1, Math.ceil(excessEntries * 0.25));
+    const entriesToRemove = Math.max(1, Math.ceil(excessEntries * this.getEvictionPercentage()));
 
     let removedCount = 0;
     let visitorIndex = 0;
