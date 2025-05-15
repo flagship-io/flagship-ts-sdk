@@ -183,12 +183,12 @@ export class BucketingManager extends DecisionManager {
         };
       }
 
-      if (variation.allocation === undefined) {
+      if (variation.allocation === undefined || variation.allocation === 0) {
         continue;
       }
       totalAllocation += variation.allocation;
 
-      if (hashAllocation <= totalAllocation) {
+      if (hashAllocation < totalAllocation) {
         logDebugSprintf(this.config, ALLOCATION, BUCKETING_NEW_ALLOCATION, visitor.visitorId, variation.id, totalAllocation);
         return {
           id: variation.id,
