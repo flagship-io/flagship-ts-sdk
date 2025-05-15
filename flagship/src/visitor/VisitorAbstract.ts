@@ -170,7 +170,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
    */
   private getVisitorIdFromTag(): string | undefined {
     if (__fsWebpackIsBrowser__) {
-      const isClientSuppliedID = window.ABTasty?.api?.internal?._isByoidConfigured();
+      const isClientSuppliedID = window.ABTasty?.api?.internal?._isByoidConfigured?.();
       if (isClientSuppliedID) {
         return undefined;
       }
