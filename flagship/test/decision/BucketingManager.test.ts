@@ -453,6 +453,44 @@ describe('test bucketing method', () => {
     expect(response).toEqual(variation)
   })
 
+  it('test getVariation ', () => {
+    const variations = [
+      {
+        id: 'c20j8bk3fk9hdphqtd30',
+        modifications: {
+          type: 'HTML',
+          value: { my_html: '<div>\n  <p>Original</p>\n</div>' }
+        },
+        allocation: 0,
+        reference: true
+      },
+      {
+        id: 'c20j8bk3fk9hdphqtd3g',
+        modifications: {
+          type: 'HTML',
+          value: { my_html: '<div>\n  <p>variation 1</p>\n</div>' }
+        },
+        allocation: undefined
+      },
+      {
+        id: 'c20j9lgbcahhf2mvhbf0',
+        modifications: {
+          type: 'HTML',
+          value: { my_html: '<div>\n  <p>variation 2</p>\n</div>' }
+        },
+        allocation: 33
+      }
+    ]
+    const variationGroups = {
+      id: '9273BKSDJtoto',
+      variations
+    }
+    const response = bucketingManagerAny.getVariation(variationGroups, visitor)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { allocation, ...variation } = variations[2]
+    expect(response).toEqual(variation)
+  })
+
   it('test getVariation reallocation ', () => {
     visitor.visitorCache = {
       version: 1,

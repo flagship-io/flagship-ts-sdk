@@ -1,7 +1,7 @@
 {
   "name": "@flagship.io/js-sdk",
   "sideEffects": false,
-  "version": "4.0.4",
+  "version": "4.0.5",
   "license": "Apache-2.0",
   "description": "Flagship JS SDK",
   "main": "dist/index.cjs",
@@ -39,7 +39,7 @@
     "lint:fix": "eslint . --ext .ts --fix",
     "lint": "eslint . --ext .ts",
     "test": "yarn run test-functional-api-mode && yarn run test-functional-bucketing-mode && yarn run test-u",
-    "test-u":"jest --testPathIgnorePatterns='<rootDir>/test/main/FunctionalApiMode.test.ts' --testPathIgnorePatterns='<rootDir>/test/main/FunctionalBucketingMode.test.ts'",
+    "test-u": "jest --testPathIgnorePatterns='<rootDir>/test/main/FunctionalApiMode.test.ts' --testPathIgnorePatterns='<rootDir>/test/main/FunctionalBucketingMode.test.ts'",
     "test-functional-api-mode": "jest test/main/FunctionalApiMode.test.ts --forceExit",
     "test-functional-bucketing-mode": "jest test/main/FunctionalBucketingMode.test.ts --forceExit",
     "clean": "rm -rf flagship dist",
@@ -104,5 +104,6 @@
     "abtasty",
     "node",
     "sdk"
-  ]
+  ],
+  "packageManager": "yarn@1.6.0+sha512.6cb41e541d1190682222dddc88c7bd701c8335ca03d84b67fb01e7d1842594888fe69c0b64339458253c807956843ae43d14b865c968a49656e74509cd473c0b"
 }
