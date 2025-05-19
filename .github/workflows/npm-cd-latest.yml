@@ -23,6 +23,6 @@ jobs:
       - run: yarn install
       - run: yarn test --coverage
       - run: yarn build-prod
-      - run: npm publish --tag v4
+      - run: npm publish --tag release-4
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
