@@ -2430,4 +2430,3 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
   });
 });
 
-
