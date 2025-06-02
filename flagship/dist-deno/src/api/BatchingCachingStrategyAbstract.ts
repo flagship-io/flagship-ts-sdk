@@ -112,13 +112,13 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       if (!isBrowser() || !this.config.isQAModeEnabled) {
         return;
       }
-      import('../qaAssistant/messages/index.ts').then(({ sendFsHitToQA }) => {
+      import('../qaAssistant/messages/index.ts').then((message) => {
         this._HitsToFsQa.push(...hits);
         const BATCH_SIZE = 10;
         const DELAY = 3000;
 
         if (this._HitsToFsQa.length >= BATCH_SIZE) {
-          sendFsHitToQA(this._HitsToFsQa.map(item => item.toApiKeys()));
+          message.sendFsHitToQA(this._HitsToFsQa.map(item => item.toApiKeys()));
           this._HitsToFsQa = [];
         }
 
@@ -131,7 +131,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
         }
 
         this._sendFsHitToQATimeoutId = setTimeout(() => {
-          sendFsHitToQA(this._HitsToFsQa.map(item => item.toApiKeys()));
+          message.sendFsHitToQA(this._HitsToFsQa.map(item => item.toApiKeys()));
           this._HitsToFsQa = [];
         }, DELAY);
       });
