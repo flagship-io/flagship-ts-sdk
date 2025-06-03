@@ -113,6 +113,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
         return;
       }
       import('../qaAssistant/messages/index.ts').then((message) => {
+
         this._HitsToFsQa.push(...hits);
         const BATCH_SIZE = 10;
         const DELAY = 3000;
