@@ -340,8 +340,8 @@ export class Flagship {
     );
 
     if (__fsWebpackIsBrowser__) {
-      import('../qaAssistant/index.ts').then(({ launchQaAssistant }) => {
-        launchQaAssistant(localConfig, flagship._visitorVariationState);
+      import('../qaAssistant/index.ts').then((qaAssistant) => {
+        qaAssistant.launchQaAssistant(localConfig, flagship._visitorVariationState);
       });
     }
 

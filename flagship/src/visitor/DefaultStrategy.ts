@@ -614,8 +614,8 @@ export class DefaultStrategy extends StrategyAbstract {
       if (!this.config.isQAModeEnabled) {
         return;
       }
-      import(/* webpackMode: "lazy" */ '../qaAssistant/messages/index.ts').then(({ sendVisitorAllocatedVariations }) => {
-        sendVisitorAllocatedVariations(this.visitor.visitorVariationState);
+      import(/* webpackMode: "lazy" */ '../qaAssistant/messages/index.ts').then((message) => {
+        message.sendVisitorAllocatedVariations(this.visitor.visitorVariationState);
       });
     }
   }

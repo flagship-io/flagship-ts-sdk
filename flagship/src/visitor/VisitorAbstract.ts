@@ -459,10 +459,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       const BATCH_SIZE = 10;
       const DELAY = 100;
 
-      const { sendVisitorExposedVariations } = await import('../qaAssistant/messages/index.ts');
+      const message = await import('../qaAssistant/messages/index.ts');
 
       if (Object.keys(this._exposedVariations).length >= BATCH_SIZE) {
-        sendVisitorExposedVariations(this._visitorVariationState);
+        message.sendVisitorExposedVariations(this._visitorVariationState);
         this._exposedVariations = {};
       }
 
@@ -475,7 +475,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       }
 
       this._sendExposedVariationTimeoutId = setTimeout(() => {
-        sendVisitorExposedVariations(this._visitorVariationState);
+        message.sendVisitorExposedVariations(this._visitorVariationState);
         this._exposedVariations = {};
       }, DELAY);
     }
