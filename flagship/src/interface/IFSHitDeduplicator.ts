@@ -10,6 +10,24 @@ export interface IFSHitDeduplicator {
     setConfig(config: IFlagshipConfig): void;
 
     /**
+     * Get current maximum cache size
+     * @returns The maximum number of entries allowed (0 means no limit)
+     */
+    getMaxCacheSize(): number;
+
+    /**
+     * Get current eviction percentage
+     * @returns The percentage of excess entries to remove during eviction (0-100)
+     */
+    getEvictionPercentage(): number;
+
+    /**
+     * Get the cleanup interval in milliseconds
+     * @returns The interval in milliseconds for periodic cleanup of expired entries
+     */
+    getCleanupInterval(): number;
+
+    /**
      * Check if a hit is a duplicate
      * This method checks if a hit is a duplicate based on the visitor ID, anonymous ID, and the value to check for duplicates.
      * @param visitorId The visitor ID
@@ -26,11 +44,15 @@ export interface IFSHitDeduplicator {
 
     /**
      * Clean up expired entries
+     * This method removes entries that have not been accessed for a certain period of time.
+     * This method should be called periodically to ensure that the deduplicator does not hold onto stale entries indefinitely.
      */
     cleanupExpiredAsync(): Promise<void>;
 
     /**
      * Initialize the deduplicator
+     * This method should be called before using the deduplicator to ensure it is ready to handle hits.
+     * It may involve setting up internal data structures, starting background tasks, etc.
      */
     initializeAsync(): Promise<void>;
 
@@ -48,16 +70,4 @@ export interface IFSHitDeduplicator {
      * @param anonymousId The anonymous ID
      */
     reportActivityAsync(visitorId: string, anonymousId: string|null): Promise<void>;
-
-    /**
-     * Get current maximum cache size
-     * @returns The maximum number of entries allowed (0 means no limit)
-     */
-    getMaxCacheSize(): number;
-
-    /**
-     * Get current eviction percentage
-     * @returns The percentage of excess entries to remove during eviction (0-100)
-     */
-    getEvictionPercentage(): number;
 }

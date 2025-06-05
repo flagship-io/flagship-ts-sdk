@@ -70,6 +70,9 @@ export class FSInMemoryHitDeduplicator implements IFSHitDeduplicator {
   setConfig(config: IFlagshipConfig): void {
     this._config = config;
   }
+  getCleanupInterval(): number {
+    return this.cleanupInterval;
+  }
 
   /**
    * Initialize the deduplicator
@@ -93,6 +96,25 @@ export class FSInMemoryHitDeduplicator implements IFSHitDeduplicator {
    * @returns Promise resolving to true if duplicate, false if new
    */
   async isDuplicateAsync(visitorId: string, anonymousId:string|null, value: string): Promise<boolean> {
+
+    const now = Date.now();
+
+    // Check if visitor's session has expired
+    const lastVisitorActivity = this.visitorActivity.get(visitorId);
+    if (lastVisitorActivity && now - lastVisitorActivity >= this.sessionTimeoutMs) {
+    // Session expired - clear previous data for this visitor
+      this.removeVisitorData(visitorId);
+    }
+
+    // If anonymousId is provided, check if its session has expired too
+    if (anonymousId !== null) {
+      const lastAnonymousActivity = this.visitorActivity.get(anonymousId);
+      if (lastAnonymousActivity && now - lastAnonymousActivity >= this.sessionTimeoutMs) {
+      // Session expired - clear previous data for this anonymous ID
+        this.removeVisitorData(anonymousId);
+      }
+    }
+
     // Update visitor's last activity time
     this.reportActivityAsync(visitorId, anonymousId);
 
