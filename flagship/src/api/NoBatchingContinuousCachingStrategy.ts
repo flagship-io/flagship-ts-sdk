@@ -7,6 +7,8 @@ import { TroubleshootingLabel } from '../types';
 import { logDebugSprintf, logErrorSprintf, uuidV4 } from '../utils/utils';
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract';
 import { BatchingCachingStrategyConstruct, SendActivate } from './types';
+import { ActivateBatch } from '../hit/ActivateBatch.ts';
+import { Troubleshooting } from '../hit/Troubleshooting.ts';
 
 export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategyAbstract {
   protected cacheHitKeys:Record<string, string>;
@@ -88,26 +90,26 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         batchTriggeredBy: BatchTriggeredBy[BatchTriggeredBy.DirectHit]
       });
 
-      import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
-        const monitoringHttpResponse = new Troubleshooting({
-          label: TroubleshootingLabel.SEND_HIT_ROUTE_ERROR,
-          logLevel: LogLevel.ERROR,
-          visitorId: `${this._flagshipInstanceId}`,
-          traffic: 0,
-          config: this.config,
-          httpRequestBody: requestBody,
-          httpRequestHeaders: headers,
-          httpRequestMethod: 'POST',
-          httpRequestUrl: HIT_EVENT_URL,
-          httpResponseBody: error?.message,
-          httpResponseHeaders: error?.headers,
-          httpResponseCode: error?.statusCode,
-          httpResponseTime: Date.now() - now,
-          batchTriggeredBy: BatchTriggeredBy.DirectHit
-        });
 
-        this.sendTroubleshootingHit(monitoringHttpResponse);
+      const monitoringHttpResponse = new Troubleshooting({
+        label: TroubleshootingLabel.SEND_HIT_ROUTE_ERROR,
+        logLevel: LogLevel.ERROR,
+        visitorId: `${this._flagshipInstanceId}`,
+        traffic: 0,
+        config: this.config,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: HIT_EVENT_URL,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseCode: error?.statusCode,
+        httpResponseTime: Date.now() - now,
+        batchTriggeredBy: BatchTriggeredBy.DirectHit
       });
+
+      this.sendTroubleshootingHit(monitoringHttpResponse);
+
     }
   }
 
@@ -156,8 +158,6 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
       [HEADER_X_SDK_VERSION]: SDK_INFO.version,
       [HEADER_CONTENT_TYPE]: HEADER_APPLICATION_JSON
     };
-
-    const { ActivateBatch } = await import('../hit/ActivateBatch.ts');
 
     const activateBatch = new ActivateBatch(Array.from(activateHitsPool.filter(item => (Date.now() - item.createdAt) < DEFAULT_HIT_CACHE_TIME_MS)), this.config);
 
@@ -220,28 +220,28 @@ export class NoBatchingContinuousCachingStrategy extends BatchingCachingStrategy
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       });
 
-      import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
-        const monitoringHttpResponse = new Troubleshooting({
-          label: TroubleshootingLabel.SEND_ACTIVATE_HIT_ROUTE_ERROR,
-          logLevel: LogLevel.ERROR,
-          visitorId: `${this._flagshipInstanceId}`,
-          traffic: 0,
-          config: this.config,
-          httpRequestBody: requestBody,
-          httpRequestHeaders: headers,
-          httpRequestMethod: 'POST',
-          httpRequestUrl: url,
-          httpResponseBody: error?.message,
-          httpResponseHeaders: error?.headers,
-          httpResponseMethod: 'POST',
-          httpResponseUrl: url,
-          httpResponseCode: error?.statusCode,
-          httpResponseTime: Date.now() - now,
-          batchTriggeredBy
-        });
 
-        this.sendTroubleshootingHit(monitoringHttpResponse);
+      const monitoringHttpResponse = new Troubleshooting({
+        label: TroubleshootingLabel.SEND_ACTIVATE_HIT_ROUTE_ERROR,
+        logLevel: LogLevel.ERROR,
+        visitorId: `${this._flagshipInstanceId}`,
+        traffic: 0,
+        config: this.config,
+        httpRequestBody: requestBody,
+        httpRequestHeaders: headers,
+        httpRequestMethod: 'POST',
+        httpRequestUrl: url,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseMethod: 'POST',
+        httpResponseUrl: url,
+        httpResponseCode: error?.statusCode,
+        httpResponseTime: Date.now() - now,
+        batchTriggeredBy
       });
+
+      this.sendTroubleshootingHit(monitoringHttpResponse);
+
     }
   }
 }

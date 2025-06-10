@@ -40,11 +40,17 @@ describe('test NotReadyStrategy', () => {
   });
   config.logManager = logManager;
 
-  const apiManager = new ApiManager({} as HttpClient, config);
+  const trackingManager = new TrackingManager({} as HttpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient: {} as HttpClient,
+    config,
+    trackingManager
+  });
 
   const getCampaignsAsync = jest.spyOn(apiManager, 'getCampaignsAsync');
 
-  const trackingManager = new TrackingManager({} as HttpClient, config);
+
 
   const sendUsageHitSpy = jest.spyOn(trackingManager, 'sendUsageHit');
   const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit');

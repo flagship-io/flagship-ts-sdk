@@ -46,6 +46,7 @@ const reportEaiPageView = jest.fn<(pageView: IPageView) => Promise<void>>();
 const onEAICollectStatusChange = jest.fn<(callback: (status: boolean) => void) => void>();
 const cleanup = jest.fn<() => void>();
 const addInTrackingManager = jest.fn();
+const sendVisitorAllocatedVariations = jest.fn<() => void>();
 
 jest.mock('../../src/visitor/DefaultStrategy', () => {
   return {
@@ -72,7 +73,8 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
         reportEaiPageView,
         onEAICollectStatusChange,
         cleanup,
-        addInTrackingManager
+        addInTrackingManager,
+        sendVisitorAllocatedVariations
       };
     })
   };
@@ -94,9 +96,13 @@ describe('test VisitorDelegate', () => {
 
   const httpClient = new HttpClient();
 
-  const apiManager = new ApiManager(httpClient, config);
-
   const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
 
   const configManager = new ConfigManager(config, apiManager, trackingManager);
 
@@ -578,9 +584,13 @@ describe('test initialFlagsData', () => {
 
   const httpClient = new HttpClient();
 
-  const apiManager = new ApiManager(httpClient, config);
-
   const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
 
   const configManager = new ConfigManager(config, apiManager, trackingManager);
 

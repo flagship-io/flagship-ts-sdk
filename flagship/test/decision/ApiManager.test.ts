@@ -38,8 +38,14 @@ describe('test ApiManager', () => {
     envId: 'envId',
     apiKey: 'apiKey'
   });
-  const apiManager = new ApiManager(httpClient, config);
   const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
+
   apiManager.trackingManager = trackingManager;
 
   const visitorId = 'visitorId';
@@ -89,7 +95,11 @@ describe('test ApiManager', () => {
   const url = `${BASE_API_URL}${config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true&extras[]=accountSettings`;
 
   it('test panic mode ', async () => {
-    const apiManager = new ApiManager(httpClient, config);
+    const apiManager = new ApiManager({
+      httpClient,
+      config,
+      trackingManager
+    });
     const panicModeResponse = {
       status: 200,
       body: { panic: true }

@@ -101,7 +101,7 @@ export const MAX_ACTIVATE_HIT_PER_BATCH = 100;
  * Message Info
  */
 
-export const SDK_STARTED_INFO = 'Flagship SDK (version: {0}) {1}';
+export const SDK_STARTED_INFO = 'Flagship SDK (version: {0}) {1} in **{2}** mode';
 export const FLAGSHIP_SDK = 'Flagship SDK';
 
 export const EMIT_READY = 'ready';

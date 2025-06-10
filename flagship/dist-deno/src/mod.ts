@@ -16,7 +16,9 @@ globalThis.__fsWebpackIsDeno__ = true;
 
 export { Flagship } from './main/Flagship.ts';
 export { DecisionApiConfig, DecisionMode } from './config/index.ts';
-export type { IFlagshipConfig } from './config/index.ts';
+export type {
+  IFlagshipConfig, IBucketingConfig, IDecisionApiConfig, IEdgeConfig
+} from './config/index.ts';
 export type {
   IEvent, IItem, IPage, IScreen, ITransaction
 } from './hit/index.ts';

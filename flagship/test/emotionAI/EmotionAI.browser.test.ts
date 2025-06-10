@@ -35,7 +35,11 @@ describe('EmotionAI', () => {
 
   const trackingManager = new TrackingManager(httpClient, sdkConfig);
 
-  const apiManager = new ApiManager(httpClient, sdkConfig);
+  const apiManager = new ApiManager({
+    httpClient,
+    config: sdkConfig,
+    trackingManager
+  });
 
   const addHit = jest.spyOn(trackingManager, 'addHit');
   addHit.mockResolvedValue();
