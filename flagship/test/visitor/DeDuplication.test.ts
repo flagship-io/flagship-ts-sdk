@@ -27,9 +27,13 @@ describe('Visitor DeDuplication', () => {
 
   const httpClient = new HttpClient();
 
-  const apiManager = new ApiManager(httpClient, config);
-
   const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
 
   const addHit = jest.spyOn(trackingManager, 'addHit');
   const activateFlag = jest.spyOn(trackingManager, 'activateFlag');
@@ -154,9 +158,13 @@ describe('Clean cache', () => {
   httpClient.postAsync = post;
   post.mockResolvedValue({} as IHttpResponse);
 
-  const apiManager = new ApiManager(httpClient, config);
-
   const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
 
   const addHit = jest.spyOn(trackingManager, 'addHit');
   const activateFlag = jest.spyOn(trackingManager, 'activateFlag');

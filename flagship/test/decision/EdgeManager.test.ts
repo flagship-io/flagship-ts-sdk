@@ -23,11 +23,14 @@ describe('Test EdgeManager', () => {
 
   getBucketingContent.mockReturnValue(undefined);
 
+  const trackingManager = new TrackingManager(httpClient, config);
+
   const edgeManager = new EdgeManager({
     httpClient,
     config,
     murmurHash,
-    sdkManager
+    sdkManager,
+    trackingManager
   });
 
   const emotionAi = { init: jest.fn<(visitor:VisitorAbstract) => void>() } as unknown as IEmotionAI;
@@ -39,7 +42,7 @@ describe('Test EdgeManager', () => {
     configManager: {
       config,
       decisionManager: {} as IDecisionManager,
-      trackingManager: new TrackingManager(httpClient, config)
+      trackingManager
     },
     emotionAi
   });

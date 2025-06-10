@@ -53,11 +53,17 @@ describe('test visitor cache', () => {
   httpClient.postAsync = post;
   post.mockResolvedValue({} as IHttpResponse);
 
-  const apiManager = new ApiManager(httpClient, config);
+  const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
 
   const getCampaignsAsync = jest.spyOn(apiManager, 'getCampaignsAsync');
 
-  const trackingManager = new TrackingManager(httpClient, config);
+
 
   const configManager = new ConfigManager(config, apiManager, trackingManager);
 
@@ -527,9 +533,13 @@ describe('test visitor cache status', () => {
   httpClient.postAsync = post;
   post.mockResolvedValue({} as IHttpResponse);
 
-  const apiManager = new ApiManager(httpClient, config);
-
   const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
 
   const configManager = new ConfigManager(config, apiManager, trackingManager);
 
@@ -712,11 +722,15 @@ describe('test visitorCache with disabledCache', () => {
   httpClient.postAsync = post;
   post.mockResolvedValue({} as IHttpResponse);
 
-  const apiManager = new ApiManager(httpClient, config);
+  const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
 
   const getCampaignsAsync = jest.spyOn(apiManager, 'getCampaignsAsync');
-
-  const trackingManager = new TrackingManager(httpClient, config);
 
   const configManager = new ConfigManager(config, apiManager, trackingManager);
 

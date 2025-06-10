@@ -27,10 +27,11 @@ describe('test ConfigManager', () => {
   });
 
   it('Test set decisionManager', () => {
-    const decisionManager2 = new ApiManager(
-      {} as IHttpClient,
-      {} as DecisionApiConfig
-    );
+    const decisionManager2 = new ApiManager({
+      httpClient: {} as IHttpClient,
+      config: {} as DecisionApiConfig,
+      trackingManager: {} as TrackingManager
+    });
     configManager.decisionManager = decisionManager2;
     expect(configManager.decisionManager).toBe(decisionManager2);
   });

@@ -30,17 +30,20 @@ describe('test BucketingManager', () => {
 
   getBucketingContent.mockReturnValue(undefined);
 
+  const trackingManager = new TrackingManager(httpClient, config);
+
   const bucketingManager = new BucketingManager({
     httpClient,
     config,
     murmurHash,
-    sdkManager
+    sdkManager,
+    trackingManager
   });
 
 
   const sendContext = jest.spyOn(bucketingManager as any, 'sendContext');
 
-  const trackingManager = new TrackingManager(httpClient, config);
+
 
   sendContext.mockReturnValue(Promise.resolve());
 
@@ -130,17 +133,20 @@ describe('test getCampaignsAsync campaign with thirdPartySegment', () => {
 
   const getAsync = jest.spyOn(httpClient, 'getAsync');
 
+  const trackingManager = new TrackingManager(httpClient, config);
+
   const bucketingManager = new BucketingManager({
     httpClient,
     config,
     murmurHash,
-    sdkManager
+    sdkManager,
+    trackingManager
   });
 
 
   const sendContext = jest.spyOn(bucketingManager as any, 'sendContext');
 
-  const trackingManager = new TrackingManager(httpClient, config);
+
 
   sendContext.mockReturnValue(Promise.resolve());
 
@@ -232,18 +238,19 @@ describe('test sendContext', () => {
 
   const logError = jest.spyOn(logManager, 'error');
 
+  const trackingManager = new TrackingManager({} as HttpClient, config);
 
   const bucketingManager = new BucketingManager({
     httpClient,
     config,
     murmurHash,
-    sdkManager
+    sdkManager,
+    trackingManager
   }) as any;
 
   const visitorId = 'visitor_1';
   const context = { age: 20 };
 
-  const trackingManager = new TrackingManager({} as HttpClient, config);
 
   const fetchEAIScore = jest.fn<() => Promise<EAIScore|undefined>>();
 
@@ -341,11 +348,14 @@ describe('test bucketing method', () => {
 
   const sdkManager = { getBucketingContent } as unknown as ISdkManager;
 
+  const trackingManager = new TrackingManager({} as HttpClient, config);
+
   const bucketingManager = new BucketingManager({
     httpClient,
     config,
     murmurHash,
-    sdkManager
+    sdkManager,
+    trackingManager
   });
 
   const bucketingManagerAny = bucketingManager as any;
@@ -363,7 +373,7 @@ describe('test bucketing method', () => {
 
   fetchEAIScore.mockResolvedValue(undefined);
 
-  const trackingManager = new TrackingManager({} as HttpClient, config);
+
 
   const visitor = new VisitorDelegate({
     hasConsented: true,
@@ -1038,16 +1048,17 @@ describe('test getThirdPartySegment', () => {
   const getBucketingContent = jest.fn<() => BucketingDTO | undefined>();
 
   const sdkManager = { getBucketingContent } as unknown as ISdkManager;
-
+  const trackingManager = new TrackingManager(httpClient, config);
 
   const bucketingManager = new BucketingManager({
     httpClient,
     config,
     murmurHash,
-    sdkManager
+    sdkManager,
+    trackingManager
   });
 
-  const trackingManager = new TrackingManager(httpClient, config);
+
   const sendTroubleshootingHit = jest.spyOn(trackingManager, 'sendTroubleshootingHit');
 
   bucketingManager.trackingManager = trackingManager;

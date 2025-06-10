@@ -6,3 +6,6 @@ export { DecisionMode } from './DecisionMode';
 export type { IEdgeConfig } from './IEdgeConfig';
 export type { IFlagshipConfig } from './IFlagshipConfig';
 export type { ITrackingManagerConfig } from './TrackingManagerConfig';
+export type { IBucketingConfig } from './IBucketingConfig';
+export type { IDecisionApiConfig } from './IDecisionApiConfig';
+

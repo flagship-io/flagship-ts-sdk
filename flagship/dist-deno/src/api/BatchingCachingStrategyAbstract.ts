@@ -1,9 +1,9 @@
 import { DecisionMode, IFlagshipConfig } from '../config/index.ts';
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy.ts';
 import { ACTIVATE_ADDED_IN_QUEUE, ADD_ACTIVATE, BATCH_MAX_SIZE, DEFAULT_HIT_CACHE_TIME_MS, FS_CONSENT, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HitType, HIT_ADDED_IN_QUEUE, HIT_CACHE_VERSION, HIT_DATA_FLUSHED, HIT_EVENT_URL, LogLevel, PROCESS_CACHE_HIT, PROCESS_FLUSH_HIT, SDK_APP, SDK_INFO, SEND_BATCH, TROUBLESHOOTING_HIT_URL, TROUBLESHOOTING_HIT_ADDED_IN_QUEUE, ADD_TROUBLESHOOTING_HIT, TROUBLESHOOTING_SENT_SUCCESS, SEND_TROUBLESHOOTING, ALL_HITS_FLUSHED, HIT_CACHE_ERROR, HIT_CACHE_SAVED, PROCESS_CACHE, TRACKING_MANAGER, HIT_SENT_SUCCESS, BATCH_HIT, TRACKING_MANAGER_ERROR, USAGE_HIT_URL, ANALYTICS_HIT_SENT_SUCCESS as USAGE_HIT_SENT_SUCCESS, SEND_USAGE_HIT, ANALYTICS_HIT_ADDED_IN_QUEUE as USAGE_HIT_ADDED_IN_QUEUE, ADD_USAGE_HIT } from '../enum/index.ts';
-import { type Activate } from '../hit/Activate.ts';
+import {  Activate } from '../hit/Activate.ts';
 import { type UsageHit } from '../hit/UsageHit.ts';
-import { type Troubleshooting } from '../hit/Troubleshooting.ts';
+import { Troubleshooting } from '../hit/Troubleshooting.ts';
 import { EventCategory } from '../hit/index.ts';
 import { HitCacheDTO, IExposedFlag, IExposedVisitor, TroubleshootingData, TroubleshootingLabel } from '../types.ts';
 import { IHttpClient } from '../utils/HttpClient.ts';
@@ -14,6 +14,7 @@ import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking.ts
 import { ActivateConstructorParam, IHitAbstract, LocalActionTracking } from '../type.local.ts';
 import { type HitAbstract } from '../hit/HitAbstract.ts';
 import { type Event } from '../hit/Event.ts';
+import { Batch } from '../hit/Batch.ts';
 
 export abstract class BatchingCachingStrategyAbstract implements ITrackingManagerCommon {
   protected _config : IFlagshipConfig;
@@ -164,8 +165,6 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   }
 
   async activateFlag(paramHit: ActivateConstructorParam):Promise<void> {
-    const { Activate } = await import('../hit/Activate.ts');
-
     const hit = new Activate(paramHit);
     hit.config = this.config;
     const hitKey = `${hit.visitorId}:${uuidV4()}`;
@@ -228,8 +227,6 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
         batchTriggeredBy
       });
     }
-
-    const { Batch } = await import('../hit/Batch.ts');
 
     const batch = new Batch({
       hits: [],
@@ -306,27 +303,27 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
         batchTriggeredBy: BatchTriggeredBy[batchTriggeredBy]
       });
 
-      import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
-        const monitoringHttpResponse = new Troubleshooting({
-          label: TroubleshootingLabel.SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR,
-          logLevel: LogLevel.ERROR,
-          visitorId: `${this._flagshipInstanceId}`,
-          flagshipInstanceId: this._flagshipInstanceId,
-          traffic: 0,
-          config: this.config,
-          httpRequestBody: batch.hits,
-          httpRequestHeaders: headers,
-          httpResponseBody: error?.message,
-          httpResponseHeaders: error?.headers,
-          httpResponseMethod: 'POST',
-          httpResponseUrl: HIT_EVENT_URL,
-          httpResponseCode: error?.statusCode,
-          httpResponseTime: Date.now() - now,
-          batchTriggeredBy
-        });
 
-        this.sendTroubleshootingHit(monitoringHttpResponse);
+      const monitoringHttpResponse = new Troubleshooting({
+        label: TroubleshootingLabel.SEND_BATCH_HIT_ROUTE_RESPONSE_ERROR,
+        logLevel: LogLevel.ERROR,
+        visitorId: `${this._flagshipInstanceId}`,
+        flagshipInstanceId: this._flagshipInstanceId,
+        traffic: 0,
+        config: this.config,
+        httpRequestBody: batch.hits,
+        httpRequestHeaders: headers,
+        httpResponseBody: error?.message,
+        httpResponseHeaders: error?.headers,
+        httpResponseMethod: 'POST',
+        httpResponseUrl: HIT_EVENT_URL,
+        httpResponseCode: error?.statusCode,
+        httpResponseTime: Date.now() - now,
+        batchTriggeredBy
       });
+
+      this.sendTroubleshootingHit(monitoringHttpResponse);
+
     }
   }
 

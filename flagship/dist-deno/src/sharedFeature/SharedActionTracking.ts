@@ -5,6 +5,7 @@ import { ActionTrackingData, LocalActionTracking, SharedActionSource, SharedActi
 import { isBrowser, logDebugSprintf } from '../utils/utils.ts';
 import { VisitorAbstract } from '../visitor/VisitorAbstract.ts';
 import { ISharedActionTracking } from './ISharedActionTracking.ts';
+import { Event } from '../hit/Event.ts';
 
 export class SharedActionTracking implements ISharedActionTracking {
   private visitor: VisitorAbstract | null = null;
@@ -50,9 +51,8 @@ export class SharedActionTracking implements ISharedActionTracking {
       return;
     }
 
-    const { Event: EventHit } = await import('../hit/Event.ts');
 
-    const eventHit = new EventHit({
+    const eventHit = new Event({
       category: hit.ec as EventCategory,
       action: hit.ea,
       label: hit.el,

@@ -32,9 +32,13 @@ describe('FSFlagCollection', () => {
   httpClient.postAsync = post;
   post.mockResolvedValue({} as IHttpResponse);
 
-  const apiManager = new ApiManager(httpClient, config);
-
   const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
 
   const configManager = new ConfigManager(config, apiManager, trackingManager);
 

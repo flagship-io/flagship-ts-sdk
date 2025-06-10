@@ -45,9 +45,13 @@ describe('test sendExposedVariation', () => {
 
   const httpClient = new HttpClient();
 
-  const apiManager = new ApiManager(httpClient, config);
-
   const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
 
   const configManager = new ConfigManager(config, apiManager, trackingManager);
 

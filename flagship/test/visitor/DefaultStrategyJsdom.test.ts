@@ -73,7 +73,13 @@ describe('test DefaultStrategy ', () => {
   httpClient.postAsync = post;
   post.mockResolvedValue({} as IHttpResponse);
 
-  const apiManager = new ApiManager(httpClient, config);
+  const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
 
   const isPanicFn = jest.fn<() => boolean>();
   apiManager.isPanic = isPanicFn;
@@ -82,7 +88,7 @@ describe('test DefaultStrategy ', () => {
 
   const getModifications = jest.spyOn(apiManager, 'getModifications');
 
-  const trackingManager = new TrackingManager(httpClient, config);
+
 
   const sendTroubleshootingHitSpy = jest.spyOn(
     trackingManager,
@@ -248,9 +254,15 @@ describe('test DefaultStrategy with QA mode', () => {
   httpClient.postAsync = post;
   post.mockResolvedValue({} as IHttpResponse);
 
-  const apiManager = new ApiManager(httpClient, config);
 
   const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
+
 
   const addHit = jest.spyOn(trackingManager, 'addHit');
   addHit.mockResolvedValue();

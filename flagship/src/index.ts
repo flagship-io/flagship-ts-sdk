@@ -4,7 +4,9 @@ import { IVisitorEvent as FullIVisitorEvent } from './emotionAI/hit/IVisitorEven
 
 export { Flagship } from './main/Flagship';
 export { DecisionApiConfig, DecisionMode } from './config/index';
-export type { IFlagshipConfig } from './config/index';
+export type {
+  IFlagshipConfig, IBucketingConfig, IDecisionApiConfig, IEdgeConfig
+} from './config/index';
 export type {
   IEvent, IItem, IPage, IScreen, ITransaction
 } from './hit/index';
