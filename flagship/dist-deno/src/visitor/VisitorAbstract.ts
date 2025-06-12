@@ -252,8 +252,9 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     });
 
     this.updateCache();
-    this.setInitialFlags(initialFlagsData);
-    this.setInitializeCampaigns(initialCampaigns, !!initialFlagsData);
+    const strategy = this.getStrategy();
+    this.setInitialFlags(initialFlagsData, strategy);
+    this.setInitializeCampaigns(initialCampaigns, !!initialFlagsData, strategy);
 
     this.onFetchFlagsStatusChanged = onFetchFlagsStatusChanged;
     this.flagsStatus = {
@@ -317,7 +318,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this._isCleaningDeDuplicationCache = false;
   }
 
-  protected setInitialFlags(flags?: SerializedFlagMetadata[]): void {
+  protected setInitialFlags(flags?: SerializedFlagMetadata[], strategy?: StrategyAbstract): void {
     this._flags = new Map<string, FlagDTO>();
     if (!Array.isArray(flags)) {
       return;
@@ -337,11 +338,13 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
         campaignType: item.campaignType
       });
     });
+    strategy?.sendVisitorAllocatedVariations();
   }
 
-  protected setInitializeCampaigns(campaigns?: CampaignDTO[], hasInitialFlags?: boolean): void {
+  protected setInitializeCampaigns(campaigns?: CampaignDTO[], hasInitialFlags?: boolean, strategy?: StrategyAbstract): void {
     if (campaigns && Array.isArray(campaigns) && !hasInitialFlags) {
-      this.getStrategy().updateCampaigns(campaigns);
+      strategy?.updateCampaigns(campaigns);
+      strategy?.sendVisitorAllocatedVariations();
     }
   }
 

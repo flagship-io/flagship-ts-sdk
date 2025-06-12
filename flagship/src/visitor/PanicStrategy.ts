@@ -39,6 +39,9 @@ export class PanicStrategy extends DefaultStrategy {
     return [];
   }
 
+  public sendVisitorAllocatedVariations(): void {
+    //
+  }
 
   async sendHit(_hit: HitAbstract | IHit| BatchDTO): Promise<void> {
     this.log('sendHit');

@@ -344,6 +344,8 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     abstract getFlagValue<T>(param:GetFlagValueParam<T>):T extends null ? unknown : T
     abstract getFlagMetadata(param:GetFlagMetadataParam):IFSFlagMetadata
 
+    abstract sendVisitorAllocatedVariations():void
+
     public async sendTroubleshootingHit(hit: Troubleshooting):Promise<void> {
       await this.trackingManager.sendTroubleshootingHit(hit);
     }

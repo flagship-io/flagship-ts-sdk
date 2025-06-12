@@ -35,6 +35,9 @@ export class NotReadyStrategy extends DefaultStrategy {
     //
   }
 
+  public sendVisitorAllocatedVariations(): void {
+    //
+  }
 
   async sendHit(_hit: HitAbstract | IHit | BatchDTO): Promise<void> {
     this.log('sendHit');
