@@ -6,6 +6,14 @@ import { BASE_API_URL, EXPOSE_ALL_KEYS, FETCH_FLAGS_PANIC_MODE, FSSdkStatus, HEA
 import { CampaignDTO, FlagDTO, TroubleshootingData, TroubleshootingLabel } from '../types';
 import { errorFormat, logDebug } from '../utils/utils';
 import { ITrackingManager } from '../api/ITrackingManager';
+import { Troubleshooting } from '../hit/Troubleshooting';
+
+type ConstructorParam = {
+  httpClient: IHttpClient;
+  config: IFlagshipConfig;
+  trackingManager: ITrackingManager;
+  flagshipInstanceId?: string;
+}
 
 export abstract class DecisionManager implements IDecisionManager {
   protected _config: IFlagshipConfig;
@@ -64,9 +72,11 @@ export abstract class DecisionManager implements IDecisionManager {
     this._statusChangedCallback = v;
   }
 
-  public constructor(httpClient: IHttpClient, config: IFlagshipConfig) {
+  public constructor({ httpClient, config, trackingManager, flagshipInstanceId }: ConstructorParam) {
     this._config = config;
     this._httpClient = httpClient;
+    this._trackingManager = trackingManager;
+    this._flagshipInstanceId = flagshipInstanceId || '';
   }
 
   protected updateFlagshipStatus(v:FSSdkStatus):void {
@@ -107,6 +117,48 @@ export abstract class DecisionManager implements IDecisionManager {
   public isPanic(): boolean {
     return this._panic;
   }
+
+  private handleTroubleshootingError(params: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    error: any,
+    visitor: VisitorAbstract,
+    requestBody: unknown,
+    headers: Record<string, string>,
+    url: string,
+    now: number
+  }): never {
+    const { error, visitor, requestBody, headers, url, now } = params;
+    const troubleshooting = new Troubleshooting({
+      label: TroubleshootingLabel.GET_CAMPAIGNS_ROUTE_RESPONSE_ERROR,
+      logLevel: LogLevel.ERROR,
+      visitorId: visitor.visitorId,
+      flagshipInstanceId: this.flagshipInstanceId,
+      anonymousId: visitor.anonymousId,
+      visitorSessionId: visitor.instanceId,
+      traffic: 100,
+      config: this.config,
+      visitorContext: visitor.context,
+      httpRequestBody: requestBody,
+      httpRequestHeaders: headers,
+      httpRequestMethod: 'POST',
+      httpRequestUrl: url,
+      httpResponseBody: error?.message,
+      httpResponseHeaders: error?.headers,
+      httpResponseCode: error?.statusCode,
+      httpResponseTime: Date.now() - now
+    });
+
+    this.trackingManager?.addTroubleshootingHit(troubleshooting);
+
+    const errorMessage = errorFormat(error.message || error, {
+      url,
+      headers,
+      body: requestBody,
+      duration: Date.now() - now
+    });
+    throw new Error(errorMessage);
+  }
+
 
   protected async getDecisionApiCampaignsAsync(visitor: VisitorAbstract): Promise<CampaignDTO[]|null> {
     const headers = {
@@ -155,37 +207,14 @@ export abstract class DecisionManager implements IDecisionManager {
       return campaigns;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
-        const troubleshooting = new Troubleshooting({
-          label: TroubleshootingLabel.GET_CAMPAIGNS_ROUTE_RESPONSE_ERROR,
-          logLevel: LogLevel.ERROR,
-          visitorId: visitor.visitorId,
-          flagshipInstanceId: this.flagshipInstanceId,
-          anonymousId: visitor.anonymousId,
-          visitorSessionId: visitor.instanceId,
-          traffic: 100,
-          config: this.config,
-          visitorContext: visitor.context,
-          httpRequestBody: requestBody,
-          httpRequestHeaders: headers,
-          httpRequestMethod: 'POST',
-          httpRequestUrl: url,
-          httpResponseBody: error?.message,
-          httpResponseHeaders: error?.headers,
-          httpResponseCode: error?.statusCode,
-          httpResponseTime: Date.now() - now
-        });
-
-        this.trackingManager.addTroubleshootingHit(troubleshooting);
-      });
-
-      const errorMessage = errorFormat(error.message || error, {
-        url,
+      this.handleTroubleshootingError({
+        error,
+        visitor,
+        requestBody,
         headers,
-        body: requestBody,
-        duration: Date.now() - now
+        url,
+        now
       });
-      throw new Error(errorMessage);
     }
   }
 }

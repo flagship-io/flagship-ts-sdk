@@ -101,7 +101,13 @@ describe('test DefaultStrategy ', () => {
   httpClient.postAsync = post;
   post.mockResolvedValue({} as IHttpResponse);
 
-  const apiManager = new ApiManager(httpClient, config);
+  const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
 
   const isPanicFn = jest.fn<() => boolean>();
   apiManager.isPanic = isPanicFn;
@@ -110,7 +116,7 @@ describe('test DefaultStrategy ', () => {
 
   const getModifications = jest.spyOn(apiManager, 'getModifications');
 
-  const trackingManager = new TrackingManager(httpClient, config);
+
 
   const sendTroubleshootingHitSpy = jest.spyOn(
     trackingManager,
@@ -1409,13 +1415,18 @@ describe('test DefaultStrategy fetch flags buffering', () => {
   httpClient.postAsync = post;
   post.mockResolvedValue({} as IHttpResponse);
 
-  const apiManager = new ApiManager(httpClient, config);
+  const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
 
   const getCampaignsAsync = jest.spyOn(apiManager, 'getCampaignsAsync');
 
   const getModifications = jest.spyOn(apiManager, 'getModifications');
 
-  const trackingManager = new TrackingManager(httpClient, config);
 
   const addHit = jest.spyOn(trackingManager, 'addHit');
   addHit.mockResolvedValue();
@@ -1606,11 +1617,15 @@ describe('test fetchFlags errors', () => {
   httpClient.postAsync = post;
   post.mockResolvedValue({} as IHttpResponse);
 
-  const apiManager = new ApiManager(httpClient, config);
+  const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
 
   const getCampaignsAsync = jest.spyOn(apiManager, 'getCampaignsAsync');
-
-  const trackingManager = new TrackingManager(httpClient, config);
 
   const configManager = new ConfigManager(config, apiManager, trackingManager);
 
@@ -1703,11 +1718,15 @@ describe('test fetchFlags errors 2', () => {
   httpClient.postAsync = post;
   post.mockResolvedValue({} as IHttpResponse);
 
-  const apiManager = new ApiManager(httpClient, config);
+  const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
 
   const getCampaignsAsync = jest.spyOn(apiManager, 'getCampaignsAsync');
-
-  const trackingManager = new TrackingManager(httpClient, config);
 
   const configManager = new ConfigManager(config, apiManager, trackingManager);
 
@@ -1795,11 +1814,15 @@ describe('test DefaultStrategy troubleshootingHit 1', () => {
   httpClient.postAsync = post;
   post.mockResolvedValue({} as IHttpResponse);
 
-  const apiManager = new ApiManager(httpClient, config);
+  const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
 
   const getCampaignsAsync = jest.spyOn(apiManager, 'getCampaignsAsync');
-
-  const trackingManager = new TrackingManager(httpClient, config);
 
   const addHit = jest.spyOn(trackingManager, 'addHit');
   addHit.mockResolvedValue();
@@ -1838,7 +1861,7 @@ describe('test DefaultStrategy troubleshootingHit 1', () => {
   });
 
   it('test fetchFlags 2', async () => {
-    await sleep(10);
+
     apiManager.troubleshooting = {
       startDate: new Date(),
       endDate: new Date(),
@@ -1864,18 +1887,16 @@ describe('test DefaultStrategy troubleshootingHit 1', () => {
 
     await defaultStrategy.fetchFlags();
 
-    await sleep(10);
-
     expect(sendTroubleshootingHit).toBeCalledTimes(2);
 
-    const label1: TroubleshootingLabel = TroubleshootingLabel.VISITOR_SEND_HIT;
+    const label1: TroubleshootingLabel = TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS;
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({ data: expect.objectContaining({ label: label1 }) })
     );
 
     const label: TroubleshootingLabel =
-      TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS;
+      TroubleshootingLabel.VISITOR_SEND_HIT;
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({ data: expect.objectContaining({ label }) })
@@ -1883,23 +1904,19 @@ describe('test DefaultStrategy troubleshootingHit 1', () => {
 
     defaultStrategy.setConsent(true);
 
-    await sleep(10);
-
     expect(sendTroubleshootingHit).toBeCalledTimes(3);
 
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(
       3,
-      expect.objectContaining({ data: expect.objectContaining({ label: label1 }) })
+      expect.objectContaining({ data: expect.objectContaining({ label }) })
     );
 
     await defaultStrategy.fetchFlags();
 
-    await sleep(10);
-
     expect(sendTroubleshootingHit).toBeCalledTimes(4);
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(
       4,
-      expect.objectContaining({ data: expect.objectContaining({ label }) })
+      expect.objectContaining({ data: expect.objectContaining({ label: label1 }) })
     );
   });
 });
@@ -1995,16 +2012,19 @@ describe('test DefaultStrategy troubleshootingHit Bucketing mode', () => {
   post.mockResolvedValue({} as IHttpResponse);
   const murmurHash = new MurmurHash();
 
+  const trackingManager = new TrackingManager(httpClient, config);
+
   const decisionManager = new BucketingManager({
     httpClient,
     config,
     murmurHash,
-    sdkManager
+    sdkManager,
+    trackingManager
   });
 
   const getModifications = jest.spyOn(decisionManager, 'getModifications');
 
-  const trackingManager = new TrackingManager(httpClient, config);
+
 
   const addHit = jest.spyOn(trackingManager, 'addHit');
   addHit.mockResolvedValue();
@@ -2061,13 +2081,17 @@ describe('test DefaultStrategy troubleshootingHit Bucketing mode', () => {
 
     await defaultStrategy.fetchFlags();
 
-    await sleep(10);
-
     expect(sendTroubleshootingHit).toBeCalledTimes(3);
 
-    let label = 'VISITOR_SEND_HIT';
+    let  label = 'VISITOR_FETCH_CAMPAIGNS';
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(
       1,
+      expect.objectContaining({ data: expect.objectContaining({ label }) })
+    );
+
+    label = 'VISITOR_SEND_HIT';
+    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(
+      2,
       expect.objectContaining({
         data: expect.objectContaining({
           label,
@@ -2077,7 +2101,7 @@ describe('test DefaultStrategy troubleshootingHit Bucketing mode', () => {
     );
 
     expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(
-      2,
+      3,
       expect.objectContaining({
         data: expect.objectContaining({
           label,
@@ -2086,11 +2110,7 @@ describe('test DefaultStrategy troubleshootingHit Bucketing mode', () => {
       })
     );
 
-    label = 'VISITOR_FETCH_CAMPAIGNS';
-    expect(sendTroubleshootingHit).toHaveBeenNthCalledWith(
-      3,
-      expect.objectContaining({ data: expect.objectContaining({ label }) })
-    );
+
   });
 });
 
@@ -2123,9 +2143,13 @@ describe('test DefaultStrategy troubleshootingHit send SEGMENT HIT', () => {
   httpClient.postAsync = post;
   post.mockResolvedValue({} as IHttpResponse);
 
-  const apiManager = new ApiManager(httpClient, config);
-
   const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
 
   const addHit = jest.spyOn(trackingManager, 'addHit');
   addHit.mockResolvedValue();
@@ -2210,11 +2234,17 @@ describe('test DefaultStrategy troubleshootingHit', () => {
   httpClient.postAsync = post;
   post.mockResolvedValue({} as IHttpResponse);
 
-  const apiManager = new ApiManager(httpClient, config);
+  const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
 
   const getCampaignsAsync = jest.spyOn(apiManager, 'getCampaignsAsync');
 
-  const trackingManager = new TrackingManager(httpClient, config);
+
 
   const addHit = jest.spyOn(trackingManager, 'addHit');
   addHit.mockResolvedValue();
@@ -2314,11 +2344,17 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
   httpClient.postAsync = post;
   post.mockResolvedValue({} as IHttpResponse);
 
-  const apiManager = new ApiManager(httpClient, config);
+  const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
 
   const getCampaignsAsync = jest.spyOn(apiManager, 'getCampaignsAsync');
 
-  const trackingManager = new TrackingManager(httpClient, config);
+
 
   const addHit = jest.spyOn(trackingManager, 'addHit');
   addHit.mockResolvedValue();

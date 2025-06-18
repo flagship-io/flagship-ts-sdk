@@ -152,7 +152,13 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
   httpClient.postAsync = post;
   post.mockResolvedValue({} as IHttpResponse);
 
-  const apiManager = new ApiManager(httpClient, config);
+  const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
 
   const getCampaignsAsync = jest.spyOn(
     apiManager,
@@ -164,7 +170,7 @@ describe('test DefaultStrategy sendAnalyticHit', () => {
     'getModifications'
   );
 
-  const trackingManager = new TrackingManager(httpClient, config);
+
 
   const addHit = jest.spyOn(trackingManager, 'addHit');
   addHit.mockResolvedValue();

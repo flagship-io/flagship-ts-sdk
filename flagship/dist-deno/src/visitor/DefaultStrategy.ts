@@ -48,7 +48,13 @@ import { FSFlagMetadata } from '../flag/FSFlagMetadata.ts';
 import { FSFetchStatus } from '../enum/FSFetchStatus.ts';
 import { FSFetchReasons } from '../enum/FSFetchReasons.ts';
 import { ActivateConstructorParam, GetFlagMetadataParam, GetFlagValueParam, VisitorExposedParam } from '../type.local.ts';
-import { type HitAbstract } from '../hit/HitAbstract.ts';
+import { HitAbstract } from '../hit/HitAbstract.ts';
+import { Transaction } from '../hit/Transaction.ts';
+import { Item } from '../hit/Item.ts';
+import { Page } from '../hit/Page.ts';
+import { Screen } from '../hit/Screen.ts';
+import { Event } from '../hit/Event.ts';
+import { Troubleshooting } from '../hit/Troubleshooting.ts';
 
 export const TYPE_HIT_REQUIRED_ERROR = 'property type is required and must ';
 export const HIT_NULL_ERROR = 'Hit must not be null';
@@ -213,22 +219,22 @@ export class DefaultStrategy extends StrategyAbstract {
 
     await this.trackingManager.activateFlag(activateHit);
 
-    import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
-      const activateTroubleshooting = new Troubleshooting({
 
-        label: TroubleshootingLabel.VISITOR_SEND_ACTIVATE,
-        logLevel: LogLevel.INFO,
-        traffic: this.visitor.traffic,
-        visitorId: activateHit.visitorId,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        visitorSessionId: this.visitor.instanceId,
-        anonymousId: activateHit.anonymousId,
-        config: this.config,
-        hitContent: activateHit
-      });
+    const activateTroubleshooting = new Troubleshooting({
 
-      this.sendTroubleshootingHit(activateTroubleshooting);
+      label: TroubleshootingLabel.VISITOR_SEND_ACTIVATE,
+      logLevel: LogLevel.INFO,
+      traffic: this.visitor.traffic,
+      visitorId: activateHit.visitorId,
+      flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+      visitorSessionId: this.visitor.instanceId,
+      anonymousId: activateHit.anonymousId,
+      config: this.config,
+      hitContent: activateHit
     });
+
+    this.sendTroubleshootingHit(activateTroubleshooting);
+
   }
 
   sendHit(hit: HitAbstract): Promise<void>
@@ -255,27 +261,27 @@ export class DefaultStrategy extends StrategyAbstract {
     let newHit = null;
     switch (hit.type.toUpperCase()) {
       case HitType.EVENT:{
-        const { Event } = await import('../hit/Event.ts');
+
         newHit = new Event(hit as IEvent);
         break;
       }
       case HitType.ITEM:{
-        const { Item } = await import('../hit/Item.ts');
+
         newHit = new Item(hit as IItem);
         break;
       }
       case HitType.PAGE_VIEW:{
-        const { Page } = await import('../hit/Page.ts');
+
         newHit = new Page(hit as IPage);
         break;
       }
       case HitType.SCREEN_VIEW:{
-        const { Screen } = await import('../hit/Screen.ts');
+
         newHit = new Screen(hit as IScreen);
         break;
       }
       case HitType.TRANSACTION:{
-        const { Transaction } = await import('../hit/Transaction.ts');
+
         newHit = new Transaction(hit as ITransaction);
         break;
       }
@@ -290,8 +296,6 @@ export class DefaultStrategy extends StrategyAbstract {
       logError(this.config, HIT_NULL_ERROR, functionName);
       return;
     }
-
-    const { HitAbstract } = await import('../hit/HitAbstract.ts');
 
     if (hit instanceof HitAbstract) {
       hitInstance = hit;
@@ -325,21 +329,21 @@ export class DefaultStrategy extends StrategyAbstract {
         return;
       }
 
-      import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
-        const sendHitTroubleshooting = new Troubleshooting({
 
-          label: TroubleshootingLabel.VISITOR_SEND_HIT,
-          logLevel: LogLevel.INFO,
-          traffic: this.visitor.traffic,
-          visitorId: hitInstance.visitorId,
-          flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-          visitorSessionId: this.visitor.instanceId,
-          anonymousId: hitInstance.anonymousId,
-          config: this.config,
-          hitContent: hitInstance.toApiKeys()
-        });
-        this.sendTroubleshootingHit(sendHitTroubleshooting);
+      const sendHitTroubleshooting = new Troubleshooting({
+
+        label: TroubleshootingLabel.VISITOR_SEND_HIT,
+        logLevel: LogLevel.INFO,
+        traffic: this.visitor.traffic,
+        visitorId: hitInstance.visitorId,
+        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+        visitorSessionId: this.visitor.instanceId,
+        anonymousId: hitInstance.anonymousId,
+        config: this.config,
+        hitContent: hitInstance.toApiKeys()
       });
+      this.sendTroubleshootingHit(sendHitTroubleshooting);
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logError(this.config, error.message || error, functionName);
@@ -360,21 +364,20 @@ export class DefaultStrategy extends StrategyAbstract {
     this.visitor.anonymousId = this.visitor.visitorId;
     this.visitor.visitorId = visitorId;
 
-    import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
-      const monitoring = new Troubleshooting({
+    const monitoring = new Troubleshooting({
 
-        label: TroubleshootingLabel.VISITOR_AUTHENTICATE,
-        logLevel: LogLevel.INFO,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
-        visitorContext: this.visitor.context,
-        traffic: this.visitor.traffic,
-        config: this.config
-      });
-
-      this.sendTroubleshootingHit(monitoring);
+      label: TroubleshootingLabel.VISITOR_AUTHENTICATE,
+      logLevel: LogLevel.INFO,
+      flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+      visitorId: this.visitor.visitorId,
+      anonymousId: this.visitor.anonymousId,
+      visitorContext: this.visitor.context,
+      traffic: this.visitor.traffic,
+      config: this.config
     });
+
+    this.sendTroubleshootingHit(monitoring);
+
 
     this.visitor.flagsStatus = {
       status: FSFetchStatus.FETCH_REQUIRED,
@@ -392,21 +395,21 @@ export class DefaultStrategy extends StrategyAbstract {
     this.visitor.visitorId = this.visitor.anonymousId;
     this.visitor.anonymousId = null;
 
-    import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
-      const monitoring = new Troubleshooting({
 
-        label: TroubleshootingLabel.VISITOR_UNAUTHENTICATE,
-        logLevel: LogLevel.INFO,
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        visitorContext: this.visitor.context,
-        traffic: this.visitor.traffic,
-        config: this.config
-      });
+    const monitoring = new Troubleshooting({
 
-      this.sendTroubleshootingHit(monitoring);
+      label: TroubleshootingLabel.VISITOR_UNAUTHENTICATE,
+      logLevel: LogLevel.INFO,
+      visitorId: this.visitor.visitorId,
+      anonymousId: this.visitor.anonymousId,
+      flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+      visitorContext: this.visitor.context,
+      traffic: this.visitor.traffic,
+      config: this.config
     });
+
+    this.sendTroubleshootingHit(monitoring);
+
 
     this.visitor.flagsStatus = {
       status: FSFetchStatus.FETCH_REQUIRED,
@@ -440,43 +443,43 @@ export class DefaultStrategy extends StrategyAbstract {
       reason: FSFetchReasons.FLAGS_FETCHING_ERROR
     };
 
-    import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
-      const troubleshootingHit = new Troubleshooting({
 
-        label: TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS_ERROR,
-        logLevel: LogLevel.INFO,
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
-        visitorSessionId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        traffic: this.visitor.traffic,
-        config: this.config,
-        visitorContext: this.visitor.context,
-        sdkStatus: this.visitor.getSdkStatus(),
-        visitorCampaigns: campaigns,
-        visitorConsent: this.visitor.hasConsented,
-        visitorIsAuthenticated: !!this.visitor.anonymousId,
-        visitorFlags: this.visitor.flagsData,
-        visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
-        visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
-        lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
-        lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
-        httpResponseTime: Date.now() - now,
-        sdkConfigMode: this.getSdkConfigDecisionMode(),
-        sdkConfigTimeout: this.config.timeout,
-        sdkConfigPollingInterval: this.config.pollingInterval,
-        sdkConfigTrackingManagerStrategy: this.config.trackingManagerConfig?.cacheStrategy,
-        sdkConfigTrackingManagerBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
-        sdkConfigTrackingManagerPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
-        sdkConfigFetchNow: this.config.fetchNow,
-        sdkConfigReuseVisitorIds: this.config.reuseVisitorIds,
-        sdkConfigInitialBucketing: this.config.initialBucketing,
-        sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
-        sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
-      });
+    const troubleshootingHit = new Troubleshooting({
 
-      this.trackingManager.addTroubleshootingHit(troubleshootingHit);
+      label: TroubleshootingLabel.VISITOR_FETCH_CAMPAIGNS_ERROR,
+      logLevel: LogLevel.INFO,
+      visitorId: this.visitor.visitorId,
+      anonymousId: this.visitor.anonymousId,
+      visitorSessionId: this.visitor.instanceId,
+      flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+      traffic: this.visitor.traffic,
+      config: this.config,
+      visitorContext: this.visitor.context,
+      sdkStatus: this.visitor.getSdkStatus(),
+      visitorCampaigns: campaigns,
+      visitorConsent: this.visitor.hasConsented,
+      visitorIsAuthenticated: !!this.visitor.anonymousId,
+      visitorFlags: this.visitor.flagsData,
+      visitorInitialCampaigns: this.visitor.sdkInitialData?.initialCampaigns,
+      visitorInitialFlagsData: this.visitor.sdkInitialData?.initialFlagsData,
+      lastBucketingTimestamp: this.configManager.decisionManager.lastBucketingTimestamp,
+      lastInitializationTimestamp: this.visitor.sdkInitialData?.lastInitializationTimestamp,
+      httpResponseTime: Date.now() - now,
+      sdkConfigMode: this.getSdkConfigDecisionMode(),
+      sdkConfigTimeout: this.config.timeout,
+      sdkConfigPollingInterval: this.config.pollingInterval,
+      sdkConfigTrackingManagerStrategy: this.config.trackingManagerConfig?.cacheStrategy,
+      sdkConfigTrackingManagerBatchIntervals: this.config.trackingManagerConfig?.batchIntervals,
+      sdkConfigTrackingManagerPoolMaxSize: this.config.trackingManagerConfig?.poolMaxSize,
+      sdkConfigFetchNow: this.config.fetchNow,
+      sdkConfigReuseVisitorIds: this.config.reuseVisitorIds,
+      sdkConfigInitialBucketing: this.config.initialBucketing,
+      sdkConfigDecisionApiUrl: this.config.decisionApiUrl,
+      sdkConfigHitDeduplicationTime: this.config.hitDeduplicationTime
     });
+
+    this.trackingManager.addTroubleshootingHit(troubleshootingHit);
+
   }
 
   async getCampaigns(now: number): Promise<{
@@ -753,24 +756,24 @@ export class DefaultStrategy extends StrategyAbstract {
   }
 
   private sendFlagTroubleshooting(label: TroubleshootingLabel, key: string, defaultValue: unknown, visitorExposed?: boolean):void {
-    import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
-      const troubleshooting = new Troubleshooting({
-        label,
-        logLevel: LogLevel.WARNING,
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
-        visitorSessionId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        traffic: this.visitor.traffic,
-        config: this.config,
-        visitorContext: this.visitor.context,
-        flagKey: key,
-        flagDefault: defaultValue,
-        visitorExposed
-      });
 
-      this.sendTroubleshootingHit(troubleshooting);
+    const troubleshooting = new Troubleshooting({
+      label,
+      logLevel: LogLevel.WARNING,
+      visitorId: this.visitor.visitorId,
+      anonymousId: this.visitor.anonymousId,
+      visitorSessionId: this.visitor.instanceId,
+      flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+      traffic: this.visitor.traffic,
+      config: this.config,
+      visitorContext: this.visitor.context,
+      flagKey: key,
+      flagDefault: defaultValue,
+      visitorExposed
     });
+
+    this.sendTroubleshootingHit(troubleshooting);
+
   }
 
   getFlagValue<T>(param:GetFlagValueParam<T>): T extends null ? unknown : T {
@@ -804,22 +807,22 @@ export class DefaultStrategy extends StrategyAbstract {
 
   private SendFlagMetadataTroubleshooting(key: string):void {
     logWarningSprintf(this.config, FLAG_METADATA, NO_FLAG_METADATA, this.visitor.visitorId, key);
-    import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
-      const monitoring = new Troubleshooting({
-        label: TroubleshootingLabel.GET_FLAG_METADATA_TYPE_WARNING,
-        logLevel: LogLevel.WARNING,
-        visitorId: this.visitor.visitorId,
-        anonymousId: this.visitor.anonymousId,
-        visitorSessionId: this.visitor.instanceId,
-        flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
-        traffic: this.visitor.traffic,
-        config: this.config,
-        visitorContext: this.visitor.context,
-        flagKey: key
-      });
 
-      this.sendTroubleshootingHit(monitoring);
+    const monitoring = new Troubleshooting({
+      label: TroubleshootingLabel.GET_FLAG_METADATA_TYPE_WARNING,
+      logLevel: LogLevel.WARNING,
+      visitorId: this.visitor.visitorId,
+      anonymousId: this.visitor.anonymousId,
+      visitorSessionId: this.visitor.instanceId,
+      flagshipInstanceId: this.visitor.sdkInitialData?.instanceId,
+      traffic: this.visitor.traffic,
+      config: this.config,
+      visitorContext: this.visitor.context,
+      flagKey: key
     });
+
+    this.sendTroubleshootingHit(monitoring);
+
   }
 
   getFlagMetadata(param:GetFlagMetadataParam):IFSFlagMetadata {

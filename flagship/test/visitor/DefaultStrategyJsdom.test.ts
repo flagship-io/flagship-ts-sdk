@@ -28,6 +28,7 @@ import { IVisitorEvent } from '../../src/emotionAI/hit/IVisitorEvent';
 import { mockGlobals, sleep } from '../helpers';
 import { ActivateConstructorParam, VisitorVariationState } from '../../src/type.local';
 import * as qaMessages from '../../src/qaAssistant/messages';
+import { NotReadyStrategy, PanicStrategy } from '../../src/visitor';
 
 
 
@@ -73,7 +74,13 @@ describe('test DefaultStrategy ', () => {
   httpClient.postAsync = post;
   post.mockResolvedValue({} as IHttpResponse);
 
-  const apiManager = new ApiManager(httpClient, config);
+  const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
 
   const isPanicFn = jest.fn<() => boolean>();
   apiManager.isPanic = isPanicFn;
@@ -82,7 +89,7 @@ describe('test DefaultStrategy ', () => {
 
   const getModifications = jest.spyOn(apiManager, 'getModifications');
 
-  const trackingManager = new TrackingManager(httpClient, config);
+
 
   const sendTroubleshootingHitSpy = jest.spyOn(
     trackingManager,
@@ -248,9 +255,15 @@ describe('test DefaultStrategy with QA mode', () => {
   httpClient.postAsync = post;
   post.mockResolvedValue({} as IHttpResponse);
 
-  const apiManager = new ApiManager(httpClient, config);
 
   const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
+
 
   const addHit = jest.spyOn(trackingManager, 'addHit');
   addHit.mockResolvedValue();
@@ -340,4 +353,369 @@ describe('test DefaultStrategy with QA mode', () => {
       })
     );
   });
+});
+
+
+describe('test Panic', () => {
+  const methodNow = Date.now;
+  const mockNow = jest.fn<typeof Date.now>();
+  beforeAll(() => {
+    Date.now = mockNow;
+    mockNow.mockReturnValue(1);
+  });
+  afterAll(() => {
+    Date.now = methodNow;
+  });
+
+  afterEach(() => {
+    mockGlobals({
+      __fsWebpackIsBrowser__: false,
+      __fsWebpackIsReactNative__: false
+    });
+  });
+
+  beforeEach(() => {
+    config.isQAModeEnabled = false;
+  });
+
+  const visitorId = 'visitorId';
+
+  const context: any = { isVip: true };
+
+  const logManager = new FlagshipLogManager();
+
+  const config = new DecisionApiConfig({
+    envId: 'envId',
+    apiKey: 'apiKey',
+    hitDeduplicationTime: 0,
+    fetchFlagsBufferingTime: 0
+  });
+  config.logManager = logManager;
+
+  const httpClient = new HttpClient();
+
+  const post = jest.fn<typeof httpClient.postAsync>();
+  httpClient.postAsync = post;
+  post.mockResolvedValue({} as IHttpResponse);
+
+  const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
+
+  const isPanicFn = jest.fn<() => boolean>();
+  apiManager.isPanic = isPanicFn;
+
+  const getCampaignsAsync = jest.spyOn(apiManager, 'getCampaignsAsync');
+
+  const getModifications = jest.spyOn(apiManager, 'getModifications');
+
+
+
+  const sendTroubleshootingHitSpy = jest.spyOn(
+    trackingManager,
+    'sendTroubleshootingHit'
+  );
+
+  const addHit = jest.spyOn(trackingManager, 'addHit');
+  addHit.mockResolvedValue();
+
+  const activateFlag = jest.spyOn(trackingManager, 'activateFlag');
+  activateFlag.mockResolvedValue();
+
+  const configManager = new ConfigManager(config, apiManager, trackingManager);
+
+  const murmurHash = new MurmurHash();
+
+  const OnFlagStatusChanged =
+    jest.fn<({ status, reason }: FlagsStatus) => void>();
+
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore | undefined>>();
+
+  const collectEAIEventsAsync =
+    jest.fn<(currentPage?: Omit<IPageView, 'toApiKeys'>) => void>();
+
+  const reportVisitorEvent = jest.fn<(event: IVisitorEvent) => Promise<void>>();
+
+  const reportPageView = jest.fn<(pageView: IPageView) => Promise<void>>();
+
+  const onEAICollectStatusChange =
+    jest.fn<(callback: (status: boolean) => void) => void>();
+
+  const cleanup = jest.fn<() => void>();
+
+  const emotionAi = {
+    init: jest.fn<(visitor: VisitorAbstract) => void>(),
+    fetchEAIScore,
+    collectEAIEventsAsync,
+    reportVisitorEvent,
+    reportPageView,
+    onEAICollectStatusChange,
+    cleanup
+  } as unknown as IEmotionAI;
+
+  fetchEAIScore.mockResolvedValue(undefined);
+
+  const visitorVariationState: VisitorVariationState = {};
+
+  const visitorDelegate = new VisitorDelegate({
+    visitorId,
+    context,
+    configManager,
+    hasConsented: true,
+    onFlagsStatusChanged: OnFlagStatusChanged,
+    emotionAi,
+    visitorVariationState
+  });
+  const defaultStrategy = new PanicStrategy({
+    visitor: visitorDelegate,
+    murmurHash
+  });
+
+  const campaignDtoId = 'c2nrh1hjg50l9stringgu8bg';
+  const campaignDTO = [
+    {
+      id: campaignDtoId,
+      slug: 'slug',
+      variationGroupId: 'id',
+      variation: {
+        id: '1dl',
+        reference: false,
+        modifications: {
+          type: 'number',
+          value: { key: 12 }
+        }
+      }
+    }
+  ];
+
+
+  it('test fetchFlags and send visitor variable to QA assistant', async () => {
+    config.isQAModeEnabled = true;
+    mockGlobals({ __fsWebpackIsBrowser__: true });
+    visitorDelegate.on('ready', (err) => {
+      expect(err).toBeUndefined();
+    });
+
+    fetchEAIScore.mockResolvedValue({ eai: { eas: 'straightforward' } });
+
+    const sendVisitorAllocatedVariationsSpy = jest.spyOn(qaMessages, 'sendVisitorAllocatedVariations');
+    sendTroubleshootingHitSpy.mockResolvedValue();
+
+    getCampaignsAsync.mockResolvedValue(campaignDTO);
+    getModifications.mockReturnValue(returnFlag);
+
+    await defaultStrategy.fetchFlags();
+
+    expect(getCampaignsAsync).toBeCalledTimes(1);
+    expect(getCampaignsAsync).toBeCalledWith(visitorDelegate);
+    expect(visitorDelegate.flagsStatus).toEqual({
+      status: FSFetchStatus.FETCHED,
+      reason: FSFetchReasons.NONE
+    });
+
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toBeCalledTimes(2);
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(
+      1,
+      {
+        status: FSFetchStatus.FETCHING,
+        reason: FSFetchReasons.NONE
+      }
+    );
+    expect(visitorDelegate.onFetchFlagsStatusChanged).toHaveBeenNthCalledWith(
+      2,
+      {
+        status: FSFetchStatus.FETCHED,
+        reason: FSFetchReasons.NONE
+      }
+    );
+    expect(emotionAi.fetchEAIScore).toBeCalledTimes(1);
+
+    const visitorAllocatedVariations: Record<string, VisitorVariations> = {};
+
+    visitorDelegate.flagsData.forEach((item) => {
+      visitorAllocatedVariations[item.campaignId] = {
+        variationId: item.variationId,
+        variationGroupId: item.variationGroupId,
+        campaignId: item.campaignId
+      };
+    });
+    await sleep(10);
+    expect(sendVisitorAllocatedVariationsSpy).toBeCalledTimes(0);
+  });
+
+});
+
+describe('test NotReady', () => {
+  const methodNow = Date.now;
+  const mockNow = jest.fn<typeof Date.now>();
+  beforeAll(() => {
+    Date.now = mockNow;
+    mockNow.mockReturnValue(1);
+  });
+  afterAll(() => {
+    Date.now = methodNow;
+  });
+
+  afterEach(() => {
+    mockGlobals({
+      __fsWebpackIsBrowser__: false,
+      __fsWebpackIsReactNative__: false
+    });
+  });
+
+  beforeEach(() => {
+    config.isQAModeEnabled = false;
+  });
+
+  const visitorId = 'visitorId';
+
+  const context: any = { isVip: true };
+
+  const logManager = new FlagshipLogManager();
+
+  const config = new DecisionApiConfig({
+    envId: 'envId',
+    apiKey: 'apiKey',
+    hitDeduplicationTime: 0,
+    fetchFlagsBufferingTime: 0
+  });
+  config.logManager = logManager;
+
+  const httpClient = new HttpClient();
+
+  const post = jest.fn<typeof httpClient.postAsync>();
+  httpClient.postAsync = post;
+  post.mockResolvedValue({} as IHttpResponse);
+
+  const trackingManager = new TrackingManager(httpClient, config);
+
+  const apiManager = new ApiManager({
+    httpClient,
+    config,
+    trackingManager
+  });
+
+  const isPanicFn = jest.fn<() => boolean>();
+  apiManager.isPanic = isPanicFn;
+
+  const getCampaignsAsync = jest.spyOn(apiManager, 'getCampaignsAsync');
+
+  const getModifications = jest.spyOn(apiManager, 'getModifications');
+
+
+
+  const sendTroubleshootingHitSpy = jest.spyOn(
+    trackingManager,
+    'sendTroubleshootingHit'
+  );
+
+  const addHit = jest.spyOn(trackingManager, 'addHit');
+  addHit.mockResolvedValue();
+
+  const activateFlag = jest.spyOn(trackingManager, 'activateFlag');
+  activateFlag.mockResolvedValue();
+
+  const configManager = new ConfigManager(config, apiManager, trackingManager);
+
+  const murmurHash = new MurmurHash();
+
+  const OnFlagStatusChanged =
+    jest.fn<({ status, reason }: FlagsStatus) => void>();
+
+  const fetchEAIScore = jest.fn<() => Promise<EAIScore | undefined>>();
+
+  const collectEAIEventsAsync =
+    jest.fn<(currentPage?: Omit<IPageView, 'toApiKeys'>) => void>();
+
+  const reportVisitorEvent = jest.fn<(event: IVisitorEvent) => Promise<void>>();
+
+  const reportPageView = jest.fn<(pageView: IPageView) => Promise<void>>();
+
+  const onEAICollectStatusChange =
+    jest.fn<(callback: (status: boolean) => void) => void>();
+
+  const cleanup = jest.fn<() => void>();
+
+  const emotionAi = {
+    init: jest.fn<(visitor: VisitorAbstract) => void>(),
+    fetchEAIScore,
+    collectEAIEventsAsync,
+    reportVisitorEvent,
+    reportPageView,
+    onEAICollectStatusChange,
+    cleanup
+  } as unknown as IEmotionAI;
+
+  fetchEAIScore.mockResolvedValue(undefined);
+
+  const visitorVariationState: VisitorVariationState = {};
+
+  const visitorDelegate = new VisitorDelegate({
+    visitorId,
+    context,
+    configManager,
+    hasConsented: true,
+    onFlagsStatusChanged: OnFlagStatusChanged,
+    emotionAi,
+    visitorVariationState
+  });
+  const defaultStrategy = new NotReadyStrategy({
+    visitor: visitorDelegate,
+    murmurHash
+  });
+
+  const campaignDtoId = 'c2nrh1hjg50l9stringgu8bg';
+  const campaignDTO = [
+    {
+      id: campaignDtoId,
+      slug: 'slug',
+      variationGroupId: 'id',
+      variation: {
+        id: '1dl',
+        reference: false,
+        modifications: {
+          type: 'number',
+          value: { key: 12 }
+        }
+      }
+    }
+  ];
+
+
+  it('test fetchFlags and send visitor variable to QA assistant', async () => {
+    config.isQAModeEnabled = true;
+    mockGlobals({ __fsWebpackIsBrowser__: true });
+    visitorDelegate.on('ready', (err) => {
+      expect(err).toBeUndefined();
+    });
+
+    fetchEAIScore.mockResolvedValue({ eai: { eas: 'straightforward' } });
+
+    const sendVisitorAllocatedVariationsSpy = jest.spyOn(qaMessages, 'sendVisitorAllocatedVariations');
+    sendTroubleshootingHitSpy.mockResolvedValue();
+
+    getCampaignsAsync.mockResolvedValue(campaignDTO);
+    getModifications.mockReturnValue(returnFlag);
+
+    await defaultStrategy.fetchFlags();
+
+    expect(getCampaignsAsync).toBeCalledTimes(0);
+
+    const visitorAllocatedVariations: Record<string, VisitorVariations> = {};
+
+    visitorDelegate.flagsData.forEach((item) => {
+      visitorAllocatedVariations[item.campaignId] = {
+        variationId: item.variationId,
+        variationGroupId: item.variationGroupId,
+        campaignId: item.campaignId
+      };
+    });
+    await sleep(10);
+    expect(sendVisitorAllocatedVariationsSpy).toBeCalledTimes(0);
+  });
+
 });

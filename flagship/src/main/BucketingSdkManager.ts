@@ -6,6 +6,7 @@ import { IHttpClient, IHttpResponse } from '../utils/HttpClient';
 import { ITrackingManager } from '../api/ITrackingManager';
 import { BUCKETING_API_URL, BUCKETING_POOLING_STARTED, BUCKETING_POOLING_STOPPED, HEADER_APPLICATION_JSON, HEADER_CONTENT_TYPE, HEADER_X_SDK_CLIENT, HEADER_X_SDK_VERSION, LogLevel, POLLING_EVENT_200, POLLING_EVENT_300, POLLING_EVENT_FAILED, PROCESS_BUCKETING, SDK_INFO } from '../enum/index';
 import { errorFormat, logDebug, logDebugSprintf, logError, logInfo, sprintf } from '../utils/utils';
+import { Troubleshooting } from '../hit/Troubleshooting.ts';
 
 type constructorParam = {
   httpClient: IHttpClient;
@@ -73,24 +74,24 @@ export class BucketingSdkManager implements ISdkManager {
     response: IHttpResponse | undefined,
     now: number
   ):void {
-    import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
-      const troubleshootingHit = new Troubleshooting({
-        visitorId: this._flagshipInstanceId,
-        flagshipInstanceId: this._flagshipInstanceId,
-        label: TroubleshootingLabel.SDK_BUCKETING_FILE,
-        traffic: 0,
-        logLevel: LogLevel.INFO,
-        config: this._config,
-        httpRequestHeaders: headers,
-        httpRequestMethod: 'POST',
-        httpRequestUrl: url,
-        httpResponseBody: response?.body,
-        httpResponseHeaders: response?.headers,
-        httpResponseCode: response?.status,
-        httpResponseTime: Date.now() - now
-      });
-      this._trackingManager.initTroubleshootingHit = troubleshootingHit;
+
+    const troubleshootingHit = new Troubleshooting({
+      visitorId: this._flagshipInstanceId,
+      flagshipInstanceId: this._flagshipInstanceId,
+      label: TroubleshootingLabel.SDK_BUCKETING_FILE,
+      traffic: 0,
+      logLevel: LogLevel.INFO,
+      config: this._config,
+      httpRequestHeaders: headers,
+      httpRequestMethod: 'POST',
+      httpRequestUrl: url,
+      httpResponseBody: response?.body,
+      httpResponseHeaders: response?.headers,
+      httpResponseCode: response?.status,
+      httpResponseTime: Date.now() - now
     });
+    this._trackingManager.initTroubleshootingHit = troubleshootingHit;
+
   }
 
   protected sendErrorTroubleshooting(
@@ -99,24 +100,24 @@ export class BucketingSdkManager implements ISdkManager {
     error: { message: string, headers: Record<string, string>, statusCode: number },
     now: number
   ):void {
-    import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
-      const troubleshootingHit = new Troubleshooting({
-        visitorId: this._flagshipInstanceId,
-        flagshipInstanceId: this._flagshipInstanceId,
-        label: TroubleshootingLabel.SDK_BUCKETING_FILE_ERROR,
-        traffic: 0,
-        logLevel: LogLevel.INFO,
-        config: this._config,
-        httpRequestHeaders: headers,
-        httpRequestMethod: 'POST',
-        httpRequestUrl: url,
-        httpResponseBody: error?.message,
-        httpResponseHeaders: error?.headers,
-        httpResponseCode: error?.statusCode,
-        httpResponseTime: Date.now() - now
-      });
-      this._trackingManager.initTroubleshootingHit = troubleshootingHit;
+
+    const troubleshootingHit = new Troubleshooting({
+      visitorId: this._flagshipInstanceId,
+      flagshipInstanceId: this._flagshipInstanceId,
+      label: TroubleshootingLabel.SDK_BUCKETING_FILE_ERROR,
+      traffic: 0,
+      logLevel: LogLevel.INFO,
+      config: this._config,
+      httpRequestHeaders: headers,
+      httpRequestMethod: 'POST',
+      httpRequestUrl: url,
+      httpResponseBody: error?.message,
+      httpResponseHeaders: error?.headers,
+      httpResponseCode: error?.statusCode,
+      httpResponseTime: Date.now() - now
     });
+    this._trackingManager.initTroubleshootingHit = troubleshootingHit;
+
   }
 
   protected handlePollingResponse(params: {response: IHttpResponse, headers: Record<string, string>, url: string, now: number}):void {

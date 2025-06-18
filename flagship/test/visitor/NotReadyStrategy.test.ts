@@ -164,4 +164,6 @@ describe('test NotReadyStrategy', () => {
     notReadyStrategy.onEAICollectStatusChange();
     expect(emotionAi.onEAICollectStatusChange).toBeCalledTimes(0);
   });
+
+
 });

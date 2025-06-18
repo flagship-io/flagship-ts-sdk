@@ -207,7 +207,9 @@ export class Flagship {
             httpClient,
             config: sdkConfig,
             murmurHash: new MurmurHash(),
-            sdkManager
+            sdkManager,
+            trackingManager,
+            flagshipInstanceId: this.instanceId
           })
         };
       case DecisionMode.BUCKETING_EDGE:
@@ -223,18 +225,26 @@ export class Flagship {
             httpClient,
             config: sdkConfig,
             murmurHash: new MurmurHash(),
-            sdkManager
+            sdkManager,
+            trackingManager,
+            flagshipInstanceId: this.instanceId
           })
         };
       default:
+        sdkManager = new ApiSdkManager({
+          httpClient,
+          sdkConfig,
+          trackingManager,
+          flagshipInstanceId: this.instanceId
+        });
         return {
-          sdkManager: new ApiSdkManager({
-            httpClient,
-            sdkConfig,
+          sdkManager,
+          decisionManager: new ApiManager({
             trackingManager,
+            httpClient,
+            config: sdkConfig,
             flagshipInstanceId: this.instanceId
-          }),
-          decisionManager: new ApiManager(httpClient, sdkConfig)
+          })
         };
     }
   }
@@ -335,7 +345,7 @@ export class Flagship {
 
     logInfo(
       localConfig,
-      sprintf(SDK_STARTED_INFO, SDK_INFO.version, FSSdkStatus[flagship._status]),
+      sprintf(SDK_STARTED_INFO, SDK_INFO.version, FSSdkStatus[flagship._status], localConfig.decisionMode),
       PROCESS_INITIALIZATION
     );
 
@@ -381,7 +391,11 @@ export class Flagship {
     config.logManager = new FlagshipLogManager();
     const httpClient = new HttpClient();
     const trackingManager = new TrackingManager(httpClient, config);
-    const decisionManager = new ApiManager(httpClient, config);
+    const decisionManager = new ApiManager({
+      httpClient,
+      config,
+      trackingManager
+    });
     this._config = config;
     this.configManager = new ConfigManager(config, decisionManager, trackingManager);
   }

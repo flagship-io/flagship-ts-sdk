@@ -9,12 +9,17 @@ import { VisitorAbstract } from '../visitor/VisitorAbstract';
 import { Targetings, VariationGroupDTO } from './api/bucketingDTO';
 import { DecisionManager } from './DecisionManager';
 import { ISdkManager } from '../main/ISdkManager';
+import { ITrackingManager } from '../api/ITrackingManager.ts';
+import { Segment } from '../hit/Segment.ts';
+import { Troubleshooting } from '../hit/Troubleshooting.ts';
 
 type ConstructorParam = {
   httpClient: IHttpClient;
   config: IFlagshipConfig;
   murmurHash: MurmurHash;
   sdkManager: ISdkManager;
+  trackingManager: ITrackingManager;
+  flagshipInstanceId?: string;
 }
 export class BucketingManager extends DecisionManager {
   private _murmurHash: MurmurHash;
@@ -24,8 +29,13 @@ export class BucketingManager extends DecisionManager {
     return this._sdkManager.getBucketingContent();
   }
 
-  public constructor({ httpClient, config, murmurHash, sdkManager }: ConstructorParam) {
-    super(httpClient, config);
+  public constructor({ httpClient, config, murmurHash, sdkManager, trackingManager, flagshipInstanceId }: ConstructorParam) {
+    super({
+      httpClient,
+      config,
+      trackingManager,
+      flagshipInstanceId
+    });
     this._murmurHash = murmurHash;
     this._sdkManager = sdkManager;
   }
@@ -36,8 +46,6 @@ export class BucketingManager extends DecisionManager {
         return;
       }
 
-      const { Segment } = await import('../hit/Segment.ts');
-
       visitor.hasContextBeenUpdated = false;
       const SegmentHit = new Segment({
         context: visitor.context,
@@ -47,21 +55,21 @@ export class BucketingManager extends DecisionManager {
 
       await visitor.sendHit(SegmentHit);
 
-      import('../hit/Troubleshooting.ts').then(({ Troubleshooting }) => {
-        const hitTroubleshooting = new Troubleshooting({
-          label: TroubleshootingLabel.VISITOR_SEND_HIT,
-          logLevel: LogLevel.INFO,
-          traffic: visitor.traffic || 0,
-          visitorId: visitor.visitorId,
-          visitorSessionId: visitor.instanceId,
-          flagshipInstanceId: visitor.sdkInitialData?.instanceId,
-          anonymousId: visitor.anonymousId,
-          config: this.config,
-          hitContent: SegmentHit.toApiKeys()
-        });
 
-        visitor.segmentHitTroubleshooting = hitTroubleshooting;
+      const hitTroubleshooting = new Troubleshooting({
+        label: TroubleshootingLabel.VISITOR_SEND_HIT,
+        logLevel: LogLevel.INFO,
+        traffic: visitor.traffic || 0,
+        visitorId: visitor.visitorId,
+        visitorSessionId: visitor.instanceId,
+        flagshipInstanceId: visitor.sdkInitialData?.instanceId,
+        anonymousId: visitor.anonymousId,
+        config: this.config,
+        hitContent: SegmentHit.toApiKeys()
       });
+
+      visitor.segmentHitTroubleshooting = hitTroubleshooting;
+
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {

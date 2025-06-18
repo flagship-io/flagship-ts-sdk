@@ -2,7 +2,9 @@ import { type IFlagshipConfig } from '../config/IFlagshipConfig';
 import { BATCH_LOOP_STARTED, BATCH_LOOP_STOPPED, DEFAULT_HIT_CACHE_TIME_MS, HitType, HIT_CACHE_ERROR, HIT_CACHE_LOADED, PROCESS_CACHE, PROCESS_LOOKUP_HIT, TRACKING_MANAGER } from '../enum/index';
 import { CacheStrategy } from '../enum/CacheStrategy';
 import { IEvent, type ITransaction, type IItem, type IPage, type IScreen } from '../hit/index';
-import { type ISegment } from '../hit/Segment';
+import { Segment, type ISegment } from '../hit/Segment';
+import { Event } from '../hit/Event';
+import { Screen } from '../hit/Screen';
 import { type IHttpClient } from '../utils/HttpClient';
 import { logDebugSprintf, logError, logErrorSprintf, logInfo, logInfoSprintf } from '../utils/utils';
 import { BatchingCachingStrategyAbstract } from './BatchingCachingStrategyAbstract';
@@ -10,7 +12,7 @@ import { BatchingContinuousCachingStrategy } from './BatchingContinuousCachingSt
 import { BatchingPeriodicCachingStrategy } from './BatchingPeriodicCachingStrategy';
 import { HitCacheDTO, TroubleshootingData } from '../types';
 import { NoBatchingContinuousCachingStrategy } from './NoBatchingContinuousCachingStrategy';
-import { type Activate } from '../hit/Activate';
+import { Activate } from '../hit/Activate';
 import { BatchTriggeredBy } from '../enum/BatchTriggeredBy';
 import { ITrackingManager } from './ITrackingManager';
 import { type Troubleshooting } from '../hit/Troubleshooting';
@@ -18,6 +20,9 @@ import { type UsageHit } from '../hit/UsageHit';
 import { ISharedActionTracking } from '../sharedFeature/ISharedActionTracking';
 import { ActivateConstructorParam, IActivate } from '../type.local';
 import { type HitAbstract } from '../hit/HitAbstract';
+import { Item } from '../hit/Item.ts';
+import { Page } from '../hit/Page.ts';
+import { Transaction } from '../hit/Transaction.ts';
 
 export const LOOKUP_HITS_JSON_ERROR = 'JSON DATA must be an array of object';
 export const LOOKUP_HITS_JSON_OBJECT_ERROR = 'JSON DATA must fit the type HitCacheDTO';
@@ -155,27 +160,22 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
     let hit:HitAbstract|undefined;
     switch (item.data.type) {
       case HitType.EVENT:{
-        const { Event } = await import('../hit/Event.ts');
+
         hit = new Event(item.data.content as IEvent);
         break; }
       case HitType.ITEM:{
-        const { Item } = await import('../hit/Item.ts');
         hit = new Item(item.data.content as IItem);
         break; }
       case HitType.PAGE:{
-        const { Page } = await import('../hit/Page.ts');
         hit = new Page(item.data.content as IPage);
         break; }
       case HitType.SCREEN:{
-        const { Screen } = await import('../hit/Screen.ts');
         hit = new Screen(item.data.content as IScreen);
         break; }
       case 'SEGMENT':{
-        const { Segment } = await import('../hit/Segment.ts');
         hit = new Segment(item.data.content as ISegment);
         break; }
       case HitType.TRANSACTION:{
-        const { Transaction } = await import('../hit/Transaction.ts');
         hit = new Transaction(item.data.content as ITransaction);
         break; }
       default:
@@ -196,7 +196,6 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
       }
 
       if (item.data.type === 'ACTIVATE') {
-        const { Activate } = await import('../hit/Activate.ts');
         const hit = new Activate(item.data.content as IActivate);
         hit.key = key;
         hit.createdAt = item.data.content.createdAt;
