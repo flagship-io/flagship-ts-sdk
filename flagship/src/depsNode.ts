@@ -27,4 +27,4 @@ export const myFetch = async (input: URL | RequestInfo, init?: RequestInit): Pro
 };
 
 export { EventEmitter } from 'events';
-export { AbortController as LocalAbortController } from 'node-abort-controller';
+export { LocalAbortController } from './LocalAbortController.node';
