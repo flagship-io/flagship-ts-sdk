@@ -12,7 +12,9 @@ module.exports = () =>
       alias: {
         http: false,
         https: false,
-        'node-fetch': false
+        'node-fetch': false,
+        './LocalAbortController': './LocalAbortController.node',
+        'node-abort-controller': 'node-abort-controller/index.js',
       }
     },
     plugins: [
