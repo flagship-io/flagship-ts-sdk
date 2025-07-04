@@ -37,6 +37,15 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _disableDeveloperUsageTracking? : boolean;
   private _onLog? : (level: LogLevel, tag: string, message: string)=>void;
   private _isQAModeEnabled? : boolean;
+  private _batchActivateHits : boolean| undefined = false;
+
+  public get batchActivateHits() : boolean| undefined {
+    return this._batchActivateHits;
+  }
+  public set batchActivateHits(v : boolean| undefined) {
+    this._batchActivateHits = v;
+  }
+
 
   public get isQAModeEnabled() : boolean|undefined {
     return this._isQAModeEnabled;
@@ -102,7 +111,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       fetchNow, decisionMode, reuseVisitorIds, initialBucketing, decisionApiUrl,
       hitDeduplicationTime, visitorCacheImplementation, hitCacheImplementation,
       disableCache, language, sdkVersion, trackingManagerConfig, onLog,
-      onVisitorExposed, nextFetchConfig, fetchFlagsBufferingTime, disableDeveloperUsageTracking
+      onVisitorExposed, nextFetchConfig, fetchFlagsBufferingTime, disableDeveloperUsageTracking, batchActivateHits
     } = param;
 
     this.initQaMode();
@@ -113,6 +122,7 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       this.logManager = logManager;
     }
 
+    this._batchActivateHits = batchActivateHits;
     this.fetchFlagsBufferingTime = fetchFlagsBufferingTime ?? FETCH_FLAG_BUFFERING_DEFAULT_TIME;
     this.nextFetchConfig = nextFetchConfig || { revalidate: 20 };
     this._trackingManagerConfig = new TrackingManagerConfig(trackingManagerConfig || {});

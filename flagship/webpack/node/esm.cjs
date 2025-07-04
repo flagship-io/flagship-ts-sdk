@@ -13,7 +13,7 @@ module.exports = merge(common(), {
     outputModule: true
   },
   output: {
-    filename: 'index.node.esm.js',
+    filename: 'index.node.esm.mjs',
     library: {
       type: 'module'
     },

@@ -122,7 +122,14 @@ export abstract class TrackingManagerAbstract implements ITrackingManager {
   }
 
   public startBatchingLoop(): void {
-    const timeInterval = (this.config.trackingManagerConfig?.batchIntervals) as number * 1000;
+
+    const batchIntervals = this.config.trackingManagerConfig?.batchIntervals as number;
+
+    if (batchIntervals === 0) {
+      return;
+    }
+
+    const timeInterval = batchIntervals * 1000;
 
     logInfoSprintf(this.config, TRACKING_MANAGER, BATCH_LOOP_STARTED, timeInterval);
 

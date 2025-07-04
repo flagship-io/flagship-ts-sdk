@@ -155,9 +155,15 @@ export interface IFlagshipConfig {
    */
   fetchFlagsBufferingTime?: number;
 
-    isQAModeEnabled?: boolean
-    /*
-     * Disable the collect of analytics data
-     */
-    disableDeveloperUsageTracking?: boolean
+  isQAModeEnabled?: boolean
+  /*
+   * Disable the collect of analytics data
+   */
+  disableDeveloperUsageTracking?: boolean
+
+   /**
+   * If true, activation hits are batched and sent alongside other hits. If false, they will be sent immediately.
+   * Default is false.
+   */
+  batchActivateHits?: boolean;
   }

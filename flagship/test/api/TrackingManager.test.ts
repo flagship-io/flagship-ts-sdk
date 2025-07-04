@@ -209,6 +209,31 @@ describe('test TrackingManager Strategy ', () => {
     expect(strategy.sendUsageHitQueue).toBeCalledTimes(1);
   });
 
+  it('Test startBatchingLoop and  stopBatchingLoop methods with batchInterval 0', async () => {
+    const pageHit = new Page({
+      documentLocation: 'https://myurl.com',
+      visitorId
+    });
+
+    pageHit.config = config;
+
+    config.trackingManagerConfig.batchIntervals = 0;
+
+    await trackingManager.addHit(pageHit);
+
+    trackingManager.startBatchingLoop();
+
+    await sleep(1500);
+
+    trackingManager.stopBatchingLoop();
+
+    expect(strategy.addHit).toBeCalledTimes(1);
+    expect(strategy.addHit).toBeCalledWith(pageHit);
+    expect(strategy.sendBatch).toBeCalledTimes(0);
+    expect(strategy.sendTroubleshootingQueue).toBeCalledTimes(0);
+    expect(strategy.sendUsageHitQueue).toBeCalledTimes(0);
+  });
+
   it('Test addTroubleshootingHit methods', async () => {
     const pageHit = new Page({
       documentLocation: 'https://myurl.com',

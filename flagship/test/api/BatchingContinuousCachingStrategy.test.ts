@@ -618,6 +618,71 @@ describe('test activateFlag method', () => {
 
     expect(flushHits).toBeCalledTimes(0);
   });
+
+  it('test activate with batchActivateHits true', async () => {
+
+
+    postAsync.mockResolvedValue({
+      status: 200,
+      body: null
+    });
+
+    const config = new DecisionApiConfig({
+      envId: 'envId',
+      apiKey: 'apiKey',
+      initialBucketing: {},
+      batchActivateHits: true
+    });
+
+    const batchingStrategy = new BatchingContinuousCachingStrategy({
+      config,
+      httpClient,
+      hitsPoolQueue,
+      activatePoolQueue,
+      troubleshootingQueue,
+      analyticHitQueue
+    });
+
+
+    const cacheHit = jest.spyOn(batchingStrategy as any, 'cacheHit');
+
+    const flushHits = jest.spyOn(batchingStrategy as any, 'flushHits');
+
+    const activateHit = new Activate({
+      visitorId,
+      variationGroupId: 'variationGrID-activate',
+      variationId: 'variationId',
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGrID',
+        variationId: 'varId',
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
+      },
+      visitorContext: { key: 'value' }
+    });
+
+    activateHit.config = config;
+    activateHit.key = visitorId;
+
+    expect(hitsPoolQueue.size).toBe(0);
+
+    await batchingStrategy.activateFlag(activateHit);
+
+    expect(hitsPoolQueue.size).toBe(0);
+    expect(activatePoolQueue.size).toBe(5);
+
+    expect(cacheHit).toBeCalledTimes(1);
+
+    expect(flushHits).toBeCalledTimes(0);
+  });
 });
 
 describe('test sendBatch method', () => {
