@@ -1,7 +1,7 @@
 {
   "name": "@flagship.io/js-sdk",
   "sideEffects": false,
-  "version": "5.1.3",
+  "version": "5.1.4",
   "author": "AB Tasty",
   "license": "Apache-2.0",
   "description": "Flagship JS SDK",
@@ -19,7 +19,7 @@
     ".": {
       "types": "./dist/index.d.ts",
       "node": {
-        "import": "./dist/index.node.esm.js",
+        "import": "./dist/index.node.esm.mjs",
         "require": "./dist/index.node.commonjs.cjs"
       },
       "browser": {

@@ -37,6 +37,7 @@ describe('test DecisionApiConfig', () => {
     expect(config.onVisitorExposed).toBeUndefined();
     expect(config.nextFetchConfig).toEqual(nextFetchConfig);
     expect(config.fetchThirdPartyData).toBeFalsy();
+    expect(config.batchActivateHits).toBeFalsy();
   });
 
   it('test config constructor', () => {
@@ -97,7 +98,8 @@ describe('test DecisionApiConfig', () => {
       disableCache: true,
       hitDeduplicationTime: 20,
       onLog,
-      onVisitorExposed
+      onVisitorExposed,
+      batchActivateHits: true
     });
 
     expect(config.apiKey).toBe(apiKey);
@@ -115,6 +117,10 @@ describe('test DecisionApiConfig', () => {
     expect(config.hitDeduplicationTime).toBe(20);
     expect(config.onVisitorExposed).toBe(onVisitorExposed);
     expect(config.onLog).toBe(onLog);
+    expect(config.batchActivateHits).toBeTruthy();
+
+    config.batchActivateHits = false;
+    expect(config.batchActivateHits).toBeFalsy();
   });
 
   it('Test envId field ', () => {

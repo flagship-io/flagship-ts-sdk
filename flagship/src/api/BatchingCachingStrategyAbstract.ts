@@ -170,7 +170,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     const hitKey = `${hit.visitorId}:${uuidV4()}`;
     hit.key = hitKey;
 
-    if (this.config.decisionMode === DecisionMode.BUCKETING_EDGE) {
+    if (this.config.decisionMode === DecisionMode.BUCKETING_EDGE || this.config.batchActivateHits) {
       await this.activateFlagEdgeMode(hit);
       logDebug(this.config, sprintf(ACTIVATE_ADDED_IN_QUEUE, JSON.stringify(hit.toApiKeys())), ADD_ACTIVATE);
       return;

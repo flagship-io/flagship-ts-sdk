@@ -54,11 +54,12 @@ export class BucketingSdkManager implements ISdkManager {
 
   async initSdk(): Promise<void> {
     const timeout = this._config.pollingInterval as number * 1000;
-    logInfo(this._config, BUCKETING_POOLING_STARTED, PROCESS_BUCKETING);
+
     await this.fetchBucketingFile();
     if (timeout === 0) {
       return;
     }
+    logInfo(this._config, BUCKETING_POOLING_STARTED, PROCESS_BUCKETING);
     this._intervalID = setInterval(() => {
       this.fetchBucketingFile();
     }, timeout);
