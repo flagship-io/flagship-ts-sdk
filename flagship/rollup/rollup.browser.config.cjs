@@ -6,11 +6,7 @@ const resolve = require('@rollup/plugin-node-resolve')
  
 const replace = require('@rollup/plugin-replace')
  
-const terser = require('@rollup/plugin-terser')
- 
 const alias = require('@rollup/plugin-alias')
-
-const isProduction = process.env.NODE_ENV === 'production'
 
 module.exports = {
   input: 'src/index.ts',
@@ -53,12 +49,6 @@ module.exports = {
         allowImportingTsExtensions: true
       }
     }),
-    isProduction && terser({
-      mangle: true,
-      format: {
-        comments: false
-      }
-    })
   ],
   external: ['events'],
   treeshake: {

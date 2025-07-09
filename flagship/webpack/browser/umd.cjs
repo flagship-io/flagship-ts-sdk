@@ -56,6 +56,9 @@ module.exports = merge(common(), {
       }
     ]
   },
+  optimization: {
+    minimize: process.env.NODE_ENV === 'production',
+  },
   externals: [
     nodeExternals({
       importType: 'umd',

@@ -16,7 +16,7 @@ const config = {
     extensions: ['.ts', '.tsx', '.js']
   },
   optimization: {
-    minimize: process.env.NODE_ENV === 'production',
+    minimize: false,
     usedExports: true,
     splitChunks: false,
     runtimeChunk: false,
@@ -30,9 +30,6 @@ module.exports = () => {
     config.mode = 'production'
   } else {
     config.mode = 'development'
-    // config.plugins = [new BundleAnalyzerPlugin({
-    //   analyzerMode: 'static'
-    // })]
   }
 
   return config
