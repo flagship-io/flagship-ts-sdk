@@ -52,8 +52,15 @@ export class HttpClient implements IHttpClient {
     };
   }
 
+  getAbortController():AbortController {
+    const AbortCtrl = typeof globalThis.AbortController !== 'undefined'
+      ? globalThis.AbortController
+      : LocalAbortController;
+    return new AbortCtrl;
+  }
+
   async getAsync(url: string, options?: IHttpOptions): Promise<IHttpResponse> {
-    const c = new LocalAbortController();
+    const c = this.getAbortController();
     const id = setTimeout(() => c.abort(), (options?.timeout ? options.timeout : REQUEST_TIME_OUT) * 1000);
     try {
       const response = await myFetch(url, {
@@ -70,7 +77,7 @@ export class HttpClient implements IHttpClient {
   }
 
   public async postAsync(url: string, options: IHttpOptions): Promise<IHttpResponse> {
-    const c = new LocalAbortController();
+    const c = this.getAbortController();
     const id = setTimeout(() => c.abort(), options.timeout ? options.timeout * 1000 : REQUEST_TIME_OUT * 1000);
     try {
       const response = await myFetch(url, {

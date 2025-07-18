@@ -364,7 +364,7 @@ export interface VariationGroupDTO {
 }
 
 export type AccountSettings = {
-  enabledXPC?: true;
+  enabledXPC?: boolean;
   troubleshooting?: {
     startDate: string;
     endDate: string;

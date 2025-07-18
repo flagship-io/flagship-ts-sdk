@@ -22,7 +22,7 @@ module.exports = merge(common(), {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['module:metro-react-native-babel-preset']
+            presets: ['@react-native/babel-preset']
           }
         }
       }

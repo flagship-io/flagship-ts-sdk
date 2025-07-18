@@ -119,6 +119,8 @@ describe('test VisitorDelegate', () => {
     }
   }];
 
+
+
   const OnFlagStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>();
 
   const init = jest.fn<(visitor:VisitorAbstract) => void>();
@@ -565,6 +567,8 @@ describe('test VisitorDelegate methods', () => {
     expect(cacheVisitorFn).toBeCalledTimes(1);
     expect(cacheVisitorFn).toBeCalledWith(undefined, true);
   });
+
+
 });
 
 
@@ -650,6 +654,10 @@ describe('test initialFlagsData', () => {
     });
 
     expect(visitorDelegate.flagsData).toEqual(flagsData);
+    expect(visitorDelegate.flagsStatus).toEqual({
+      status: FSFetchStatus.INITIAL_DATA,
+      reason: FSFetchReasons.NONE
+    });
   });
 
   it('should initialize flagsData with empty Array', () => {

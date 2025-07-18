@@ -54,10 +54,13 @@ module.exports = merge(common(), {
   },
   externals: [
     nodeExternals({
+      type: 'commonjs',
       allowlist: [
         /core-js\/modules\/es/,
         /core-js\/modules\/web/,
-        /@babel\/runtime/
+        /@babel\/runtime/,
+        'node-abort-controller',
+        // 'events'
       ]
     })
   ]

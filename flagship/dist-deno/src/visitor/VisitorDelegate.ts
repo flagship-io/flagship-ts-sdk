@@ -23,7 +23,10 @@ export class VisitorDelegate extends VisitorAbstract {
   }
 
   getFlag(key:string):IFSFlag {
-    if (this.flagsStatus.status !== FSFetchStatus.FETCHED && this.flagsStatus.status !== FSFetchStatus.FETCHING) {
+    if (this.flagsStatus.status !== FSFetchStatus.FETCHED
+      && this.flagsStatus.status !== FSFetchStatus.FETCHING
+      && this.flagsStatus.status !== FSFetchStatus.INITIAL_DATA
+    ) {
       logWarningSprintf(this.config, GET_FLAG, visitorFlagSyncStatusMessage(this.flagsStatus.reason), this.visitorId, key);
     }
     return new FSFlag({

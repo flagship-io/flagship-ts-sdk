@@ -27,6 +27,11 @@ module.exports = merge(common(), {
     ]
   },
   externals: [
-    nodeExternals()
+    nodeExternals({
+      type: 'commonjs',
+      allowlist:[
+        'events',
+        'node-abort-controller',
+    ]})
   ]
 })

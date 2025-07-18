@@ -289,6 +289,15 @@ export class DefaultStrategy extends StrategyAbstract {
     return newHit;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private isHitAbstract(hit: any): hit is HitAbstract {
+    return hit &&
+         typeof hit.toApiKeys === 'function' &&
+         typeof hit.isReady === 'function' &&
+         typeof hit.getErrorMessage === 'function' &&
+         typeof hit.toObject === 'function';
+  }
+
   private async prepareAndSendHit(hit: IHit | HitAbstract, functionName = PROCESS_SEND_HIT):Promise<void> {
     let hitInstance: HitAbstract;
 
@@ -297,7 +306,7 @@ export class DefaultStrategy extends StrategyAbstract {
       return;
     }
 
-    if (hit instanceof HitAbstract) {
+    if (this.isHitAbstract(hit)) {
       hitInstance = hit;
     } else {
       const hitFromInt = await this.getHit(hit);
@@ -494,8 +503,8 @@ export class DefaultStrategy extends StrategyAbstract {
       const time = Date.now() - this.visitor.lastFetchFlagsTimestamp;
       const fetchStatus = this.visitor.flagsStatus.status;
 
-      if (fetchStatus === FSFetchStatus.FETCHING) {
-        await this.visitor.getCampaignsPromise;
+      if (fetchStatus === FSFetchStatus.FETCHING && this.visitor.getCampaignsPromise) {
+        campaigns = await this.visitor.getCampaignsPromise;
         return {
           campaigns,
           isFetching: true

@@ -36,7 +36,7 @@ export interface BucketingDTO {
         variationGroups:Array<VariationGroupDTO>
     }>
     accountSettings?:{
-        enabledXPC?: true
+        enabledXPC?: boolean
         troubleshooting?:{
             startDate: string
             endDate: string
