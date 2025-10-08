@@ -132,7 +132,9 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this._apiKey = apiKey;
     this.logLevel = logLevel ?? LogLevel.INFO;
     this.timeout = timeout || REQUEST_TIME_OUT;
-    this.fetchNow = typeof fetchNow === 'undefined' || fetchNow;
+
+    this.setFetchNow(fetchNow);
+
     this.reuseVisitorIds = typeof reuseVisitorIds === 'undefined' || reuseVisitorIds;
     this._decisionMode = decisionMode || DecisionMode.DECISION_API;
     this._initialBucketing = initialBucketing;
@@ -150,6 +152,14 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
     this.onSdkStatusChanged = onSdkStatusChanged;
 
     this._onVisitorExposed = onVisitorExposed;
+  }
+
+  protected setFetchNow(fetchNow: boolean | undefined) :void {
+    if (__fsWebpackIsBrowser__ || __fsWebpackIsReactNative__) {
+      this.fetchNow = typeof fetchNow === 'undefined' ? true : fetchNow;
+    }else{
+      this.fetchNow = typeof fetchNow === 'undefined' ? false : fetchNow;
+    }
   }
 
   protected initQaMode():void {

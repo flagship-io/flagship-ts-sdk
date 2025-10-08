@@ -1,4 +1,5 @@
 import { IFlagshipConfig } from './config/IFlagshipConfig';
+import { type Flagship } from './main/Flagship';
 import { EventDataFromIframe } from './qaAssistant/type';
 import { ISdkApiV1 } from './sdkApi/v1/ISdkApiV1';
 import { ISharedActionTracking } from './sharedFeature/ISharedActionTracking';
@@ -125,12 +126,14 @@ export type ActivateConstructorParam = Omit<
   'type' | 'createdAt' | 'traffic'
 >;
 
+
 declare global {
   let __fsWebpackIsBrowser__: boolean;
   let __fsWebpackIsNode__: boolean;
   let __fsWebpackIsReactNative__: boolean;
   let __fsWebpackIsEdgeWorker__: boolean;
   let __fsWebpackIsDeno__: boolean;
+  let __flagship_instance__: Flagship;
   interface Window {
     ABTastyQaAssistant?: Window;
     ABTastyWebSdk?: {
@@ -169,3 +172,7 @@ export type VisitorVariationState = {
   exposedVariations?: Record<string, VisitorVariations>;
   navigationDetected?: boolean;
 };
+
+export interface FlagshipGlobal {
+      __flagship_instance__?: Flagship;
+    }

@@ -14,6 +14,7 @@ import { FlagshipLogManager, IFlagshipLogManager } from '../../src/utils/Flagshi
 import * as utils from '../../src/utils/utils';
 import { mockGlobals, restoreGlobals } from '../helpers';
 describe('test DecisionApiConfig', () => {
+  mockGlobals({ __fsWebpackIsBrowser__: true });
   const config = new DecisionApiConfig();
   const nextFetchConfig = { revalidate: 20 };
   it('should ', () => {
@@ -186,6 +187,35 @@ describe('test DecisionApiConfig', () => {
 
     config.timeout = 3000;
     expect(config.timeout).toBe(3000);
+  });
+});
+
+describe('test DecisionApiConfig', () => {
+  mockGlobals({ __fsWebpackIsBrowser__: false });
+  const config = new DecisionApiConfig();
+  const nextFetchConfig = { revalidate: 20 };
+  it('should ', () => {
+    expect(config.apiKey).toBeUndefined();
+    expect(config.envId).toBeUndefined();
+    expect(config.logLevel).toBe(LogLevel.INFO);
+    expect(config.logManager).toBeUndefined();
+    expect(config.onSdkStatusChanged).toBeUndefined();
+    expect(config.timeout).toBe(REQUEST_TIME_OUT);
+    expect(config.decisionMode).toBe(DecisionMode.DECISION_API);
+    expect(config.fetchNow).toBeFalsy();
+    expect(config.reuseVisitorIds).toBeTruthy();
+    expect(config.initialBucketing).toBeUndefined();
+    expect(config.decisionApiUrl).toBe(BASE_API_URL);
+    expect(config.hitDeduplicationTime).toBe(DEFAULT_DEDUPLICATION_TIME);
+    expect(config.hitCacheImplementation).toBeUndefined();
+    expect(config.visitorCacheImplementation).toBeUndefined();
+    expect(config.disableCache).toBeFalsy();
+    expect(config.trackingManagerConfig).toBeInstanceOf(TrackingManagerConfig);
+    expect(config.onLog).toBeUndefined();
+    expect(config.onVisitorExposed).toBeUndefined();
+    expect(config.nextFetchConfig).toEqual(nextFetchConfig);
+    expect(config.fetchThirdPartyData).toBeFalsy();
+    expect(config.batchActivateHits).toBeFalsy();
   });
 });
 

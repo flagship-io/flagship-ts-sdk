@@ -257,13 +257,25 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     this.setInitializeCampaigns(initialCampaigns, !!initialFlagsData, strategy);
 
     this.onFetchFlagsStatusChanged = onFetchFlagsStatusChanged;
+
+    this.updateFlagsStatus();
+
+    this._emotionAi.init(this);
+    logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented);
+  }
+
+  protected updateFlagsStatus(): void {
+    if (this._flags.size > 0) {
+      this.flagsStatus = {
+        status: FSFetchStatus.INITIAL_DATA,
+        reason: FSFetchReasons.NONE
+      };
+      return;
+    }
     this.flagsStatus = {
       status: FSFetchStatus.FETCH_REQUIRED,
       reason: FSFetchReasons.FLAGS_NEVER_FETCHED
     };
-
-    this._emotionAi.init(this);
-    logDebugSprintf(this.config, PROCESS_NEW_VISITOR, VISITOR_CREATED, this.visitorId, this.context, !!isAuthenticated, !!this.hasConsented);
   }
 
   protected updateCache(): void {

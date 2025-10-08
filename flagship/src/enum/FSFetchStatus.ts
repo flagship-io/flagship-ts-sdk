@@ -21,4 +21,9 @@ export enum FSFetchStatus {
      * The SDK is in PANIC mode: All features are disabled except for the one to fetch flags.
      */
     PANIC = 'PANIC',
+
+    /**
+     * The flags have been initialized from initial data provided during visitor creation .
+     */
+    INITIAL_DATA = 'INITIAL_DATA',
 }

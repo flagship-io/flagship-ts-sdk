@@ -42,7 +42,9 @@ import { DefaultVisitorCache } from '../cache/DefaultVisitorCache';
 import { DefaultHitCache } from '../cache/DefaultHitCache';
 import { SharedActionTracking } from '../sharedFeature/SharedActionTracking';
 import { SdkApi } from '../sdkApi/v1/SdkApi';
-import { VisitorVariationState } from '../type.local.ts';
+import { FlagshipGlobal, VisitorVariationState } from '../type.local.ts';
+
+
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
@@ -97,10 +99,19 @@ export class Flagship {
   }
 
   protected static getInstance(): Flagship {
-    if (!this._instance) {
-      this._instance = new this();
+
+    if (__fsWebpackIsNode__ || __fsWebpackIsDeno__) {
+
+      const globalScope = globalThis as unknown as FlagshipGlobal;
+
+      globalScope.__flagship_instance__ = globalScope.__flagship_instance__ || new this();
+      return globalScope.__flagship_instance__;
+    } else{
+      if (!this._instance) {
+        this._instance = new this();
+      }
+      return this._instance;
     }
-    return this._instance;
   }
 
   protected setStatus(status: FSSdkStatus): void {
@@ -428,6 +439,8 @@ export class Flagship {
       eAIConfig: flagship._sdkManager?.getEAIConfig()
     });
     const visitorProfileCache = new VisitorProfileCache(sdkConfig);
+
+    VisitorAbstract.SdkStatus = flagship.getStatus();
 
     const visitorDelegate = new VisitorDelegate({
       visitorId,
