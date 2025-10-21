@@ -92,6 +92,7 @@ export class ApiSdkManager implements ISdkManager {
     try {
       const response = await this._httpClient.getAsync(url);
       this._EAIConfig = response.body.accountSettings;
+      this._config.accountSettings = response.body.accountSettings;
       this.sendTroubleshooting(response.body.accountSettings, url, response, now);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
