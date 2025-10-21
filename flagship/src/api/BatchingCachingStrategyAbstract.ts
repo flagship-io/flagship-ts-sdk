@@ -215,7 +215,8 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     variationId: string
   ): void {
     const enabled1V1T = this.config.accountSettings?.enabled1V1T;
-    if (this.config.disableCache || !this.config.visitorCacheImplementation || !enabled1V1T) {
+    const isApiMode = this.config.decisionMode === DecisionMode.DECISION_API;
+    if (this.config.disableCache || !this.config.visitorCacheImplementation || !enabled1V1T || isApiMode) {
       return;
     }
 
