@@ -270,7 +270,6 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     const existingAssignments = cache.data.assignmentsHistory || {};
     let hasChanges = false;
 
-
     for (const [variationGroupId, variationId] of Object.entries(item.assignments)) {
       if (existingAssignments[variationGroupId] !== variationId) {
         hasChanges = true;
@@ -296,11 +295,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
       return;
     }
 
-    const visitorCacheImpl = this.config.visitorCacheImplementation;
-
-    if (!visitorCacheImpl) {
-      return;
-    }
+    const visitorCacheImpl = this.config.visitorCacheImplementation as IVisitorCacheImplementation;
 
     try {
       const promises: Promise<void>[] = [];
