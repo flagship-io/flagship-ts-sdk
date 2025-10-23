@@ -2,7 +2,7 @@ import { IHitCacheImplementation } from '../cache/IHitCacheImplementation.ts';
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation.ts';
 import { FSSdkStatus } from '../enum/index.ts';
 import { LogLevel } from '../enum/LogLevel.ts';
-import { BucketingDTO, OnVisitorExposed } from '../types.ts';
+import { AccountSettings, BucketingDTO, OnVisitorExposed } from '../types.ts';
 import { IFlagshipLogManager } from '../utils/FlagshipLogManager.ts';
 import { DecisionMode } from './DecisionMode.ts';
 import { ITrackingManagerConfig } from './TrackingManagerConfig.ts';
@@ -166,4 +166,9 @@ export interface IFlagshipConfig {
    * Default is false.
    */
   batchActivateHits?: boolean;
+
+  /**
+   * Account settings retrieved from the bucketing file.
+   */
+  accountSettings?: AccountSettings;
   }

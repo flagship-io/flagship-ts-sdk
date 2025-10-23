@@ -131,6 +131,9 @@ export class BucketingSdkManager implements ISdkManager {
         eaiCollectEnabled: !!this._bucketingContent?.accountSettings?.eaiActivationEnabled,
         eaiActivationEnabled: !!this._bucketingContent?.accountSettings?.eaiCollectEnabled
       };
+
+      this._config.accountSettings = this._bucketingContent?.accountSettings;
+
       this.sendTroubleshooting(params.headers, params.url, response, params.now);
     } else if (response.status === 304) {
       logDebug(this._config, POLLING_EVENT_300, PROCESS_BUCKETING);

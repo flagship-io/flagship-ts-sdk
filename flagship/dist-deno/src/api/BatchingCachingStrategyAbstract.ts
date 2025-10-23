@@ -15,6 +15,14 @@ import { ActivateConstructorParam, IHitAbstract, LocalActionTracking } from '../
 import { type HitAbstract } from '../hit/HitAbstract.ts';
 import { type Event } from '../hit/Event.ts';
 import { Batch } from '../hit/Batch.ts';
+import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation.ts';
+
+type AssignmentUpdateItem = {
+    visitorId: string;
+    anonymousId: string | null | undefined;
+    assignments: Record<string, string>;
+}
+type PendingAssignmentUpdates =  Map<string, AssignmentUpdateItem>
 
 export abstract class BatchingCachingStrategyAbstract implements ITrackingManagerCommon {
   protected _config : IFlagshipConfig;
@@ -32,6 +40,9 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   private _initTroubleshootingHit?: Troubleshooting;
   private _hasInitTroubleshootingHitSent: boolean;
   protected _sharedActionTracking?: ISharedActionTracking;
+  private _pendingAssignmentUpdates: PendingAssignmentUpdates;
+  private _assignmentUpdateTimeout: NodeJS.Timeout | null = null;
+  private readonly ASSIGNMENT_UPDATE_DELAY = 500;
 
   public get flagshipInstanceId(): string|undefined {
     return this._flagshipInstanceId;
@@ -75,6 +86,7 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     this._isTroubleshootingQueueSending = false;
     this._initTroubleshootingHit = initTroubleshootingHi;
     this._sharedActionTracking = sharedActionTracking;
+    this._pendingAssignmentUpdates = new Map();
   }
 
   protected dispatchHitsToTag(hits: HitAbstract[]): void {
@@ -194,7 +206,140 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
     await this.cacheHit(new Map<string, HitAbstract>([[hit.key, hit]]));
   }
 
+
+
+  protected enqueueAssignmentUpdate(
+    visitorId: string,
+    anonymousId: string | null|undefined,
+    variationGroupId: string,
+    variationId: string
+  ): void {
+    const enabled1V1T = this.config.accountSettings?.enabled1V1T;
+    const isApiMode = this.config.decisionMode === DecisionMode.DECISION_API;
+    if (this.config.disableCache || !this.config.visitorCacheImplementation || !enabled1V1T || isApiMode) {
+      return;
+    }
+
+    const visitorKey = `${visitorId}:${anonymousId || ''}`;
+
+    if (!this._pendingAssignmentUpdates.has(visitorKey)) {
+      this._pendingAssignmentUpdates.set(visitorKey, {
+        visitorId,
+        anonymousId,
+        assignments: { [variationGroupId]: variationId }
+      });
+    } else {
+      const update = this._pendingAssignmentUpdates.get(visitorKey) as {
+        visitorId: string,
+        anonymousId: string | null,
+        assignments: Record<string, string>
+      };
+      update.assignments[variationGroupId] = variationId;
+    }
+
+    const ASSIGNMENT_UPDATE_SIZE_THRESHOLD = 50;
+
+    if (this._pendingAssignmentUpdates.size >= ASSIGNMENT_UPDATE_SIZE_THRESHOLD) {
+      if (this._assignmentUpdateTimeout) {
+        clearTimeout(this._assignmentUpdateTimeout);
+        this._assignmentUpdateTimeout = null;
+      }
+      this.processPendingAssignmentUpdates();
+      return;
+    }
+
+    if (this._assignmentUpdateTimeout) {
+      clearTimeout(this._assignmentUpdateTimeout);
+    }
+
+    this._assignmentUpdateTimeout = setTimeout(() => {
+      this.processPendingAssignmentUpdates();
+    }, this.ASSIGNMENT_UPDATE_DELAY);
+  }
+
+  protected async mergeAndPersistVisitorAssignments(
+    visitorCacheImpl: IVisitorCacheImplementation,
+    visitorId: string,
+    item: AssignmentUpdateItem
+  ): Promise<void> {
+    const cache = await visitorCacheImpl.lookupVisitor(visitorId);
+    if (!cache?.data) {
+      return;
+    }
+
+    const existingAssignments = cache.data.assignmentsHistory || {};
+    let hasChanges = false;
+
+    for (const [variationGroupId, variationId] of Object.entries(item.assignments)) {
+      if (existingAssignments[variationGroupId] !== variationId) {
+        hasChanges = true;
+        break;
+      }
+    }
+
+
+    if (!hasChanges) {
+      return;
+    }
+
+    cache.data.assignmentsHistory = {
+      ...existingAssignments,
+      ...item.assignments
+    };
+
+    await visitorCacheImpl.cacheVisitor(visitorId, cache);
+  }
+
+  protected async processPendingAssignmentUpdates(): Promise<void> {
+    if (!this._pendingAssignmentUpdates.size) {
+      return;
+    }
+
+    const visitorCacheImpl = this.config.visitorCacheImplementation as IVisitorCacheImplementation;
+
+    try {
+      const promises: Promise<void>[] = [];
+
+      const updates = new Map(this._pendingAssignmentUpdates);
+      this._pendingAssignmentUpdates.clear();
+
+      for (const [, update] of updates) {
+        promises.push(
+          this.mergeAndPersistVisitorAssignments(visitorCacheImpl, update.visitorId, update)
+            .catch((err) => {
+              logErrorSprintf(this.config, PROCESS_CACHE,
+                'Failed to update assignment history for visitor %s: %s',
+                update.visitorId, (err as Error).message);
+            })
+        );
+
+        if (update.anonymousId) {
+          promises.push(
+            this.mergeAndPersistVisitorAssignments(visitorCacheImpl, update.anonymousId, update)
+              .catch((err) => {
+                logErrorSprintf(this.config, PROCESS_CACHE,
+                  'Failed to update assignment history for visitor %s: %s',
+                  update.visitorId, (err as Error).message);
+              })
+          );
+        }
+      }
+
+      await Promise.all(promises);
+    } finally {
+      this._assignmentUpdateTimeout = null;
+    }
+  }
+
   protected onVisitorExposed(activate: Activate):void {
+
+    this.enqueueAssignmentUpdate(
+      activate.visitorId,
+      activate.anonymousId,
+      activate.flagMetadata.variationGroupId,
+      activate.flagMetadata.variationId
+    );
+
     const onVisitorExposed = this.config.onVisitorExposed;
     if (typeof onVisitorExposed !== 'function') {
       return;

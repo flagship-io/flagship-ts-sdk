@@ -236,7 +236,11 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
   }
 
   protected createVisitorCacheDTO(eAIScore?: EAIScore, isEAIDataCollected?: boolean): VisitorCacheDTO {
+
     const assignmentsHistory: Record<string, string> = {};
+    const enabled1V1T = this.config.accountSettings?.enabled1V1T;
+    const isApiMode = this.config.decisionMode === DecisionMode.DECISION_API;
+
     const visitorCacheDTO: VisitorCacheDTO = {
       version: VISITOR_CACHE_VERSION,
       data: {
@@ -247,7 +251,9 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
         eAIScore: this.visitor.visitorCache?.data?.eAIScore || eAIScore,
         isEAIDataCollected: this.visitor.visitorCache?.data?.isEAIDataCollected || isEAIDataCollected,
         campaigns: this.visitor.campaigns.map(campaign => {
-          assignmentsHistory[campaign.variationGroupId] = campaign.variation.id;
+          if (enabled1V1T && isApiMode) {
+            assignmentsHistory[campaign.variationGroupId] = campaign.variation.id;
+          }
           return {
             campaignId: campaign.id,
             slug: campaign.slug,
@@ -262,10 +268,13 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
       }
     };
 
-    visitorCacheDTO.data.assignmentsHistory = {
-      ...this.visitor.visitorCache?.data?.assignmentsHistory,
-      ...assignmentsHistory
-    };
+    if (Object.keys(assignmentsHistory).length > 0) {
+      visitorCacheDTO.data.assignmentsHistory = {
+        ...this.visitor.visitorCache?.data?.assignmentsHistory,
+        ...assignmentsHistory
+      };
+    }
+
     return visitorCacheDTO;
   }
 

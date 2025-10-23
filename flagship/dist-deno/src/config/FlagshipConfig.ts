@@ -4,7 +4,7 @@ import { IFlagshipLogManager } from '../utils/FlagshipLogManager.ts';
 import { errorFormat, isBrowser, logError, sprintf } from '../utils/utils.ts';
 import { IVisitorCacheImplementation } from '../cache/IVisitorCacheImplementation.ts';
 import { ITrackingManagerConfig, TrackingManagerConfig } from './TrackingManagerConfig.ts';
-import { BucketingDTO, OnVisitorExposed } from '../types.ts';
+import { AccountSettings, BucketingDTO, OnVisitorExposed } from '../types.ts';
 import { version as SDK_VERSION } from '../sdkVersion.ts';
 import { IFlagshipConfig } from './IFlagshipConfig.ts';
 import { DecisionMode } from './DecisionMode.ts';
@@ -38,6 +38,15 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
   private _onLog? : (level: LogLevel, tag: string, message: string)=>void;
   private _isQAModeEnabled? : boolean;
   private _batchActivateHits : boolean| undefined = false;
+  private _accountSettings : AccountSettings|undefined;
+
+  public get accountSettings() : AccountSettings|undefined {
+    return this._accountSettings;
+  }
+  public set accountSettings(v : AccountSettings|undefined) {
+    this._accountSettings = v;
+  }
+
 
   public get batchActivateHits() : boolean| undefined {
     return this._batchActivateHits;

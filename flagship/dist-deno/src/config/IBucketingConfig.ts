@@ -1,7 +1,7 @@
 import { DecisionMode } from './DecisionMode.ts';
 import { IFlagshipConfig } from './IFlagshipConfig.ts';
 
-export interface IBucketingConfig extends Omit<IFlagshipConfig, 'isQAModeEnabled'>{
+export interface IBucketingConfig extends Omit<IFlagshipConfig, 'isQAModeEnabled'| 'accountSettings'> {
     decisionMode: DecisionMode.BUCKETING,
 
     /**
