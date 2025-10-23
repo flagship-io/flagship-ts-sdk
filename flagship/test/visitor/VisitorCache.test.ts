@@ -2,7 +2,7 @@ import { LOOKUP_VISITOR_JSON_OBJECT_ERROR, PROCESS_CACHE, VISITOR_CACHE_ERROR } 
 import { jest, expect, it, describe } from '@jest/globals';
 import { DecisionApiConfig, IVisitorCacheImplementation } from '../../src';
 import { TrackingManager } from '../../src/api/TrackingManager';
-import { ConfigManager } from '../../src/config';
+import { BucketingConfig, ConfigManager, DecisionMode } from '../../src/config';
 import { ApiManager } from '../../src/decision/ApiManager';
 import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager';
 import { HttpClient, IHttpResponse } from '../../src/utils/HttpClient';
@@ -22,6 +22,12 @@ import { VisitorAbstract } from '../../src/visitor/VisitorAbstract';
 const getUndefined = ():any => undefined;
 
 describe('test visitor cache', () => {
+
+
+  beforeEach(() => {
+    visitorDelegate.configManager.config = config;
+  });
+
   const visitorId = 'visitorId';
 
   const context: any = { isVip: true };
@@ -128,14 +134,56 @@ describe('test visitor cache', () => {
           activated: false,
           flags: campaign.variation.modifications.value
         };
-      }),
-      assignmentsHistory
+      })
     }
   };
 
   it('test saveCache defaultStrategy', async () => {
+    config.accountSettings = { enabled1V1T: true };
     getStrategy.mockReturnValue(defaultStrategy);
     getCampaignsAsync.mockResolvedValue(campaigns.campaigns);
+    await visitorDelegate.fetchFlags();
+
+    expect(cacheVisitor).toBeCalledTimes(1);
+
+    expect(cacheVisitor).toBeCalledWith(visitorId, {
+      ...data,
+      data: {
+        ...data.data,
+        assignmentsHistory
+      }
+    });
+  });
+
+  it('test bucketing saveCache defaultStrategy', async () => {
+    const localConf = new BucketingConfig({
+      envId: 'envId',
+      apiKey: 'apiKey',
+      visitorCacheImplementation,
+      fetchFlagsBufferingTime: 0
+    });
+    localConf.accountSettings = { enabled1V1T: true };
+
+    const configManager = new ConfigManager(localConf, apiManager, trackingManager);
+
+    const visitorDelegate = new VisitorDelegate({
+      visitorId,
+      context,
+      configManager,
+      hasConsented: true,
+      emotionAi
+    });
+
+    const defaultStrategy = new DefaultStrategy({
+      visitor: visitorDelegate,
+      murmurHash
+    });
+
+    const getStrategy = jest.spyOn(visitorDelegate, 'getStrategy' as any);
+
+    getStrategy.mockReturnValue(defaultStrategy);
+    getCampaignsAsync.mockResolvedValue(campaigns.campaigns);
+
     await visitorDelegate.fetchFlags();
 
     expect(cacheVisitor).toBeCalledTimes(1);

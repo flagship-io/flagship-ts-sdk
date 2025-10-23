@@ -1,5 +1,5 @@
 import { jest, expect, it, describe, beforeAll, afterAll, beforeEach } from '@jest/globals';
-import { EventCategory, IExposedFlag, IExposedVisitor, LogLevel, OnVisitorExposed, TroubleshootingLabel } from '../../src';
+import { EventCategory, IExposedFlag, IExposedVisitor, IVisitorCacheImplementation, LogLevel, OnVisitorExposed, TroubleshootingLabel, VisitorCacheDTO } from '../../src';
 import { BatchingContinuousCachingStrategy } from '../../src/api/BatchingContinuousCachingStrategy';
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig';
 import { EdgeConfig } from '../../src/config/EdgeConfig';
@@ -21,6 +21,8 @@ import { UsageHit } from '../../src/hit/UsageHit';
 import { ISharedActionTracking } from '../../src/sharedFeature/ISharedActionTracking';
 import { ActivateConstructorParam, LocalActionTracking } from '../../src/type.local';
 import { mockGlobals, sleep } from '../helpers';
+import { BucketingConfig } from '../../src/config';
+import { BatchingCachingStrategyAbstract } from '../../src/api/BatchingCachingStrategyAbstract';
 
 describe('Test BatchingContinuousCachingStrategy', () => {
   const visitorId = 'visitorId';
@@ -1790,5 +1792,354 @@ describe('test sendHitsToFsQa', () => {
       ...hit,
       qt: expect.any(Number)
     })));
+  });
+});
+
+describe('test enqueueAssignmentUpdate', ()=>{
+  const httpClient = new HttpClient();
+
+  const postAsync = jest.spyOn(httpClient, 'postAsync');
+  postAsync.mockResolvedValue({
+    status: 200,
+    body: null
+  });
+
+  const visitorCacheImpl = {
+    cacheVisitor: jest.fn<(visitorId: string, Data: VisitorCacheDTO)=>Promise<void>>(),
+    lookupVisitor: jest.fn<(visitorId: string)=>Promise<VisitorCacheDTO | undefined>>(),
+    flushVisitor: jest.fn<(visitorId: string)=>Promise<void>>()
+  };
+
+  const hitsPoolQueue = new Map<string, HitAbstract>();
+  const activatePoolQueue = new Map<string, Activate>();
+  const troubleshootingQueue = new Map<string, Troubleshooting>();
+  const analyticHitQueue = new Map<string, UsageHit>();
+
+  const activateFlag = (batchingStrategy: BatchingCachingStrategyAbstract,
+    visitorId = 'visitorId',
+    anonymousId:string|null = null,
+    variationGroupId = 'variationGrID-activate',
+    variationId = 'variationId'
+  )=>{
+    return batchingStrategy.activateFlag({
+      visitorId,
+      anonymousId,
+      variationGroupId,
+      variationId: 'variationId',
+      flagKey: 'flagKey',
+      flagValue: 'value',
+      flagDefaultValue: 'default-value',
+      flagMetadata: {
+        campaignId: 'campaignId',
+        variationGroupId,
+        variationId,
+        isReference: true,
+        campaignType: 'ab',
+        slug: 'slug',
+        campaignName: 'campaignName',
+        variationGroupName: 'variationGroupName',
+        variationName: 'variationName'
+      },
+      visitorContext: { key: 'value' }
+    });
+  };
+
+
+  describe('enqueueAssignmentUpdate - activateFlag behavior regarding visitor cache & HTTP call', ()=>{
+
+
+
+
+    it('BucketingConfig without visitorCacheImplementation: should send activate and not call visitor cache', ()=>{
+      const config = new BucketingConfig({
+        envId: 'envId',
+        apiKey: 'apiKey'
+      });
+
+      const batchingStrategy = new BatchingContinuousCachingStrategy({
+        config,
+        httpClient,
+        hitsPoolQueue,
+        activatePoolQueue,
+        troubleshootingQueue,
+        analyticHitQueue
+      });
+
+      activateFlag(batchingStrategy);
+
+      expect(postAsync).toBeCalledTimes(1);
+      expect(visitorCacheImpl.cacheVisitor).toBeCalledTimes(0);
+      expect(visitorCacheImpl.lookupVisitor).toBeCalledTimes(0);
+      expect(visitorCacheImpl.flushVisitor).toBeCalledTimes(0);
+    });
+
+    it('BucketingConfig with visitorCacheImplementation and accountSettings.enabled1V1T undefined: should send activate and not cache visitor', ()=>{
+      const config = new BucketingConfig({
+        envId: 'envId',
+        apiKey: 'apiKey',
+        visitorCacheImplementation: visitorCacheImpl as IVisitorCacheImplementation
+      });
+
+      config.accountSettings = { enabled1V1T: undefined };
+
+      const batchingStrategy = new BatchingContinuousCachingStrategy({
+        config,
+        httpClient,
+        hitsPoolQueue,
+        activatePoolQueue,
+        troubleshootingQueue,
+        analyticHitQueue
+      });
+
+      activateFlag(batchingStrategy);
+
+      expect(postAsync).toBeCalledTimes(1);
+      expect(visitorCacheImpl.cacheVisitor).toBeCalledTimes(0);
+      expect(visitorCacheImpl.lookupVisitor).toBeCalledTimes(0);
+      expect(visitorCacheImpl.flushVisitor).toBeCalledTimes(0);
+    });
+
+    it('DecisionApiConfig with visitorCacheImplementation and enabled1V1T true: should send activate and not cache visitor', ()=>{
+      const config = new DecisionApiConfig({
+        envId: 'envId',
+        apiKey: 'apiKey',
+        visitorCacheImplementation: visitorCacheImpl as IVisitorCacheImplementation
+      });
+
+      config.accountSettings = { enabled1V1T: true };
+
+      const batchingStrategy = new BatchingContinuousCachingStrategy({
+        config,
+        httpClient,
+        hitsPoolQueue,
+        activatePoolQueue,
+        troubleshootingQueue,
+        analyticHitQueue
+      });
+
+      activateFlag(batchingStrategy);
+
+      expect(postAsync).toBeCalledTimes(1);
+      expect(visitorCacheImpl.cacheVisitor).toBeCalledTimes(0);
+      expect(visitorCacheImpl.lookupVisitor).toBeCalledTimes(0);
+      expect(visitorCacheImpl.flushVisitor).toBeCalledTimes(0);
+    });
+
+    it('DecisionApiConfig with visitorCacheImplementation and enabled1V1T undefined: ensure no visitor cache calls',async ()=>{
+      const config = new DecisionApiConfig({
+        envId: 'envId',
+        apiKey: 'apiKey',
+        visitorCacheImplementation: visitorCacheImpl as IVisitorCacheImplementation
+      });
+
+      config.accountSettings = { enabled1V1T: undefined };
+
+      const batchingStrategy = new BatchingContinuousCachingStrategy({
+        config,
+        httpClient,
+        hitsPoolQueue,
+        activatePoolQueue,
+        troubleshootingQueue,
+        analyticHitQueue
+      });
+
+      await activateFlag(batchingStrategy);
+
+      expect(postAsync).toBeCalledTimes(1);
+      // confirm cache/lookup/flush not invoked
+      expect(visitorCacheImpl.cacheVisitor).toBeCalledTimes(0);
+      expect(visitorCacheImpl.lookupVisitor).toBeCalledTimes(0);
+      expect(visitorCacheImpl.flushVisitor).toBeCalledTimes(0);
+    });
+  });
+
+  describe('enqueueAssignmentUpdate - sendAssignmentUpdate behavior regarding visitor cache & HTTP call', ()=>{
+    const config = new BucketingConfig({
+      envId: 'envId',
+      apiKey: 'apiKey',
+      visitorCacheImplementation: visitorCacheImpl as IVisitorCacheImplementation
+    });
+
+    beforeEach(()=>{
+      jest.useFakeTimers();
+    });
+
+    afterAll(()=>{
+      jest.useRealTimers();
+    });
+
+    config.accountSettings = { enabled1V1T: true };
+
+    const batchingStrategy = new BatchingContinuousCachingStrategy({
+      config,
+      httpClient,
+      hitsPoolQueue,
+      activatePoolQueue,
+      troubleshootingQueue,
+      analyticHitQueue
+    });
+    it('test',async ()=>{
+
+      visitorCacheImpl.lookupVisitor.mockResolvedValue(undefined);
+
+      await activateFlag(batchingStrategy);
+
+      expect(postAsync).toBeCalledTimes(1);
+      jest.advanceTimersByTime(6000);
+      expect(visitorCacheImpl.lookupVisitor).toBeCalledTimes(1);
+      expect(visitorCacheImpl.cacheVisitor).toBeCalledTimes(0);
+    });
+
+    it('test',async ()=>{
+
+      visitorCacheImpl.lookupVisitor.mockResolvedValue({
+        version: 1,
+        data: {
+          visitorId: 'visitorId',
+          anonymousId: null
+        }
+      });
+
+      await activateFlag(batchingStrategy);
+
+      expect(postAsync).toBeCalledTimes(1);
+      jest.advanceTimersByTime(6000);
+      jest.useRealTimers();
+      await sleep(50);
+      expect(visitorCacheImpl.lookupVisitor).toBeCalledTimes(1);
+      expect(visitorCacheImpl.cacheVisitor).toBeCalledTimes(1);
+      expect(visitorCacheImpl.cacheVisitor).toBeCalledWith('visitorId', expect.objectContaining({
+        data:
+        expect.objectContaining({ assignmentsHistory: { 'variationGrID-activate': 'variationId' } })
+      }));
+    });
+
+    it('more test here',async ()=>{
+
+      visitorCacheImpl.lookupVisitor.mockResolvedValue({
+        version: 1,
+        data: {
+          visitorId: 'visitorId',
+          anonymousId: null
+        }
+      });
+
+      for (let i = 0; i < 50; i++) {
+        await activateFlag(batchingStrategy, `visitorId${i}`, null, `variationGrID-activate-${i}`, `variationId-${i}`);
+      }
+
+      expect(postAsync).toBeCalledTimes(50);
+      jest.advanceTimersByTime(6000);
+      jest.useRealTimers();
+      await sleep(50);
+      expect(visitorCacheImpl.lookupVisitor).toBeCalledTimes(50);
+      expect(visitorCacheImpl.cacheVisitor).toBeCalledTimes(50);
+    });
+
+    it('here test',async ()=>{
+
+      visitorCacheImpl.lookupVisitor.mockImplementation(async (visitorId:string)=>{
+        if (visitorId === 'visitorId') {
+          return {
+            version: 1,
+            data: {
+              visitorId: 'visitorId',
+              anonymousId: null
+            }
+          };
+        }
+        return {
+          version: 1,
+          data: {
+            visitorId: 'visitorId',
+            anonymousId: 'anoymousId'
+          }
+        };
+      });
+
+      await activateFlag(batchingStrategy, 'visitorId', 'anoymousId');
+
+      expect(postAsync).toBeCalledTimes(1);
+
+      jest.advanceTimersByTime(6000);
+      jest.useRealTimers();
+      await sleep(50);
+
+      expect(visitorCacheImpl.lookupVisitor).toBeCalledTimes(2);
+      expect(visitorCacheImpl.lookupVisitor).toHaveBeenNthCalledWith(1,'visitorId');
+      expect(visitorCacheImpl.lookupVisitor).toHaveBeenNthCalledWith(2,'anoymousId');
+      expect(visitorCacheImpl.cacheVisitor).toBeCalledTimes(2);
+      expect(visitorCacheImpl.cacheVisitor).toHaveBeenNthCalledWith(1,'visitorId', expect.objectContaining({
+        data:
+        expect.objectContaining({ assignmentsHistory: { 'variationGrID-activate': 'variationId' } })
+      }));
+      expect(visitorCacheImpl.cacheVisitor).toHaveBeenNthCalledWith(2,'anoymousId', expect.objectContaining({
+        data:
+        expect.objectContaining({ assignmentsHistory: { 'variationGrID-activate': 'variationId' } })
+      }));
+    });
+
+    it('here test',async ()=>{
+
+      visitorCacheImpl.lookupVisitor.mockRejectedValue(new Error('lookup error'));
+
+      await activateFlag(batchingStrategy,'visitorId', 'anoymousId');
+
+      expect(postAsync).toBeCalledTimes(1);
+
+      jest.advanceTimersByTime(6000);
+      jest.useRealTimers();
+      await sleep(50);
+
+      expect(visitorCacheImpl.lookupVisitor).toBeCalledTimes(2);
+      expect(visitorCacheImpl.cacheVisitor).toBeCalledTimes(0);
+    });
+
+    it('test',async ()=>{
+
+      visitorCacheImpl.lookupVisitor.mockResolvedValue({
+        version: 1,
+        data: {
+          visitorId: 'visitorId',
+          anonymousId: null
+        }
+      });
+
+      await activateFlag(batchingStrategy);
+      await activateFlag(batchingStrategy);
+      await activateFlag(batchingStrategy);
+
+      expect(postAsync).toBeCalledTimes(3);
+      jest.advanceTimersByTime(6000);
+      jest.useRealTimers();
+      await sleep(50);
+      expect(visitorCacheImpl.lookupVisitor).toBeCalledTimes(1);
+      expect(visitorCacheImpl.cacheVisitor).toBeCalledTimes(1);
+      expect(visitorCacheImpl.cacheVisitor).toBeCalledWith('visitorId', expect.objectContaining({
+        data:
+        expect.objectContaining({ assignmentsHistory: { 'variationGrID-activate': 'variationId' } })
+      }));
+    });
+
+    it('test',async ()=>{
+
+      visitorCacheImpl.lookupVisitor.mockResolvedValue({
+        version: 1,
+        data: {
+          visitorId: 'visitorId',
+          anonymousId: null,
+          assignmentsHistory: { 'variationGrID-activate': 'variationId' }
+        }
+      });
+
+      await activateFlag(batchingStrategy);
+
+      expect(postAsync).toBeCalledTimes(1);
+      jest.advanceTimersByTime(6000);
+      jest.useRealTimers();
+      await sleep(50);
+      expect(visitorCacheImpl.lookupVisitor).toBeCalledTimes(1);
+      expect(visitorCacheImpl.cacheVisitor).toBeCalledTimes(0);
+    });
   });
 });
