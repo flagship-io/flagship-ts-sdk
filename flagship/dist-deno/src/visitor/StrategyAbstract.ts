@@ -244,6 +244,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
     const visitorCacheDTO: VisitorCacheDTO = {
       version: VISITOR_CACHE_VERSION,
       data: {
+        ...this.visitor.visitorCache?.data,
         visitorId: this.visitor.visitorId,
         anonymousId: this.visitor.anonymousId,
         consent: this.visitor.hasConsented,
