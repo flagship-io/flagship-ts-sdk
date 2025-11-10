@@ -454,6 +454,10 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
     return strategy;
   }
 
+  public resetExposedVariations(): void {
+    this._exposedVariations = {};
+  }
+
   public async sendExposedVariation(flag?: FlagDTO): Promise<void> {
     if (__fsWebpackIsBrowser__) {
       if (!flag || !isBrowser()) {
@@ -478,7 +482,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
       if (Object.keys(this._exposedVariations).length >= BATCH_SIZE) {
         message.sendVisitorExposedVariations(this._visitorVariationState);
-        this._exposedVariations = {};
+        this.resetExposedVariations();
       }
 
       if (this._sendExposedVariationTimeoutId) {
@@ -491,7 +495,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
 
       this._sendExposedVariationTimeoutId = setTimeout(() => {
         message.sendVisitorExposedVariations(this._visitorVariationState);
-        this._exposedVariations = {};
+        this.resetExposedVariations();
       }, DELAY);
     }
   }
