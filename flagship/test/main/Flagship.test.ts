@@ -146,6 +146,8 @@ describe('test Flagship class', () => {
   });
 });
 
+
+
 describe('test Flagship with custom config literal object', () => {
   it('should ', async () => {
     const envId = 'envId';

@@ -4,7 +4,12 @@ import { CUSTOMER_ENV_ID_API_ITEM, CUSTOMER_UID, DS_API_ITEM, QT_API_ITEM, SDK_A
 import { Segment, ERROR_MESSAGE } from '../../src/hit/Segment';
 
 describe('test hit type Campaign', () => {
-  const context = { anyKey: 'anyValue' };
+  const context = {
+    anyKey: 'anyValue',
+    anotherKey: 12345,
+    boolKey: true,
+    floatKey: 12.34
+  };
   const visitorId = 'visitorID';
   const segmentHit = new Segment({
     context,
@@ -41,7 +46,13 @@ describe('test hit type Campaign', () => {
     [CUSTOMER_UID]: visitorId,
     [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
     [T_API_ITEM]: 'SEGMENT',
-    s: context,
+    s: Object.entries(context).reduce<Record<string, string>>(
+      (acc, [key, value]) => {
+        acc[key] = String(value);
+        return acc;
+      },
+      {}
+    ),
     [QT_API_ITEM]: expect.anything()
   };
 
@@ -73,5 +84,29 @@ describe('test hit type Campaign', () => {
       type: 'SEGMENT',
       visitorId
     });
+  });
+
+  it('test toApiKeys method with empty context', () => {
+    const segmentHitWithEmptyContext = new Segment({
+      context: {},
+      visitorId
+    });
+    segmentHitWithEmptyContext.visitorId = visitorId;
+    segmentHitWithEmptyContext.config = config;
+    segmentHitWithEmptyContext.ds = SDK_APP;
+    segmentHitWithEmptyContext.anonymousId = anonymousId;
+
+    const apiKeysWithEmptyContext: Record<string, unknown> = {
+      [VISITOR_ID_API_ITEM]: anonymousId,
+      [DS_API_ITEM]: SDK_APP,
+      [CUSTOMER_UID]: visitorId,
+      [CUSTOMER_ENV_ID_API_ITEM]: config.envId,
+      [T_API_ITEM]: 'SEGMENT',
+      s: {},
+      [QT_API_ITEM]: expect.anything()
+    };
+
+    expect(segmentHitWithEmptyContext.toApiKeys()).toEqual(apiKeysWithEmptyContext);
+    expect(segmentHitWithEmptyContext.isReady()).toBeFalsy();
   });
 });
