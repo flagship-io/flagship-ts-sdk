@@ -34,12 +34,26 @@ export class Segment extends HitAbstract implements ISegment {
   }
 
   public isReady(checkParent = true):boolean {
-    return !!((!checkParent || super.isReady()) && this.context);
+    return !!((!checkParent || super.isReady()) && this.context && Object.keys(this.context).length > 0);
   }
 
   public toApiKeys():Record<string, unknown> {
     const apiKeys = super.toApiKeys();
-    apiKeys[S_API_ITEM] = this.context;
+
+    if (!this.context || Object.keys(this.context).length === 0) {
+      apiKeys[S_API_ITEM] = {};
+      return apiKeys;
+    }
+
+    const apiContext = Object.entries(this.context).reduce<Record<string, string>>(
+      (acc, [key, value]) => {
+        acc[key] = String(value);
+        return acc;
+      },
+      {}
+    );
+
+    apiKeys[S_API_ITEM] = apiContext;
     return apiKeys;
   }
 
