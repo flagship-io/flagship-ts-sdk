@@ -166,6 +166,12 @@ declare global {
   }
 }
 
+export type VisitorData = {
+  visitorId: string;
+  context: Record<string, primitive>;
+  hasConsented: boolean;
+}
+
 export type VisitorVariationState = {
   forcedVariations?: Record<string, FsVariationToForce>;
   visitorVariations?: Record<string, VisitorVariations>;
@@ -174,6 +180,7 @@ export type VisitorVariationState = {
   variationsForcedAllocation?: Record<string, FsVariationToForce>;
   variationsForcedUnallocation?: Record<string, FsVariationToForce>;
   shouldForceRender?: boolean;
+  visitorData?: VisitorData
 };
 
 export interface FlagshipGlobal {

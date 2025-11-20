@@ -1,3 +1,4 @@
+import { VisitorData } from '../type.local';
 import { FsVariationToForce, VisitorVariations } from '../types';
 
 /**
@@ -62,13 +63,15 @@ export enum VisitorVariationUpdateParam {
 }
 
 
+
+
 export type VisitorAllocatedVariations = {
   name:
     | MSG_NAME_TO_IFRAME.FsUpdateVisitorAllocatedVariation
     | MSG_NAME_TO_IFRAME.FsVisitorExposedVariation;
   value: Record<string, VisitorVariations>;
-  param?: VisitorVariationUpdateParam
-
+  param?: VisitorVariationUpdateParam;
+  visitorData?: VisitorData;
 };
 
 export type FsSendHit = {

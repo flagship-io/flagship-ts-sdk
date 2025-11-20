@@ -628,6 +628,11 @@ export class DefaultStrategy extends StrategyAbstract {
       });
 
       this.visitor.visitorVariationState.visitorVariations = visitorAllocatedVariations;
+      this.visitor.visitorVariationState.visitorData = {
+        visitorId: this.visitor.visitorId,
+        context: this.visitor.context,
+        hasConsented: this.visitor.hasConsented
+      };
       if (!this.config.isQAModeEnabled) {
         return;
       }
