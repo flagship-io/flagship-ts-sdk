@@ -74,6 +74,9 @@ export const FS_IS_QA_MODE_ENABLED = 'FS_IS_QA_MODE_ENABLED';
 export const FS_FORCED_VARIATIONS = 'FS_FORCED_VARIATIONS';
 export const FS_QA_ASSISTANT_SCRIPT_TAG_ID = 'FS_QA_ASSISTANT_SCRIPT_TAG_ID';
 
+export const FS_VARIATIONS_FORCED_ALLOCATION = 'FS_VARIATIONS_FORCED_ALLOCATION';
+export const FS_VARIATIONS_FORCED_UNALLOCATION = 'FS_VARIATIONS_FORCED_UNALLOCATION';
+
 export const EMOTION_AI_UC_URL = 'https://uc-info.flagship.io/v1/segments/clients/{0}/visitors/{1}';
 export const CDN_ACCOUNT_SETTINGS_URL = 'https://cdn.flagship.io/{0}/accountSettings.json';
 export const VISITOR_EAI_SCORE_KEY = '{0}_EAIScore';

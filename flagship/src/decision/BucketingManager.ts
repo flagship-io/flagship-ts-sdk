@@ -133,7 +133,7 @@ export class BucketingManager extends DecisionManager {
 
     await this.sendContext(visitor);
 
-    const visitorCampaigns: CampaignDTO[] = [];
+    let visitorCampaigns: CampaignDTO[] = [];
 
     this._bucketingContent.campaigns.forEach(campaign => {
       const currentCampaigns = this.getVisitorCampaigns(campaign.variationGroups, campaign.id, campaign.type, visitor);
@@ -143,6 +143,10 @@ export class BucketingManager extends DecisionManager {
         visitorCampaigns.push(currentCampaigns);
       }
     });
+
+    visitorCampaigns = this.applyCampaignsForcedAllocation(visitor, visitorCampaigns);
+    visitorCampaigns = this.applyCampaignsForcedUnallocation(visitor, visitorCampaigns);
+
     return visitorCampaigns;
   }
 

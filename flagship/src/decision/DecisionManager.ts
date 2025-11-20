@@ -112,6 +112,60 @@ export abstract class DecisionManager implements IDecisionManager {
     return modifications;
   }
 
+  /**
+   * Apply forced allocation campaigns from QA Assistant
+   * @param visitor - The visitor instance containing forced allocation state
+   * @param campaign  - The array of campaigns from the decision API
+   * @returns The combined array of campaigns including forced allocations
+   */
+  protected applyCampaignsForcedAllocation(visitor: VisitorAbstract, campaign: CampaignDTO[]): CampaignDTO[] {
+    if (!this.config.isQAModeEnabled) {
+      return campaign;
+    }
+
+    const forcedAllocations = visitor.visitorVariationState.variationsForcedAllocation;
+
+    if (!forcedAllocations || Object.keys(forcedAllocations).length === 0) {
+      return campaign;
+    }
+
+    const forcedCampaigns: CampaignDTO[] = Object.values(forcedAllocations).map((forcedAllocation) => ({
+      id: forcedAllocation.campaignId,
+      name: forcedAllocation.campaignName,
+      slug: forcedAllocation.CampaignSlug,
+      variationGroupId: forcedAllocation.variationGroupId,
+      variationGroupName: forcedAllocation.variationGroupName,
+      type: forcedAllocation.campaignType,
+      variation: forcedAllocation.variation
+    }));
+
+    return [...campaign, ...forcedCampaigns];
+  }
+
+  /**
+   * Apply forced unallocation campaigns from QA Assistant
+   * @param visitor  - The visitor instance containing forced unallocation state
+   * @param campaigns - The array of campaigns from the decision API
+   * @returns  The filtered array of campaigns excluding forced unallocations
+   */
+  protected applyCampaignsForcedUnallocation(visitor: VisitorAbstract, campaigns: CampaignDTO[]): CampaignDTO[] {
+    if (!this.config.isQAModeEnabled) {
+      return campaigns;
+    }
+
+    const variationsForcedUnallocation = visitor.visitorVariationState.variationsForcedUnallocation;
+
+    if (!variationsForcedUnallocation || Object.keys(variationsForcedUnallocation).length === 0) {
+      return campaigns;
+    }
+
+    const filteredCampaigns = campaigns.filter((campaign) => {
+      return !variationsForcedUnallocation[campaign.id];
+    });
+
+    return filteredCampaigns;
+  }
+
   abstract getCampaignsAsync(visitor: VisitorAbstract): Promise<CampaignDTO[]|null>
 
   public isPanic(): boolean {
@@ -203,6 +257,9 @@ export abstract class DecisionManager implements IDecisionManager {
           traffic: troubleshooting.traffic
         };
       }
+
+      campaigns = this.applyCampaignsForcedAllocation(visitor, campaigns || []);
+      campaigns = this.applyCampaignsForcedUnallocation(visitor, campaigns || []);
 
       return campaigns;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

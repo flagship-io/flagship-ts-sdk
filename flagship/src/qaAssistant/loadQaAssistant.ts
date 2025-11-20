@@ -1,11 +1,24 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig';
-import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, QA_ASSISTANT_PROD_URL, TRUSTED_QA_ORIGINS } from '../enum/FlagshipConstant';
+import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, FS_VARIATIONS_FORCED_ALLOCATION, FS_VARIATIONS_FORCED_UNALLOCATION, QA_ASSISTANT_PROD_URL, TRUSTED_QA_ORIGINS } from '../enum/FlagshipConstant';
 import { VisitorVariationState } from '../type.local';
 import { FsVariationToForce } from '../types';
 import { logInfoSprintf } from '../utils/utils';
 import { appendScript } from './appendScript';
 import { handleIframeMessage } from './messages/handleIframeMessage';
 import { EventDataFromIframe } from './type';
+
+
+function loadSessionVariations(key: string): Record<string, FsVariationToForce> {
+  const sessionData = sessionStorage.getItem(key);
+  let variations: Record<string, FsVariationToForce> = {};
+  try {
+    variations = JSON.parse(sessionData || '{}');
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error(`Error parsing ${key}`, error);
+  }
+  return variations;
+}
 
 /**
  *
@@ -19,16 +32,9 @@ export function loadQaAssistant(config: IFlagshipConfig, bundleUrl:string|null =
     appendScript(bundleUrl || QA_ASSISTANT_PROD_URL);
   }
 
-  let forcedVariations: Record<string, FsVariationToForce> = {};
-  const sessionForcedVariations = sessionStorage.getItem(FS_FORCED_VARIATIONS);
-  try {
-    forcedVariations = JSON.parse(sessionForcedVariations || '{}');
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error parsing sessionForcedVariations', error);
-  }
-
-  visitorVariationState.forcedVariations = forcedVariations;
+  visitorVariationState.forcedVariations =  loadSessionVariations(FS_FORCED_VARIATIONS);
+  visitorVariationState.variationsForcedAllocation = loadSessionVariations(FS_VARIATIONS_FORCED_ALLOCATION); ;
+  visitorVariationState.variationsForcedUnallocation = loadSessionVariations(FS_VARIATIONS_FORCED_UNALLOCATION); ;
 
   if (window.__flagshipSdkQaAssistantMessageHandler) {
     window.removeEventListener('message', window.__flagshipSdkQaAssistantMessageHandler);
