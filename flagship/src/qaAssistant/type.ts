@@ -7,14 +7,32 @@ export enum MSG_NAME_FROM_IFRAME {
   QaAssistantClose = 'ABTASTY_QA_ASSISTANT_CLOSE',
   FsApplyForcedVariations = 'FS_APPLY_FORCED_VARIATIONS',
   FsResetForcedVariations = 'FS_RESET_FORCED_VARIATIONS',
+  FsRemoveForcedVariation = 'FS_REMOVE_FORCED_VARIATION',
   FsQaAssistantReady = 'FS_QA_ASSISTANT_READY',
   MinimizeQaAssistantClose = 'ABTASTY_QA_MINIMIZE_QA_ASSISTANT_CLOSE',
   FsTriggerRender = 'FS_TRIGGER_RENDER',
-  QaAssistantPlatformChoiceLoaded = 'ABTASTY_QA_ASSISTANT_PLATFORM_CHOICE_LOADED'
+  QaAssistantPlatformChoiceLoaded = 'ABTASTY_QA_ASSISTANT_PLATFORM_CHOICE_LOADED',
+  FsVariationsForcedAllocation = 'FS_VARIATIONS_FORCED_ALLOCATION',
+  FsVariationsForcedUnallocation = 'FS_VARIATIONS_FORCED_UNALLOCATION',
 }
 
 export type FsApplyForcedVariations = {
   name: MSG_NAME_FROM_IFRAME.FsApplyForcedVariations;
+  value: Record<string, FsVariationToForce>;
+};
+
+export type FsRemoveForcedVariation = {
+  name: MSG_NAME_FROM_IFRAME.FsRemoveForcedVariation;
+  value: Record<string, FsVariationToForce>;
+};
+
+export type FsVariationsForcedAllocation = {
+  name: MSG_NAME_FROM_IFRAME.FsVariationsForcedAllocation;
+  value: Record<string, FsVariationToForce>;
+};
+
+export type FsVariationsForcedUnallocation = {
+  name: MSG_NAME_FROM_IFRAME.FsVariationsForcedUnallocation;
   value: Record<string, FsVariationToForce>;
 };
 
@@ -28,7 +46,7 @@ export type EventDataFromIframe =
         | MSG_NAME_FROM_IFRAME.FsTriggerRender
         | MSG_NAME_FROM_IFRAME.QaAssistantPlatformChoiceLoaded;
     }
-  | FsApplyForcedVariations;
+  | FsApplyForcedVariations | FsVariationsForcedAllocation | FsVariationsForcedUnallocation| FsRemoveForcedVariation;
 
 /**
  * All events posted to iframe

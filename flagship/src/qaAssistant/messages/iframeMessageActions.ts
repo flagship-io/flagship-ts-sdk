@@ -1,5 +1,5 @@
 import { sendVisitorAllocatedVariations, sendVisitorExposedVariations } from './index';
-import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, FS_QA_ASSISTANT_SCRIPT_TAG_ID, SDK_INFO } from '../../enum/FlagshipConstant';
+import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, FS_QA_ASSISTANT_SCRIPT_TAG_ID, FS_VARIATIONS_FORCED_ALLOCATION, FS_VARIATIONS_FORCED_UNALLOCATION, SDK_INFO } from '../../enum/FlagshipConstant';
 import { FsVariationToForce } from '../../types';
 import { EventDataFromIframe, INTERNAL_EVENTS } from '../type';
 import { IFlagshipConfig } from '../../config/IFlagshipConfig';
@@ -64,4 +64,46 @@ export function onResetForcedVariations(visitorVariationState: VisitorVariationS
   sessionStorage.removeItem(FS_FORCED_VARIATIONS);
   visitorVariationState.forcedVariations = {};
   render();
+}
+
+export function onRemoveForcedVariation({ value, visitorVariationState }:{
+  value:Record<string, FsVariationToForce>,
+  visitorVariationState: VisitorVariationState
+}):void {
+  const sessionForcedVariations = sessionStorage.getItem(FS_FORCED_VARIATIONS);
+  let forcedVariations: Record<string, FsVariationToForce> = {};
+  try {
+    forcedVariations = JSON.parse(sessionForcedVariations || '{}');
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error parsing sessionForcedVariations', error);
+  }
+
+  Object.keys(value).forEach((key) => {
+    delete forcedVariations[key];
+  });
+
+  sessionStorage.setItem(FS_FORCED_VARIATIONS, JSON.stringify(forcedVariations));
+  visitorVariationState.forcedVariations = forcedVariations;
+  render();
+}
+
+export function onVariationsForcedAllocation({ value, visitorVariationState }:{
+  value:Record<string, FsVariationToForce>,
+  visitorVariationState: VisitorVariationState
+}):void {
+  sessionStorage.setItem(FS_VARIATIONS_FORCED_ALLOCATION, JSON.stringify(value));
+  visitorVariationState.variationsForcedAllocation = value;
+  visitorVariationState.shouldForceRender = true;
+  render(true);
+}
+
+export function onVariationsForcedUnallocation({ value, visitorVariationState }:{
+  value:Record<string, FsVariationToForce>,
+  visitorVariationState: VisitorVariationState
+}):void {
+  sessionStorage.setItem(FS_VARIATIONS_FORCED_UNALLOCATION, JSON.stringify(value));
+  visitorVariationState.variationsForcedUnallocation = value;
+  visitorVariationState.shouldForceRender = true;
+  render(true);
 }
