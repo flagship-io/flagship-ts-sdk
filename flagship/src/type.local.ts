@@ -171,6 +171,9 @@ export type VisitorVariationState = {
   visitorVariations?: Record<string, VisitorVariations>;
   exposedVariations?: Record<string, VisitorVariations>;
   navigationDetected?: boolean;
+  variationsForcedAllocation?: Record<string, FsVariationToForce>;
+  variationsForcedUnallocation?: Record<string, FsVariationToForce>;
+  shouldForceRender?: boolean;
 };
 
 export interface FlagshipGlobal {

@@ -500,10 +500,10 @@ export class DefaultStrategy extends StrategyAbstract {
     let campaigns: CampaignDTO[] | null = null;
     const functionName = PROCESS_FETCHING_FLAGS;
     try {
-      const time = Date.now() - this.visitor.lastFetchFlagsTimestamp;
-      const fetchStatus = this.visitor.flagsStatus.status;
+      const timeSinceLastFetch = Date.now() - this.visitor.lastFetchFlagsTimestamp;
+      const currentFetchStatus = this.visitor.flagsStatus.status;
 
-      if (fetchStatus === FSFetchStatus.FETCHING && this.visitor.getCampaignsPromise) {
+      if (currentFetchStatus === FSFetchStatus.FETCHING && this.visitor.getCampaignsPromise) {
         campaigns = await this.visitor.getCampaignsPromise;
         return {
           campaigns,
@@ -513,8 +513,13 @@ export class DefaultStrategy extends StrategyAbstract {
 
       const fetchFlagBufferingTime = (this.config.fetchFlagsBufferingTime as number * 1000);
 
-      if (fetchStatus === FSFetchStatus.FETCHED && time < fetchFlagBufferingTime) {
-        logInfoSprintf(this.config, functionName, FETCH_FLAGS_BUFFERING_MESSAGE, this.visitor.visitorId, fetchFlagBufferingTime - time);
+      const canUseBuffering = !(this.config.isQAModeEnabled && this.visitor.visitorVariationState.shouldForceRender);
+      const isWithinBufferingWindow = currentFetchStatus === FSFetchStatus.FETCHED && timeSinceLastFetch < fetchFlagBufferingTime;
+
+      this.visitor.visitorVariationState.shouldForceRender = false;
+
+      if (canUseBuffering && isWithinBufferingWindow) {
+        logInfoSprintf(this.config, functionName, FETCH_FLAGS_BUFFERING_MESSAGE, this.visitor.visitorId, fetchFlagBufferingTime - timeSinceLastFetch);
         return {
           campaigns,
           isBuffered: true
