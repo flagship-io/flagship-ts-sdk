@@ -336,9 +336,24 @@ export type SdkInfoType = {
   version: string;
 };
 
+export enum TargetingOperator {
+  EQUALS = 'EQUALS',
+  NOT_EQUALS = 'NOT_EQUALS',
+  CONTAINS = 'CONTAINS',
+  NOT_CONTAINS = 'NOT_CONTAINS',
+  EXISTS = 'EXISTS',
+  NOT_EXISTS = 'NOT_EXISTS',
+  GREATER_THAN = 'GREATER_THAN',
+  LOWER_THAN = 'LOWER_THAN',
+  GREATER_THAN_OR_EQUALS = 'GREATER_THAN_OR_EQUALS',
+  LOWER_THAN_OR_EQUALS = 'LOWER_THAN_OR_EQUALS',
+  STARTS_WITH = 'STARTS_WITH',
+  ENDS_WITH = 'ENDS_WITH',
+}
+
 export interface Targetings {
-  operator: string;
-  key: string;
+  operator: TargetingOperator;
+  key:  string | 'fs_all_users' | 'fs_users';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
 }
