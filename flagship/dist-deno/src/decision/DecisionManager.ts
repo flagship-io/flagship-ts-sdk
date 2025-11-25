@@ -178,7 +178,7 @@ export abstract class DecisionManager implements IDecisionManager {
 
     // When using custom decisionApiUrl, assume it already includes the full path (e.g., /v2/campaigns)
     // When using default BASE_API_URL, include envId in path for cloud compatibility
-    const url = this.config.decisionApiUrl 
+    const url = this.config.decisionApiUrl
       ? `${this.config.decisionApiUrl}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true&extras[]=accountSettings`
       : `${BASE_API_URL}${this.config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true&extras[]=accountSettings`;
     const now = Date.now();
