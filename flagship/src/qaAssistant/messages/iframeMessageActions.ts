@@ -66,10 +66,7 @@ export function onResetForcedVariations(visitorVariationState: VisitorVariationS
   render();
 }
 
-export function onRemoveForcedVariation({ value, visitorVariationState }:{
-  value:Record<string, FsVariationToForce>,
-  visitorVariationState: VisitorVariationState
-}):void {
+function removeForcedVariation(keys:string[], visitorVariationState: VisitorVariationState):void {
   const sessionForcedVariations = sessionStorage.getItem(FS_FORCED_VARIATIONS);
   let forcedVariations: Record<string, FsVariationToForce> = {};
   try {
@@ -79,13 +76,12 @@ export function onRemoveForcedVariation({ value, visitorVariationState }:{
     console.error('Error parsing sessionForcedVariations', error);
   }
 
-  Object.keys(value).forEach((key) => {
+  keys.forEach((key) => {
     delete forcedVariations[key];
   });
 
   sessionStorage.setItem(FS_FORCED_VARIATIONS, JSON.stringify(forcedVariations));
   visitorVariationState.forcedVariations = forcedVariations;
-  render();
 }
 
 export function onVariationsForcedAllocation({ value, visitorVariationState }:{
@@ -93,6 +89,14 @@ export function onVariationsForcedAllocation({ value, visitorVariationState }:{
   visitorVariationState: VisitorVariationState
 }):void {
   sessionStorage.setItem(FS_VARIATIONS_FORCED_ALLOCATION, JSON.stringify(value));
+
+  const variationsForcedAllocation = visitorVariationState.variationsForcedAllocation || {};
+
+  const diffVariationKeys = Object.keys(variationsForcedAllocation).filter((key) => !(key in value));
+
+  if (diffVariationKeys.length > 0) {
+    removeForcedVariation(diffVariationKeys, visitorVariationState);
+  }
   visitorVariationState.variationsForcedAllocation = value;
   visitorVariationState.shouldForceRender = true;
   render(true);
