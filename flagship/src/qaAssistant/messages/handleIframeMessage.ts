@@ -4,8 +4,7 @@ import { VisitorVariationState } from '../../type.local';
 import { isBrowser } from '../../utils/utils';
 import { EventDataFromIframe, MSG_NAME_FROM_IFRAME } from '../type';
 import { onApplyForcedVariations, onQaAssistantClose, onQaAssistantReady, onResetForcedVariations,
-  render, onVariationsForcedAllocation, onVariationsForcedUnallocation,
-  onRemoveForcedVariation } from './iframeMessageActions';
+  render, onVariationsForcedAllocation, onVariationsForcedUnallocation } from './iframeMessageActions';
 
 export function handleIframeMessage({ event, config, func, visitorVariationState }:
   { event: MessageEvent<EventDataFromIframe>, config: IFlagshipConfig, func?: (event: MessageEvent<EventDataFromIframe>) => void,
@@ -46,12 +45,6 @@ export function handleIframeMessage({ event, config, func, visitorVariationState
       break;
     case MSG_NAME_FROM_IFRAME.FsVariationsForcedUnallocation:
       onVariationsForcedUnallocation({
-        value: event.data.value,
-        visitorVariationState
-      });
-      break;
-    case MSG_NAME_FROM_IFRAME.FsRemoveForcedVariation:
-      onRemoveForcedVariation({
         value: event.data.value,
         visitorVariationState
       });
