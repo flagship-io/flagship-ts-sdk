@@ -84,6 +84,12 @@ function removeForcedVariation(keys:string[], visitorVariationState: VisitorVari
   visitorVariationState.forcedVariations = forcedVariations;
 }
 
+export function onRemoveForcedVariation(keys:string[], visitorVariationState: VisitorVariationState):void {
+  removeForcedVariation(keys, visitorVariationState);
+  visitorVariationState.shouldForceRender = true;
+  render(true);
+}
+
 export function onVariationsForcedAllocation({ value, visitorVariationState }:{
   value:Record<string, FsVariationToForce>,
   visitorVariationState: VisitorVariationState

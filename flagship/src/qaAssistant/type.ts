@@ -24,7 +24,7 @@ export type FsApplyForcedVariations = {
 
 export type FsRemoveForcedVariation = {
   name: MSG_NAME_FROM_IFRAME.FsRemoveForcedVariation;
-  value: Record<string, FsVariationToForce>;
+  value:string[];
 };
 
 export type FsVariationsForcedAllocation = {
