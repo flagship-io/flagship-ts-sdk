@@ -27,7 +27,7 @@ describe('Test loadQaAssistant', () => {
 
   it('test loadQaAssistant work correctly', () => {
     loadQaAssistant(config, null, visitorVariationState);
-    expect(sessionStorageGetItemSpy).toBeCalledTimes(1);
+    expect(sessionStorageGetItemSpy).toBeCalledTimes(3);
     expect(sessionStorageGetItemSpy).toBeCalledWith(FS_FORCED_VARIATIONS);
     expect(addEventListenerSpy).toBeCalledTimes(1);
     expect(addEventListenerSpy).toBeCalledWith('message', expect.anything());
@@ -109,7 +109,7 @@ describe('Test loadQaAssistant', () => {
     window.frames.ABTastyQaAssistant = global.window || {};
     loadQaAssistant(config, null, visitorVariationState);
 
-    expect(sessionStorageGetItemSpy).toBeCalledTimes(1);
+    expect(sessionStorageGetItemSpy).toBeCalledTimes(3);
     expect(addEventListenerSpy).toBeCalledTimes(1);
     expect(removeEventListenerSpy).toBeCalledTimes(1);
     expect(sessionStorageSetItemSpy).toBeCalledTimes(1);

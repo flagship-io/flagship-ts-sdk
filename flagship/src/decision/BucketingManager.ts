@@ -129,14 +129,14 @@ export class BucketingManager extends DecisionManager {
 
     await this.sendContext(visitor);
 
-    let visitorCampaigns: CampaignDTO[] = [];
+    let visitorCampaigns: CampaignDTO[]|null = [];
 
     this._bucketingContent.campaigns.forEach(campaign => {
       const currentCampaigns = this.getVisitorCampaigns(campaign.variationGroups, campaign.id, campaign.type, visitor);
       if (currentCampaigns) {
         currentCampaigns.slug = campaign.slug ?? null;
         currentCampaigns.name = campaign.name;
-        visitorCampaigns.push(currentCampaigns);
+        visitorCampaigns?.push(currentCampaigns);
       }
     });
 

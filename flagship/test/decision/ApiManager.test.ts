@@ -109,6 +109,7 @@ describe('test ApiManager', () => {
     apiManager.statusChangedCallback((status) => {
       expect(status).toBe(FSSdkStatus.SDK_PANIC);
     });
+
     const campaigns = await apiManager.getCampaignsAsync(visitor);
 
     expect(postAsync).toHaveBeenCalledWith(url, {

@@ -1,3 +1,5 @@
+import { BucketingDTO } from '../../src/types';
+
 export const bucketing = {
   campaigns: [
     {
@@ -310,4 +312,4 @@ export const bucketing = {
     eaiCollectEnabled: true,
     eaiActivationEnabled: true
   }
-};
+} as BucketingDTO;

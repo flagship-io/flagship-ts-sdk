@@ -118,8 +118,8 @@ export abstract class DecisionManager implements IDecisionManager {
    * @param campaign  - The array of campaigns from the decision API
    * @returns The combined array of campaigns including forced allocations
    */
-  protected applyCampaignsForcedAllocation(visitor: VisitorAbstract, campaign: CampaignDTO[]): CampaignDTO[] {
-    if (!this.config.isQAModeEnabled) {
+  protected applyCampaignsForcedAllocation(visitor: VisitorAbstract, campaign: CampaignDTO[]| null): CampaignDTO[]| null {
+    if (!this.config.isQAModeEnabled || !campaign) {
       return campaign;
     }
 
@@ -148,8 +148,8 @@ export abstract class DecisionManager implements IDecisionManager {
    * @param campaigns - The array of campaigns from the decision API
    * @returns  The filtered array of campaigns excluding forced unallocations
    */
-  protected applyCampaignsForcedUnallocation(visitor: VisitorAbstract, campaigns: CampaignDTO[]): CampaignDTO[] {
-    if (!this.config.isQAModeEnabled) {
+  protected applyCampaignsForcedUnallocation(visitor: VisitorAbstract, campaigns: CampaignDTO[]|null): CampaignDTO[]|null {
+    if (!this.config.isQAModeEnabled || !campaigns) {
       return campaigns;
     }
 
@@ -258,8 +258,8 @@ export abstract class DecisionManager implements IDecisionManager {
         };
       }
 
-      campaigns = this.applyCampaignsForcedAllocation(visitor, campaigns || []);
-      campaigns = this.applyCampaignsForcedUnallocation(visitor, campaigns || []);
+      campaigns = this.applyCampaignsForcedAllocation(visitor, campaigns);
+      campaigns = this.applyCampaignsForcedUnallocation(visitor, campaigns);
 
       return campaigns;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
