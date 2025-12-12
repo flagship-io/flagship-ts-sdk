@@ -51,9 +51,10 @@ export function handleIframeMessage({ event, config, func, visitorVariationState
       });
       break;
     case MSG_NAME_FROM_IFRAME.FsRemoveForcedVariation:
-      onRemoveForcedVariation(event.data.value, visitorVariationState);
-      break;
-    default:
+      onRemoveForcedVariation({
+        keys: event.data.value,
+        visitorVariationState
+      });
       break;
   }
 }

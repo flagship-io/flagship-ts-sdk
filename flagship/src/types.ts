@@ -202,6 +202,7 @@ export type VisitorCacheDTO = {
     assignmentsHistory?: Record<string, string>;
     campaigns?: Array<{
       slug?: string | null;
+      name?: string;
       campaignId: string;
       variationGroupId: string;
       variationId: string;
