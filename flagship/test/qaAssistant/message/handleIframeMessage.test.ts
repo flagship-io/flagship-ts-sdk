@@ -39,6 +39,22 @@ describe('Test handleIframeMessage', () => {
     //
   });
 
+  const onVariationsForcedAllocationSpy = jest.spyOn(iframeMessageActions, 'onVariationsForcedAllocation');
+  onVariationsForcedAllocationSpy.mockImplementation(() => {
+    //
+  });
+
+  const onVariationsForcedUnallocationSpy = jest.spyOn(iframeMessageActions, 'onVariationsForcedUnallocation');
+  onVariationsForcedUnallocationSpy.mockImplementation(() => {
+    //
+  });
+
+  const onRemoveForcedVariationSpy = jest.spyOn(iframeMessageActions, 'onRemoveForcedVariation');
+  onRemoveForcedVariationSpy.mockImplementation(() => {
+    //
+  });
+
+
   const isBrowserSpy = jest.spyOn(utils, 'isBrowser');
 
   const visitorVariationState: VisitorVariationState = {
@@ -161,5 +177,82 @@ describe('Test handleIframeMessage', () => {
       visitorVariationState
     });
     expect(onResetForcedVariationsSpy).toBeCalledTimes(0);
+  });
+
+  it('test on force variation allocation', () => {
+    const value = {
+      campaignId: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGroupId',
+        variationId: 'variationId',
+        variationGroupName: 'variationGroupName',
+        campaignName: 'campaignName',
+        campaignType: 'campaignType'
+      } as unknown as FsVariationToForce
+    };
+    const event = new MessageEvent<EventDataFromIframe>('message', {
+      data: {
+        name: MSG_NAME_FROM_IFRAME.FsVariationsForcedAllocation,
+        value
+      }
+    });
+    handleIframeMessage({
+      event,
+      config,
+      visitorVariationState
+    });
+    expect(onVariationsForcedAllocationSpy).toBeCalledTimes(1);
+    expect(onVariationsForcedAllocationSpy).toBeCalledWith({
+      value,
+      visitorVariationState
+    });
+  });
+  it('test on force variation unallocation', () => {
+    const value = {
+      campaignId: {
+        campaignId: 'campaignId',
+        variationGroupId: 'variationGroupId',
+        variationId: 'variationId',
+        variationGroupName: 'variationGroupName',
+        campaignName: 'campaignName',
+        campaignType: 'campaignType'
+      } as unknown as FsVariationToForce
+    };
+    const event = new MessageEvent<EventDataFromIframe>('message', {
+      data: {
+        name: MSG_NAME_FROM_IFRAME.FsVariationsForcedUnallocation,
+        value
+      }
+    });
+    handleIframeMessage({
+      event,
+      config,
+      visitorVariationState
+    });
+    expect(onVariationsForcedUnallocationSpy).toBeCalledTimes(1);
+    expect(onVariationsForcedUnallocationSpy).toBeCalledWith({
+      value,
+      visitorVariationState
+    });
+  });
+
+  it('test on remove forced variation', () => {
+    const value = ['campaignId1', 'campaignId2'];
+    const event = new MessageEvent<EventDataFromIframe>('message', {
+      data: {
+        name: MSG_NAME_FROM_IFRAME.FsRemoveForcedVariation,
+        value
+      }
+    });
+    handleIframeMessage({
+      event,
+      config,
+      visitorVariationState
+    });
+    expect(onRemoveForcedVariationSpy).toBeCalledTimes(1);
+    expect(onRemoveForcedVariationSpy).toBeCalledWith({
+      keys: value,
+      visitorVariationState
+    });
   });
 });

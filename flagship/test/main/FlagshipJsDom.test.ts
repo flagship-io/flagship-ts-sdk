@@ -60,7 +60,7 @@ jest.mock('../../src/api/TrackingManager', () => {
   };
 });
 
-describe('test Flagship newVisitor', () => {
+describe('Flagship.start() initialization', () => {
   const envId = 'envId';
   const apiKey = 'apiKey';
   const isBrowserSpy = jest.spyOn(utils, 'isBrowser');
@@ -74,12 +74,13 @@ describe('test Flagship newVisitor', () => {
     mockGlobals({ __fsWebpackIsBrowser__: true });
   });
 
-  it('test flagship start works properly', async () => {
+  it('should initialize SDK with default configuration and start services', async () => {
     await Flagship.start(envId, apiKey);
 
     expect(Flagship.getConfig()).toBeDefined();
     expect(Flagship.getConfig().envId).toBe(envId);
     expect(Flagship.getConfig().apiKey).toBe(apiKey);
+    expect(Flagship.getConfig().fetchNow).toBe(true);
     expect(Flagship.getConfig().logManager).toBeDefined();
     expect(Flagship.getStatus()).toBe(FSSdkStatus.SDK_INITIALIZED);
     expect(Flagship.getConfig().logManager).toBeInstanceOf(FlagshipLogManager);
@@ -106,7 +107,7 @@ describe('test Flagship newVisitor', () => {
   });
 });
 
-describe('test Flagship newVisitor', () => {
+describe('Flagship.newVisitor() and ABTasty Web SDK integration', () => {
   const isBrowserSpy = jest.spyOn(utils, 'isBrowser');
   const launchQaAssistantSpy = jest.spyOn(qaAssistant, 'launchQaAssistant');
   launchQaAssistantSpy.mockImplementation(() => {
@@ -115,10 +116,17 @@ describe('test Flagship newVisitor', () => {
 
   const postmessageSpy = jest.spyOn(window, 'postMessage');
 
+  beforeEach(() => {
+    mockGlobals({ __fsWebpackIsBrowser__: true });
+  });
+
   beforeAll(() => {
     isBrowserSpy.mockReturnValue(true);
   });
-  it('should ', async () => {
+
+
+
+  it('should initialize ABTasty Web SDK and send post message when visitor is created', async () => {
     const logManager = new FlagshipLogManager();
 
     await Flagship.start('envId', 'apiKey', {
@@ -139,5 +147,22 @@ describe('test Flagship newVisitor', () => {
     expect(window?.ABTastyWebSdk?.internal?._getActionTrackingNonce()).toEqual(expect.any(String));
     expect(postmessageSpy).toBeCalledTimes(1);
     expect(postmessageSpy).toBeCalledWith({ action: ABTastyWebSDKPostMessageType.AB_TASTY_WEB_SDK_INITIALIZED }, '*');
+  });
+
+  it('should create new visitor and fetch campaigns', async () => {
+
+
+    const fs = await Flagship.start('envId', 'apiKey');
+    const getCampaignsAsyncSpy = jest.spyOn(fs['configManager'].decisionManager, 'getCampaignsAsync');
+    getCampaignsAsyncSpy.mockResolvedValueOnce([]);
+    const visitor1 = Flagship.newVisitor({
+      visitorId: 'visitor_1',
+      hasConsented: true
+    });
+    await sleep(100);
+    expect(visitor1).toBeDefined();
+    expect(visitor1.visitorId).toBe('visitor_1');
+    expect(Flagship.getVisitor()).toBe(visitor1);
+    expect(getCampaignsAsyncSpy).toBeCalledTimes(1);
   });
 });
