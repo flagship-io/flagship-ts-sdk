@@ -580,6 +580,7 @@ export class DefaultStrategy extends StrategyAbstract {
       return {
         id: campaign.campaignId,
         variationGroupId: campaign.variationGroupId,
+        name: campaign.name,
         slug: campaign.slug,
         variation: {
           id: campaign.variationId,
