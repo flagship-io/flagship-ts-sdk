@@ -1,4 +1,4 @@
-import { VisitorData } from '../type.local';
+import { SdkInfoType, VisitorData } from '../type.local';
 import { FsVariationToForce, VisitorVariations } from '../types';
 
 /**
@@ -72,6 +72,7 @@ export type VisitorAllocatedVariations = {
   value: Record<string, VisitorVariations>;
   param?: VisitorVariationUpdateParam;
   visitorData?: VisitorData;
+  sdkInfo?:SdkInfoType
 };
 
 export type FsSendHit = {

@@ -332,10 +332,7 @@ export type FsVariationToForce = {
   variation: VariationDTO;
 };
 
-export type SdkInfoType = {
-  name: 'ReactJS' | 'React-Native' | 'Deno' | 'TypeScript';
-  version: string;
-};
+
 
 export enum TargetingOperator {
   EQUALS = 'EQUALS',

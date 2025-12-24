@@ -17,7 +17,8 @@ export function sendVisitorAllocatedVariations(visitorVariationState: VisitorVar
   sendMessageToIframe({
     name: MSG_NAME_TO_IFRAME.FsUpdateVisitorAllocatedVariation,
     value: visitorVariationState.visitorVariations,
-    visitorData: visitorVariationState.visitorData
+    visitorData: visitorVariationState.visitorData,
+    sdkInfo: visitorVariationState.sdkInfo
   });
 }
 

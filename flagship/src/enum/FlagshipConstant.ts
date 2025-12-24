@@ -1,5 +1,5 @@
 import { version } from '../sdkVersion';
-import { SdkInfoType } from '../types';
+import { SdkInfoType } from '../type.local';
 
 /**
  * SDK language
@@ -7,7 +7,8 @@ import { SdkInfoType } from '../types';
 
 export const SDK_INFO: SdkInfoType = {
   name: 'TypeScript',
-  version
+  version,
+  tag: 'flagship-ts-sdk'
 };
 
 /**

@@ -16,7 +16,8 @@ import { IHttpResponse, HttpClient } from '../../src/utils/HttpClient';
 import { DefaultStrategy } from '../../src/visitor/DefaultStrategy';
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate';
 import { HitType,
-  SDK_APP } from '../../src/enum';
+  SDK_APP,
+  SDK_INFO } from '../../src/enum';
 import { MurmurHash } from '../../src/utils/MurmurHash';
 import { returnFlag } from './flags';
 import { FSFetchStatus } from '../../src/enum/FSFetchStatus';
@@ -176,6 +177,8 @@ describe('test DefaultStrategy ', () => {
       expect(err).toBeUndefined();
     });
 
+
+
     fetchEAIScore.mockResolvedValue({ eai: { eas: 'straightforward' } });
 
     const sendVisitorAllocatedVariationsSpy = jest.spyOn(qaMessages, 'sendVisitorAllocatedVariations');
@@ -219,7 +222,20 @@ describe('test DefaultStrategy ', () => {
     });
     await sleep(10);
     expect(sendVisitorAllocatedVariationsSpy).toBeCalledTimes(1);
-    expect(sendVisitorAllocatedVariationsSpy).toBeCalledWith(visitorVariationState);
+    expect(sendVisitorAllocatedVariationsSpy).toBeCalledWith({
+      visitorVariations: visitorAllocatedVariations,
+      visitorData: {
+        visitorId,
+        context: visitorDelegate.context,
+        hasConsented: visitorDelegate.hasConsented
+      },
+      shouldForceRender: false,
+      sdkInfo: {
+        name: SDK_INFO.name,
+        version: SDK_INFO.version,
+        tag: SDK_INFO.tag
+      }
+    });
   });
 
 });

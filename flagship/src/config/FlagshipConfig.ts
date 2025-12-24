@@ -183,14 +183,17 @@ export abstract class FlagshipConfig implements IFlagshipConfig {
       case 1:
         SDK_INFO.name = 'ReactJS';
         SDK_INFO.version = sdkVersion ?? SDK_VERSION;
+        SDK_INFO.tag = 'flagship-react-sdk';
         break;
       case 2:
         SDK_INFO.name = 'React-Native';
         SDK_INFO.version = sdkVersion ?? SDK_VERSION;
+        SDK_INFO.tag = 'flagship-react-native-sdk';
         break;
       default:
         SDK_INFO.name = (typeof window !== 'undefined' && 'Deno' in window) ? 'Deno' : 'TypeScript';
         SDK_INFO.version = SDK_VERSION;
+        SDK_INFO.tag = 'flagship-ts-sdk';
         break;
     }
   }

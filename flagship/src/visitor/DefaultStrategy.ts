@@ -33,7 +33,8 @@ import { AUTHENTICATE,
   VISITOR_AUTHENTICATE_VISITOR_ID_ERROR,
   VISITOR_EXPOSED_VALUE_NOT_CALLED,
   VISITOR_UNAUTHENTICATE,
-  VISITOR_ALREADY_AUTHENTICATE } from '../enum/index';
+  VISITOR_ALREADY_AUTHENTICATE,
+  SDK_INFO } from '../enum/index';
 import { IPage,
   IScreen,
   IEvent,
@@ -629,11 +630,19 @@ export class DefaultStrategy extends StrategyAbstract {
       });
 
       this.visitor.visitorVariationState.visitorVariations = visitorAllocatedVariations;
+
       this.visitor.visitorVariationState.visitorData = {
         visitorId: this.visitor.visitorId,
         context: this.visitor.context,
         hasConsented: this.visitor.hasConsented
       };
+
+      this.visitor.visitorVariationState.sdkInfo = {
+        name: SDK_INFO.name,
+        version: SDK_INFO.version,
+        tag: SDK_INFO.tag
+      };
+
       if (!this.config.isQAModeEnabled) {
         return;
       }

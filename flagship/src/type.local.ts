@@ -181,8 +181,15 @@ export type VisitorVariationState = {
   variationsForcedUnallocation?: Record<string, FsVariationToForce>;
   shouldForceRender?: boolean;
   visitorData?: VisitorData
+  sdkInfo?: SdkInfoType;
 };
 
 export interface FlagshipGlobal {
       __flagship_instance__?: Flagship;
     }
+
+export type SdkInfoType = {
+  name: 'ReactJS' | 'React-Native' | 'Deno' | 'TypeScript';
+  version: string;
+  tag: string;
+};
