@@ -6,7 +6,7 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import { IFlagshipConfig } from '../../src/config/IFlagshipConfig';
 import { VisitorVariationState } from '../../src/type.local';
-import { detectNavigationChanges } from '../../src/qaAssistant/detectNavigationChanges';
+import { detectNavigationChanges } from '../../src/qaAssistant/web/detectNavigationChanges';
 
 describe('detectNavigationChanges', () => {
   let config: IFlagshipConfig;

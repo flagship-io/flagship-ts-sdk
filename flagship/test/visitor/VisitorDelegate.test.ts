@@ -80,7 +80,7 @@ jest.mock('../../src/visitor/DefaultStrategy', () => {
   };
 });
 
-describe('test VisitorDelegate', () => {
+describe('VisitorDelegate properties', () => {
   const visitorId = 'visitorId';
 
   const context: Record<string, primitive> = { isVip: true };
@@ -168,7 +168,7 @@ describe('test VisitorDelegate', () => {
     expect(visitorDelegate.visitorId).toHaveLength(36);
   });
 
-  it('test context', () => {
+  it('should initialize with provided context and predefined keys', () => {
     const newContext = {
       IsVip: false,
       hasChild: true
@@ -197,7 +197,7 @@ describe('test VisitorDelegate', () => {
     visitorDelegate.flagsData.clear();
   });
 
-  it('test campaigns', () => {
+  it('should initialize with empty campaigns array', () => {
     expect(visitorDelegate.campaigns).toHaveLength(0);
     const campaigns = [
       {
@@ -217,7 +217,7 @@ describe('test VisitorDelegate', () => {
     expect(visitorDelegate.campaigns).toBe(campaigns);
   });
 
-  it('test onFetchFlagsStatusChanged callback', () => {
+  it('should call onFetchFlagsStatusChanged when flags status changes', () => {
     const visitorDelegate = new VisitorDelegate({
       visitorId,
       context,
@@ -235,7 +235,7 @@ describe('test VisitorDelegate', () => {
     });
   });
 
-  it('test property', () => {
+  it('should have correct config and hasConsented properties', () => {
     expect(visitorDelegate.hasConsented).toBeTruthy();
 
     expect(visitorDelegate.config).toBe(config);
@@ -257,7 +257,7 @@ describe('test VisitorDelegate', () => {
     });
   });
 
-  it('test anonymous', () => {
+  it('should generate anonymous ID when not authenticated', () => {
     const visitorDelegate = new VisitorDelegate({
       visitorId,
       isAuthenticated: true,
@@ -271,7 +271,7 @@ describe('test VisitorDelegate', () => {
   });
 });
 
-describe('test VisitorDelegate methods', () => {
+describe('VisitorDelegate methods', () => {
   const logManager = new FlagshipLogManager();
   const logWarning = jest.spyOn(logManager, 'warning');
 
@@ -297,31 +297,31 @@ describe('test VisitorDelegate methods', () => {
     emotionAi
   });
 
-  it('test setConsent', () => {
+  it('should update hasConsented and delegate to strategy', () => {
     visitorDelegate.setConsent(true);
     expect(setConsent).toBeCalledTimes(1);
     expect(setConsent).toBeCalledWith(true);
   });
 
-  it('test updateContext', () => {
+  it('should merge new context with existing and delegate to strategy', () => {
     const contexts = { isVip: false };
     visitorDelegate.updateContext(contexts);
     expect(updateContext).toBeCalledTimes(1);
     expect(updateContext).toBeCalledWith(contexts, undefined);
   });
 
-  it('test updateContext key/value', () => {
+  it('should update single context key-value pair', () => {
     visitorDelegate.updateContext('isVip', false);
     expect(updateContext).toBeCalledTimes(1);
     expect(updateContext).toBeCalledWith('isVip', false);
   });
 
-  it('test clear', () => {
+  it('should clear context and delegate to strategy', () => {
     visitorDelegate.clearContext();
     expect(clearContext).toBeCalledTimes(1);
   });
 
-  it('test addInTrackingManager', () => {
+  it('should add hit to tracking manager when ready', () => {
     const eventHit = new Event({
       visitorId: 'visitorId',
       category: EventCategory.ACTION_TRACKING,
@@ -333,7 +333,7 @@ describe('test VisitorDelegate methods', () => {
     expect(addInTrackingManager).toBeCalledWith(eventHit);
   });
 
-  it('test getFlag', () => {
+  it('should return FSFlag instance for given key', () => {
     const flagDTO = {
       key: 'newKey',
       campaignId: 'cma',
@@ -387,13 +387,13 @@ describe('test VisitorDelegate methods', () => {
     expect(logWarning).toBeCalledTimes(1);
   });
 
-  it('test getFlags', () => {
+  it('should return FSFlagCollection with all flags', () => {
     const flags = visitorDelegate.getFlags();
     expect(flags).toBeInstanceOf(FSFlagCollection);
     expect(flags.size).toBe(1);
   });
 
-  it('test fetchFlags', () => {
+  it('should delegate fetchFlags to strategy', () => {
     fetchFlags.mockResolvedValue();
     cacheVisitorFn.mockResolvedValue();
     visitorDelegate.fetchFlags()
@@ -402,7 +402,7 @@ describe('test VisitorDelegate methods', () => {
       }).catch(err => expect(err).toBeNull());
   });
 
-  it('test userExposed', () => {
+  it('should delegate visitorExposed to strategy', () => {
     visitorExposed.mockResolvedValue();
     const params = {
       key: 'key',
@@ -417,7 +417,7 @@ describe('test VisitorDelegate methods', () => {
       }).catch(err => expect(err).toBeNull());
   });
 
-  it('test getFlagValue', () => {
+  it('should delegate getFlagValue to strategy', () => {
     const flagValue = 'value';
     getFlagValue.mockReturnValue(flagValue);
     const params = {
@@ -431,7 +431,7 @@ describe('test VisitorDelegate methods', () => {
     expect(value).toBe(flagValue);
   });
 
-  it('test sendHit', () => {
+  it('should delegate sendHit to strategy', () => {
     sendHit.mockResolvedValue();
     const page = {
       type: HitType.PAGE,
@@ -443,7 +443,7 @@ describe('test VisitorDelegate methods', () => {
     });
   });
 
-  it('test sendHits', () => {
+  it('should delegate sendHits array to strategy', () => {
     sendHits.mockResolvedValue();
     const page = [{
       type: HitType.PAGE,
@@ -455,7 +455,7 @@ describe('test VisitorDelegate methods', () => {
     });
   });
 
-  it('test authenticate', () => {
+  it('should update authenticated state and delegate to strategy', () => {
     authenticate.mockReturnValue();
     const authenticateId = 'authenticateId';
     visitorDelegate.authenticate(authenticateId);
@@ -463,7 +463,7 @@ describe('test VisitorDelegate methods', () => {
     expect(authenticate).toBeCalledWith(authenticateId);
   });
 
-  it('test unauthenticate', () => {
+  it('should reset authenticated state and delegate to strategy', () => {
     unauthenticate.mockReturnValue();
     visitorDelegate.unauthenticate();
     expect(unauthenticate).toBeCalledTimes(1);

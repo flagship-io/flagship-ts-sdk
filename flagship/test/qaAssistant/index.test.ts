@@ -4,14 +4,14 @@
 
 import { jest, describe, beforeEach, it, expect } from '@jest/globals';
 import * as utils from '../../src/utils/utils';
-import { launchQaAssistant } from '../../src/qaAssistant';
-import * as loadQaAssistant from '../../src/qaAssistant/loadQaAssistant';
-import * as listenForKeyboardQaAssistant from '../../src/qaAssistant/listenForKeyboardQaAssistant';
+import { launchQaAssistant } from '../../src/qaAssistant/web/index';
+import * as loadQaAssistant from '../../src/qaAssistant/web/loadQaAssistant';
+import * as listenForKeyboardQaAssistant from '../../src/qaAssistant/web/listenForKeyboardQaAssistant';
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig';
 import { VisitorVariationState } from '../../src/type.local';
-import { MSG_NAME_FROM_IFRAME } from '../../src/qaAssistant/type';
+import { MSG_NAME_FROM_IFRAME } from '../../src/qaAssistant/web/type';
 import { FS_QA_ASSISTANT, FS_QA_ASSISTANT_LOCAL, FS_QA_ASSISTANT_STAGING, QA_ASSISTANT_LOCAL_URL, QA_ASSISTANT_PROD_URL, QA_ASSISTANT_STAGING_URL, TRUSTED_QA_ORIGINS } from '../../src/enum/FlagshipConstant';
-describe('Qa Assistant', () => {
+describe('launchQaAssistant (Web)', () => {
   const { location } = window;
   const isBrowserSpy = jest.spyOn(utils, 'isBrowser');
   const loadQaAssistantSpy = jest.spyOn(loadQaAssistant, 'loadQaAssistant');
@@ -42,7 +42,7 @@ describe('Qa Assistant', () => {
     window.location = location as Location & string;
   });
 
-  it('test launchQaAssistant when environment is not a browser', () => {
+  it('should not load QA Assistant when environment is not a browser', () => {
     isBrowserSpy.mockReturnValue(false);
     const config = new DecisionApiConfig();
     config.isQAModeEnabled = true;
@@ -51,7 +51,7 @@ describe('Qa Assistant', () => {
     expect(loadQaAssistantSpy).toBeCalledTimes(0);
     expect(listenForKeyboardQaAssistantSpy).toBeCalledTimes(0);
   });
-  it('test launchQaAssistant when isQAModeEnabled is true', () => {
+  it('should load QA Assistant when isQAModeEnabled is true', () => {
     const config = new DecisionApiConfig();
     config.isQAModeEnabled = true;
 
@@ -65,7 +65,7 @@ describe('Qa Assistant', () => {
     expect(listenForKeyboardQaAssistantSpy).toBeCalledTimes(0);
   });
 
-  it('test launchQaAssistant when isQAModeEnabled is false ', () => {
+  it('should listen for keyboard shortcut when isQAModeEnabled is false', () => {
     const config = new DecisionApiConfig();
     config.isQAModeEnabled = false;
 
@@ -98,7 +98,7 @@ describe('Qa Assistant', () => {
     expect(listenForKeyboardQaAssistantSpy).toBeCalledTimes(0);
   });
 
-  it('test launchQaAssistant when when fs_qa_assistant_staging is true ', () => {
+  it('should load staging QA Assistant when fs_qa_assistant_staging URL parameter is true', () => {
     const config = new DecisionApiConfig();
     config.isQAModeEnabled = false;
 
@@ -118,7 +118,7 @@ describe('Qa Assistant', () => {
     expect(listenForKeyboardQaAssistantSpy).toBeCalledTimes(0);
   });
 
-  it('test launchQaAssistant when when fs_qa_assistant_local is true ', () => {
+  it('should load local QA Assistant when fs_qa_assistant_local URL parameter is true', () => {
     const config = new DecisionApiConfig();
     config.isQAModeEnabled = false;
 
@@ -138,11 +138,11 @@ describe('Qa Assistant', () => {
     expect(listenForKeyboardQaAssistantSpy).toBeCalledTimes(0);
   });
 
-  it('test launchQaAssistant when when fs_qa_assistant is true ', () => {
+  it('should not load QA Assistant when DOM is not ready', () => {
+
     onDomReadySpy.mockImplementation((): boolean => {
       return false;
     });
-
     const config = new DecisionApiConfig();
     config.isQAModeEnabled = false;
 
@@ -187,7 +187,7 @@ describe('Qa Assistant', () => {
     );
   });
 
-  it('should call NOT loadQaAssistant when receiving QA_ASSISTANT_PLATFORM_CHOICE_LOADED message', () => {
+  it('should not loadQaAssistant when receiving QA_ASSISTANT_PLATFORM_CHOICE_LOADED message from untrusted origin', () => {
     const config = new DecisionApiConfig();
     config.isQAModeEnabled = false;
 

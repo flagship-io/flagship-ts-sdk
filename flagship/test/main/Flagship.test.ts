@@ -1,5 +1,4 @@
 import { jest, expect, it, describe, beforeAll } from '@jest/globals';
-// import { mocked } from 'ts-jest/utils'
 import { DecisionApiConfig, DecisionMode } from '../../src/config/index';
 import { CONSENT_NOT_SPECIFY_WARNING,
   FSSdkStatus,
@@ -11,7 +10,7 @@ import * as utils from '../../src/utils/utils';
 import { Visitor } from '../../src/visitor/Visitor';
 import { EdgeConfig } from '../../src/config/EdgeConfig';
 import { NewVisitor } from '../../src';
-import * as qaAssistant from '../../src/qaAssistant';
+import * as qaAssistant from '../../src/qaAssistant/web';
 import { sleep } from '../helpers';
 
 const getCampaignsAsync = jest.fn().mockReturnValue(Promise.resolve([]));
@@ -60,7 +59,7 @@ jest.mock('../../src/api/TrackingManager', () => {
   };
 });
 
-describe('test Flagship class', () => {
+describe('Flagship SDK initialization', () => {
   const envId = 'envId';
   const apiKey = 'apiKey';
   const isBrowserSpy = jest.spyOn(utils, 'isBrowser');
@@ -70,7 +69,7 @@ describe('test Flagship class', () => {
     //
   });
 
-  it('test flagship start works properly', async () => {
+  it('should initialize Flagship SDK with default DecisionApiConfig and start batching loop', async () => {
     await Flagship.start(envId, apiKey);
 
     expect(Flagship.getConfig()).toBeDefined();
@@ -148,7 +147,7 @@ describe('test Flagship class', () => {
 
 
 
-describe('test Flagship with custom config literal object', () => {
+describe('Flagship with custom config literal object', () => {
   it('should ', async () => {
     const envId = 'envId';
     const apiKey = 'apiKey';
@@ -166,7 +165,7 @@ describe('test Flagship with custom config literal object', () => {
   });
 });
 
-describe('test Flagship with custom config (Decision API)', () => {
+describe('Flagship with custom DecisionApiConfig', () => {
   const envId = 'envId';
   const apiKey = 'apiKey';
 
@@ -198,7 +197,7 @@ describe('test Flagship with custom config (Decision API)', () => {
   });
 });
 
-describe('test Flagship with custom config (Bucketing Edge)', () => {
+describe('Flagship with Bucketing Edge mode', () => {
   const envId = 'envId';
   const apiKey = 'apiKey';
 
@@ -241,7 +240,7 @@ const getNull = (): any => {
   return null;
 };
 
-describe('test Flagship newVisitor', () => {
+describe('Flagship newVisitor method', () => {
   const isBrowserSpy = jest.spyOn(utils, 'isBrowser');
   const launchQaAssistantSpy = jest.spyOn(qaAssistant, 'launchQaAssistant');
   launchQaAssistantSpy.mockImplementation(() => {

@@ -33,7 +33,8 @@ import { AUTHENTICATE,
   VISITOR_AUTHENTICATE_VISITOR_ID_ERROR,
   VISITOR_EXPOSED_VALUE_NOT_CALLED,
   VISITOR_UNAUTHENTICATE,
-  VISITOR_ALREADY_AUTHENTICATE } from '../enum/index';
+  VISITOR_ALREADY_AUTHENTICATE,
+  SDK_INFO } from '../enum/index';
 import { IPage,
   IScreen,
   IEvent,
@@ -500,10 +501,10 @@ export class DefaultStrategy extends StrategyAbstract {
     let campaigns: CampaignDTO[] | null = null;
     const functionName = PROCESS_FETCHING_FLAGS;
     try {
-      const time = Date.now() - this.visitor.lastFetchFlagsTimestamp;
-      const fetchStatus = this.visitor.flagsStatus.status;
+      const timeSinceLastFetch = Date.now() - this.visitor.lastFetchFlagsTimestamp;
+      const currentFetchStatus = this.visitor.flagsStatus.status;
 
-      if (fetchStatus === FSFetchStatus.FETCHING && this.visitor.getCampaignsPromise) {
+      if (currentFetchStatus === FSFetchStatus.FETCHING && this.visitor.getCampaignsPromise) {
         campaigns = await this.visitor.getCampaignsPromise;
         return {
           campaigns,
@@ -513,8 +514,13 @@ export class DefaultStrategy extends StrategyAbstract {
 
       const fetchFlagBufferingTime = (this.config.fetchFlagsBufferingTime as number * 1000);
 
-      if (fetchStatus === FSFetchStatus.FETCHED && time < fetchFlagBufferingTime) {
-        logInfoSprintf(this.config, functionName, FETCH_FLAGS_BUFFERING_MESSAGE, this.visitor.visitorId, fetchFlagBufferingTime - time);
+      const canUseBuffering = !(this.config.isQAModeEnabled && this.visitor.visitorVariationState.shouldForceRender);
+      const isWithinBufferingWindow = currentFetchStatus === FSFetchStatus.FETCHED && timeSinceLastFetch < fetchFlagBufferingTime;
+
+      this.visitor.visitorVariationState.shouldForceRender = false;
+
+      if (canUseBuffering && isWithinBufferingWindow) {
+        logInfoSprintf(this.config, functionName, FETCH_FLAGS_BUFFERING_MESSAGE, this.visitor.visitorId, fetchFlagBufferingTime - timeSinceLastFetch);
         return {
           campaigns,
           isBuffered: true
@@ -575,6 +581,7 @@ export class DefaultStrategy extends StrategyAbstract {
       return {
         id: campaign.campaignId,
         variationGroupId: campaign.variationGroupId,
+        name: campaign.name,
         slug: campaign.slug,
         variation: {
           id: campaign.variationId,
@@ -611,7 +618,7 @@ export class DefaultStrategy extends StrategyAbstract {
   }
 
   sendVisitorAllocatedVariations():void {
-    if (__fsWebpackIsBrowser__) {
+    if (__fsWebpackIsBrowser__ || __fsWebpackIsReactNative__) {
       const visitorAllocatedVariations: Record<string, VisitorVariations> = {};
 
       this.visitor.flagsData.forEach((item) => {
@@ -623,10 +630,23 @@ export class DefaultStrategy extends StrategyAbstract {
       });
 
       this.visitor.visitorVariationState.visitorVariations = visitorAllocatedVariations;
+
+      this.visitor.visitorVariationState.visitorData = {
+        visitorId: this.visitor.visitorId,
+        context: this.visitor.context,
+        hasConsented: this.visitor.hasConsented
+      };
+
+      this.visitor.visitorVariationState.sdkInfo = {
+        name: SDK_INFO.name,
+        version: SDK_INFO.version,
+        tag: SDK_INFO.tag
+      };
+
       if (!this.config.isQAModeEnabled) {
         return;
       }
-      import(/* webpackMode: "lazy" */ '../qaAssistant/messages/index.ts').then((message) => {
+      import(/* webpackMode: "lazy" */ '../qaAssistant/common/handleMessage.ts').then((message) => {
         message.sendVisitorAllocatedVariations(this.visitor.visitorVariationState);
       });
     }

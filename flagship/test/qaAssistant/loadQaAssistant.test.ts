@@ -3,12 +3,12 @@
  */
 
 import { jest, describe, beforeEach, it, expect } from '@jest/globals';
-import { loadQaAssistant } from '../../src/qaAssistant/loadQaAssistant';
+import { loadQaAssistant } from '../../src/qaAssistant/web/loadQaAssistant';
 import { FS_FORCED_VARIATIONS, FS_IS_QA_MODE_ENABLED, QA_ASSISTANT_PROD_URL } from '../../src/enum/FlagshipConstant';
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig';
-import * as appendScript from '../../src/qaAssistant/appendScript';
+import * as appendScript from '../../src/qaAssistant/web/appendScript';
 import { FsVariationToForce } from '../../src';
-import * as handleIframeMessage from '../../src/qaAssistant/messages/handleIframeMessage';
+import * as handleIframeMessage from '../../src/qaAssistant/web/messages/handleIframeMessage';
 import { VisitorVariationState } from '../../src/type.local';
 
 describe('Test loadQaAssistant', () => {
@@ -27,7 +27,7 @@ describe('Test loadQaAssistant', () => {
 
   it('test loadQaAssistant work correctly', () => {
     loadQaAssistant(config, null, visitorVariationState);
-    expect(sessionStorageGetItemSpy).toBeCalledTimes(1);
+    expect(sessionStorageGetItemSpy).toBeCalledTimes(3);
     expect(sessionStorageGetItemSpy).toBeCalledWith(FS_FORCED_VARIATIONS);
     expect(addEventListenerSpy).toBeCalledTimes(1);
     expect(addEventListenerSpy).toBeCalledWith('message', expect.anything());
@@ -109,7 +109,7 @@ describe('Test loadQaAssistant', () => {
     window.frames.ABTastyQaAssistant = global.window || {};
     loadQaAssistant(config, null, visitorVariationState);
 
-    expect(sessionStorageGetItemSpy).toBeCalledTimes(1);
+    expect(sessionStorageGetItemSpy).toBeCalledTimes(3);
     expect(addEventListenerSpy).toBeCalledTimes(1);
     expect(removeEventListenerSpy).toBeCalledTimes(1);
     expect(sessionStorageSetItemSpy).toBeCalledTimes(1);

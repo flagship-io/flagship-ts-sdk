@@ -3,12 +3,12 @@
  */
 
 import { jest, describe, beforeEach, it, expect } from '@jest/globals';
-import { loadQaAssistant } from '../../src/qaAssistant/loadQaAssistant';
+import { loadQaAssistant } from '../../src/qaAssistant/web/loadQaAssistant';
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig';
-import * as handleIframeMessage from '../../src/qaAssistant/messages/handleIframeMessage';
+import * as handleIframeMessage from '../../src/qaAssistant/web/messages/handleIframeMessage';
 import { VisitorVariationState } from '../../src/type.local';
 import { TRUSTED_QA_ORIGINS } from '../../src/enum/FlagshipConstant';
-import { MSG_NAME_FROM_IFRAME } from '../../src/qaAssistant/type';
+import { MSG_NAME_FROM_IFRAME } from '../../src/qaAssistant/web/type';
 
 describe('Test loadQaAssistant', () => {
   beforeEach(() => {

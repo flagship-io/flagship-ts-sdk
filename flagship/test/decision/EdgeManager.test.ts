@@ -12,7 +12,7 @@ import { VisitorAbstract } from '../../src/visitor/VisitorAbstract';
 import { IEmotionAI } from '../../src/emotionAI/IEmotionAI';
 import { bucketing } from './bucketing';
 
-describe('Test EdgeManager', () => {
+describe('EdgeManager', () => {
   const murmurHash = new MurmurHash();
   const httpClient = new HttpClient();
   const config = new EdgeConfig();
@@ -46,7 +46,7 @@ describe('Test EdgeManager', () => {
     },
     emotionAi
   });
-  it('test getCampaign', async () => {
+  it('should fetch campaigns from edge API', async () => {
     getBucketingContent.mockReturnValue(bucketing);
     // getCampaignsAsync.mockResolvedValue(null)
     const campaigns = await edgeManager.getCampaignsAsync(visitor);

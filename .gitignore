@@ -1,3 +1,4 @@
+.DS_Store
 flagship/demo/src/env.js
 cov_profile
 cov_profile.lcov
@@ -17,3 +18,4 @@ flagship/stats.json
 ariane.mock.json
 demo/**/*
 flagship/.yarn/install-state.gz
+flagship/test/qaAssistant/TEST_PLAN.md

@@ -395,7 +395,7 @@ describe('SharedActionTracking Tests', () => {
     });
   });
 
-  describe('test dispatchEventHits', () => {
+  describe('dispatchEventHits', () => {
     const visitorMock = {
       visitorId: 'visitor_123',
       anonymousId: 'anon_456',

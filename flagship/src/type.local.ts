@@ -1,6 +1,6 @@
 import { IFlagshipConfig } from './config/IFlagshipConfig';
 import { type Flagship } from './main/Flagship';
-import { EventDataFromIframe } from './qaAssistant/type';
+import { EventDataFromIframe } from './qaAssistant/web/type';
 import { ISdkApiV1 } from './sdkApi/v1/ISdkApiV1';
 import { ISharedActionTracking } from './sharedFeature/ISharedActionTracking';
 import { FlagDTO,
@@ -134,6 +134,7 @@ declare global {
   let __fsWebpackIsEdgeWorker__: boolean;
   let __fsWebpackIsDeno__: boolean;
   let __flagship_instance__: Flagship;
+
   interface Window {
     ABTastyQaAssistant?: Window;
     ABTastyWebSdk?: {
@@ -166,13 +167,44 @@ declare global {
   }
 }
 
+
+export type VisitorData = {
+  visitorId: string;
+  context: Record<string, primitive>;
+  hasConsented: boolean;
+}
+
 export type VisitorVariationState = {
   forcedVariations?: Record<string, FsVariationToForce>;
   visitorVariations?: Record<string, VisitorVariations>;
   exposedVariations?: Record<string, VisitorVariations>;
   navigationDetected?: boolean;
+  variationsForcedAllocation?: Record<string, FsVariationToForce>;
+  variationsForcedUnallocation?: Record<string, FsVariationToForce>;
+  shouldForceRender?: boolean;
+  visitorData?: VisitorData
+  sdkInfo?: SdkInfoType;
 };
 
 export interface FlagshipGlobal {
       __flagship_instance__?: Flagship;
     }
+
+export type SdkInfoType = {
+  name: 'ReactJS' | 'React-Native' | 'Deno' | 'TypeScript';
+  version: string;
+  tag: string;
+};
+
+declare global {
+  // eslint-disable-next-line no-var
+  var __abTastyOnQaAssistantReadyListener: (() => void) | undefined;
+    // eslint-disable-next-line no-var
+  var __abTastyOnQAApplyForcedVariationListener: (() => void) | undefined;
+    // eslint-disable-next-line no-var
+   var __abTastyOnTriggerRender__: ((arg:{forcedReFetchFlags:boolean})=>void)|undefined;
+    // eslint-disable-next-line no-var
+  var __abTastyOnQaApplyForcedAllocationListener: (() => void) | undefined;
+    // eslint-disable-next-line no-var
+  var __abTastyOnQaApplyForcedUnAllocationListener : (() => void) | undefined;
+}

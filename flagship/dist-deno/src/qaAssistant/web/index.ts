@@ -7,13 +7,13 @@ import { FS_QA_ASSISTANT,
   TAG_QA_ASSISTANT,
   TAG_QA_ASSISTANT_LOCAL,
   TAG_QA_ASSISTANT_STAGING,
-  TRUSTED_QA_ORIGINS } from '../enum/FlagshipConstant.ts';
-import { IFlagshipConfig } from '../config/IFlagshipConfig.ts';
-import { isBrowser, onDomReady } from '../utils/utils.ts';
+  TRUSTED_QA_ORIGINS } from '../../enum/FlagshipConstant.ts';
+import { IFlagshipConfig } from '../../config/IFlagshipConfig.ts';
+import { isBrowser, onDomReady } from '../../utils/utils.ts';
 import { listenForKeyboardQaAssistant } from './listenForKeyboardQaAssistant.ts';
 import { loadQaAssistant } from './loadQaAssistant.ts';
 import { detectNavigationChanges } from './detectNavigationChanges.ts';
-import { VisitorVariationState } from '../type.local.ts';
+import { VisitorVariationState } from '../../type.local.ts';
 import { EventDataFromIframe, MSG_NAME_FROM_IFRAME } from './type.ts';
 
 /**

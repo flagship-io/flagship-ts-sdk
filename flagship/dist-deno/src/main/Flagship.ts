@@ -43,8 +43,7 @@ import { DefaultHitCache } from '../cache/DefaultHitCache.ts';
 import { SharedActionTracking } from '../sharedFeature/SharedActionTracking.ts';
 import { SdkApi } from '../sdkApi/v1/SdkApi.ts';
 import { FlagshipGlobal, VisitorVariationState } from '../type.local.ts';
-
-
+import { launchQaAssistant as launchQaAssistantMobile } from '../qaAssistant/mobile/index.ts';
 
 /**
  * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
@@ -361,9 +360,16 @@ export class Flagship {
     );
 
     if (__fsWebpackIsBrowser__) {
-      import('../qaAssistant/index.ts').then((qaAssistant) => {
+      import('../qaAssistant/web/index.ts').then((qaAssistant) => {
         qaAssistant.launchQaAssistant(localConfig, flagship._visitorVariationState);
       });
+    }
+
+    if (__fsWebpackIsReactNative__) {
+      flagship._visitorVariationState = {};
+      if (localConfig.isQAModeEnabled) {
+        launchQaAssistantMobile(localConfig, flagship._visitorVariationState);
+      }
     }
 
     flagship.lastInitializationTimestamp = new Date().toISOString();

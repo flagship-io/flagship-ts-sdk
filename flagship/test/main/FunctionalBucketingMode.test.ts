@@ -18,7 +18,7 @@ describe('Functional test Bucketing mode', () => {
       decisionMode: DecisionMode.BUCKETING
     });
   }
-  it('test decision Bucketing mode', async () => {
+  it('should return flag value for allocated visitor in Bucketing mode', async () => {
     await startSDK();
     const visitor = Flagship.newVisitor({
       hasConsented: true,
@@ -40,7 +40,7 @@ describe('Functional test Bucketing mode', () => {
     expect(flag.metadata.campaignName).toBe('Test-campaign ab');
   });
 
-  it('test decision Bucketing mode 2', async () => {
+  it('should return default value for unallocated visitor in Bucketing mode', async () => {
     await startSDK();
     const visitor = Flagship.newVisitor({
       hasConsented: true,
@@ -62,7 +62,7 @@ describe('Functional test Bucketing mode', () => {
     expect(flag.metadata.campaignName).toBe('Test-campaign ab');
   });
 
-  it('test decision Bucketing mode 3', async () => {
+  it('should return default value when visitor context does not match targeting in Bucketing mode', async () => {
     await startSDK();
     const visitor = Flagship.newVisitor({
       hasConsented: true,

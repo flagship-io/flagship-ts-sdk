@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from '@jest/globals';
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig';
-import { appendScript } from '../../src/qaAssistant/appendScript';
+import { appendScript } from '../../src/qaAssistant/web/appendScript';
 import { FS_QA_ASSISTANT_SCRIPT_TAG_ID,
   QA_ASSISTANT_LOCAL_URL,
   QA_ASSISTANT_PROD_URL } from '../../src/enum/FlagshipConstant';

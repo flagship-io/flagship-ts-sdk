@@ -1,5 +1,5 @@
-import { IFlagshipConfig } from '../config/IFlagshipConfig';
-import { VisitorVariationState } from '../type.local';
+import { IFlagshipConfig } from '../../config/IFlagshipConfig.ts';
+import { VisitorVariationState } from '../../type.local.ts';
 
 
 export function detectNavigationChanges(config: IFlagshipConfig, visitorVariationState: VisitorVariationState, callback?: () => void): void {

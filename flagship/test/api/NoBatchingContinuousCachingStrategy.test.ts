@@ -16,7 +16,7 @@ import { Page } from '../../src/hit/Page';
 import { HitAbstract } from '../../src/hit/HitAbstract';
 import { mockGlobals, sleep } from '../helpers';
 
-describe('Test NoBatchingContinuousCachingStrategy', () => {
+describe('NoBatchingContinuousCachingStrategy', () => {
   const methodNow = Date.now;
   const mockNow = jest.fn<typeof Date.now >();
   beforeAll(() => {
@@ -89,7 +89,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     //
   });
 
-  it('test addHit method 1', async () => {
+  it('should send hit immediately and cache when visitor has consent', async () => {
     postAsync.mockResolvedValue({
       status: 200,
       body: null
@@ -158,7 +158,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     await batchingStrategy.addHitInPoolQueue(consentHitFalse);
   });
 
-  it('test addHit method consent false', async () => {
+  it('should only cache hit without sending when visitor has no consent', async () => {
     postAsync.mockResolvedValue({
       status: 200,
       body: null
@@ -228,7 +228,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(flushHitsSpy).toHaveBeenNthCalledWith(1, [pageHit.key, eventHit.key, activateHit.key]);
   });
 
-  it('test addHit method throw error', async () => {
+  it('should log error when postAsync fails during hit send', async () => {
     const error = 'message error';
     postAsync.mockRejectedValue(error);
 
@@ -297,7 +297,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(sendTroubleshootingHitSpy).toBeCalledWith(expect.objectContaining({ data: expect.objectContaining({ label }) }));
   });
 
-  it('test activateFlag method', async () => {
+  it('should send activation immediately without deduplication', async () => {
     postAsync.mockResolvedValue({
       status: 200,
       body: null
@@ -346,7 +346,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
     expect(onVisitorExposed).toBeCalledTimes(1);
   });
 
-  it('test activateFlag method throw error', async () => {
+  it('should log error when activation send fails', async () => {
     const error = 'message error';
     postAsync.mockRejectedValue(error);
 
@@ -400,7 +400,7 @@ describe('Test NoBatchingContinuousCachingStrategy', () => {
   });
 });
 
-describe('test sendBatch method', () => {
+describe('sendBatch method', () => {
   const methodNow = Date.now;
   const mockNow = jest.fn<typeof Date.now>();
   beforeAll(() => {
@@ -465,7 +465,7 @@ describe('test sendBatch method', () => {
   };
 
   const urlActivate = `${BASE_API_URL}${URL_ACTIVATE_MODIFICATION}`;
-  it('test sendBatch method success', async () => {
+  it('should send all hits in pool and flush cache on success', async () => {
 
 
     postAsync.mockResolvedValue({
@@ -519,7 +519,7 @@ describe('test sendBatch method', () => {
     expect(hitsPoolQueue.size).toBe(0);
   });
 
-  it('test sendBatch method hit expired', async () => {
+  it('should remove expired hits from cache based on deduplication time', async () => {
 
 
     postAsync.mockResolvedValue({
@@ -567,7 +567,7 @@ describe('test sendBatch method', () => {
     expect(flushHitsSpy).toHaveBeenCalledWith(expect.arrayContaining([expect.stringContaining(visitorId)]));
   });
 
-  it('test sendBatch method throw exception ', async () => {
+  it('should log error when batch send fails', async () => {
     const error = 'message error';
     postAsync.mockRejectedValue(error);
 
@@ -610,7 +610,7 @@ describe('test sendBatch method', () => {
     expect(sendTroubleshootingHit).toBeCalledWith(expect.objectContaining({ data: expect.objectContaining({ label }) }));
   });
 
-  it('test sendActivate on batch', async () => {
+  it('should send activation hits separately from regular hits', async () => {
     postAsync.mockResolvedValue({
       status: 200,
       body: null
@@ -659,7 +659,7 @@ describe('test sendBatch method', () => {
     expect(sendHitsToFsQaSpy).toBeCalledWith([activateHit]);
   });
 
-  it('test sendBatch method with empty hitsPoolQueue', async () => {
+  it('should not call postAsync when hitsPoolQueue is empty', async () => {
     const hitsPoolQueue = new Map<string, HitAbstract>();
     const activatePoolQueue = new Map<string, Activate>();
     const troubleshootingQueue = new Map<string, Troubleshooting>();

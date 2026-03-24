@@ -119,7 +119,7 @@ describe('BucketingSdkManager with initialBucketing', () => {
   });
 });
 
-describe('test bucketing polling', () => {
+describe('bucketing polling', () => {
   const httpClient = new HttpClient();
   const getAsyncSpy = jest.spyOn(httpClient, 'getAsync');
   const sdkConfig = new BucketingConfig({

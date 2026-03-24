@@ -13,6 +13,7 @@ module.exports = () =>
         http: false,
         https: false,
         'node-fetch': false,
+        './qaAssistant/mobile/QAEventBus':false,
         './LocalAbortController': './LocalAbortController.node',
         'node-abort-controller': 'node-abort-controller/index.js',
       }

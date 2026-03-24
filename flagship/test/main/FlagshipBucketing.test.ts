@@ -43,7 +43,7 @@ jest.mock('../../src/api/TrackingManager', () => {
   };
 });
 
-describe('test start in Bucketing mode', () => {
+describe('Flagship start in Bucketing mode', () => {
   it('should ', async () => {
     initSdk.mockResolvedValue();
     getEAIConfig.mockReturnValue(undefined);

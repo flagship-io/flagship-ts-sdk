@@ -4,7 +4,7 @@ import { IHit, NewVisitor, primitive, VisitorCacheDTO, FlagDTO, IFSFlagMetadata,
 
 import { IVisitor } from './IVisitor';
 import { FSSdkStatus, SDK_INFO, VISITOR_ID_ERROR } from '../enum/index';
-import { hexToValue, isBrowser, logDebugSprintf, logError, uuidV4 } from '../utils/utils';
+import { hexToValue, logDebugSprintf, logError, uuidV4 } from '../utils/utils';
 import { type HitAbstract } from '../hit/HitAbstract';
 import { DefaultStrategy } from './DefaultStrategy';
 import { StrategyAbstract } from './StrategyAbstract';
@@ -455,8 +455,8 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
   }
 
   public async sendExposedVariation(flag?: FlagDTO): Promise<void> {
-    if (__fsWebpackIsBrowser__) {
-      if (!flag || !isBrowser()) {
+    if (__fsWebpackIsBrowser__ || __fsWebpackIsReactNative__) {
+      if (!flag) {
         return;
       }
       this._exposedVariations[flag.campaignId] = {
@@ -474,7 +474,7 @@ export abstract class VisitorAbstract extends EventEmitter implements IVisitor {
       const BATCH_SIZE = 10;
       const DELAY = 100;
 
-      const message = await import('../qaAssistant/messages/index.ts');
+      const message = await import('../qaAssistant/common/handleMessage.ts');
 
       if (Object.keys(this._exposedVariations).length >= BATCH_SIZE) {
         message.sendVisitorExposedVariations(this._visitorVariationState);

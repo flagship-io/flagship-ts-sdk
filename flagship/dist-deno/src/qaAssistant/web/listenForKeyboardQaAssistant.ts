@@ -1,7 +1,7 @@
-import { IFlagshipConfig } from '../config/IFlagshipConfig.ts';
-import { FS_FORCED_VARIATIONS } from '../enum/FlagshipConstant.ts';
-import { VisitorVariationState } from '../type.local.ts';
-import { logInfoSprintf } from '../utils/utils.ts';
+import { IFlagshipConfig } from '../../config/IFlagshipConfig.ts';
+import { FS_FORCED_VARIATIONS } from '../../enum/FlagshipConstant.ts';
+import { VisitorVariationState } from '../../type.local.ts';
+import { logInfoSprintf } from '../../utils/utils.ts';
 import { loadQaAssistant } from './loadQaAssistant.ts';
 
 /**

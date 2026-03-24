@@ -1989,7 +1989,7 @@ describe('test DefaultStrategy troubleshootingHit Bucketing mode', () => {
       eaiCollectEnabled: false,
       eaiActivationEnabled: false
     }
-  };
+  } as BucketingDTO;
 
   const getBucketingContent = jest.fn<() => BucketingDTO | undefined>();
 

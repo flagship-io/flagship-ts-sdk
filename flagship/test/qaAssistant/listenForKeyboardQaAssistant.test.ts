@@ -4,8 +4,8 @@
 
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { DecisionApiConfig } from '../../src/config/DecisionApiConfig';
-import { listenForKeyboardQaAssistant } from '../../src/qaAssistant/listenForKeyboardQaAssistant';
-import * as loadQaAssistant from '../../src/qaAssistant/loadQaAssistant';
+import { listenForKeyboardQaAssistant } from '../../src/qaAssistant/web/listenForKeyboardQaAssistant';
+import * as loadQaAssistant from '../../src/qaAssistant/web/loadQaAssistant';
 import userEvent from '@testing-library/user-event';
 import { VisitorVariationState } from '../../src/type.local';
 

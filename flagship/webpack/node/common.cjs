@@ -10,6 +10,7 @@ module.exports = () =>
     target: 'node',
     resolve: {
       alias: {
+        './qaAssistant/mobile/QAEventBus':false,
         '../depsNode.native': '../depsNode',
         '../emotionAI/EmotionAI': '../emotionAI/EmotionAI.node'
       }

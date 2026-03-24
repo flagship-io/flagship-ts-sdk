@@ -2,8 +2,8 @@ import { expect, it, describe } from '@jest/globals';
 import { FSFlagMetadata } from '../../src/flag/FSFlagMetadata';
 import { IFSFlagMetadata } from '../../src/types';
 
-describe('test FlagMetadata', () => {
-  it('test property', () => {
+describe('FSFlagMetadata', () => {
+  it('should initialize with all metadata properties', () => {
     const metadata: Omit<IFSFlagMetadata, 'toJSON'> = {
       campaignId: 'campaignID',
       variationGroupId: 'variationGroupID',
@@ -18,7 +18,7 @@ describe('test FlagMetadata', () => {
     expect(flagMetadata).toEqual(metadata);
   });
 
-  it('test empty property', () => {
+  it('should initialize with empty values for all properties', () => {
     const metadata:Omit<IFSFlagMetadata, 'toJSON'> = {
       campaignId: '',
       variationGroupId: '',
