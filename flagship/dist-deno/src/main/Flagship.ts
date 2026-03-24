@@ -366,9 +366,10 @@ export class Flagship {
     }
 
     if (__fsWebpackIsReactNative__) {
-      flagship._visitorVariationState = {};
       if (localConfig.isQAModeEnabled) {
         launchQaAssistantMobile(localConfig, flagship._visitorVariationState);
+      } else{
+        flagship._visitorVariationState = {};
       }
     }
 
