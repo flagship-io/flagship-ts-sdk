@@ -1,5 +1,5 @@
-import { VisitorVariationState } from '../../type.local';
-import { EventDataToIframe, MSG_NAME_TO_IFRAME, VisitorVariationUpdateParam } from '../type';
+import { VisitorVariationState } from '../../../type.local.ts';
+import { EventDataToIframe, MSG_NAME_TO_IFRAME, VisitorVariationUpdateParam } from '../type.ts';
 
 export function sendMessageToIframe(data: EventDataToIframe): void {
   if (!window?.frames?.ABTastyQaAssistant) {
@@ -16,7 +16,9 @@ export function sendVisitorAllocatedVariations(visitorVariationState: VisitorVar
 
   sendMessageToIframe({
     name: MSG_NAME_TO_IFRAME.FsUpdateVisitorAllocatedVariation,
-    value: visitorVariationState.visitorVariations
+    value: visitorVariationState.visitorVariations,
+    visitorData: visitorVariationState.visitorData,
+    sdkInfo: visitorVariationState.sdkInfo
   });
 }
 

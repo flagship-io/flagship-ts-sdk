@@ -7,13 +7,13 @@ import { FS_QA_ASSISTANT,
   TAG_QA_ASSISTANT,
   TAG_QA_ASSISTANT_LOCAL,
   TAG_QA_ASSISTANT_STAGING,
-  TRUSTED_QA_ORIGINS } from '../enum/FlagshipConstant';
-import { IFlagshipConfig } from '../config/IFlagshipConfig';
-import { isBrowser, onDomReady } from '../utils/utils';
+  TRUSTED_QA_ORIGINS } from '../../enum/FlagshipConstant';
+import { IFlagshipConfig } from '../../config/IFlagshipConfig';
+import { isBrowser, onDomReady } from '../../utils/utils';
 import { listenForKeyboardQaAssistant } from './listenForKeyboardQaAssistant';
 import { loadQaAssistant } from './loadQaAssistant';
 import { detectNavigationChanges } from './detectNavigationChanges';
-import { VisitorVariationState } from '../type.local';
+import { VisitorVariationState } from '../../type.local';
 import { EventDataFromIframe, MSG_NAME_FROM_IFRAME } from './type';
 
 /**

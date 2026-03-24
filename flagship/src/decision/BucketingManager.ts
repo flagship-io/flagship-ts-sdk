@@ -1,12 +1,11 @@
 import { ALLOCATION, BUCKETING_NEW_ALLOCATION, BUCKETING_VARIATION_CACHE, GET_THIRD_PARTY_SEGMENT, THIRD_PARTY_SEGMENT_URL } from '../enum/FlagshipConstant';
 import { IFlagshipConfig } from '../config/index';
 import { LogLevel } from '../enum/index';
-import { BucketingDTO, CampaignDTO, ThirdPartySegment, TroubleshootingLabel, VariationDTO, primitive } from '../types';
+import { BucketingDTO, CampaignDTO, TargetingOperator, Targetings, ThirdPartySegment, TroubleshootingLabel, VariationDTO, VariationGroupDTO, primitive } from '../types';
 import { IHttpClient } from '../utils/HttpClient';
 import { MurmurHash } from '../utils/MurmurHash';
 import { errorFormat, logDebugSprintf, logError, sprintf } from '../utils/utils';
 import { VisitorAbstract } from '../visitor/VisitorAbstract';
-import { Targetings, VariationGroupDTO } from './api/bucketingDTO';
 import { DecisionManager } from './DecisionManager';
 import { ISdkManager } from '../main/ISdkManager';
 import { ITrackingManager } from '../api/ITrackingManager.ts';
@@ -55,7 +54,6 @@ export class BucketingManager extends DecisionManager {
 
       await visitor.sendHit(SegmentHit);
 
-
       const hitTroubleshooting = new Troubleshooting({
         label: TroubleshootingLabel.VISITOR_SEND_HIT,
         logLevel: LogLevel.INFO,
@@ -69,8 +67,6 @@ export class BucketingManager extends DecisionManager {
       });
 
       visitor.segmentHitTroubleshooting = hitTroubleshooting;
-
-
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       logError(this.config, error.message || error, 'sendContext');
@@ -133,22 +129,26 @@ export class BucketingManager extends DecisionManager {
 
     await this.sendContext(visitor);
 
-    const visitorCampaigns: CampaignDTO[] = [];
+    let visitorCampaigns: CampaignDTO[]|null = [];
 
     this._bucketingContent.campaigns.forEach(campaign => {
       const currentCampaigns = this.getVisitorCampaigns(campaign.variationGroups, campaign.id, campaign.type, visitor);
       if (currentCampaigns) {
         currentCampaigns.slug = campaign.slug ?? null;
         currentCampaigns.name = campaign.name;
-        visitorCampaigns.push(currentCampaigns);
+        visitorCampaigns?.push(currentCampaigns);
       }
     });
+
+    visitorCampaigns = this.applyCampaignsForcedAllocation(visitor, visitorCampaigns);
+    visitorCampaigns = this.applyCampaignsForcedUnallocation(visitor, visitorCampaigns);
+
     return visitorCampaigns;
   }
 
   private getVisitorCampaigns(variationGroups: VariationGroupDTO[], campaignId: string, campaignType: string, visitor: VisitorAbstract): CampaignDTO | null {
     for (const variationGroup of variationGroups) {
-      const check = this.isMatchTargeting(variationGroup, visitor);
+      const check = this.checkVisitorMatchesTargeting(variationGroup, visitor);
       if (check) {
         const variation = this.getVariation(
           variationGroup,
@@ -209,129 +209,132 @@ export class BucketingManager extends DecisionManager {
     return null;
   }
 
-  private isMatchTargeting(variationGroup: VariationGroupDTO, visitor: VisitorAbstract): boolean {
+  private checkVisitorMatchesTargeting(variationGroup: VariationGroupDTO, visitor: VisitorAbstract): boolean {
     if (!variationGroup || !variationGroup.targeting || !variationGroup.targeting.targetingGroups) {
       return false;
     }
+    // OR logic: visitor matches if ANY targeting group matches
     return variationGroup.targeting.targetingGroups.some(
-      targetingGroup => this.checkAndTargeting(targetingGroup.targetings, visitor)
+      targetingGroup => this.checkAllTargetingRulesMatch(targetingGroup.targetings, visitor)
     );
   }
 
-  private isANDListOperator(operator: string): boolean {
-    return ['NOT_EQUALS', 'NOT_CONTAINS'].includes(operator);
+
+  private checkAllTargetingRulesMatch(targetings: Targetings[], visitor: VisitorAbstract): boolean {
+    if (!targetings || targetings.length === 0) {
+      return false;
+    }
+    // AND logic: ALL targeting rules must match
+    return targetings.every(targeting =>
+      this.matchesTargetingCriteria(targeting, visitor)
+    );
   }
 
-  private checkAndTargeting(targetings: Targetings[], visitor: VisitorAbstract): boolean {
-    let contextValue: primitive;
-    let check = false;
 
-    for (const { key, value, operator } of targetings) {
-      if (operator === 'EXISTS') {
-        if (key in visitor.context) {
-          check = true;
-          continue;
-        }
-        check = false;
-        break;
-      }
-
-      if (operator === 'NOT_EXISTS') {
-        if (key in visitor.context) {
-          check = false;
-          break;
-        }
-        check = true;
-        continue;
-      }
-
-      if (key === 'fs_all_users') {
-        check = true;
-        continue;
-      }
-      if (key === 'fs_users') {
-        contextValue = visitor.visitorId;
-      } else {
-        if (!(key in visitor.context)) {
-          check = false;
-          break;
-        }
-        contextValue = visitor.context[key];
-      }
-
-      check = this.testOperator(operator, contextValue, value);
-
-      if (!check) {
-        break;
-      }
+  private matchesArrayTargeting(targeting: Targetings, visitorData: VisitorAbstract): boolean {
+    if (!Array.isArray(targeting.value)) {
+      return false;
     }
-    return check;
+
+    const notOperator = [TargetingOperator.NOT_EQUALS, TargetingOperator.NOT_CONTAINS].includes(targeting.operator);
+
+    return notOperator
+      ? targeting.value.every((val) => this.matchesTargetingCriteria({
+        ...targeting,
+        value: val
+      }, visitorData))
+      : targeting.value.some((val) => this.matchesTargetingCriteria({
+        ...targeting,
+        value: val
+      }, visitorData));
+  }
+
+  private matchesTargetingCriteria(targeting: Targetings, visitor: VisitorAbstract): boolean {
+    if (targeting.key === 'fs_all_users') {
+      return true;
+    }
+    if (Array.isArray(targeting.value)) {
+      return this.matchesArrayTargeting(targeting, visitor);
+    }
+
+    const visitorValue = targeting.key === 'fs_users'
+      ? visitor.visitorId
+      : visitor.context[targeting.key];
+
+    return this.evaluateOperator(targeting.operator, visitorValue, targeting.value);
+  }
+
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private evaluateEqualityOperator(operator: TargetingOperator, visitorValue: primitive, targetValue: any): boolean {
+    if (operator === TargetingOperator.EQUALS) {
+      return  visitorValue === targetValue;
+    }
+    return visitorValue !== targetValue;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private testListOperatorLoop(operator: string, contextValue: primitive, value: any[], initialCheck: boolean):boolean {
-    let check = initialCheck;
-    for (const v of value) {
-      check = this.testOperator(operator, contextValue, v);
-      if (check !== initialCheck) {
-        break;
-      }
-    }
-    return check;
-  }
+  private evaluateStringOperator(operator: TargetingOperator, visitorValue: primitive, targetValue: any): boolean {
+    const visitorStr = visitorValue.toString();
+    const targetStr = targetValue.toString();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private testListOperator(operator: string, contextValue: primitive, value: any[]): boolean {
-    const andOperator = this.isANDListOperator(operator);
-    if (andOperator) {
-      return this.testListOperatorLoop(operator, contextValue, value, true);
-    }
-    return this.testListOperatorLoop(operator, contextValue, value, false);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private testOperator(operator: string, contextValue: primitive, value: any): boolean {
-    let check: boolean;
-    if (Array.isArray(value)) {
-
-      return this.testListOperator(operator, contextValue, value);
-    }
     switch (operator) {
-      case 'EQUALS':
-        check = contextValue === value;
-        break;
-      case 'NOT_EQUALS':
-        check = contextValue !== value;
-        break;
-      case 'CONTAINS':
-        check = contextValue.toString().includes(value.toString());
-        break;
-      case 'NOT_CONTAINS':
-        check = !contextValue.toString().includes(value.toString());
-        break;
-      case 'GREATER_THAN':
-        check = contextValue > value;
-        break;
-      case 'LOWER_THAN':
-        check = contextValue < value;
-        break;
-      case 'GREATER_THAN_OR_EQUALS':
-        check = contextValue >= value;
-        break;
-      case 'LOWER_THAN_OR_EQUALS':
-        check = contextValue <= value;
-        break;
-      case 'STARTS_WITH':
-        check = contextValue.toString().startsWith(value.toString());
-        break;
-      case 'ENDS_WITH':
-        check = contextValue.toString().endsWith(value.toString());
-        break;
+      case TargetingOperator.CONTAINS:
+        return visitorStr.includes(targetStr);
+      case TargetingOperator.NOT_CONTAINS:
+        return !visitorStr.includes(targetStr);
+      case TargetingOperator.STARTS_WITH:
+        return visitorStr.startsWith(targetStr);
+      case TargetingOperator.ENDS_WITH:
+        return visitorStr.endsWith(targetStr);
       default:
-        check = false;
-        break;
+        return false;
+    }
+  }
+
+  private evaluateExistenceOperator(operator: TargetingOperator, visitorValue: primitive): boolean {
+    if (operator === TargetingOperator.EXISTS) {
+      return visitorValue !== undefined && visitorValue !== null;
+    }
+    return visitorValue === undefined || visitorValue === null;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private evaluateComparisonOperator(operator: TargetingOperator, visitorValue: primitive, targetValue: any): boolean {
+    switch (operator) {
+      case TargetingOperator.GREATER_THAN:
+        return visitorValue > targetValue;
+      case TargetingOperator.LOWER_THAN:
+        return visitorValue < targetValue;
+      case TargetingOperator.GREATER_THAN_OR_EQUALS:
+        return visitorValue >= targetValue;
+      case TargetingOperator.LOWER_THAN_OR_EQUALS:
+        return visitorValue <= targetValue;
+      default:
+        return false;
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private evaluateOperator(operator: TargetingOperator, visitorValue: primitive, targetValue: any): boolean {
+    if (operator === TargetingOperator.EQUALS || operator === TargetingOperator.NOT_EQUALS) {
+      return this.evaluateEqualityOperator(operator, visitorValue, targetValue);
     }
 
-    return check;
+    if (operator === TargetingOperator.EXISTS || operator === TargetingOperator.NOT_EXISTS) {
+      return this.evaluateExistenceOperator(operator, visitorValue);
+    }
+
+    if (operator === TargetingOperator.CONTAINS || operator === TargetingOperator.NOT_CONTAINS ||
+        operator === TargetingOperator.STARTS_WITH || operator === TargetingOperator.ENDS_WITH) {
+      return this.evaluateStringOperator(operator, visitorValue, targetValue);
+    }
+
+    if (operator === TargetingOperator.GREATER_THAN || operator === TargetingOperator.LOWER_THAN ||
+        operator === TargetingOperator.GREATER_THAN_OR_EQUALS || operator === TargetingOperator.LOWER_THAN_OR_EQUALS) {
+      return this.evaluateComparisonOperator(operator, visitorValue, targetValue);
+    }
+
+    return false;
   }
 }

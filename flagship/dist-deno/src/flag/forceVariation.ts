@@ -1,16 +1,15 @@
 import { IFlagshipConfig } from '../config/IFlagshipConfig.ts';
 import { VisitorVariationState } from '../type.local.ts';
 import { FlagDTO } from '../types.ts';
-import { isBrowser } from '../utils/utils.ts';
 
 export function forceVariation({ flagDTO, config, visitorVariationState }:{
   flagDTO?:FlagDTO,
   config:IFlagshipConfig,
   visitorVariationState: VisitorVariationState
 }):FlagDTO|undefined {
-  if (__fsWebpackIsBrowser__) {
+  if (__fsWebpackIsBrowser__ || __fsWebpackIsReactNative__) {
 
-    if (!config.isQAModeEnabled || !isBrowser() || !flagDTO || !visitorVariationState.forcedVariations) {
+    if (!config.isQAModeEnabled || !flagDTO || !visitorVariationState.forcedVariations) {
       return undefined;
     }
 

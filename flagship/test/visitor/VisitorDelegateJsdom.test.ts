@@ -9,7 +9,7 @@ import { FlagshipLogManager } from '../../src/utils/FlagshipLogManager';
 import { HttpClient } from '../../src/utils/HttpClient';
 import { VisitorDelegate } from '../../src/visitor/VisitorDelegate';
 import * as utils from '../../src/utils/utils';
-import * as messages from '../../src/qaAssistant/messages';
+import * as messages from '../../src/qaAssistant/web/messages';
 import { primitive, VisitorVariations } from '../../src/types';
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract';
 import { IEmotionAI } from '../../src/emotionAI/IEmotionAI';
@@ -25,7 +25,10 @@ describe('test sendExposedVariation', () => {
     sendVisitorExposedVariationsSpy.mockImplementation(() => {
       //
     });
-    mockGlobals({ __fsWebpackIsBrowser__: true });
+    mockGlobals({
+      __fsWebpackIsBrowser__: true,
+      __fsWebpackIsReactNative__: true
+    });
   });
 
   const visitorVariationState: VisitorVariationState = {};

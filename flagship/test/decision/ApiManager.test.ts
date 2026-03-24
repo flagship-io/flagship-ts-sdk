@@ -21,8 +21,10 @@ import { FSFetchReasons } from '../../src/enum/FSFetchReasons';
 import { FSFetchStatus } from '../../src/enum/FSFetchStatus';
 import { VisitorAbstract } from '../../src/visitor/VisitorAbstract';
 import { IEmotionAI } from '../../src/emotionAI/IEmotionAI';
+import { DecisionManager } from '../../src/decision/DecisionManager';
+import { VisitorVariationState } from '../../src/type.local';
 
-describe('test ApiManager', () => {
+describe('ApiManager', () => {
   const methodNow = Date.now;
   const mockNow = jest.fn<typeof Date.now>();
   beforeAll(() => {
@@ -54,6 +56,33 @@ describe('test ApiManager', () => {
   const OnFlagStatusChanged = jest.fn<({ status, reason }: FlagsStatus) => void>();
 
   const emotionAi = { init: jest.fn<(visitor:VisitorAbstract) => void>() } as unknown as IEmotionAI;
+
+  const createDecisionManager = (flagshipInstanceId?: string) => {
+    return new ApiManager({
+      httpClient,
+      config,
+      trackingManager,
+      flagshipInstanceId
+    });
+  };
+
+  const createVisitor = (decisionManager: DecisionManager,visitorVariationState?:VisitorVariationState, hasConsented = true) => {
+    const emotionAi = { init: jest.fn<(visitor: VisitorAbstract) => void>() } as unknown as IEmotionAI;
+
+    return new VisitorDelegate({
+      hasConsented,
+      visitorId: 'visitorId',
+      context: { age: 20 },
+      configManager: {
+        config,
+        decisionManager,
+        trackingManager
+      },
+      onFlagsStatusChanged: OnFlagStatusChanged,
+      emotionAi,
+      visitorVariationState
+    });
+  };
 
   const visitor = new VisitorDelegate({
     hasConsented: true,
@@ -94,12 +123,9 @@ describe('test ApiManager', () => {
   };
   const url = `${BASE_API_URL}${config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true&extras[]=accountSettings`;
 
-  it('test panic mode ', async () => {
-    const apiManager = new ApiManager({
-      httpClient,
-      config,
-      trackingManager
-    });
+  it('should return null and set SDK_PANIC status when panic mode is enabled', async () => {
+    const apiManager = createDecisionManager();
+
     const panicModeResponse = {
       status: 200,
       body: { panic: true }
@@ -109,6 +135,7 @@ describe('test ApiManager', () => {
     apiManager.statusChangedCallback((status) => {
       expect(status).toBe(FSSdkStatus.SDK_PANIC);
     });
+
     const campaigns = await apiManager.getCampaignsAsync(visitor);
 
     expect(postAsync).toHaveBeenCalledWith(url, {
@@ -122,7 +149,7 @@ describe('test ApiManager', () => {
     expect(apiManager.isPanic()).toBeTruthy();
   });
 
-  it('test campaign', async () => {
+  it('should fetch campaigns and extract modifications with troubleshooting data', async () => {
     postAsync.mockResolvedValue(campaignResponse);
 
     const campaigns = await apiManager.getCampaignsAsync(
@@ -145,7 +172,7 @@ describe('test ApiManager', () => {
     expect(apiManager.troubleshooting?.traffic).toBe(40);
   });
 
-  it('Test error ', async () => {
+  it('should handle error and trigger onFetchFlagsStatusChanged callback when campaign fetch fails', async () => {
     postAsync.mockRejectedValue(responseError);
 
     try {
@@ -168,7 +195,7 @@ describe('test ApiManager', () => {
     }
   });
 
-  it('test campaign with consent false', async () => {
+  it('should fetch campaigns with custom decision API URL when visitor has no consent', async () => {
     config.decisionApiUrl = 'http://new_decision_api_url';
     const url = `${config.decisionApiUrl}${config.envId}${URL_CAMPAIGNS}?${EXPOSE_ALL_KEYS}=true&extras[]=accountSettings`;
     postAsync.mockResolvedValue(campaignResponse);
@@ -193,5 +220,173 @@ describe('test ApiManager', () => {
     expect(modifications.size).toBe(4);
     expect(modifications.get('array')?.value).toEqual([1, 1, 1]);
     expect(modifications.get('object')?.value).toEqual({ value: 123456 });
+  });
+
+  describe('applyCampaignsForcedAllocation', () => {
+    it('should return campaigns unchanged when QA mode is disabled',async () => {
+      config.isQAModeEnabled = false;
+      const decisionManager = createDecisionManager();
+      const visitor = createVisitor(decisionManager);
+
+      postAsync.mockResolvedValue(campaignResponse);
+
+      const campaigns = await apiManager.getCampaignsAsync(
+        visitor
+      );
+
+      expect(campaigns).toEqual(campaignResponse.body.campaigns);
+
+    });
+    it('should return null when campaigns is null',async () => {
+      config.isQAModeEnabled = true;
+      const decisionManager = createDecisionManager();
+      const visitor = createVisitor(decisionManager);
+
+      postAsync.mockResolvedValue({
+        status: 200,
+        body: {}
+      });
+
+      const campaigns = await apiManager.getCampaignsAsync(
+        visitor
+      );
+
+      expect(campaigns).toBeNull();
+
+    });
+    it('should return campaigns unchanged when no forced allocations',async () => {
+      config.isQAModeEnabled = true;
+      const decisionManager = createDecisionManager();
+      const visitorVariationState:VisitorVariationState = { variationsForcedAllocation: {} };
+      const visitor = createVisitor(decisionManager, visitorVariationState);
+
+      postAsync.mockResolvedValue(campaignResponse);
+
+      const campaigns = await apiManager.getCampaignsAsync(
+        visitor
+      );
+
+      expect(campaigns).toEqual(campaignResponse.body.campaigns);
+    });
+
+    it('should add forced allocation campaigns',async () => {
+      config.isQAModeEnabled = true;
+      const decisionManager = createDecisionManager();
+      const visitorVariationState:VisitorVariationState = {
+        variationsForcedAllocation: {
+          campaign1: {
+            campaignId: 'forcedCampaign',
+            campaignName: 'Forced Campaign',
+            CampaignSlug: 'forced-campaign',
+            variationGroupId: 'forcedVG',
+            variationGroupName: 'Forced VG',
+            campaignType: 'ab',
+            variation: {
+              id: 'forcedVar',
+              name: 'Forced Variation',
+              reference: false,
+              modifications: {
+                type: 'JSON',
+                value: { forcedKey: 'forcedValue' }
+              }
+            }
+          }
+        }
+      };
+      const visitor = createVisitor(decisionManager, visitorVariationState);
+
+      postAsync.mockResolvedValue(campaignResponse);
+
+      const campaigns = await apiManager.getCampaignsAsync(
+        visitor
+      );
+      expect(campaigns).toHaveLength(campaignResponse.body.campaigns.length + 1);
+      expect(campaigns).toContainEqual({
+        id: 'forcedCampaign',
+        name: 'Forced Campaign',
+        slug: 'forced-campaign',
+        variationGroupId: 'forcedVG',
+        variationGroupName: 'Forced VG',
+        type: 'ab',
+        variation: {
+          id: 'forcedVar',
+          name: 'Forced Variation',
+          reference: false,
+          modifications: {
+            type: 'JSON',
+            value: { forcedKey: 'forcedValue' }
+          }
+        }
+      });
+    });
+  });
+
+  describe('applyCampaignsForcedUnallocation', () => {
+    it('should return campaigns unchanged when QA mode is disabled',async () => {
+      config.isQAModeEnabled = false;
+      const decisionManager = createDecisionManager();
+      const visitor = createVisitor(decisionManager);
+
+      postAsync.mockResolvedValue(campaignResponse);
+
+      const campaigns = await apiManager.getCampaignsAsync(
+        visitor
+      );
+
+      expect(campaigns).toEqual(campaignResponse.body.campaigns);
+
+    });
+    it('should return null when campaigns is null',async () => {
+      config.isQAModeEnabled = true;
+      const decisionManager = createDecisionManager();
+      const visitor = createVisitor(decisionManager);
+
+      postAsync.mockResolvedValue({
+        status: 200,
+        body: {}
+      });
+
+      const campaigns = await apiManager.getCampaignsAsync(
+        visitor
+      );
+
+      expect(campaigns).toBeNull();
+    });
+    it('should return campaigns unchanged when no forced unallocations',async () => {
+      config.isQAModeEnabled = true;
+      const decisionManager = createDecisionManager();
+      const visitorVariationState:VisitorVariationState = { variationsForcedUnallocation: {} };
+      const visitor = createVisitor(decisionManager, visitorVariationState);
+
+      postAsync.mockResolvedValue(campaignResponse);
+
+      const campaigns = await apiManager.getCampaignsAsync(
+        visitor
+      );
+
+      expect(campaigns).toEqual(campaignResponse.body.campaigns);
+    });
+    it('should filter out forced unallocation campaigns',async () => {
+      config.isQAModeEnabled = true;
+      const decisionManager = createDecisionManager();
+      const unallocatedCampaign = campaignResponse.body.campaigns[0];
+      const visitorVariationState:VisitorVariationState = {
+        variationsForcedUnallocation: {
+          [unallocatedCampaign.id]: {
+            campaignId: unallocatedCampaign.id,
+            campaignName: unallocatedCampaign.name,
+            CampaignSlug: unallocatedCampaign.slug,
+            variationGroupId: unallocatedCampaign.variationGroupId
+          } as any
+        }
+      };
+      const visitor = createVisitor(decisionManager, visitorVariationState);
+      postAsync.mockResolvedValue(campaignResponse);
+      const campaigns = await apiManager.getCampaignsAsync(
+        visitor
+      );
+      expect(campaigns).toHaveLength(campaignResponse.body.campaigns.length - 1);
+      expect(campaigns).not.toContainEqual(unallocatedCampaign);
+    });
   });
 });

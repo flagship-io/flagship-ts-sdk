@@ -6,10 +6,10 @@ import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import { sendFsHitToQA,
   sendMessageToIframe,
   sendVisitorAllocatedVariations,
-  sendVisitorExposedVariations } from '../../../src/qaAssistant/messages';
+  sendVisitorExposedVariations } from '../../../src/qaAssistant/web/messages';
 import { EventDataToIframe,
   MSG_NAME_TO_IFRAME,
-  VisitorVariationUpdateParam } from '../../../src/qaAssistant/type';
+  VisitorVariationUpdateParam } from '../../../src/qaAssistant/web/type';
 import { DecisionApiConfig } from '../../../src/config/DecisionApiConfig';
 import { VisitorVariations } from '../../../src/types';
 import { VisitorVariationState } from '../../../src/type.local';
@@ -59,13 +59,25 @@ describe('Test messages', () => {
       }
     };
     visitorVariationState.visitorVariations = visitorVariations;
+    visitorVariationState.visitorData = {
+      visitorId: 'visitorId',
+      context: {},
+      hasConsented: true
+    };
+    visitorVariationState.sdkInfo = {
+      name: 'TypeScript',
+      version: '5.9.3',
+      tag: 'ESNext'
+    };
     sendVisitorAllocatedVariations(visitorVariationState);
     expect(visitorVariationState?.visitorVariations).toEqual(visitorVariations);
     expect(postMessageSpy).toBeCalledTimes(1);
     expect(postMessageSpy).toBeCalledWith(
       {
         name: MSG_NAME_TO_IFRAME.FsUpdateVisitorAllocatedVariation,
-        value: visitorVariations
+        value: visitorVariations,
+        visitorData: visitorVariationState.visitorData,
+        sdkInfo: visitorVariationState.sdkInfo
       },
       '*'
     );

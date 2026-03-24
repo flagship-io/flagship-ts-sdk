@@ -13,6 +13,7 @@ module.exports = () =>
         http: false,
         https: false,
         'node-fetch': false,
+        './qaAssistant/mobile/QAEventBus':false,
         '../visitor/VisitorProfileCache.node': '../visitor/VisitorProfileCache.browser',
         '../emotionAI/EmotionAI.node': '../emotionAI/EmotionAI.browser'
       }

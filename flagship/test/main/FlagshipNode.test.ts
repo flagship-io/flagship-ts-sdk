@@ -1,7 +1,9 @@
 import { jest, expect, it, describe } from '@jest/globals';
 import { Flagship } from '../../src/main/Flagship';
-import * as qaAssistant from '../../src/qaAssistant';
+import * as qaAssistant from '../../src/qaAssistant/web';
+import * as mobileQaAssistant from '../../src/qaAssistant/mobile';
 import { mockGlobals } from '../helpers';
+import { DecisionMode } from '../../src';
 
 const getCampaignsAsync = jest.fn().mockReturnValue(Promise.resolve([]));
 
@@ -51,7 +53,7 @@ jest.mock('../../src/api/TrackingManager', () => {
 
 
 
-describe('test Flagship class', () => {
+describe('Flagship SDK for Node.js', () => {
   const envId = 'envId';
   const apiKey = 'apiKey';
   const launchQaAssistantSpy = jest.spyOn(qaAssistant, 'launchQaAssistant');
@@ -65,5 +67,43 @@ describe('test Flagship class', () => {
     await Flagship.start(envId, apiKey);
 
     expect((global as any).__flagship_instance__).toBeInstanceOf(Flagship);
+  });
+});
+
+
+
+describe('Flagship SDK initialization verification', () => {
+  const envId = 'envId';
+  const apiKey = 'apiKey';
+  const launchQaAssistantSpy = jest.spyOn(mobileQaAssistant, 'launchQaAssistant');
+  launchQaAssistantSpy.mockImplementation(() => {
+    //
+  });
+
+  it('should initialize Flagship SDK and launch QA assistant when in React Native environment', async () => {
+    mockGlobals({
+      __fsWebpackIsBrowser__: false,
+      __fsWebpackIsDeno__: false,
+      __fsWebpackIsReactNative__: true
+    });
+
+    await Flagship.start(envId, apiKey, {
+      decisionMode: DecisionMode.DECISION_API,
+      isQAModeEnabled: true
+    } as any);
+
+    expect((global as any).__flagship_instance__).toBeInstanceOf(Flagship);
+
+    expect(launchQaAssistantSpy).toHaveBeenCalledTimes(1);
+    expect(launchQaAssistantSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        envId,
+        apiKey,
+        decisionMode: DecisionMode.DECISION_API,
+        isQAModeEnabled: true
+      }),
+      expect.anything()
+    );
+
   });
 });

@@ -16,7 +16,7 @@ describe('Functional test decision API mode', () => {
     });
   }
 
-  it('test decision API mode', async () => {
+  it('should return flag value for allocated visitor in API mode', async () => {
     await startSDK();
     const visitor = Flagship.newVisitor({
       hasConsented: true,
@@ -38,7 +38,7 @@ describe('Functional test decision API mode', () => {
     expect(flag.metadata.campaignName).toBe('Test-campaign ab');
   });
 
-  it('test decision API mode 2', async () => {
+  it('should return default value for unallocated visitor in API mode', async () => {
     await startSDK();
     const visitor = Flagship.newVisitor({
       hasConsented: true,
@@ -60,7 +60,7 @@ describe('Functional test decision API mode', () => {
     expect(flag.metadata.campaignName).toBe('Test-campaign ab');
   });
 
-  it('test decision API mode 3', async () => {
+  it('should return default value when visitor context does not match targeting in API mode', async () => {
     await startSDK();
     const visitor = Flagship.newVisitor({
       hasConsented: true,

@@ -24,6 +24,9 @@ export type { IFlagshipLogManager } from './utils/FlagshipLogManager';
 export type IPageView = Omit<FullIPageView, 'toApiKeys'>
 export type IVisitorEvent = Omit<FullIVisitorEvent, 'toApiKeys'>
 
+export * from './qaAssistant/common/types';
+export { ABTastyQAEventBus  } from './qaAssistant/mobile/QAEventBus';
+
 export * from './flag/index';
 
 export default Flagship;

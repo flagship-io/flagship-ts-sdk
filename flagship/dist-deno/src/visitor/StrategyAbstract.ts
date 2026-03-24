@@ -250,6 +250,7 @@ export abstract class StrategyAbstract implements Omit<IVisitor, 'visitorId'|'an
           assignmentsHistory[campaign.variationGroupId] = campaign.variation.id;
           return {
             campaignId: campaign.id,
+            name: campaign.name,
             slug: campaign.slug,
             variationGroupId: campaign.variationGroupId,
             variationId: campaign.variation.id,

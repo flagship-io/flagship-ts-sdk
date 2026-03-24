@@ -1,4 +1,4 @@
-import { FS_QA_ASSISTANT_SCRIPT_TAG_ID, FS_QA_URL, QA_ASSISTANT_LOCAL_URL, TAG_QA_URL } from '../enum/FlagshipConstant';
+import { FS_QA_ASSISTANT_SCRIPT_TAG_ID, FS_QA_URL, QA_ASSISTANT_LOCAL_URL, TAG_QA_URL } from '../../enum/FlagshipConstant';
 
 const getScriptElement = (src: string): HTMLScriptElement | null =>
   document.querySelector<HTMLScriptElement>(`script[src*="${src}"]`);

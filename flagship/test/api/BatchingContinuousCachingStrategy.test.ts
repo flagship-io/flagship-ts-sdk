@@ -16,16 +16,16 @@ import { HttpClient } from '../../src/utils/HttpClient';
 import { sprintf } from '../../src/utils/utils';
 import { Troubleshooting } from '../../src/hit/Troubleshooting';
 import * as utils from '../../src/utils/utils';
-import * as qaAssistant from '../../src/qaAssistant/messages';
+import * as qaAssistant from '../../src/qaAssistant/web/messages';
 import { UsageHit } from '../../src/hit/UsageHit';
 import { ISharedActionTracking } from '../../src/sharedFeature/ISharedActionTracking';
 import { ActivateConstructorParam, LocalActionTracking } from '../../src/type.local';
 import { mockGlobals, sleep } from '../helpers';
 
-describe('Test BatchingContinuousCachingStrategy', () => {
+describe('BatchingContinuousCachingStrategy', () => {
   const visitorId = 'visitorId';
 
-  it('test addHit method', async () => {
+  it('should add hit to pool queue and cache when addHit is called', async () => {
     const httpClient = new HttpClient();
 
     const postAsync = jest.spyOn(httpClient, 'postAsync');
@@ -1689,6 +1689,7 @@ describe('test sendHitsToFsQa', () => {
   });
 
   beforeEach(() => {
+    sendFsHitToQASpy.mockReset();
     config.isQAModeEnabled = true;
     postAsync.mockResolvedValue({
       status: 200,
@@ -1698,7 +1699,10 @@ describe('test sendHitsToFsQa', () => {
       //
     });
     isBrowserSpy.mockReturnValue(true);
-    mockGlobals({ __fsWebpackIsBrowser__: true });
+    mockGlobals({
+      __fsWebpackIsBrowser__: true,
+      __fsWebpackIsReactNative__: true
+    });
   });
 
   const httpClient = new HttpClient();
@@ -1754,16 +1758,22 @@ describe('test sendHitsToFsQa', () => {
 
   activateHit.config = config;
 
-  it('test environment is not a browser', async () => {
+  it('test environment is not a browser and react-native', async () => {
     isBrowserSpy.mockReturnValue(false);
+    mockGlobals({
+      __fsWebpackIsBrowser__: false,
+      __fsWebpackIsReactNative__: false
+    });
     await batchingStrategy.activateFlag(activateHit);
     expect(sendFsHitToQASpy).toBeCalledTimes(0);
   });
+
   it('test QA Mode is disable  ', async () => {
     config.isQAModeEnabled = false;
     await batchingStrategy.activateFlag(activateHit);
     expect(sendFsHitToQASpy).toBeCalledTimes(0);
   });
+
   it('test activate to QA', async () => {
     await batchingStrategy.activateFlag(activateHit);
     await batchingStrategy.activateFlag(activateHit);
@@ -1772,7 +1782,7 @@ describe('test sendHitsToFsQa', () => {
 
     const apikeys = activateHit.toApiKeys();
     apikeys.qt = expect.any(Number);
-    expect(sendFsHitToQASpy).toBeCalledWith([apikeys, apikeys]);
+    expect(sendFsHitToQASpy).toBeCalledWith([apikeys,apikeys]);
   });
 
   it('test multiple activate to QA', async () => {

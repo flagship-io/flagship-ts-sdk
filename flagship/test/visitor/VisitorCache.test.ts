@@ -121,6 +121,7 @@ describe('test visitor cache', () => {
         return {
           campaignId: campaign.id,
           slug: campaign.slug,
+          name: campaign.name,
           variationGroupId: campaign.variationGroupId,
           variationId: campaign.variation.id,
           isReference: campaign.variation.reference,

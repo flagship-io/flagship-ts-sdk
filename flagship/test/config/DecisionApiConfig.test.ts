@@ -17,7 +17,7 @@ describe('test DecisionApiConfig', () => {
   mockGlobals({ __fsWebpackIsBrowser__: true });
   const config = new DecisionApiConfig();
   const nextFetchConfig = { revalidate: 20 };
-  it('should ', () => {
+  it('should', () => {
     expect(config.apiKey).toBeUndefined();
     expect(config.envId).toBeUndefined();
     expect(config.logLevel).toBe(LogLevel.INFO);
@@ -39,6 +39,7 @@ describe('test DecisionApiConfig', () => {
     expect(config.nextFetchConfig).toEqual(nextFetchConfig);
     expect(config.fetchThirdPartyData).toBeFalsy();
     expect(config.batchActivateHits).toBeFalsy();
+    expect(config.isQAModeEnabled).toBeFalsy();
   });
 
   it('test config constructor', () => {
@@ -100,8 +101,9 @@ describe('test DecisionApiConfig', () => {
       hitDeduplicationTime: 20,
       onLog,
       onVisitorExposed,
-      batchActivateHits: true
-    });
+      batchActivateHits: true,
+      isQAModeEnabled: true
+    } as any);
 
     expect(config.apiKey).toBe(apiKey);
     expect(config.envId).toBe(envId);
@@ -122,6 +124,7 @@ describe('test DecisionApiConfig', () => {
 
     config.batchActivateHits = false;
     expect(config.batchActivateHits).toBeFalsy();
+    expect(config.isQAModeEnabled).toBeTruthy();
   });
 
   it('Test envId field ', () => {

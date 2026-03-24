@@ -15,7 +15,7 @@ import { VisitorAbstract } from '../../src/visitor/VisitorAbstract';
 import { IEmotionAI } from '../../src/emotionAI/IEmotionAI';
 import { sleep } from '../helpers';
 
-describe('test BucketingManager', () => {
+describe('BucketingManager', () => {
   const config = new BucketingConfig({
     pollingInterval: 0,
     envId: 'envID',
@@ -75,13 +75,13 @@ describe('test BucketingManager', () => {
     emotionAi
   });
 
-  it('test getCampaignsAsync empty', async () => {
+  it('should return empty array when bucketing content is empty', async () => {
     const campaigns = await bucketingManager.getCampaignsAsync(visitor);
     expect(campaigns).toBeNull();
     expect(sendContext).toBeCalledTimes(0);
   });
 
-  it('test getCampaignsAsync panic mode', async () => {
+  it('should return null and set panic status when panic mode is enabled', async () => {
     getBucketingContent.mockReturnValue({ panic: true });
     sendTroubleshootingHit.mockResolvedValue();
     const campaigns = await bucketingManager.getCampaignsAsync(visitor);
@@ -90,22 +90,22 @@ describe('test BucketingManager', () => {
     expect(sendContext).toBeCalledTimes(0);
   });
 
-  it('test getCampaignsAsync campaign empty', async () => {
+  it('should return empty array when campaign has empty variationGroups', async () => {
     getBucketingContent.mockReturnValue({ campaigns: [{ variationGroups: [] } as any] } as BucketingDTO);
     const campaigns = await bucketingManager.getCampaignsAsync(visitor);
     expect(campaigns).toHaveLength(0);
     expect(sendContext).toBeCalledTimes(1);
   });
 
-  it('test getCampaignsAsync campaign empty', async () => {
+  it('should return null when bucketing content is empty object', async () => {
     getBucketingContent.mockReturnValue({} as BucketingDTO);
     const campaigns = await bucketingManager.getCampaignsAsync(visitor);
     expect(campaigns).toBeNull();
     expect(bucketingManager.isPanic()).toBeFalsy();
   });
 
-  it('test getCampaignsAsync campaign', async () => {
-    getBucketingContent.mockReturnValue(bucketing);
+  it('should return campaigns from bucketing content', async () => {
+    getBucketingContent.mockReturnValue(bucketing as BucketingDTO);
     const campaigns = await bucketingManager.getCampaignsAsync(
       visitor
     );
@@ -117,7 +117,7 @@ describe('test BucketingManager', () => {
   });
 });
 
-describe('test getCampaignsAsync campaign with thirdPartySegment', () => {
+describe('getCampaignsAsync with thirdPartySegment', () => {
   const config = new BucketingConfig({
     pollingInterval: 0,
     envId: 'envID',
@@ -175,8 +175,8 @@ describe('test getCampaignsAsync campaign with thirdPartySegment', () => {
     },
     emotionAi
   });
-  it('test getCampaignsAsync campaign with thirdPartySegment', async () => {
-    getBucketingContent.mockReturnValue(bucketing);
+  it('should fetch third-party segment data when campaign has thirdPartySegment targeting', async () => {
+    getBucketingContent.mockReturnValue(bucketing as BucketingDTO);
 
     const thirdPartySegment = {
       visitor_id: visitorId,
@@ -211,7 +211,7 @@ describe('test getCampaignsAsync campaign with thirdPartySegment', () => {
   });
 });
 
-describe('test sendContext', () => {
+describe('sendContext method', () => {
   const methodNow = Date.now;
   const mockNow = jest.fn<typeof Date.now>();
   beforeAll(() => {
@@ -340,7 +340,7 @@ describe('test sendContext', () => {
   });
 });
 
-describe('test bucketing method', () => {
+describe('bucketing allocation method', () => {
   const config = new BucketingConfig({ pollingInterval: 0 });
   const murmurHash = new MurmurHash();
   const httpClient = new HttpClient();
@@ -463,7 +463,7 @@ describe('test bucketing method', () => {
     expect(response).toEqual(variation);
   });
 
-  it('test getVariation reallocation ', () => {
+  it('should return null when assigned variation is removed (reallocation)', () => {
     visitor.visitorCache = {
       version: 1,
       data: {
@@ -481,7 +481,7 @@ describe('test bucketing method', () => {
     expect(response).toBeNull();
   });
 
-  it('test getVariation visitorCache ', () => {
+  it('should return cached variation from visitor assignment history', () => {
     visitor.visitorCache = {
       version: 1,
       data: {
@@ -496,15 +496,15 @@ describe('test bucketing method', () => {
     expect(response).toEqual(variation);
   });
 
-  it('test isMatchTargeting with empty VariationGroupDTO ', () => {
-    const checkAndTargeting = jest.spyOn(bucketingManagerAny, 'checkAndTargeting');
-    const response = bucketingManagerAny.isMatchTargeting([], visitor);
+  it('should return false when variation group has no targeting', () => {
+    const checkAllTargetingRulesMatch = jest.spyOn(bucketingManagerAny, 'checkAllTargetingRulesMatch');
+    const response = bucketingManagerAny.checkVisitorMatchesTargeting([], visitor);
     expect(response).toBeFalsy();
-    expect(checkAndTargeting).toBeCalledTimes(0);
+    expect(checkAllTargetingRulesMatch).toBeCalledTimes(0);
   });
-  it('test isMatchTargeting ', () => {
-    const checkAndTargeting = jest.spyOn(bucketingManagerAny, 'checkAndTargeting');
-    const response = bucketingManagerAny.isMatchTargeting({
+  it('test checkVisitorMatchesTargeting ', () => {
+    const checkAllTargetingRulesMatch = jest.spyOn(bucketingManagerAny, 'checkAllTargetingRulesMatch');
+    const response = bucketingManagerAny.checkVisitorMatchesTargeting({
       targeting: {
         targetingGroups: [
           {
@@ -518,12 +518,12 @@ describe('test bucketing method', () => {
       }
     }, visitor);
     expect(response).toBeFalsy();
-    expect(checkAndTargeting).toBeCalledTimes(1);
+    expect(checkAllTargetingRulesMatch).toBeCalledTimes(1);
   });
 
-  it('test isMatchTargeting ', () => {
-    const checkAndTargeting = jest.spyOn(bucketingManagerAny, 'checkAndTargeting');
-    const response = bucketingManagerAny.isMatchTargeting({
+  it('test checkVisitorMatchesTargeting ', () => {
+    const checkAllTargetingRulesMatch = jest.spyOn(bucketingManagerAny, 'checkAllTargetingRulesMatch');
+    const response = bucketingManagerAny.checkVisitorMatchesTargeting({
       targeting: {
         targetingGroups: [
           {
@@ -550,11 +550,11 @@ describe('test bucketing method', () => {
       }
     }, visitor);
     expect(response).toBeTruthy();
-    expect(checkAndTargeting).toBeCalledTimes(2);
+    expect(checkAllTargetingRulesMatch).toBeCalledTimes(2);
   });
 
-  it('test checkAndTargeting', () => {
-    const response = bucketingManagerAny.checkAndTargeting([], visitor);
+  it('should return false when targeting rules array is empty', () => {
+    const response = bucketingManagerAny.checkAllTargetingRulesMatch([], visitor);
     expect(response).toBeFalsy();
   });
 
@@ -564,13 +564,13 @@ describe('test bucketing method', () => {
     value: ''
   };
 
-  it('test checkAndTargeting fs_all_users', () => {
-    const response = bucketingManagerAny.checkAndTargeting([targetingAllUsers], visitor);
+  it('should return true for fs_all_users targeting', () => {
+    const response = bucketingManagerAny.checkAllTargetingRulesMatch([targetingAllUsers], visitor);
     expect(response).toBeTruthy();
   });
 
-  it('test checkAndTargeting fs_users', () => {
-    const testOperator = jest.spyOn(bucketingManagerAny, 'testOperator');
+  it('should evaluate fs_users targeting with STARTS_WITH and ENDS_WITH operators', () => {
+    const evaluateOperator = jest.spyOn(bucketingManagerAny, 'evaluateOperator');
     const targetingFsUsers = [{
       key: 'fs_users',
       operator: 'STARTS_WITH',
@@ -580,13 +580,13 @@ describe('test bucketing method', () => {
       operator: 'ENDS_WITH',
       value: '6'
     }];
-    const response = bucketingManagerAny.checkAndTargeting(targetingFsUsers, visitor);
+    const response = bucketingManagerAny.checkAllTargetingRulesMatch(targetingFsUsers, visitor);
     expect(response).toBeTruthy();
-    expect(testOperator).toBeCalledTimes(2);
+    expect(evaluateOperator).toBeCalledTimes(2);
   });
 
-  it('test checkAndTargeting fs_users targeting and', () => {
-    const testOperator = jest.spyOn(bucketingManagerAny, 'testOperator');
+  it('should return false when first fs_users targeting rule fails (AND logic)', () => {
+    const evaluateOperator = jest.spyOn(bucketingManagerAny, 'evaluateOperator');
     const targetingFsUsers = [{
       key: 'fs_users',
       operator: 'STARTS_WITH',
@@ -596,13 +596,13 @@ describe('test bucketing method', () => {
       operator: 'ENDS_WITH',
       value: '6'
     }];
-    const response = bucketingManagerAny.checkAndTargeting(targetingFsUsers, visitor);
+    const response = bucketingManagerAny.checkAllTargetingRulesMatch(targetingFsUsers, visitor);
     expect(response).toBeFalsy();
-    expect(testOperator).toBeCalledTimes(1);
+    expect(evaluateOperator).toBeCalledTimes(1);
   });
 
-  it('test checkAndTargeting key EXISTS 1', () => {
-    const testOperator = jest.spyOn(bucketingManagerAny, 'testOperator');
+  it('should return false when EXISTS operator fails for missing context key', () => {
+    const evaluateOperator = jest.spyOn(bucketingManagerAny, 'evaluateOperator');
     const targetingFsUsers = [{
       key: 'partner::key1',
       operator: 'EXISTS',
@@ -612,13 +612,13 @@ describe('test bucketing method', () => {
       operator: 'ENDS_WITH',
       value: '6'
     }];
-    const response = bucketingManagerAny.checkAndTargeting(targetingFsUsers, visitor);
+    const response = bucketingManagerAny.checkAllTargetingRulesMatch(targetingFsUsers, visitor);
     expect(response).toBeFalsy();
-    expect(testOperator).toBeCalledTimes(0);
+    expect(evaluateOperator).toBeCalledTimes(1);
   });
 
-  it('test checkAndTargeting key EXISTS 2', () => {
-    const testOperator = jest.spyOn(bucketingManagerAny, 'testOperator');
+  it('should return true when EXISTS operator succeeds for existing context key with false value', () => {
+    const evaluateOperator = jest.spyOn(bucketingManagerAny, 'evaluateOperator');
     const targetingFsUsers = [{
       key: 'partner::key1',
       operator: 'EXISTS',
@@ -629,13 +629,13 @@ describe('test bucketing method', () => {
       value: '6'
     }];
     visitor.updateContext({ 'partner::key1': false });
-    const response = bucketingManagerAny.checkAndTargeting(targetingFsUsers, visitor);
+    const response = bucketingManagerAny.checkAllTargetingRulesMatch(targetingFsUsers, visitor);
     expect(response).toBeTruthy();
-    expect(testOperator).toBeCalledTimes(1);
+    expect(evaluateOperator).toBeCalledTimes(2);
   });
 
-  it('test checkAndTargeting key NOT_EXISTS 1', () => {
-    const testOperator = jest.spyOn(bucketingManagerAny, 'testOperator');
+  it('should return true when NOT_EXISTS operator succeeds for missing context key', () => {
+    const evaluateOperator = jest.spyOn(bucketingManagerAny, 'evaluateOperator');
     const targetingFsUsers = [{
       key: 'partner::key2',
       operator: 'NOT_EXISTS',
@@ -645,14 +645,13 @@ describe('test bucketing method', () => {
       operator: 'ENDS_WITH',
       value: '6'
     }];
-    // visitor.updateContext({ 'partner::key1': false })
-    const response = bucketingManagerAny.checkAndTargeting(targetingFsUsers, visitor);
+    const response = bucketingManagerAny.checkAllTargetingRulesMatch(targetingFsUsers, visitor);
     expect(response).toBeTruthy();
-    expect(testOperator).toBeCalledTimes(1);
+    expect(evaluateOperator).toBeCalledTimes(2);
   });
 
-  it('test checkAndTargeting key NOT_EXISTS 2', () => {
-    const testOperator = jest.spyOn(bucketingManagerAny, 'testOperator');
+  it('should return false when NOT_EXISTS operator fails for existing context key', () => {
+    const evaluateOperator = jest.spyOn(bucketingManagerAny, 'evaluateOperator');
     const targetingFsUsers = [{
       key: 'partner::key2',
       operator: 'NOT_EXISTS',
@@ -663,360 +662,588 @@ describe('test bucketing method', () => {
       value: '6'
     }];
     visitor.updateContext({ 'partner::key2': false });
-    const response = bucketingManagerAny.checkAndTargeting(targetingFsUsers, visitor);
+    const response = bucketingManagerAny.checkAllTargetingRulesMatch(targetingFsUsers, visitor);
     expect(response).toBeFalsy();
-    expect(testOperator).toBeCalledTimes(0);
+    expect(evaluateOperator).toBeCalledTimes(1);
   });
 
-  it('test checkAndTargeting key not match context', () => {
-    const testOperator = jest.spyOn(bucketingManagerAny, 'testOperator');
+  it('should return false when context key does not match targeting rule', () => {
+    const evaluateOperator = jest.spyOn(bucketingManagerAny, 'evaluateOperator');
     const targetingKeyContext = {
       key: 'anyKey',
       operator: 'EQUALS',
       value: 'anyValue'
     };
-    const response = bucketingManagerAny.checkAndTargeting([targetingKeyContext], visitor);
+    const response = bucketingManagerAny.checkAllTargetingRulesMatch([targetingKeyContext], visitor);
     expect(response).toBeFalsy();
-    expect(testOperator).toBeCalledTimes(0);
+    expect(evaluateOperator).toBeCalledTimes(1);
   });
 
-  it('test checkAndTargeting key match context', () => {
-    const testOperator = jest.spyOn(bucketingManagerAny, 'testOperator');
+  it('should return true when context key matches targeting rule', () => {
+    const evaluateOperator = jest.spyOn(bucketingManagerAny, 'evaluateOperator');
     const targetingKeyContext = {
       key: 'age',
       operator: 'EQUALS',
       value: 20
     };
-    const response = bucketingManagerAny.checkAndTargeting([targetingKeyContext], visitor);
+    const response = bucketingManagerAny.checkAllTargetingRulesMatch([targetingKeyContext], visitor);
     expect(response).toBeTruthy();
-    expect(testOperator).toBeCalledTimes(1);
-    expect(testOperator).toBeCalledWith(targetingKeyContext.operator, context.age, targetingKeyContext.value);
+    expect(evaluateOperator).toBeCalledTimes(1);
+    expect(evaluateOperator).toBeCalledWith(targetingKeyContext.operator, context.age, targetingKeyContext.value);
   });
 
-  it('test checkAndTargeting ', () => {
-    const testOperator = jest.spyOn(bucketingManagerAny, 'testOperator');
+  it('test checkAllTargetingRulesMatch ', () => {
+    const evaluateOperator = jest.spyOn(bucketingManagerAny, 'evaluateOperator');
     const targetingKeyContext = {
       key: 'anyValue',
       operator: 'EQUALS',
       value: 21
     };
-    const response = bucketingManagerAny.checkAndTargeting([targetingKeyContext, targetingAllUsers], visitor);
+    const response = bucketingManagerAny.checkAllTargetingRulesMatch([targetingKeyContext, targetingAllUsers], visitor);
     expect(response).toBeFalsy();
-    expect(testOperator).toBeCalledTimes(0);
+    expect(evaluateOperator).toBeCalledTimes(1);
   });
 
-  it('test testOperator EQUALS Test different values', () => {
-    const contextValue = 5;
-    const targetingValue = 6;
-    const response = bucketingManagerAny.testOperator('EQUALS', contextValue, targetingValue);
+
+
+  it('test evaluateOperator EQUALS Test different values', () => {
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'EQUALS',
+      value: 6
+    }, { context: { my_key: 5 } }
+    );
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator EQUALS Test different type', () => {
+  it('test evaluateOperator EQUALS Test different type', () => {
     const contextValue = 5;
     const targetingValue = '5';
-    const response = bucketingManagerAny.testOperator('EQUALS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'EQUALS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
+
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator EQUALS Test same type and value', () => {
+  it('test evaluateOperator EQUALS Test same type and value', () => {
     const contextValue = 5;
     const targetingValue = 5;
-    const response = bucketingManagerAny.testOperator('EQUALS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'EQUALS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator NOT_EQUALS Test different values', () => {
+  it('test evaluateOperator NOT_EQUALS Test different values', () => {
     const contextValue = 5;
     const targetingValue = 6;
-    const response = bucketingManagerAny.testOperator('NOT_EQUALS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'NOT_EQUALS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator NOT_EQUALS Test different type', () => {
+  it('test evaluateOperator NOT_EQUALS Test different type', () => {
     const contextValue = 5;
     const targetingValue = '5';
-    const response = bucketingManagerAny.testOperator('NOT_EQUALS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'NOT_EQUALS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator NOT_EQUALS Test same type and value', () => {
+  it('test evaluateOperator NOT_EQUALS Test same type and value', () => {
     const contextValue = 5;
     const targetingValue = 5;
-    const response = bucketingManagerAny.testOperator('NOT_EQUALS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'NOT_EQUALS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator CONTAINS Test contextValue not contains targetingValue', () => {
+  it('test evaluateOperator CONTAINS Test contextValue not contains targetingValue', () => {
     const contextValue = 'a';
     const targetingValue = 'b';
-    const response = bucketingManagerAny.testOperator('CONTAINS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'CONTAINS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator CONTAINS Test contextValue contains targetingValue', () => {
+  it('test evaluateOperator CONTAINS Test contextValue contains targetingValue', () => {
     const contextValue = 'abc';
     const targetingValue = 'b';
-    const response = bucketingManagerAny.testOperator('CONTAINS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'CONTAINS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
+
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator CONTAINS Test contextValue contains targetingValue', () => {
+  it('test evaluateOperator CONTAINS Test contextValue contains targetingValue', () => {
     const contextValue = 'nopq_hij';
     const targetingValue = ['abc', 'dfg', 'hij', 'klm'];
-    const response = bucketingManagerAny.testOperator('CONTAINS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'CONTAINS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
+
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator NOT_CONTAINS Test contextValue not contains targetingValue', () => {
+  it('test evaluateOperator NOT_CONTAINS Test contextValue not contains targetingValue', () => {
     const contextValue = 'abc';
     const targetingValue = 'd';
-    const response = bucketingManagerAny.testOperator('NOT_CONTAINS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'NOT_CONTAINS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator NOT_CONTAINS Test contextValue contains targetingValue', () => {
+  it('test evaluateOperator NOT_CONTAINS Test contextValue contains targetingValue', () => {
     const contextValue = 'abc';
     const targetingValue = 'b';
-    const response = bucketingManagerAny.testOperator('NOT_CONTAINS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'NOT_CONTAINS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator GREATER_THAN Test contextValue not GREATER_THAN targetingValue', () => {
+  it('test evaluateOperator GREATER_THAN Test contextValue not GREATER_THAN targetingValue', () => {
     const contextValue = 5;
     const targetingValue = 6;
-    const response = bucketingManagerAny.testOperator('GREATER_THAN', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'GREATER_THAN',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator GREATER_THAN Test contextValue not GREATER_THAN targetingValue', () => {
+  it('test evaluateOperator GREATER_THAN Test contextValue not GREATER_THAN targetingValue', () => {
     const contextValue = 5;
     const targetingValue = 5;
-    const response = bucketingManagerAny.testOperator('GREATER_THAN', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'GREATER_THAN',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator GREATER_THAN Test contextValue not GREATER_THAN targetingValue', () => {
+  it('test evaluateOperator GREATER_THAN Test contextValue not GREATER_THAN targetingValue', () => {
     const contextValue = 'a';
     const targetingValue = 'b';
-    const response = bucketingManagerAny.testOperator('GREATER_THAN', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'GREATER_THAN',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator GREATER_THAN Test contextValue not GREATER_THAN targetingValue', () => {
+  it('test evaluateOperator GREATER_THAN Test contextValue not GREATER_THAN targetingValue', () => {
     const contextValue = 'abz';
     const targetingValue = 'bcg';
-    const response = bucketingManagerAny.testOperator('GREATER_THAN', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'GREATER_THAN',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator GREATER_THAN Test contextValue GREATER_THAN targetingValue', () => {
+  it('test evaluateOperator GREATER_THAN Test contextValue GREATER_THAN targetingValue', () => {
     const contextValue = 8;
     const targetingValue = 5;
-    const response = bucketingManagerAny.testOperator('GREATER_THAN', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'GREATER_THAN',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator GREATER_THAN Test contextValue GREATER_THAN targetingValue', () => {
+  it('test evaluateOperator GREATER_THAN Test contextValue GREATER_THAN targetingValue', () => {
     const contextValue = '9dlk';
     const targetingValue = '8';
-    const response = bucketingManagerAny.testOperator('GREATER_THAN', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'GREATER_THAN',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator LOWER_THAN Test contextValue LOWER_THAN targetingValue', () => {
+  it('test evaluateOperator LOWER_THAN Test contextValue LOWER_THAN targetingValue', () => {
     const contextValue = 5;
     const targetingValue = 6;
-    const response = bucketingManagerAny.testOperator('LOWER_THAN', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'LOWER_THAN',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator LOWER_THAN Test contextValue not GREATER_THAN targetingValue', () => {
+  it('test evaluateOperator LOWER_THAN Test contextValue not GREATER_THAN targetingValue', () => {
     const contextValue = 5;
     const targetingValue = 5;
-    const response = bucketingManagerAny.testOperator('LOWER_THAN', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'LOWER_THAN',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator LOWER_THAN Test contextValue LOWER_THAN targetingValue', () => {
+  it('test evaluateOperator LOWER_THAN Test contextValue LOWER_THAN targetingValue', () => {
     const contextValue = 'a';
     const targetingValue = 'b';
-    const response = bucketingManagerAny.testOperator('LOWER_THAN', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'LOWER_THAN',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator LOWER_THAN Test contextValue LOWER_THAN targetingValue', () => {
+  it('test evaluateOperator LOWER_THAN Test contextValue LOWER_THAN targetingValue', () => {
     const contextValue = 'abz';
     const targetingValue = 'bcg';
-    const response = bucketingManagerAny.testOperator('LOWER_THAN', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'LOWER_THAN',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator LOWER_THAN Test contextValue not LOWER_THAN targetingValue', () => {
+  it('test evaluateOperator LOWER_THAN Test contextValue not LOWER_THAN targetingValue', () => {
     const contextValue = 8;
     const targetingValue = 2;
-    const response = bucketingManagerAny.testOperator('LOWER_THAN', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'LOWER_THAN',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator GREATER_THAN_OR_EQUALS Test contextValue GREATER_THAN targetingValue', () => {
+  it('test evaluateOperator GREATER_THAN_OR_EQUALS Test contextValue GREATER_THAN targetingValue', () => {
     const contextValue = 8;
     const targetingValue = 2;
-    const response = bucketingManagerAny.testOperator('GREATER_THAN_OR_EQUALS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'GREATER_THAN_OR_EQUALS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator GREATER_THAN_OR_EQUALS Test contextValue EQUALS targetingValue', () => {
+  it('test evaluateOperator GREATER_THAN_OR_EQUALS Test contextValue EQUALS targetingValue', () => {
     const contextValue = 8;
     const targetingValue = 8;
-    const response = bucketingManagerAny.testOperator('GREATER_THAN_OR_EQUALS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'GREATER_THAN_OR_EQUALS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator GREATER_THAN_OR_EQUALS Test contextValue LOWER_THAN targetingValue', () => {
+  it('test evaluateOperator GREATER_THAN_OR_EQUALS Test contextValue LOWER_THAN targetingValue', () => {
     const contextValue = 7;
     const targetingValue = 8;
-    const response = bucketingManagerAny.testOperator('GREATER_THAN_OR_EQUALS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'GREATER_THAN_OR_EQUALS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator GREATER_THAN_OR_EQUALS Test contextValue LOWER_THAN targetingValue', () => {
+  it('test evaluateOperator GREATER_THAN_OR_EQUALS Test contextValue LOWER_THAN targetingValue', () => {
     const contextValue = 'a';
     const targetingValue = 'b';
-    const response = bucketingManagerAny.testOperator('GREATER_THAN_OR_EQUALS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'GREATER_THAN_OR_EQUALS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator LOWER_THAN_OR_EQUALS Test contextValue GREATER_THAN targetingValue', () => {
+  it('test evaluateOperator LOWER_THAN_OR_EQUALS Test contextValue GREATER_THAN targetingValue', () => {
     const contextValue = 8;
     const targetingValue = 6;
-    const response = bucketingManagerAny.testOperator('LOWER_THAN_OR_EQUALS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'LOWER_THAN_OR_EQUALS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator LOWER_THAN_OR_EQUALS Test contextValue EQUALS targetingValue', () => {
+  it('test evaluateOperator LOWER_THAN_OR_EQUALS Test contextValue EQUALS targetingValue', () => {
     const contextValue = 8;
     const targetingValue = 8;
-    const response = bucketingManagerAny.testOperator('LOWER_THAN_OR_EQUALS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'LOWER_THAN_OR_EQUALS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator LOWER_THAN_OR_EQUALS Test contextValue LOWER_THAN targetingValue', () => {
+  it('test evaluateOperator LOWER_THAN_OR_EQUALS Test contextValue LOWER_THAN targetingValue', () => {
     const contextValue = 7;
     const targetingValue = 8;
-    const response = bucketingManagerAny.testOperator('LOWER_THAN_OR_EQUALS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'LOWER_THAN_OR_EQUALS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator LOWER_THAN_OR_EQUALS Test contextValue LOWER_THAN targetingValue', () => {
+  it('test evaluateOperator LOWER_THAN_OR_EQUALS Test contextValue LOWER_THAN targetingValue', () => {
     const contextValue = 'a';
     const targetingValue = 'b';
-    const response = bucketingManagerAny.testOperator('LOWER_THAN_OR_EQUALS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'LOWER_THAN_OR_EQUALS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator STARTS_WITH Test contextValue STARTS_WITH targetingValue', () => {
+  it('test evaluateOperator STARTS_WITH Test contextValue STARTS_WITH targetingValue', () => {
     const contextValue = 'abcd';
     const targetingValue = 'ab';
-    const response = bucketingManagerAny.testOperator('STARTS_WITH', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'STARTS_WITH',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator STARTS_WITH Test contextValue STARTS_WITH targetingValue', () => {
+  it('test evaluateOperator STARTS_WITH Test contextValue STARTS_WITH targetingValue', () => {
     const contextValue = 'abcd';
     const targetingValue = 'AB';
-    const response = bucketingManagerAny.testOperator('STARTS_WITH', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'STARTS_WITH',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator STARTS_WITH Test contextValue STARTS_WITH targetingValue', () => {
+  it('test evaluateOperator STARTS_WITH Test contextValue STARTS_WITH targetingValue', () => {
     const contextValue = 'abcd';
     const targetingValue = 'ac';
-    const response = bucketingManagerAny.testOperator('STARTS_WITH', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'STARTS_WITH',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator ENDS_WITH Test contextValue ENDS_WITH targetingValue', () => {
+  it('test evaluateOperator ENDS_WITH Test contextValue ENDS_WITH targetingValue', () => {
     const contextValue = 'abcd';
     const targetingValue = 'cd';
-    const response = bucketingManagerAny.testOperator('ENDS_WITH', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'ENDS_WITH',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator ENDS_WITH Test contextValue ENDS_WITH targetingValue', () => {
+  it('test evaluateOperator ENDS_WITH Test contextValue ENDS_WITH targetingValue', () => {
     const contextValue = 'abcd';
     const targetingValue = 'CD';
-    const response = bucketingManagerAny.testOperator('ENDS_WITH', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'ENDS_WITH',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator ENDS_WITH Test contextValue ENDS_WITH targetingValue', () => {
+  it('test evaluateOperator ENDS_WITH Test contextValue ENDS_WITH targetingValue', () => {
     const contextValue = 'abcd';
     const targetingValue = 'bd';
-    const response = bucketingManagerAny.testOperator('ENDS_WITH', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'ENDS_WITH',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator CONTAINS Test contextValue CONTAINS targetingValue list', () => {
+  it('test evaluateOperator CONTAINS Test contextValue CONTAINS targetingValue list', () => {
     const contextValue = 'abcd';
     const targetingValue = ['a', 'e'];
-    const response = bucketingManagerAny.testOperator('CONTAINS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'CONTAINS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator EQUALS Test contextValue EQUALS targetingValue list', () => {
+  it('test evaluateOperator EQUALS Test contextValue EQUALS targetingValue list', () => {
     const contextValue = 'a';
     const targetingValue = ['a', 'b', 'c'];
-    const response = bucketingManagerAny.testOperator('EQUALS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'EQUALS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator CONTAINS Test contextValue not CONTAINS targetingValue list', () => {
+  it('test evaluateOperator CONTAINS Test contextValue not CONTAINS targetingValue list', () => {
     const contextValue = 'abcd';
     const targetingValue = ['e', 'f'];
-    const response = bucketingManagerAny.testOperator('CONTAINS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'CONTAINS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator EQUALS Test contextValue EQUALS targetingValue list', () => {
+  it('test evaluateOperator EQUALS Test contextValue EQUALS targetingValue list', () => {
     const contextValue = 'a';
     const targetingValue = ['b', 'c', 'd'];
-    const response = bucketingManagerAny.testOperator('EQUALS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'EQUALS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator NOT_CONTAINS Test contextValue NOT_CONTAINS targetingValue list', () => {
+  it('test evaluateOperator NOT_CONTAINS Test contextValue NOT_CONTAINS targetingValue list', () => {
     const contextValue = 'abcd';
     const targetingValue = ['e', 'f'];
-    const response = bucketingManagerAny.testOperator('NOT_CONTAINS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'NOT_CONTAINS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator NOT_EQUALS Test contextValue NOT_EQUALS targetingValue list', () => {
+  it('test evaluateOperator NOT_EQUALS Test contextValue NOT_EQUALS targetingValue list', () => {
     const contextValue = 'a';
     const targetingValue = ['b', 'c', 'd'];
-    const response = bucketingManagerAny.testOperator('NOT_EQUALS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'NOT_EQUALS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeTruthy();
   });
 
-  it('test testOperator NOT_CONTAINS Test contextValue not NOT_CONTAINS targetingValue list', () => {
+  it('test evaluateOperator NOT_CONTAINS Test contextValue not NOT_CONTAINS targetingValue list', () => {
     const contextValue = 'abcd';
     const targetingValue = ['a', 'e'];
-    const response = bucketingManagerAny.testOperator('NOT_CONTAINS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'NOT_CONTAINS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator NOT_EQUALS Test contextValue NOT_EQUALS targetingValue list', () => {
+  it('test evaluateOperator NOT_EQUALS Test contextValue NOT_EQUALS targetingValue list', () => {
     const contextValue = 'a';
     const targetingValue = ['a', 'b', 'c'];
-    const response = bucketingManagerAny.testOperator('NOT_EQUALS', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'NOT_EQUALS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeFalsy();
   });
 
-  it('test testOperator NotEXIST', () => {
+  it('test evaluateOperator NotEXIST', () => {
     const contextValue = 'abcd';
     const targetingValue = 'bd';
-    const response = bucketingManagerAny.testOperator('NotEXIST', contextValue, targetingValue);
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'NotEXIST',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
     expect(response).toBeFalsy();
   });
 });

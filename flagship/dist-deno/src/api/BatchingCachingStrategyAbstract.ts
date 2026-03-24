@@ -109,11 +109,11 @@ export abstract class BatchingCachingStrategyAbstract implements ITrackingManage
   }
 
   public sendHitsToFsQa(hits: HitAbstract[]):void {
-    if (__fsWebpackIsBrowser__) {
-      if (!isBrowser() || !this.config.isQAModeEnabled) {
+    if (__fsWebpackIsBrowser__ || __fsWebpackIsReactNative__) {
+      if (!this.config.isQAModeEnabled) {
         return;
       }
-      import('../qaAssistant/messages/index.ts').then((message) => {
+      import('../qaAssistant/common/handleMessage.ts').then((message) => {
 
         this._HitsToFsQa.push(...hits);
         const BATCH_SIZE = 10;

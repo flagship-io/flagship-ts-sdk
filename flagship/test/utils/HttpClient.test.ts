@@ -8,7 +8,7 @@ import { HttpError } from '../../src/utils/HttpError';
 
 // globalThis.AbortController = require('node-abort-controller')
 
-describe('Post method tests for NOdeHttpClient', () => {
+describe('Post method tests for NodeHttpClient', () => {
   const fetch = jest.spyOn(nodeDeps, 'myFetch') as any;
   const nodeHttpClient = new HttpClient();
   const url = 'https://localhost';
@@ -67,7 +67,7 @@ describe('Post method tests for NOdeHttpClient', () => {
   );
 });
 
-describe('Get method tests for NOdeHttpClient', () => {
+describe('Get method tests for NodeHttpClient', () => {
   const fetch = jest.spyOn(nodeDeps, 'myFetch') as any;
   const nodeHttpClient = new HttpClient();
   const url = 'https://localhost';
