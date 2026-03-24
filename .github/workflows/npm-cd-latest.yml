@@ -27,6 +27,5 @@ jobs:
       - run: yarn install
       - run: yarn test --coverage
       - run: yarn build-prod
-      - run: npm publish 
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish to npm with OIDC
+        run: NODE_AUTH_TOKEN="" npm publish --provenance --access public
