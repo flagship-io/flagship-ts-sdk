@@ -104,6 +104,7 @@ export class Flagship {
       const globalScope = globalThis as unknown as FlagshipGlobal;
 
       globalScope.__flagship_instance__ = globalScope.__flagship_instance__ || new this();
+      this._instance = globalScope.__flagship_instance__;
       return globalScope.__flagship_instance__;
     } else{
       if (!this._instance) {
@@ -391,7 +392,7 @@ export class Flagship {
    * When called, it will batch and send all hits that are in the pool before the application is closed
    */
   public static async close(): Promise<void> {
-    await this._instance?.configManager?.trackingManager?.sendBatch();
+    await this.getInstance().configManager?.trackingManager?.sendBatch();
   }
 
   /**
