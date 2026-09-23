@@ -789,6 +789,77 @@ describe('bucketing allocation method', () => {
     expect(response).toBeFalsy();
   });
 
+  it('test evaluateOperator NOT_EQUALS Test context key missing', () => {
+    const contextValue = 5;
+    const targetingValue = 6;
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key_2',
+      operator: 'NOT_EQUALS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
+    expect(response).toBeFalsy();
+  });
+
+  it('test evaluateOperator CONTAINS Test context key missing', () => {
+    const contextValue = 'a';
+    const targetingValue = 'b';
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key_2',
+      operator: 'CONTAINS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
+    expect(response).toBeFalsy();
+  });
+
+  it('test evaluateOperator NOT_CONTAINS Test context key missing', () => {
+    const contextValue = 'a';
+    const targetingValue = 'b';
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key_2',
+      operator: 'NOT_CONTAINS',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
+    expect(response).toBeFalsy();
+  });
+
+  it('test evaluateOperator STARTS_WITH Test context key missing', () => {
+    const contextValue = 'a';
+    const targetingValue = 'b';
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key_2',
+      operator: 'STARTS_WITH',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
+    expect(response).toBeFalsy();
+  });
+
+  it('test evaluateOperator ENDS_WITH Test context key missing', () => {
+    const contextValue = 'a';
+    const targetingValue = 'b';
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key_2',
+      operator: 'ENDS_WITH',
+      value: targetingValue
+    }, { context: { my_key: contextValue } }
+    );
+    expect(response).toBeFalsy();
+  });
+
+  it('test evaluateOperator CONTAINS Test context value null', () => {
+    const targetingValue = 'b';
+    const response = bucketingManagerAny.matchesTargetingCriteria({
+      key: 'my_key',
+      operator: 'CONTAINS',
+      value: targetingValue
+    }, { context: { my_key: null } }
+    );
+    expect(response).toBeFalsy();
+  });
+
   it('test evaluateOperator CONTAINS Test contextValue contains targetingValue', () => {
     const contextValue = 'abc';
     const targetingValue = 'b';
