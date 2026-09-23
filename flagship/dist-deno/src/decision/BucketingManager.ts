@@ -270,11 +270,17 @@ export class BucketingManager extends DecisionManager {
     if (operator === TargetingOperator.EQUALS) {
       return  visitorValue === targetValue;
     }
+    if (visitorValue === undefined || visitorValue === null) {
+      return false;
+    }
     return visitorValue !== targetValue;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private evaluateStringOperator(operator: TargetingOperator, visitorValue: primitive, targetValue: any): boolean {
+    if (visitorValue === undefined || visitorValue === null || targetValue === undefined || targetValue === null) {
+      return false;
+    }
     const visitorStr = visitorValue.toString();
     const targetStr = targetValue.toString();
 
