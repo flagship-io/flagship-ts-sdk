@@ -46,7 +46,7 @@ import { FlagshipGlobal, VisitorVariationState } from '../type.local.ts';
 import { launchQaAssistant as launchQaAssistantMobile } from '../qaAssistant/mobile/index.ts';
 
 /**
- * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors.
+ * The `Flagship` class represents the SDK. It facilitates the initialization process and creation of new visitors
  */
 export class Flagship {
 
